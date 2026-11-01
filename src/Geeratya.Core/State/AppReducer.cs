@@ -35,6 +35,7 @@ public sealed class AppReducer
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
+            ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             _ => Result(state),
         };
     }

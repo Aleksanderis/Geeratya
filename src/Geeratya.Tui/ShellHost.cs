@@ -15,7 +15,7 @@ namespace Geeratya.Tui;
 /// Runs the Terminal.Gui loop and connects it to the state layer: keys become commands, state becomes a frame.
 /// Nothing here waits on the network; the first frame is drawn before any Jira call exists.
 /// </summary>
-public sealed class ShellHost
+public sealed class ShellHost : IDisposable
 {
     private const string CorruptNotice =
         "profiles.json could not be read and was ignored; a copy was kept as profiles.json.corrupt.";
@@ -25,6 +25,7 @@ public sealed class ShellHost
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
+    private readonly SiteConnections _connections;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
@@ -36,7 +37,13 @@ public sealed class ShellHost
         _colors = colors;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
+        _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
+    }
+
+    public void Dispose()
+    {
+        _connections.Dispose();
     }
 
     public int Run()
@@ -64,6 +71,7 @@ public sealed class ShellHost
 
         _screen = screen;
         screen.Render(_state);
+        _ = ConnectAsync();
         application.Run(screen);
         shutdown.Cancel();
 
@@ -105,10 +113,27 @@ public sealed class ShellHost
             {
                 _application!.RequestStop();
             }
+            else if (effect is DropSiteCacheEffect drop)
+            {
+                _connections.Drop(drop.Profile);
+            }
             else
             {
                 _ = RunEffectAsync(effect);
             }
+        }
+
+        _ = ConnectAsync();
+    }
+
+    /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
+    private async Task ConnectAsync()
+    {
+        var failure = await _connections.ActivateAsync(_state.Profiles.Active, _shutdownToken);
+
+        if (failure is not null && !_shutdownToken.IsCancellationRequested)
+        {
+            _application!.Invoke(() => Dispatch(failure));
         }
     }
 

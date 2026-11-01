@@ -82,7 +82,9 @@ public sealed class ApplicationRunner
             return 1;
         }
 
-        return new ShellHost(keymap, _colors, profiles).Run();
+        using var host = new ShellHost(keymap, _colors, profiles);
+
+        return host.Run();
     }
 
     private int PrintFrame(string[] arguments, KeymapTable keymap)

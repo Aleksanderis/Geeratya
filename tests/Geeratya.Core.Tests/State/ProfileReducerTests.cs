@@ -342,6 +342,20 @@ public class ProfileReducerTests
     }
 
     [Fact]
+    public void GivenFailureOfOldProfile_WhenReducing_ThenItIsIgnoredAndActiveProfileFailureIsShown()
+    {
+        var state = WithProfiles(_work, _dev);
+        var active = state.Profiles.Active!;
+        var other = state.Profiles.Profiles.First(profile => profile != active);
+
+        var stale = _reducer.Reduce(state, new ConnectionFailed(other, "Old failure.")).State;
+        var current = _reducer.Reduce(state, new ConnectionFailed(active, "Current failure.")).State;
+
+        Assert.Null(stale.Message);
+        Assert.Equal("Current failure.", current.Message);
+    }
+
+    [Fact]
     public void GivenViewsAndCache_WhenTheActiveProfileStays_ThenViewsAndCacheAreKept()
     {
         var state = WithOpenSession();
