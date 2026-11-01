@@ -1,0 +1,64 @@
+{
+  "columnConfig": {
+    "columns": [
+      {
+        "name": "Backlog",
+        "statuses": [
+          {
+            "id": "10003",
+            "self": "https://example.atlassian.net/rest/api/2/status/10003"
+          }
+        ]
+      },
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10004",
+            "self": "https://example.atlassian.net/rest/api/2/status/10004"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "self": "https://example.atlassian.net/rest/api/2/status/3"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10005",
+            "self": "https://example.atlassian.net/rest/api/2/status/10005"
+          }
+        ]
+      }
+    ],
+    "constraintType": "issueCount"
+  },
+  "filter": {
+    "id": "10001",
+    "self": "https://example.atlassian.net/rest/api/2/filter/10001"
+  },
+  "id": 4,
+  "location": {
+    "id": "10003",
+    "key": "GCM",
+    "name": "GCM",
+    "self": "https://example.atlassian.net/rest/api/2/project/10003",
+    "type": "project"
+  },
+  "name": "GCM board",
+  "ranking": {
+    "rankCustomFieldId": 10019
+  },
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/4/configuration",
+  "subQuery": {
+    "query": "fixVersion in unreleasedVersions() OR fixVersion is EMPTY"
+  },
+  "type": "kanban"
+}

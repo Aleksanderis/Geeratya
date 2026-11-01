@@ -1,0 +1,12 @@
+{
+  "keys": [
+    {
+      "key": "jsw-roadmaps-classic-board-enable-roadmaps",
+      "self": "https://example.atlassian.net/rest/api/2/board/4/properties/jsw-roadmaps-classic-board-enable-roadmaps"
+    },
+    {
+      "key": "jsw-roadmaps-cmp-enable-child-issue-planning",
+      "self": "https://example.atlassian.net/rest/api/2/board/4/properties/jsw-roadmaps-cmp-enable-child-issue-planning"
+    }
+  ]
+}

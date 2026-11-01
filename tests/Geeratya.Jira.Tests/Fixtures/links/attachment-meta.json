@@ -1,0 +1,17 @@
+{
+  "author": {
+    "accountId": "fake-account-1",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1"
+  },
+  "content": "https://example.atlassian.net/rest/api/3/attachment/content/10000",
+  "created": "2026-11-01T17:31:01.658+0200",
+  "filename": "note.txt",
+  "id": 10000,
+  "mimeType": "text/plain",
+  "properties": {},
+  "self": "https://example.atlassian.net/rest/api/3/attachment/10000",
+  "size": 23
+}

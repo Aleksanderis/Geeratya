@@ -1,0 +1,141 @@
+[
+  {
+    "avatarId": 10316,
+    "description": "Subtasks track small pieces of work that are part of a larger task.",
+    "hierarchyLevel": -1,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+    "id": "10011",
+    "name": "Subtask",
+    "scope": {
+      "project": {
+        "id": "10002"
+      },
+      "type": "PROJECT"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10011",
+    "subtask": true,
+    "untranslatedName": "Subtask"
+  },
+  {
+    "avatarId": 10316,
+    "description": "A small piece of work that's part of a larger task.",
+    "hierarchyLevel": -1,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+    "id": "10007",
+    "name": "Sub-task",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10007",
+    "subtask": true,
+    "untranslatedName": "Sub-task"
+  },
+  {
+    "avatarId": 10315,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+    "id": "10008",
+    "name": "Story",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10008",
+    "subtask": false,
+    "untranslatedName": "Story"
+  },
+  {
+    "avatarId": 10303,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+    "id": "10009",
+    "name": "Bug",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10009",
+    "subtask": false,
+    "untranslatedName": "Bug"
+  },
+  {
+    "avatarId": 10318,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+    "id": "10010",
+    "name": "Task",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+    "subtask": false,
+    "untranslatedName": "Task"
+  },
+  {
+    "avatarId": 10303,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+    "id": "10014",
+    "name": "Bug",
+    "scope": {
+      "project": {
+        "id": "10002"
+      },
+      "type": "PROJECT"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10014",
+    "subtask": false,
+    "untranslatedName": "Bug"
+  },
+  {
+    "avatarId": 10315,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+    "id": "10013",
+    "name": "Story",
+    "scope": {
+      "project": {
+        "id": "10002"
+      },
+      "type": "PROJECT"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10013",
+    "subtask": false,
+    "untranslatedName": "Story"
+  },
+  {
+    "avatarId": 10318,
+    "description": "",
+    "hierarchyLevel": 0,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+    "id": "10015",
+    "name": "Task",
+    "scope": {
+      "project": {
+        "id": "10002"
+      },
+      "type": "PROJECT"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10015",
+    "subtask": false,
+    "untranslatedName": "Task"
+  },
+  {
+    "avatarId": 10307,
+    "description": "",
+    "hierarchyLevel": 1,
+    "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+    "id": "10012",
+    "name": "Epic",
+    "scope": {
+      "project": {
+        "id": "10002"
+      },
+      "type": "PROJECT"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+    "subtask": false,
+    "untranslatedName": "Epic"
+  },
+  {
+    "description": "A big user story that needs to be broken down. Created by Jira Software - do not edit or delete.",
+    "hierarchyLevel": 1,
+    "iconUrl": "https://example.atlassian.net/images/icons/issuetypes/epic.svg",
+    "id": "10000",
+    "name": "Epic",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10000",
+    "subtask": false,
+    "untranslatedName": "Epic"
+  }
+]
