@@ -31,7 +31,11 @@ public static class FrameBuilder
         var bodyHeight = height - 1;
         var body = state.Mode == InputMode.Help
             ? HelpBody(state, helpLines, width, bodyHeight)
-            : StartBody(width, bodyHeight, string.Join(StartHintGap, StatusBar.HintsFor(InputMode.Normal, keymap)));
+            : StartBody(
+                width,
+                bodyHeight,
+                string.Join(StartHintGap, StatusBar.HintsFor(InputMode.Normal, keymap)),
+                ProfileLine(state, keymap));
 
         var lines = new List<string>(body) { StatusBar.Render(state, width, keymap) };
 
@@ -47,7 +51,7 @@ public static class FrameBuilder
         return Normalize(lines, width, bodyHeight);
     }
 
-    private static List<string> StartBody(int width, int bodyHeight, string startHint)
+    private static List<string> StartBody(int width, int bodyHeight, string startHint, string profileLine)
     {
         var lines = new List<string>();
 
@@ -61,6 +65,7 @@ public static class FrameBuilder
         if (bodyHeight >= BlockHeight)
         {
             lines[top] = Center(Title, width);
+            lines[top + 1] = Center(profileLine, width);
             lines[top + 2] = Center(startHint, width);
         }
         else if (bodyHeight > 0)
@@ -69,6 +74,18 @@ public static class FrameBuilder
         }
 
         return Normalize(lines, width, bodyHeight);
+    }
+
+    private static string ProfileLine(AppState state, KeymapTable keymap)
+    {
+        if (state.Profiles.Active is { } active)
+        {
+            return $"{active.Name}: {active.Email} on {active.SiteUrl}";
+        }
+
+        var palette = keymap.FindKeys(InputMode.Normal, ActionIds.PaletteOpen);
+
+        return $"No profile yet: {palette}profile add";
     }
 
     private static List<string> Normalize(List<string> lines, int width, int height)

@@ -7,6 +7,7 @@ namespace Geeratya.Tui.Rendering;
 public static class StatusBar
 {
     private const string HintGap = "  ";
+    private const int FieldCount = 4;
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -20,6 +21,8 @@ public static class StatusBar
         new(InputMode.Command, ActionIds.Cancel, "cancel"),
         new(InputMode.Confirm, ActionIds.ConfirmYes, "yes"),
         new(InputMode.Confirm, ActionIds.ConfirmNo, "no"),
+        new(InputMode.Insert, ActionIds.FormNext, "next"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
     /// <summary>The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.</summary>
@@ -70,6 +73,7 @@ public static class StatusBar
             InputMode.Command => "COMMAND",
             InputMode.Help => "HELP",
             InputMode.Confirm => "CONFIRM",
+            InputMode.Insert => "INSERT",
             _ => "NORMAL",
         };
     }
@@ -81,8 +85,29 @@ public static class StatusBar
             InputMode.Command => $":{state.PaletteText}",
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
+            InputMode.Insert => FormText(state.Form),
             _ => state.Message ?? state.PendingKeys,
         };
+    }
+
+    private static string FormText(ProfileForm? form)
+    {
+        if (form is null)
+        {
+            return string.Empty;
+        }
+
+        var (label, value) = form.Field switch
+        {
+            ProfileFormField.Name => ("Profile name", form.Name),
+            ProfileFormField.SiteUrl => ("Site URL", form.SiteUrl),
+            ProfileFormField.Email => ("Account email", form.Email),
+            _ => ("API token (hidden)", new string('*', form.Token.Length)),
+        };
+        var step = (int)form.Field + 1;
+        var error = form.Error is null ? string.Empty : $"  ! {form.Error}";
+
+        return $"[{step}/{FieldCount}] {label}: {value}_{error}";
     }
 
     /// <summary>Cuts the question, never the answer keys: the suffix stays visible on a narrow terminal.</summary>

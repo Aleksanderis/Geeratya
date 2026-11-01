@@ -6,7 +6,7 @@ namespace Geeratya.Core.Keymap;
 public static class KeymapDocument
 {
     private static readonly InputMode[] _modes =
-        [InputMode.Normal, InputMode.Help, InputMode.Command, InputMode.Confirm];
+        [InputMode.Normal, InputMode.Help, InputMode.Command, InputMode.Confirm, InputMode.Insert];
 
     /// <summary>The generated key reference; lines end with <c>\n</c>.</summary>
     public static string RenderMarkdown(KeymapTable keymap)

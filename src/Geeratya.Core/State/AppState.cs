@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 
 namespace Geeratya.Core.State;
 
@@ -9,13 +10,18 @@ namespace Geeratya.Core.State;
 /// <param name="HelpScroll">The first visible line of the help overlay.</param>
 /// <param name="Message">A one-line notice for the status line, or null.</param>
 /// <param name="Confirm">The open confirmation in Confirm mode, otherwise null.</param>
+/// <param name="Profiles">The saved profiles and the active one.</param>
+/// <param name="Form">The add-profile form in Insert mode, otherwise null.</param>
 public sealed record AppState(
     InputMode Mode,
     string PendingKeys,
     string PaletteText,
     int HelpScroll,
     string? Message,
-    ConfirmRequest? Confirm)
+    ConfirmRequest? Confirm,
+    ProfileCatalog Profiles,
+    ProfileForm? Form)
 {
-    public static AppState Initial { get; } = new(InputMode.Normal, string.Empty, string.Empty, 0, null, null);
+    public static AppState Initial { get; } =
+        new(InputMode.Normal, string.Empty, string.Empty, 0, null, null, ProfileCatalog.Empty, null);
 }

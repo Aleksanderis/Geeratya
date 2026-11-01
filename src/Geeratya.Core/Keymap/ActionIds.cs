@@ -20,4 +20,6 @@ public static class ActionIds
     public const string PaletteBackspace = "palette.backspace";
     public const string ConfirmYes = "confirm.yes";
     public const string ConfirmNo = "confirm.no";
+    public const string FormNext = "form.next";
+    public const string FormBackspace = "form.backspace";
 }

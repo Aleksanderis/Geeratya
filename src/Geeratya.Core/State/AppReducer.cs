@@ -32,6 +32,8 @@ public sealed class AppReducer
                 Confirm = requested.Request,
                 PendingKeys = string.Empty,
             }),
+            ProfilesChanged changed => ProfileReducer.Changed(state, changed),
+            ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             _ => Result(state),
         };
     }
@@ -55,6 +57,7 @@ public sealed class AppReducer
             PaletteText = string.Empty,
             HelpScroll = 0,
             Confirm = null,
+            Form = null,
         };
     }
 
@@ -81,6 +84,11 @@ public sealed class AppReducer
     {
         var text = KeyNotation.ToText(key);
 
+        if (state.Mode == InputMode.Insert && text is not null)
+        {
+            return ProfileReducer.Type(state, text);
+        }
+
         if (state.Mode != InputMode.Command || text is null)
         {
             return state;
@@ -102,6 +110,8 @@ public sealed class AppReducer
             ActionIds.Cancel => Result(ToNormal(state)),
             ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
             ActionIds.ConfirmYes => Confirmed(state),
+            ActionIds.FormNext => ProfileReducer.Submit(state),
+            ActionIds.FormBackspace => Result(ProfileReducer.Backspace(state)),
             ActionIds.NavigateDown => Result(ScrollHelp(state, 1)),
             ActionIds.NavigateUp => Result(ScrollHelp(state, -1)),
             _ => Result(state),
@@ -148,8 +158,14 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
+    }
+
+    private static bool IsProfileCommand(string text)
+    {
+        return text == "profile" || text.StartsWith("profile ", StringComparison.Ordinal);
     }
 
     private static string RemoveLastTextElement(string text)
@@ -167,6 +183,11 @@ public sealed class AppReducer
         if (request is null)
         {
             return Result(normal);
+        }
+
+        if (request.ActionOnConfirm == ProfileReducer.RemoveAction)
+        {
+            return ProfileReducer.Remove(normal, request.Target);
         }
 
         return Apply(normal, request.ActionOnConfirm);

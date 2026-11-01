@@ -2,7 +2,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 
 public class FrameSnapshotTests
 {
-    private static readonly string[] _modes = ["normal", "help", "command", "confirm"];
+    private static readonly string[] _modes = ["normal", "help", "command", "confirm", "insert"];
     private static readonly string[] _sizes = ["120x36", "80x24", "40x10"];
 
     public static TheoryData<string, string> Snapshots

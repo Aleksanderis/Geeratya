@@ -15,14 +15,23 @@ public sealed class ApplicationRunner
     private const string ModeFlag = "--mode";
 
     private readonly TextWriter _output;
+    private readonly TextWriter _error;
     private readonly bool _isInteractive;
+    private readonly Func<ProfileServices> _createProfiles;
     private readonly ColorSupport _colors;
 
-    public ApplicationRunner(TextWriter output, bool isInteractive, ColorSupport colors = ColorSupport.TrueColor)
+    public ApplicationRunner(
+        TextWriter output,
+        bool isInteractive,
+        ColorSupport colors = ColorSupport.TrueColor,
+        TextWriter? error = null,
+        Func<ProfileServices>? createProfiles = null)
     {
         _output = output;
+        _error = error ?? Console.Error;
         _isInteractive = isInteractive;
         _colors = colors;
+        _createProfiles = createProfiles ?? ProfileServices.CreateForProcess;
     }
 
     public int Run(string[] arguments)
@@ -55,7 +64,25 @@ public sealed class ApplicationRunner
             return 1;
         }
 
-        return new ShellHost(keymap, _colors).Run();
+        return RunShell(keymap);
+    }
+
+    private int RunShell(KeymapTable keymap)
+    {
+        ProfileServices profiles;
+
+        try
+        {
+            profiles = _createProfiles();
+        }
+        catch (InvalidOperationException exception)
+        {
+            _error.WriteLine($"{ApplicationInfo.Name}: {exception.Message}");
+
+            return 1;
+        }
+
+        return new ShellHost(keymap, _colors, profiles).Run();
     }
 
     private int PrintFrame(string[] arguments, KeymapTable keymap)
@@ -66,7 +93,7 @@ public sealed class ApplicationRunner
         if (size is null || mode is null)
         {
             _output.WriteLine(
-                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm]");
+                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm|insert]");
 
             return 2;
         }

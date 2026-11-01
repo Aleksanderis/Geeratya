@@ -22,6 +22,8 @@ public static class ActionCatalog
         new(ActionIds.PaletteBackspace, "Delete the last character"),
         new(ActionIds.ConfirmYes, "Confirm"),
         new(ActionIds.ConfirmNo, "Decline"),
+        new(ActionIds.FormNext, "Accept the field and go to the next"),
+        new(ActionIds.FormBackspace, "Delete the last character"),
     ];
 
     /// <summary>
@@ -49,6 +51,8 @@ public static class ActionCatalog
         ActionIds.PaletteBackspace,
         ActionIds.ConfirmYes,
         ActionIds.ConfirmNo,
+        ActionIds.FormNext,
+        ActionIds.FormBackspace,
     ];
 
     public static bool IsModalOnly(string id)
