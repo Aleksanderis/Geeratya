@@ -123,6 +123,25 @@ public class AppReducerTests
     }
 
     [Fact]
+    public void GivenCommandModeWithEmoji_WhenBackspace_ThenRemovesWholeCharacter()
+    {
+        var state = Press(Press(AppState.Initial, ":").State, "😀").State;
+
+        Assert.Equal(string.Empty, Press(state, "Backspace").State.PaletteText);
+    }
+
+    [Theory]
+    [InlineData(InputMode.Normal)]
+    [InlineData(InputMode.Help)]
+    [InlineData(InputMode.Command)]
+    public void GivenAnyNonConfirmMode_WhenPressingCtrlC_ThenQuitEffect(InputMode mode)
+    {
+        var result = Press(AppState.Initial with { Mode = mode }, "Ctrl-c");
+
+        Assert.Single(result.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
     public void GivenCommandMode_WhenEsc_ThenCancelsWithoutRunning()
     {
         var result = Press(TypeCommand("quit"), "Esc");

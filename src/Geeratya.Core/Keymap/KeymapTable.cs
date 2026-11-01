@@ -41,21 +41,22 @@ public sealed class KeymapTable
         return new KeyResolution(isPrefix ? KeyResolutionKind.Prefix : KeyResolutionKind.None, null);
     }
 
-    /// <summary>Everything wrong with the table: duplicates, shadowed sequences, unknown actions, bad key spelling.</summary>
+    /// <summary>Everything wrong: duplicates, shadowed sequences, unknown actions, bad key spelling.</summary>
     public IReadOnlyList<string> FindProblems()
     {
         var problems = new List<string>();
 
-        foreach (var binding in Bindings)
+        for (var index = 0; index < Bindings.Count; index++)
         {
-            AddBindingProblems(problems, binding);
+            AddBindingProblems(problems, index);
         }
 
         return problems;
     }
 
-    private void AddBindingProblems(List<string> problems, KeyBinding binding)
+    private void AddBindingProblems(List<string> problems, int index)
     {
+        var binding = Bindings[index];
         var label = $"{binding.Mode} {binding.Keys}";
 
         if (ActionCatalog.FindTitle(binding.Action) is null)
@@ -71,16 +72,18 @@ public sealed class KeymapTable
             }
         }
 
-        foreach (var other in Bindings)
+        for (var otherIndex = 0; otherIndex < Bindings.Count; otherIndex++)
         {
-            if (ReferenceEquals(other, binding) || other.Mode != binding.Mode)
+            var other = Bindings[otherIndex];
+
+            if (otherIndex == index || other.Mode != binding.Mode)
             {
                 continue;
             }
 
-            if (other.Keys == binding.Keys && string.CompareOrdinal(other.Action, binding.Action) < 0)
+            if (other.Keys == binding.Keys && otherIndex < index)
             {
-                problems.Add($"{label}: bound to both {other.Action} and {binding.Action}");
+                problems.Add($"{label}: bound twice ({other.Action}, {binding.Action})");
             }
 
             if (other.Keys.StartsWith($"{binding.Keys}{SequenceSeparator}", StringComparison.Ordinal))

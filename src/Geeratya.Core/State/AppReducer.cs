@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.State;
@@ -134,7 +135,7 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return state with { PaletteText = state.PaletteText[..^1] };
+        return state with { PaletteText = RemoveLastTextElement(state.PaletteText) };
     }
 
     private static ReduceResult SubmitPalette(AppState state)
@@ -149,6 +150,13 @@ public sealed class AppReducer
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
+    }
+
+    private static string RemoveLastTextElement(string text)
+    {
+        var starts = StringInfo.ParseCombiningCharacters(text);
+
+        return text[..starts[^1]];
     }
 
     private ReduceResult Confirmed(AppState state)

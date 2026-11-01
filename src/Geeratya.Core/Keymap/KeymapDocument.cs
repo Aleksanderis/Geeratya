@@ -6,7 +6,8 @@ namespace Geeratya.Core.Keymap;
 /// <summary>Renders the keymap as Markdown for <c>docs/keymap.md</c> and as help lines for the help overlay.</summary>
 public static class KeymapDocument
 {
-    private static readonly InputMode[] _modes = [InputMode.Normal, InputMode.Help, InputMode.Command, InputMode.Confirm];
+    private static readonly InputMode[] _modes =
+        [InputMode.Normal, InputMode.Help, InputMode.Command, InputMode.Confirm];
 
     /// <summary>The generated key reference; lines end with <c>\n</c>.</summary>
     public static string RenderMarkdown(KeymapTable keymap)
@@ -14,7 +15,8 @@ public static class KeymapDocument
         var builder = new StringBuilder();
 
         builder.Append("# Key reference\n\n");
-        builder.Append("Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-keymap-doc.sh`; ");
+        builder.Append("Generated from `src/Geeratya.Core/Keymap/keymap.default.json` ");
+        builder.Append("by `scripts/gen-keymap-doc.sh`; ");
         builder.Append("do not edit by hand. Design rules are in `docs/ux-keymap.md`.\n");
 
         foreach (var mode in _modes)

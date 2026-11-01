@@ -8,7 +8,7 @@ The shell is one full-screen window with a body, a one-line status line at the b
 
 ## Modes
 
-The input mode decides which keys act. It lives in `AppState.Mode` and is shown in the status line.
+The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command and Confirm show their prompt in the status line (the full status bar is #15).
 
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|
@@ -24,6 +24,7 @@ Insert mode (editing a field) arrives with the first editable field: printable k
 - Keys are spelled out everywhere: `Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`; never `^d` or `c-d`.
 - Exactly one place has focus: the overlay when one is open, otherwise the body. An overlay takes every key; nothing falls through to the body.
 - `Esc` backs out one level: it clears a half-typed sequence or the status message, closes an overlay or cancels Command and Confirm mode. In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
+- `Ctrl-c` quits from Normal, Help and Command mode (never from Confirm).
 - `q` quits only in Normal mode. In Help it closes the overlay; in Command mode it is text; in Confirm mode it does nothing.
 - Multi-key bindings (`g g`) show the typed prefix in the status line; any key that does not continue the binding drops it.
 - A key that no mode binds is ignored silently.

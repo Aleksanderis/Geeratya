@@ -33,6 +33,12 @@ public class KeyTranslatorTests
     }
 
     [Fact]
+    public void GivenCharacterKeyFromUppercaseG_WhenTranslating_ThenUppercase()
+    {
+        Assert.Equal("G", KeyTranslator.Translate(new Key('G')));
+    }
+
+    [Fact]
     public void GivenCtrlLetter_WhenTranslating_ThenCtrlPrefixAndLowercase()
     {
         Assert.Equal("Ctrl-d", KeyTranslator.Translate(new Key(KeyCode.D | KeyCode.CtrlMask)));

@@ -26,6 +26,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:` | Open the command palette |
 | `q` | Quit |
 | `Esc` | Cancel or close |
+| `Ctrl-c` | Quit |
 
 ## Help mode
 
@@ -38,6 +39,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `?` | Show or hide help |
 | `q` | Close help |
 | `Esc` | Close help |
+| `Ctrl-c` | Quit |
 
 ## Command mode
 
@@ -46,6 +48,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Enter` | Run the typed command |
 | `Backspace` | Delete the last character |
 | `Esc` | Cancel or close |
+| `Ctrl-c` | Quit |
 
 ## Confirm mode
 

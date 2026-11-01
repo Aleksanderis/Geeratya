@@ -4,7 +4,7 @@ using Terminal.Gui.Views;
 
 namespace Geeratya.Tui.Views;
 
-/// <summary>The empty shell: a body, a status line and the help overlay. Draws what <see cref="AppState"/> says.</summary>
+/// <summary>The empty shell: body, status line and help overlay. Draws what <see cref="AppState"/> says.</summary>
 public sealed class ShellScreen : Window
 {
     private readonly Label _body;

@@ -35,7 +35,19 @@ public class KeymapTableTests
             new KeyBinding(InputMode.Normal, "j", ActionIds.NavigateUp),
         ]);
 
-        Assert.Contains(keymap.FindProblems(), problem => problem.Contains("bound to both"));
+        Assert.Contains(keymap.FindProblems(), problem => problem.Contains("bound twice"));
+    }
+
+    [Fact]
+    public void GivenSameKeysAndActionTwice_WhenCheckingProblems_ThenReportsTheDuplicate()
+    {
+        var keymap = new KeymapTable(
+        [
+            new KeyBinding(InputMode.Normal, "j", ActionIds.NavigateDown),
+            new KeyBinding(InputMode.Normal, "j", ActionIds.NavigateDown),
+        ]);
+
+        Assert.Contains(keymap.FindProblems(), problem => problem.Contains("bound twice"));
     }
 
     [Fact]
