@@ -1,0 +1,64 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "attachment": [
+      {
+        "author": {
+          "accountId": "fake-account-1",
+          "accountType": "atlassian",
+          "active": true,
+          "avatarUrls": {},
+          "displayName": "Test User 1",
+          "emailAddress": "user1@example.com",
+          "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+          "timeZone": "UTC"
+        },
+        "content": "https://example.atlassian.net/rest/api/3/attachment/content/10004",
+        "created": "2026-11-01T22:04:05.976+0200",
+        "filename": "pixel.png",
+        "id": "10004",
+        "mimeType": "image/png",
+        "self": "https://example.atlassian.net/rest/api/3/attachment/10004",
+        "size": 70,
+        "thumbnail": "https://example.atlassian.net/rest/api/3/attachment/thumbnail/10004"
+      }
+    ],
+    "description": {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "Inline: ",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "attrs": {
+            "layout": "center"
+          },
+          "content": [
+            {
+              "attrs": {
+                "collection": "",
+                "height": 183,
+                "id": "fb8b9f65-6166-40f9-acd2-cf9e9e188137",
+                "type": "file",
+                "width": 200
+              },
+              "type": "media"
+            }
+          ],
+          "type": "mediaSingle"
+        }
+      ],
+      "type": "doc",
+      "version": 1
+    },
+    "summary": "media probe 27"
+  },
+  "id": "10047",
+  "key": "GCM-24",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10047"
+}
