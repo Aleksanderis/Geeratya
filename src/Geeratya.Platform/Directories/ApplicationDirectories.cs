@@ -61,8 +61,7 @@ public sealed class ApplicationDirectories
         if (!Path.IsPathRooted(home))
         {
             throw new InvalidOperationException(
-                $"Cannot locate the user's home directory (HOME is unset or not an absolute path), "
-                + $"and {variable} is not an absolute path either. Set HOME or {variable}.");
+                $"Cannot locate the user's home directory (HOME is unset or not an absolute path), and {variable} is unset or not an absolute path. Set HOME or {variable}.");
         }
 
         return Path.Combine([home, .. fallbackSegments, ApplicationFolder]);
