@@ -132,6 +132,12 @@ public static class ProfileReducer
         return new ReduceResult(replaced, [new DropSiteCacheEffect(previous)]);
     }
 
+    /// <summary>A reply for a profile that is no longer active is dropped.</summary>
+    public static ReduceResult ConnectionFailed(AppState state, ConnectionFailed failed)
+    {
+        return failed.Profile == state.Profiles.Active ? Plain(state with { Message = failed.Message }) : Plain(state);
+    }
+
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)
     {
         return Plain(state with { Message = failed.Message, ProfileBusy = false });
