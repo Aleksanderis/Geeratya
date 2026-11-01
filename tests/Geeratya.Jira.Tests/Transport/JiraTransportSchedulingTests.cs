@@ -144,7 +144,8 @@ public sealed class JiraTransportSchedulingTests
     {
         using var fixture = NewFixture();
         var value = $"{Policy(50, 1)}, \"jira-quota-global-based\";r=2;t=30";
-        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()) with { Headers = Header(RateLimitHeader, value) });
+        var reply = FakeResponse.Ok(MyselfJson()) with { Headers = Header(RateLimitHeader, value) };
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, reply);
 
         await SendAsync(fixture, BackgroundRequest());
         await SendAsync(fixture, BackgroundRequest());
@@ -159,7 +160,8 @@ public sealed class JiraTransportSchedulingTests
     public async Task GivenUnreadableHeader_WhenCalling_ThenNoThrottleAndCallSucceeds(string value)
     {
         using var fixture = NewFixture();
-        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()) with { Headers = Header(RateLimitHeader, value) });
+        var reply = FakeResponse.Ok(MyselfJson()) with { Headers = Header(RateLimitHeader, value) };
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, reply);
 
         var first = await SendAsync(fixture, BackgroundRequest());
         var second = await SendAsync(fixture, BackgroundRequest());
@@ -187,7 +189,7 @@ public sealed class JiraTransportSchedulingTests
     }
 
     private static TransportFixture NewFixture() =>
-        new(options => options with { Clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero)) });
+        new(options => options with { Clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default)) });
 
     private static JiraRequest BackgroundRequest() => JiraRequest.Get(MyselfPath).AsBackground();
 

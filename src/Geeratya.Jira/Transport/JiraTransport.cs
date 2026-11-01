@@ -228,8 +228,16 @@ public sealed class JiraTransport : IDisposable
 
         lock (_rateLock)
         {
+            var now = _options.Clock.GetUtcNow();
+
+            // Replies can finish out of order: inside a live window the lower budget stays.
+            if (_rateLimit is { } known && now < _rateWindowEnds && known.Remaining < limit.Remaining)
+            {
+                return;
+            }
+
             _rateLimit = limit;
-            _rateWindowEnds = _options.Clock.GetUtcNow() + limit.Reset;
+            _rateWindowEnds = now + limit.Reset;
         }
     }
 

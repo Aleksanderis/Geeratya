@@ -6,6 +6,11 @@ namespace Geeratya.Jira.Transport;
 /// <summary>What the rate-limit headers of one response say: requests left and time until the window resets.</summary>
 internal readonly record struct JiraRateLimit(int Remaining, TimeSpan Reset)
 {
+    public const string RateLimitHeader = "ratelimit";
+    public const string RemainingHeader = "x-ratelimit-remaining";
+    private const string RemainingToken = "r=";
+    private const string ResetToken = "t=";
+
     private static readonly TimeSpan _defaultReset = TimeSpan.FromSeconds(1);
 
     /// <summary>
@@ -15,12 +20,12 @@ internal readonly record struct JiraRateLimit(int Remaining, TimeSpan Reset)
     /// </summary>
     public static JiraRateLimit? Read(HttpResponseHeaders headers)
     {
-        if (headers.TryGetValues("ratelimit", out var values) && ParsePolicies(values) is { } policy)
+        if (headers.TryGetValues(RateLimitHeader, out var values) && ParsePolicies(values) is { } policy)
         {
             return policy;
         }
 
-        if (headers.TryGetValues("x-ratelimit-remaining", out var remaining)
+        if (headers.TryGetValues(RemainingHeader, out var remaining)
             && int.TryParse(remaining.FirstOrDefault(), NumberStyles.None, CultureInfo.InvariantCulture, out var left))
         {
             return new JiraRateLimit(left, _defaultReset);
@@ -42,13 +47,13 @@ internal readonly record struct JiraRateLimit(int Remaining, TimeSpan Reset)
             {
                 var pair = part.Trim();
 
-                if (pair.StartsWith("r=", StringComparison.Ordinal)
-                    && int.TryParse(pair[2..], NumberStyles.None, CultureInfo.InvariantCulture, out var left))
+                if (pair.StartsWith(RemainingToken, StringComparison.Ordinal)
+                    && int.TryParse(pair[RemainingToken.Length..], NumberStyles.None, CultureInfo.InvariantCulture, out var left))
                 {
                     remaining = left;
                 }
-                else if (pair.StartsWith("t=", StringComparison.Ordinal)
-                    && double.TryParse(pair[2..], NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds)
+                else if (pair.StartsWith(ResetToken, StringComparison.Ordinal)
+                    && double.TryParse(pair[RemainingToken.Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds)
                     && seconds >= 0)
                 {
                     reset = TimeSpan.FromSeconds(seconds);

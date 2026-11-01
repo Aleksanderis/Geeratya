@@ -11,7 +11,9 @@ public sealed record JiraTransportOptions
     /// <summary>Cap of simultaneous requests to the site.</summary>
     public int MaxConcurrentRequests { get; init; } = 4;
 
-    /// <summary>Slots of <see cref="MaxConcurrentRequests"/> that background requests never take (one always stays usable).</summary>
+    /// <summary>
+    /// Slots of <see cref="MaxConcurrentRequests"/> that background requests never take (one always stays usable).
+    /// </summary>
     public int ReservedForUser { get; init; } = 1;
 
     /// <summary>
