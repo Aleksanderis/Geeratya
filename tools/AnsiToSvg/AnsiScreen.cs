@@ -118,9 +118,7 @@ public static class AnsiScreen
 
     private static CellStyle ApplySgr(CellStyle style, string parameterText)
     {
-        var codes = parameterText.Length == 0
-            ? [0]
-            : parameterText.Split(';', ':').Select(ParseCode).ToArray();
+        var codes = ParseCodes(parameterText);
         var index = 0;
 
         while (index < codes.Length)
@@ -134,9 +132,7 @@ public static class AnsiScreen
 
                 if (color is { } value)
                 {
-                    style = code == ExtendedForeground
-                        ? style with { Foreground = value }
-                        : style with { Background = value };
+                    style = WithColor(style, code == ExtendedForeground, value);
                 }
 
                 continue;
@@ -146,6 +142,26 @@ public static class AnsiScreen
         }
 
         return style;
+    }
+
+    private static int[] ParseCodes(string parameterText)
+    {
+        if (parameterText.Length == 0)
+        {
+            return [0];
+        }
+
+        return [.. parameterText.Split([';', ':']).Select(ParseCode)];
+    }
+
+    private static CellStyle WithColor(CellStyle style, bool isForeground, int color)
+    {
+        if (isForeground)
+        {
+            return style with { Foreground = color };
+        }
+
+        return style with { Background = color };
     }
 
     private static int ParseCode(string text)

@@ -20,10 +20,14 @@ public static class SvgWriter
         var rows = screen.Length;
         var columns = rows == 0 ? 0 : screen[0].Length;
         var builder = new StringBuilder();
+        var width = columns * CellWidth;
+        var height = rows * CellHeight;
         builder.Append(CultureInfo.InvariantCulture, $"<svg xmlns=\"http://www.w3.org/2000/svg\" ");
-        builder.Append(CultureInfo.InvariantCulture, $"width=\"{columns * CellWidth}\" height=\"{rows * CellHeight}\">\n");
-        builder.Append(CultureInfo.InvariantCulture, $"<rect width=\"100%\" height=\"100%\" fill=\"{Hex(theme.Background)}\"/>\n");
-        builder.Append(CultureInfo.InvariantCulture, $"<g font-family=\"{FontFamily}\" font-size=\"{FontSize}\" xml:space=\"preserve\">\n");
+        builder.Append(CultureInfo.InvariantCulture, $"width=\"{width}\" height=\"{height}\">\n");
+        builder.Append(CultureInfo.InvariantCulture, $"<rect width=\"100%\" height=\"100%\" ");
+        builder.Append(CultureInfo.InvariantCulture, $"fill=\"{Hex(theme.Background)}\"/>\n");
+        builder.Append(CultureInfo.InvariantCulture, $"<g font-family=\"{FontFamily}\" font-size=\"{FontSize}\" ");
+        builder.Append("xml:space=\"preserve\">\n");
 
         for (var row = 0; row < rows; row++)
         {
@@ -54,9 +58,9 @@ public static class SvgWriter
             {
                 var x = column * CellWidth;
                 var width = (end - column) * CellWidth;
-                builder.Append(
-                    CultureInfo.InvariantCulture,
-                    $"<rect x=\"{x}\" y=\"{row * CellHeight}\" width=\"{width}\" height=\"{CellHeight}\" fill=\"{Hex(color)}\"/>\n");
+                builder.Append(CultureInfo.InvariantCulture, $"<rect x=\"{x}\" y=\"{row * CellHeight}\" ");
+                builder.Append(CultureInfo.InvariantCulture, $"width=\"{width}\" height=\"{CellHeight}\" ");
+                builder.Append(CultureInfo.InvariantCulture, $"fill=\"{Hex(color)}\"/>\n");
             }
 
             column = end;

@@ -9,7 +9,7 @@
 #   (default <owner>/<repo>-screenshots, override with GEERATYA_SCREENSHOTS_REPO=owner/name) and prints markdown.
 # clean: removes pr-<n> directories whose PR is merged or closed.
 # Exit codes: 2 bad arguments, 3 missing tool (named on stderr), 4 screenshots repository cannot be cloned.
-# Linux first (needs GNU tools, tmux, rsvg-convert); macOS is untested.
+# Linux only for now (GNU date, tmux, rsvg-convert); macOS and Windows are unsupported and fail at the date check.
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -28,6 +28,11 @@ usage() {
   sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 }
+
+if [ "$(uname -s)" != Linux ]; then
+  echo "screenshot.sh: only Linux is supported" >&2
+  exit 3
+fi
 
 need() {
   for tool in "$@"; do
@@ -65,8 +70,10 @@ capture_scenario() {
   IFS=: read -r name columns rows theme keys <<< "$spec"
   socket=geeratya-shot-$$-$name
   tmux -L "$socket" -f /dev/null new-session -d -s s -x "$columns" -y "$rows" \
-    "env COLORTERM=truecolor TERM=tmux-256color GEERATYA_FAKE_URL=$fake_url \
-      XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache $binary"
+    "env -u GEERATYA_TOKEN -u GEERATYA_LIVE_HOSTS COLORTERM=truecolor TERM=tmux-256color \
+      GEERATYA_FAKE_URL=$fake_url XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state \
+      XDG_CACHE_HOME=$work/cache '$binary'"
+  sockets+=("$socket")
   settled_capture "$socket" > /dev/null
   for ((index = 0; index < ${#keys}; index++)); do
     key=${keys:index:1}
@@ -75,6 +82,7 @@ capture_scenario() {
   done
   settled_capture "$socket" > "$work/$name.ansi"
   tmux -L "$socket" kill-server 2> /dev/null || true
+  rm -f "$out/$name.png"
   dotnet "$ansitosvg/ansitosvg.dll" --cols "$columns" --rows "$rows" --theme "$theme" \
     < "$work/$name.ansi" > "$work/$name.svg"
   rsvg-convert "$work/$name.svg" -o "$out/$name.png"
@@ -97,9 +105,9 @@ render() {
 
   work=$(mktemp -d)
   fake_pid=""
-  trap 'if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi; rm -rf "$work"' EXIT
+  sockets=()
+  trap stop_render EXIT
   mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
-  rm -f "$out"/*.png
 
   dotnet build "$root/tools/AnsiToSvg" -c Release -o "$work/ansitosvg" -v q --nologo > "$work/build.log" 2>&1 \
     || { tail -20 "$work/build.log" >&2; exit 1; }
@@ -113,14 +121,26 @@ render() {
   fake_url=$(head -n 1 "$work/fake.url")
   case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
 
+  local rendered=0
   for spec in "${all_scenarios[@]}"; do
     name=${spec%%:*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
     capture_scenario "$spec" "$binary" "$out" "$work" "$work/ansitosvg"
+    rendered=$((rendered + 1))
   done
+  if [ "$rendered" -eq 0 ]; then echo "no scenario matches '$wanted'" >&2; exit 2; fi
+}
+
+# Stops everything render started, also after a failure.
+stop_render() {
+  local socket
+  for socket in "${sockets[@]}"; do tmux -L "$socket" kill-server 2> /dev/null || true; done
+  if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi
+  rm -rf "$work"
 }
 
 screenshots_repo() {
+  cd "$root"
   if [ -n "${GEERATYA_SCREENSHOTS_REPO:-}" ]; then echo "$GEERATYA_SCREENSHOTS_REPO"; return; fi
   echo "$(gh repo view --json nameWithOwner -q .nameWithOwner)-screenshots"
 }
@@ -177,6 +197,7 @@ publish() {
 clean() {
   need gh git
   local repo checkout directory number state removed=0
+  cd "$root"
   repo=$(screenshots_repo)
   checkout=$(mktemp -d)
   trap 'rm -rf "$checkout"' EXIT

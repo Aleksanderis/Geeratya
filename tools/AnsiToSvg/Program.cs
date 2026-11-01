@@ -1,4 +1,3 @@
-using System.Globalization;
 using Geeratya.AnsiToSvg;
 
 const string usageText = "usage: ansitosvg --cols <n> --rows <n> [--theme dark|light] < capture.ansi > out.svg";
@@ -11,8 +10,8 @@ for (var index = 0; index + 1 < args.Length; index += 2)
 }
 
 var theme = SvgTheme.ByName(arguments.GetValueOrDefault("--theme", "dark"));
-var columns = ParsePositive(arguments.GetValueOrDefault("--cols"));
-var rows = ParsePositive(arguments.GetValueOrDefault("--rows"));
+var columns = CommandLine.ParsePositive(arguments.GetValueOrDefault("--cols"));
+var rows = CommandLine.ParsePositive(arguments.GetValueOrDefault("--rows"));
 
 if (columns == 0 || rows == 0 || theme is null || args.Length % 2 != 0)
 {
@@ -25,8 +24,3 @@ var input = Console.In.ReadToEnd();
 Console.Out.Write(SvgWriter.Write(AnsiScreen.Parse(input, columns, rows), theme));
 
 return 0;
-
-static int ParsePositive(string? text)
-{
-    return int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var number) ? number : 0;
-}
