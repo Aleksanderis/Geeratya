@@ -6,9 +6,11 @@
     <Project Path="src/Geeratya.Tui/Geeratya.Tui.csproj" />
   </Folder>
   <Folder Name="/tools/">
+    <Project Path="tools/AnsiToSvg/AnsiToSvg.csproj" />
     <Project Path="tools/FakeJira/FakeJira.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Geeratya.AnsiToSvg.Tests/Geeratya.AnsiToSvg.Tests.csproj" />
     <Project Path="tests/Geeratya.FakeJira.Tests/Geeratya.FakeJira.Tests.csproj" />
     <Project Path="tests/Geeratya.Core.Tests/Geeratya.Core.Tests.csproj" />
     <Project Path="tests/Geeratya.Jira.Tests/Geeratya.Jira.Tests.csproj" />

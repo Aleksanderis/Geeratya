@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# Screenshots of the real binary for pull requests (skill: screenshots).
+#   scripts/screenshot.sh render --binary <geeratya> [--out <dir>] [--scenarios a,b]
+#   scripts/screenshot.sh publish --pr <n> [--out <dir>]
+#   scripts/screenshot.sh clean
+# render: starts tools/FakeJira (never a real site), runs the binary in a private tmux server with private XDG
+#   directories, captures the pane with colours, converts it with tools/AnsiToSvg and rsvg-convert to <dir>/<name>.png.
+# publish: pushes every PNG in <dir> to pr-<n>/<short sha>/ on main of the separate screenshots repository
+#   (default <owner>/<repo>-screenshots, override with GEERATYA_SCREENSHOTS_REPO=owner/name) and prints markdown.
+# clean: removes pr-<n> directories whose PR is merged or closed.
+# Exit codes: 2 bad arguments, 3 missing tool (named on stderr), 4 screenshots repository cannot be cloned.
+# Linux first (needs GNU tools, tmux, rsvg-convert); macOS is untested.
+set -euo pipefail
+
+root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+default_out=${TMPDIR:-/tmp}/geeratya-screenshots
+timeout_ms=${TIMEOUT_MS:-5000}
+
+# Scenario table: name:columns:rows:theme:keys. Keys are sent to tmux one by one; add a row per new screen.
+all_scenarios=(
+  "default:120:36:dark:"
+  "help:120:36:dark:?"
+  "narrow:64:30:dark:"
+  "light:120:36:light:"
+)
+
+usage() {
+  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  exit 2
+}
+
+need() {
+  for tool in "$@"; do
+    if ! command -v "$tool" > /dev/null; then
+      echo "screenshot.sh: required tool not found: $tool" >&2
+      exit 3
+    fi
+  done
+}
+
+now_ms() { echo $(($(date +%s%N) / 1000000)); }
+
+# Prints the colour capture of the pane once two consecutive captures are equal and non-empty.
+settled_capture() {
+  local socket=$1 previous="" current start
+  start=$(now_ms)
+  while true; do
+    current=$(tmux -L "$socket" capture-pane -t s -p -e 2> /dev/null || true)
+    if [ -n "${current//[[:space:]]/}" ] && [ "$current" = "$previous" ]; then
+      printf '%s\n' "$current"
+      return 0
+    fi
+    previous=$current
+    if [ $(($(now_ms) - start)) -gt "$timeout_ms" ]; then
+      echo "screenshot.sh: the frame did not settle within ${timeout_ms} ms" >&2
+      return 1
+    fi
+    sleep 0.15
+  done
+}
+
+capture_scenario() {
+  local spec=$1 binary=$2 out=$3 work=$4 ansitosvg=$5
+  local name columns rows theme keys socket key
+  IFS=: read -r name columns rows theme keys <<< "$spec"
+  socket=geeratya-shot-$$-$name
+  tmux -L "$socket" -f /dev/null new-session -d -s s -x "$columns" -y "$rows" \
+    "env COLORTERM=truecolor TERM=tmux-256color GEERATYA_FAKE_URL=$fake_url \
+      XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache $binary"
+  settled_capture "$socket" > /dev/null
+  for ((index = 0; index < ${#keys}; index++)); do
+    key=${keys:index:1}
+    tmux -L "$socket" send-keys -t s -l "$key"
+    sleep 0.2
+  done
+  settled_capture "$socket" > "$work/$name.ansi"
+  tmux -L "$socket" kill-server 2> /dev/null || true
+  dotnet "$ansitosvg/ansitosvg.dll" --cols "$columns" --rows "$rows" --theme "$theme" \
+    < "$work/$name.ansi" > "$work/$name.svg"
+  rsvg-convert "$work/$name.svg" -o "$out/$name.png"
+  echo "wrote $out/$name.png"
+}
+
+render() {
+  local binary="" out=$default_out wanted=""
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --binary) binary=${2:-}; shift 2 ;;
+      --out) out=${2:-}; shift 2 ;;
+      --scenarios) wanted=${2:-}; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  [ -n "$binary" ] || usage
+  need tmux rsvg-convert dotnet
+  if [ ! -x "$binary" ]; then echo "binary not found or not executable: $binary" >&2; exit 2; fi
+
+  work=$(mktemp -d)
+  fake_pid=""
+  trap 'if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi; rm -rf "$work"' EXIT
+  mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
+  rm -f "$out"/*.png
+
+  dotnet build "$root/tools/AnsiToSvg" -c Release -o "$work/ansitosvg" -v q --nologo > "$work/build.log" 2>&1 \
+    || { tail -20 "$work/build.log" >&2; exit 1; }
+  dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo >> "$work/build.log" 2>&1 \
+    || { tail -20 "$work/build.log" >&2; exit 1; }
+
+  # The deterministic dataset is the generated one, so no recorded name or key reaches an image.
+  dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
+  fake_pid=$!
+  for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
+  fake_url=$(head -n 1 "$work/fake.url")
+  case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+
+  for spec in "${all_scenarios[@]}"; do
+    name=${spec%%:*}
+    if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
+    capture_scenario "$spec" "$binary" "$out" "$work" "$work/ansitosvg"
+  done
+}
+
+screenshots_repo() {
+  if [ -n "${GEERATYA_SCREENSHOTS_REPO:-}" ]; then echo "$GEERATYA_SCREENSHOTS_REPO"; return; fi
+  echo "$(gh repo view --json nameWithOwner -q .nameWithOwner)-screenshots"
+}
+
+clone_repo() {
+  local repo=$1 target=$2
+  if ! gh repo clone "$repo" "$target" -- --quiet 2> /dev/null; then
+    echo "screenshot.sh: cannot clone $repo (create it first; that is the owner's call)" >&2
+    exit 4
+  fi
+}
+
+commit_and_push() {
+  local checkout=$1 message=$2 role=${GEERATYA_AGENT_ROLE:-implementer}
+  git -C "$checkout" add -A
+  if git -C "$checkout" diff --cached --quiet; then return 0; fi
+  git -C "$checkout" -c "user.name=Claude ($role)" commit --quiet -m "$message" -m "Agent: $role"
+  if ! git -C "$checkout" push --quiet origin HEAD:main 2> /dev/null; then
+    git -C "$checkout" pull --quiet --rebase origin main
+    git -C "$checkout" push --quiet origin HEAD:main
+  fi
+}
+
+publish() {
+  local pr="" out=$default_out
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --pr) pr=${2:-}; shift 2 ;;
+      --out) out=${2:-}; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  [[ $pr =~ ^[0-9]+$ ]] || usage
+  need gh git
+  compgen -G "$out/*.png" > /dev/null || { echo "no PNG files in $out (run render first)" >&2; exit 2; }
+
+  local repo sha checkout directory commit file
+  repo=$(screenshots_repo)
+  sha=$(git -C "$root" rev-parse --short HEAD)
+  checkout=$(mktemp -d)
+  trap 'rm -rf "$checkout"' EXIT
+  clone_repo "$repo" "$checkout"
+  directory=pr-$pr/$sha
+  mkdir -p "$checkout/$directory"
+  cp "$out"/*.png "$checkout/$directory/"
+  commit_and_push "$checkout" "screenshots for PR #$pr @ $sha"
+  commit=$(git -C "$checkout" rev-parse HEAD)
+  for file in "$out"/*.png; do
+    name=$(basename "$file" .png)
+    echo "![$name](https://github.com/$repo/raw/$commit/$directory/$name.png)"
+  done
+}
+
+clean() {
+  need gh git
+  local repo checkout directory number state removed=0
+  repo=$(screenshots_repo)
+  checkout=$(mktemp -d)
+  trap 'rm -rf "$checkout"' EXIT
+  clone_repo "$repo" "$checkout"
+  for directory in "$checkout"/pr-*; do
+    [ -d "$directory" ] || continue
+    number=${directory##*/pr-}
+    state=$(gh pr view "$number" --json state -q .state 2> /dev/null || echo UNKNOWN)
+    if [ "$state" = MERGED ] || [ "$state" = CLOSED ]; then
+      git -C "$checkout" rm -rq -- "pr-$number"
+      removed=$((removed + 1))
+    fi
+  done
+  commit_and_push "$checkout" "clean screenshots of finished PRs"
+  echo "removed $removed finished PR directories"
+}
+
+[ $# -ge 1 ] || usage
+command=$1
+shift
+case $command in
+  render) render "$@" ;;
+  publish) publish "$@" ;;
+  clean) clean ;;
+  *) usage ;;
+esac
