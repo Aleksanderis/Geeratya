@@ -2,7 +2,6 @@ using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.Tests.Keymap;
 
-[Trait("Os", "Independent")]
 public class KeymapDocumentTests
 {
     private const string SolutionFile = "Geeratya.slnx";
