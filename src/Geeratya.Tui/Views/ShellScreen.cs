@@ -1,3 +1,4 @@
+using Geeratya.Core.Keymap;
 using System.Text;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
@@ -21,12 +22,14 @@ public sealed class ShellScreen : Window
     private readonly Label _body;
     private readonly Label _status;
     private readonly IReadOnlyList<string> _helpLines;
+    private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
 
-    public ShellScreen(IReadOnlyList<string> helpLines, ColorSupport colors, Size initialSize)
+    public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize)
     {
-        _helpLines = helpLines;
+        _keymap = keymap;
+        _helpLines = KeymapDocument.RenderHelpLines(keymap);
         _size = initialSize;
         BorderStyle = LineStyle.None;
         Width = Dim.Fill();
@@ -46,7 +49,7 @@ public sealed class ShellScreen : Window
     {
         _state = state;
 
-        var lines = FrameBuilder.Build(state, _size.Width, _size.Height, _helpLines);
+        var lines = FrameBuilder.Build(state, _size.Width, _size.Height, _helpLines, _keymap);
 
         if (lines.Count == 0)
         {

@@ -1,5 +1,3 @@
-using Geeratya.Core.State;
-
 namespace Geeratya.Core.Keymap;
 
 /// <summary>One keymap row: in <see cref="Mode"/>, the keys <see cref="Keys"/> run <see cref="Action"/>.</summary>

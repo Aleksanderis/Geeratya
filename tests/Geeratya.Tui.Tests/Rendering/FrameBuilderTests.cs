@@ -7,6 +7,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class FrameBuilderTests
 {
+    private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(DefaultKeymap.Load());
 
     [Fact]
@@ -20,7 +21,7 @@ public class FrameBuilderTests
             {
                 for (var height = 0; height <= 14; height++)
                 {
-                    AssertFills(FrameBuilder.Build(state, width, height, _helpLines), width, height);
+                    AssertFills(FrameBuilder.Build(state, width, height, _helpLines, _keymap), width, height);
                 }
             }
         }
@@ -31,7 +32,7 @@ public class FrameBuilderTests
     {
         var state = AppState.Initial with { Mode = InputMode.Help, HelpScroll = 10_000 };
 
-        AssertFills(FrameBuilder.Build(state, 40, 10, _helpLines), 40, 10);
+        AssertFills(FrameBuilder.Build(state, 40, 10, _helpLines, _keymap), 40, 10);
     }
 
     [Fact]
@@ -39,7 +40,7 @@ public class FrameBuilderTests
     {
         var state = AppState.Initial with { Message = "日本語日本語日本語日本語" };
 
-        AssertFills(FrameBuilder.Build(state, 15, 5, _helpLines), 15, 5);
+        AssertFills(FrameBuilder.Build(state, 15, 5, _helpLines, _keymap), 15, 5);
     }
 
     private static void AssertFills(IReadOnlyList<string> lines, int width, int height)

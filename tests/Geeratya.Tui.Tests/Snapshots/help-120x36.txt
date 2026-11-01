@@ -28,8 +28,8 @@ Help mode
   k          Move up                                                                                                    
   Up         Move up                                                                                                    
   ?          Show or hide help                                                                                          
-  q          Close help                                                                                                 
   Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Command mode                                                                                                            

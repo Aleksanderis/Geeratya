@@ -27,8 +27,8 @@
     { "mode": "help", "keys": "k", "action": "nav.up" },
     { "mode": "help", "keys": "Up", "action": "nav.up" },
     { "mode": "help", "keys": "?", "action": "help.toggle" },
-    { "mode": "help", "keys": "q", "action": "help.close" },
     { "mode": "help", "keys": "Esc", "action": "help.close" },
+    { "mode": "help", "keys": "q", "action": "help.close" },
     { "mode": "help", "keys": "Ctrl-c", "action": "app.quit" },
 
     { "mode": "command", "keys": "Enter", "action": "palette.submit" },
