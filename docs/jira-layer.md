@@ -9,7 +9,7 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 ## Authentication and rate-limit headers
 
 - Basic auth, `email:api-token`, on `https://<site>.atlassian.net/rest/api/3/...`. `Accept: application/json` is enough for reads.
-- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). Reading them to throttle before a 429 happens is deferred (#22).
+- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). The transport reads them on every response (see Transport).
 
 ## Transport (`src/Geeratya.Jira/Transport`)
 
@@ -18,6 +18,9 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 - Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`. The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s. The 429 path rests on the documented semantics only (#18).
 - The token is held only in the transport. `JiraApiToken.ToString()` is `[redacted]`, error messages are scrubbed of the token and the Basic credential, and a network failure message carries only the `HttpRequestError` code.
 - `GEERATYA_LIVE_HOSTS` is parsed by `JiraHostAllowList`; a transport given `AllowedHosts` refuses any other host before sending (`HostRefused`).
+- Scheduling (#22): `JiraRequest.Priority` is `User` (default) or `Background` (`request.AsBackground()`). The per-site cap (4) has two lanes: user requests may use every slot and are granted first; background requests use at most `cap - ReservedForUser` slots (1 reserved, never below one slot), so a key press never queues behind a refresh. Cancelling a queued call removes it from its lane.
+- Proactive throttle (#22): after each response the transport keeps the last budget from `ratelimit: ...;r=<remaining>;t=<reset seconds>` (with several policies the smallest `r` wins) or, failing that, `x-ratelimit-remaining` with a one-second window. A background request waits for the window to end when `r <= BackgroundThrottleRemaining` (10); a user request waits only when `r == 0`. The wait is capped by `MaxWait` and is not spent holding a slot. A 429 is not recorded as a budget (its `Retry-After` wait applies instead, so there is no double wait). Unreadable headers mean no throttling. The header format rests on the survey (`myself/myself.meta.txt`) and Atlassian's docs; no throttled response was captured (#18).
+- Scoped tokens (`api.atlassian.com/ex/jira/<cloudId>`): the transport appends paths to a base path (tested); cloudId discovery and profile support belong to profiles (#5).
 
 ## Current user: `GET /rest/api/3/myself`
 

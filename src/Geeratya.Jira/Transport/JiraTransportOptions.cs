@@ -11,6 +11,17 @@ public sealed record JiraTransportOptions
     /// <summary>Cap of simultaneous requests to the site.</summary>
     public int MaxConcurrentRequests { get; init; } = 4;
 
+    /// <summary>
+    /// Slots of <see cref="MaxConcurrentRequests"/> that background requests never take (one always stays usable).
+    /// </summary>
+    public int ReservedForUser { get; init; } = 1;
+
+    /// <summary>
+    /// Background requests wait for the rate-limit window to reset once this few requests are left. User requests
+    /// wait only when none are left.
+    /// </summary>
+    public int BackgroundThrottleRemaining { get; init; } = 10;
+
     public TimeSpan BaseBackoff { get; init; } = TimeSpan.FromMilliseconds(500);
 
     /// <summary>Upper bound for any single wait, also for a larger <c>Retry-After</c>.</summary>

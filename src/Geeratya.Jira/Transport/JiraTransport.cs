@@ -22,7 +22,10 @@ public sealed class JiraTransport : IDisposable
     private readonly string _siteBase;
     private readonly JiraTransportOptions _options;
     private readonly HttpClient _client;
-    private readonly SemaphoreSlim _concurrency;
+    private readonly RequestGate _gate;
+    private readonly object _rateLock = new();
+    private JiraRateLimit? _rateLimit;
+    private DateTimeOffset _rateWindowEnds;
 
     /// <param name="connection">The site and account this transport talks to.</param>
     /// <param name="token">The API token for the account.</param>
@@ -45,7 +48,7 @@ public sealed class JiraTransport : IDisposable
         {
             Timeout = Timeout.InfiniteTimeSpan,
         };
-        _concurrency = new SemaphoreSlim(_options.MaxConcurrentRequests, _options.MaxConcurrentRequests);
+        _gate = new RequestGate(_options.MaxConcurrentRequests, _options.ReservedForUser);
     }
 
     public JiraConnection Connection => _connection;
@@ -81,7 +84,6 @@ public sealed class JiraTransport : IDisposable
     public void Dispose()
     {
         _client.Dispose();
-        _concurrency.Dispose();
     }
 
     private static SocketsHttpHandler CreateDefaultHandler() =>
@@ -138,7 +140,8 @@ public sealed class JiraTransport : IDisposable
         JsonTypeInfo<T> resultInfo,
         CancellationToken cancellationToken)
     {
-        await _concurrency.WaitAsync(cancellationToken);
+        await ThrottleAsync(request.Priority, cancellationToken);
+        await _gate.AcquireAsync(request.Priority, cancellationToken);
 
         try
         {
@@ -146,7 +149,7 @@ public sealed class JiraTransport : IDisposable
         }
         finally
         {
-            _concurrency.Release();
+            _gate.Release();
         }
     }
 
@@ -162,6 +165,7 @@ public sealed class JiraTransport : IDisposable
         {
             using var message = CreateMessage(request);
             using var response = await _client.SendAsync(message, timeout.Token);
+            RecordRateLimit(response);
             var body = await response.Content.ReadAsStringAsync(timeout.Token);
 
             return response.IsSuccessStatusCode
@@ -175,6 +179,65 @@ public sealed class JiraTransport : IDisposable
         catch (HttpRequestException exception)
         {
             return Fail<T>(JiraErrorKind.Network, $"Network failure ({exception.HttpRequestError}).");
+        }
+    }
+
+    /// <summary>Waits out the rate-limit window when the last response said the budget is (nearly) spent.</summary>
+    private async Task ThrottleAsync(JiraPriority priority, CancellationToken cancellationToken)
+    {
+        var threshold = priority == JiraPriority.User ? 0 : _options.BackgroundThrottleRemaining;
+        TimeSpan wait;
+
+        lock (_rateLock)
+        {
+            if (_rateLimit is not { } limit || limit.Remaining > threshold)
+            {
+                return;
+            }
+
+            wait = _rateWindowEnds - _options.Clock.GetUtcNow();
+
+            if (wait <= TimeSpan.Zero)
+            {
+                _rateLimit = null;
+
+                return;
+            }
+        }
+
+        await _options.Delay(Min(wait, _options.MaxWait), cancellationToken);
+
+        lock (_rateLock)
+        {
+            // The window has passed; the next response tells the new budget.
+            if (_rateLimit is { } current && current.Remaining <= threshold)
+            {
+                _rateLimit = null;
+            }
+        }
+    }
+
+    private void RecordRateLimit(HttpResponseMessage response)
+    {
+        // A 429 is answered by the Retry-After wait; recording its (empty) budget would wait a second time.
+        if (response.StatusCode == HttpStatusCode.TooManyRequests
+            || JiraRateLimit.Read(response.Headers) is not { } limit)
+        {
+            return;
+        }
+
+        lock (_rateLock)
+        {
+            var now = _options.Clock.GetUtcNow();
+
+            // Replies can finish out of order: inside a live window the lower budget stays.
+            if (_rateLimit is { } known && now < _rateWindowEnds && known.Remaining < limit.Remaining)
+            {
+                return;
+            }
+
+            _rateLimit = limit;
+            _rateWindowEnds = now + limit.Reset;
         }
     }
 
