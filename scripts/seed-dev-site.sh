@@ -6,6 +6,8 @@
 #   --reset     delete only issues carrying the label geeratya-seed; lists them unless --yes is also given.
 #               The dev account may lack delete permission (issue #19): failures are reported, not fatal.
 #   --project   limit to one project
+# A re-run also moves an issue still in To Do into its column (failed creation-time transition), waits
+# Retry-After on 429 and prints the Jira error body when a request fails.
 # Every seed issue carries the label `geeratya-seed` plus a unique `geeratya-seed-<project>-<slug>`;
 # the slug label is how an existing issue is found, so a second run creates nothing new.
 # All HTTP goes through scripts/record-fixture.sh, which refuses hosts outside GEERATYA_LIVE_HOSTS,
@@ -77,7 +79,7 @@ umask 077
 # 5 s times the attempt when the header is missing or not a number). On failure prints the status
 # and the start of the Jira error body (errorMessages/errors, else the raw text), never the token.
 api() {
-  local tries=0 status wait detail
+  local tries=0 status delay detail
   while :; do
     RECORD_RAW=1 RECORD_META="$work/meta" "$rec" "$@" > "$work/out" 2> "$work/err" || true
     status=$(sed -n 's/^status: //p' "$work/err" | tail -n1)
@@ -86,10 +88,10 @@ api() {
       429)
         tries=$((tries + 1))
         if [ $tries -gt 3 ]; then break; fi
-        wait=$(sed -n 's/^[Rr]etry-[Aa]fter: *\([0-9][0-9]*\).*/\1/p' "$work/meta" 2> /dev/null | head -n1)
-        wait=${wait:-$((tries * 5))}
-        if [ "$wait" -gt 60 ]; then wait=60; fi
-        sleep "$wait" ;;
+        delay=$(sed -n 's/^[Rr]etry-[Aa]fter: *\([0-9][0-9]*\).*/\1/p' "$work/meta" 2> /dev/null | head -n1 || true)
+        delay=${delay:-$((tries * 5))}
+        if [ "$delay" -gt 60 ]; then delay=60; fi
+        sleep "$delay" ;;
       *) break ;;
     esac
   done
@@ -180,8 +182,9 @@ for p in "${projects[@]}"; do
     if [ -n "${keyof[$k]:-}" ]; then
       cnt_found[$p]=$((cnt_found[$p] + 1))
       echo "  found   ${keyof[$k]} $slug"
-      # Repair an issue whose transition failed when it was created (Backlog is the initial state).
-      if [ "$col" != Backlog ] && [ "${statusof[$k]:-$col}" != "$col" ]; then
+      # Repair an issue whose transition failed when it was created: still in the initial status
+      # (To Do) but meant for another column. Issues moved on purpose are left alone.
+      if [ "$col" != Backlog ] && [ "$col" != "To Do" ] && [ "${statusof[$k]:-}" = "To Do" ]; then
         echo "  repair  ${keyof[$k]} ${statusof[$k]} -> $col"
         transition_to "${keyof[$k]}" "$col" || true
       fi
