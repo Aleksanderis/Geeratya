@@ -19,7 +19,16 @@ internal static class IssueSummaryMapper
 
     public static IssuePage MapPage(SearchWire.Response response)
     {
-        var wire = response.Issues ?? [];
+        var items = MapIssues(response.Issues);
+        var next = HasNext(response) ? new PageCursor(response.NextPageToken!) : null;
+
+        return new IssuePage(items, next, null);
+    }
+
+    /// <summary>Maps a list of wire issues; null gives an empty list.</summary>
+    public static List<IssueSummary> MapIssues(List<SearchWire.Issue>? wire)
+    {
+        wire ??= [];
         var items = new List<IssueSummary>(wire.Count);
         var pool = new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -28,9 +37,7 @@ internal static class IssueSummaryMapper
             items.Add(MapIssue(wire[index], pool));
         }
 
-        var next = HasNext(response) ? new PageCursor(response.NextPageToken!) : null;
-
-        return new IssuePage(items, next, null);
+        return items;
     }
 
     private static bool HasNext(SearchWire.Response response) =>
