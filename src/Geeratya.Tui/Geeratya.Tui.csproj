@@ -6,6 +6,7 @@
     <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Terminal.Gui" />
     <ProjectReference Include="..\Geeratya.Core\Geeratya.Core.csproj" />
     <ProjectReference Include="..\Geeratya.Jira\Geeratya.Jira.csproj" />
     <ProjectReference Include="..\Geeratya.Platform\Geeratya.Platform.csproj" />

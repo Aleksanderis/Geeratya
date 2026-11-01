@@ -38,6 +38,7 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 - Directories: Linux and macOS follow XDG (`XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, falling back to `~/.config`, `~/.local/state`, `~/.cache`; a relative XDG value is ignored), each with a `geeratya` folder. Windows uses `%APPDATA%\Geeratya` for configuration and `%LOCALAPPDATA%\Geeratya\State` and `\Cache` for the rest. `ApplicationDirectories` computes them from an `OperatingSystemKind`, an `EnvironmentReader` and `PlatformFolders`, so tests cover all three systems on any host.
 - Console capabilities (`ConsoleCapabilities.Detect`): colour tier from `NO_COLOR`, `TERM=dumb` and `COLORTERM`; redirected input or output means non-interactive.
 - Environment access goes through `EnvironmentReader` with an injected lookup; no direct `Environment.GetEnvironmentVariable` elsewhere.
+- Secrets (`Platform/Secrets`): `ISecretStore` per system, picked by `SecretStores.Create`. Linux runs `secret-tool` (libsecret) with the token on standard input, Windows calls Credential Manager (advapi32 `LibraryImport`), macOS uses `UnsupportedSecretStore`; on Linux without `secret-tool`, `LinuxSecretStore` flips `IsAvailable` to false at first use; `TokenProvider` then falls back to `GEERATYA_TOKEN`. Profiles (site, email, no token) are `profiles.json` in the config directory, owned by `Core/Profiles`; the token is looked up by `Profile.CredentialKey`; `GEERATYA_TOKEN` is one value used for whichever profile is active. Core never sees a token or the store.
 - Paths use `Path` APIs only: no hardcoded separators, `/dev/null` or `/tmp`.
 
 ## Native AOT
@@ -46,4 +47,13 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 ## Terminal.Gui
 
-Not referenced yet; the app shell issue adds Terminal.Gui v2 to `Geeratya.Tui` and records its settings and pitfalls here.
+`Geeratya.Tui` references Terminal.Gui 2.5.0 (stable v2, pinned in `Directory.Packages.props`). The native AOT publish has no `IL*` warnings with it and no suppressions are needed.
+
+Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Views/` (`ShellScreen`, the only code that builds views), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
+
+Settings and pitfalls:
+
+- Use the instance API: `Application.Create()`, `application.Init()`, `application.Run(window)`; no static `Application.Init`.
+- Keys are read from `application.Keyboard.KeyDown` and marked `Handled`, so no view or default binding sees them. The default app key bindings (`Esc` quits) are cleared at start, otherwise `Esc` would quit; quitting is the keymap's decision.
+- Letters arrive as upper-case key codes; without `Shift` they are lower-case characters. `KeyTranslator` handles this (tested). A terminal sends `Esc` immediately followed by a key as `Alt-<key>`, as in any terminal program.
+- Non-interactive stdin or stdout (pipes, `TERM=dumb`) never starts Terminal.Gui: the binary prints a one-line explanation and exits 1. `--version` and `--print-keymap-doc` work everywhere.
