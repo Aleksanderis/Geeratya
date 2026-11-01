@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "The max results parameter has to be between 1 and 5,000."
+  ],
+  "errors": {}
+}

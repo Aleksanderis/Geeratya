@@ -39,3 +39,11 @@ Reading the key-to-frame figure (ad hoc checks, not committed and not reproducib
 ## Notes for later rows
 
 Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed loop, command in the PR), list scrolling, ADF rendering of the longest recorded description, memory (RSS) after opening a 10k list. Record binary type, dataset size, injected latency, median and p95.
+
+### JSON mapping of a search result (#66)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| `JiraSearchClient.SearchAsync` (body to string, deserialize, map) | .NET 10 Release JIT, not Native AOT | 10 000 issues, 18.3 MB, page size 5000, fake handler | 80 ms | 121 ms |
+
+Method: a temporary xUnit test (not committed) repeated the 24 issues of `search/search-rows-gcm.json` to 10 000, 5 warm-up and 20 timed runs on a noisy machine. Real pages are tens of issues, so this is far below a millisecond per page. Not measured: the Native AOT figure (no caller is wired into the app yet), the saving of sharing repeated names within a page (a dictionary lookup per string, simple and proportional to data size, kept unmeasured per the performance skill), and reading the body as a stream instead of a string (transport, unchanged). Re-measure on AOT when the first view loads search results.
