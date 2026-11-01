@@ -1,0 +1,164 @@
+{
+  "isLast": true,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations,customfield_10010.requestTypePractice",
+      "fields": {
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "aggregatetimeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "aggregatetimespent": null,
+        "assignee": null,
+        "components": [],
+        "created": "2026-11-01T17:10:59.311+0200",
+        "creator": {
+          "accountId": "fake-account-1",
+          "accountType": "atlassian",
+          "active": true,
+          "avatarUrls": {},
+          "displayName": "Test User 1",
+          "emailAddress": "user1@example.com",
+          "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+          "timeZone": "UTC"
+        },
+        "customfield_10001": null,
+        "customfield_10002": [],
+        "customfield_10003": null,
+        "customfield_10004": null,
+        "customfield_10005": null,
+        "customfield_10006": null,
+        "customfield_10007": null,
+        "customfield_10008": null,
+        "customfield_10009": null,
+        "customfield_10010": null,
+        "customfield_10014": null,
+        "customfield_10015": null,
+        "customfield_10016": null,
+        "customfield_10017": null,
+        "customfield_10019": "0|hzzzzz:",
+        "customfield_10020": null,
+        "customfield_10021": null,
+        "customfield_10022": null,
+        "customfield_10023": null,
+        "customfield_10024": null,
+        "customfield_10025": null,
+        "customfield_10026": null,
+        "customfield_10027": null,
+        "customfield_10028": null,
+        "customfield_10029": null,
+        "customfield_10030": null,
+        "customfield_10031": null,
+        "customfield_10032": null,
+        "customfield_10033": null,
+        "customfield_10034": null,
+        "customfield_10035": null,
+        "customfield_10036": [],
+        "customfield_10037": null,
+        "customfield_10038": null,
+        "customfield_10039": null,
+        "customfield_10041": null,
+        "customfield_10043": null,
+        "customfield_10044": [],
+        "customfield_10045": null,
+        "customfield_10046": null,
+        "description": null,
+        "duedate": null,
+        "environment": null,
+        "fixVersions": [],
+        "issuelinks": [],
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10010",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-test-survey3"
+        ],
+        "lastViewed": null,
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/3/priority/3"
+        },
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10003",
+          "key": "GCM",
+          "name": "GCM",
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/3/project/10003",
+          "simplified": false
+        },
+        "reporter": {
+          "accountId": "fake-account-1",
+          "accountType": "atlassian",
+          "active": true,
+          "avatarUrls": {},
+          "displayName": "Test User 1",
+          "emailAddress": "user1@example.com",
+          "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+          "timeZone": "UTC"
+        },
+        "resolution": null,
+        "resolutiondate": null,
+        "security": null,
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/3/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+          }
+        },
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "statuscategorychangedate": "2026-11-01T17:10:59.724+0200",
+        "subtasks": [],
+        "summary": "Survey task one",
+        "timeestimate": null,
+        "timeoriginalestimate": null,
+        "timespent": null,
+        "updated": "2026-11-01T17:10:59.403+0200",
+        "versions": [],
+        "votes": {
+          "hasVoted": false,
+          "self": "https://example.atlassian.net/rest/api/3/issue/GCM-1/votes",
+          "votes": 0
+        },
+        "watches": {
+          "isWatching": true,
+          "self": "https://example.atlassian.net/rest/api/3/issue/GCM-1/watchers",
+          "watchCount": 1
+        },
+        "workratio": -1
+      },
+      "id": "10000",
+      "key": "GCM-1",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10000"
+    }
+  ]
+}

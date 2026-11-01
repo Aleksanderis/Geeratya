@@ -1,0 +1,52 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/3/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+          }
+        },
+        "summary": "Survey task one"
+      },
+      "id": "10000",
+      "key": "GCM-1",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10000"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/3/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+          }
+        },
+        "summary": "Survey bug two"
+      },
+      "id": "10001",
+      "key": "GCM-2",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10001"
+    }
+  ],
+  "nextPageToken": "EAIY0PqsvZk0IiNmaWx0ZXIgPSAxMDAwMSBPUkRFUiBCWSBjcmVhdGVkIEFTQyoCW10yIFRFTkFOVF9OT1RfRk9VTkRfSU5fVEVOQU5UX1NUT1JF"
+}

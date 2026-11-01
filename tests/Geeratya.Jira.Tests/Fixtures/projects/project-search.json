@@ -1,0 +1,47 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "self": "https://example.atlassian.net/rest/api/3/project/search?expand=description&maxResults=50&startAt=0",
+  "startAt": 0,
+  "total": 2,
+  "values": [
+    {
+      "avatarUrls": {},
+      "description": "",
+      "entityId": "5073d34d-e80d-4e94-b0ff-5e99b186bf64",
+      "expand": "description,lead,issueTypes,url,projectKeys,permissions,insight",
+      "id": "10003",
+      "isPrivate": false,
+      "key": "GCM",
+      "name": "GCM",
+      "projectTypeKey": "software",
+      "properties": {},
+      "self": "https://example.atlassian.net/rest/api/3/project/10003",
+      "simplified": false,
+      "style": "classic",
+      "uuid": "5073d34d-e80d-4e94-b0ff-5e99b186bf64"
+    },
+    {
+      "avatarUrls": {},
+      "description": "",
+      "entityId": "463fa90e-f799-45ff-924d-ba26a4dd0db5",
+      "expand": "description,lead,issueTypes,url,projectKeys,permissions,insight",
+      "id": "10002",
+      "isPrivate": false,
+      "key": "GTM",
+      "name": "GTM",
+      "projectCategory": {
+        "description": "",
+        "id": "10000",
+        "name": "Dev",
+        "self": "https://example.atlassian.net/rest/api/3/projectCategory/10000"
+      },
+      "projectTypeKey": "software",
+      "properties": {},
+      "self": "https://example.atlassian.net/rest/api/3/project/10002",
+      "simplified": true,
+      "style": "next-gen",
+      "uuid": "463fa90e-f799-45ff-924d-ba26a4dd0db5"
+    }
+  ]
+}
