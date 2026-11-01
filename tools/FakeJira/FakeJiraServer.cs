@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Web;
 
 namespace Geeratya.FakeJira;
@@ -10,6 +11,7 @@ public sealed class FakeJiraServer : IDisposable
     private const string Host = "127.0.0.1";
     private const int RetryAfterSeconds = 1;
     private const int TooManyRequests = 429;
+    private const int ServerError = 500;
     private const int StartAttempts = 10;
     private const string RetryAfterHeader = "Retry-After";
 
@@ -117,6 +119,27 @@ public sealed class FakeJiraServer : IDisposable
             or ObjectDisposedException)
         {
             // The client went away or the server is stopping.
+        }
+        catch (Exception exception)
+        {
+            AnswerServerError(context, exception);
+        }
+    }
+
+    private static void AnswerServerError(HttpListenerContext context, Exception exception)
+    {
+        try
+        {
+            var text = $"{{\"errorMessages\":[\"Fake Jira failed: {exception.GetType().Name}\"]}}";
+            var body = Encoding.UTF8.GetBytes(text);
+            context.Response.StatusCode = ServerError;
+            context.Response.ContentLength64 = body.Length;
+            context.Response.OutputStream.Write(body);
+            context.Response.Close();
+        }
+        catch (Exception closing) when (closing is HttpListenerException or ObjectDisposedException)
+        {
+            // The client is gone as well.
         }
     }
 

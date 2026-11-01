@@ -5,6 +5,7 @@
 #   <fake url>  base URL printed by tools/FakeJira (exported as GEERATYA_FAKE_URL; the binary does not read it
 #               until the Jira-backed views exist, see docs/performance.md)
 #   [runs]      sessions to start (default 20); key-to-frame takes KEYS toggles per session (default 5)
+# Needs tmux and GNU date (Linux first; macOS BSD date lacks %N, Windows has no equivalent yet).
 # Prints median and p95 in milliseconds. A private tmux server and private XDG directories are used, so the
 # owner's profiles, tokens and cache are never read. The numbers include the cost of each tmux capture call
 # (a few ms); compare runs with each other, not with a stopwatch in the app.

@@ -52,6 +52,7 @@ Only on the owner's dev site, opt-in, never part of the review or CI gate; rules
 
 - Input: the binary, the base URL of a running FakeJira (exported to the binary as `GEERATYA_FAKE_URL`), the number of sessions (default 20; `KEYS` presses per session, default 5; `TIMEOUT_MS`, default 5000).
 - Output: median and p95 in milliseconds for the tmux floor (a trivial command), cold start to first frame and key to frame. Exit 2 for bad arguments, 1 when a frame never appears.
+- Needs tmux and GNU `date`: Linux first (macOS needs GNU coreutils; Windows has no equivalent yet). It does not contact the fake URL itself; until the Jira-backed views exist the shell does not either.
 - It waits for the frame to appear or change; it never sleeps a fixed time.
 - Numbers go in `docs/performance.md` with environment, dataset and latency; an optimisation PR quotes before and after.
 

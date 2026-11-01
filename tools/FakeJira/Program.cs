@@ -14,7 +14,8 @@ if (options is null)
 }
 
 using var server = new FakeJiraServer(options);
-using var stop = new ManualResetEventSlim();
+// No disposal needed: the wait handle is never used, and the handlers below outlive Main.
+var stop = new ManualResetEventSlim();
 Console.CancelKeyPress += (_, eventArguments) =>
 {
     eventArguments.Cancel = true;

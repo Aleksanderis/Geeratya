@@ -30,12 +30,12 @@ Name tests `Given<Context>_When<Action>_Then<Outcome>` (PascalCase parts). Tests
 
 - No sleeps or polling loops to wait for background work. Wait on a signal: a UI pump that runs posted callbacks on the test thread until a condition holds, a `TaskCompletionSource` completed from a store's `Changed` event, or an injected delay or clock. A guard timeout only bounds a hang.
 - `FakeJiraHandler` (`tests/Geeratya.Jira.Tests/Fakes`): an in-process `HttpMessageHandler` that serves fixture files by method and path, records every request, and can script per-request status, `Retry-After`, latency and a hang until cancelled. Unit and store tests use it; they never open a socket.
-- `tools/FakeJira` (M0): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
+- `tools/FakeJira` (`dotnet run --project tools/FakeJira`; options and routes in `docs/testing.md`): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
 
 ## Fixtures
 
 - Fixtures are real responses recorded from the dev site, stored as files next to the tests that use them (`Fixtures/<area>/<name>.json`). Never hand-write a response shape you have not seen; record it.
-- Record (M0: `scripts/record-fixture.sh <method> <path> [body]`, live-host guard included) and scrub before committing: site host becomes `example.atlassian.net`, account ids become stable fakes (`fake-account-1`), emails `@example.com`, display names `Test User 1`, avatar and self URLs rewritten, no `Authorization` or cookie data anywhere. Before committing, grep the fixture for `atlassian.net` (only `example.atlassian.net` may remain) and for the token.
+- Record (`scripts/record-fixture.sh <method> <path> [body]`, live-host guard included) and scrub before committing: site host becomes `example.atlassian.net`, account ids become stable fakes (`fake-account-1`), emails `@example.com`, display names `Test User 1`, avatar and self URLs rewritten, no `Authorization` or cookie data anywhere. Before committing, grep the fixture for `atlassian.net` (only `example.atlassian.net` may remain) and for the token.
 - Keep each fixture small: trim to the fields the test needs plus one or two unknown ones (mappers must ignore them).
 
 ## Live dev site

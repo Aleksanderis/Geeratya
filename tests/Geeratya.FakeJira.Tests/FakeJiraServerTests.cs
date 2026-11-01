@@ -58,6 +58,48 @@ public sealed class FakeJiraServerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenNegativePageToken_WhenSearching_ThenBadRequestInsteadOfHang()
+    {
+        var baseUrl = StartServer(120, 0, 0);
+
+        var response = await _client.GetAsync($"{baseUrl}/rest/api/3/search/jql?maxResults=2&nextPageToken=-5");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenRecordedFixtures_WhenPagingByToken_ThenThreePagesAreServedInOrder()
+    {
+        var baseUrl = StartServer(0, 0, 0);
+        var keys = new List<string>();
+        string? token = null;
+        var pages = 0;
+
+        while (pages < 10)
+        {
+            var query = token is null ? string.Empty : $"?nextPageToken={Uri.EscapeDataString(token)}";
+            var body = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql{query}");
+            using var document = JsonDocument.Parse(body);
+            pages++;
+
+            foreach (var issue in document.RootElement.GetProperty("issues").EnumerateArray())
+            {
+                keys.Add(issue.GetProperty("key").GetString()!);
+            }
+
+            if (document.RootElement.GetProperty("isLast").GetBoolean())
+            {
+                break;
+            }
+
+            token = document.RootElement.GetProperty("nextPageToken").GetString();
+        }
+
+        Assert.Equal(3, pages);
+        Assert.Equal(7, keys.Distinct().Count());
+    }
+
+    [Fact]
     public async Task GivenRateLimitEveryThird_WhenFourRequestsSent_ThenThirdIsTooManyWithRetryAfter()
     {
         var baseUrl = StartServer(0, 0, 3);

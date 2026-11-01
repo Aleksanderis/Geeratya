@@ -122,7 +122,7 @@ public sealed class FakeJiraRouter
 
         var start = 0;
 
-        if (token is not null && !int.TryParse(token, out start))
+        if (token is not null && (!int.TryParse(token, out start) || start < 0))
         {
             return new FakeReply(400, Encoding.UTF8.GetBytes("{\"errorMessages\":[\"Invalid page token.\"]}"));
         }
