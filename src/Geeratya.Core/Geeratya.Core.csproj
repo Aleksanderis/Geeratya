@@ -2,4 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Geeratya.Jira\Geeratya.Jira.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Keymap\keymap.default.json" LogicalName="keymap.default.json" />
+  </ItemGroup>
 </Project>

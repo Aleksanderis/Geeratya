@@ -1,0 +1,40 @@
+{
+  "bindings": [
+    { "mode": "normal", "keys": "j", "action": "nav.down" },
+    { "mode": "normal", "keys": "Down", "action": "nav.down" },
+    { "mode": "normal", "keys": "k", "action": "nav.up" },
+    { "mode": "normal", "keys": "Up", "action": "nav.up" },
+    { "mode": "normal", "keys": "h", "action": "nav.left" },
+    { "mode": "normal", "keys": "Left", "action": "nav.left" },
+    { "mode": "normal", "keys": "l", "action": "nav.right" },
+    { "mode": "normal", "keys": "Right", "action": "nav.right" },
+    { "mode": "normal", "keys": "g g", "action": "nav.top" },
+    { "mode": "normal", "keys": "Home", "action": "nav.top" },
+    { "mode": "normal", "keys": "G", "action": "nav.bottom" },
+    { "mode": "normal", "keys": "End", "action": "nav.bottom" },
+    { "mode": "normal", "keys": "Ctrl-d", "action": "nav.page-down" },
+    { "mode": "normal", "keys": "PageDown", "action": "nav.page-down" },
+    { "mode": "normal", "keys": "Ctrl-u", "action": "nav.page-up" },
+    { "mode": "normal", "keys": "PageUp", "action": "nav.page-up" },
+    { "mode": "normal", "keys": "?", "action": "help.toggle" },
+    { "mode": "normal", "keys": ":", "action": "palette.open" },
+    { "mode": "normal", "keys": "q", "action": "app.quit" },
+    { "mode": "normal", "keys": "Esc", "action": "mode.cancel" },
+
+    { "mode": "help", "keys": "j", "action": "nav.down" },
+    { "mode": "help", "keys": "Down", "action": "nav.down" },
+    { "mode": "help", "keys": "k", "action": "nav.up" },
+    { "mode": "help", "keys": "Up", "action": "nav.up" },
+    { "mode": "help", "keys": "?", "action": "help.toggle" },
+    { "mode": "help", "keys": "q", "action": "help.close" },
+    { "mode": "help", "keys": "Esc", "action": "help.close" },
+
+    { "mode": "command", "keys": "Enter", "action": "palette.submit" },
+    { "mode": "command", "keys": "Backspace", "action": "palette.backspace" },
+    { "mode": "command", "keys": "Esc", "action": "mode.cancel" },
+
+    { "mode": "confirm", "keys": "y", "action": "confirm.yes" },
+    { "mode": "confirm", "keys": "n", "action": "confirm.no" },
+    { "mode": "confirm", "keys": "Esc", "action": "confirm.no" }
+  ]
+}
