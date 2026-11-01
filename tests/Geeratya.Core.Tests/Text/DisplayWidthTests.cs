@@ -45,6 +45,34 @@ public class DisplayWidthTests
     }
 
     [Theory]
+    [InlineData(0x231A)]
+    [InlineData(0x1F004)]
+    [InlineData(0x1F0CF)]
+    [InlineData(0x1FAE0)]
+    public void GivenEmojiPresentationCodePoint_WhenMeasuring_ThenItIsTwo(int codePoint)
+    {
+        Assert.Equal(2, DisplayWidth.Of(new Rune(codePoint)));
+    }
+
+    [Fact]
+    public void GivenWholeUnicodeRange_WhenCountingWide_ThenEveryTableEntryIsReachable()
+    {
+        // Pinned to Unicode 17.0.0; an unsorted or unmerged table makes the binary search miss entries.
+        const int expectedWideCodePoints = 182902;
+        var count = 0;
+
+        for (var codePoint = 0; codePoint <= 0x10FFFF; codePoint++)
+        {
+            if (DisplayWidth.IsWide(codePoint))
+            {
+                count++;
+            }
+        }
+
+        Assert.Equal(expectedWideCodePoints, count);
+    }
+
+    [Theory]
     [InlineData(0x41)]
     [InlineData(0x10FF)]
     [InlineData(0xD7A4)]
