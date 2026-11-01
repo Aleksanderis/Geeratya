@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "Error in the JQL Query: The quoted string has not been completed. (line 1, character 10)"
+  ],
+  "errors": {}
+}
