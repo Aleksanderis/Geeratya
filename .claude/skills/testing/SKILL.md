@@ -5,11 +5,11 @@ description: Write, run and debug Geeratya tests; record and scrub Jira fixtures
 
 # Testing
 
-This skill is the procedure. Strategy, layers and the measurement harness are in `docs/testing.md`; open it only for the section you need, not up front. Pieces marked "" do not exist yet and are built in the first milestone; until then, create the smallest version you need and register the rest.
+This skill is the procedure. Strategy, layers and the measurement harness are in `docs/testing.md`; open it only for the section you need, not up front. Pieces marked "(M0)" do not exist yet and are built in the first milestone; until then, create the smallest version you need and register the rest.
 
 ## Mark OS-independent tests
 
-The Windows CI leg runs `--filter "Os!=Independent"`; Linux runs everything. Put `[Trait("Os", "Independent")]` on a test class only when it is pure: in-memory data, the in-process fake Jira handler, no file system, temp dirs, paths, environment, process, sockets, terminal or ANSI capability, line endings or encodings. Unmarked is the default and means "runs on Windows", so when unsure leave it unmarked. A guard test fails when a marked file uses one of those APIs .
+The Windows CI leg runs `--filter "Os!=Independent"`; Linux runs everything. Put `[Trait("Os", "Independent")]` on a test class only when it is pure: in-memory data, the in-process fake Jira handler, no file system, temp dirs, paths, environment, process, sockets, terminal or ANSI capability, line endings or encodings. Unmarked is the default and means "runs on Windows", so when unsure leave it unmarked. A guard test fails when a marked file uses one of those APIs (`tests/Geeratya.Jira.Tests/Guards`).
 
 ## Pick the layer
 
@@ -29,8 +29,8 @@ Name tests `Given<Context>_When<Action>_Then<Outcome>` (PascalCase parts). Tests
 ## Waiting and fakes
 
 - No sleeps or polling loops to wait for background work. Wait on a signal: a UI pump that runs posted callbacks on the test thread until a condition holds, a `TaskCompletionSource` completed from a store's `Changed` event, or an injected delay or clock. A guard timeout only bounds a hang.
-- `FakeJiraHandler` (M0, `tests/Geeratya.Jira.Tests/Fakes`): an in-process `HttpMessageHandler` that serves fixture files by method and path, records every request, and can script per-request status, `Retry-After`, latency and a hang until cancelled. Unit and store tests use it; they never open a socket.
-- `tools/FakeJira` : a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
+- `FakeJiraHandler` (`tests/Geeratya.Jira.Tests/Fakes`): an in-process `HttpMessageHandler` that serves fixture files by method and path, records every request, and can script per-request status, `Retry-After`, latency and a hang until cancelled. Unit and store tests use it; they never open a socket.
+- `tools/FakeJira` (M0): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
 
 ## Fixtures
 
@@ -45,9 +45,9 @@ The owner's free Jira Cloud dev site is the only live Jira agents may use. The c
 - Environment: `GEERATYA_LIVE_HOSTS` (comma-separated allowlist, the dev site host only), `GEERATYA_LIVE_EMAIL`, `GEERATYA_LIVE_TOKEN`, `GEERATYA_LIVE_PROJECT` (the sandbox project key). Missing variables mean live tests skip; they never fail the normal run. The token is never echoed: no `set -x`, no `env` dumps, no printing the variable, no `cat` of the env file.
 - The variables live in the owner's env file `${GEERATYA_LIVE_ENV:-$HOME/.config/geeratya/dev-site.env}` (outside the repo). A session may have started before they were set (remote sessions cannot restart), so every live command loads the file itself in the same shell call: `. "${GEERATYA_LIVE_ENV:-$HOME/.config/geeratya/dev-site.env}" && dotnet test --filter "Live=true"`. Live scripts in `scripts/` load it themselves when the variables are missing.
 - Dev site: `GCM` (company-managed, board 4) and `GTM` (team-managed, board 3), both Kanban with a backlog. `GEERATYA_LIVE_PROJECT` is `GCM`; tests that need the team-managed kind use `GTM`. Both are sandboxes under the write rule below.
-- Live tests (M0: `[LiveFact]`, skips without the env and refuses a host outside the allowlist) run with `dotnet test --filter "Live=true"`, only when the issue needs it, and are never part of the review or CI gate.
+- Live tests (`[LiveFact]` in `tests/Geeratya.Jira.Tests/Live`: skips without the env, the transport refuses a host outside the allowlist; the site is the first host of `GEERATYA_LIVE_HOSTS`; a shell with the variables exported also runs it on a plain `dotnet test`, it is read only) run with `dotnet test --filter "Live=true"`, only when the issue needs it, and are never part of the review or CI gate.
 - Writes on the dev site only inside `GCM` and `GTM`. Every issue a test or agent creates carries the label `geeratya-test-<run id>` and is deleted at the end of the run; never edit or delete data you did not create. No project, user, workflow, scheme or permission changes.
-- Seeding the dev site with sample data (M0: `scripts/seed-dev-site.sh`) is idempotent and only adds to the sandbox project.
+- Seeding: `scripts/seed-dev-site.sh` (`--dry-run` prints the plan, `--project GCM|GTM`) find-or-creates 16 issues per project (epics, stories, tasks, bugs, sub-tasks, backlog items, a rich ADF comment, an attachment, links, a remote link), all labelled `geeratya-seed` plus a unique `geeratya-seed-<project>-<slug>`; running it twice adds nothing. `--reset` lists the labelled issues, `--reset --yes` deletes only those (the dev account may lack delete rights, #19). Linux, macOS and WSL only (bash, curl, jq, python3); the final counts wait for the search index.
 
 ## Driving the real binary (tmux)
 

@@ -9,7 +9,7 @@ Targets and verified numbers are in `docs/performance.md`; read it first, do not
 
 ## Measure before optimising
 
-- Write the straightforward version first. Optimise only a path you measured. End-to-end against `tools/FakeJira` with fixed injected latency (`scripts/measure.sh <binary> <fake url>`); for a pure mapper or renderer, an ad hoc timed loop over a large recorded or generated response, with the command in the PR.
+- Write the straightforward version first. Optimise only a path you measured. End-to-end against `tools/FakeJira` with fixed injected latency (M0: `scripts/measure.sh <binary> <fake url>`); for a pure mapper or renderer, an ad hoc timed loop over a large recorded or generated response, with the command in the PR.
 - Record before and after numbers (median plus p95, binary type, dataset size, injected latency) in the PR. An optimisation without a number is not accepted, except a simple, readable change on a path whose cost is clearly proportional to data size (per issue, per field, per ADF node, per frame); the PR must then say it was not measured. A change that makes code harder to read for an unmeasured gain is never accepted.
 - Measure the Native AOT binary, not `dotnet run`: JIT and AOT numbers differ. Never measure against the dev site: its latency is noise.
 
