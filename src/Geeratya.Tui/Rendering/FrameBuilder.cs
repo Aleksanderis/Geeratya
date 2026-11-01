@@ -1,17 +1,16 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// Lays the shell out as plain text lines for a terminal size; pure, so it is snapshot-tested and printed by <c>--print-frame</c>.
+/// Lays the shell out for a terminal size: a header region, a body from the first <see cref="IBodyRenderer"/> that handles
+/// the state, and the status bar. Pure, so it is snapshot-tested and printed by <c>--print-frame</c> (plain text, styles dropped).
 /// </summary>
 public static class FrameBuilder
 {
-    private const string HelpTitle = "Help";
-    private const string Title = "Geeratya";
-    private const int BlockHeight = 3;
-    private const string StartHintGap = "   ";
+    private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers = [new HelpBodyRenderer(), new StartBodyRenderer()];
 
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.
@@ -23,89 +22,50 @@ public static class FrameBuilder
         IReadOnlyList<string> helpLines,
         KeymapTable keymap)
     {
+        return BuildStyled(state, width, height, helpLines, keymap)?.PlainLines() ?? [];
+    }
+
+    /// <summary>
+    /// The styled frame; null for a size of zero. <paramref name="screens"/> are tried before the built-in help and
+    /// start screens, in order. <paramref name="headerRows"/> is the header region (the tab bar slot): zero until
+    /// tabs exist, so today's frames do not change; the tab bar issue passes one.
+    /// </summary>
+    public static StyledFrame? BuildStyled(
+        AppState state,
+        int width,
+        int height,
+        IReadOnlyList<string> helpLines,
+        KeymapTable keymap,
+        IReadOnlyList<IBodyRenderer>? screens = null,
+        int headerRows = 0)
+    {
         if (width <= 0 || height <= 0)
         {
-            return [];
+            return null;
         }
 
-        var bodyHeight = height - 1;
-        var body = state.Mode == InputMode.Help
-            ? HelpBody(state, helpLines, width, bodyHeight)
-            : StartBody(
-                width,
-                bodyHeight,
-                string.Join(StartHintGap, StatusBar.HintsFor(InputMode.Normal, keymap)),
-                ProfileLine(state, keymap));
+        var header = Math.Min(headerRows, height - 1);
+        var bodyHeight = height - 1 - header;
+        var context = new BodyContext(helpLines, keymap);
+        var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
+            ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
+        var body = renderer.Render(state, context, width, bodyHeight);
 
-        var lines = new List<string>(body) { StatusBar.Render(state, width, keymap) };
-
-        return lines;
+        return new StyledFrame(
+            Fit([], width, header),
+            Fit(body, width, bodyHeight),
+            StatusBar.Render(state, width, keymap));
     }
 
-    private static List<string> HelpBody(AppState state, IReadOnlyList<string> helpLines, int width, int bodyHeight)
+    private static List<StyledLine> Fit(IEnumerable<StyledLine> lines, int width, int height)
     {
-        var lines = new List<string> { HelpTitle };
+        var fitted = lines.Take(height).Select(line => StyledLines.Fit(line, width)).ToList();
 
-        lines.AddRange(helpLines.Skip(state.HelpScroll));
-
-        return Normalize(lines, width, bodyHeight);
-    }
-
-    private static List<string> StartBody(int width, int bodyHeight, string startHint, string profileLine)
-    {
-        var lines = new List<string>();
-
-        for (var row = 0; row < bodyHeight; row++)
+        while (fitted.Count < height)
         {
-            lines.Add(string.Empty);
+            fitted.Add(StyledLines.Fit(StyledLine.Empty, width));
         }
 
-        var top = Math.Max(0, bodyHeight - BlockHeight) / 2;
-
-        if (bodyHeight >= BlockHeight)
-        {
-            lines[top] = Center(Title, width);
-            lines[top + 1] = Center(profileLine, width);
-            lines[top + 2] = Center(startHint, width);
-        }
-        else if (bodyHeight > 0)
-        {
-            lines[0] = Center(startHint, width);
-        }
-
-        return Normalize(lines, width, bodyHeight);
-    }
-
-    private static string ProfileLine(AppState state, KeymapTable keymap)
-    {
-        if (state.Profiles.Active is { } active)
-        {
-            return $"{active.Name}: {active.Email} on {active.SiteUrl}";
-        }
-
-        var palette = keymap.FindKeys(InputMode.Normal, ActionIds.PaletteOpen);
-
-        return $"No profile yet: {palette}profile add";
-    }
-
-    private static List<string> Normalize(List<string> lines, int width, int height)
-    {
-        var padded = lines.Take(height).Select(line => TextWidth.Pad(line, width)).ToList();
-
-        padded.AddRange(Blank(width, height - lines.Count));
-
-        return padded;
-    }
-
-    private static IEnumerable<string> Blank(int width, int count)
-    {
-        return Enumerable.Repeat(new string(' ', width), Math.Max(0, count));
-    }
-
-    private static string Center(string text, int width)
-    {
-        var fitted = TextWidth.Fit(text, width);
-
-        return $"{new string(' ', (width - TextWidth.Of(fitted)) / 2)}{fitted}";
+        return fitted;
     }
 }

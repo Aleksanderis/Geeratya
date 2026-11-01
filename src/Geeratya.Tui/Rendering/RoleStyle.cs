@@ -8,4 +8,5 @@ public enum RoleStyle
     Bold = 1,
     Underline = 2,
     Reverse = 4,
+    Italic = 8,
 }

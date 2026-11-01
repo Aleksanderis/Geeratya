@@ -174,7 +174,7 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 `Geeratya.Tui` references Terminal.Gui 2.5.0 (stable v2, pinned in `Directory.Packages.props`). The native AOT publish has no `IL*` warnings with it and no suppressions are needed.
 
-Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Rendering/` (pure: `FrameBuilder`, `StatusBar`, `PaletteTable`, `Palette`, `TextWidth`; no Terminal.Gui), `Views/` (`ShellScreen`, the only code that builds views; draws the frame in palette colours and redraws it on resize), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
+Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Rendering/` (pure: `FrameBuilder`, `IBodyRenderer` screens, `StatusBar`, `PaletteTable`, `Palette`, `TextWidth`; no Terminal.Gui), `Views/` (`ShellScreen`, the only code that builds views, and `StyledBodyView`, which draws the frame's styled lines span by span in palette colours and redraws it on resize), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types. `FrameBuilder` composes a header region (the tab bar slot, zero rows until tabs exist), a body from the first `IBodyRenderer` whose `AppliesTo(state)` is true (screens register without editing each other; start and help are built in) and the status bar; `--print-frame` prints the same lines with styles dropped.
 
 Settings and pitfalls:
 
