@@ -112,7 +112,24 @@ public static class ProfileReducer
 
     public static ReduceResult Changed(AppState state, ProfilesChanged changed)
     {
-        return Plain(state with { Profiles = changed.Catalog, Message = changed.Message, ProfileBusy = false });
+        var next = state with { Profiles = changed.Catalog, Message = changed.Message, ProfileBusy = false };
+
+        var previous = state.Profiles.Active;
+        var current = changed.Catalog.Active;
+
+        if (previous == current)
+        {
+            return Plain(next);
+        }
+
+        var replaced = next with { Session = SiteSession.Empty(current) };
+
+        if (previous is null)
+        {
+            return Plain(replaced);
+        }
+
+        return new ReduceResult(replaced, [new DropSiteCacheEffect(previous)]);
     }
 
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)

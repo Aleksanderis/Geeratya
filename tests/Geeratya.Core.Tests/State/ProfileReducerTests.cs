@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -323,6 +324,85 @@ public class ProfileReducerTests
 
         Assert.Equal(ProfileFormField.SiteUrl, result.State.Form!.Field);
         Assert.NotNull(result.State.Form.Error);
+    }
+
+    [Fact]
+    public void GivenViewsAndCacheOfWork_WhenSwitchingToDev_ThenViewsAndCacheAreGoneAndOldCacheIsDropped()
+    {
+        var state = WithOpenSession();
+        var switching = Palette(state, "profile switch dev").State;
+
+        var result = _reducer.Reduce(switching, new ProfilesChanged(state.Profiles.Activate("dev"), "Done."));
+
+        Assert.Empty(result.State.Session.Views);
+        Assert.Empty(result.State.Session.Cache);
+        Assert.Equal("dev", result.State.Session.ProfileName);
+        Assert.Equal(_dev.SiteUrl, result.State.Session.SiteUrl);
+        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
+    }
+
+    [Fact]
+    public void GivenViewsAndCache_WhenTheActiveProfileStays_ThenViewsAndCacheAreKept()
+    {
+        var state = WithOpenSession();
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.With(_dev), "Added."));
+
+        Assert.Single(result.State.Session.Views);
+        Assert.Single(result.State.Session.Cache);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenViewsAndCache_WhenTheActiveProfileIsRemoved_ThenTheSessionIsReplacedByTheNextProfile()
+    {
+        var state = WithOpenSession();
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Without("work"), "Removed."));
+
+        Assert.Empty(result.State.Session.Views);
+        Assert.Equal("dev", result.State.Session.ProfileName);
+        Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
+    }
+
+    [Fact]
+    public void GivenFirstProfileAdded_WhenNoSessionExisted_ThenTheSessionStartsEmptyWithoutDropping()
+    {
+        var result = _reducer.Reduce(AppState.Initial, new ProfilesChanged(ProfileCatalog.Empty.With(_work), "Added."));
+
+        Assert.Equal("work", result.State.Session.ProfileName);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenStartupStateWithoutSession_WhenSwitchingOnce_ThenTheOldProfileCacheIsDropped()
+    {
+        var state = WithProfiles(_work, _dev);
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("dev"), "Done."));
+
+        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
+    }
+
+    [Fact]
+    public void GivenTwoProfilesOnOneSite_WhenSwitchingBetweenThem_ThenTheSessionIsStillReplaced()
+    {
+        var sibling = new Profile("work2", _work.SiteUrl, "other@work.test");
+        var state = WithProfiles(_work, sibling);
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("work2"), "Done."));
+
+        Assert.Equal("work2", result.State.Session.ProfileName);
+        Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
+    }
+
+    private static AppState WithOpenSession()
+    {
+        var state = WithProfiles(_work, _dev);
+        var views = new[] { new ViewDefinition(ViewSourceKind.Jql, "project = X", ViewLayout.List) };
+        var cache = new Dictionary<string, string> { ["issue:X-1"] = "{}" };
+
+        return state with { Session = SiteSession.Empty(_work) with { Views = views, Cache = cache } };
     }
 
     private static AppState WithProfiles(params Profile[] profiles)

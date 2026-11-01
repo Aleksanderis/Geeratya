@@ -130,7 +130,12 @@ public sealed class ShellHost
             var loaded = _profiles.Store.Load();
             var notice = loaded.Status == ProfileLoadStatus.Corrupt ? CorruptNotice : null;
 
-            return AppState.Initial with { Profiles = loaded.Catalog, Message = notice };
+            return AppState.Initial with
+            {
+                Profiles = loaded.Catalog,
+                Session = SiteSession.Empty(loaded.Catalog.Active),
+                Message = notice,
+            };
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
