@@ -4,7 +4,7 @@ namespace Geeratya.Jira.Transport;
 /// Tracks the rate-limit waits in progress on one transport (proactive throttle and <c>Retry-After</c>) so a UI can
 /// show "waiting for Jira rate limit". The state is the latest end of any active wait, or null when none is waiting.
 /// </summary>
-internal sealed class RateLimitWaitTracker
+public sealed class RateLimitWaitTracker
 {
     private readonly object _lock = new();
     private readonly List<DateTimeOffset> _ends = [];
@@ -25,35 +25,37 @@ internal sealed class RateLimitWaitTracker
     /// <summary>Runs <paramref name="wait"/> while it is published as a rate-limit wait ending at <paramref name="end"/>.</summary>
     public async Task RunAsync(DateTimeOffset end, Func<Task> wait)
     {
-        Add(end);
-
-        try
-        {
-            await wait();
-        }
-        finally
-        {
-            Remove(end);
-        }
-    }
-
-    private void Add(DateTimeOffset end)
-    {
         lock (_lock)
         {
             _ends.Add(end);
         }
 
-        Changed?.Invoke();
+        try
+        {
+            Raise();
+            await wait();
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                _ends.Remove(end);
+            }
+
+            Raise();
+        }
     }
 
-    private void Remove(DateTimeOffset end)
+    /// <summary>A failing handler must never fail a Jira call, so its exception is dropped.</summary>
+    private void Raise()
     {
-        lock (_lock)
+        try
         {
-            _ends.Remove(end);
+            Changed?.Invoke();
         }
-
-        Changed?.Invoke();
+        catch (Exception)
+        {
+            // Handlers belong to the UI; the request result is not theirs to change.
+        }
     }
 }

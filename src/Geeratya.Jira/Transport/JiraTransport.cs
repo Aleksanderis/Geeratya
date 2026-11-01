@@ -23,10 +23,10 @@ public sealed class JiraTransport : IDisposable
     private readonly JiraTransportOptions _options;
     private readonly HttpClient _client;
     private readonly RequestGate _gate;
+    private readonly RateLimitWaitTracker _rateWaits = new();
     private readonly object _rateLock = new();
     private JiraRateLimit? _rateLimit;
     private DateTimeOffset _rateWindowEnds;
-    private readonly RateLimitWaitTracker _rateWaits = new();
 
     /// <param name="connection">The site and account this transport talks to.</param>
     /// <param name="token">The API token for the account.</param>
@@ -245,7 +245,9 @@ public sealed class JiraTransport : IDisposable
     }
 
     private Task WaitForRateLimitAsync(TimeSpan wait, CancellationToken cancellationToken) =>
-        _rateWaits.RunAsync(_options.Clock.GetUtcNow() + wait, () => _options.Delay(wait, cancellationToken));
+        wait <= TimeSpan.Zero
+            ? _options.Delay(wait, cancellationToken)
+            : _rateWaits.RunAsync(_options.Clock.GetUtcNow() + wait, () => _options.Delay(wait, cancellationToken));
 
     private void RecordRateLimit(HttpResponseMessage response)
     {
