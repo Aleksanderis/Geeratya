@@ -17,4 +17,7 @@ public enum InputMode
 
     [JsonStringEnumMemberName("confirm")]
     Confirm,
+
+    [JsonStringEnumMemberName("insert")]
+    Insert,
 }

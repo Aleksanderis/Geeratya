@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 
 namespace Geeratya.Tui.Rendering;
@@ -44,6 +45,7 @@ public static class FrameOptions
             "help" => InputMode.Help,
             "command" => InputMode.Command,
             "confirm" => InputMode.Confirm,
+            "insert" => InputMode.Insert,
             _ => null,
         };
     }
@@ -57,6 +59,15 @@ public static class FrameOptions
             {
                 Mode = mode,
                 Confirm = new ConfirmRequest("Delete PROJ-1? Jira cannot undo this", "issue.delete"),
+            },
+            InputMode.Insert => AppState.Initial with
+            {
+                Mode = mode,
+                Form = ProfileForm.Start with
+                {
+                    Field = ProfileFormField.Token,
+                    Token = new SecretText("sample-token"),
+                },
             },
             _ => AppState.Initial with { Mode = mode },
         };

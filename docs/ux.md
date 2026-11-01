@@ -8,7 +8,7 @@ The shell is one full-screen window with a body, a one-line status line at the b
 
 ## Modes
 
-The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command and Confirm show their prompt in the status bar.
+The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command, Confirm and Insert show their prompt in the status bar.
 
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|
@@ -16,8 +16,9 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
+| Insert | `:profile add` (the first editable form) | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
-Insert mode (editing a field) arrives with the first editable field: printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
+In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
 ## Focus model and key style
 
@@ -33,9 +34,22 @@ Insert mode (editing a field) arrives with the first editable field: printable k
 
 Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transitions, changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
 
+## Profiles
+
+A profile is a Jira site plus an account (`Core/Profiles`); one is active. The palette manages them:
+
+- `:profile add` opens the Insert-mode form, one field per step: name, site URL (https; a bare host gets `https://`), account email, API token. The token is masked (`*` per character) and never printed, logged or kept in a printable value (`SecretText`). `Enter` validates the field (empty name, an existing name, a non-https URL, a malformed email, an empty token stay on the step with the reason in the status line); the last `Enter` stores the token in the OS secret store under the profile's credential key and saves `profiles.json`. The first profile becomes active.
+- No secret store (macOS for now, or Linux without `secret-tool`): the profile is still saved and the status line says to set `GEERATYA_TOKEN`. A store that fails (locked keyring) reports the error and saves nothing.
+- `:profile list` (or `:profile`) shows the names, the active one marked `*`.
+- `:profile switch <name>` makes another profile active and saves the choice. The connection is replaced: views and cache belong to the active profile and are dropped with it (none exist yet; the views wire this up).
+- `:profile remove <name>` asks in Confirm mode, naming the profile, site and account and saying the removal cannot be undone, then deletes the profile and its token (the token stays while another profile uses the same site and account).
+- A `profiles.json` that cannot be parsed is ignored, a copy is kept as `profiles.json.corrupt`, and the status line says so at start. A start without a home directory (`HOME` unset and no absolute `XDG_*` directory) prints the reason to standard error and exits with code 1.
+
+The start screen shows the active profile, or `:profile add` when there is none. Mouse paths for these commands arrive with the mouse part.
+
 ## Command palette
 
-`:` opens a one-line prompt. This stub understands `quit` (or `q`), `help` (or `h`); anything else shows "Unknown command: ..." in the status line. Commands to search and jump arrive with their features.
+`:` opens a one-line prompt. This stub understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles); anything else shows "Unknown command: ..." in the status line. Commands to search and jump arrive with their features.
 
 ## Help
 
@@ -43,7 +57,7 @@ Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transit
 
 ## Status bar
 
-The bottom line is a bar of exactly the terminal width. It starts at column 0 with a mode badge (` NORMAL `, ` HELP `, ` COMMAND `, ` CONFIRM `), followed by the mode's text: the pending keys or message in Normal mode, `:text` in Command mode, the question and `(y/n)` in Confirm mode. Short key hints (`? help`, `: command`, `q quit`) are right-aligned; each hint names its action id and a test checks that the default keymap binds it. When the line is too narrow the hints are dropped first, then the text is cut (wide characters are never split).
+The bottom line is a bar of exactly the terminal width. It starts at column 0 with a mode badge (` NORMAL `, ` HELP `, ` COMMAND `, ` CONFIRM `, ` INSERT `), followed by the mode's text: the pending keys or message in Normal mode, `:text` in Command mode, the question and `(y/n)` in Confirm mode, the step, field and typed text (the token masked) in Insert mode. Short key hints (`? help`, `: command`, `q quit`) are right-aligned; each hint names its action id and a test checks that the default keymap binds it. When the line is too narrow the hints are dropped first, then the text is cut (wide characters are never split).
 
 ## Colour tiers
 
@@ -51,4 +65,4 @@ Colours are decided by roles (`PaletteRole`) in `PaletteTable`; views never name
 
 ## Print frame
 
-`geeratya --print-frame [--size WxH] [--mode normal|help|command|confirm]` prints the plain-text frame the shell would draw for that size (default 80x24, no colour, works without a terminal) and exits. It is the basis of the snapshot tests in `tests/Geeratya.Tui.Tests/Snapshots` at 120x36, 80x24 and 40x10; the frame builder is also tested at every size from 0x0 up so a resize never throws. To refresh a snapshot after an intended change, rerun the command into the matching file and review the diff.
+`geeratya --print-frame [--size WxH] [--mode normal|help|command|confirm|insert]` prints the plain-text frame the shell would draw for that size (default 80x24, no colour, works without a terminal) and exits. It is the basis of the snapshot tests in `tests/Geeratya.Tui.Tests/Snapshots` at 120x36, 80x24 and 40x10; the frame builder is also tested at every size from 0x0 up so a resize never throws. To refresh a snapshot after an intended change, rerun the command into the matching file and review the diff.

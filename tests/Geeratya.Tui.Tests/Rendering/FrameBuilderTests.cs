@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Tui.Rendering;
 
@@ -41,6 +42,25 @@ public class FrameBuilderTests
         var state = AppState.Initial with { Message = "日本語日本語日本語日本語" };
 
         AssertFills(FrameBuilder.Build(state, 15, 5, _helpLines, _keymap), 15, 5);
+    }
+
+    [Fact]
+    public void GivenActiveProfile_WhenBuildingTheStartScreen_ThenItNamesTheProfileAndSite()
+    {
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile) };
+
+        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("work: me@work.test on https://work.atlassian.net"));
+    }
+
+    [Fact]
+    public void GivenNoProfile_WhenBuildingTheStartScreen_ThenItPointsToTheAddCommand()
+    {
+        var lines = FrameBuilder.Build(AppState.Initial, 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains(":profile add"));
     }
 
     private static void AssertFills(IReadOnlyList<string> lines, int width, int height)

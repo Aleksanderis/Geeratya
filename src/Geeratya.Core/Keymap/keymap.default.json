@@ -38,6 +38,11 @@
 
     { "mode": "confirm", "keys": "y", "action": "confirm.yes" },
     { "mode": "confirm", "keys": "n", "action": "confirm.no" },
-    { "mode": "confirm", "keys": "Esc", "action": "confirm.no" }
+    { "mode": "confirm", "keys": "Esc", "action": "confirm.no" },
+
+    { "mode": "insert", "keys": "Enter", "action": "form.next" },
+    { "mode": "insert", "keys": "Backspace", "action": "form.backspace" },
+    { "mode": "insert", "keys": "Esc", "action": "mode.cancel" },
+    { "mode": "insert", "keys": "Ctrl-c", "action": "mode.cancel" }
   ]
 }

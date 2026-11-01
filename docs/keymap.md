@@ -57,3 +57,12 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `y` | Confirm |
 | `n` | Decline |
 | `Esc` | Decline |
+
+## Insert mode
+
+| Keys | Action |
+|---|---|
+| `Enter` | Accept the field and go to the next |
+| `Backspace` | Delete the last character |
+| `Esc` | Cancel or close |
+| `Ctrl-c` | Cancel or close |

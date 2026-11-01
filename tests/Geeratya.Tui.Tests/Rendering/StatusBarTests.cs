@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Tui.Rendering;
 
@@ -109,5 +110,54 @@ public class StatusBarTests
     public void GivenDefaultKeymap_WhenRenderingHelpHints_ThenCloseShowsEscNotQ()
     {
         Assert.Contains("Esc close", StatusBar.HintsFor(InputMode.Help, _keymap));
+    }
+
+    [Fact]
+    public void GivenTokenStep_WhenRendering_ThenTokenIsMaskedAndLengthShown()
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.Token, Token = new SecretText("abc") };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var line = StatusBar.Render(state, 80, _keymap);
+
+        Assert.Contains("INSERT [4/4] API token (hidden): ***_", line);
+        Assert.DoesNotContain("abc", line);
+        Assert.Contains("Enter next", line);
+        Assert.Contains("Esc cancel", line);
+    }
+
+    [Fact]
+    public void GivenFormError_WhenRendering_ThenErrorFollowsThePrompt()
+    {
+        var form = ProfileForm.Start with { Error = "The name cannot be empty." };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        Assert.Contains("[1/4] ! The name cannot be empty.", StatusBar.Render(state, 100, _keymap));
+    }
+
+    [Theory]
+    [InlineData(40)]
+    [InlineData(80)]
+    public void GivenLongToken_WhenRenderingNarrow_ThenTheCursorAndTheEndOfTheMaskStayVisible(int width)
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.Token, Token = new SecretText(new string('t', 150)) };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var line = StatusBar.Render(state, width, _keymap);
+
+        Assert.Equal(width, TextWidth.Of(line));
+        Assert.Contains("*_", line.TrimEnd());
+    }
+
+    [Fact]
+    public void GivenLongSiteUrl_WhenRenderingNarrow_ThenTheTailOfTheTextIsShown()
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.SiteUrl, SiteUrl = "https://example.atlassian.net" };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var line = StatusBar.Render(state, 40, _keymap);
+
+        Assert.Contains("atlassian.net_", line);
+        Assert.DoesNotContain("https://", line);
     }
 }

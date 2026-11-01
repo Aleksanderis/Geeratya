@@ -1,5 +1,6 @@
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Tests;
 
@@ -56,7 +57,7 @@ public class ApplicationRunnerTests
     [InlineData("--size", "80")]
     [InlineData("--size", "axb")]
     [InlineData("--size", "-1x5")]
-    [InlineData("--mode", "insert")]
+    [InlineData("--mode", "visual")]
     public void GivenBadPrintFrameOption_WhenRunning_ThenPrintsUsageAndFails(string flag, string value)
     {
         using var writer = new StringWriter();
@@ -65,5 +66,38 @@ public class ApplicationRunnerTests
 
         Assert.Equal(2, exitCode);
         Assert.Contains("Usage:", writer.ToString());
+    }
+
+    [Fact]
+    public void GivenNoHomeDirectory_WhenStartingTheShell_ThenPrintsTheMessageToErrorAndFails()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = new ApplicationRunner(
+            output,
+            true,
+            ColorSupport.TrueColor,
+            error,
+            () => throw new InvalidOperationException("Cannot locate the user's home directory.")).Run([]);
+
+        Assert.NotEqual(0, exitCode);
+        Assert.Contains("Cannot locate the user's home directory.", error.ToString());
+        Assert.Empty(output.ToString());
+    }
+
+    [Fact]
+    public void GivenNoHomeDirectory_WhenPrintingVersionOrFrame_ThenTheProfileServicesAreNeverCreated()
+    {
+        using var writer = new StringWriter();
+        var runner = new ApplicationRunner(
+            writer,
+            false,
+            ColorSupport.TrueColor,
+            TextWriter.Null,
+            () => throw new InvalidOperationException("no home"));
+
+        Assert.Equal(0, runner.Run(["--version"]));
+        Assert.Equal(0, runner.Run(["--print-frame"]));
     }
 }
