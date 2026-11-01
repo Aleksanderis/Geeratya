@@ -90,5 +90,18 @@ public class ProcessBrowserLauncherTests
         var result = await launcher.OpenAsync(_url, CancellationToken.None);
 
         Assert.False(result.Opened);
+        Assert.Equal("xdg-open did not finish in time", result.Message);
+    }
+
+    [Fact]
+    public async Task GivenControlCharacterInUrl_WhenOpening_ThenRefusedWithoutStartingAnything()
+    {
+        var runner = new FakeProcessRunner(new ProcessResult(0, string.Empty));
+        var launcher = new ProcessBrowserLauncher(OperatingSystemKind.Linux, runner);
+
+        var result = await launcher.OpenAsync(new Uri("https://work.atlassian.net/a\u0001b"), CancellationToken.None);
+
+        Assert.False(result.Opened);
+        Assert.Empty(runner.Arguments);
     }
 }

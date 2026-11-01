@@ -4,6 +4,7 @@ using Geeratya.Core.State;
 
 namespace Geeratya.Core.Tests.State;
 
+[Trait("Os", "Independent")]
 public class BrowserReducerTests
 {
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");

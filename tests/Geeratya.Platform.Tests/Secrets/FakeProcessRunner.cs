@@ -34,6 +34,16 @@ public sealed class FakeProcessRunner : IProcessRunner
 
     public List<string?> StandardInputs { get; } = [];
 
+    public async Task<int> RunDetachedAsync(
+        string program,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
+        var result = await RunAsync(program, arguments, null, cancellationToken);
+
+        return result.ExitCode;
+    }
+
     public Task<ProcessResult> RunAsync(
         string program,
         IReadOnlyList<string> arguments,

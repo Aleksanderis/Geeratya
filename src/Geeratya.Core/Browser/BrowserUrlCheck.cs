@@ -23,11 +23,16 @@ public static class BrowserUrlCheck
             return BrowserUrlResult.Refused("the link contains credentials");
         }
 
-        if (requiredHost is not null && !string.Equals(url.Host, requiredHost, StringComparison.OrdinalIgnoreCase))
+        if (requiredHost is not null && !IsSameHost(url, requiredHost))
         {
             return BrowserUrlResult.Refused("the link is not on the active site");
         }
 
         return BrowserUrlResult.Accepted(url);
+    }
+
+    private static bool IsSameHost(Uri url, string requiredHost)
+    {
+        return url.IsDefaultPort && string.Equals(url.Host, requiredHost, StringComparison.OrdinalIgnoreCase);
     }
 }

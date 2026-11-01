@@ -49,11 +49,11 @@ public sealed class ProcessBrowserLauncher : IBrowserLauncher
 
         try
         {
-            var result = await _processRunner.RunAsync(command.Program, command.Arguments, null, cancellationToken);
+            var exitCode = await _processRunner.RunDetachedAsync(command.Program, command.Arguments, cancellationToken);
 
-            return result.ExitCode == 0
+            return exitCode == 0
                 ? BrowserLaunchResult.Success
-                : BrowserLaunchResult.Failure($"{command.Program} failed with exit code {result.ExitCode}");
+                : BrowserLaunchResult.Failure($"{command.Program} failed with exit code {exitCode}");
         }
         catch (ProgramNotFoundException)
         {

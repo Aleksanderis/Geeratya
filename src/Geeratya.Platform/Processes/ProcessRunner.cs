@@ -52,6 +52,43 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
+    public async Task<int> RunDetachedAsync(
+        string program,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
+        var startInfo = new ProcessStartInfo(program)
+        {
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        using var process = StartProcess(startInfo);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        timeout.CancelAfter(_timeout);
+        process.StandardInput.Close();
+
+        try
+        {
+            // No stream is read, so a browser started by the opener (which inherits the pipes) cannot block this.
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"Program '{program}' did not finish within {_timeout.TotalSeconds:0} seconds.");
+        }
+
+        return process.ExitCode;
+    }
+
     private static async Task<ProcessResult> CommunicateAsync(
         Process process,
         string? standardInput,
