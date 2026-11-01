@@ -26,6 +26,7 @@ public sealed class ShellHost : IDisposable
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
     private readonly SiteConnections _connections;
+    private NetworkRunner? _network;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
@@ -43,6 +44,7 @@ public sealed class ShellHost : IDisposable
 
     public void Dispose()
     {
+        _network?.Dispose();
         _connections.Dispose();
     }
 
@@ -54,6 +56,7 @@ public sealed class ShellHost : IDisposable
 
         _shutdownToken = shutdown.Token;
         _state = LoadProfiles();
+        _network = new NetworkRunner(_connections, Post, _shutdownToken);
 
         _application = application;
         application.Init();
@@ -115,6 +118,7 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is DropSiteCacheEffect drop)
             {
+                _network!.CancelAll();
                 _connections.Drop(drop.Profile);
             }
             else
@@ -124,6 +128,17 @@ public sealed class ShellHost : IDisposable
         }
 
         _ = ConnectAsync();
+    }
+
+    /// <summary>Thread-safe entry for background work: marshals the command to the UI thread, where the reducer runs.</summary>
+    public void Post(AppCommand command)
+    {
+        if (_shutdownToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _application!.Invoke(() => Dispatch(command));
     }
 
     /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>

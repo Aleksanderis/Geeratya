@@ -96,7 +96,7 @@ Effects stay data (`Effect` records). The code that talks to Jira lives in `Geer
 | Type | Project | Issue | Role |
 |---|---|---|---|
 | `JiraServices` | Tui | #57 | Bundle of clients (search, board, filter, issue) built from `SiteConnections.Current`; no DI container. Not available while no transport exists. |
-| `NetworkRunner` | Tui | #57 | Runs network effects on background tasks with a `CancellationTokenSource` per tab; stamps each run with `SiteConnections.Generation` at start; drops the result when `IsCurrent(generation)` is false or the token is cancelled; posts the rest through `ShellHost.Post`. `CancelTab(TabId)` serves `CancelTabEffect`, `CancelAll()` serves `DropSiteCacheEffect`. |
+| `NetworkRunner` | Tui | #57 | Runs network effects on background tasks with a `CancellationTokenSource` per tab; stamps each run with `SiteConnections.Generation` at start; drops the result when `IsCurrent(generation)` is false or the token is cancelled; posts the rest through `ShellHost.Post`. `CancelScope(tabId)` serves `CancelTabEffect`, `CancelAll()` serves `DropSiteCacheEffect`. |
 | `ViewLoadHandler` | Tui | #77, #78 | Turns `LoadViewPageEffect` into `ViewPageLoaded`, `ViewLoadFailed` (and `BoardConfigurationLoaded`). One method per source kind: a new board kind is a new source or layout, not new loading code. |
 | `ShellHost.Post(Command)` | Tui | #57 | Thread-safe entry that marshals to the UI thread, where the reducer runs; the only way a background thread changes state. |
 
