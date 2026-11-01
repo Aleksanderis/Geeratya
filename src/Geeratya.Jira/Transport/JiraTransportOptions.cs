@@ -19,6 +19,10 @@ public sealed record JiraTransportOptions
     /// <summary>When set, calls to any other host are refused (live tests: <c>GEERATYA_LIVE_HOSTS</c>).</summary>
     public IReadOnlySet<string>? AllowedHosts { get; init; }
 
+    /// <summary>Options for live tests: only the hosts in <c>GEERATYA_LIVE_HOSTS</c> are reachable.</summary>
+    public static JiraTransportOptions ForLiveTests(Func<string, string?> environmentLookup) =>
+        new() { AllowedHosts = JiraHostAllowList.Parse(environmentLookup(JiraHostAllowList.EnvironmentVariable)) };
+
     public string UserAgent { get; init; } = "Geeratya/0.1";
 
     public TimeProvider Clock { get; init; } = TimeProvider.System;

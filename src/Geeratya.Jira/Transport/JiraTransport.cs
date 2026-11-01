@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-
 namespace Geeratya.Jira.Transport;
 
 /// <summary>
@@ -36,13 +35,13 @@ public sealed class JiraTransport : IDisposable
         JiraTransportOptions? options = null)
     {
         _connection = connection;
+        RequireSecureSite(connection.SiteUrl);
         _options = options ?? new JiraTransportOptions();
         _token = token.Value;
         _siteBase = connection.SiteUrl.AbsoluteUri.TrimEnd('/');
 
-        var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{connection.AccountEmail}:{_token}"));
-        _authorization = credentials;
-        _client = new HttpClient(handler ?? new SocketsHttpHandler(), true)
+        _authorization = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{connection.AccountEmail}:{_token}"));
+        _client = new HttpClient(handler ?? CreateDefaultHandler(), true)
         {
             Timeout = Timeout.InfiniteTimeSpan,
         };
@@ -83,6 +82,24 @@ public sealed class JiraTransport : IDisposable
     {
         _client.Dispose();
         _concurrency.Dispose();
+    }
+
+    private static SocketsHttpHandler CreateDefaultHandler() =>
+        new()
+        {
+            // Redirects could carry the credential to another host; a 3xx is reported as an unexpected status.
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.All,
+        };
+
+    private static void RequireSecureSite(Uri siteUrl)
+    {
+        if (siteUrl.Scheme == Uri.UriSchemeHttps || siteUrl.IsLoopback)
+        {
+            return;
+        }
+
+        throw new ArgumentException("The site URL must use https (http only for loopback).", nameof(siteUrl));
     }
 
     private bool IsHostAllowed() =>

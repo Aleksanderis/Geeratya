@@ -307,11 +307,52 @@ public sealed class JiraTransportTests
         var echoed = await client.GetMyselfAsync(CancellationToken.None);
         var network = await SendAsync(fixture, JiraRequest.Get("/other"));
 
-        foreach (var text in new[] { echoed.Error.ToString(), network.Error.ToString(), fixture.Transport.ToString() })
+        foreach (var text in new[] { echoed.Error.ToString(), network.Error.ToString() })
         {
             Assert.DoesNotContain(TransportFixture.Token, text);
             Assert.DoesNotContain(credentials, text);
         }
+    }
+
+    [Fact]
+    public void GivenPlainHttpRemoteSite_WhenCreatingTransport_ThenItIsRejected()
+    {
+        var connection = new JiraConnection(new Uri("http://example.atlassian.net"), TransportFixture.Email);
+        var token = new JiraApiToken("t");
+
+        Assert.Throws<ArgumentException>(() => new JiraTransport(connection, token, new FakeJiraHandler()));
+    }
+
+    [Fact]
+    public void GivenPlainHttpLoopbackSite_WhenCreatingTransport_ThenItIsAccepted()
+    {
+        var connection = new JiraConnection(new Uri("http://127.0.0.1:5000"), TransportFixture.Email);
+
+        using var transport = new JiraTransport(connection, new JiraApiToken("t"), new FakeJiraHandler());
+
+        Assert.Equal(connection, transport.Connection);
+    }
+
+    [Fact]
+    public async Task GivenRedirectResponse_WhenGetting_ThenUnexpectedErrorAndNoFollow()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.WithStatus(HttpStatusCode.Found));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.Unexpected, result.Error.Kind);
+        Assert.Single(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public void GivenLiveHostsVariable_WhenBuildingLiveTestOptions_ThenOnlyThoseHostsAreAllowed()
+    {
+        var options = JiraTransportOptions.ForLiveTests(_ => "dev.example.net, other.example.net");
+
+        Assert.Equal(2, options.AllowedHosts!.Count);
+        Assert.Contains("dev.example.net", options.AllowedHosts);
+        Assert.Empty(JiraTransportOptions.ForLiveTests(_ => null).AllowedHosts!);
     }
 
     [Fact]

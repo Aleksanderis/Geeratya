@@ -9,7 +9,7 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 ## Authentication and rate-limit headers
 
 - Basic auth, `email:api-token`, on `https://<site>.atlassian.net/rest/api/3/...`. `Accept: application/json` is enough for reads.
-- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). The transport should read them to throttle before a 429 happens.
+- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). Reading them to throttle before a 429 happens is deferred (#22).
 
 ## Transport (`src/Geeratya.Jira/Transport`)
 
