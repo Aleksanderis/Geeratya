@@ -37,6 +37,10 @@ export XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$w
 export GEERATYA_FAKE_URL=$fake_url
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
 
+# Load average (1 minute) so a noisy run can be recognised; "n/a" where /proc/loadavg does not exist.
+load_now() { if [ -r /proc/loadavg ]; then cut -d' ' -f1 /proc/loadavg; else echo n/a; fi; }
+load_before=$(load_now)
+
 now_ms() { echo $(($(date +%s%N) / 1000000)); }
 frame() { tmux -L "$socket" capture-pane -t m -p 2> /dev/null || true; }
 
@@ -97,6 +101,7 @@ read -r cold_median cold_p95 <<< "$(printf '%s\n' "${cold[@]}" | summarise)"
 read -r key_median key_p95 <<< "$(printf '%s\n' "${keyed[@]}" | summarise)"
 echo "binary:        $binary"
 echo "runs:          $runs sessions, $keys key presses each"
+echo "load average:  $load_before before, $(load_now) after ($(nproc 2> /dev/null || echo '?') cores); results on a busy machine are pessimistic"
 echo "tmux floor, first frame of a trivial command (ms): median $floor_median, p95 $floor_p95"
 echo "cold start to first frame (ms):                    median $cold_median, p95 $cold_p95"
 echo "key to frame (ms):                                 median $key_median, p95 $key_p95"
