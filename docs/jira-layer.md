@@ -9,7 +9,15 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 ## Authentication and rate-limit headers
 
 - Basic auth, `email:api-token`, on `https://<site>.atlassian.net/rest/api/3/...`. `Accept: application/json` is enough for reads.
-- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). The transport should read them to throttle before a 429 happens.
+- Every response carries rate-limit headers, also on 200: `ratelimit-policy: "jira-burst-based";q=100;w=1`, `ratelimit: "jira-burst-based";r=<remaining>;t=<reset seconds>`, `x-ratelimit-limit: 350`, `x-ratelimit-remaining`. Source: `myself/myself.meta.txt` (status line and these headers). Reading them to throttle before a 429 happens is deferred (#22).
+
+## Transport (`src/Geeratya.Jira/Transport`)
+
+- `JiraTransport` is created per connection (`JiraConnection`: site URL plus account email) with a `JiraApiToken` and owns one `HttpClient`, the auth header, `Accept`, the user agent, the per-attempt timeout (30 s default) and a per-site concurrency cap (4). Clients such as `JiraUserClient` take the transport; all view state stays in the tab, so one transport serves every tab of the active site.
+- Calls return `JiraResult<T>` (value or `JiraError` with `JiraErrorKind`): 400 `BadRequest`, 401 `Unauthorized`, 403 `Forbidden`, 404/410 `NotFound`, 429 `RateLimited`, 5xx `ServerError`, plus `Timeout`, `Network`, `HostRefused`, `InvalidResponse`. Caller cancellation is the one exception that surfaces as `OperationCanceledException`.
+- Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`. The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s. The 429 path rests on the documented semantics only (#18).
+- The token is held only in the transport. `JiraApiToken.ToString()` is `[redacted]`, error messages are scrubbed of the token and the Basic credential, and a network failure message carries only the `HttpRequestError` code.
+- `GEERATYA_LIVE_HOSTS` is parsed by `JiraHostAllowList`; a transport given `AllowedHosts` refuses any other host before sending (`HostRefused`).
 
 ## Current user: `GET /rest/api/3/myself`
 
