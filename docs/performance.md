@@ -20,20 +20,17 @@ The harness measures from outside the process, so it includes process start, the
 
 ## Measured
 
-Environment: Linux x86_64, 14 cores, Native AOT `geeratya` published with `dotnet publish src/Geeratya.Tui -c Release`, tmux 120x40, 30 sessions with 5 key presses each, empty shell (the binary does not talk to Jira yet). The harness prints the load average before and after a run; keep it in the table.
+Environment: Linux x86_64, 14 cores, Native AOT `geeratya` published with `dotnet publish src/Geeratya.Tui -c Release`, tmux 120x40, 30 sessions with 5 key presses each, empty shell (the binary does not talk to Jira yet). The harness prints the 1-minute load average before and after a run (a lagging hint, not an exact figure). The machine was never quiet during the re-measurement (load 9 to 13 on 14 cores, other agents building), so these are upper bounds.
 
-| Measurement (ms) | Load (1 min, 14 cores) | Median | p95 | Budget |
-|---|---|---|---|---|
-| tmux floor (first frame of `printf x`) | 16 | 8 | 17 | n/a |
-| Cold start to first frame | 16 (first measurement, #7) | 124 | 173 | under 100 |
-| Key to frame (`?` help toggle) | 16 (first measurement, #7) | 207 | 241 | next frame |
-| tmux floor | 9 to 12 | 3 to 12 | 16 | n/a |
-| Cold start to first frame (re-measured, #37) | 9 to 13 | 41 to 45 | 56 to 65 | under 100 |
-| Key to frame (re-measured, #37) | 9 to 13 | 35 to 37 | 45 to 70 | next frame |
+| Measurement (ms) | Median | p95 | Budget |
+|---|---|---|---|
+| tmux floor (first frame of `printf x`) | 9 | 16 | n/a |
+| Cold start to first frame, empty shell | 43 | 63 | under 100 |
+| Key to frame (`?` help toggle) | 37 | 66 | next frame |
 
-The re-measurement ran several times on the same binary with the machine still busy (load 9 to 13, never quiet), and it is far inside the budget: the first figures (124 ms and 207 ms) were an artefact of the load of 16 at the time and are not reproducible. No code change was needed (#37).
+Superseded history (#7, first measurement, load 16): cold start median 124 / p95 173, key to frame 207 / 241; an earlier 10-session run gave cold start 91 / 185 and key to frame 207 / 253. Repeated runs for #37 (five 30-session runs on the same source, load 9 to 17) gave cold start 41 to 58 and key to frame 35 to 41, so the old figures were not reproduced. The cause of the difference is not established: heavier machine load during the first runs is the likely reason, but a quiet machine was not available, so that is not proven, and no code change was made. Re-run on a quiet machine when one is available; if the old figures return, reopen #37.
 
-Reading the key-to-frame figure: a bare `cat` echoing a typed character, timed with the same loop, takes 10 ms median (p95 20), so 35 to 37 ms is about 25 ms above the harness floor. An in-process trace (temporary timestamps in the key handler and `Iteration` event, not committed) showed the pieces: `tmux send-keys` returns 10 to 20 ms before the key reaches the process (tmux and the pty hand-off), the key handler runs and the next frame is visible to `capture-pane` about 15 ms later, which is mostly the polling loop's own `capture-pane` process spawn. Terminal.Gui's main loop is capped at 25 iterations per second by default (`Application.MaximumIterationsPerSecond`), but a key press wakes the loop at once, so the cap does not delay it: raising the cap to 120 changed neither figure (alternating A/B runs, 30 sessions each, 35 to 41 ms both). The cap is left at its default.
+Reading the key-to-frame figure (ad hoc checks, not committed and not reproducible from the repo): a bare `cat` echoing a typed character, timed with the same loop, takes 10 ms median (p95 20), so about 25 ms of the 37 ms is above the harness floor. A temporary in-process trace (timestamps in the key handler and the `Iteration` event) showed `tmux send-keys` returning 10 to 20 ms before the key reached the process, and the frame visible to `capture-pane` about 15 ms after the key handler ran, mostly the polling loop's own `capture-pane` spawn. Terminal.Gui's main loop iterates about 25 times a second by default (`Application.MaximumIterationsPerSecond`, a static property), but a key press wakes it at once: setting it to 120 did not change the figure (alternating A/B runs, 35 to 41 ms both), so it is left at its default.
 
 ## Notes for later rows
 
