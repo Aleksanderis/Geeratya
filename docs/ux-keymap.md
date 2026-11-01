@@ -29,3 +29,10 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `q` | record a macro | quit (Normal mode only; there are no macros) |
 | `?` | search backwards | help (search arrives with `/` and `n`/`N` in a later issue) |
 | `s u c a x r D M E` and other bare letters | edit commands | not bound by Geeratya actions |
+| `0` `$` | line start, line end | first and last column of the board |
+| `] ]` `[ [` | next and previous section | next and previous section of the issue |
+| `g t` `g T` | next and previous tab | next and previous tab |
+| `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
+| `Enter` | next line | open the selected item |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue |
+| `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |

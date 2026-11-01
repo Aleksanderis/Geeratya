@@ -27,6 +27,30 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `q` | Quit |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Quit |
+| `Enter` | Open the selected item |
+| `0` | Go to the first column |
+| `$` | Go to the last column |
+| `] ]` | Next section of the issue |
+| `[ [` | Previous section of the issue |
+| `Tab` | Next tab |
+| `g t` | Next tab |
+| `Shift-Tab` | Previous tab |
+| `g T` | Previous tab |
+| `Alt-1` | Go to tab 1 |
+| `Alt-2` | Go to tab 2 |
+| `Alt-3` | Go to tab 3 |
+| `Alt-4` | Go to tab 4 |
+| `Alt-5` | Go to tab 5 |
+| `Alt-6` | Go to tab 6 |
+| `Alt-7` | Go to tab 7 |
+| `Alt-8` | Go to tab 8 |
+| `Alt-9` | Go to tab 9 |
+| `Space t` | Open a view in a new tab |
+| `Space c` | Close the tab |
+| `Space r` | Refresh the view (also retries after an error) |
+| `Space l` | Switch between list and columns |
+| `Space o` | Open the issue in the browser |
+| `Space p` | Open the parent issue |
 
 ## Help mode
 
@@ -66,3 +90,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Backspace` | Delete the last character |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Cancel or close |
+| `Up` | Previous source in the picker |
+| `Ctrl-p` | Previous source in the picker |
+| `Down` | Next source in the picker |
+| `Ctrl-n` | Next source in the picker |
