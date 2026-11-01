@@ -66,18 +66,6 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
-    public void GivenRecorded429Body_WhenMapping_ThenRateLimitedWithRetryAfter()
-    {
-        var body = FixtureFiles.Read("errors/search-429-rate-limited.json");
-
-        var error = JiraErrorMapper.Map((HttpStatusCode)429, body, TimeSpan.FromSeconds(34));
-
-        Assert.Equal(JiraErrorKind.RateLimited, error.Kind);
-        Assert.Equal(TimeSpan.FromSeconds(34), error.RetryAfter);
-        Assert.Equal("Rate limited by Jira.", error.Message);
-    }
-
-    [Fact]
     public async Task GivenHtmlErrorPage_WhenServerFails_ThenRetriesThenReportsServerErrorWithoutHtml()
     {
         using var fixture = new TransportFixture();
@@ -105,6 +93,29 @@ public sealed class JiraTransportTests
         Assert.True(result.IsSuccess);
         Assert.Equal(2, fixture.Handler.Requests.Count);
         Assert.Equal([TimeSpan.FromSeconds(7)], fixture.Waits);
+    }
+
+    [Fact]
+    public async Task GivenRecorded429Reply_WhenGetting_ThenWaitsItsRetryAfterOnceAndRetries()
+    {
+        using var fixture = new TransportFixture();
+        var headers = new Dictionary<string, string>
+        {
+            ["Retry-After"] = "34",
+            ["ratelimit-reason"] = "jira-max-concurrent-threads-across-all-instances-per-tenant-per-user",
+        };
+        var recorded = new FakeResponse(
+            (HttpStatusCode)429,
+            FixtureFiles.Read("errors/search-429-rate-limited.json"),
+            headers);
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, recorded);
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, fixture.Handler.Requests.Count);
+        Assert.Equal([TimeSpan.FromSeconds(34)], fixture.Waits);
     }
 
     [Fact]

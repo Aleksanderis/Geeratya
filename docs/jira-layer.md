@@ -85,6 +85,7 @@ Fixtures under `errors/`. Statuses were all recorded live unless marked.
 | No permission | 403 | `errorMessages` ("You do not have permission to delete issues in this project.") | `errors/issue-delete-403-no-permission.json` |
 | Missing XSRF header on attachment upload | 404 (not 403) | Plain text `XSRF check failed` | `errors/attachment-xsrf-404.json` |
 | Issue missing or hidden | 404 | `errorMessages` ("Issue does not exist or you do not have permission to see it.") | `errors/issue-404.json`, `errors/issue-404-unknown-project.json` |
+| Concurrency rate limit | 429 | `errorMessages` ("The request has been rate-limited. Please try again later."); headers `Retry-After` (seconds), `ratelimit-reason` | `errors/search-429-rate-limited.json`, `.meta.txt` |
 | Removed endpoint | 410 | `errorMessages` | `search/search-legacy-removed.json` |
 | Server failure | 500 | HTML page ("Something went wrong"), not JSON | `errors/500-html-error-page.html` |
 
