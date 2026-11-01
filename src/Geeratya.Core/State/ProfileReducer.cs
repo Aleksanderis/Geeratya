@@ -114,14 +114,22 @@ public static class ProfileReducer
     {
         var next = state with { Profiles = changed.Catalog, Message = changed.Message, ProfileBusy = false };
 
-        if (state.Session.Belongs(changed.Catalog.Active))
+        var previous = state.Profiles.Active;
+        var current = changed.Catalog.Active;
+
+        if (previous == current)
         {
             return Plain(next);
         }
 
-        var dropped = state.Session.SiteUrl is { } site ? [new DropSiteCacheEffect(site)] : _noEffects;
+        var replaced = next with { Session = SiteSession.Empty(current) };
 
-        return new ReduceResult(next with { Session = SiteSession.Empty(changed.Catalog.Active) }, dropped);
+        if (previous is null)
+        {
+            return Plain(replaced);
+        }
+
+        return new ReduceResult(replaced, [new DropSiteCacheEffect(previous)]);
     }
 
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)

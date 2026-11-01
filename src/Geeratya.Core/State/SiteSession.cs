@@ -24,10 +24,4 @@ public sealed record SiteSession(
     {
         return profile is null ? None : None with { ProfileName = profile.Name, SiteUrl = profile.SiteUrl };
     }
-
-    /// <summary>True when <paramref name="profile"/> is the profile and site this session was built for.</summary>
-    public bool Belongs(Profile? profile)
-    {
-        return profile?.Name == ProfileName && profile?.SiteUrl == SiteUrl;
-    }
 }

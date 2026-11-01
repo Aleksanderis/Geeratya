@@ -338,7 +338,7 @@ public class ProfileReducerTests
         Assert.Empty(result.State.Session.Cache);
         Assert.Equal("dev", result.State.Session.ProfileName);
         Assert.Equal(_dev.SiteUrl, result.State.Session.SiteUrl);
-        Assert.Equal(_work.SiteUrl, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).SiteUrl);
+        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
     }
 
     [Fact]
@@ -372,6 +372,28 @@ public class ProfileReducerTests
 
         Assert.Equal("work", result.State.Session.ProfileName);
         Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenStartupStateWithoutSession_WhenSwitchingOnce_ThenTheOldProfileCacheIsDropped()
+    {
+        var state = WithProfiles(_work, _dev);
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("dev"), "Done."));
+
+        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
+    }
+
+    [Fact]
+    public void GivenTwoProfilesOnOneSite_WhenSwitchingBetweenThem_ThenTheSessionIsStillReplaced()
+    {
+        var sibling = new Profile("work2", _work.SiteUrl, "other@work.test");
+        var state = WithProfiles(_work, sibling);
+
+        var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("work2"), "Done."));
+
+        Assert.Equal("work2", result.State.Session.ProfileName);
+        Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
     }
 
     private static AppState WithOpenSession()
