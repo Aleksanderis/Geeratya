@@ -30,7 +30,8 @@ public sealed class NetworkRunner : IDisposable
 
     /// <summary>
     /// Starts <paramref name="work"/> on a background task and returns at once. Does nothing while the site has no
-    /// transport. The work's command, if any, is posted when the run is still current.
+    /// transport. The work's command, if any, is posted when the run is still current. The work maps its own Jira
+    /// failures to a command; an unexpected exception of a current run faults the returned task.
     /// </summary>
     public Task Start(long scope, Func<JiraServices, CancellationToken, Task<Command?>> work)
     {
@@ -108,6 +109,11 @@ public sealed class NetworkRunner : IDisposable
         }
     }
 
+    private bool IsObsolete(JiraServices services, CancellationToken token)
+    {
+        return token.IsCancellationRequested || !_connections.IsCurrent(services.Generation);
+    }
+
     private async Task RunAsync(
         JiraServices services,
         Func<JiraServices, CancellationToken, Task<Command?>> work,
@@ -119,12 +125,17 @@ public sealed class NetworkRunner : IDisposable
         {
             result = await work(services, token);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return;
         }
+        catch (Exception) when (IsObsolete(services, token))
+        {
+            // The old transport is disposed on a switch, so work still running may fail with anything.
+            return;
+        }
 
-        if (result is null || token.IsCancellationRequested || !_connections.IsCurrent(services.Generation))
+        if (result is null || IsObsolete(services, token))
         {
             return;
         }

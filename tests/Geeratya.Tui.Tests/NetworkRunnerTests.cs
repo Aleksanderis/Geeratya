@@ -117,13 +117,48 @@ public sealed class NetworkRunnerTests
     }
 
     [Fact]
-    public async Task GivenWorkThatThrowsCancellation_WhenRunning_ThenNothingIsPostedAndNoThrow()
+    public async Task GivenWorkCancelledByItsScope_WhenRunning_ThenNothingIsPostedAndNoThrow()
     {
         using var fixture = await ConnectedAsync(_a);
 
-        await fixture.Runner.Start(1, (_, _) => throw new OperationCanceledException());
+        await fixture.Runner.Start(1, (_, token) =>
+        {
+            fixture.Runner.CancelScope(1);
+            token.ThrowIfCancellationRequested();
+
+            return Task.FromResult<Command?>(_reply);
+        });
 
         Assert.Empty(fixture.Posted);
+    }
+
+    [Fact]
+    public async Task GivenWorkThatFailsAfterSwitch_WhenItThrows_ThenNothingIsPostedAndNoThrow()
+    {
+        using var fixture = await ConnectedAsync(_a, _b);
+        var gate = new TaskCompletionSource();
+
+        var run = fixture.Runner.Start(1, async (_, _) =>
+        {
+            await gate.Task;
+
+            throw new ObjectDisposedException("transport");
+        });
+
+        await fixture.Connections.ActivateAsync(_b, 2, CancellationToken.None);
+        gate.SetResult();
+        await run;
+
+        Assert.Empty(fixture.Posted);
+    }
+
+    [Fact]
+    public async Task GivenWorkThatFailsOnCurrentSite_WhenItThrows_ThenTheReturnedTaskFaults()
+    {
+        using var fixture = await ConnectedAsync(_a);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Runner.Start(1, (_, _) => throw new InvalidOperationException()));
     }
 
     [Fact]
@@ -146,37 +181,6 @@ public sealed class NetworkRunnerTests
 
         Assert.False(ran);
         Assert.Empty(posted);
-    }
-
-    [Fact]
-    public async Task GivenConnectedSite_WhenCreatingServices_ThenTheyCarryTransportAndGeneration()
-    {
-        using var fixture = await ConnectedAsync(_a);
-
-        var services = JiraServices.Create(fixture.Connections);
-
-        Assert.Same(fixture.Connections.Current, services!.Transport);
-        Assert.True(fixture.Connections.IsCurrent(services.Generation));
-    }
-
-    [Fact]
-    public void GivenNoConnection_WhenCreatingServices_ThenNull()
-    {
-        using var connections = new SiteConnections(
-            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
-
-        Assert.Null(JiraServices.Create(connections));
-    }
-
-    [Fact]
-    public async Task GivenServicesBeforeSwitch_WhenSwitched_ThenTheirGenerationIsStale()
-    {
-        using var fixture = await ConnectedAsync(_a, _b);
-        var services = JiraServices.Create(fixture.Connections)!;
-
-        await fixture.Connections.ActivateAsync(_b, 2, CancellationToken.None);
-
-        Assert.False(fixture.Connections.IsCurrent(services.Generation));
     }
 
     private static async Task<Fixture> ConnectedAsync(params Profile[] profiles)

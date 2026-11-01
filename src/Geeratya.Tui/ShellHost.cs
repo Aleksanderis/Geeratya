@@ -81,6 +81,17 @@ public sealed class ShellHost : IDisposable
         return 0;
     }
 
+    /// <summary>Thread-safe entry for background work: runs the reducer on the UI thread.</summary>
+    public void Post(AppCommand command)
+    {
+        if (_shutdownToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _application!.Invoke(() => Dispatch(command));
+    }
+
     private void OnKeyDown(object? sender, Key key)
     {
         var spelled = KeyTranslator.Translate(key);
@@ -118,6 +129,7 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is DropSiteCacheEffect drop)
             {
+                // The cache drop (#82) hooks in here too.
                 _network!.CancelAll();
                 _connections.Drop(drop.Profile);
             }
@@ -128,17 +140,6 @@ public sealed class ShellHost : IDisposable
         }
 
         _ = ConnectAsync();
-    }
-
-    /// <summary>Thread-safe entry for background work: marshals the command to the UI thread, where the reducer runs.</summary>
-    public void Post(AppCommand command)
-    {
-        if (_shutdownToken.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _application!.Invoke(() => Dispatch(command));
     }
 
     /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
