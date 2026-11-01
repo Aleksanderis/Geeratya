@@ -12,6 +12,7 @@ import re
 import sys
 from urllib.parse import quote
 
+EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@(?!example\.com\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 host = sys.argv[1]
 data = json.load(sys.stdin)
 
@@ -44,6 +45,7 @@ collect(data)
 
 def text(s):
     s = s.replace(host, "example.atlassian.net")
+    s = EMAIL.sub(lambda m: "user%d@example.com" % emails.setdefault(m.group(0), len(emails) + 1), s)
     for raw in sorted(accounts, key=lambda r: -len(r)):
         fake = "fake-account-%d" % accounts[raw]
         for variant in (raw, quote(raw, safe=""), quote(raw)):

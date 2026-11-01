@@ -48,6 +48,18 @@ if [ "$allowed" -ne 1 ]; then echo "host not in GEERATYA_LIVE_HOSTS: refused" >&
 case "$path" in /*) ;; *) echo "path must start with /" >&2; exit 2 ;; esac
 case "$method" in GET | POST | PUT | DELETE) ;; *) echo "unsupported method" >&2; exit 2 ;; esac
 
+# Writes: only issues in the sandbox projects GCM and GTM (testing skill, "Live dev site").
+if [ "$method" != GET ]; then
+  case "$path" in
+    /rest/api/3/issue | /rest/api/3/issue/G[CT]M-[0-9]* | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
+    *) echo "write refused: only issues in GCM/GTM (and search POST) may be written" >&2; exit 3 ;;
+  esac
+  if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
+    && ! jq -e '(.fields.project.key // "GCM") | IN("GCM","GTM")' "$body" > /dev/null 2>&1; then
+    echo "write refused: body names a project other than GCM/GTM" >&2; exit 3
+  fi
+fi
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 umask 077
@@ -77,7 +89,15 @@ if [ -s "$tmp/body" ]; then
   if jq -e . "$tmp/body" > /dev/null 2>&1; then
     out=$(scrub < "$tmp/body")
   else
-    out=$(sed "s/$site/example.atlassian.net/g" "$tmp/body")
+    out=$(sed -E "s/$site/example.atlassian.net/g; s/(Log reference|TraceId)(: <strong>)[^<]*/\1\2fake-id/g" "$tmp/body")
+  fi
+  # Fail closed: nothing that still looks like site data or a credential is written.
+  if [ "${RECORD_RAW:-}" != 1 ]; then
+    if printf '%s' "$out" | grep -Eio '[a-z0-9-]+\.atlassian\.net' | grep -iv '^example\.atlassian\.net$' | grep -q . \
+      || printf '%s' "$out" | grep -Fq -e "$GEERATYA_LIVE_TOKEN" -e "$GEERATYA_LIVE_EMAIL"; then
+      echo "scrub check failed: output still contains site or credential data; nothing written" >&2
+      exit 4
+    fi
   fi
   if [ -n "${RECORD_OUT:-}" ]; then printf '%s\n' "$out" > "$RECORD_OUT"; else printf '%s\n' "$out"; fi
 fi
