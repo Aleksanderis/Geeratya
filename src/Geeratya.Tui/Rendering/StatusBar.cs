@@ -7,32 +7,31 @@ namespace Geeratya.Tui.Rendering;
 public static class StatusBar
 {
     private const string HintGap = "  ";
-    private const string ConfirmSuffix = " (y/n)";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
-        new(InputMode.Normal, "?", "help", ActionIds.HelpToggle),
-        new(InputMode.Normal, ":", "command", ActionIds.PaletteOpen),
-        new(InputMode.Normal, "q", "quit", ActionIds.Quit),
-        new(InputMode.Help, "j", "down", ActionIds.NavigateDown),
-        new(InputMode.Help, "k", "up", ActionIds.NavigateUp),
-        new(InputMode.Help, "Esc", "close", ActionIds.HelpClose),
-        new(InputMode.Command, "Enter", "run", ActionIds.PaletteSubmit),
-        new(InputMode.Command, "Esc", "cancel", ActionIds.Cancel),
-        new(InputMode.Confirm, "y", "yes", ActionIds.ConfirmYes),
-        new(InputMode.Confirm, "n", "no", ActionIds.ConfirmNo),
+        new(InputMode.Normal, ActionIds.HelpToggle, "help"),
+        new(InputMode.Normal, ActionIds.PaletteOpen, "command"),
+        new(InputMode.Normal, ActionIds.Quit, "quit"),
+        new(InputMode.Help, ActionIds.NavigateDown, "down"),
+        new(InputMode.Help, ActionIds.NavigateUp, "up"),
+        new(InputMode.Help, ActionIds.HelpClose, "close"),
+        new(InputMode.Command, ActionIds.PaletteSubmit, "run"),
+        new(InputMode.Command, ActionIds.Cancel, "cancel"),
+        new(InputMode.Confirm, ActionIds.ConfirmYes, "yes"),
+        new(InputMode.Confirm, ActionIds.ConfirmNo, "no"),
     ];
 
     /// <summary>The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.</summary>
-    public static string Render(AppState state, int width)
+    public static string Render(AppState state, int width, KeymapTable keymap)
     {
         if (width <= 0)
         {
             return string.Empty;
         }
 
-        var left = $" {Badge(state.Mode)} {Text(state, width)}".TrimEnd();
-        var hints = string.Join(HintGap, Hints.Where(hint => hint.Mode == state.Mode).Select(Format));
+        var left = $" {Badge(state.Mode)} {Text(state, width, keymap)}".TrimEnd();
+        var hints = string.Join(HintGap, HintsFor(state.Mode, keymap));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -43,9 +42,25 @@ public static class StatusBar
         return $"{left}{new string(' ', gap)}{hints}";
     }
 
-    private static string Format(StatusHint hint)
+    /// <summary>
+    /// The hints of <paramref name="mode"/> as <c>key label</c>, the key taken from the keymap; a hint whose action
+    /// the keymap does not bind in that mode is left out.
+    /// </summary>
+    public static IReadOnlyList<string> HintsFor(InputMode mode, KeymapTable keymap)
     {
-        return $"{hint.Key} {hint.Label}";
+        var texts = new List<string>();
+
+        foreach (var hint in Hints.Where(hint => hint.Mode == mode))
+        {
+            var keys = keymap.FindKeys(mode, hint.ActionId);
+
+            if (keys is not null)
+            {
+                texts.Add($"{keys} {hint.Label}");
+            }
+        }
+
+        return texts;
     }
 
     private static string Badge(InputMode mode)
@@ -59,23 +74,26 @@ public static class StatusBar
         };
     }
 
-    private static string Text(AppState state, int width)
+    private static string Text(AppState state, int width, KeymapTable keymap)
     {
         return state.Mode switch
         {
             InputMode.Command => $":{state.PaletteText}",
-            InputMode.Confirm => ConfirmText(state, width),
+            InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
             _ => state.Message ?? state.PendingKeys,
         };
     }
 
     /// <summary>Cuts the question, never the answer keys: the suffix stays visible on a narrow terminal.</summary>
-    private static string ConfirmText(AppState state, int width)
+    private static string ConfirmText(AppState state, int width, KeymapTable keymap)
     {
-        var used = TextWidth.Of($" {Badge(InputMode.Confirm)} {ConfirmSuffix}");
+        var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
+        var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
+        var suffix = $" ({yes}/{no})";
+        var used = TextWidth.Of($" {Badge(InputMode.Confirm)} {suffix}");
         var question = TextWidth.Fit(state.Confirm?.Message ?? string.Empty, Math.Max(0, width - used));
 
-        return $"{question}{ConfirmSuffix}";
+        return $"{question}{suffix}";
     }
 }

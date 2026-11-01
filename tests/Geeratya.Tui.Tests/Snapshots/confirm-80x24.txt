@@ -10,7 +10,7 @@
                                                                                 
                                     Geeratya                                    
                                                                                 
-                          ? help   : commands   q quit                          
+                          ? help   : command   q quit                           
                                                                                 
                                                                                 
                                                                                 

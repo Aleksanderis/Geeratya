@@ -39,6 +39,23 @@ public static class ActionCatalog
         ActionIds.NavigatePageUp,
     ];
 
+    /// <summary>
+    /// Actions that exist only inside a modal mode (help, command, confirm); they are never bound in Normal mode.
+    /// </summary>
+    public static IReadOnlyCollection<string> ModalOnly { get; } =
+    [
+        ActionIds.HelpClose,
+        ActionIds.PaletteSubmit,
+        ActionIds.PaletteBackspace,
+        ActionIds.ConfirmYes,
+        ActionIds.ConfirmNo,
+    ];
+
+    public static bool IsModalOnly(string id)
+    {
+        return ModalOnly.Contains(id);
+    }
+
     public static string? FindTitle(string id)
     {
         foreach (var definition in All)

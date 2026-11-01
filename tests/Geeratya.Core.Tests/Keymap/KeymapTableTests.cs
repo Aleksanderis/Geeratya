@@ -27,6 +27,48 @@ public class KeymapTableTests
     }
 
     [Fact]
+    public void GivenDefaultKeymap_WhenListingModalOnlyActions_ThenNoneIsBoundInNormalModeAndAllOthersAre()
+    {
+        var keymap = DefaultKeymap.Load();
+
+        foreach (var definition in ActionCatalog.All)
+        {
+            var boundInNormal = keymap.FindKeys(InputMode.Normal, definition.Id) is not null;
+
+            Assert.Equal(!ActionCatalog.IsModalOnly(definition.Id), boundInNormal);
+        }
+    }
+
+    [Fact]
+    public void GivenUnimplementedAndModalOnlyLists_WhenChecking_ThenEveryIdIsInTheCatalog()
+    {
+        foreach (var id in ActionCatalog.Unimplemented.Concat(ActionCatalog.ModalOnly))
+        {
+            Assert.NotNull(ActionCatalog.FindTitle(id));
+        }
+    }
+
+    [Fact]
+    public void GivenUnimplementedActions_WhenPressingTheirNormalKeys_ThenNothingChanges()
+    {
+        var keymap = DefaultKeymap.Load();
+        var reducer = new AppReducer(keymap);
+
+        foreach (var id in ActionCatalog.Unimplemented)
+        {
+            var keys = keymap.FindKeys(InputMode.Normal, id)!;
+            var state = AppState.Initial;
+
+            foreach (var key in keys.Split(' '))
+            {
+                state = reducer.Reduce(state, new KeyPressed(key)).State;
+            }
+
+            Assert.Equal(AppState.Initial, state);
+        }
+    }
+
+    [Fact]
     public void GivenSameKeysTwiceInOneMode_WhenCheckingProblems_ThenReportsTheConflict()
     {
         var keymap = new KeymapTable(

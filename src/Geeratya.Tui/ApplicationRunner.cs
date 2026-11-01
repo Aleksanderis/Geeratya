@@ -72,7 +72,7 @@ public sealed class ApplicationRunner
         }
 
         var state = FrameOptions.SampleState(mode.Value);
-        var lines = FrameBuilder.Build(state, size.Width, size.Height, KeymapDocument.RenderHelpLines(keymap));
+        var lines = FrameBuilder.Build(state, size.Width, size.Height, KeymapDocument.RenderHelpLines(keymap), keymap);
 
         foreach (var line in lines)
         {

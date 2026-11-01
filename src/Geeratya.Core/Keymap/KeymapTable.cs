@@ -1,5 +1,3 @@
-using Geeratya.Core.State;
-
 namespace Geeratya.Core.Keymap;
 
 /// <summary>The key bindings of every mode, resolved key by key; sequences such as <c>g g</c> are supported.</summary>
@@ -39,6 +37,20 @@ public sealed class KeymapTable
         }
 
         return new KeyResolution(isPrefix ? KeyResolutionKind.Prefix : KeyResolutionKind.None, null);
+    }
+
+    /// <summary>The first keys bound to <paramref name="action"/> in <paramref name="mode"/>, or null when unbound.</summary>
+    public string? FindKeys(InputMode mode, string action)
+    {
+        foreach (var binding in Bindings)
+        {
+            if (binding.Mode == mode && binding.Action == action)
+            {
+                return binding.Keys;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Everything wrong: duplicates, shadowed sequences, unknown actions, bad key spelling.</summary>

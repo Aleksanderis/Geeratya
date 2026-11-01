@@ -43,7 +43,7 @@ public sealed class ShellHost
 
         application.Keyboard.KeyDown += OnKeyDown;
 
-        using var screen = new ShellScreen(KeymapDocument.RenderHelpLines(_keymap), _colors, application.Screen.Size);
+        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
 
         _screen = screen;
         screen.Render(_state);

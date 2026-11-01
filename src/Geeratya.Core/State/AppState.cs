@@ -1,3 +1,5 @@
+using Geeratya.Core.Keymap;
+
 namespace Geeratya.Core.State;
 
 /// <summary>Everything the shell shows; a new value comes out of every command and nothing mutates it.</summary>

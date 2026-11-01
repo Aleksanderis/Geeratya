@@ -1,3 +1,4 @@
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 
 namespace Geeratya.Tui.Rendering;
@@ -10,7 +11,7 @@ public static class FrameBuilder
     private const string HelpTitle = "Help";
     private const string Title = "Geeratya";
     private const int BlockHeight = 3;
-    private const string StartHint = "? help   : commands   q quit";
+    private const string StartHintGap = "   ";
 
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.
@@ -19,7 +20,8 @@ public static class FrameBuilder
         AppState state,
         int width,
         int height,
-        IReadOnlyList<string> helpLines)
+        IReadOnlyList<string> helpLines,
+        KeymapTable keymap)
     {
         if (width <= 0 || height <= 0)
         {
@@ -29,9 +31,9 @@ public static class FrameBuilder
         var bodyHeight = height - 1;
         var body = state.Mode == InputMode.Help
             ? HelpBody(state, helpLines, width, bodyHeight)
-            : StartBody(width, bodyHeight);
+            : StartBody(width, bodyHeight, string.Join(StartHintGap, StatusBar.HintsFor(InputMode.Normal, keymap)));
 
-        var lines = new List<string>(body) { StatusBar.Render(state, width) };
+        var lines = new List<string>(body) { StatusBar.Render(state, width, keymap) };
 
         return lines;
     }
@@ -45,7 +47,7 @@ public static class FrameBuilder
         return Normalize(lines, width, bodyHeight);
     }
 
-    private static List<string> StartBody(int width, int bodyHeight)
+    private static List<string> StartBody(int width, int bodyHeight, string startHint)
     {
         var lines = new List<string>();
 
@@ -59,11 +61,11 @@ public static class FrameBuilder
         if (bodyHeight >= BlockHeight)
         {
             lines[top] = Center(Title, width);
-            lines[top + 2] = Center(StartHint, width);
+            lines[top + 2] = Center(startHint, width);
         }
         else if (bodyHeight > 0)
         {
-            lines[0] = Center(StartHint, width);
+            lines[0] = Center(startHint, width);
         }
 
         return Normalize(lines, width, bodyHeight);
