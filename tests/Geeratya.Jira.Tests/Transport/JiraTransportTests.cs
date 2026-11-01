@@ -66,7 +66,7 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
-    public void GivenRecorded429Body_WhenMapping_ThenRateLimitedWithRetryAfterAndJiraMessage()
+    public void GivenRecorded429Body_WhenMapping_ThenRateLimitedWithRetryAfter()
     {
         var body = FixtureFiles.Read("errors/search-429-rate-limited.json");
 
@@ -74,7 +74,7 @@ public sealed class JiraTransportTests
 
         Assert.Equal(JiraErrorKind.RateLimited, error.Kind);
         Assert.Equal(TimeSpan.FromSeconds(34), error.RetryAfter);
-        Assert.Equal("The request has been rate-limited. Please try again later.", error.Message);
+        Assert.Equal("Rate limited by Jira.", error.Message);
     }
 
     [Fact]
