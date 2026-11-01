@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Geeratya.Core/Geeratya.Core.csproj" />
+    <Project Path="src/Geeratya.Jira/Geeratya.Jira.csproj" />
+    <Project Path="src/Geeratya.Platform/Geeratya.Platform.csproj" />
+    <Project Path="src/Geeratya.Tui/Geeratya.Tui.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Geeratya.Core.Tests/Geeratya.Core.Tests.csproj" />
+    <Project Path="tests/Geeratya.Jira.Tests/Geeratya.Jira.Tests.csproj" />
+    <Project Path="tests/Geeratya.Platform.Tests/Geeratya.Platform.Tests.csproj" />
+    <Project Path="tests/Geeratya.Tui.Tests/Geeratya.Tui.Tests.csproj" />
+  </Folder>
+</Solution>
