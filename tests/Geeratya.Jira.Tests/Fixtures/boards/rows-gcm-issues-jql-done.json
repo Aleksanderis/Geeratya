@@ -1,0 +1,245 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10316,
+          "description": "A small piece of work that's part of a larger task.",
+          "hierarchyLevel": -1,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+          "id": "10007",
+          "name": "Sub-task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10007",
+          "subtask": true
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GCM-sub-form"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10315,
+              "description": "",
+              "hierarchyLevel": 0,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+              "id": "10008",
+              "name": "Story",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10008",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "This issue is being actively worked on at the moment by the assignee.",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+              "id": "3",
+              "name": "In Progress",
+              "self": "https://example.atlassian.net/rest/api/2/status/3",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Sign up with email"
+          },
+          "id": "10017",
+          "key": "GCM-10",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10017"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10003",
+          "key": "GCM",
+          "name": "GCM",
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10003",
+          "simplified": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Build the form",
+        "updated": "2026-11-01T17:48:30.157+0200"
+      },
+      "id": "10025",
+      "key": "GCM-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10025"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10008",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10008",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GCM-story-export"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "description": "A big user story that needs to be broken down. Created by Jira Software - do not edit or delete.",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/images/icons/issuetypes/epic.svg",
+              "id": "10000",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10000",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "This issue is being actively worked on at the moment by the assignee.",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+              "id": "3",
+              "name": "In Progress",
+              "self": "https://example.atlassian.net/rest/api/2/status/3",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Reporting"
+          },
+          "id": "10016",
+          "key": "GCM-9",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10016"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10003",
+          "key": "GCM",
+          "name": "GCM",
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10003",
+          "simplified": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Export report as CSV",
+        "updated": "2026-11-01T17:48:14.940+0200"
+      },
+      "id": "10019",
+      "key": "GCM-12",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10019"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10010",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10010",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GCM-task-docs"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10003",
+          "key": "GCM",
+          "name": "GCM",
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10003",
+          "simplified": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Write the setup guide",
+        "updated": "2026-11-01T17:48:22.784+0200"
+      },
+      "id": "10022",
+      "key": "GCM-15",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10022"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 3
+}
