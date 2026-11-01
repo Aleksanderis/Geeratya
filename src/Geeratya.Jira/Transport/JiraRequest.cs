@@ -3,6 +3,12 @@ namespace Geeratya.Jira.Transport;
 /// <summary>One request: method, path relative to the site, optional JSON body and whether it may be retried.</summary>
 public sealed record JiraRequest(HttpMethod Method, string Path, string? JsonBody, bool IsIdempotent)
 {
+    /// <summary>Who is waiting for the answer. Defaults to <see cref="JiraPriority.User"/>.</summary>
+    public JiraPriority Priority { get; init; } = JiraPriority.User;
+
+    /// <summary>The same request as background work: yields to user requests and is throttled earlier.</summary>
+    public JiraRequest AsBackground() => this with { Priority = JiraPriority.Background };
+
     /// <summary>A read. Retried automatically on 429, 5xx and network failure.</summary>
     public static JiraRequest Get(string path) => new(HttpMethod.Get, path, null, true);
 
