@@ -2,7 +2,7 @@
 
 Findings about how Jira Cloud behaves, from the survey on the dev site (2026-11-01). Every statement names the fixture it rests on; fixtures live under `tests/Geeratya.Jira.Tests/Fixtures/` (paths below are relative to it) and are recorded with `scripts/record-fixture.sh` and scrubbed by `scripts/scrub-fixture.py`.
 
-Part 1 of the survey covers identity, projects, search, filters and errors; part 2 (#14, section "Survey part 2") covers boards, backlog, ranking, hierarchy, create/edit metadata, transitions, ADF and links. The layer contract, models and refresh design are written when the Jira layer is built.
+Part 1 of the survey covers identity, projects, search, filters and errors; part 2 (#14, section "Survey part 2") covers boards, backlog, ranking, hierarchy, create/edit metadata, transitions, ADF and links. The layer contract, paging models, cache keys and refresh rules are below (M1 design, #64); the sections of each client are written with its issue.
 
 Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-managed, `style: classic`) and `GTM` (team-managed, `style: next-gen`). The API token's account is a site admin but has no "delete issues" permission in `GCM` (see Errors).
 
@@ -22,6 +22,54 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 - Scheduling (#22): `JiraRequest.Priority` is `User` (default) or `Background` (`request.AsBackground()`). The per-site cap (4) has two lanes: user requests may use every slot and are granted first; background requests use at most `cap - ReservedForUser` slots (1 reserved, never below one slot), so a key press never queues behind a refresh. Cancelling a queued call removes it from its lane.
 - Proactive throttle (#22): after each response the transport keeps the last budget from `ratelimit: ...;r=<remaining>;t=<reset seconds>` (with several policies the smallest `r` wins) or, failing that, `x-ratelimit-remaining` with a one-second window. A background request waits for the window to end when `r <= BackgroundThrottleRemaining` (10); a user request waits only when `r == 0`. The wait is capped by `MaxWait` and is not spent holding a slot. A 429 is not recorded as a budget (its `Retry-After` wait applies instead, so there is no double wait). Both waits (this throttle and a `Retry-After` retry, not 5xx backoff) are published for the UI (#49): `JiraTransport.RateLimitedUntil` is the latest end of any active wait (null when none) and the `RateLimitWaitChanged` event fires, on a non-UI thread, when one starts or ends. Unreadable headers mean no throttling. The header format rests on the survey (`myself/myself.meta.txt`) and Atlassian's docs; a real 429 carries no `ratelimit`/`x-ratelimit-*` headers (so it never feeds the budget), see Errors.
 - Scoped tokens (`api.atlassian.com/ex/jira/<cloudId>`): the transport appends paths to a base path (tested); cloudId discovery and profile support belong to profiles (#5).
+
+## Layer contract (M1 design, #64)
+
+- A client is a small class over one `JiraTransport` (`JiraSearchClient`, `BoardClient`, filter, issue and comment clients, one folder and one `JsonSerializerContext` each). It owns no state, no cache and no cancellation policy: the caller passes a `CancellationToken` and, for refresh, builds the request with `AsBackground()`. It never references Core or the UI.
+- Every method returns `JiraResult<T>` with typed models; mappers never throw on missing or unknown fields. Models are the ones core state holds (`IssueSummary`, `BoardConfiguration`, issue detail): Core does not wrap them in duplicate DTOs. The only copy is the disk cache's own DTOs (see "Cache keys").
+- The clients know nothing of tabs, views or request ids; those belong to the state layer (`docs/architecture.md`, "Views and tabs", "Loading").
+
+## Paging models
+
+Both paging styles hide behind one cursor so the state layer pages the same way for every source (types from #66; #69 and #70 reuse them):
+
+| Type | Shape | Used by |
+|---|---|---|
+| `PageCursor` | Either a `Token(string)` (opaque `nextPageToken`) or an `Offset(int)` (`startAt`) | request side of every paged call |
+| `IssuePage` | `Items` (`IReadOnlyList<IssueSummary>`), `Next` (`PageCursor?`, null on the last page), `TotalHint` (int?, null for search; set from `total` for the agile API) | `/search/jql`, board issues, backlog |
+| `OffsetPage<T>` | `Items`, `StartAt`, `Total`, computed `IsLast` | boards list, filters, projects, comments |
+
+Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(startAt + count)` unless `startAt + count >= total` (an empty page also ends the walk, guarding against a `total` that shrinks). Search has no total; its last page has no token. The cursor of a search page is only valid with the same `jql`, `fields` and `maxResults`, so the client takes the whole query again with the cursor; it expires, and a 400 on a request that carried a token means "page expired", handled by the state layer by restarting at the first page (`docs/architecture.md`, "Loading"). Default page size 100 for both styles (the search cap is probed in #66, the agile caps in #69).
+
+## Cache keys
+
+The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys what a client returned, never raw HTTP:
+
+- Views: `(ViewSourceKind, SourceValue)` inside the profile's folder. Source value is the JQL text, the filter id or the board id. The profile (site plus account) is the folder, so the same JQL on two sites never collides. A board key caches the board's configuration with its first page.
+- Issue details: the issue key inside the profile's folder.
+- Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile).
+- Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
+
+## Refresh rules (Jira side)
+
+The schedule is in `docs/architecture.md`, "Cache and refresh"; what the Jira layer guarantees for it:
+
+- Automatic refresh uses `AsBackground()` on the same transport: at most `cap - ReservedForUser` slots, throttled earlier than user work when the budget is low, so a refresh never delays a key press. Manual refresh, open, next page and retry are user requests.
+- Refresh traffic is bounded: one tab at a time, one load in flight per tab, a board refresh walks its pages sequentially. At the default interval of 60 s that is one search call a minute per session (a 10 000-issue board is 100 sequential background calls; the 10 000-row cap makes this the worst case).
+- While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries.
+
+## Errors to UI states
+
+Map once, in the message table of #77, used by loads, refresh and banners:
+
+| `JiraErrorKind` | State | Refresh behaviour |
+|---|---|---|
+| `Network`, `Timeout`, `HostRefused` | offline (last data stays, marked stale) | backoff probe |
+| `RateLimited` | rate limited, with the wait end | paused until the wait ends |
+| `Unauthorized` | error "token rejected" with a `:profile` hint | refresh stops until the connection check succeeds |
+| `Forbidden`, `NotFound` | error "not found or no access" (the two cannot be told apart, see Errors) | backoff |
+| `BadRequest` | Jira's own message (JQL syntax); on a request that carried a page token, "page expired": reload from the first page | none for JQL errors; reload once for an expired token |
+| `ServerError`, `InvalidResponse` | error with a retry hint | backoff |
 
 ## Current user: `GET /rest/api/3/myself`
 

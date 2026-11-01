@@ -57,3 +57,4 @@ Each with the recommended default and what changes if it is wrong.
 
 1. ADF editing in M2: edit as Markdown-like text and convert to ADF (default), or a structured editor. If wrong: round-tripping loses formatting on rich descriptions, so the app would warn before saving a description it cannot round-trip.
 2. Scrum boards: in M3 only if the owner's team moves to sprints (default: kept in M3, picked last). If wrong: it moves up to M2 next to ranking.
+3. Restore last session's tabs on start (M1 design, #64): default is no, a start has no tabs and opening a view hits the disk cache. If wrong: a small follow-up persists the tab definitions (not rows) per profile and reopens them after the first frame.
