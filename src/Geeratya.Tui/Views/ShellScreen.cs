@@ -1,62 +1,121 @@
+using System.Text;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Platform.Terminal;
+using Geeratya.Tui.Rendering;
+using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
+using Attribute = Terminal.Gui.Drawing.Attribute;
+using Size = System.Drawing.Size;
 
 namespace Geeratya.Tui.Views;
 
-/// <summary>The empty shell: body, status line and help overlay. Draws what <see cref="AppState"/> says.</summary>
+/// <summary>
+/// The shell window: draws the text frame of <see cref="FrameBuilder"/> in palette colours, and again on resize.
+/// </summary>
 public sealed class ShellScreen : Window
 {
-    private readonly Label _status;
-    private readonly FrameView _helpFrame;
-    private readonly Label _helpText;
-    private readonly IReadOnlyList<string> _helpLines;
+    // Typed text such as an underscore in a command must show as typed, so no character is a hot key marker.
+    private static readonly Rune _noHotKey = new(0xFFFF);
 
-    public ShellScreen(IReadOnlyList<string> helpLines)
+    private readonly Label _body;
+    private readonly Label _status;
+    private readonly IReadOnlyList<string> _helpLines;
+    private readonly KeymapTable _keymap;
+    private AppState _state = AppState.Initial;
+    private Size _size;
+
+    public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize)
     {
-        _helpLines = helpLines;
-        Title = "Geeratya";
+        _keymap = keymap;
+        _helpLines = KeymapDocument.RenderHelpLines(keymap);
+        _size = initialSize;
+        BorderStyle = LineStyle.None;
         Width = Dim.Fill();
         Height = Dim.Fill();
+        SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
 
-        var body = new Label
-        {
-            Text = "Geeratya\n\n? help   : commands   q quit",
-            X = Pos.Center(),
-            Y = Pos.Center(),
-        };
-        _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill() };
-        _helpText = new Label { Text = string.Empty, X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
-        _helpFrame = new FrameView
-        {
-            Title = "Help",
-            X = 0,
-            Y = 0,
-            Width = Dim.Fill(),
-            Height = Dim.Fill(1),
-            Visible = false,
-        };
+        _body = new Label { Text = string.Empty, X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1), HotKeySpecifier = _noHotKey };
+        _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), HotKeySpecifier = _noHotKey };
+        _body.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
+        _status.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Status)));
 
-        _helpFrame.Add(_helpText);
-        Add(body, _helpFrame, _status);
+        Add(_body, _status);
+        ViewportChanged += OnViewportChanged;
     }
 
     public void Render(AppState state)
     {
-        _helpFrame.Visible = state.Mode == InputMode.Help;
-        _helpText.Text = string.Join('\n', _helpLines.Skip(state.HelpScroll));
-        _status.Text = StatusLine(state);
+        _state = state;
+
+        var lines = FrameBuilder.Build(state, _size.Width, _size.Height, _helpLines, _keymap);
+
+        if (lines.Count == 0)
+        {
+            return;
+        }
+
+        _body.Text = string.Join('\n', lines.Take(lines.Count - 1));
+        _status.Text = lines[^1];
         SetNeedsDraw();
     }
 
-    private static string StatusLine(AppState state)
+    private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)
     {
-        return state.Mode switch
+        var size = Viewport.Size;
+
+        if (size.Width <= 0 || size.Height <= 0 || size == _size)
         {
-            InputMode.Command => $":{state.PaletteText}",
-            InputMode.Help => "-- HELP -- j/k scroll, ? or Esc closes",
-            InputMode.Confirm => $"{state.Confirm?.Message} (y/n)",
-            _ => state.Message ?? state.PendingKeys,
-        };
+            return;
+        }
+
+        _size = size;
+        Render(_state);
+    }
+
+    private static Scheme CreateScheme(ResolvedStyle style)
+    {
+        var foreground = ToColor(style.Foreground, style.Foreground16);
+        var background = ToColor(style.Background, style.Background16);
+
+        return new Scheme(new Attribute(foreground, background, ToTextStyle(style.Style)));
+    }
+
+    private static Color ToColor(Rgb? rgb, Ansi16Color? named)
+    {
+        if (named is { } ansi)
+        {
+            return new Color((ColorName16)(int)ansi);
+        }
+
+        if (rgb is { } value)
+        {
+            return new Color(value.Red, value.Green, value.Blue);
+        }
+
+        return new Color(ColorName16.Gray);
+    }
+
+    private static TextStyle ToTextStyle(RoleStyle style)
+    {
+        var result = TextStyle.None;
+
+        if (style.HasFlag(RoleStyle.Bold))
+        {
+            result |= TextStyle.Bold;
+        }
+
+        if (style.HasFlag(RoleStyle.Underline))
+        {
+            result |= TextStyle.Underline;
+        }
+
+        if (style.HasFlag(RoleStyle.Reverse))
+        {
+            result |= TextStyle.Reverse;
+        }
+
+        return result;
     }
 }

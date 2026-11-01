@@ -49,6 +49,39 @@ public class ApplicationDirectoriesTests
         Assert.Equal(Path.Combine(_home, ".config", "geeratya"), directories.ConfigDirectory);
     }
 
+    [Theory]
+    [InlineData(OperatingSystemKind.Linux, "")]
+    [InlineData(OperatingSystemKind.MacOs, "")]
+    [InlineData(OperatingSystemKind.Linux, "relative")]
+    public void GivenUnixWithoutUsableHomeOrXdg_WhenResolving_ThenFailsClearly(
+        OperatingSystemKind operatingSystem,
+        string home)
+    {
+        var folders = new PlatformFolders(home, _roaming, _local);
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => new ApplicationDirectories(operatingSystem, CreateEnvironment([]), folders));
+
+        Assert.Contains("HOME", error.Message);
+    }
+
+    [Fact]
+    public void GivenEmptyHomeButAbsoluteXdgVariables_WhenResolving_ThenXdgIsUsed()
+    {
+        var xdgRoot = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "xdg"));
+        var environment = CreateEnvironment(new Dictionary<string, string>
+        {
+            ["XDG_CONFIG_HOME"] = xdgRoot,
+            ["XDG_STATE_HOME"] = xdgRoot,
+            ["XDG_CACHE_HOME"] = xdgRoot,
+        });
+
+        var directories = new ApplicationDirectories(
+            OperatingSystemKind.Linux, environment, new PlatformFolders("", _roaming, _local));
+
+        Assert.Equal(Path.Combine(xdgRoot, "geeratya"), directories.CacheDirectory);
+    }
+
     [Fact]
     public void GivenWindows_WhenResolving_ThenUsesKnownFoldersAndIgnoresXdg()
     {

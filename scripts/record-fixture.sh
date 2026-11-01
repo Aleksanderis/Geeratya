@@ -65,7 +65,7 @@ if [ "$method" != GET ]; then
   esac
   if [ "$method" = DELETE ] && [ "$path" = /rest/api/3/issueLink ]; then echo "write refused" >&2; exit 3; fi
   if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
-    && ! jq -e '(.fields.project.key // "GCM") | IN("GCM","GTM")' "$body" > /dev/null 2>&1; then
+    && ! jq -e '((.fields | objects | .project.key) // "GCM") | IN("GCM","GTM")' "$body" > /dev/null 2>&1; then
     echo "write refused: body names a project other than GCM/GTM" >&2; exit 3
   fi
 fi

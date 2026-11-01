@@ -36,7 +36,7 @@ Dependencies are wired by hand in `Program.cs` (through `ApplicationRunner`) and
 Linux is built and tested first, then Windows, macOS last. Rules:
 
 - Platform-specific code lives only in `Geeratya.Platform`; each such feature has a branch for every supported OS or an explicit unsupported path.
-- Directories: Linux and macOS follow XDG (`XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, falling back to `~/.config`, `~/.local/state`, `~/.cache`; a relative XDG value is ignored), each with a `geeratya` folder. Windows uses `%APPDATA%\Geeratya` for configuration and `%LOCALAPPDATA%\Geeratya\State` and `\Cache` for the rest. `ApplicationDirectories` computes them from an `OperatingSystemKind`, an `EnvironmentReader` and `PlatformFolders`, so tests cover all three systems on any host.
+- Directories: Linux and macOS follow XDG (`XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, falling back to `~/.config`, `~/.local/state`, `~/.cache`; a relative XDG value is ignored; with no absolute XDG value and no absolute home, e.g. `HOME` unset, `ApplicationDirectories` throws `InvalidOperationException` naming `HOME` rather than yield relative paths), each with a `geeratya` folder. Windows uses `%APPDATA%\Geeratya` for configuration and `%LOCALAPPDATA%\Geeratya\State` and `\Cache` for the rest. `ApplicationDirectories` computes them from an `OperatingSystemKind`, an `EnvironmentReader` and `PlatformFolders`, so tests cover all three systems on any host.
 - Console capabilities (`ConsoleCapabilities.Detect`): colour tier from `NO_COLOR`, `TERM=dumb` and `COLORTERM`; redirected input or output means non-interactive.
 - Environment access goes through `EnvironmentReader` with an injected lookup; no direct `Environment.GetEnvironmentVariable` elsewhere.
 - Secrets (`Platform/Secrets`): `ISecretStore` per system, picked by `SecretStores.Create`. Linux runs `secret-tool` (libsecret) with the token on standard input, Windows calls Credential Manager (advapi32 `LibraryImport`), macOS uses `UnsupportedSecretStore`; on Linux without `secret-tool`, `LinuxSecretStore` flips `IsAvailable` to false at first use; `TokenProvider` then falls back to `GEERATYA_TOKEN`. Profiles (site, email, no token) are `profiles.json` in the config directory, owned by `Core/Profiles`; the token is looked up by `Profile.CredentialKey`; `GEERATYA_TOKEN` is one value used for whichever profile is active. Core never sees a token or the store.
@@ -50,7 +50,7 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 `Geeratya.Tui` references Terminal.Gui 2.5.0 (stable v2, pinned in `Directory.Packages.props`). The native AOT publish has no `IL*` warnings with it and no suppressions are needed.
 
-Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Views/` (`ShellScreen`, the only code that builds views), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
+Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Rendering/` (pure: `FrameBuilder`, `StatusBar`, `PaletteTable`, `Palette`, `TextWidth`; no Terminal.Gui), `Views/` (`ShellScreen`, the only code that builds views; draws the frame in palette colours and redraws it on resize), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
 
 Settings and pitfalls:
 

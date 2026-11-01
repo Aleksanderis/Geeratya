@@ -37,8 +37,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `k` | Move up |
 | `Up` | Move up |
 | `?` | Show or hide help |
-| `q` | Close help |
 | `Esc` | Close help |
+| `q` | Close help |
 | `Ctrl-c` | Quit |
 
 ## Command mode

@@ -1,0 +1,10 @@
+Help                                    
+Normal mode                             
+  j          Move down                  
+  Down       Move down                  
+  k          Move up                    
+  Up         Move up                    
+  h          Move left                  
+  Left       Move left                  
+  l          Move right                 
+ HELP            j down  k up  Esc close

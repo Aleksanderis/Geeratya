@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                    Geeratya                                    
+                                                                                
+                          ? help   : command   q quit                           
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ CONFIRM Delete PROJ-1? Jira cannot undo this (y/n)                  y yes  n no

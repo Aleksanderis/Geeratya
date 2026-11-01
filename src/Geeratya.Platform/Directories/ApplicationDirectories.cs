@@ -23,13 +23,9 @@ public sealed class ApplicationDirectories
             return;
         }
 
-        var configFallback = Path.Combine(folders.Home, ".config");
-        var stateFallback = Path.Combine(folders.Home, ".local", "state");
-        var cacheFallback = Path.Combine(folders.Home, ".cache");
-
-        ConfigDirectory = XdgDirectory(environment, "XDG_CONFIG_HOME", configFallback);
-        StateDirectory = XdgDirectory(environment, "XDG_STATE_HOME", stateFallback);
-        CacheDirectory = XdgDirectory(environment, "XDG_CACHE_HOME", cacheFallback);
+        ConfigDirectory = XdgDirectory(environment, "XDG_CONFIG_HOME", folders.Home, ".config");
+        StateDirectory = XdgDirectory(environment, "XDG_STATE_HOME", folders.Home, ".local", "state");
+        CacheDirectory = XdgDirectory(environment, "XDG_CACHE_HOME", folders.Home, ".cache");
     }
 
     public string ConfigDirectory { get; }
@@ -49,11 +45,25 @@ public sealed class ApplicationDirectories
         return OperatingSystem.IsMacOS() ? OperatingSystemKind.MacOs : OperatingSystemKind.Linux;
     }
 
-    private static string XdgDirectory(EnvironmentReader environment, string variable, string fallback)
+    private static string XdgDirectory(
+        EnvironmentReader environment,
+        string variable,
+        string home,
+        params string[] fallbackSegments)
     {
         var configured = environment.Get(variable);
-        var root = configured is not null && Path.IsPathRooted(configured) ? configured : fallback;
 
-        return Path.Combine(root, ApplicationFolder);
+        if (configured is not null && Path.IsPathRooted(configured))
+        {
+            return Path.Combine(configured, ApplicationFolder);
+        }
+
+        if (!Path.IsPathRooted(home))
+        {
+            throw new InvalidOperationException(
+                $"Cannot locate the user's home directory (HOME is unset or not an absolute path), and {variable} is unset or not an absolute path. Set HOME or {variable}.");
+        }
+
+        return Path.Combine([home, .. fallbackSegments, ApplicationFolder]);
     }
 }
