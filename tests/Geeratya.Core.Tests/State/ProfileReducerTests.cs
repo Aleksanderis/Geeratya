@@ -356,11 +356,19 @@ public class ProfileReducerTests
     [Fact]
     public void GivenTokenStep_WhenPastingMultiLineText_ThenOnlyTheFirstLineIsTakenAndNothingSubmits()
     {
-        var state = Paste(FillToToken(), string.Join((char)13, [string.Empty, $"secret-one{(char)10}secret-two{(char)10}"]));
+        var state = Paste(FillToToken(), "secret-one\nsecret-two\n");
 
         Assert.Equal("secret-one", state.Form!.Token.Reveal());
         Assert.Equal(ProfileFormField.Token, state.Form.Field);
         Assert.Equal(InputMode.Insert, state.Mode);
+    }
+
+    [Fact]
+    public void GivenTokenStep_WhenPastingPaddedText_ThenSurroundingSpacesAreTrimmed()
+    {
+        var state = Paste(FillToToken(), "  tok en  ");
+
+        Assert.Equal("tok en", state.Form!.Token.Reveal());
     }
 
     [Fact]

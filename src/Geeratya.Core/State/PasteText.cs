@@ -14,7 +14,11 @@ public static class PasteText
 
             foreach (var character in line)
             {
-                if (!char.IsControl(character))
+                if (character == (char)9)
+                {
+                    builder.Append(char.ConvertFromUtf32(32));
+                }
+                else if (!char.IsControl(character))
                 {
                     builder.Append(character);
                 }
@@ -22,7 +26,12 @@ public static class PasteText
 
             if (builder.Length > 0)
             {
-                return builder.ToString();
+                var trimmed = builder.ToString().Trim();
+
+                if (trimmed.Length > 0)
+                {
+                    return trimmed;
+                }
             }
         }
 
