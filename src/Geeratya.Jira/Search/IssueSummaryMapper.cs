@@ -80,7 +80,7 @@ internal static class IssueSummaryMapper
     }
 
     private static IssueParent? MapParent(SearchWire.Parent? parent) =>
-        parent?.Key is { Length: > 0 } key ? new IssueParent(key, parent.Fields?.Summary) : null;
+        parent?.Key is { Length: > 0 } key ? new IssueParent(key, parent.Stub?.Summary) : null;
 
     private static string? Share(string? value, Dictionary<string, string> pool)
     {
@@ -109,14 +109,19 @@ internal static class IssueSummaryMapper
 
         var normalized = WithOffsetColon(text);
 
-        return DateTimeOffset.TryParseExact(
+        var isParsed = DateTimeOffset.TryParseExact(
             normalized,
             UpdatedFormat,
             CultureInfo.InvariantCulture,
             DateTimeStyles.None,
-            out var parsed)
-            ? parsed
-            : null;
+            out var parsed);
+
+        if (isParsed)
+        {
+            return parsed;
+        }
+
+        return null;
     }
 
     private static string WithOffsetColon(string text)

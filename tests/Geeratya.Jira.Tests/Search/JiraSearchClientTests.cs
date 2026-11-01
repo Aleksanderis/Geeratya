@@ -175,6 +175,11 @@ public sealed class JiraSearchClientTests
         Assert.Null(items[0].Updated);
         Assert.Equal("done", items[0].Status.CategoryKey);
         Assert.Equal("Wait", items[0].Status.Name);
+        Assert.Equal("3", items[0].Status.Id);
+        Assert.Equal("1", items[0].Id);
+        Assert.Equal("fake-account-9", items[0].Assignee?.AccountId);
+        Assert.Equal("7", items[0].IssueType.Id);
+        Assert.Equal("Whatever", items[0].IssueType.Name);
         Assert.Equal("undefined", items[1].Status.CategoryKey);
         Assert.Empty(items[1].Labels);
         Assert.Null(items[1].Parent);
@@ -250,7 +255,23 @@ public sealed class JiraSearchClientTests
 
         Assert.Equal(JiraErrorKind.PageExpired, result.Error.Kind);
         Assert.Equal(400, result.Error.StatusCode);
-        Assert.Contains("reload", result.Error.Message);
+        Assert.StartsWith("The page expired, reload", result.Error.Message);
+        Assert.Contains("invalid or expired", result.Error.Message);
+    }
+
+    [Fact]
+    public async Task GivenBadJqlWithCursor_WhenContinuing_ThenJiraMessageStaysVisible()
+    {
+        using var fixture = new TransportFixture();
+        var body = FixtureFiles.Read("errors/search-400-bad-jql.json");
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
+
+        var result = await Client(fixture).SearchAsync(
+            new IssueSearchQuery("project ="),
+            new PageCursor("old"),
+            CancellationToken.None);
+
+        Assert.Contains("Error in the JQL Query", result.Error.Message);
     }
 
     [Fact]
@@ -379,6 +400,8 @@ public sealed class JiraSearchClientTests
         var middle = new OffsetPage<int>([1, 2, 3], 10, 3, 40, false);
         var last = new OffsetPage<int>([1], 39, 3, 40, true);
 
+        Assert.Equal(3, middle.PageSize);
+        Assert.Equal(40, middle.Total);
         Assert.Equal(13, middle.NextStartAt);
         Assert.Null(last.NextStartAt);
     }

@@ -5,6 +5,9 @@ namespace Geeratya.Jira.Search;
 /// </summary>
 public static class IssueFields
 {
+    /// <summary>The JSON property that holds the fields of an issue, a stub or the requested field list.</summary>
+    public const string FieldsProperty = "fields";
+
     public const string Summary = "summary";
     public const string Status = "status";
     public const string IssueType = "issuetype";

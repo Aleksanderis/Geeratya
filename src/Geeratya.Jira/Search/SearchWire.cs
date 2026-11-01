@@ -27,23 +27,19 @@ internal static class SearchWire
 
     internal sealed record StatusCategory(string? Key);
 
-    internal sealed record IssueType(
-        string? Id,
-        string? Name,
-        int? HierarchyLevel,
-        [property: JsonPropertyName("subtask")] bool? Subtask);
+    internal sealed record IssueType(string? Id, string? Name, int? HierarchyLevel, bool? Subtask);
 
     internal sealed record Priority(string? Name);
 
     internal sealed record Assignee(string? AccountId, string? DisplayName);
 
-    internal sealed record Parent(string? Key, ParentFields? Fields);
+    internal sealed record Parent(string? Key, [property: JsonPropertyName(IssueFields.FieldsProperty)] ParentStub? Stub);
 
-    internal sealed record ParentFields(string? Summary);
+    internal sealed record ParentStub(string? Summary);
 
     internal sealed record Project(string? Key);
 
-    internal sealed record Body(string Jql, int MaxResults, IReadOnlyList<string> Fields, string? NextPageToken);
+    internal sealed record Body(string Jql, int MaxResults, [property: JsonPropertyName(IssueFields.FieldsProperty)] IReadOnlyList<string> FieldList, string? NextPageToken);
 
     internal sealed record CountBody(string Jql);
 

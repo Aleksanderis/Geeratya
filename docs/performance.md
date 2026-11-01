@@ -38,4 +38,8 @@ Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed lo
 
 ### JSON mapping of a search result (#66)
 
-Ad hoc timed loop (a temporary xUnit test, not committed): 10 000 issues built by repeating the 24 issues of `search/search-rows-gcm.json` (18.3 MB), served by `FakeJiraHandler` through `JiraSearchClient.SearchAsync` with a page size of 5000, 20 timed runs after 5 warm-up runs, .NET 10 Release JIT (not Native AOT), noisy machine. Median 80 ms, p95 121 ms for the whole call (read body to string, deserialize into the wire records, map to `IssueSummary`). Real pages are tens of issues, so this is well under a millisecond per page; the transport still reads the body as a string rather than a stream (not changed here).
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| `JiraSearchClient.SearchAsync` (body to string, deserialize, map) | .NET 10 Release JIT, not Native AOT | 10 000 issues, 18.3 MB, page size 5000, fake handler | 80 ms | 121 ms |
+
+Method: a temporary xUnit test (not committed) repeated the 24 issues of `search/search-rows-gcm.json` to 10 000, 5 warm-up and 20 timed runs on a noisy machine. Real pages are tens of issues, so this is far below a millisecond per page. Not measured: the Native AOT figure (no caller is wired into the app yet), the saving of sharing repeated names within a page (a dictionary lookup per string, simple and proportional to data size, kept unmeasured per the performance skill), and reading the body as a stream instead of a string (transport, unchanged). Re-measure on AOT when the first view loads search results.

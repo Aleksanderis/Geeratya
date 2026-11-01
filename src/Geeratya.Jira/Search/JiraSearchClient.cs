@@ -84,6 +84,6 @@ public sealed class JiraSearchClient(JiraTransport transport)
             return error;
         }
 
-        return error with { Kind = JiraErrorKind.PageExpired, Message = PageExpiredMessage };
+        return error with { Kind = JiraErrorKind.PageExpired, Message = $"{PageExpiredMessage} {error.Message}" };
     }
 }
