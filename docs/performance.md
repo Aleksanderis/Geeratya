@@ -12,7 +12,7 @@ Budgets and measured numbers. The checklist for writing fast code is the `perfor
 | Background tabs | Cheap: no polling faster than the refresh rule, no rendering |
 | Memory | Bounded however long the session runs; every cache has a size bound and an owner that drops it |
 | Opening a cached view | Cached rows drawn without waiting for the network; the cache read is off the UI thread and after the first frame (target, measured in #91) |
-| Refresh tick | An idle `Tick` allocates nothing and causes no redraw; only the active tab refreshes |
+| Refresh tick | An idle `Tick` returns the same state (no redraw unless time-dependent text is visible) and costs a comparison; only the active tab refreshes |
 
 Bounds from the M1 design (`docs/architecture.md`, "Views and tabs", "Cache and refresh"): 10 000 rows per tab, 50 000 across tabs, 32 cached views and 200 cached issue details in memory, 20 MB of cache per profile on disk. The first measurements of these are #91.
 

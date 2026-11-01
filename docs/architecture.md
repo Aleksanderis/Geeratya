@@ -25,13 +25,13 @@ A view is a source plus a layout (`docs/decisions.md`, 2026-11-01). `ViewDefinit
 
 Design for M1 (#64). The code issues build on the names below; a name in a table is the name the code uses. Everything is per tab and per site session; there is no static or global "current" anything.
 
-**State shape.** `AppState.Session` (`SiteSession`) holds `IReadOnlyList<TabState> Tabs` (open order), `TabId? Active` and the site-level `SiteLink Link`. The placeholder `SiteSession.Views` goes with #75; `SiteSession.Cache` (the string map) is removed rather than replaced, because the cache is not view state (see "Cache and refresh"). A profile change still replaces the whole session with `SiteSession.Empty(profile)`, which has no tabs.
+**State shape.** `AppState.Session` (`SiteSession`) holds `IReadOnlyList<TabState> Tabs` (open order), `TabId? Active` and the site-level `SiteLink Link`. `AppState.Sequence` (a `long`, outside the session) is the one counter every `TabId`, `RequestId` and recency stamp is drawn from; it only grows and survives a session swap. The placeholder `SiteSession.Views` goes with #75; `SiteSession.Cache` (the string map) is removed rather than replaced, because the cache is not view state (see "Cache and refresh"). A profile change still replaces the whole session with `SiteSession.Empty(profile)`, which has no tabs.
 
 `TabState` (record, `Core/Views`):
 
 | Member | Meaning |
 |---|---|
-| `TabId Id` | Opaque id from a counter in `SiteSession`, never reused in a session. |
+| `TabId Id` | Opaque id drawn from `AppState.Sequence`, never reused, also not across a profile switch. |
 | `ViewDefinition Definition` | Source kind, source value, layout and a title (`ViewDefinition` gains `Title`; for boards the source value is the board id and the title the board name). |
 | `IReadOnlyList<IssueSummary> Rows` | Immutable. A page append builds a new array of `Count + page` references; selection and scroll never copy it. The Jira layer's typed models are used directly: no duplicate row DTO in Core. |
 | `PageCursor? Next` | Cursor of the next page, null when the last page is loaded (type from #66). |
@@ -40,7 +40,7 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 | `int VisibleRows` | Last viewport height reported by the host (`ViewportChanged`), so the reducer can tell when the end is near without touching the UI. |
 | `ViewLayout Layout` | List or columns; changing it keeps everything else. |
 | `LoadState Load` | `Idle`, `Loading(LoadReason)` or `Failed(JiraErrorKind Kind, string Message)`. |
-| `long RequestId`, `long NextRequestId` | `RequestId` is the only request whose reply this tab accepts (0 while idle); `NextRequestId` is the per-tab counter. |
+| `long RequestId`, `long LastActiveSeq` | `RequestId` (drawn from `AppState.Sequence`) is the only request whose reply this tab accepts (0 while idle); `LastActiveSeq` is the `Sequence` value when the tab was last active, for the cold-tab choice. |
 | `bool IsStale`, `DateTimeOffset? LoadedAt` | Staleness is separate from loading: cached rows shown while the refresh runs are both stale and loading. `LoadedAt` is when the rows last came from the network (for stale cache rows, the cache entry's save time). |
 | `int Failures`, `DateTimeOffset? NextRefreshAt` | Backoff and schedule (see "Cache and refresh"). |
 | `BoardConfiguration? Board` | Filled by #78 for board and backlog sources and kept with the tab. |
@@ -52,7 +52,7 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 
 **Tab rules.** Opening a view appends a tab and activates it. Closing the active tab activates its right neighbour, else its left; closing the last tab leaves `Active` null (start screen). Closing emits `CancelTabEffect(TabId)`. A tab keeps selection, scroll and layout while hidden (all in `TabState`); hidden tabs are not rendered, not polled and do no work on `Tick`.
 
-**Memory bound across tabs.** At most 10 000 rows per tab (about 5 MB of `IssueSummary`, roughly 500 bytes each) and 50 000 across tabs. When an append or an activation exceeds that, the least recently active hidden tabs go `Cold`: `Rows`, `Next` and `PendingRows` are dropped; definition, layout, selection key and scroll are kept; activation reloads the first page (cache first, then network). A cold tab cannot restore a position deeper than its first page: the key is kept, the scroll falls back to the top. This is the cap #81 left to #64.
+**Memory bound across tabs.** At most 10 000 rows per tab (about 5 MB of `IssueSummary`, roughly 500 bytes each) and 50 000 across tabs, counting `PendingRows` too (a refresh gathers at most the tab cap again, so a board tab can briefly hold twice its rows). When an append or an activation exceeds the total, the hidden tabs with the lowest `LastActiveSeq` go `Cold` until it fits. Going cold drops `Rows`, `Next` and `PendingRows`, sets `RequestId = 0` and `Load = Idle`, and emits `CancelTabEffect`, so a reply still on its way finds no matching id. Definition, layout, selection key and scroll are kept; activation reloads the first page (`LoadReason.Open`: cache first, then network). A cold tab cannot restore a position deeper than its first page: the key is kept, the scroll falls back to the top. This is the cap #81 left to #64.
 
 **Tabs are not persisted in M1.** A start begins with no tabs; opening a view then hits the disk cache. Restoring last session's tabs is an open question in `docs/roadmap.md`.
 
@@ -62,7 +62,7 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 |---|---|---|---|
 | `TabId`, `TabState`, `LoadState`, `LoadReason`, `SiteLink`, `ViewReducer` | state | #75 | `ViewReducer` is pure, routed from `AppReducer` with one line, like `ProfileReducer`. `LoadReason`: `Open`, `NextPage`, `Refresh`, `Retry`. |
 | `ViewOpenRequested(ViewDefinition)` | command | #75 | Opens and activates a tab, returns `LoadViewPageEffect(Reason: Open)`. |
-| `TabActivated(TabId)`, `TabClosed(TabId)`, `ViewLayoutChanged(TabId, ViewLayout)`, `ViewportChanged(int Rows)` | commands | #75, #81 | Activation may return a refresh load. |
+| `TabActivated(TabId)`, `TabClosed(TabId)`, `ViewLayoutChanged(TabId, ViewLayout)`, `ViewportChanged(int Rows)` | commands | #75, #81 | Activation may return a refresh load. `ViewportChanged` sets `VisibleRows` on every tab (cheap), so a hidden tab never keeps an old height after a resize. |
 | `LoadViewPageEffect(TabId, ViewDefinition, PageCursor? Cursor, long RequestId, LoadReason Reason, bool Background)` | effect | #75 | `Background` selects `AsBackground()`. |
 | `ViewPageLoaded(TabId, long RequestId, IssuePage Page, DateTimeOffset At)`, `ViewLoadFailed(TabId, long RequestId, JiraError Error, DateTimeOffset At)` | commands | #75 | Applied only if the tab exists and `RequestId` is its current one. |
 | `CancelTabEffect(TabId)` | effect | #75 | The host cancels that tab's in-flight work. |
@@ -72,10 +72,12 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 | `Tick(DateTimeOffset Now)`, `RefreshRequested(TabId)` | commands | #89 | See "Cache and refresh". |
 | `LinkChanged(SiteLink Link)`, `TabStatus.Of(tab, link, now)` | command, pure function | #90 | From `RateLimitWaitChanged` and failures, marshalled to the UI thread. |
 | `JiraServices`, `NetworkRunner`, `ViewLoadHandler`, `ShellHost.Post(Command)` | Tui | #57, #77 | See "Loading". |
+| `ViewPaging.PageSize` (100), `LoadErrorText.For(JiraError)` (pure message table) | Core | #75, #77 | The table is in Core so the reducer builds `Failed(kind, message)` itself. |
+| `ConnectionChecked` (result of #83) | command | #83 | The reducer maps it to `Link`: success `Online`, 401 `Rejected`. |
 
-**Request ids.** The reducer allocates `RequestId` from the tab's counter and stamps it on the effect and on `TabState.RequestId`. A result is applied only if its tab exists and its id equals `TabState.RequestId`; anything else returns the state unchanged. Starting a new load for a tab (refresh, retry, reload after "page expired") supersedes the old id, so an old reply is ignored even when the host could not cancel it in time.
+**Request ids.** The reducer draws `RequestId` from `AppState.Sequence` and stamps it on the effect and on `TabState.RequestId`. A result is applied only if its tab exists and its id equals `TabState.RequestId`; anything else returns the state unchanged. Starting a new load for a tab (refresh, retry, reload after "page expired") supersedes the old id, so an old reply is ignored even when the host could not cancel it in time.
 
-**Profile switch.** `ProfilesChanged` with another active profile (or removal of the active one) replaces `Session` with `SiteSession.Empty` and emits `DropSiteCacheEffect(oldProfile)`, as today. Replies of the old profile cannot reach the new session by three independent guards: the host drops a result whose site generation is not current (`SiteConnections.Generation`, see "Loading"), the reducer finds no such tab in the new session, and ids are never reused inside a session. This resolves the remaining parts of #57 and #59.
+**Profile switch.** `ProfilesChanged` with another active profile (or removal of the active one) replaces `Session` with `SiteSession.Empty` and emits `DropSiteCacheEffect(oldProfile)`, as today. `AppState.Sequence` is kept, so a tab or request id of the old session never matches a tab of the new one. Replies of the old profile are stopped by two checks that cover each other: the reducer (unknown tab or id, which also catches a reply that was already queued to the UI thread before the switch) and the host, which drops a result whose site generation is not current (`SiteConnections.Generation`, see "Loading") before it is posted. This resolves the remaining parts of #57 and #59.
 
 ## Composition root
 
@@ -109,7 +111,9 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 
 **Stale replies and cancellation.** Closing a tab cancels its work (`CancelTabEffect`); a profile switch cancels everything (`DropSiteCacheEffect` makes the host call `NetworkRunner.CancelAll()`, `SiteConnections.Drop` and drop the cache). Cancellation is best effort; the guarantee is the request-id rule in the reducer plus the generation rule in the host ("Views and tabs").
 
-**Failures.** A failed load keeps the existing rows, sets `Load = Failed(kind, message)` and marks a tab with rows stale. The message comes from one table keyed by `JiraErrorKind` (#77), shared by refresh and the banners (#90); which kinds mean what is in jira-layer.md, "Errors to UI states".
+**No connection.** When `JiraServices` is not available (no profile, no token, still connecting) the handler answers a load at once with `ViewLoadFailed` carrying a `JiraErrorKind.Unexpected` error whose text is the host's connection notice ("No API token for this profile ..."), so the tab shows an error instead of loading forever; a manual refresh after the connection is up loads it.
+
+**Failures.** A failed load keeps the existing rows, sets `Load = Failed(kind, message)` and marks a tab with rows stale. The message comes from one pure table in Core keyed by `JiraErrorKind` (`LoadErrorText`, #77), so the reducer builds it and it is shared by refresh and the banners (#90); which kinds mean what is in jira-layer.md, "Errors to UI states".
 
 **Network states** (drawn by #90 with the existing `PaletteRole`s; never colour alone, every state also has a text marker). One status per tab, highest first, from the pure `TabStatus.Of(tab, session.Link, now)`:
 
@@ -117,7 +121,7 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 |---|---|
 | Rate limited | `Link` is `RateLimited(until)` with `until > now`; shows the wait end |
 | Offline | `Link` is `Offline`, or the tab failed with `Network`, `Timeout` or `HostRefused`; last data kept |
-| Error | `Failed` with another kind: banner with the message and a hint (401 token rejected, see `:profile`; 403/404 not found or no access; 400 Jira's own text) |
+| Error | `Failed` with another kind (`Unexpected`, `ServerError`, ...): banner with the message and a hint (401 token rejected, see `:profile`; 403/404 not found or no access; 400 Jira's own text) |
 | Loading | `Load` is `Loading` |
 | Stale | `IsStale`, with the age from `LoadedAt` |
 | Fresh | none of the above |
@@ -134,15 +138,16 @@ The roles exist from the start (`docs/ux.md`, "Colour tiers"); #76 adds only wha
 - Disk: below the cache directory of `ApplicationDirectories`, one folder per profile named by the first 16 hex characters of SHA-256 of `Profile.CredentialKey` (that key contains site and email, so only the hash is used; the token is never involved), holding `view-<hash of CacheKey>.json` and `issue-<hash of issue key>.json`. Cached: the first page of every opened view and the last 200 issue details; nothing else, nothing from `Authorization`.
 - Files are JSON through a Core source-generated context (`CacheJsonContext`) with its own DTOs (`CachedIssueSummary`, ...) and a mapper to and from the Jira models, and `{"schema": n}` in every file. A Jira model change then breaks the mapper at compile time instead of silently changing cached files. A schema mismatch, parse failure or foreign file is ignored and deleted, and the data is refetched. The duplication is at this boundary only; core state uses the Jira models directly.
 - Writes are off the UI thread, debounced (2 s after the last change), atomic (temp file in the same folder, then replace); a failed write is dropped with a one-line notice, since a cache is never a reason to fail a read. Cap 20 MB per profile folder, oldest files evicted first. Best-effort flush on exit.
-- Removal: `DropSiteCacheEffect` disposes the memory part and cancels work. Removing a profile (`RemoveProfileEffect`) also deletes its disk folder; switching away keeps it (the profile may come back). Other profiles' folders are never touched, and two profiles on one site with different accounts have different credential keys, so different folders.
+- Removal: `DropSiteCacheEffect` disposes the memory part, discards pending writes and cancels work; the disk folder stays, so a view reopens at once when the profile comes back. Removing a profile also deletes its folder: `RemoveProfileEffect`'s handler calls `SiteCaches.Delete(profile)`, which first disposes that profile's `SiteCache` (no pending write or exit flush can recreate the folder) and then deletes the folder. Other profiles' folders are never touched, and two profiles on one site with different accounts have different credential keys, so different folders. (A switch keeping the disk folder differs from #82 and CLAUDE.md wording "drops that site's views and cache": the views and memory cache are dropped, the disk files are kept; `docs/decisions.md`.)
+- Permissions: the cache folders and files are created readable by the user only (mode 0700/0600 on Linux and macOS through a Platform helper; on Windows the default ACL of `%LOCALAPPDATA%` already restricts them, an explicit branch). Cached summaries are plain text of the user's own issues.
 
 **Opening a view.** The reducer opens the tab as `Loading` with no rows and emits `LoadViewPageEffect(Open)`. The handler looks the key up and, on a hit, posts `ViewCacheLoaded`; the reducer shows those rows at once with `IsStale` (only if the tab still has no rows and the request id is current). The network reply then replaces the rows, clears `IsStale`, keeps the selection on `SelectedKey` (if the key is gone the index is clamped) and emits `WriteCacheEffect`. A miss shows the loading state. A failed load keeps the cached rows, stale; with no cache the empty body explains the error.
 
 **Refresh rules.** Only the active tab, ever; hidden tabs neither poll nor render.
 
-- Time is injected: a host timer posts `Tick(now)` once a second and commands carry their own `At`. When a tick changes nothing the reducer returns the same state instance, so an idle second costs a comparison and no redraw.
-- Schedule: refresh when `now >= NextRefreshAt` (`LoadedAt + 60 s` after a success). On `TabActivated`, refresh at once if `now - LoadedAt > 30 s`. The manual refresh key (`RefreshRequested`) refreshes unless a load of that tab is in flight. Never more than one load in flight per tab.
-- Scope: list sources reload the first page only; board and backlog sources reload every page (gathered in `PendingRows`, swapped in with the last one). Rows are replaced as a whole, selection stays on its issue key, scroll is kept; the board configuration is refetched only by a manual refresh. A list tab scrolled past the first page loses the rows beyond it at refresh and pages them in again on demand (the cost of having no jump to row N); if the selected key is not in the first page the selection falls back to the nearest row.
+- Time is injected: a host timer posts `Tick(now)` once a second while an active tab exists, and commands carry their own `At`. `AppState` stores no "now". The reducer returns the same state instance when a tick changes nothing, and the host skips the redraw when the state reference is unchanged and nothing on screen shows time. Time-dependent text (the rate-limit countdown, the age of stale data at minute granularity) is drawn by the renderer from the `now` the host passes in, and the host redraws on a tick only while such text is visible. An idle tick costs a comparison and at most the small `ReduceResult` record.
+- Schedule: refresh when `now >= NextRefreshAt` (`LoadedAt + 60 s` after a success); the next `Tick` decides, the reducer never reads a clock of its own. `TabActivated` carries no time, so it sets `NextRefreshAt = min(NextRefreshAt, LoadedAt + 30 s)` and the next tick (at most a second later) refreshes when that is already past. The manual refresh key (`RefreshRequested`) refreshes unless a load of that tab is in flight and always uses the user lane. Never more than one load in flight per tab.
+- Scope: list sources reload the first page only; board and backlog sources reload every page (gathered in `PendingRows`, swapped in with the last one). Rows are replaced as a whole, selection stays on its issue key, scroll is kept; the board configuration is refetched only by a manual refresh. Automatic and activation refresh are skipped for a list tab that has loaded more than the first page (`Rows.Count > PageSize`), because tokens only go forward and replacing the rows would throw the reader's position away every minute; such a tab is refreshed by the manual key, which resets it to the first page (selection kept by key if it is there, else nearest row).
 - Priority: automatic and activation refreshes are `LoadViewPageEffect(Background: true)`, i.e. `AsBackground()`, so they never queue ahead of a key press; open, next page, retry and manual refresh use the user lane.
 - Pauses: no automatic refresh while `Link` is `RateLimited` (the transport publishes `JiraTransport.RateLimitedUntil` and `RateLimitWaitChanged` on a non-UI thread; the host maps them to `LinkChanged`) until the end passes, nor while `Link` is `Rejected`. While `Offline` the interval gives way to the backoff probe below, which is how recovery is noticed.
 - Backoff: after a failure `Failures` grows and `NextRefreshAt = At + min(300 s, 60 s * 2^(Failures-1))` (60, 120, 240, 300 s); a success resets it and sets `Link` to `Online`. A 401 sets `Link = Rejected` and stops automatic refresh until the connection check (#83) succeeds; a manual refresh is still allowed.

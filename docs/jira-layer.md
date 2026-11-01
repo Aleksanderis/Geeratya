@@ -55,12 +55,12 @@ The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys wha
 The schedule is in `docs/architecture.md`, "Cache and refresh"; what the Jira layer guarantees for it:
 
 - Automatic refresh uses `AsBackground()` on the same transport: at most `cap - ReservedForUser` slots, throttled earlier than user work when the budget is low, so a refresh never delays a key press. Manual refresh, open, next page and retry are user requests.
-- Refresh traffic is bounded: one tab at a time, one load in flight per tab, a board refresh walks its pages sequentially. At the default interval of 60 s that is one search call a minute per session (a 10 000-issue board is 100 sequential background calls; the 10 000-row cap makes this the worst case).
+- Refresh traffic is bounded: one tab at a time, one load in flight per tab, pages walked sequentially. A list tab costs one search call per refresh (one a minute at the default interval); a board or backlog tab costs one call per page of its issues (100 per call, so a 1 000-issue board is 10 background calls a minute, a full 10 000-row board 100, the worst case).
 - While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries.
 
 ## Errors to UI states
 
-Map once, in the message table of #77, used by loads, refresh and banners:
+Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer builds the text), used by loads, refresh and banners:
 
 | `JiraErrorKind` | State | Refresh behaviour |
 |---|---|---|
@@ -69,7 +69,7 @@ Map once, in the message table of #77, used by loads, refresh and banners:
 | `Unauthorized` | error "token rejected" with a `:profile` hint | refresh stops until the connection check succeeds |
 | `Forbidden`, `NotFound` | error "not found or no access" (the two cannot be told apart, see Errors) | backoff |
 | `BadRequest` | Jira's own message (JQL syntax); on a request that carried a page token, "page expired": reload from the first page | none for JQL errors; reload once for an expired token |
-| `ServerError`, `InvalidResponse` | error with a retry hint | backoff |
+| `ServerError`, `InvalidResponse`, `Unexpected` | error with a retry hint | backoff |
 
 ## Current user: `GET /rest/api/3/myself`
 
