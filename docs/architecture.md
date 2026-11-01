@@ -48,7 +48,7 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 `Geeratya.Tui` references Terminal.Gui 2.5.0 (stable v2, pinned in `Directory.Packages.props`). The native AOT publish has no `IL*` warnings with it and no suppressions are needed.
 
-Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Views/` (`ShellScreen`, the only code that builds views), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
+Layout in `Geeratya.Tui`: `Input/` (`KeyTranslator`: Terminal.Gui `Key` to the renderer-agnostic spelling of `KeyNotation`), `Rendering/` (pure: `FrameBuilder`, `StatusBar`, `PaletteTable`, `Palette`, `TextWidth`; no Terminal.Gui), `Views/` (`ShellScreen`, the only code that builds views; draws the frame in palette colours and redraws it on resize), `ShellHost` (loop, keys to `AppReducer`, state to `ShellScreen.Render`). Core knows no Terminal.Gui types.
 
 Settings and pitfalls:
 

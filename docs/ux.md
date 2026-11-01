@@ -1,6 +1,6 @@
 # UX
 
-Index of the interface specification. Parts: [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse, colour tiers, status bar and `--print-frame` arrive with the rest of the app shell (#15) and get their own parts.
+Index of the interface specification. Parts: [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse arrives with its own part.
 
 ## Shell
 
@@ -8,7 +8,7 @@ The shell is one full-screen window with a body, a one-line status line at the b
 
 ## Modes
 
-The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command and Confirm show their prompt in the status line (the full status bar is #15).
+The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command and Confirm show their prompt in the status bar.
 
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|
@@ -40,3 +40,15 @@ Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transit
 ## Help
 
 `?` opens an overlay generated from the keymap and the action catalog, grouped by mode; it is never hand-written.
+
+## Status bar
+
+The bottom line is a bar of exactly the terminal width. It starts at column 0 with a mode badge (` NORMAL `, ` HELP `, ` COMMAND `, ` CONFIRM `), followed by the mode's text: the pending keys or message in Normal mode, `:text` in Command mode, the question and `(y/n)` in Confirm mode. Short key hints (`? help`, `: command`, `q quit`) are right-aligned; each hint names its action id and a test checks that the default keymap binds it. When the line is too narrow the hints are dropped first, then the text is cut (wide characters are never split).
+
+## Colour tiers
+
+Colours are decided by roles (`PaletteRole`) in `PaletteTable`; views never name a colour. Three tiers, picked from `ConsoleCapabilities`: 24-bit (`COLORTERM=truecolor` or `24bit`), 16-colour (forces Terminal.Gui's 16-colour output) and no colour (`NO_COLOR` set, `TERM=dumb`, redirected output). In the no-colour tier meaning rests on text attributes (the status bar is reversed, error and network roles are bold or underlined), so nothing relies on colour alone. Text roles must reach contrast 4.5 against their background, the divider role 3.0, in both colour tiers (tested; the 16-colour check uses typical xterm values). Network-state roles (error, loading, offline, rate limited, stale) exist from the start and are wired when the states are.
+
+## Print frame
+
+`geeratya --print-frame [--size WxH] [--mode normal|help|command|confirm]` prints the plain-text frame the shell would draw for that size (default 80x24, no colour, works without a terminal) and exits. It is the basis of the snapshot tests in `tests/Geeratya.Tui.Tests/Snapshots` at 120x36, 80x24 and 40x10; the frame builder is also tested at every size from 0x0 up so a resize never throws. To refresh a snapshot after an intended change, rerun the command into the matching file and review the diff.
