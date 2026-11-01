@@ -126,7 +126,7 @@ public sealed class ShellHost : IDisposable
         _ = ConnectAsync();
     }
 
-    /// <summary>Builds the connection for the active profile (no-op when it is already built) off the UI thread.</summary>
+    /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
     private async Task ConnectAsync()
     {
         var failure = await _connections.ActivateAsync(_state.Profiles.Active, _shutdownToken);

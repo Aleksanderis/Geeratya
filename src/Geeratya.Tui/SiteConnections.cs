@@ -82,7 +82,12 @@ public sealed class SiteConnections : IDisposable
             generation = Replace(profile);
         }
 
-        return profile is null ? Task.FromResult<ConnectionFailed?>(null) : ConnectAsync(profile, generation, cancellationToken);
+        if (profile is null)
+        {
+            return Task.FromResult<ConnectionFailed?>(null);
+        }
+
+        return ConnectAsync(profile, generation, cancellationToken);
     }
 
     /// <summary>Closes the connection of <paramref name="profile"/> if it is the connected one.</summary>
@@ -110,13 +115,29 @@ public sealed class SiteConnections : IDisposable
         return new JiraTransport(connection, token);
     }
 
-    private async Task<ConnectionFailed?> ConnectAsync(Profile profile, int generation, CancellationToken cancellationToken)
+    private async Task<ConnectionFailed?> ConnectAsync(
+        Profile profile,
+        int generation,
+        CancellationToken cancellationToken)
     {
-        var resolution = await Task.Run(
-            () => _tokens.ResolveAsync(profile.CredentialKey, cancellationToken),
-            cancellationToken);
+        TokenResolution resolution;
 
-        if (resolution.Token is null)
+        try
+        {
+            resolution = await Task.Run(
+                () => _tokens.ResolveAsync(profile.CredentialKey, cancellationToken),
+                cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (SecretStoreException exception)
+        {
+            return new ConnectionFailed(profile, $"The secret store failed: {exception.Message}");
+        }
+
+        if (string.IsNullOrWhiteSpace(resolution.Token))
         {
             return new ConnectionFailed(profile, NoTokenMessage);
         }
