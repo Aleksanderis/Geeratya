@@ -16,14 +16,21 @@ public static class Palette
                 entry.TrueBackground,
                 null,
                 null,
-                RoleStyle.None),
+                ColourStyle(entry)),
             ColorSupport.Basic16 => new ResolvedStyle(
                 Ansi16.ToRgb(entry.Foreground16),
                 Ansi16.ToRgb(entry.Background16),
                 entry.Foreground16,
                 entry.Background16,
-                RoleStyle.None),
+                ColourStyle(entry)),
             _ => new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, entry.NoColorStyle),
         };
+    }
+
+    // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because
+    // the colour tiers already give a role its own background.
+    private static RoleStyle ColourStyle(PaletteEntry entry)
+    {
+        return entry.NoColorStyle & ~RoleStyle.Reverse;
     }
 }

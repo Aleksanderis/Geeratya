@@ -3,6 +3,9 @@ using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Tests.Fakes;
+using Geeratya.Tui.Views;
+using Terminal.Gui.Drawing;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
@@ -12,12 +15,74 @@ public class StyledRenderingTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(DefaultKeymap.Load());
 
-    [Fact]
-    public void GivenEveryTextRole_WhenMappingToPalette_ThenEachHasADistinctPaletteRole()
+    [Theory]
+    [InlineData(TextRole.Body, PaletteRole.Body)]
+    [InlineData(TextRole.Muted, PaletteRole.Muted)]
+    [InlineData(TextRole.Heading, PaletteRole.Heading)]
+    [InlineData(TextRole.Strong, PaletteRole.Strong)]
+    [InlineData(TextRole.Emphasis, PaletteRole.Emphasis)]
+    [InlineData(TextRole.Code, PaletteRole.Code)]
+    [InlineData(TextRole.Link, PaletteRole.Link)]
+    [InlineData(TextRole.Quote, PaletteRole.Quote)]
+    [InlineData(TextRole.Selected, PaletteRole.Selected)]
+    [InlineData(TextRole.Key, PaletteRole.Key)]
+    [InlineData(TextRole.StatusToDo, PaletteRole.StatusToDo)]
+    [InlineData(TextRole.StatusInProgress, PaletteRole.StatusInProgress)]
+    [InlineData(TextRole.StatusDone, PaletteRole.StatusDone)]
+    [InlineData(TextRole.Error, PaletteRole.Error)]
+    public void GivenTextRole_WhenMappingToPalette_ThenItIsTheExpectedPaletteRole(TextRole role, PaletteRole expected)
     {
-        var mapped = Enum.GetValues<TextRole>().Select(PaletteTable.For).ToList();
+        Assert.Equal(expected, PaletteTable.For(role));
+    }
 
-        Assert.Equal(mapped.Count, mapped.Distinct().Count());
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    [InlineData(ColorSupport.None)]
+    public void GivenAnyTier_WhenResolvingTextStylingRoles_ThenEachDiffersFromBody(ColorSupport tier)
+    {
+        var body = Palette.Resolve(tier, PaletteRole.Body);
+        PaletteRole[] roles =
+        [
+            PaletteRole.Heading,
+            PaletteRole.Strong,
+            PaletteRole.Emphasis,
+            PaletteRole.Code,
+            PaletteRole.Link,
+            PaletteRole.Quote,
+            PaletteRole.Selected,
+            PaletteRole.Key,
+            PaletteRole.StatusInProgress,
+            PaletteRole.StatusDone,
+        ];
+
+        foreach (var role in roles)
+        {
+            Assert.NotEqual(body, Palette.Resolve(tier, role));
+        }
+    }
+
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    public void GivenColourTier_WhenResolvingStrongEmphasisAndLink_ThenTheirAttributesAreKept(ColorSupport tier)
+    {
+        Assert.True(Palette.Resolve(tier, PaletteRole.Strong).Style.HasFlag(RoleStyle.Bold));
+        Assert.True(Palette.Resolve(tier, PaletteRole.Emphasis).Style.HasFlag(RoleStyle.Italic));
+        Assert.True(Palette.Resolve(tier, PaletteRole.Link).Style.HasFlag(RoleStyle.Underline));
+        Assert.False(Palette.Resolve(tier, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
+    }
+
+    [Fact]
+    public void GivenSelectedAndDoneStyles_WhenCreatingAttributes_ThenTextStyleAndColoursCarryOver()
+    {
+        var selected = AttributeFactory.Create(Palette.Resolve(ColorSupport.None, PaletteRole.Selected));
+        var done = AttributeFactory.Create(Palette.Resolve(ColorSupport.TrueColor, PaletteRole.StatusDone));
+
+        Assert.True(selected.Style.HasFlag(TextStyle.Reverse));
+        Assert.True(selected.Style.HasFlag(TextStyle.Bold));
+        Assert.True(done.Style.HasFlag(TextStyle.Italic));
+        Assert.Equal(new Color(0xA3, 0xBE, 0x8C), done.Foreground);
     }
 
     [Fact]
@@ -96,30 +161,5 @@ public class StyledRenderingTests
         Assert.Equal(6, frame.Body.Count);
         Assert.Equal(8, frame.PlainLines().Count);
         Assert.Equal(new string(' ', 30), frame.Header[0].PlainText);
-    }
-
-    private sealed class FakeBodyRenderer : IBodyRenderer
-    {
-        public bool AppliesTo(AppState state)
-        {
-            return true;
-        }
-
-        public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)
-        {
-            return
-            [
-                new StyledLine(
-                [
-                    new StyledSpan("> PROJ-1 ", TextRole.Selected),
-                    new StyledSpan("To Do", TextRole.StatusToDo),
-                ]),
-                new StyledLine(
-                [
-                    new StyledSpan("  PROJ-2 ", TextRole.Muted),
-                    new StyledSpan("Done", TextRole.StatusDone),
-                ]),
-            ];
-        }
     }
 }

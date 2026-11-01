@@ -12,6 +12,7 @@ public interface IBodyRenderer
     /// <summary>Whether this renderer draws the body for <paramref name="state"/>.</summary>
     bool AppliesTo(AppState state);
 
-    /// <summary>Styled lines for the body; the frame fits them to the width and height, so fewer or longer is fine.</summary>
+    /// <summary>Styled lines for the body; the frame fits them to the width and height, so fewer or longer is fine.
+    /// The frame pads with body-role spaces: a full-row highlight (a selected row) pads its own span to the width.</summary>
     IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height);
 }

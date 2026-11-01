@@ -43,7 +43,7 @@ public static class PaletteTable
         [PaletteRole.Key] = Create(0xEBCB8B, Ansi16Color.BrightYellow, RoleStyle.Bold),
         [PaletteRole.StatusToDo] = Create(0x9AA5B8, Ansi16Color.Gray, RoleStyle.None),
         [PaletteRole.StatusInProgress] = Create(0x88C0D0, Ansi16Color.BrightCyan, RoleStyle.Bold),
-        [PaletteRole.StatusDone] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Italic),
+        [PaletteRole.StatusDone] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Bold | RoleStyle.Italic),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
