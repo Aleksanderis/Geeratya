@@ -1,0 +1,16 @@
+[
+  {
+    "application": {},
+    "id": 10000,
+    "object": {
+      "icon": {},
+      "status": {
+        "icon": {}
+      },
+      "summary": "a remote link",
+      "title": "Remote page",
+      "url": "https://example.com/remote"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issue/GTM-5/remotelink/10000"
+  }
+]

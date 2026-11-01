@@ -3,7 +3,6 @@ using Geeratya.Core.Keymap;
 
 namespace Geeratya.Tui.Tests;
 
-[Trait("Os", "Independent")]
 public class ApplicationRunnerTests
 {
     [Fact]

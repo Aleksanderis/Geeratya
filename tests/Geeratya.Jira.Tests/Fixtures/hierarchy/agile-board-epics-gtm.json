@@ -1,0 +1,21 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "values": [
+    {
+      "color": {
+        "key": "color_7"
+      },
+      "done": false,
+      "id": 10007,
+      "issueColor": {
+        "key": "purple"
+      },
+      "key": "GTM-4",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10007",
+      "summary": "Survey4 epic"
+    }
+  ]
+}

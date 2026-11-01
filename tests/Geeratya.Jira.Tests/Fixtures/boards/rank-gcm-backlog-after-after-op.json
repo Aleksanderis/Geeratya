@@ -1,0 +1,68 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i0000l:",
+        "summary": "Survey4 subtask"
+      },
+      "id": "10013",
+      "key": "GCM-6",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10013"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i00002:",
+        "summary": "Survey bug two"
+      },
+      "id": "10001",
+      "key": "GCM-2",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10001"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i0000e:",
+        "summary": "Survey task four"
+      },
+      "id": "10003",
+      "key": "GCM-4",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10003"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i0001k:",
+        "summary": "Survey4 epic"
+      },
+      "id": "10010",
+      "key": "GCM-5",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10010"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i0002i:",
+        "summary": "Survey4 subtask no valid parent"
+      },
+      "id": "10014",
+      "key": "GCM-7",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10014"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10019": "0|i00028:",
+        "summary": "Survey story three with unicode café 🚀"
+      },
+      "id": "10002",
+      "key": "GCM-3",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10002"
+    }
+  ],
+  "maxResults": 20,
+  "startAt": 0,
+  "total": 6
+}

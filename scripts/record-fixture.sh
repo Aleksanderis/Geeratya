@@ -4,7 +4,9 @@
 #   env RECORD_OUT=<file>   write the scrubbed body there (default: stdout)
 #   env RECORD_META=<file>  write the status line and rate-limit headers there (scrubbed)
 #   env RECORD_CONTENT_TYPE=<type>  request Content-Type (default application/json)
+#   env RECORD_XSRF=1       send X-Atlassian-Token: no-check (attachment upload)
 #   env RECORD_RAW=1        skip scrubbing (inspection only, never commit the output)
+# Writes also allowed: agile rank/backlog moves and creating issue links, only between GCM/GTM keys (no link deletes).
 # Refuses hosts outside GEERATYA_LIVE_HOSTS. Never prints the token; the credential
 # goes to curl through a private config file, not argv.
 # Scrubbing (scripts/scrub-fixture.py): host -> example.atlassian.net, account ids -> fake-account-N,
@@ -50,15 +52,37 @@ case "$method" in GET | POST | PUT | DELETE) ;; *) echo "unsupported method" >&2
 
 # Writes: only issues in the sandbox projects GCM and GTM (testing skill, "Live dev site").
 if [ "$method" != GET ]; then
+  # Exact shapes only: no "/" beyond one sub-resource, no dot segments.
+  issue_re='^/rest/api/3/issue/G[CT]M-[0-9]+(/(comment|transitions|remotelink|attachments))?(\?[A-Za-z0-9=&,._-]*)?$'
   case "$path" in
-    /rest/api/3/issue | /rest/api/3/issue/G[CT]M-[0-9]* | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
-    *) echo "write refused: only issues in GCM/GTM (and search POST) may be written" >&2; exit 3 ;;
+    /rest/api/3/issue | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
+    # Ranking, moving to the backlog and issue links name issues in the body; checked below.
+    /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink) ;;
+    *)
+      if ! [[ $path =~ $issue_re ]]; then
+        echo "write refused: only issues in GCM/GTM (and search POST) may be written" >&2; exit 3
+      fi ;;
   esac
+  if [ "$method" = DELETE ] && [ "$path" = /rest/api/3/issueLink ]; then echo "write refused" >&2; exit 3; fi
   if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
     && ! jq -e '(.fields.project.key // "GCM") | IN("GCM","GTM")' "$body" > /dev/null 2>&1; then
     echo "write refused: body names a project other than GCM/GTM" >&2; exit 3
   fi
 fi
+
+# Bodies that name issues: every key must be in GCM/GTM.
+case "$path" in
+  /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink)
+    case "$path" in
+      /rest/api/3/issueLink)
+        jq_check='(.inwardIssue.key | type == "string" and test("^G[CT]M-[0-9]+$")) and (.outwardIssue.key | type == "string" and test("^G[CT]M-[0-9]+$")) and (.inwardIssue.id == null) and (.outwardIssue.id == null)' ;;
+      *)
+        jq_check='(.issues | type == "array" and length > 0 and all(type == "string" and test("^G[CT]M-[0-9]+$"))) and ([.rankBeforeIssue, .rankAfterIssue] | all(. == null or (type == "string" and test("^G[CT]M-[0-9]+$"))))' ;;
+    esac
+    if [ -z "$body" ] || ! jq -e "$jq_check" "$body" > /dev/null 2>&1; then
+      echo "write refused: body must name only GCM/GTM issue keys" >&2; exit 3
+    fi ;;
+esac
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -67,6 +91,7 @@ printf 'user = "%s:%s"\n' "$GEERATYA_LIVE_EMAIL" "$GEERATYA_LIVE_TOKEN" > "$tmp/
 
 args=(-sS -X "$method" -D "$tmp/headers" -o "$tmp/body" -w '%{http_code}'
   -H 'Accept: application/json' --config "$tmp/auth")
+if [ "${RECORD_XSRF:-}" = 1 ]; then args+=(-H 'X-Atlassian-Token: no-check'); fi
 if [ -n "$body" ]; then
   args+=(-H "Content-Type: ${RECORD_CONTENT_TYPE:-application/json}" --data-binary "@$body")
 fi

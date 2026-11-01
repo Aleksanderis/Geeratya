@@ -1,0 +1,87 @@
+{
+  "issueTypes": [
+    {
+      "description": "Subtasks track small pieces of work that are part of a larger task.",
+      "hierarchyLevel": -1,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+      "id": "10011",
+      "name": "Subtask",
+      "scope": {
+        "project": {
+          "id": "10002"
+        },
+        "type": "PROJECT"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10011",
+      "subtask": true,
+      "untranslatedName": "Subtask"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 1,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+      "id": "10012",
+      "name": "Epic",
+      "scope": {
+        "project": {
+          "id": "10002"
+        },
+        "type": "PROJECT"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+      "subtask": false,
+      "untranslatedName": "Epic"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+      "id": "10013",
+      "name": "Story",
+      "scope": {
+        "project": {
+          "id": "10002"
+        },
+        "type": "PROJECT"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10013",
+      "subtask": false,
+      "untranslatedName": "Story"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+      "id": "10014",
+      "name": "Bug",
+      "scope": {
+        "project": {
+          "id": "10002"
+        },
+        "type": "PROJECT"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10014",
+      "subtask": false,
+      "untranslatedName": "Bug"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+      "id": "10015",
+      "name": "Task",
+      "scope": {
+        "project": {
+          "id": "10002"
+        },
+        "type": "PROJECT"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10015",
+      "subtask": false,
+      "untranslatedName": "Task"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 5
+}

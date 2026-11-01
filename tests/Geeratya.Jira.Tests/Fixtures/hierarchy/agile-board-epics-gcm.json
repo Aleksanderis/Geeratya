@@ -1,0 +1,21 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "values": [
+    {
+      "color": {
+        "key": "color_2"
+      },
+      "done": false,
+      "id": 10010,
+      "issueColor": {
+        "key": "dark_yellow"
+      },
+      "key": "GCM-5",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10010",
+      "summary": "Survey4 epic"
+    }
+  ]
+}

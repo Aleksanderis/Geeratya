@@ -1,0 +1,123 @@
+{
+  "isLast": true,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10013",
+          "subtask": false
+        },
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/3/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/3/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+              }
+            },
+            "summary": "Survey4 epic"
+          },
+          "id": "10007",
+          "key": "GTM-4",
+          "self": "https://example.atlassian.net/rest/api/3/issue/10007"
+        },
+        "summary": "Survey4 story under epic"
+      },
+      "id": "10011",
+      "key": "GTM-7",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10011"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10015",
+          "subtask": false
+        },
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/3/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/3/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+              }
+            },
+            "summary": "Survey4 epic"
+          },
+          "id": "10007",
+          "key": "GTM-4",
+          "self": "https://example.atlassian.net/rest/api/3/issue/10007"
+        },
+        "summary": "Survey4 plain task"
+      },
+      "id": "10009",
+      "key": "GTM-6",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10009"
+    }
+  ]
+}
