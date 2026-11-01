@@ -4,7 +4,8 @@ namespace Geeratya.Jira.Tests.Guards;
 
 /// <summary>
 /// Fails when a test class marked <c>[Trait("Os", "Independent")]</c> uses an API whose behaviour differs per OS
-/// (the Windows CI leg runs only unmarked tests, so a marked class must be pure).
+/// (the Windows CI leg runs only unmarked tests, so a marked class must be pure). The marker is found only as a
+/// standalone attribute line, and the whole file is scanned, so keep marked classes one per file.
 /// </summary>
 public class OsIndependentGuardTests
 {
@@ -28,6 +29,7 @@ public class OsIndependentGuardTests
         ["sockets"] = Pattern(@"\bSocket\b|TcpListener|TcpClient|UdpClient|NetworkStream|HttpListener|SocketsHttpHandler"),
         ["terminal"] = Pattern(@"\bConsole\.|\\u001b|\\x1b|\\e\["),
         ["line ending"] = Pattern(@"\\r\\n"),
+        ["encoding"] = Pattern(@"Encoding\.Default|OutputEncoding|InputEncoding|GetEncoding"),
         ["OS check"] = Pattern(@"OperatingSystem\.Is|RuntimeInformation\.IsOSPlatform"),
     };
 
@@ -55,6 +57,23 @@ public class OsIndependentGuardTests
         var violations = FindViolations("Wrong.cs", source);
 
         Assert.NotEmpty(violations);
+    }
+
+    [Theory]
+    [InlineData("File.ReadAllText(x);")]
+    [InlineData("Path.Combine(a, b);")]
+    [InlineData("Environment.GetEnvironmentVariable(a);")]
+    [InlineData("Process.Start(a);")]
+    [InlineData("new TcpListener(a, b);")]
+    [InlineData("Console.Write(a);")]
+    [InlineData("var text = \"a\\r\\nb\";")]
+    [InlineData("var a = Encoding.Default;")]
+    [InlineData("OperatingSystem.IsWindows();")]
+    public void GivenMarkedClassUsingForbiddenApi_WhenScanning_ThenItIsReported(string line)
+    {
+        var source = $"[Trait(\"Os\", \"Independent\")]\npublic class Wrong {{ {line} }}";
+
+        Assert.NotEmpty(FindViolations("Wrong.cs", source));
     }
 
     [Fact]
