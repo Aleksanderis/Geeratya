@@ -19,7 +19,16 @@ public sealed class FakeJiraHandler : HttpMessageHandler
 
     public IReadOnlyCollection<RecordedRequest> Requests => _requests;
 
-    public int PeakInFlight => Volatile.Read(ref _peakInFlight);
+    public int PeakInFlight
+    {
+        get
+        {
+            lock (_flightLock)
+            {
+                return _peakInFlight;
+            }
+        }
+    }
 
     /// <summary>Serves this reply every time the route is hit and no one-off reply is queued.</summary>
     public FakeJiraHandler Serve(HttpMethod method, string path, FakeResponse response)

@@ -23,6 +23,9 @@ public sealed class JiraTransportTests
         Assert.Equal("Test User 1", result.Value.DisplayName);
         var request = Assert.Single(fixture.Handler.Requests);
         Assert.Equal($"Basic {Credentials()}", request.Authorization);
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal(MyselfPath, request.PathAndQuery);
+        Assert.Equal(TransportFixture.Host, request.Host);
         Assert.Equal("application/json", request.Accept);
         Assert.Contains("Geeratya", request.UserAgent);
     }
