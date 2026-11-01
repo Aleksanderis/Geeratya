@@ -7,7 +7,6 @@ namespace Geeratya.Tui.Views;
 /// <summary>The empty shell: body, status line and help overlay. Draws what <see cref="AppState"/> says.</summary>
 public sealed class ShellScreen : Window
 {
-    private readonly Label _body;
     private readonly Label _status;
     private readonly FrameView _helpFrame;
     private readonly Label _helpText;
@@ -20,7 +19,7 @@ public sealed class ShellScreen : Window
         Width = Dim.Fill();
         Height = Dim.Fill();
 
-        _body = new Label
+        var body = new Label
         {
             Text = "Geeratya\n\n? help   : commands   q quit",
             X = Pos.Center(),
@@ -39,7 +38,7 @@ public sealed class ShellScreen : Window
         };
 
         _helpFrame.Add(_helpText);
-        Add(_body, _helpFrame, _status);
+        Add(body, _helpFrame, _status);
     }
 
     public void Render(AppState state)
