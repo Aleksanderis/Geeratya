@@ -73,19 +73,29 @@ trap 'rm -rf "$work"' EXIT
 umask 077
 
 # api METHOD PATH [BODY-FILE]: prints the response body, fails on a non-2xx status.
-# Retries on 429 (the transport prints the status to stderr).
+# Retries on 429 up to 3 times, waiting Retry-After seconds (read through RECORD_META; capped at 60,
+# 5 s times the attempt when the header is missing or not a number). On failure prints the status
+# and the start of the Jira error body (errorMessages/errors, else the raw text), never the token.
 api() {
-  local tries=0 status
+  local tries=0 status wait detail
   while :; do
-    RECORD_RAW=1 "$rec" "$@" > "$work/out" 2> "$work/err" || true
+    RECORD_RAW=1 RECORD_META="$work/meta" "$rec" "$@" > "$work/out" 2> "$work/err" || true
     status=$(sed -n 's/^status: //p' "$work/err" | tail -n1)
     case "$status" in
       2??) cat "$work/out"; return 0 ;;
-      429) tries=$((tries + 1)); if [ $tries -gt 3 ]; then break; fi; sleep $((tries * 5)) ;;
+      429)
+        tries=$((tries + 1))
+        if [ $tries -gt 3 ]; then break; fi
+        wait=$(sed -n 's/^[Rr]etry-[Aa]fter: *\([0-9][0-9]*\).*/\1/p' "$work/meta" 2> /dev/null | head -n1)
+        wait=${wait:-$((tries * 5))}
+        if [ "$wait" -gt 60 ]; then wait=60; fi
+        sleep "$wait" ;;
       *) break ;;
     esac
   done
-  echo "request failed: $1 ${2%%\?*} -> status ${status:-none} $(grep -v '^status:' "$work/err" | head -n2)" >&2
+  detail=$(jq -r '[(.errorMessages // [])[], ((.errors // {}) | to_entries[] | "\(.key): \(.value)")] | join("; ")' "$work/out" 2> /dev/null || true)
+  if [ -z "$detail" ]; then detail=$(head -c 300 "$work/out" | tr '\n' ' '); fi
+  echo "request failed: $1 ${2%%\?*} -> status ${status:-none} $(grep -v '^status:' "$work/err" | head -n2) ${detail:0:300}" >&2
   return 1
 }
 write() { sleep 0.3; api "$@"; }
@@ -118,6 +128,7 @@ rich_comment() {
 
 declare -A keyof # "<project>/<slug>" -> issue key
 declare -A cnt_new cnt_found
+declare -A statusof # "<project>/<slug>" -> current status name, from the search
 
 search_seed() { # project -> $work/res.json
   jq -n --arg j "project = $1 AND labels = geeratya-seed" '{jql:$j,maxResults:100,fields:["labels","summary","status"]}' > "$work/q.json"
@@ -157,16 +168,23 @@ for p in "${projects[@]}"; do
   echo "== $p"
   cnt_new[$p]=0 cnt_found[$p]=0
   search_seed "$p"
-  while IFS=$'\t' read -r key lab; do
+  while IFS=$'\t' read -r key lab st; do
     keyof["$p/${lab#geeratya-seed-"$p"-}"]=$key
-  done < <(jq -r --arg p "$p" '.issues[]|[.key, (.fields.labels[]|select(startswith("geeratya-seed-"+$p+"-")))]|@tsv' "$work/res.json")
+    statusof["$p/${lab#geeratya-seed-"$p"-}"]=$st
+  done < <(jq -r --arg p "$p" '.issues[]|[.key, (.fields.labels[]|select(startswith("geeratya-seed-"+$p+"-"))), .fields.status.name]|@tsv' "$work/res.json")
   api GET "/rest/api/3/issue/createmeta/$p/issuetypes" > "$work/types.json"
   epic_t=$(jq -r '[.issueTypes[]|select(.hierarchyLevel==1)][0].id' "$work/types.json")
   sub_t=$(jq -r '[.issueTypes[]|select(.subtask==true)][0].id' "$work/types.json")
   while IFS='|' read -r slug type summary parent col; do
     k="$p/$slug"
     if [ -n "${keyof[$k]:-}" ]; then
-      cnt_found[$p]=$((cnt_found[$p] + 1)); echo "  found   ${keyof[$k]} $slug"
+      cnt_found[$p]=$((cnt_found[$p] + 1))
+      echo "  found   ${keyof[$k]} $slug"
+      # Repair an issue whose transition failed when it was created (Backlog is the initial state).
+      if [ "$col" != Backlog ] && [ "${statusof[$k]:-$col}" != "$col" ]; then
+        echo "  repair  ${keyof[$k]} ${statusof[$k]} -> $col"
+        transition_to "${keyof[$k]}" "$col" || true
+      fi
       continue
     fi
     case "$type" in
