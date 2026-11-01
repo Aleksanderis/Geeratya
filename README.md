@@ -8,7 +8,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 
 ## Features
 
-- Kanban board with the board's own columns, swimlane-free and fast
+- Kanban board with the board's own columns
 - Backlog, with ranking
 - JQL search and saved filters as issue lists
 - Issue view: description and comments as formatted text, sub-tasks, an epic's children, linked issues and remote links (Confluence and others)
