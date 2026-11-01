@@ -15,8 +15,11 @@ namespace Geeratya.Jira.Boards;
 public sealed class BoardClient(JiraTransport transport)
 {
     public const string BoardPath = "/rest/agile/1.0/board";
+    private const string ConfigurationSuffix = "configuration";
+    private const string IssueSuffix = "issue";
+    private const string BacklogSuffix = "backlog";
 
-    /// <summary>The largest <c>maxResults</c> the agile API echoes back; larger values are clamped to it (probed).</summary>
+    /// <summary>The largest <c>maxResults</c> the agile API echoes back; larger values are clamped.</summary>
     public const int MaxPageSize = 5000;
 
     public async Task<JiraResult<OffsetPage<BoardSummary>>> ListBoardsAsync(
@@ -62,7 +65,7 @@ public sealed class BoardClient(JiraTransport transport)
         long boardId,
         CancellationToken cancellationToken)
     {
-        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}/configuration");
+        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}/{ConfigurationSuffix}");
         var result = await transport.SendAsync(request, BoardJsonContext.Default.Configuration, cancellationToken);
 
         return result.IsSuccess
@@ -70,13 +73,13 @@ public sealed class BoardClient(JiraTransport transport)
             : JiraResults.Failure<BoardConfiguration>(result.Error);
     }
 
-    /// <summary>Loads one page of everything the board shows. Pass the previous page's <c>Next</c>, null for the first.</summary>
+    /// <summary>Loads one page of everything the board shows. Pass the previous <c>Next</c>, null for first.</summary>
     public Task<JiraResult<IssuePage>> GetIssuesAsync(
         long boardId,
         BoardIssueQuery query,
         PageCursor? cursor,
         CancellationToken cancellationToken) =>
-        GetIssuePageAsync($"{BoardPath}/{Number(boardId)}/issue", query, cursor, cancellationToken);
+        GetIssuePageAsync($"{BoardPath}/{Number(boardId)}/{IssueSuffix}", query, cursor, cancellationToken);
 
     /// <summary>Loads one page of the board's backlog, as the endpoint defines it for the board kind.</summary>
     public Task<JiraResult<IssuePage>> GetBacklogAsync(
@@ -84,7 +87,7 @@ public sealed class BoardClient(JiraTransport transport)
         BoardIssueQuery query,
         PageCursor? cursor,
         CancellationToken cancellationToken) =>
-        GetIssuePageAsync($"{BoardPath}/{Number(boardId)}/backlog", query, cursor, cancellationToken);
+        GetIssuePageAsync($"{BoardPath}/{Number(boardId)}/{BacklogSuffix}", query, cursor, cancellationToken);
 
     private async Task<JiraResult<IssuePage>> GetIssuePageAsync(
         string path,
@@ -101,7 +104,8 @@ public sealed class BoardClient(JiraTransport transport)
         }
 
         var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
-        var url = $"{path}?fields={IssueFields.ListRowQueryValue}&startAt={Number(startAt)}&maxResults={Number(pageSize)}";
+        var paging = $"startAt={Number(startAt)}&maxResults={Number(pageSize)}";
+        var url = $"{path}?fields={IssueFields.ListRowQueryValue}&{paging}";
 
         if (!string.IsNullOrWhiteSpace(query.Jql))
         {

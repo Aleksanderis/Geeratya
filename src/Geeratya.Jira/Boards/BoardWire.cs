@@ -32,6 +32,6 @@ internal static class BoardWire
 
     internal sealed record Ranking(long? RankCustomFieldId);
 
-    /// <summary>Board issues and backlog: a page of issues with <c>startAt</c>/<c>total</c>, no <c>isLast</c>.</summary>
+    /// <summary>Board issues and backlog: issues with <c>startAt</c> and <c>total</c>.</summary>
     internal sealed record IssuePage(List<SearchWire.Issue>? Issues, int? StartAt, int? MaxResults, int? Total);
 }

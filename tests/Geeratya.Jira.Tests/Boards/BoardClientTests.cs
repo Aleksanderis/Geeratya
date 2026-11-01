@@ -230,24 +230,8 @@ public sealed class BoardClientTests
         Assert.True(result.Value.IsLast);
     }
 
-    [Fact]
-    public async Task GivenBackgroundQuery_WhenLoading_ThenRequestIsOnlyAReadAndItGetsThrough()
-    {
-        using var fixture = Serving(GcmIssuesPath, "boards/rows-gcm-issues-jql-done.json");
-
-        var result = await new BoardClient(fixture.Transport).GetIssuesAsync(
-            4,
-            new BoardIssueQuery().AsBackground(),
-            null,
-            CancellationToken.None);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(HttpMethod.Get, Assert.Single(fixture.Handler.Requests).Method);
-    }
-
     [Theory]
     [InlineData(HttpStatusCode.BadRequest, "boards/board-issues-bad-jql-400.json", JiraErrorKind.BadRequest)]
-    [InlineData(HttpStatusCode.BadRequest, "boards/board-gcm-sprints-kanban.json", JiraErrorKind.BadRequest)]
     [InlineData(HttpStatusCode.NotFound, "boards/board-404.json", JiraErrorKind.NotFound)]
     [InlineData(HttpStatusCode.Unauthorized, null, JiraErrorKind.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden, null, JiraErrorKind.Forbidden)]

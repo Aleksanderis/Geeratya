@@ -5,7 +5,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Jira.Boards;
 
-/// <summary>Maps the wire shapes of the board endpoints. Pure and tolerant: missing fields become neutral values.</summary>
+/// <summary>Maps the wire shapes of the board endpoints. Pure and tolerant: a missing field is neutral.</summary>
 internal static class BoardMapper
 {
     private const string RankFieldPrefix = "customfield_";
@@ -27,7 +27,11 @@ internal static class BoardMapper
     }
 
     public static BoardSummary MapBoard(BoardWire.Board board) =>
-        new(board.Id ?? 0, board.Name ?? string.Empty, ParseType(board.Type), board.Location?.ProjectKey ?? string.Empty);
+        new(
+            board.Id ?? 0,
+            board.Name ?? string.Empty,
+            ParseType(board.Type),
+            board.Location?.ProjectKey ?? string.Empty);
 
     public static BoardConfiguration MapConfiguration(BoardWire.Configuration wire)
     {
@@ -52,7 +56,7 @@ internal static class BoardMapper
             wire.ColumnConfig?.ConstraintType);
     }
 
-    /// <summary>The agile API has no <c>isLast</c>: the page ends at <c>total</c> or when it comes back empty.</summary>
+    /// <summary>The agile API has no <c>isLast</c>: the page ends at <c>total</c> or when empty.</summary>
     public static IssuePage MapIssues(BoardWire.IssuePage wire)
     {
         var items = IssueSummaryMapper.MapIssues(wire.Issues);

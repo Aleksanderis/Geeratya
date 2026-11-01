@@ -36,7 +36,7 @@ Both paging styles hide behind one cursor so the state layer pages the same way 
 | Type | Shape | Used by |
 |---|---|---|
 | `PageCursor` | Either a `Token(string)` (opaque `nextPageToken`) or an `Offset(int)` (`startAt`) | request side of every paged call |
-| `IssuePage` | `Items` (`IReadOnlyList<IssueSummary>`), `Next` (`PageCursor?`, null on the last page), `TotalHint` (int?, null for search; set from `total` for the agile API) | `/search/jql`, board issues, backlog |
+| `IssuePage` | `Items` (`IReadOnlyList<IssueSummary>`), `Next` (`PageCursor?`, null on the last page), `Total` (int?, null for search; set from `total` for the agile API) | `/search/jql`, board issues, backlog |
 | `OffsetPage<T>` | `Items`, `StartAt`, `Total`, computed `IsLast` | boards list, filters, projects, comments |
 
 Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(startAt + count)` unless `startAt + count >= total` (an empty page also ends the walk, guarding against a `total` that shrinks). Search has no total; its last page has no token. The cursor of a search page is only valid with the same `jql`, `fields` and `maxResults`, so the client takes the whole query again with the cursor; it expires, and a 400 on a request that carried a token means "page expired", handled by the state layer by restarting at the first page (`docs/architecture.md`, "Loading"). Default page size 100 for both styles (the search cap is probed in #66, the agile caps in #69).
