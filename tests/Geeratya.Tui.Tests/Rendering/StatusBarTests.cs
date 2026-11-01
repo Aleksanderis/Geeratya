@@ -12,11 +12,9 @@ public class StatusBarTests
     [Fact]
     public void GivenEveryHint_WhenCheckingTheDefaultKeymap_ThenItBindsTheNamedActionInTheHintMode()
     {
-        var keymap = DefaultKeymap.Load();
-
         foreach (var hint in StatusBar.Hints)
         {
-            Assert.NotNull(keymap.FindKeys(hint.Mode, hint.ActionId));
+            Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.ActionId));
             Assert.NotNull(ActionCatalog.FindTitle(hint.ActionId));
         }
     }
@@ -105,5 +103,11 @@ public class StatusBarTests
         var line = StatusBar.Render(FrameOptions.SampleState(InputMode.Confirm), 80, keymap);
 
         Assert.Contains("(Y/n)", line);
+    }
+
+    [Fact]
+    public void GivenDefaultKeymap_WhenRenderingHelpHints_ThenCloseShowsEscNotQ()
+    {
+        Assert.Contains("Esc close", StatusBar.HintsFor(InputMode.Help, _keymap));
     }
 }

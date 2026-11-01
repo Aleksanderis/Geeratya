@@ -1,5 +1,5 @@
-using Geeratya.Core.Keymap;
 using System.Text;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
