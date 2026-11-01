@@ -254,6 +254,77 @@ public class ProfileReducerTests
         Assert.Contains("Usage", Palette(AppState.Initial, "profile frob").State.Message);
     }
 
+    [Fact]
+    public void GivenSavePending_WhenIssuingAnotherProfileCommand_ThenItIsRefusedUntilTheHostAnswers()
+    {
+        var state = WithProfiles(_work, _dev);
+        var switching = Palette(state, "profile switch dev").State;
+
+        var refusedSwitch = Palette(switching, "profile switch work");
+        var refusedAdd = Palette(switching, "profile add");
+        var refusedRemove = Palette(switching, "profile remove work");
+        var listing = Palette(switching, "profile list");
+        var done = _reducer.Reduce(switching, new ProfilesChanged(state.Profiles.Activate("dev"), "Done.")).State;
+
+        Assert.True(switching.ProfileBusy);
+        Assert.Empty(refusedSwitch.Effects);
+        Assert.Contains("Still saving", refusedSwitch.State.Message);
+        Assert.Equal(InputMode.Normal, refusedAdd.State.Mode);
+        Assert.Equal(InputMode.Normal, refusedRemove.State.Mode);
+        Assert.Contains("Profiles:", listing.State.Message);
+        Assert.False(done.ProfileBusy);
+        Assert.Single(Palette(done, "profile switch work").Effects);
+    }
+
+    [Fact]
+    public void GivenSavePending_WhenConfirmingARemoval_ThenNothingRuns()
+    {
+        var asked = Palette(WithProfiles(_work, _dev), "profile remove dev").State with { ProfileBusy = true };
+
+        var result = Press(asked, "y");
+
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenActiveProfile_WhenAskingToRemoveIt_ThenConfirmNamesTheNewActiveProfile()
+    {
+        var result = Palette(WithProfiles(_work, _dev), "profile remove work");
+
+        Assert.Contains("dev becomes the active profile", result.State.Confirm!.Message);
+        Assert.True(Assert.IsType<RemoveProfileEffect>(Assert.Single(Press(result.State, "y").Effects)).WasActive);
+    }
+
+    [Fact]
+    public void GivenOnlyProfile_WhenAskingToRemoveIt_ThenConfirmSaysNoneWillBeActive()
+    {
+        var result = Palette(WithProfiles(_work), "profile remove work");
+
+        Assert.Contains("No profile will be active", result.State.Confirm!.Message);
+    }
+
+    [Theory]
+    [InlineData("profile switch")]
+    [InlineData("profile remove  ")]
+    public void GivenMissingName_WhenSwitchingOrRemoving_ThenUsageIsShown(string command)
+    {
+        var result = Palette(WithProfiles(_work), command);
+
+        Assert.Contains("Usage", result.State.Message);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+    }
+
+    [Fact]
+    public void GivenSiteWithUserInfo_WhenSubmitting_ThenRefused()
+    {
+        var state = Fill(Palette(AppState.Initial, "profile add").State, "work").State;
+
+        var result = Fill(state, "https://user:secret@x.atlassian.net");
+
+        Assert.Equal(ProfileFormField.SiteUrl, result.State.Form!.Field);
+        Assert.NotNull(result.State.Form.Error);
+    }
+
     private static AppState WithProfiles(params Profile[] profiles)
     {
         var catalog = profiles.Aggregate(ProfileCatalog.Empty, (current, profile) => current.With(profile));

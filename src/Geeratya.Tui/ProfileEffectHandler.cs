@@ -37,7 +37,16 @@ public sealed class ProfileEffectHandler
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return new ProfileOperationFailed($"Could not write the profiles file: {exception.Message}");
+            return new ProfileOperationFailed(
+                $"Could not write the profiles file: {exception.Message} (a token stored for this profile stays in the secret store)");
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (Exception exception)
+        {
+            return new ProfileOperationFailed($"The profile change failed: {exception.GetType().Name}.");
         }
     }
 
@@ -66,7 +75,21 @@ public sealed class ProfileEffectHandler
 
         _services.Store.Save(remove.Catalog);
 
-        return new ProfilesChanged(remove.Catalog, $"Removed profile {remove.Profile.Name}.");
+        return new ProfilesChanged(remove.Catalog, RemovedMessage(remove));
+    }
+
+    private static string RemovedMessage(RemoveProfileEffect remove)
+    {
+        if (!remove.WasActive)
+        {
+            return $"Removed profile {remove.Profile.Name}.";
+        }
+
+        var next = remove.Catalog.ActiveName;
+
+        return next is null
+            ? $"Removed profile {remove.Profile.Name}. No profile is active."
+            : $"Removed profile {remove.Profile.Name}. {next} is now the active profile.";
     }
 
     private ProfilesChanged Save(SaveProfilesEffect save)

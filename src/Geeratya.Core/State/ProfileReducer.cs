@@ -18,6 +18,7 @@ public static class ProfileReducer
     private const string ListVerb = "list";
     private const string SwitchVerb = "switch";
     private const string RemoveVerb = "remove";
+    private const string BusyMessage = "Still saving the previous profile change; try again in a moment.";
     private const string Usage = "Usage: profile add | list | switch <name> | remove <name>";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -29,6 +30,16 @@ public static class ProfileReducer
         var space = text.IndexOf(' ');
         var verb = space < 0 ? text : text[..space];
         var name = space < 0 ? string.Empty : text[(space + 1)..].Trim();
+
+        if (state.ProfileBusy && verb is AddVerb or SwitchVerb or RemoveVerb)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        if (verb is SwitchVerb or RemoveVerb && name.Length == 0)
+        {
+            return Plain(Say(state, Usage));
+        }
 
         return verb switch
         {
@@ -88,25 +99,36 @@ public static class ProfileReducer
 
         var profile = new Profile(form.Name.Trim(), form.SiteUrl, form.Email.Trim());
         var catalog = state.Profiles.With(profile);
-        var normal = state with { Mode = InputMode.Normal, Form = null, Message = $"Saving profile {profile.Name}..." };
+        var normal = state with
+        {
+            Mode = InputMode.Normal,
+            Form = null,
+            Message = $"Saving profile {profile.Name}...",
+            ProfileBusy = true,
+        };
 
         return new ReduceResult(normal, [new AddProfileEffect(profile, form.Token, catalog)]);
     }
 
     public static ReduceResult Changed(AppState state, ProfilesChanged changed)
     {
-        return Plain(state with { Profiles = changed.Catalog, Message = changed.Message });
+        return Plain(state with { Profiles = changed.Catalog, Message = changed.Message, ProfileBusy = false });
     }
 
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)
     {
-        return Plain(state with { Message = failed.Message });
+        return Plain(state with { Message = failed.Message, ProfileBusy = false });
     }
 
     /// <summary>Runs the confirmed removal of the profile named in <paramref name="target"/>.</summary>
     public static ReduceResult Remove(AppState state, string? target)
     {
         var profile = state.Profiles.Find(target);
+
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
 
         if (profile is null)
         {
@@ -117,8 +139,8 @@ public static class ProfileReducer
         var shared = catalog.Profiles.Any(other => other.CredentialKey == profile.CredentialKey);
 
         return new ReduceResult(
-            Say(state, $"Removing profile {profile.Name}..."),
-            [new RemoveProfileEffect(profile, !shared, catalog)]);
+            Say(state, $"Removing profile {profile.Name}...") with { ProfileBusy = true },
+            [new RemoveProfileEffect(profile, !shared, catalog, state.Profiles.ActiveName == profile.Name)]);
     }
 
     private static ReduceResult Switch(AppState state, string name)
@@ -138,7 +160,7 @@ public static class ProfileReducer
         var message = $"Switched to {profile.Name} ({profile.SiteUrl}).";
 
         return new ReduceResult(
-            Say(state, $"Switching to {profile.Name}..."),
+            Say(state, $"Switching to {profile.Name}...") with { ProfileBusy = true },
             [new SaveProfilesEffect(state.Profiles.Activate(profile.Name), message)]);
     }
 
@@ -152,10 +174,22 @@ public static class ProfileReducer
         }
 
         var question = $"Remove profile {profile.Name} ({profile.Email} on {profile.SiteUrl}) and delete its stored "
-            + "token? This cannot be undone";
+            + $"token?{ActiveNotice(state.Profiles, profile)} This cannot be undone";
         var request = new ConfirmRequest(question, RemoveAction, profile.Name);
 
         return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
+    }
+
+    private static string ActiveNotice(ProfileCatalog catalog, Profile profile)
+    {
+        if (catalog.ActiveName != profile.Name)
+        {
+            return string.Empty;
+        }
+
+        var next = catalog.Without(profile.Name).ActiveName;
+
+        return next is null ? " No profile will be active." : $" {next} becomes the active profile.";
     }
 
     private static string List(ProfileCatalog catalog)
@@ -219,7 +253,7 @@ public static class ProfileReducer
             return null;
         }
 
-        return uri.GetLeftPart(UriPartial.Authority);
+        return uri.UserInfo.Length == 0 ? uri.GetLeftPart(UriPartial.Authority) : null;
     }
 
     private static ProfileForm Normalize(ProfileForm form)

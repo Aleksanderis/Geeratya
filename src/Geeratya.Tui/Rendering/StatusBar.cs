@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 
@@ -85,16 +86,27 @@ public static class StatusBar
             InputMode.Command => $":{state.PaletteText}",
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
-            InputMode.Insert => FormText(state.Form),
+            InputMode.Insert => FormText(state.Form, width),
             _ => state.Message ?? state.PendingKeys,
         };
     }
 
-    private static string FormText(ProfileForm? form)
+    /// <summary>
+    /// The form prompt. An error replaces the typed value; a long value is clipped from the left so the end,
+    /// where the user is typing, stays visible.
+    /// </summary>
+    private static string FormText(ProfileForm? form, int width)
     {
         if (form is null)
         {
             return string.Empty;
+        }
+
+        var step = $"[{(int)form.Field + 1}/{FieldCount}]";
+
+        if (form.Error is not null)
+        {
+            return $"{step} ! {form.Error}";
         }
 
         var (label, value) = form.Field switch
@@ -104,10 +116,34 @@ public static class StatusBar
             ProfileFormField.Email => ("Account email", form.Email),
             _ => ("API token (hidden)", new string('*', form.Token.Length)),
         };
-        var step = (int)form.Field + 1;
-        var error = form.Error is null ? string.Empty : $"  ! {form.Error}";
+        var prefix = $"{step} {label}: ";
+        var used = TextWidth.Of($" {Badge(InputMode.Insert)} {prefix}_");
 
-        return $"[{step}/{FieldCount}] {label}: {value}_{error}";
+        return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
+    }
+
+    /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>
+    private static string Tail(string text, int width)
+    {
+        var starts = StringInfo.ParseCombiningCharacters(text);
+        var used = 0;
+        var start = text.Length;
+
+        for (var index = starts.Length - 1; index >= 0; index--)
+        {
+            var end = index == starts.Length - 1 ? text.Length : starts[index + 1];
+            var elementWidth = TextWidth.Of(text[starts[index]..end]);
+
+            if (used + elementWidth > width)
+            {
+                break;
+            }
+
+            used += elementWidth;
+            start = starts[index];
+        }
+
+        return text[start..];
     }
 
     /// <summary>Cuts the question, never the answer keys: the suffix stays visible on a narrow terminal.</summary>

@@ -132,6 +132,32 @@ public class StatusBarTests
         var form = ProfileForm.Start with { Error = "The name cannot be empty." };
         var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
 
-        Assert.Contains("[1/4] Profile name: _  ! The name cannot be empty.", StatusBar.Render(state, 100, _keymap));
+        Assert.Contains("[1/4] ! The name cannot be empty.", StatusBar.Render(state, 100, _keymap));
+    }
+
+    [Theory]
+    [InlineData(40)]
+    [InlineData(80)]
+    public void GivenLongToken_WhenRenderingNarrow_ThenTheCursorAndTheEndOfTheMaskStayVisible(int width)
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.Token, Token = new SecretText(new string('t', 150)) };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var line = StatusBar.Render(state, width, _keymap);
+
+        Assert.Equal(width, TextWidth.Of(line));
+        Assert.Contains("*_", line.TrimEnd());
+    }
+
+    [Fact]
+    public void GivenLongSiteUrl_WhenRenderingNarrow_ThenTheTailOfTheTextIsShown()
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.SiteUrl, SiteUrl = "https://example.atlassian.net" };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var line = StatusBar.Render(state, 40, _keymap);
+
+        Assert.Contains("atlassian.net_", line);
+        Assert.DoesNotContain("https://", line);
     }
 }

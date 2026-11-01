@@ -23,10 +23,10 @@ public sealed class ShellHost
     private readonly KeymapTable _keymap;
     private readonly ColorSupport _colors;
     private readonly AppReducer _reducer;
-    private IApplication? _application;
-    private ShellScreen? _screen;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
+    private IApplication? _application;
+    private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
     private AppState _state = AppState.Initial;
 
@@ -108,7 +108,7 @@ public sealed class ShellHost
     {
         var outcome = await Task.Run(() => _profileEffects.RunAsync(effect, _shutdownToken));
 
-        if (outcome is not null)
+        if (outcome is not null && !_shutdownToken.IsCancellationRequested)
         {
             _application!.Invoke(() => Dispatch(outcome));
         }
@@ -125,7 +125,7 @@ public sealed class ShellHost
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppState.Initial with { Message = $"Could not read the profiles file: {exception.Message}" };
+            return AppState.Initial with { Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)" };
         }
     }
 }

@@ -6,9 +6,17 @@ namespace Geeratya.Tui.Tests.Fakes;
 public sealed class FakeSecretStore : ISecretStore
 {
     private readonly Dictionary<string, string> _secrets = [];
+    private readonly bool _throwsCancellation;
+    private readonly bool _throwsUnexpected;
 
-    public FakeSecretStore(bool isAvailable = true, bool fails = false)
+    public FakeSecretStore(
+        bool isAvailable = true,
+        bool fails = false,
+        bool throwsCancellation = false,
+        bool throwsUnexpected = false)
     {
+        _throwsCancellation = throwsCancellation;
+        _throwsUnexpected = throwsUnexpected;
         IsAvailable = isAvailable;
         Fails = fails;
     }
@@ -26,6 +34,16 @@ public sealed class FakeSecretStore : ISecretStore
 
     public Task<bool> SetAsync(string key, string secret, CancellationToken cancellationToken)
     {
+        if (_throwsCancellation)
+        {
+            throw new OperationCanceledException();
+        }
+
+        if (_throwsUnexpected)
+        {
+            throw new InvalidOperationException("boom");
+        }
+
         if (Fails)
         {
             throw new SecretStoreException("keyring locked");

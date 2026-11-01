@@ -86,7 +86,7 @@ public sealed class ProfileEffectHandlerTests : IDisposable
 
         await handler.RunAsync(new AddProfileEffect(_dev, new SecretText("hunter2-secret"), both), CancellationToken.None);
         await handler.RunAsync(
-            new RemoveProfileEffect(_dev, DeleteToken: true, both.Without("dev")),
+            new RemoveProfileEffect(_dev, DeleteToken: true, both.Without("dev"), WasActive: false),
             CancellationToken.None);
 
         Assert.Empty(store.Secrets);
@@ -102,7 +102,7 @@ public sealed class ProfileEffectHandlerTests : IDisposable
 
         await handler.RunAsync(new AddProfileEffect(_work, new SecretText("hunter2-secret"), catalog), CancellationToken.None);
         await handler.RunAsync(
-            new RemoveProfileEffect(_work with { Name = "twin" }, DeleteToken: false, catalog),
+            new RemoveProfileEffect(_work with { Name = "twin" }, DeleteToken: false, catalog, WasActive: false),
             CancellationToken.None);
 
         Assert.Single(store.Secrets);
@@ -138,6 +138,43 @@ public sealed class ProfileEffectHandlerTests : IDisposable
 
         var outcome = await handler.RunAsync(
             new SaveProfilesEffect(ProfileCatalog.Empty.With(_work), "x"),
+            CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+    }
+
+    [Fact]
+    public async Task GivenActiveProfileRemoved_WhenRunning_ThenMessageNamesTheNewActiveProfile()
+    {
+        var handler = Create(new FakeSecretStore()).Handler;
+        var both = ProfileCatalog.Empty.With(_work).With(_dev);
+
+        var outcome = await handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, both.Without("work"), WasActive: true),
+            CancellationToken.None);
+
+        Assert.Contains("dev is now the active profile", Assert.IsType<ProfilesChanged>(outcome).Message);
+    }
+
+    [Fact]
+    public async Task GivenCancelledToken_WhenRunning_ThenThereIsNoOutcome()
+    {
+        var handler = Create(new FakeSecretStore(throwsCancellation: true)).Handler;
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("tok"), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        Assert.Null(outcome);
+    }
+
+    [Fact]
+    public async Task GivenUnexpectedFailure_WhenRunning_ThenTheOutcomeIsAFailureNotAFaultedTask()
+    {
+        var handler = Create(new FakeSecretStore(throwsUnexpected: true)).Handler;
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("tok"), ProfileCatalog.Empty.With(_work)),
             CancellationToken.None);
 
         Assert.IsType<ProfileOperationFailed>(outcome);
