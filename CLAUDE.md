@@ -12,7 +12,7 @@ Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, deci
 
 ## Rules
 
-- One Jira site is active at a time, chosen from saved profiles (site plus account); switching profiles replaces the connection and drops that site's views and cache. Several views (tabs) over the active site. Still, never assume a global site: every Jira call takes an explicit connection (site URL plus credentials), and all view state is scoped to a tab. No static or global "current site".
+- One Jira site is active at a time, chosen from saved profiles (site plus account); switching profiles replaces the connection and drops that site's views and cache. Several views (tabs) over the active site. Still, never assume a global site: every Jira call goes through a `JiraTransport` bound to one explicit connection (site URL plus account, token held only in the transport), and all view state is scoped to a tab. No static or global "current site".
 - Both project kinds are first class: company-managed and team-managed projects differ in epics, parent links, board settings and fields, and every feature works with both (fixtures for each).
 - A view is a source (JQL, saved filter, board, backlog) plus a layout (list, columns). Issue details and every write work the same in every view; a new board kind is a new source or layout, not new loading code.
 - Attachments, images and other files are never rendered in the terminal: they show as name, type and size with a link that opens in the browser.
