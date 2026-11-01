@@ -96,6 +96,29 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
+    public async Task GivenRecorded429Reply_WhenGetting_ThenWaitsItsRetryAfterOnceAndRetries()
+    {
+        using var fixture = new TransportFixture();
+        var headers = new Dictionary<string, string>
+        {
+            ["Retry-After"] = "34",
+            ["ratelimit-reason"] = "jira-max-concurrent-threads-across-all-instances-per-tenant-per-user",
+        };
+        var recorded = new FakeResponse(
+            (HttpStatusCode)429,
+            FixtureFiles.Read("errors/search-429-rate-limited.json"),
+            headers);
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, recorded);
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, fixture.Handler.Requests.Count);
+        Assert.Equal([TimeSpan.FromSeconds(34)], fixture.Waits);
+    }
+
+    [Fact]
     public async Task GivenRetryAfterAsHttpDate_WhenRateLimited_ThenWaitIsDateMinusNow()
     {
         var now = new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
