@@ -2,4 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Geeratya.Tui\Geeratya.Tui.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Snapshots\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="Snapshots" />
+  </ItemGroup>
 </Project>

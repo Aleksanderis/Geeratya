@@ -1,0 +1,10 @@
+                                        
+                                        
+                                        
+                Geeratya                
+                                        
+      ? help   : commands   q quit      
+                                        
+                                        
+                                        
+ COMMAND :search   Enter run  Esc cancel
