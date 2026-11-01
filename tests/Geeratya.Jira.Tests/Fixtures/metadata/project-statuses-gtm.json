@@ -1,0 +1,342 @@
+[
+  {
+    "id": "10011",
+    "name": "Subtask",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10011",
+    "statuses": [
+      {
+        "description": "This issue is being actively worked on at the moment by the assignee.",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+        "id": "3",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/status/3",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "In Progress"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10003",
+        "name": "Backlog",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "untranslatedName": "Backlog"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10004",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/status/10004",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "To Do"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10005",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        },
+        "untranslatedName": "Done"
+      }
+    ],
+    "subtask": true
+  },
+  {
+    "id": "10012",
+    "name": "Epic",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+    "statuses": [
+      {
+        "description": "This issue is being actively worked on at the moment by the assignee.",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+        "id": "3",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/status/3",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "In Progress"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10003",
+        "name": "Backlog",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "untranslatedName": "Backlog"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10004",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/status/10004",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "To Do"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10005",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        },
+        "untranslatedName": "Done"
+      }
+    ],
+    "subtask": false
+  },
+  {
+    "id": "10013",
+    "name": "Story",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10013",
+    "statuses": [
+      {
+        "description": "This issue is being actively worked on at the moment by the assignee.",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+        "id": "3",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/status/3",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "In Progress"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10003",
+        "name": "Backlog",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "untranslatedName": "Backlog"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10004",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/status/10004",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "To Do"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10005",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        },
+        "untranslatedName": "Done"
+      }
+    ],
+    "subtask": false
+  },
+  {
+    "id": "10014",
+    "name": "Bug",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10014",
+    "statuses": [
+      {
+        "description": "This issue is being actively worked on at the moment by the assignee.",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+        "id": "3",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/status/3",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "In Progress"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10003",
+        "name": "Backlog",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "untranslatedName": "Backlog"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10004",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/status/10004",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "To Do"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10005",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        },
+        "untranslatedName": "Done"
+      }
+    ],
+    "subtask": false
+  },
+  {
+    "id": "10015",
+    "name": "Task",
+    "self": "https://example.atlassian.net/rest/api/3/issuetype/10015",
+    "statuses": [
+      {
+        "description": "This issue is being actively worked on at the moment by the assignee.",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+        "id": "3",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/status/3",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "In Progress"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10003",
+        "name": "Backlog",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "blue-gray",
+          "id": 2,
+          "key": "new",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+        },
+        "untranslatedName": "Backlog"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10004",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/status/10004",
+        "statusCategory": {
+          "colorName": "yellow",
+          "id": 4,
+          "key": "indeterminate",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+        },
+        "untranslatedName": "To Do"
+      },
+      {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10005",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        },
+        "untranslatedName": "Done"
+      }
+    ],
+    "subtask": false
+  }
+]

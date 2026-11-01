@@ -4,7 +4,9 @@
 #   env RECORD_OUT=<file>   write the scrubbed body there (default: stdout)
 #   env RECORD_META=<file>  write the status line and rate-limit headers there (scrubbed)
 #   env RECORD_CONTENT_TYPE=<type>  request Content-Type (default application/json)
+#   env RECORD_XSRF=1       send X-Atlassian-Token: no-check (attachment upload)
 #   env RECORD_RAW=1        skip scrubbing (inspection only, never commit the output)
+# Writes also allowed: agile rank/backlog moves and issue links, only between GCM/GTM keys.
 # Refuses hosts outside GEERATYA_LIVE_HOSTS. Never prints the token; the credential
 # goes to curl through a private config file, not argv.
 # Scrubbing (scripts/scrub-fixture.py): host -> example.atlassian.net, account ids -> fake-account-N,
@@ -52,6 +54,9 @@ case "$method" in GET | POST | PUT | DELETE) ;; *) echo "unsupported method" >&2
 if [ "$method" != GET ]; then
   case "$path" in
     /rest/api/3/issue | /rest/api/3/issue/G[CT]M-[0-9]* | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
+    # Ranking, moving to the backlog and issue links name issues in the body; checked below.
+    /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink) ;;
+    /rest/api/3/issueLink/[0-9]*) ;;
     *) echo "write refused: only issues in GCM/GTM (and search POST) may be written" >&2; exit 3 ;;
   esac
   if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
@@ -60,6 +65,15 @@ if [ "$method" != GET ]; then
   fi
 fi
 
+# Bodies that name issues: every key must be in GCM/GTM.
+case "$path" in
+  /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink)
+    if [ -z "$body" ] || ! jq -e '[.issues[]?, .rankBeforeIssue?, .rankAfterIssue?, .inwardIssue.key?, .outwardIssue.key?]
+      | all(. == null or test("^G[CT]M-[0-9]+$"))' "$body" > /dev/null 2>&1; then
+      echo "write refused: body must name only GCM/GTM issue keys" >&2; exit 3
+    fi ;;
+esac
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 umask 077
@@ -67,6 +81,7 @@ printf 'user = "%s:%s"\n' "$GEERATYA_LIVE_EMAIL" "$GEERATYA_LIVE_TOKEN" > "$tmp/
 
 args=(-sS -X "$method" -D "$tmp/headers" -o "$tmp/body" -w '%{http_code}'
   -H 'Accept: application/json' --config "$tmp/auth")
+if [ "${RECORD_XSRF:-}" = 1 ]; then args+=(-H 'X-Atlassian-Token: no-check'); fi
 if [ -n "$body" ]; then
   args+=(-H "Content-Type: ${RECORD_CONTENT_TYPE:-application/json}" --data-binary "@$body")
 fi

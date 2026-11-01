@@ -1,0 +1,57 @@
+{
+  "issueTypes": [
+    {
+      "description": "A big user story that needs to be broken down. Created by Jira Software - do not edit or delete.",
+      "hierarchyLevel": 1,
+      "iconUrl": "https://example.atlassian.net/images/icons/issuetypes/epic.svg",
+      "id": "10000",
+      "name": "Epic",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10000",
+      "subtask": false,
+      "untranslatedName": "Epic"
+    },
+    {
+      "description": "A small piece of work that's part of a larger task.",
+      "hierarchyLevel": -1,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+      "id": "10007",
+      "name": "Sub-task",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10007",
+      "subtask": true,
+      "untranslatedName": "Sub-task"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+      "id": "10008",
+      "name": "Story",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10008",
+      "subtask": false,
+      "untranslatedName": "Story"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+      "id": "10009",
+      "name": "Bug",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10009",
+      "subtask": false,
+      "untranslatedName": "Bug"
+    },
+    {
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+      "id": "10010",
+      "name": "Task",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+      "subtask": false,
+      "untranslatedName": "Task"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 5
+}

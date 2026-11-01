@@ -1,0 +1,61 @@
+{
+  "columnConfig": {
+    "columns": [
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10004",
+            "self": "https://example.atlassian.net/rest/api/2/status/10004"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "self": "https://example.atlassian.net/rest/api/2/status/3"
+          }
+        ]
+      },
+      {
+        "name": "Backlog",
+        "statuses": [
+          {
+            "id": "10003",
+            "self": "https://example.atlassian.net/rest/api/2/status/10003"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10005",
+            "self": "https://example.atlassian.net/rest/api/2/status/10005"
+          }
+        ]
+      }
+    ],
+    "constraintType": "none"
+  },
+  "filter": {
+    "id": "10002",
+    "self": "https://example.atlassian.net/rest/api/2/filter/10002"
+  },
+  "id": 3,
+  "location": {
+    "id": "10002",
+    "key": "GTM",
+    "name": "GTM",
+    "self": "https://example.atlassian.net/rest/api/2/project/10002",
+    "type": "project"
+  },
+  "name": "GTM board",
+  "ranking": {
+    "rankCustomFieldId": 10019
+  },
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/3/configuration",
+  "type": "simple"
+}

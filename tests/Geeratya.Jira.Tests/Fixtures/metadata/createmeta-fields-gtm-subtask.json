@@ -1,0 +1,275 @@
+{
+  "fields": [
+    {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/assignable/search?project=GTM&query=",
+      "fieldId": "assignee",
+      "hasDefaultValue": false,
+      "key": "assignee",
+      "name": "Assignee",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "assignee",
+        "type": "user"
+      }
+    },
+    {
+      "fieldId": "attachment",
+      "hasDefaultValue": false,
+      "key": "attachment",
+      "name": "Attachment",
+      "operations": [
+        "set",
+        "copy"
+      ],
+      "required": false,
+      "schema": {
+        "items": "attachment",
+        "system": "attachment",
+        "type": "array"
+      }
+    },
+    {
+      "fieldId": "customfield_10000",
+      "hasDefaultValue": false,
+      "key": "customfield_10000",
+      "name": "Development",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "custom": "com.atlassian.jira.plugins.jira-development-integration-plugin:devsummarycf",
+        "customId": 10000,
+        "type": "any"
+      }
+    },
+    {
+      "autoCompleteUrl": "https://example.atlassian.net/gateway/api/v1/recommendations",
+      "fieldId": "customfield_10001",
+      "hasDefaultValue": false,
+      "key": "customfield_10001",
+      "name": "Team",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "configuration": {
+          "com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team": true
+        },
+        "custom": "com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team",
+        "customId": 10001,
+        "type": "team"
+      }
+    },
+    {
+      "fieldId": "customfield_10019",
+      "hasDefaultValue": false,
+      "key": "customfield_10019",
+      "name": "Rank",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "custom": "com.pyxis.greenhopper.jira:gh-lexo-rank",
+        "customId": 10019,
+        "type": "any"
+      }
+    },
+    {
+      "allowedValues": [
+        {
+          "id": "10019",
+          "self": "https://example.atlassian.net/rest/api/3/customFieldOption/10019",
+          "value": "Impediment"
+        }
+      ],
+      "fieldId": "customfield_10021",
+      "hasDefaultValue": false,
+      "key": "customfield_10021",
+      "name": "Flagged",
+      "operations": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+        "customId": 10021,
+        "items": "option",
+        "type": "array"
+      }
+    },
+    {
+      "fieldId": "description",
+      "hasDefaultValue": false,
+      "key": "description",
+      "name": "Description",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "description",
+        "type": "string"
+      }
+    },
+    {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+      "fieldId": "issuelinks",
+      "hasDefaultValue": false,
+      "key": "issuelinks",
+      "name": "Linked Issues",
+      "operations": [
+        "add",
+        "copy"
+      ],
+      "required": false,
+      "schema": {
+        "items": "issuelinks",
+        "system": "issuelinks",
+        "type": "array"
+      }
+    },
+    {
+      "allowedValues": [],
+      "fieldId": "issuerestriction",
+      "hasDefaultValue": false,
+      "key": "issuerestriction",
+      "name": "Restrict to",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "issuerestriction",
+        "type": "issuerestriction"
+      }
+    },
+    {
+      "allowedValues": [
+        {
+          "avatarId": 10316,
+          "description": "Subtasks track small pieces of work that are part of a larger task.",
+          "entityId": "0942134e-c5a4-4806-b6b4-0112caff0004",
+          "hierarchyLevel": -1,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+          "id": "10011",
+          "name": "Subtask",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10011",
+          "subtask": true
+        }
+      ],
+      "fieldId": "issuetype",
+      "hasDefaultValue": false,
+      "key": "issuetype",
+      "name": "Issue Type",
+      "operations": [],
+      "required": true,
+      "schema": {
+        "system": "issuetype",
+        "type": "issuetype"
+      }
+    },
+    {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/1.0/labels/suggest?query=",
+      "fieldId": "labels",
+      "hasDefaultValue": false,
+      "key": "labels",
+      "name": "Labels",
+      "operations": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "items": "string",
+        "system": "labels",
+        "type": "array"
+      }
+    },
+    {
+      "fieldId": "parent",
+      "hasDefaultValue": false,
+      "key": "parent",
+      "name": "Parent",
+      "operations": [
+        "set"
+      ],
+      "required": true,
+      "schema": {
+        "system": "parent",
+        "type": "issuelink"
+      }
+    },
+    {
+      "allowedValues": [
+        {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/3/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/3/project/10002",
+          "simplified": true
+        }
+      ],
+      "fieldId": "project",
+      "hasDefaultValue": false,
+      "key": "project",
+      "name": "Project",
+      "operations": [
+        "set"
+      ],
+      "required": true,
+      "schema": {
+        "system": "project",
+        "type": "project"
+      }
+    },
+    {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/recommend?context=Reporter&issueKey=",
+      "fieldId": "reporter",
+      "hasDefaultValue": true,
+      "key": "reporter",
+      "name": "Reporter",
+      "operations": [
+        "set"
+      ],
+      "required": true,
+      "schema": {
+        "system": "reporter",
+        "type": "user"
+      }
+    },
+    {
+      "fieldId": "summary",
+      "hasDefaultValue": false,
+      "key": "summary",
+      "name": "Summary",
+      "operations": [
+        "set"
+      ],
+      "required": true,
+      "schema": {
+        "system": "summary",
+        "type": "string"
+      }
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 15
+}

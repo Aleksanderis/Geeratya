@@ -1,0 +1,54 @@
+{
+  "author": {
+    "accountId": "fake-account-1",
+    "accountType": "atlassian",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "emailAddress": "user1@example.com",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+    "timeZone": "UTC"
+  },
+  "body": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "hello ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "accessLevel": "",
+              "id": "fake-account-1",
+              "text": "@Test User 1"
+            },
+            "type": "mention"
+          },
+          {
+            "text": " from survey",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc",
+    "version": 1
+  },
+  "created": "2026-11-01T17:30:00.792+0200",
+  "id": "10001",
+  "jsdPublic": true,
+  "self": "https://example.atlassian.net/rest/api/3/issue/10008/comment/10001",
+  "updateAuthor": {
+    "accountId": "fake-account-1",
+    "accountType": "atlassian",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "emailAddress": "user1@example.com",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+    "timeZone": "UTC"
+  },
+  "updated": "2026-11-01T17:30:00.792+0200"
+}

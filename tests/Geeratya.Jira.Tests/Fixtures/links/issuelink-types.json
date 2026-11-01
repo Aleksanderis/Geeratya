@@ -1,0 +1,39 @@
+{
+  "issueLinkTypes": [
+    {
+      "id": "10000",
+      "inward": "is blocked by",
+      "name": "Blocks",
+      "outward": "blocks",
+      "self": "https://example.atlassian.net/rest/api/3/issueLinkType/10000"
+    },
+    {
+      "id": "10001",
+      "inward": "is cloned by",
+      "name": "Cloners",
+      "outward": "clones",
+      "self": "https://example.atlassian.net/rest/api/3/issueLinkType/10001"
+    },
+    {
+      "id": "10002",
+      "inward": "is duplicated by",
+      "name": "Duplicate",
+      "outward": "duplicates",
+      "self": "https://example.atlassian.net/rest/api/3/issueLinkType/10002"
+    },
+    {
+      "id": "10006",
+      "inward": "is caused by",
+      "name": "Problem/Incident",
+      "outward": "causes",
+      "self": "https://example.atlassian.net/rest/api/3/issueLinkType/10006"
+    },
+    {
+      "id": "10003",
+      "inward": "relates to",
+      "name": "Relates",
+      "outward": "relates to",
+      "self": "https://example.atlassian.net/rest/api/3/issueLinkType/10003"
+    }
+  ]
+}

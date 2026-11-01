@@ -4,7 +4,7 @@
 usage: scrub-fixture.py <site-host>
 
 Host -> example.atlassian.net, account ids -> fake-account-N, emails ->
-userN@example.com, display names of users -> Test User N, avatar URLs dropped,
+userN@example.com, display names of users -> Test User N, avatar URLs dropped, ADF mention texts anonymised,
 cloud ids zeroed, time zones set to UTC. Used by record-fixture.sh.
 """
 import json
@@ -33,6 +33,8 @@ def collect(node):
     if isinstance(node, dict):
         if isinstance(node.get("accountId"), str):
             acct(node["accountId"])
+        if node.get("type") == "mention" and isinstance(node.get("attrs", {}).get("id"), str):
+            acct(node["attrs"]["id"])
         for v in node.values():
             collect(v)
     elif isinstance(node, list):
@@ -70,6 +72,9 @@ def walk(node):
                 out[k] = "00000000-0000-0000-0000-000000000000"
             else:
                 out[k] = walk(v)
+        if node.get("type") == "mention" and isinstance(out.get("attrs"), dict) and "text" in out["attrs"]:
+            # ADF mention: the visible text is a display name.
+            out["attrs"]["text"] = "@Test User %d" % accounts.get(node["attrs"].get("id"), 0)
         return out
     if isinstance(node, list):
         return [walk(v) for v in node]

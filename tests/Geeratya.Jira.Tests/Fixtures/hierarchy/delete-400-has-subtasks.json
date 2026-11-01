@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "The issue 'GTM-6' has subtasks.  You must specify the 'deleteSubtasks' parameter to delete this issue and all its subtasks."
+  ],
+  "errors": {}
+}

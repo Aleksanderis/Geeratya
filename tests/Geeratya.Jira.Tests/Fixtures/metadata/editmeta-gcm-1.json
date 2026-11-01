@@ -1,0 +1,317 @@
+{
+  "fields": {
+    "assignee": {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/assignable/search?issueKey=GCM-1&query=",
+      "key": "assignee",
+      "name": "Assignee",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "assignee",
+        "type": "user"
+      }
+    },
+    "attachment": {
+      "key": "attachment",
+      "name": "Attachment",
+      "operations": [
+        "set",
+        "copy"
+      ],
+      "required": false,
+      "schema": {
+        "items": "attachment",
+        "system": "attachment",
+        "type": "array"
+      }
+    },
+    "comment": {
+      "key": "comment",
+      "name": "Comment",
+      "operations": [
+        "add",
+        "edit",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "system": "comment",
+        "type": "comments-page"
+      }
+    },
+    "components": {
+      "allowedValues": [],
+      "key": "components",
+      "name": "Components",
+      "operations": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "items": "component",
+        "system": "components",
+        "type": "array"
+      }
+    },
+    "customfield_10001": {
+      "autoCompleteUrl": "https://example.atlassian.net/gateway/api/v1/recommendations",
+      "key": "customfield_10001",
+      "name": "Team",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "configuration": {
+          "com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team": true
+        },
+        "custom": "com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team",
+        "customId": 10001,
+        "type": "team"
+      }
+    },
+    "customfield_10015": {
+      "key": "customfield_10015",
+      "name": "Start date",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+        "customId": 10015,
+        "type": "date"
+      }
+    },
+    "customfield_10021": {
+      "allowedValues": [
+        {
+          "id": "10019",
+          "self": "https://example.atlassian.net/rest/api/3/customFieldOption/10019",
+          "value": "Impediment"
+        }
+      ],
+      "key": "customfield_10021",
+      "name": "Flagged",
+      "operations": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+        "customId": 10021,
+        "items": "option",
+        "type": "array"
+      }
+    },
+    "description": {
+      "key": "description",
+      "name": "Description",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "description",
+        "type": "string"
+      }
+    },
+    "duedate": {
+      "key": "duedate",
+      "name": "Due date",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "duedate",
+        "type": "date"
+      }
+    },
+    "environment": {
+      "key": "environment",
+      "name": "Environment",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "environment",
+        "type": "string"
+      }
+    },
+    "fixVersions": {
+      "allowedValues": [],
+      "key": "fixVersions",
+      "name": "Fix versions",
+      "operations": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "items": "version",
+        "system": "fixVersions",
+        "type": "array"
+      }
+    },
+    "issuelinks": {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=GCM-1&query=",
+      "key": "issuelinks",
+      "name": "Linked Issues",
+      "operations": [
+        "add",
+        "copy"
+      ],
+      "required": false,
+      "schema": {
+        "items": "issuelinks",
+        "system": "issuelinks",
+        "type": "array"
+      }
+    },
+    "issuetype": {
+      "allowedValues": [
+        {
+          "description": "A big user story that needs to be broken down. Created by Jira Software - do not edit or delete.",
+          "hierarchyLevel": 1,
+          "iconUrl": "https://example.atlassian.net/images/icons/issuetypes/epic.svg",
+          "id": "10000",
+          "name": "Epic",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10000",
+          "subtask": false
+        },
+        {
+          "avatarId": 10315,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10008",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10008",
+          "subtask": false
+        },
+        {
+          "avatarId": 10303,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10009",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10009",
+          "subtask": false
+        },
+        {
+          "avatarId": 10318,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10010",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+          "subtask": false
+        }
+      ],
+      "key": "issuetype",
+      "name": "Issue Type",
+      "operations": [],
+      "required": true,
+      "schema": {
+        "system": "issuetype",
+        "type": "issuetype"
+      }
+    },
+    "labels": {
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/1.0/labels/10000/suggest?query=",
+      "key": "labels",
+      "name": "Labels",
+      "operations": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "required": false,
+      "schema": {
+        "items": "string",
+        "system": "labels",
+        "type": "array"
+      }
+    },
+    "parent": {
+      "hasDefaultValue": false,
+      "key": "parent",
+      "name": "Parent",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "parent",
+        "type": "issuelink"
+      }
+    },
+    "priority": {
+      "allowedValues": [
+        {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/highest_new.svg",
+          "id": "1",
+          "name": "Highest",
+          "self": "https://example.atlassian.net/rest/api/3/priority/1"
+        },
+        {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/high_new.svg",
+          "id": "2",
+          "name": "High",
+          "self": "https://example.atlassian.net/rest/api/3/priority/2"
+        },
+        {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/3/priority/3"
+        },
+        {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/low_new.svg",
+          "id": "4",
+          "name": "Low",
+          "self": "https://example.atlassian.net/rest/api/3/priority/4"
+        },
+        {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/lowest_new.svg",
+          "id": "5",
+          "name": "Lowest",
+          "self": "https://example.atlassian.net/rest/api/3/priority/5"
+        }
+      ],
+      "key": "priority",
+      "name": "Priority",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "priority",
+        "type": "priority"
+      }
+    },
+    "summary": {
+      "key": "summary",
+      "name": "Summary",
+      "operations": [
+        "set"
+      ],
+      "required": true,
+      "schema": {
+        "system": "summary",
+        "type": "string"
+      }
+    }
+  }
+}
