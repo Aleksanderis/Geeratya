@@ -11,7 +11,8 @@
 # All HTTP goes through scripts/record-fixture.sh, which refuses hosts outside GEERATYA_LIVE_HOSTS,
 # refuses writes outside GCM/GTM, loads the env file itself and never prints the token.
 # Needs bash, curl, jq and python3. Ranking follows creation order (new issues rank last).
-# Jira's search index can lag a few seconds: wait a moment before re-running right after a run.
+# The final counts wait for the search index to catch up; a re-run seconds after a run may still miss
+# issues the index has not shown yet, so give it about 30 s after an interrupted run.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -22,7 +23,7 @@ while [ $# -gt 0 ]; do
     --dry-run) dry=1 ;;
     --reset) reset=1 ;;
     --yes) yes=1 ;;
-    --project) shift; only=${1:-} ;;
+    --project) if [ $# -lt 2 ]; then echo "--project needs GCM or GTM" >&2; exit 2; fi; shift; only=$1 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -124,18 +125,22 @@ search_seed() { # project -> $work/res.json
 }
 
 if [ "$reset" = 1 ]; then
+  fail=0
   for p in "${projects[@]}"; do
     search_seed "$p"
     echo "$p: $(jq '.issues|length' "$work/res.json") issue(s) labelled geeratya-seed"
     if [ "$yes" != 1 ]; then jq -r '.issues[]|"  "+.key+" "+.fields.summary' "$work/res.json"; continue; fi
     echo "Jira has no undo: deleting."
     # Highest keys first: sub-tasks were created after their parents.
+    ok=0 bad=0
     for key in $(jq -r --arg p "$p" '.issues|map(.key|ltrimstr($p+"-")|tonumber)|sort|reverse|.[]|$p+"-"+tostring' "$work/res.json"); do
-      if write DELETE "/rest/api/3/issue/$key?deleteSubtasks=true" > /dev/null; then echo "  deleted $key"; fi
+      if write DELETE "/rest/api/3/issue/$key" > /dev/null; then ok=$((ok + 1)); echo "  deleted $key"; else bad=$((bad + 1)); fi
     done
+    echo "$p: $ok deleted, $bad failed"
+    if [ "$bad" -gt 0 ]; then fail=1; fi
   done
   [ "$yes" = 1 ] || echo "nothing deleted; pass --yes to delete the issues above"
-  exit 0
+  exit "$fail"
 fi
 
 transition_to() {
@@ -219,7 +224,13 @@ done
 
 echo "== counts (labelled geeratya-seed)"
 for p in "${projects[@]}"; do
-  search_seed "$p"
+  # The search index lags: wait (up to ~30 s) until it shows every issue this run created or found.
+  want=$((cnt_new[$p] + cnt_found[$p]))
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    search_seed "$p"
+    if [ "$(jq '.issues|length' "$work/res.json")" -ge "$want" ]; then break; fi
+    sleep 3
+  done
   echo "$p: $(jq '.issues|length' "$work/res.json") total (${cnt_new[$p]} created, ${cnt_found[$p]} found this run)"
   jq -r '[.issues[].fields.status.name]|group_by(.)|map("    "+.[0]+": "+(length|tostring))|.[]' "$work/res.json"
 done
