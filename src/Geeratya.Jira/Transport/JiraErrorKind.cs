@@ -7,6 +7,9 @@ public enum JiraErrorKind
     Unauthorized,
     Forbidden,
     NotFound,
+
+    /// <summary>A paging token was rejected as bad or expired; reload from the first page.</summary>
+    PageExpired,
     RateLimited,
     ServerError,
     Timeout,

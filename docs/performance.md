@@ -35,3 +35,7 @@ Reading the key-to-frame figure (ad hoc checks, not committed and not reproducib
 ## Notes for later rows
 
 Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed loop, command in the PR), list scrolling, ADF rendering of the longest recorded description, memory (RSS) after opening a 10k list. Record binary type, dataset size, injected latency, median and p95.
+
+### JSON mapping of a search result (#66)
+
+Ad hoc timed loop (a temporary xUnit test, not committed): 10 000 issues built by repeating the 24 issues of `search/search-rows-gcm.json` (18.3 MB), served by `FakeJiraHandler` through `JiraSearchClient.SearchAsync` with a page size of 5000, 20 timed runs after 5 warm-up runs, .NET 10 Release JIT (not Native AOT), noisy machine. Median 80 ms, p95 121 ms for the whole call (read body to string, deserialize into the wire records, map to `IssueSummary`). Real pages are tens of issues, so this is well under a millisecond per page; the transport still reads the body as a string rather than a stream (not changed here).
