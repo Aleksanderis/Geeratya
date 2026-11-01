@@ -13,7 +13,7 @@ public class ProfileServicesTests
         var folders = new PlatformFolders("/home/user", "/roaming", "/local");
 
         var services = ProfileServices.Create(OperatingSystemKind.MacOs, environment, folders);
-        var resolution = await services.Tokens.ResolveAsync("key", CancellationToken.None);
+        var resolution = await services.Tokens.ResolveAsync("key", allowEnvironment: true, CancellationToken.None);
 
         Assert.False(services.Tokens.Store.IsAvailable);
         Assert.Equal(TokenSource.EnvironmentVariable, resolution.Source);

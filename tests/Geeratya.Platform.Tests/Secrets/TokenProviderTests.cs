@@ -12,7 +12,7 @@ public class TokenProviderTests
         await store.SetAsync("key", "from-store", CancellationToken.None);
         var provider = new TokenProvider(store, new EnvironmentReader(_ => "from-environment"));
 
-        var resolution = await provider.ResolveAsync("key", CancellationToken.None);
+        var resolution = await provider.ResolveAsync("key", allowEnvironment: true, CancellationToken.None);
 
         Assert.Equal("from-store", resolution.Token);
         Assert.Equal(TokenSource.SecretStore, resolution.Source);
@@ -23,10 +23,33 @@ public class TokenProviderTests
     {
         var provider = new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "from-environment"));
 
-        var resolution = await provider.ResolveAsync("key", CancellationToken.None);
+        var resolution = await provider.ResolveAsync("key", allowEnvironment: true, CancellationToken.None);
 
         Assert.Equal("from-environment", resolution.Token);
         Assert.Equal(TokenSource.EnvironmentVariable, resolution.Source);
+    }
+
+    [Fact]
+    public async Task GivenEnvironmentNotAllowed_WhenNothingStored_ThenEnvironmentTokenIsIgnored()
+    {
+        var provider = new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "from-environment"));
+
+        var resolution = await provider.ResolveAsync("key", allowEnvironment: false, CancellationToken.None);
+
+        Assert.Null(resolution.Token);
+        Assert.Equal(TokenSource.None, resolution.Source);
+    }
+
+    [Fact]
+    public async Task GivenEnvironmentNotAllowed_WhenTokenStored_ThenStoredTokenIsUsed()
+    {
+        var store = new FakeSecretStore();
+        await store.SetAsync("key", "from-store", CancellationToken.None);
+        var provider = new TokenProvider(store, new EnvironmentReader(_ => "from-environment"));
+
+        var resolution = await provider.ResolveAsync("key", allowEnvironment: false, CancellationToken.None);
+
+        Assert.Equal("from-store", resolution.Token);
     }
 
     [Fact]
@@ -34,7 +57,7 @@ public class TokenProviderTests
     {
         var provider = new TokenProvider(new UnsupportedSecretStore(), new EnvironmentReader(_ => null));
 
-        var resolution = await provider.ResolveAsync("key", CancellationToken.None);
+        var resolution = await provider.ResolveAsync("key", allowEnvironment: true, CancellationToken.None);
 
         Assert.Null(resolution.Token);
         Assert.Equal(TokenSource.None, resolution.Source);

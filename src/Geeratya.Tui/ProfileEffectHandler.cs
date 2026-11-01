@@ -9,6 +9,9 @@ namespace Geeratya.Tui;
 /// </summary>
 public sealed class ProfileEffectHandler
 {
+    private const string NoStoreSeveralProfilesHint =
+        "GEERATYA_TOKEN works for a single profile only, so several profiles need a secret store";
+
     private const string TokenVariableHint = "set GEERATYA_TOKEN to supply the token";
 
     private readonly ProfileServices _services;
@@ -59,11 +62,7 @@ public sealed class ProfileEffectHandler
 
         _services.Store.Save(add.Catalog);
 
-        var message = stored
-            ? $"Added profile {add.Profile.Name}; the token is in the secret store."
-            : $"Added profile {add.Profile.Name}. No secret store is available: {TokenVariableHint}.";
-
-        return new ProfilesChanged(add.Catalog, message);
+        return new ProfilesChanged(add.Catalog, AddedMessage(add, stored));
     }
 
     private async Task<Command> RemoveAsync(RemoveProfileEffect remove, CancellationToken cancellationToken)
@@ -97,5 +96,17 @@ public sealed class ProfileEffectHandler
         _services.Store.Save(save.Catalog);
 
         return new ProfilesChanged(save.Catalog, save.Message);
+    }
+
+    private static string AddedMessage(AddProfileEffect add, bool stored)
+    {
+        if (stored)
+        {
+            return $"Added profile {add.Profile.Name}; the token is in the secret store.";
+        }
+
+        var hint = add.Catalog.Profiles.Count > 1 ? NoStoreSeveralProfilesHint : TokenVariableHint;
+
+        return $"Added profile {add.Profile.Name}. No secret store is available: {hint}.";
     }
 }

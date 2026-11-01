@@ -17,7 +17,7 @@ public sealed class SiteConnectionsTests
 
         using var connections = Create(store);
 
-        var failure = await connections.ActivateAsync(_work, CancellationToken.None);
+        var failure = await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         Assert.Null(failure);
         Assert.Equal(new Uri(_work.SiteUrl), connections.Current!.Connection.SiteUrl);
@@ -29,11 +29,51 @@ public sealed class SiteConnectionsTests
     {
         using var connections = Create(new FakeSecretStore());
 
-        var failure = await connections.ActivateAsync(_work, CancellationToken.None);
+        var failure = await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         Assert.Equal(_work, failure!.Profile);
         Assert.Contains(TokenProvider.EnvironmentVariable, failure.Message);
         Assert.Null(connections.Current);
+    }
+
+    [Fact]
+    public async Task GivenEnvironmentTokenAndSeveralProfiles_WhenActivating_ThenTokenIsNotUsedAndStatusSaysToStoreOne()
+    {
+        using var connections = new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "env-token")));
+
+        var failure = await connections.ActivateAsync(_dev, profileCount: 2, CancellationToken.None);
+
+        Assert.Equal(_dev, failure!.Profile);
+        Assert.DoesNotContain(TokenProvider.EnvironmentVariable, failure.Message);
+        Assert.Contains("stored", failure.Message);
+        Assert.DoesNotContain("env-token", failure.Message);
+        Assert.Null(connections.Current);
+    }
+
+    [Fact]
+    public async Task GivenFailedProfile_WhenActivatedAgainWithOneProfile_ThenEnvironmentTokenConnects()
+    {
+        using var connections = new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "env-token")));
+
+        await connections.ActivateAsync(_dev, profileCount: 2, CancellationToken.None);
+        var failure = await connections.ActivateAsync(_dev, profileCount: 1, CancellationToken.None);
+
+        Assert.Null(failure);
+        Assert.NotNull(connections.Current);
+    }
+
+    [Fact]
+    public async Task GivenEnvironmentTokenAndOneProfile_WhenActivating_ThenTokenIsUsed()
+    {
+        using var connections = new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "env-token")));
+
+        var failure = await connections.ActivateAsync(_dev, profileCount: 1, CancellationToken.None);
+
+        Assert.Null(failure);
+        Assert.NotNull(connections.Current);
     }
 
     [Fact]
@@ -42,7 +82,7 @@ public sealed class SiteConnectionsTests
         using var connections = new SiteConnections(
             new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => "  ")));
 
-        var failure = await connections.ActivateAsync(_work, CancellationToken.None);
+        var failure = await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         Assert.Contains(TokenProvider.EnvironmentVariable, failure!.Message);
     }
@@ -53,7 +93,7 @@ public sealed class SiteConnectionsTests
         using var connections = new SiteConnections(
             new TokenProvider(new ThrowingSecretStore(), new EnvironmentReader(_ => null)));
 
-        var failure = await connections.ActivateAsync(_work, CancellationToken.None);
+        var failure = await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         Assert.Contains("secret store failed", failure!.Message);
     }
@@ -66,7 +106,7 @@ public sealed class SiteConnectionsTests
 
         using var connections = Create(store);
 
-        var failure = await connections.ActivateAsync(insecure, CancellationToken.None);
+        var failure = await connections.ActivateAsync(insecure, 1, CancellationToken.None);
 
         Assert.NotNull(failure);
         Assert.Null(connections.Current);
@@ -79,11 +119,11 @@ public sealed class SiteConnectionsTests
 
         using var connections = Create(store);
 
-        await connections.ActivateAsync(_work, CancellationToken.None);
+        await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         var before = connections.Generation;
 
-        await connections.ActivateAsync(_dev, CancellationToken.None);
+        await connections.ActivateAsync(_dev, profileCount: 1, CancellationToken.None);
 
         Assert.Equal(new Uri(_dev.SiteUrl), connections.Current!.Connection.SiteUrl);
         Assert.False(connections.IsCurrent(before));
@@ -96,12 +136,12 @@ public sealed class SiteConnectionsTests
 
         using var connections = Create(store);
 
-        await connections.ActivateAsync(_work, CancellationToken.None);
+        await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         var transport = connections.Current;
         var generation = connections.Generation;
 
-        await connections.ActivateAsync(_work, CancellationToken.None);
+        await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         Assert.Same(transport, connections.Current);
         Assert.True(connections.IsCurrent(generation));
@@ -114,7 +154,7 @@ public sealed class SiteConnectionsTests
 
         using var connections = Create(store);
 
-        await connections.ActivateAsync(_work, CancellationToken.None);
+        await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
         connections.Drop(_dev);
 
         Assert.NotNull(connections.Current);
@@ -131,11 +171,11 @@ public sealed class SiteConnectionsTests
 
         using var connections = new SiteConnections(new TokenProvider(store, new EnvironmentReader(_ => null)));
 
-        var slow = connections.ActivateAsync(_work, CancellationToken.None);
+        var slow = connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
 
         await store.Started.Task;
 
-        var fast = connections.ActivateAsync(_dev, CancellationToken.None);
+        var fast = connections.ActivateAsync(_dev, profileCount: 1, CancellationToken.None);
 
         store.Release(_dev.CredentialKey, "token-dev");
         await fast;
