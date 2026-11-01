@@ -353,6 +353,26 @@ public class ViewReducerTests
     }
 
     [Fact]
+    public void GivenExactlyTheTabCapWithMorePages_WhenLoaded_ThenTheTabIsTruncatedAndStopsPaging()
+    {
+        var loaded = Loaded(Open(Start(), "project = A"), Page(ViewPaging.MaxRowsPerTab, new PageCursor("n")));
+
+        var tab = loaded.State.Session.Tabs[0];
+        Assert.True(tab.Truncated);
+        Assert.Null(tab.Next);
+    }
+
+    [Fact]
+    public void GivenSameViewportHeight_WhenReportedAgain_ThenTheStateIsTheSameInstance()
+    {
+        var state = _reducer.Reduce(OpenThree(), new ViewportChanged(30)).State;
+
+        var again = _reducer.Reduce(state, new ViewportChanged(30));
+
+        Assert.Same(state, again.State);
+    }
+
+    [Fact]
     public void GivenTotalOverTheLimit_WhenAnotherTabLoads_ThenTheLeastRecentHiddenTabGoesCold()
     {
         var state = Start();
@@ -471,7 +491,7 @@ public class ViewReducerTests
         return _reducer.Reduce(state, new ViewOpenRequested(Definition(jql)));
     }
 
-    /// <summary>Delivers a page for the newest request of the single or active tab in <paramref name="previous"/>.</summary>
+    /// <summary>Delivers a page for the current request of the active tab in <paramref name="previous"/>.</summary>
     private ReduceResult Reply(ReduceResult previous, IssuePage page)
     {
         var active = previous.State.Session.Active;

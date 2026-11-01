@@ -12,9 +12,11 @@ public abstract record SiteLink
 public sealed record Online : SiteLink;
 
 /// <summary>The site could not be reached since <paramref name="Since"/>.</summary>
+// ReSharper disable once NotAccessedPositionalProperty.Global (read by the status line, #90)
 public sealed record Offline(DateTimeOffset Since) : SiteLink;
 
 /// <summary>Jira asked to wait until <paramref name="Until"/>.</summary>
+// ReSharper disable once NotAccessedPositionalProperty.Global (read by the status line and refresh, #89, #90)
 public sealed record RateLimited(DateTimeOffset Until) : SiteLink;
 
 /// <summary>Jira rejected the credentials.</summary>

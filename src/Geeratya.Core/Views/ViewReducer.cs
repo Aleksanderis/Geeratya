@@ -1,4 +1,5 @@
 using Geeratya.Core.State;
+using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Views;
@@ -106,6 +107,12 @@ public static class ViewReducer
     private static AppState ChangeViewport(AppState state, int rows)
     {
         var height = Math.Max(0, rows);
+
+        if (state.ViewportRows == height && state.Session.Tabs.All(tab => tab.VisibleRows == height))
+        {
+            return state;
+        }
+
         var tabs = state.Session.Tabs.Select(tab => tab with { VisibleRows = height }).ToArray();
 
         return WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
@@ -139,7 +146,7 @@ public static class ViewReducer
 
         var appended = loading.Reason == LoadReason.NextPage;
         var combined = appended ? [.. tab.Rows, .. loaded.Page.Items] : loaded.Page.Items;
-        var truncated = combined.Count > ViewPaging.MaxRowsPerTab;
+        var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? combined.Take(ViewPaging.MaxRowsPerTab).ToArray() : combined;
         var cursor = truncated ? null : loaded.Page.Next;
 
@@ -158,6 +165,12 @@ public static class ViewReducer
         var selected = appended ? updated : KeepSelection(updated);
 
         return EnforceTotal(Replace(state, selected), effects);
+    }
+
+    /// <summary>Over the cap, or exactly at it with more pages behind: the tab stops loading more.</summary>
+    private static bool IsOverCap(int count, PageCursor? next)
+    {
+        return count > ViewPaging.MaxRowsPerTab || (count == ViewPaging.MaxRowsPerTab && next is not null);
     }
 
     private static AppState LoadFailed(AppState state, ViewLoadFailed failed)
@@ -215,8 +228,7 @@ public static class ViewReducer
         }
 
         var cooled = tabs.ToArray();
-        var candidates = cooled
-            .Select((tab, index) => index)
+        var candidates = Enumerable.Range(0, cooled.Length)
             .Where(index => cooled[index].Id != state.Session.Active && cooled[index].HeldRows > 0)
             .OrderBy(index => cooled[index].LastActiveSeq);
 

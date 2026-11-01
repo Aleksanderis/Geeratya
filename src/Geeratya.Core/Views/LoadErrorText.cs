@@ -2,7 +2,9 @@ using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Views;
 
-/// <summary>The one table from a Jira error to the text a failed tab shows. Pure, so the reducer builds it itself.</summary>
+/// <summary>
+/// The one table from a Jira error to the text a failed tab shows. Pure, so the reducer builds it itself.
+/// </summary>
 public static class LoadErrorText
 {
     public static string For(JiraError error)

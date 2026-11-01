@@ -29,4 +29,5 @@ public sealed record NextPageRequested(TabId Tab) : ViewCommand;
 public sealed record ViewPageLoaded(TabId Tab, long RequestId, IssuePage Page, DateTimeOffset At) : ViewCommand;
 
 /// <summary>A load failed; applied only while <paramref name="RequestId"/> is the tab's current request.</summary>
+// ReSharper disable once NotAccessedPositionalProperty.Global (read by the backoff schedule, #89)
 public sealed record ViewLoadFailed(TabId Tab, long RequestId, JiraError Error, DateTimeOffset At) : ViewCommand;
