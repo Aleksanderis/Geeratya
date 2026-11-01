@@ -1,0 +1,62 @@
+# Dispatch only: no push or pull_request triggers (CI minutes are scarce,
+# see docs/decisions.md, 2026-11-01). Run: gh workflow run ci.yml --ref main
+name: ci
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      # Windows skips the tests already run on Linux (Trait Os=Independent).
+      - name: Test (Linux, all tests)
+        if: runner.os == 'Linux'
+        run: dotnet test --configuration Release --no-build
+
+      - name: Test (Windows, OS-specific tests only)
+        if: runner.os == 'Windows'
+        run: dotnet test --configuration Release --no-build --filter "Os!=Independent"
+
+      - name: AOT publish
+        run: dotnet publish src/Geeratya.Tui -c Release -o out
+
+      - name: Smoke run (Linux)
+        if: runner.os == 'Linux'
+        run: ./out/geeratya --version
+
+      - name: Smoke run (Windows)
+        if: runner.os == 'Windows'
+        run: ./out/geeratya.exe --version
