@@ -8,7 +8,7 @@ public class ViewDefinitionTests
     [Fact]
     public void GivenBoardSource_WhenSwitchingLayout_ThenSourceStaysAndLayoutChanges()
     {
-        var list = new ViewDefinition(ViewSourceKind.Board, "42", ViewLayout.List);
+        var list = new ViewDefinition(ViewSourceKind.Board, "42", ViewLayout.List, "Board 42");
 
         var columns = list with { Layout = ViewLayout.Columns };
 

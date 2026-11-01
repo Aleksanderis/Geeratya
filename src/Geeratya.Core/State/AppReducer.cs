@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
 
@@ -33,6 +34,7 @@ public sealed class AppReducer
                 PendingKeys = string.Empty,
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
+            ViewCommand view => ViewReducer.Reduce(state, view),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),

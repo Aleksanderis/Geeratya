@@ -12,8 +12,10 @@ namespace Geeratya.Core.State;
 /// <param name="Confirm">The open confirmation in Confirm mode, otherwise null.</param>
 /// <param name="Profiles">The saved profiles and the active one.</param>
 /// <param name="Form">The add-profile form in Insert mode, otherwise null.</param>
-/// <param name="Session">The views and cache of the active profile's site; replaced when the profile changes.</param>
+/// <param name="Session">The tabs and link state of the active profile's site; replaced when the profile changes.</param>
 /// <param name="ProfileBusy">A profile change is being saved; further profile changes are refused until it ends.</param>
+/// <param name="Sequence">The counter every tab id, request id and recency stamp is drawn from; it only grows.</param>
+/// <param name="ViewportRows">The last viewport height the host reported; new tabs start with it.</param>
 public sealed record AppState(
     InputMode Mode,
     string PendingKeys,
@@ -24,8 +26,10 @@ public sealed record AppState(
     ProfileCatalog Profiles,
     ProfileForm? Form,
     bool ProfileBusy,
-    SiteSession Session)
+    SiteSession Session,
+    long Sequence,
+    int ViewportRows)
 {
     public static AppState Initial { get; } =
-        new(InputMode.Normal, string.Empty, string.Empty, 0, null, null, ProfileCatalog.Empty, null, false, SiteSession.None);
+        new(InputMode.Normal, string.Empty, string.Empty, 0, null, null, ProfileCatalog.Empty, null, false, SiteSession.None, 0, 0);
 }

@@ -327,15 +327,14 @@ public class ProfileReducerTests
     }
 
     [Fact]
-    public void GivenViewsAndCacheOfWork_WhenSwitchingToDev_ThenViewsAndCacheAreGoneAndOldCacheIsDropped()
+    public void GivenTabsOfWork_WhenSwitchingToDev_ThenTabsAreGoneAndOldCacheIsDropped()
     {
         var state = WithOpenSession();
         var switching = Palette(state, "profile switch dev").State;
 
         var result = _reducer.Reduce(switching, new ProfilesChanged(state.Profiles.Activate("dev"), "Done."));
 
-        Assert.Empty(result.State.Session.Views);
-        Assert.Empty(result.State.Session.Cache);
+        Assert.Empty(result.State.Session.Tabs);
         Assert.Equal("dev", result.State.Session.ProfileName);
         Assert.Equal(_dev.SiteUrl, result.State.Session.SiteUrl);
         Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
@@ -356,25 +355,24 @@ public class ProfileReducerTests
     }
 
     [Fact]
-    public void GivenViewsAndCache_WhenTheActiveProfileStays_ThenViewsAndCacheAreKept()
+    public void GivenTabs_WhenTheActiveProfileStays_ThenTabsAreKept()
     {
         var state = WithOpenSession();
 
         var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.With(_dev), "Added."));
 
-        Assert.Single(result.State.Session.Views);
-        Assert.Single(result.State.Session.Cache);
+        Assert.Single(result.State.Session.Tabs);
         Assert.Empty(result.Effects);
     }
 
     [Fact]
-    public void GivenViewsAndCache_WhenTheActiveProfileIsRemoved_ThenTheSessionIsReplacedByTheNextProfile()
+    public void GivenTabs_WhenTheActiveProfileIsRemoved_ThenTheSessionIsReplacedByTheNextProfile()
     {
         var state = WithOpenSession();
 
         var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Without("work"), "Removed."));
 
-        Assert.Empty(result.State.Session.Views);
+        Assert.Empty(result.State.Session.Tabs);
         Assert.Equal("dev", result.State.Session.ProfileName);
         Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
     }
@@ -413,10 +411,11 @@ public class ProfileReducerTests
     private static AppState WithOpenSession()
     {
         var state = WithProfiles(_work, _dev);
-        var views = new[] { new ViewDefinition(ViewSourceKind.Jql, "project = X", ViewLayout.List) };
-        var cache = new Dictionary<string, string> { ["issue:X-1"] = "{}" };
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = X", ViewLayout.List, "X");
+        var session = state with { Session = SiteSession.Empty(_work) };
 
-        return state with { Session = SiteSession.Empty(_work) with { Views = views, Cache = cache } };
+        return reducer.Reduce(session, new ViewOpenRequested(definition)).State;
     }
 
     private static AppState WithProfiles(params Profile[] profiles)

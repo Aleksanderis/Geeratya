@@ -25,7 +25,7 @@ A view is a source plus a layout (`docs/decisions.md`, 2026-11-01). `ViewDefinit
 
 Design for M1 (#64). The code issues build on the names below; a name in a table is the name the code uses. Everything is per tab and per site session; there is no static or global "current" anything.
 
-**State shape.** `AppState.Session` (`SiteSession`) holds `IReadOnlyList<TabState> Tabs` (open order), `TabId? Active` and the site-level `SiteLink Link`. `AppState.Sequence` (a `long`, outside the session) is the one counter every `TabId`, `RequestId` and recency stamp is drawn from; it only grows and survives a session swap. The placeholder `SiteSession.Views` goes with #75; `SiteSession.Cache` (the string map) is removed rather than replaced, because the cache is not view state (see "Cache and refresh"). A profile change still replaces the whole session with `SiteSession.Empty(profile)`, which has no tabs.
+**State shape.** `AppState.Session` (`SiteSession`) holds `IReadOnlyList<TabState> Tabs` (open order), `TabId? Active` and the site-level `SiteLink Link`. `AppState.Sequence` (a `long`, outside the session; `AppState.ViewportRows` next to it holds the last viewport height so a tab opened later starts with it) is the one counter every `TabId`, `RequestId` and recency stamp is drawn from; it only grows and survives a session swap. The placeholder `SiteSession.Views` is gone (#75); `SiteSession.Cache` (the string map) is removed rather than replaced, because the cache is not view state (see "Cache and refresh"). A profile change still replaces the whole session with `SiteSession.Empty(profile)`, which has no tabs.
 
 `TabState` (record, `Core/Views`):
 
@@ -38,13 +38,13 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 | `bool Truncated` | `Rows` hit the cap (10 000 per tab); "load more" stops and the status line says so. |
 | `int Selected`, `string? SelectedKey`, `int Scroll` | Selection index plus the issue key it points at (the key survives a refresh that moves rows), first visible row. |
 | `int VisibleRows` | Last viewport height reported by the host (`ViewportChanged`), so the reducer can tell when the end is near without touching the UI. |
-| `ViewLayout Layout` | List or columns; changing it keeps everything else. |
+| layout | Lives in `Definition.Layout` (no second copy); `ViewLayoutChanged` changes it and keeps everything else. |
 | `LoadState Load` | `Idle`, `Loading(LoadReason)` or `Failed(JiraErrorKind Kind, string Message)`. |
 | `long RequestId`, `long LastActiveSeq` | `RequestId` (drawn from `AppState.Sequence`) is the only request whose reply this tab accepts (0 while idle); `LastActiveSeq` is the `Sequence` value when the tab was last active, for the cold-tab choice. |
 | `bool IsStale`, `DateTimeOffset? LoadedAt` | Staleness is separate from loading: cached rows shown while the refresh runs are both stale and loading. `LoadedAt` is when the rows last came from the network (for stale cache rows, the cache entry's save time). |
-| `int Failures`, `DateTimeOffset? NextRefreshAt` | Backoff and schedule (see "Cache and refresh"). |
-| `BoardConfiguration? Board` | Filled by #78 for board and backlog sources and kept with the tab. |
-| `IReadOnlyList<DetailState> Detail` | Issue-detail back stack (empty while the list is shown); each `DetailState` has its own `RequestId`, load state and stale flag. Filled by #84. |
+| `int Failures`, `DateTimeOffset? NextRefreshAt` | Backoff and schedule (see "Cache and refresh"); added by #89, not in `TabState` yet. |
+| `BoardConfiguration? Board` | Filled by #78 for board and backlog sources and kept with the tab; the member is added by #78. |
+| `IReadOnlyList<DetailState> Detail` | Issue-detail back stack (empty while the list is shown); each `DetailState` has its own `RequestId`, load state and stale flag. Filled by #84; the member is added by #84. |
 | `IReadOnlyList<IssueSummary>? PendingRows` | Rows gathered by a refresh that needs several pages (boards); swapped in when the last page arrives, so the screen never shows a half-refreshed board. |
 | `bool Cold` | The tab gave its rows up (see below); activation reloads it. |
 
@@ -62,7 +62,7 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 |---|---|---|---|
 | `TabId`, `TabState`, `LoadState`, `LoadReason`, `SiteLink`, `ViewReducer` | state | #75 | `ViewReducer` is pure, routed from `AppReducer` with one line, like `ProfileReducer`. `LoadReason`: `Open`, `NextPage`, `Refresh`, `Retry`. |
 | `ViewOpenRequested(ViewDefinition)` | command | #75 | Opens and activates a tab, returns `LoadViewPageEffect(Reason: Open)`. |
-| `TabActivated(TabId)`, `TabClosed(TabId)`, `ViewLayoutChanged(TabId, ViewLayout)`, `ViewportChanged(int Rows)` | commands | #75, #81 | Activation may return a refresh load. `ViewportChanged` sets `VisibleRows` on every tab (cheap), so a hidden tab never keeps an old height after a resize. |
+| `TabActivated(TabId)`, `TabClosed(TabId)`, `ViewLayoutChanged(TabId, ViewLayout)`, `ViewportChanged(int Rows)`, `NextPageRequested(TabId)` | commands (all derive from `ViewCommand`, which `AppReducer` routes to `ViewReducer`) | #75, #81 | Activation may return a refresh load. `ViewportChanged` sets `VisibleRows` on every tab (cheap), so a hidden tab never keeps an old height after a resize. |
 | `LoadViewPageEffect(TabId, ViewDefinition, PageCursor? Cursor, long RequestId, LoadReason Reason, bool Background)` | effect | #75 | `Background` selects `AsBackground()`. |
 | `ViewPageLoaded(TabId, long RequestId, IssuePage Page, DateTimeOffset At)`, `ViewLoadFailed(TabId, long RequestId, JiraError Error, DateTimeOffset At)` | commands | #75 | Applied only if the tab exists and `RequestId` is its current one. |
 | `CancelTabEffect(TabId)` | effect | #75 | The host cancels that tab's in-flight work. |
