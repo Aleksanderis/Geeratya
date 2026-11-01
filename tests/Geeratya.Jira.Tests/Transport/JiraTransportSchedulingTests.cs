@@ -188,6 +188,79 @@ public sealed class JiraTransportSchedulingTests
         Assert.Equal([TimeSpan.FromSeconds(3)], fixture.Waits);
     }
 
+    [Fact]
+    public async Task GivenNoRequestsLeft_WhenUserCallWaits_ThenRateLimitedUntilIsSetDuringTheWaitAndClearedAfter()
+    {
+        var clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default));
+        var probe = new WaitProbe();
+        using var fixture = new TransportFixture(options => options with { Clock = clock, Delay = (_, _) => probe.Record() });
+        var seen = fixture.Transport;
+        probe.Transport = seen;
+        var changes = new List<int>();
+        seen.RateLimitWaitChanged += () => changes.Add(1);
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            MyselfPath,
+            FakeResponse.Ok(MyselfJson()) with { Headers = Header(RateLimitHeader, Policy(0, 1.5)) });
+
+        Assert.Null(seen.RateLimitedUntil);
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.Equal(clock.GetUtcNow() + TimeSpan.FromSeconds(1.5), probe.During);
+        Assert.Null(seen.RateLimitedUntil);
+        Assert.Equal(2, changes.Count);
+    }
+
+    [Fact]
+    public async Task GivenTooManyRequestsReply_WhenRetryAfterWaits_ThenRateLimitedUntilIsSetDuringTheWait()
+    {
+        var clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default));
+        var probe = new WaitProbe();
+        using var fixture = new TransportFixture(options => options with { Clock = clock, Delay = (_, _) => probe.Record() });
+        var seen = fixture.Transport;
+        probe.Transport = seen;
+        fixture.Handler.Script(
+            HttpMethod.Get,
+            MyselfPath,
+            new FakeResponse((HttpStatusCode)429, Headers: new Dictionary<string, string> { ["Retry-After"] = "3" }));
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.Equal(clock.GetUtcNow() + TimeSpan.FromSeconds(3), probe.During);
+        Assert.Null(seen.RateLimitedUntil);
+    }
+
+    [Fact]
+    public async Task GivenServerErrorBackoff_WhenRetrying_ThenRateLimitedUntilStaysNull()
+    {
+        var probe = new WaitProbe();
+        using var fixture = new TransportFixture(options => options with { Delay = (_, _) => probe.Record() });
+        var seen = fixture.Transport;
+        probe.Transport = seen;
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, new FakeResponse(HttpStatusCode.BadGateway));
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.Null(probe.During);
+    }
+
+    private sealed class WaitProbe
+    {
+        public JiraTransport? Transport { get; set; }
+
+        public DateTimeOffset? During { get; private set; }
+
+        public Task Record()
+        {
+            During = Transport!.RateLimitedUntil;
+
+            return Task.CompletedTask;
+        }
+    }
+
     private static TransportFixture NewFixture() =>
         new(options => options with { Clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default)) });
 
