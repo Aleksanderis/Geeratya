@@ -23,6 +23,7 @@ public sealed class JiraTransport : IDisposable
     private readonly JiraTransportOptions _options;
     private readonly HttpClient _client;
     private readonly RequestGate _gate;
+    private readonly RateLimitWaitTracker _rateWaits = new();
     private readonly object _rateLock = new();
     private JiraRateLimit? _rateLimit;
     private DateTimeOffset _rateWindowEnds;
@@ -53,6 +54,22 @@ public sealed class JiraTransport : IDisposable
 
     public JiraConnection Connection => _connection;
 
+    /// <summary>
+    /// When a request is waiting for the Jira rate limit (an exhausted budget or a <c>Retry-After</c>), the latest
+    /// time such a wait ends; null when nothing waits. Poll it from the UI loop.
+    /// </summary>
+    public DateTimeOffset? RateLimitedUntil => _rateWaits.Until;
+
+    /// <summary>
+    /// Raised when a rate-limit wait starts or ends, so the UI can redraw. It runs on whichever thread changed the
+    /// state (not the UI thread); handlers must only post to the UI, never block.
+    /// </summary>
+    public event Action RateLimitWaitChanged
+    {
+        add => _rateWaits.Changed += value;
+        remove => _rateWaits.Changed -= value;
+    }
+
     public async Task<JiraResult<T>> SendAsync<T>(
         JiraRequest request,
         JsonTypeInfo<T> resultInfo,
@@ -76,7 +93,17 @@ public sealed class JiraTransport : IDisposable
                 return result;
             }
 
-            await _options.Delay(WaitBeforeRetry(result.Error, attempt), cancellationToken);
+            var wait = WaitBeforeRetry(result.Error, attempt);
+
+            if (result.Error.Kind == JiraErrorKind.RateLimited)
+            {
+                await WaitForRateLimitAsync(wait, cancellationToken);
+            }
+            else
+            {
+                await _options.Delay(wait, cancellationToken);
+            }
+
             attempt++;
         }
     }
@@ -205,7 +232,7 @@ public sealed class JiraTransport : IDisposable
             }
         }
 
-        await _options.Delay(Min(wait, _options.MaxWait), cancellationToken);
+        await WaitForRateLimitAsync(Min(wait, _options.MaxWait), cancellationToken);
 
         lock (_rateLock)
         {
@@ -216,6 +243,11 @@ public sealed class JiraTransport : IDisposable
             }
         }
     }
+
+    private Task WaitForRateLimitAsync(TimeSpan wait, CancellationToken cancellationToken) =>
+        wait <= TimeSpan.Zero
+            ? _options.Delay(wait, cancellationToken)
+            : _rateWaits.RunAsync(_options.Clock.GetUtcNow() + wait, () => _options.Delay(wait, cancellationToken));
 
     private void RecordRateLimit(HttpResponseMessage response)
     {
