@@ -1,6 +1,6 @@
 # Geeratya
 
-Keyboard-first terminal client for Jira Cloud (issue lists, boards, JQL, vim-style keys). See README.md for goal and features.
+Keyboard-first terminal client for Jira Cloud (Kanban board, backlog, issues, JQL, vim-style keys). See README.md for goal and features.
 
 Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, decisions). Work is tracked as GitHub issues grouped by milestone (goals in `docs/roadmap.md`).
 
@@ -12,7 +12,10 @@ Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, deci
 
 ## Rules
 
-- Geeratya can hold several Jira sites and accounts (profiles) and several views (tabs). Never assume one global site: every Jira call takes an explicit connection (site URL plus credentials), and all view state is scoped to a tab. No static or global "current site".
+- One Jira site is active at a time, chosen from saved profiles (site plus account); switching profiles replaces the connection and drops that site's views and cache. Several views (tabs) over the active site. Still, never assume a global site: every Jira call takes an explicit connection (site URL plus credentials), and all view state is scoped to a tab. No static or global "current site".
+- Both project kinds are first class: company-managed and team-managed projects differ in epics, parent links, board settings and fields, and every feature works with both (fixtures for each).
+- A view is a source (JQL, saved filter, board, backlog) plus a layout (list, columns). Issue details and every write work the same in every view; a new board kind is a new source or layout, not new loading code.
+- Attachments, images and other files are never rendered in the terminal: they show as name, type and size with a link that opens in the browser.
 - Never touch a production Jira from development or tests. Automated and agent-run live calls go only to the hosts in `GEERATYA_LIVE_HOSTS` (the owner's free dev site); anything else is refused. Agents never use the owner's company site, not even read-only.
 - Credentials: API tokens are secrets. Never log, print, commit, snapshot or put them in fixtures, screenshots, issue or PR text. Read them from the OS secret store or an env var; recorded fixtures are scrubbed (`testing` skill, "Fixtures").
 - Cross-platform (Linux, Windows, macOS; macOS lowest priority, Linux is built and tested first). No platform-specific APIs outside the platform abstraction; anything platform-specific gets a branch for every supported OS or an explicit "unsupported" path. Paths via `Path` APIs, no hardcoded separators, `/dev/null` or `/tmp`. Details: `docs/architecture.md`.

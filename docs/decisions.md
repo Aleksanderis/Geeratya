@@ -15,3 +15,9 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 **Testing:** Live Jira work happens only on the owner's free dev site, guarded by `GEERATYA_LIVE_HOSTS`; the company site is never used by agents or tests. Default tests are offline against recorded, scrubbed fixtures.
 
 **Process:** CI never runs automatically; local build and tests are the gate, and CI is dispatched by hand (before closing a milestone). Why: CI minutes are scarce (carried over from Gitunia).
+
+**Architecture:** One active Jira site at a time, from saved profiles; switching is cheap and built in, several sites open at once is not included. Why: the owner uses one site, and side-by-side sites cost the most.
+
+**Scope:** Company-managed and team-managed projects are both supported; Jira Service Management is not included. Attachments and images show as links, never rendered. Why: the owner's company project kind is unknown and the owner does not use JSM.
+
+**Architecture:** A view is a source (JQL, filter, board, backlog) plus a layout (list, columns). Why: the owner wants boards flexible; new board kinds are then a new source or layout.
