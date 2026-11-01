@@ -70,7 +70,7 @@ My open issues · 10 of about 340
  NORMAL  j/k move  Enter open  <space>r refresh  ? help
 ```
 
-- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; matched by the hierarchy level and the sub-task flag, not by name (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
+- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
 - **Header.** Column titles in the `Muted` role, then the view title and the count: `N issues` when every page is loaded, `N of about M` when the approximate count is known (`/search/approximate-count`, JQL sources only; "about" is never dropped), `N+` while the total is unknown. A board or backlog list knows its total (offset paged) and shows `N of M`.
 - **Selection and scroll.** `j`/`k`/`Up`/`Down` move by one row, `Ctrl-d`/`Ctrl-u`/`PageDown`/`PageUp` by half a page, `g g`/`G`/`Home`/`End` jump. The selection keeps three rows of context (`scrolloff=3`) and the scroll never leaves blank rows above the last. Selection survives a refresh by issue key; when the issue is gone the nearest row is selected.
 - **Loading more.** Pages are fetched when the selection comes within ten rows of the last loaded row. A final row `Loading more…` (role `Loading`) shows while the page is in flight. If the page fails the row becomes `Could not load more: <reason>. Enter retries.` and `Enter` or `<space>r` retries; the loaded rows stay.
@@ -110,7 +110,7 @@ My open issues · 10+
  NORMAL  j/k Enter <space>r ?
 ```
 
-  Below 40 columns the type marker drops too. Height: the header is the only fixed line, so at 10 rows seven issues show.
+  Below 40 columns the type marker drops too. The column-title row drops below 12 rows (as in this 40x10 sketch), so at 10 rows seven issues show.
 
 ## Columns layout (Kanban)
 
@@ -159,7 +159,7 @@ GCM board · 11 issues
 - **Cards.** Three lines: type marker and key, then the summary wrapped to two lines (ellipsis on the second), then one blank line. When the body is shorter than 12 rows cards collapse to one line `key summary` (second sketch below). The selected card carries `>`.
 - **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own, remembering its selection.
 - **More columns than width.** Each column is at least 20 cells wide. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the header shows `‹` or `›` with the number of columns hidden on that side. At 40 columns exactly one column is drawn at full width, with the neighbouring names in the header (below).
-- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (shown in the sketch).
+- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (shown in the sketch; the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
 - **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. No swimlanes in M1.
 - **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or 500 issues are loaded; past the cap the banner says `Showing the first 500 of N issues. Narrow the board filter or use :jql.`
 
@@ -225,7 +225,7 @@ Comments (3 of 7)
 - **Description.** The ADF rendered as formatted text (`docs/jira-layer.md` "ADF in real data"). Media nodes show as `[image] name` or `[image]` when no name can be matched; nothing is rendered as an image. A missing description shows nothing under the heading except `No description.` in `Muted`.
 - **Sections, in order:** Sub-tasks, Epic children (epics only, loaded with `parent = KEY` when the issue is opened), Linked issues (direction text from the link type, `blocks`, `is blocked by`, ...), Remote links (Confluence and others: application and title), Attachments (name, type, size; the row opens the issue page in the browser because the API download URL needs the auth header, jira-layer.md "Links"), Comments. A section with no entries is not drawn. Headings carry the count, `Name (n)`.
 - **Comments.** Oldest of the loaded set first, newest last, so the end of the screen is the latest. The first fetch is the newest 20 (`orderBy=-created`, shown reversed); when older ones exist the first row of the section is `Load n older comments`, and `Enter` on it loads the next page above. (The implementing issue verifies `orderBy` on the dev site.) A comment shows author, relative time and the rendered ADF body.
-- **Cursor and scrolling.** The body is a vertically scrolling document with a cursor row. `j`/`k`/`Ctrl-d`/`Ctrl-u`/`g g`/`G` move it. `]]` and `[[` jump to the next and previous section heading (vim's section motions). Rows that can be opened (a sub-task, child, linked issue, remote link, attachment, `Load n older comments`) are marked with the selection mark when the cursor is on them. `Enter` on an issue row pushes that issue on the stack; on a remote link or attachment it opens the browser; on the load row it loads.
+- **Cursor and scrolling.** The body is a vertically scrolling document with a cursor row. `j`/`k`/`Ctrl-d`/`Ctrl-u`/`g g`/`G` move it. `] ]` and `[ [` jump to the next and previous section heading (vim's section motions). Rows that can be opened (a sub-task, child, linked issue, remote link, attachment, `Load n older comments`) are marked with the selection mark when the cursor is on them. `Enter` on an issue row pushes that issue on the stack; on a remote link or attachment it opens the browser (only `http` and `https` URLs are opened; any other scheme just shows the URL in the status line, since the URL is free text from Jira); on the load row it loads.
 - **Keys.** `Esc` goes back one level (pops the stack; at the view it does nothing more). `<space>o` opens the issue in the browser. `<space>p` opens the parent. `<space>r` reloads the issue.
 - **Loading.** The cached issue shows at once with the banner state `STALE` until the fresh copy arrives; with no cache the header shows the key from the list row and `Loading…` under it. Related data (children, comments, remote links) loads separately, each section showing `Loading…` until it arrives or an error line with `<space>r`.
 - **Not found.** 404 and 403 give the same text, `Not found or no access: GCM-99`, with `Esc` to go back.
@@ -247,7 +247,7 @@ Description
 
 ## Tab bar
 
-One line at the top, titles separated by two spaces, each prefixed with its number (`Alt-1` to `Alt-9` go there). The active tab is in brackets and bold (reversed in the no-colour tier). Titles: `Board: <name>`, `Backlog: <name>`, `Filter: <name>`, `JQL: <query>`; an inactive title is cut to 24 cells, the active one to 40 (never below 8). A tab shows `…` after its title while loading and `!` when its last load failed. An issue opened inside a tab does not rename the tab.
+One line at the top, titles separated by two spaces, each prefixed with its number (`Alt-1` to `Alt-9` go there). The active tab is in brackets and bold (reversed in the no-colour tier). Titles: `Board: <name>`, `Backlog: <name>`, `Filter: <name>`, `JQL: <query>`; an inactive title is cut to 24 cells, the active one to 40 (never below 8); the sketches in this document that show longer titles are abbreviated only for the width of the row, the rule is this one. A tab shows `…` after its title while loading and `!` when its last load failed. An issue opened inside a tab does not rename the tab.
 
 Overflow: when the titles do not fit, the window of tabs slides so the active one is fully visible, `‹n` (tabs hidden on the left) and `+n ›` (right) mark the cut ends, and inactive titles shrink towards 8 cells before any is hidden. At 120 and 40 columns:
 
@@ -308,7 +308,7 @@ Wording by status (jira-layer.md "Errors"); the body of an HTML or plain-text re
 
 ## Source picker overlay
 
-`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. The lists load when the picker first opens and are cached, so the picker works offline from cache; an empty cache shows `Loading…` in each group.
+`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty; text that is not a valid JQL clause (no operator, like `gcm`) is sent as `text ~ "gcm"`, anything else as typed. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. The lists load when the picker first opens and are cached, so the picker works offline from cache; an empty cache shows `Loading…` in each group.
 
 ```text
  1 Board: GCM board  2 Backlog: GCM board  [3 JQL: assignee = currentUser() AND resolution = Unresolved]  4 Filter: Mine
@@ -376,10 +376,10 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
-| `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` |
-| `:layout list|columns` | switch the layout of the tab |
-| `:refresh` | reload the view (same as `<space>r`) |
-| `:browse` | open the selected issue in the browser (same as `<space>o`) |
+| `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
+| `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
+| `:refresh` | alias of `<space>r` |
+| `:browse` | alias of `<space>o` |
 
 Without a board name and exactly one board on the site, `:board` and `:backlog` open it directly. The palette stays the stub of `ux.md` for anything else ("Unknown command: ..."). Commands appear in the generated help once they exist; completion of names is not part of M1.
 
