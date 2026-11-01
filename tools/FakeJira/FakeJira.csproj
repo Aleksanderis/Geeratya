@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>fakejira</AssemblyName>
+    <RootNamespace>Geeratya.FakeJira</RootNamespace>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+</Project>

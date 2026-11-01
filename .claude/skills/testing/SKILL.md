@@ -5,11 +5,11 @@ description: Write, run and debug Geeratya tests; record and scrub Jira fixtures
 
 # Testing
 
-This skill is the procedure. Strategy, layers and the measurement harness are in `docs/testing.md`; open it only for the section you need, not up front. Pieces marked "(M0)" do not exist yet and are built in the first milestone; until then, create the smallest version you need and register the rest.
+This skill is the procedure. Strategy, layers and the measurement harness are in `docs/testing.md`; open it only for the section you need, not up front. Pieces marked "" do not exist yet and are built in the first milestone; until then, create the smallest version you need and register the rest.
 
 ## Mark OS-independent tests
 
-The Windows CI leg runs `--filter "Os!=Independent"`; Linux runs everything. Put `[Trait("Os", "Independent")]` on a test class only when it is pure: in-memory data, the in-process fake Jira handler, no file system, temp dirs, paths, environment, process, sockets, terminal or ANSI capability, line endings or encodings. Unmarked is the default and means "runs on Windows", so when unsure leave it unmarked. A guard test fails when a marked file uses one of those APIs (M0).
+The Windows CI leg runs `--filter "Os!=Independent"`; Linux runs everything. Put `[Trait("Os", "Independent")]` on a test class only when it is pure: in-memory data, the in-process fake Jira handler, no file system, temp dirs, paths, environment, process, sockets, terminal or ANSI capability, line endings or encodings. Unmarked is the default and means "runs on Windows", so when unsure leave it unmarked. A guard test fails when a marked file uses one of those APIs .
 
 ## Pick the layer
 
@@ -30,7 +30,7 @@ Name tests `Given<Context>_When<Action>_Then<Outcome>` (PascalCase parts). Tests
 
 - No sleeps or polling loops to wait for background work. Wait on a signal: a UI pump that runs posted callbacks on the test thread until a condition holds, a `TaskCompletionSource` completed from a store's `Changed` event, or an injected delay or clock. A guard timeout only bounds a hang.
 - `FakeJiraHandler` (M0, `tests/Geeratya.Jira.Tests/Fakes`): an in-process `HttpMessageHandler` that serves fixture files by method and path, records every request, and can script per-request status, `Retry-After`, latency and a hang until cancelled. Unit and store tests use it; they never open a socket.
-- `tools/FakeJira` (M0): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
+- `tools/FakeJira` : a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
 
 ## Fixtures
 
