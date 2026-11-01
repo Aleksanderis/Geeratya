@@ -1,6 +1,9 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Platform.Browser;
+using Geeratya.Platform.Directories;
+using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Views;
@@ -25,6 +28,7 @@ public sealed class ShellHost : IDisposable
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
+    private readonly BrowserEffectHandler _browserEffects;
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private IApplication? _application;
@@ -38,6 +42,8 @@ public sealed class ShellHost : IDisposable
         _colors = colors;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
+        _browserEffects = new BrowserEffectHandler(
+            BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
     }
@@ -159,12 +165,18 @@ public sealed class ShellHost : IDisposable
     /// <summary>Runs a profile effect off the UI thread and feeds its outcome back as a command.</summary>
     private async Task RunEffectAsync(Effect effect)
     {
-        var outcome = await Task.Run(() => _profileEffects.RunAsync(effect, _shutdownToken));
+        var outcome = await Task.Run(() => RunHandlersAsync(effect));
 
         if (outcome is not null && !_shutdownToken.IsCancellationRequested)
         {
             _application!.Invoke(() => Dispatch(outcome));
         }
+    }
+
+    private async Task<AppCommand?> RunHandlersAsync(Effect effect)
+    {
+        return await _profileEffects.RunAsync(effect, _shutdownToken)
+            ?? await _browserEffects.RunAsync(effect, _shutdownToken);
     }
 
     private AppState LoadProfiles()
