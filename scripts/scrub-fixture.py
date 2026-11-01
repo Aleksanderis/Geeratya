@@ -4,7 +4,8 @@
 usage: scrub-fixture.py <site-host>
 
 Host -> example.atlassian.net, account ids -> fake-account-N, emails ->
-userN@example.com, display names of users -> Test User N, avatar URLs dropped, ADF mention texts anonymised,
+userN@example.com, display names of users (and ADF mention texts) -> Test User N,
+avatar URLs dropped,
 cloud ids zeroed, time zones set to UTC. Used by record-fixture.sh.
 """
 import json
