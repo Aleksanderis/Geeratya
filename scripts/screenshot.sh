@@ -177,10 +177,10 @@ publish() {
   need gh git
   compgen -G "$out/*.png" > /dev/null || { echo "no PNG files in $out (run render first)" >&2; exit 2; }
 
-  local repo sha checkout directory commit file
+  local repo sha directory commit file
   repo=$(screenshots_repo)
   sha=$(git -C "$root" rev-parse --short HEAD)
-  checkout=$(mktemp -d)
+  checkout=$(mktemp -d) # Global on purpose: the EXIT trap reads it after the function returns
   trap 'rm -rf "$checkout"' EXIT
   clone_repo "$repo" "$checkout"
   directory=pr-$pr/$sha
@@ -196,10 +196,10 @@ publish() {
 
 clean() {
   need gh git
-  local repo checkout directory number state removed=0
+  local repo directory number state removed=0
   cd "$root"
   repo=$(screenshots_repo)
-  checkout=$(mktemp -d)
+  checkout=$(mktemp -d) # Global on purpose: the EXIT trap reads it after the function returns
   trap 'rm -rf "$checkout"' EXIT
   clone_repo "$repo" "$checkout"
   for directory in "$checkout"/pr-*; do
