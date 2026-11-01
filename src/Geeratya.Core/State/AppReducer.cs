@@ -32,6 +32,7 @@ public sealed class AppReducer
                 Confirm = requested.Request,
                 PendingKeys = string.Empty,
             }),
+            TextPasted pasted => Result(Paste(state, pasted.Text)),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             _ => Result(state),
@@ -78,6 +79,27 @@ public sealed class AppReducer
         }
 
         return Apply(cleared with { Message = null }, resolution.Action!);
+    }
+
+    /// <summary>
+    /// Pasted text goes to the active field as typed text. Only the first line counts (a trailing newline from the
+    /// clipboard must not submit anything) and control characters are dropped.
+    /// </summary>
+    private static AppState Paste(AppState state, string pasted)
+    {
+        var text = PasteText.FirstLine(pasted);
+
+        if (text.Length == 0)
+        {
+            return state;
+        }
+
+        if (state.Mode == InputMode.Insert)
+        {
+            return ProfileReducer.Type(state, text);
+        }
+
+        return state.Mode == InputMode.Command ? state with { PaletteText = $"{state.PaletteText}{text}" } : state;
     }
 
     private static AppState TypeText(AppState state, string key)

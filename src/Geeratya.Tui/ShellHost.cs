@@ -58,6 +58,7 @@ public sealed class ShellHost
         }
 
         application.Keyboard.KeyDown += OnKeyDown;
+        application.Paste += OnPaste;
 
         using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
 
@@ -81,6 +82,14 @@ public sealed class ShellHost
         key.Handled = true;
 
         Dispatch(new KeyPressed(spelled));
+    }
+
+    /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>
+    private void OnPaste(object? sender, PasteEventArgs e)
+    {
+        e.Handled = true;
+
+        Dispatch(new TextPasted(e.Text));
     }
 
     private void Dispatch(AppCommand command)

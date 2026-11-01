@@ -332,6 +332,75 @@ public class ProfileReducerTests
         return AppState.Initial with { Profiles = catalog };
     }
 
+    [Fact]
+    public void GivenEveryFormStep_WhenPasting_ThenTheTextFillsTheActiveField()
+    {
+        var state = Palette(AppState.Initial, "profile add").State;
+
+        state = Paste(state, "work");
+        Assert.Equal("work", state.Form!.Name);
+        state = Press(state, "Enter").State;
+
+        state = Paste(state, "work.atlassian.net");
+        Assert.Equal("work.atlassian.net", state.Form!.SiteUrl);
+        state = Press(state, "Enter").State;
+
+        state = Paste(state, "me@work.test");
+        Assert.Equal("me@work.test", state.Form!.Email);
+        state = Press(state, "Enter").State;
+
+        state = Paste(state, "tok:en q");
+        Assert.Equal("tok:en q", state.Form!.Token.Reveal());
+    }
+
+    [Fact]
+    public void GivenTokenStep_WhenPastingMultiLineText_ThenOnlyTheFirstLineIsTakenAndNothingSubmits()
+    {
+        var state = Paste(FillToToken(), "secret-one\nsecret-two\n");
+
+        Assert.Equal("secret-one", state.Form!.Token.Reveal());
+        Assert.Equal(ProfileFormField.Token, state.Form.Field);
+        Assert.Equal(InputMode.Insert, state.Mode);
+    }
+
+    [Fact]
+    public void GivenTokenStep_WhenPastingPaddedText_ThenSurroundingSpacesAreTrimmed()
+    {
+        var state = Paste(FillToToken(), "  tok en  ");
+
+        Assert.Equal("tok en", state.Form!.Token.Reveal());
+    }
+
+    [Fact]
+    public void GivenPastedToken_WhenPrintingTheState_ThenTheTokenNeverAppears()
+    {
+        var state = Paste(FillToToken(), "pastedsecret");
+
+        Assert.DoesNotContain("pastedsecret", state.ToString());
+        Assert.Equal(12, state.Form!.Token.Length);
+    }
+
+    [Fact]
+    public void GivenNormalMode_WhenPasting_ThenNothingChanges()
+    {
+        var state = Paste(AppState.Initial, "profile add");
+
+        Assert.Equal(AppState.Initial, state);
+    }
+
+    [Fact]
+    public void GivenPaletteOpen_WhenPasting_ThenTheTextIsAddedToThePalette()
+    {
+        var state = Paste(Press(AppState.Initial, ":").State, "profile list\n");
+
+        Assert.Equal("profile list", state.PaletteText);
+    }
+
+    private AppState Paste(AppState state, string text)
+    {
+        return _reducer.Reduce(state, new TextPasted(text)).State;
+    }
+
     private ReduceResult Press(AppState state, string key)
     {
         return _reducer.Reduce(state, new KeyPressed(key));
