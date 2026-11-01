@@ -51,6 +51,16 @@ public class ProfileCatalogTests
     }
 
     [Fact]
+    public void GivenFirstOfTwo_WhenReplacing_ThenKeepsPosition()
+    {
+        var changed = _work with { Email = "other@work.test" };
+
+        var catalog = ProfileCatalog.Empty.With(_work).With(_home).With(changed);
+
+        Assert.Equal([changed, _home], catalog.Profiles);
+    }
+
+    [Fact]
     public void GivenTrailingSlashAndCase_WhenReadingCredentialKey_ThenKeyIsNormalised()
     {
         var first = new Profile("a", "https://Site.atlassian.net/", "Me@x.test");

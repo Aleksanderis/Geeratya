@@ -4,7 +4,6 @@ using Geeratya.Platform.Secrets;
 
 namespace Geeratya.Tui.Tests;
 
-[Trait("Os", "Independent")]
 public class ProfileServicesTests
 {
     [Fact]

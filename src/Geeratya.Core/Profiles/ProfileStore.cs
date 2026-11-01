@@ -12,14 +12,15 @@ public sealed class ProfileStore
 
     private readonly string _path;
 
-    public ProfileStore(string configDirectory)
+    public ProfileStore(string configurationDirectory)
     {
-        _path = Path.Combine(configDirectory, FileName);
+        _path = Path.Combine(configurationDirectory, FileName);
     }
 
     /// <summary>
     /// Loads the catalog. A missing file gives an empty catalog; an unreadable one gives an empty catalog, keeps
-    /// a copy as <c>.corrupt</c> and reports <see cref="ProfileLoadStatus.Corrupt"/>. Never throws for bad content.
+    /// a copy as <c>.corrupt</c> and reports <see cref="ProfileLoadStatus.Corrupt"/>. Never throws for bad content;
+    /// file system errors (locked or read-only file) still throw.
     /// </summary>
     public ProfileLoadResult Load()
     {
@@ -75,6 +76,14 @@ public sealed class ProfileStore
     private static bool IsValid(ProfileCatalog? catalog)
     {
         return catalog is { Profiles: not null }
-            && catalog.Profiles.All(profile => profile is { Name: not null, SiteUrl: not null, Email: not null });
+            && catalog.Profiles.All(IsFilled);
+    }
+
+    private static bool IsFilled(Profile? profile)
+    {
+        return profile is not null
+            && !string.IsNullOrWhiteSpace(profile.Name)
+            && !string.IsNullOrWhiteSpace(profile.SiteUrl)
+            && !string.IsNullOrWhiteSpace(profile.Email);
     }
 }

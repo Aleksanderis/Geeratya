@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Geeratya.Core.Profiles;
 
 /// <summary>The saved profiles and which one is active. Immutable; changes return a new catalog.</summary>
@@ -6,6 +8,7 @@ public sealed record ProfileCatalog(string? ActiveName, IReadOnlyList<Profile> P
     public static ProfileCatalog Empty { get; } = new(null, []);
 
     /// <summary>The active profile, or null when none is marked or the mark points at nothing.</summary>
+    [JsonIgnore]
     public Profile? Active => Find(ActiveName);
 
     public Profile? Find(string? name)
@@ -16,10 +19,16 @@ public sealed record ProfileCatalog(string? ActiveName, IReadOnlyList<Profile> P
     /// <summary>Adds the profile, or replaces the one with the same name. The first profile becomes active.</summary>
     public ProfileCatalog With(Profile profile)
     {
-        var others = Profiles.Where(existing => existing.Name != profile.Name);
         var active = Active is null ? profile.Name : ActiveName;
 
-        return new ProfileCatalog(active, [.. others, profile]);
+        if (Find(profile.Name) is null)
+        {
+            return new ProfileCatalog(active, [.. Profiles, profile]);
+        }
+
+        var replaced = Profiles.Select(existing => existing.Name == profile.Name ? profile : existing).ToList();
+
+        return new ProfileCatalog(active, replaced);
     }
 
     /// <summary>Removes the profile; when it was active, the first remaining one becomes active.</summary>

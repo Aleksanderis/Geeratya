@@ -76,5 +76,9 @@ public sealed class LinuxSecretStore : ISecretStore
 
             return null;
         }
+        catch (TimeoutException)
+        {
+            throw new SecretStoreException("secret-tool did not answer (locked keyring or missing prompt?).");
+        }
     }
 }

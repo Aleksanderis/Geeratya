@@ -6,7 +6,10 @@ using Geeratya.Platform.Secrets;
 
 namespace Geeratya.Tui;
 
-/// <summary>The profile file and token lookup, wired once in the composition root.</summary>
+/// <summary>
+/// The profile file and token lookup, wired once in the composition root. Not yet used by the shell (#28).
+/// </summary>
+// ReSharper disable NotAccessedPositionalProperty.Global
 public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens)
 {
     public static ProfileServices Create(

@@ -51,7 +51,7 @@ public class LinuxSecretStoreTests
     [Fact]
     public async Task GivenSecretToolMissing_WhenUsing_ThenStoreBecomesUnavailable()
     {
-        var store = new LinuxSecretStore(new FakeProcessRunner(null));
+        var store = new LinuxSecretStore(FakeProcessRunner.Missing());
 
         var saved = await store.SetAsync("key", "the-token", CancellationToken.None);
         var found = await store.GetAsync("key", CancellationToken.None);
@@ -61,12 +61,20 @@ public class LinuxSecretStoreTests
         Assert.False(store.IsAvailable);
     }
 
+    [Fact]
+    public async Task GivenTimeout_WhenGetting_ThenThrowsSecretStoreException()
+    {
+        var store = new LinuxSecretStore(FakeProcessRunner.Failing(new TimeoutException()));
+
+        await Assert.ThrowsAsync<SecretStoreException>(() => store.GetAsync("key", CancellationToken.None));
+    }
+
     [Theory]
     [InlineData(OperatingSystemKind.Linux, typeof(LinuxSecretStore))]
     [InlineData(OperatingSystemKind.MacOs, typeof(UnsupportedSecretStore))]
     public void GivenOperatingSystem_WhenCreatingStore_ThenPicksItsStore(OperatingSystemKind kind, Type expected)
     {
-        var store = SecretStores.Create(kind, new FakeProcessRunner(null));
+        var store = SecretStores.Create(kind, FakeProcessRunner.Missing());
 
         Assert.IsType(expected, store);
     }

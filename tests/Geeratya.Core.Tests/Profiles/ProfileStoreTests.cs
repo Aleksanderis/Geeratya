@@ -2,7 +2,6 @@ using Geeratya.Core.Profiles;
 
 namespace Geeratya.Core.Tests.Profiles;
 
-[Trait("Os", "Independent")]
 public sealed class ProfileStoreTests : IDisposable
 {
     private readonly string _directory = Path.Combine(Path.GetTempPath(), $"geeratya-{Guid.NewGuid():N}");
@@ -47,6 +46,7 @@ public sealed class ProfileStoreTests : IDisposable
     [InlineData("null")]
     [InlineData("{\"profiles\":[null]}")]
     [InlineData("{\"profiles\":[{\"name\":\"a\"}]}")]
+    [InlineData("{\"profiles\":[{\"name\":\"a\",\"siteUrl\":\"\",\"email\":\"\"}]}")]
     public void GivenCorruptFile_WhenLoading_ThenEmptyCatalogAndCopyKept(string content)
     {
         Directory.CreateDirectory(_directory);
@@ -70,5 +70,6 @@ public sealed class ProfileStoreTests : IDisposable
 
         Assert.DoesNotContain("token", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("credentialKey", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\"active\"", text);
     }
 }
