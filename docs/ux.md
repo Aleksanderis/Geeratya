@@ -20,6 +20,8 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
+Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and the Command palette, in every form step. Terminal.Gui delivers a bracketed paste as one `Application.Paste` event (not as keys), which the shell turns into a `TextPasted` command; terminals without bracketed paste send plain key events and already work as typing. Only the first non-empty line is used and control characters are dropped, so a trailing newline never submits a step. The token stays masked and is never printed or logged.
+
 ## Focus model and key style
 
 - Keys are spelled out everywhere: `Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`; never `^d` or `c-d`.
