@@ -1,12 +1,9 @@
-using Geeratya.Platform.Terminal;
-
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// A role resolved for one tier. Colours are null in the no-colour tier, where only the style is used.
+/// A role resolved for one tier. The no-colour tier has no RGB values: plain gray on black, meaning rests on style.
 /// </summary>
 public sealed record ResolvedStyle(
-    ColorSupport Tier,
     Rgb? Foreground,
     Rgb? Background,
     Ansi16Color? Foreground16,

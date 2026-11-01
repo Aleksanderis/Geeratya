@@ -26,7 +26,7 @@ public class PaletteTests
     }
 
     [Fact]
-    public void GivenNoColourTier_WhenResolvingEveryRole_ThenNoColoursAreUsed()
+    public void GivenNoColourTier_WhenResolvingEveryRole_ThenNoRgbColoursAreUsed()
     {
         foreach (var role in PaletteTable.Roles)
         {
@@ -34,7 +34,6 @@ public class PaletteTests
 
             Assert.Null(style.Foreground);
             Assert.Null(style.Background);
-            Assert.Null(style.Foreground16);
         }
     }
 
@@ -73,5 +72,22 @@ public class PaletteTests
         var ratio = Contrast.Ratio(new Rgb(0, 0, 0), new Rgb(255, 255, 255));
 
         Assert.Equal(21.0, ratio, 1);
+    }
+
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    [InlineData(ColorSupport.None)]
+    public void GivenAnyTier_WhenResolvingEveryRole_ThenForegroundDiffersFromBackground(ColorSupport tier)
+    {
+        foreach (var role in PaletteTable.Roles)
+        {
+            var style = Palette.Resolve(tier, role);
+
+            var foreground = style.Foreground ?? Ansi16.ToRgb(style.Foreground16!.Value);
+            var background = style.Background ?? Ansi16.ToRgb(style.Background16!.Value);
+
+            Assert.NotEqual(foreground, background);
+        }
     }
 }

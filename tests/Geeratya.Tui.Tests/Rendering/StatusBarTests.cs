@@ -64,4 +64,15 @@ public class StatusBarTests
             Assert.True(line.Length <= width);
         }
     }
+
+    [Fact]
+    public void GivenNarrowWidth_WhenConfirming_ThenTheQuestionIsCutAndTheAnswerKeysStay()
+    {
+        var state = FrameOptions.SampleState(InputMode.Confirm);
+
+        var line = StatusBar.Render(state, 30);
+
+        Assert.EndsWith("(y/n)", line.TrimEnd());
+        Assert.Equal(30, line.Length);
+    }
 }

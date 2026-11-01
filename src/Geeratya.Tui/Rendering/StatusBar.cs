@@ -7,6 +7,7 @@ namespace Geeratya.Tui.Rendering;
 public static class StatusBar
 {
     private const string HintGap = "  ";
+    private const string ConfirmSuffix = " (y/n)";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -30,7 +31,7 @@ public static class StatusBar
             return string.Empty;
         }
 
-        var left = $" {Badge(state.Mode)} {Text(state)}".TrimEnd();
+        var left = $" {Badge(state.Mode)} {Text(state, width)}".TrimEnd();
         var hints = string.Join(HintGap, Hints.Where(hint => hint.Mode == state.Mode).Select(Format));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
@@ -58,14 +59,23 @@ public static class StatusBar
         };
     }
 
-    private static string Text(AppState state)
+    private static string Text(AppState state, int width)
     {
         return state.Mode switch
         {
             InputMode.Command => $":{state.PaletteText}",
-            InputMode.Confirm => $"{state.Confirm?.Message} (y/n)",
+            InputMode.Confirm => ConfirmText(state, width),
             InputMode.Help => string.Empty,
             _ => state.Message ?? state.PendingKeys,
         };
+    }
+
+    /// <summary>Cuts the question, never the answer keys: the suffix stays visible on a narrow terminal.</summary>
+    private static string ConfirmText(AppState state, int width)
+    {
+        var used = TextWidth.Of($" {Badge(InputMode.Confirm)} {ConfirmSuffix}");
+        var question = TextWidth.Fit(state.Confirm?.Message ?? string.Empty, Math.Max(0, width - used));
+
+        return $"{question}{ConfirmSuffix}";
     }
 }

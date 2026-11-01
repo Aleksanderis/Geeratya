@@ -7,6 +7,7 @@ namespace Geeratya.Tui.Rendering;
 public static class TextWidth
 {
     private const int WideWidth = 2;
+    private const int EmojiPresentationSelector = 0xFE0F;
 
     private static readonly WideRange[] _wideRanges =
     [
@@ -17,18 +18,26 @@ public static class TextWidth
         new(0xFE30, 0xFE6F),
         new(0xFF00, 0xFF60),
         new(0xFFE0, 0xFFE6),
+        new(0x1F1E6, 0x1F1FF),
         new(0x1F300, 0x1F64F),
+        new(0x1F680, 0x1F6FF),
         new(0x1F900, 0x1F9FF),
+        new(0x1FA70, 0x1FAFF),
+        new(0x2705, 0x2705),
+        new(0x2728, 0x2728),
+        new(0x274C, 0x274C),
+        new(0x26A1, 0x26A1),
         new(0x20000, 0x3FFFD),
     ];
 
     public static int Of(string text)
     {
         var width = 0;
+        var elements = StringInfo.GetTextElementEnumerator(text);
 
-        foreach (var rune in text.EnumerateRunes())
+        while (elements.MoveNext())
         {
-            width += Of(rune);
+            width += OfCluster(elements.GetTextElement());
         }
 
         return width;
@@ -56,18 +65,20 @@ public static class TextWidth
     {
         var builder = new StringBuilder();
         var used = 0;
+        var elements = StringInfo.GetTextElementEnumerator(text);
 
-        foreach (var rune in text.EnumerateRunes())
+        while (elements.MoveNext())
         {
-            var runeWidth = Of(rune);
+            var element = elements.GetTextElement();
+            var elementWidth = OfCluster(element);
 
-            if (used + runeWidth > width)
+            if (used + elementWidth > width)
             {
                 break;
             }
 
-            builder.Append(rune.ToString());
-            used += runeWidth;
+            builder.Append(element);
+            used += elementWidth;
         }
 
         return builder.ToString();
@@ -79,6 +90,23 @@ public static class TextWidth
         var fitted = Fit(text, width);
 
         return $"{fitted}{new string(' ', Math.Max(0, width - Of(fitted)))}";
+    }
+
+    private static int OfCluster(string cluster)
+    {
+        var width = 0;
+
+        foreach (var rune in cluster.EnumerateRunes())
+        {
+            width = Math.Max(width, Of(rune));
+
+            if (rune.Value == EmojiPresentationSelector)
+            {
+                width = WideWidth;
+            }
+        }
+
+        return width;
     }
 
     private static bool IsWide(int codePoint)

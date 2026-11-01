@@ -7,4 +7,4 @@
                                         
                                         
                                         
- CONFIRM Delete PROJ-1? Jira cannot undo
+ CONFIRM Delete PROJ-1? Jira canno (y/n)

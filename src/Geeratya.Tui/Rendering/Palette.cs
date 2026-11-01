@@ -12,20 +12,18 @@ public static class Palette
         return tier switch
         {
             ColorSupport.TrueColor => new ResolvedStyle(
-                tier,
                 entry.TrueForeground,
                 entry.TrueBackground,
                 null,
                 null,
                 RoleStyle.None),
             ColorSupport.Basic16 => new ResolvedStyle(
-                tier,
                 Ansi16.ToRgb(entry.Foreground16),
                 Ansi16.ToRgb(entry.Background16),
                 entry.Foreground16,
                 entry.Background16,
                 RoleStyle.None),
-            _ => new ResolvedStyle(tier, null, null, null, null, entry.NoColorStyle),
+            _ => new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, entry.NoColorStyle),
         };
     }
 }

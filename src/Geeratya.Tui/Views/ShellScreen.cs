@@ -1,3 +1,4 @@
+using System.Text;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -14,6 +15,9 @@ namespace Geeratya.Tui.Views;
 /// </summary>
 public sealed class ShellScreen : Window
 {
+    // Typed text such as an underscore in a command must show as typed, so no character is a hot key marker.
+    private static readonly Rune _noHotKey = new(0xFFFF);
+
     private readonly Label _body;
     private readonly Label _status;
     private readonly IReadOnlyList<string> _helpLines;
@@ -29,8 +33,8 @@ public sealed class ShellScreen : Window
         Height = Dim.Fill();
         SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
 
-        _body = new Label { Text = string.Empty, X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1) };
-        _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill() };
+        _body = new Label { Text = string.Empty, X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1), HotKeySpecifier = _noHotKey };
+        _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), HotKeySpecifier = _noHotKey };
         _body.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
         _status.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Status)));
 
@@ -69,13 +73,13 @@ public sealed class ShellScreen : Window
 
     private static Scheme CreateScheme(ResolvedStyle style)
     {
-        var foreground = ToColor(style.Foreground16, style.Foreground);
-        var background = ToColor(style.Background16, style.Background);
+        var foreground = ToColor(style.Foreground, style.Foreground16);
+        var background = ToColor(style.Background, style.Background16);
 
         return new Scheme(new Attribute(foreground, background, ToTextStyle(style.Style)));
     }
 
-    private static Color ToColor(Ansi16Color? named, Rgb? rgb)
+    private static Color ToColor(Rgb? rgb, Ansi16Color? named)
     {
         if (named is { } ansi)
         {

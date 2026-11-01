@@ -20,9 +20,9 @@ public sealed class ApplicationRunner
 
     public ApplicationRunner(TextWriter output, bool isInteractive, ColorSupport colors = ColorSupport.TrueColor)
     {
-        _colors = colors;
         _output = output;
         _isInteractive = isInteractive;
+        _colors = colors;
     }
 
     public int Run(string[] arguments)
