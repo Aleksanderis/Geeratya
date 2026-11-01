@@ -1,0 +1,68 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,json,yml,yaml}]
+indent_size = 2
+
+[*.cs]
+max_line_length = 120
+csharp_style_namespace_declarations = file_scoped:error
+csharp_using_directive_placement = outside_namespace:error
+csharp_style_var_for_built_in_types = true:error
+csharp_style_var_when_type_is_apparent = true:error
+csharp_style_var_elsewhere = true:error
+csharp_style_deconstructed_variable_declaration = true:error
+csharp_style_prefer_method_group_conversion = true:error
+csharp_style_prefer_collection_expression = true:error
+dotnet_style_prefer_collection_expression = true:error
+csharp_blank_line_after_block = true
+
+dotnet_diagnostic.IDE0001.severity = error
+dotnet_diagnostic.IDE0005.severity = error
+dotnet_diagnostic.IDE0007.severity = error
+dotnet_diagnostic.IDE0008.severity = none
+dotnet_diagnostic.IDE0031.severity = error
+dotnet_diagnostic.IDE0051.severity = error
+dotnet_diagnostic.IDE0052.severity = error
+dotnet_diagnostic.IDE0059.severity = error
+dotnet_diagnostic.IDE0060.severity = error
+dotnet_diagnostic.IDE0200.severity = error
+dotnet_diagnostic.IDE0300.severity = error
+dotnet_diagnostic.IDE0301.severity = error
+dotnet_diagnostic.IDE0305.severity = error
+dotnet_diagnostic.IDE1006.severity = error
+dotnet_diagnostic.CA2016.severity = error
+
+# Constants are exempt from the field prefix; private and protected instance fields are _camelCase.
+dotnet_naming_rule.constants.symbols = constants
+dotnet_naming_rule.constants.style = pascal_case_style
+dotnet_naming_rule.constants.severity = none
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+dotnet_naming_rule.private_instance_fields.symbols = private_instance_fields
+dotnet_naming_rule.private_instance_fields.style = underscore_camel
+dotnet_naming_rule.private_instance_fields.severity = error
+dotnet_naming_symbols.private_instance_fields.applicable_kinds = field
+dotnet_naming_symbols.private_instance_fields.applicable_accessibilities = private, protected
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# Local constants are camelCase.
+dotnet_naming_rule.local_constants.symbols = local_constants
+dotnet_naming_rule.local_constants.style = camel_case_style
+dotnet_naming_rule.local_constants.severity = error
+dotnet_naming_symbols.local_constants.applicable_kinds = local
+dotnet_naming_symbols.local_constants.required_modifiers = const
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
