@@ -1,0 +1,24 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Survey task four"
+      },
+      "id": "10003",
+      "key": "GCM-4",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10003"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Survey story three with unicode café 🚀"
+      },
+      "id": "10002",
+      "key": "GCM-3",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10002"
+    }
+  ],
+  "nextPageToken": "EAIY3YG3vZk0IiNwcm9qZWN0ID0gR0NNIE9SREVSIEJZIGNyZWF0ZWQgREVTQyoCW10yIFRFTkFOVF9OT1RfRk9VTkRfSU5fVEVOQU5UX1NUT1JF"
+}

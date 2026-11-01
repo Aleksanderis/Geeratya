@@ -1,0 +1,43 @@
+{
+  "isLast": true,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10013",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-test-survey3"
+        ],
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+          }
+        },
+        "summary": "Survey story three"
+      },
+      "id": "10006",
+      "key": "GTM-3",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10006"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "detail": "Failed to convert 'maxResults' with value: 'abc'",
+  "instance": "/rest/api/3/search/jql",
+  "status": 400,
+  "title": "Bad Request",
+  "type": "about:blank"
+}

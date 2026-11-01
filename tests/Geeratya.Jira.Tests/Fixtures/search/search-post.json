@@ -1,0 +1,74 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10015",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+          }
+        },
+        "summary": "Survey task one"
+      },
+      "id": "10004",
+      "key": "GTM-1",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10004"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "issuetype": {
+          "avatarId": 10303,
+          "description": "",
+          "entityId": "2db593ac-b664-460d-acf6-1c786b691b72",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10014",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/3/issuetype/10014",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/3/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+          }
+        },
+        "summary": "Survey bug two"
+      },
+      "id": "10005",
+      "key": "GTM-2",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10005"
+    }
+  ],
+  "nextPageToken": "EAIYooypvZk0IiJwcm9qZWN0ID0gR1RNIE9SREVSIEJZIGNyZWF0ZWQgQVNDKgJbXTIgVEVOQU5UX05PVF9GT1VORF9JTl9URU5BTlRfU1RPUkU="
+}

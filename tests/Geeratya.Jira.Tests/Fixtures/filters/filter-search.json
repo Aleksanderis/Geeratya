@@ -1,0 +1,37 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "self": "https://example.atlassian.net/rest/api/3/filter/search?expand=jql,description,owner&maxResults=50&startAt=0",
+  "startAt": 0,
+  "total": 2,
+  "values": [
+    {
+      "expand": "description,owner,jql,viewUrl,searchUrl,favourite,favouritedCount,sharePermissions,editPermissions,isWritable,approximateLastUsed,subscriptions",
+      "id": "10001",
+      "jql": "project = \"GCM\" ORDER BY Rank ASC",
+      "name": "Filter for GCM board",
+      "owner": {
+        "accountId": "fake-account-1",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/filter/10001"
+    },
+    {
+      "expand": "description,owner,jql,viewUrl,searchUrl,favourite,favouritedCount,sharePermissions,editPermissions,isWritable,approximateLastUsed,subscriptions",
+      "id": "10003",
+      "jql": "project = \"GCM\" ORDER BY Rank ASC",
+      "name": "Filter for GCM board (1)",
+      "owner": {
+        "accountId": "fake-account-1",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1"
+      },
+      "self": "https://example.atlassian.net/rest/api/3/filter/10003"
+    }
+  ]
+}

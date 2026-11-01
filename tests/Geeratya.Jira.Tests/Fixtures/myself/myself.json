@@ -1,0 +1,20 @@
+{
+  "accountId": "fake-account-1",
+  "accountType": "atlassian",
+  "active": true,
+  "applicationRoles": {
+    "items": [],
+    "size": 3
+  },
+  "avatarUrls": {},
+  "displayName": "Test User 1",
+  "emailAddress": "user1@example.com",
+  "expand": "groups,applicationRoles",
+  "groups": {
+    "items": [],
+    "size": 8
+  },
+  "locale": "en_US",
+  "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+  "timeZone": "UTC"
+}
