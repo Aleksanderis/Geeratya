@@ -23,12 +23,13 @@ public sealed class ApplicationDirectories
             return;
         }
 
-        ConfigDirectory = XdgDirectory(environment, "XDG_CONFIG_HOME", Path.Combine(folders.Home, ".config"));
-        StateDirectory = XdgDirectory(
-            environment,
-            "XDG_STATE_HOME",
-            Path.Combine(folders.Home, ".local", "state"));
-        CacheDirectory = XdgDirectory(environment, "XDG_CACHE_HOME", Path.Combine(folders.Home, ".cache"));
+        var configFallback = Path.Combine(folders.Home, ".config");
+        var stateFallback = Path.Combine(folders.Home, ".local", "state");
+        var cacheFallback = Path.Combine(folders.Home, ".cache");
+
+        ConfigDirectory = XdgDirectory(environment, "XDG_CONFIG_HOME", configFallback);
+        StateDirectory = XdgDirectory(environment, "XDG_STATE_HOME", stateFallback);
+        CacheDirectory = XdgDirectory(environment, "XDG_CACHE_HOME", cacheFallback);
     }
 
     public string ConfigDirectory { get; }

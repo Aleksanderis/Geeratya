@@ -1,6 +1,6 @@
 namespace Geeratya.Platform;
 
-/// <summary>Reads environment variables through an injected lookup, so tests never touch the process environment.</summary>
+/// <summary>Reads environment variables through an injected lookup, so tests never touch the process.</summary>
 public sealed class EnvironmentReader
 {
     private readonly Func<string, string?> _lookup;

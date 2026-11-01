@@ -4,8 +4,6 @@
     <AssemblyName>geeratya</AssemblyName>
     <RootNamespace>Geeratya.Tui</RootNamespace>
     <PublishAot>true</PublishAot>
-    <StripSymbols>true</StripSymbols>
-    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Geeratya.Core\Geeratya.Core.csproj" />

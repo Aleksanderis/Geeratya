@@ -5,7 +5,7 @@ namespace Geeratya.Tui.Tests;
 public class ApplicationRunnerTests
 {
     [Fact]
-    public void Version_flag_prints_name_and_version()
+    public void GivenVersionFlag_WhenRunning_ThenPrintsNameAndVersion()
     {
         using var writer = new StringWriter();
 

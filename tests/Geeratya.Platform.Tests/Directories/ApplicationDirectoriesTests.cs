@@ -12,7 +12,7 @@ public class ApplicationDirectoriesTests
     [Theory]
     [InlineData(OperatingSystemKind.Linux)]
     [InlineData(OperatingSystemKind.MacOs)]
-    public void Unix_without_xdg_variables_uses_the_home_defaults(OperatingSystemKind operatingSystem)
+    public void GivenUnixWithoutXdg_WhenResolving_ThenUsesHomeDefaults(OperatingSystemKind operatingSystem)
     {
         var directories = new ApplicationDirectories(operatingSystem, CreateEnvironment([]), _folders);
 
@@ -22,7 +22,7 @@ public class ApplicationDirectoriesTests
     }
 
     [Fact]
-    public void Absolute_xdg_variables_win()
+    public void GivenAbsoluteXdgVariables_WhenResolving_ThenTheyWin()
     {
         var xdgRoot = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "xdg"));
         var environment = CreateEnvironment(new Dictionary<string, string>
@@ -40,7 +40,7 @@ public class ApplicationDirectoriesTests
     }
 
     [Fact]
-    public void Relative_xdg_variable_is_ignored()
+    public void GivenRelativeXdgVariable_WhenResolving_ThenItIsIgnored()
     {
         var environment = CreateEnvironment(new Dictionary<string, string> { ["XDG_CONFIG_HOME"] = "relative/path" });
 
@@ -50,7 +50,7 @@ public class ApplicationDirectoriesTests
     }
 
     [Fact]
-    public void Windows_uses_known_folders_and_ignores_xdg()
+    public void GivenWindows_WhenResolving_ThenUsesKnownFoldersAndIgnoresXdg()
     {
         var environment = CreateEnvironment(new Dictionary<string, string> { ["XDG_CONFIG_HOME"] = _home });
 
