@@ -52,7 +52,7 @@ These are quality inspections, not style, so neither the compiler nor `.editorco
 - Static: pure mappers, ADF renderers, JQL builders, formatters and layout (same input, same output, no I/O, no clock, no cache, no state).
 - Instance: anything that sends HTTP, spawns a process, touches the file system or secret store, reads a clock or keeps a cache, even when it has no dependency yet, so it can be injected and faked. Small sealed classes that take what they use in the constructor and have no static state.
 - Interface: only where another layer consumes the class and tests need a fake (a fake lives in `tests/Geeratya.Tui.Tests/Fakes`).
-- Composition root: dependencies are wired by hand in `Program.Main` and `JiraServices.Create`. No DI container (it needs reflection or codegen and costs startup). Tests build the same `JiraServices` record, or swap one part with `with` and a fake. No `IHttpClientFactory` from the DI stack: one `HttpClient` per connection, created in the composition root.
+- Composition root: dependencies are wired by hand in `Program.Main` and `JiraServices.Create`. No DI container (it needs reflection or codegen and costs startup). Tests build the same `JiraServices` record, or swap one part with `with` and a fake. No `IHttpClientFactory` from the DI stack: one `HttpClient` per connection, owned by its `JiraTransport`; the composition root only builds the transport.
 - Jira clients take only a `JiraTransport` (bound to one connection); one client instance per transport, shared by every tab of that site. Switching profiles builds a new transport and clients.
 
 ## Testability
