@@ -14,7 +14,7 @@ namespace Geeratya.Tui;
 public sealed class SiteConnections : IDisposable
 {
     private const string NoTokenMessage =
-        "No API token stored for this profile: add the profile again to store one.";
+        "No API token stored for this profile: remove and add it again to store one.";
 
     private const string NoTokenSingleProfileMessage =
         $"No API token for this profile: add it again or set {TokenProvider.EnvironmentVariable}.";
@@ -142,11 +142,15 @@ public sealed class SiteConnections : IDisposable
         }
         catch (SecretStoreException exception)
         {
+            ForgetFailed(profile);
+
             return new ConnectionFailed(profile, $"The secret store failed: {exception.Message}");
         }
 
         if (string.IsNullOrWhiteSpace(resolution.Token))
         {
+            ForgetFailed(profile);
+
             return new ConnectionFailed(profile, allowEnvironment ? NoTokenSingleProfileMessage : NoTokenMessage);
         }
 
@@ -160,6 +164,8 @@ public sealed class SiteConnections : IDisposable
         }
         catch (Exception exception) when (exception is ArgumentException or UriFormatException)
         {
+            ForgetFailed(profile);
+
             return new ConnectionFailed(profile, BadSiteMessage);
         }
 
@@ -176,6 +182,19 @@ public sealed class SiteConnections : IDisposable
         transport.Dispose();
 
         return null;
+    }
+
+    // A failed profile is not "connected", so activating it again (for example after another profile was removed and
+    // the environment token became usable) tries once more.
+    private void ForgetFailed(Profile profile)
+    {
+        lock (_lock)
+        {
+            if (profile == _profile && _transport is null)
+            {
+                _profile = null;
+            }
+        }
     }
 
     private int Replace(Profile? profile)
