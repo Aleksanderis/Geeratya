@@ -26,7 +26,7 @@ Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, deci
 - Be conservative with writes. Read paths never write. Destructive or hard-to-undo actions (delete an issue or comment, bulk edits, transitions that fire workflow side effects, changing an assignee or sprint for many issues) are confirmed in the UI and say what will change; Jira has no undo, so say so too.
 - Code style, naming, folders, static vs instance and AOT rules: `.claude/rules/csharp-style.md`, loaded when you touch `.cs` files. Jira layer rules: `.claude/rules/jira-layer.md`. UI, keys and colour rules: `.claude/rules/ui-changes.md`. Read them before writing code there.
 - Scripts (bash and PowerShell) live in `scripts/`; `tools/` holds small C# helper programs (for example the fake Jira server).
-- Don't copy code from other projects verbatim (Gitunia included, it is the same owner but a separate codebase: reuse ideas, rewrite the code). Note the source in `docs/decisions.md` only if it shaped a non-obvious decision.
+- Gitunia (`../Gitunia`, the owner's Git TUI, same stack) is the reference for TUI decisions and patterns: vim-style navigation, keymaps, modes, layout, Terminal.Gui pitfalls, agent routines. Read it (read-only, even in autonomous runs; never edit it) before designing a key, mode or screen, and reuse its ideas where they fit. Don't copy code from other projects verbatim (Gitunia included, it is a separate codebase: rewrite the code). Note the source in `docs/decisions.md` only if it shaped a non-obvious decision.
 
 ## Git conventions
 
@@ -73,4 +73,4 @@ Follow the `work-task` skill (`.claude/skills/work-task/`) for the procedure. To
 - Every PR carries the reviewer's findings as a PR comment; every owner comment gets an agent-marked reply; loose ends are registered as issues, not left in notes.
 - Don't block on questions: decide from the docs or take the recommended default, log it, and say so in the PR.
 - Models: use Sonnet for every role, not Opus. Cost is tuned with reasoning effort, set in the skill and agent frontmatter, not repeated in prose.
-- Never: spend money or create paid resources/accounts, delete branches you didn't create, touch anything outside this repo and the scratchpad, write to any Jira other than the dev site, or create, edit or delete dev-site data outside the sandbox projects the `testing` skill names.
+- Never: spend money or create paid resources/accounts, delete branches you didn't create, touch anything outside this repo and the scratchpad (except reading `../Gitunia`), write to any Jira other than the dev site, or create, edit or delete dev-site data outside the sandbox projects the `testing` skill names.
