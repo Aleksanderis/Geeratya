@@ -21,16 +21,16 @@ Normal mode
   q          Quit                                                                                                       
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
-                                                                                                                        
-Help mode                                                                                                               
-  j          Move down                                                                                                  
-  Down       Move down                                                                                                  
-  k          Move up                                                                                                    
-  Up         Move up                                                                                                    
-  ?          Show or hide help                                                                                          
-  Esc        Close help                                                                                                 
-  q          Close help                                                                                                 
-  Ctrl-c     Quit                                                                                                       
-                                                                                                                        
-Command mode                                                                                                            
+  Enter      Open the selected item                                                                                     
+  0          Go to the first column                                                                                     
+  $          Go to the last column                                                                                      
+  ] ]        Next section of the issue                                                                                  
+  [ [        Previous section of the issue                                                                              
+  Tab        Next tab                                                                                                   
+  g t        Next tab                                                                                                   
+  Shift-Tab  Previous tab                                                                                               
+  g T        Previous tab                                                                                               
+  Alt-1      Go to tab 1                                                                                                
+  Alt-2      Go to tab 2                                                                                                
+  Alt-3      Go to tab 3                                                                                                
  HELP                                                                                            j down  k up  Esc close

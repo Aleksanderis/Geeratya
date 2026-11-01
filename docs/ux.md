@@ -1,10 +1,10 @@
 # UX
 
-Index of the interface specification. Parts: [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse arrives with its own part.
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse arrives with its own part.
 
 ## Shell
 
-The shell is one full-screen window with a body, a one-line status line at the bottom and overlays on top. The first frame is drawn before any network reply. Until views exist (later milestones) the body is empty apart from a hint line.
+The shell is one full-screen window with a body, a one-line status line at the bottom and overlays on top. The first frame is drawn before any network reply. Until views exist (M1) the body is empty apart from a hint line; the M1 views (tab bar, list, columns, issue detail, source picker, network banner) are specified in [ux-screens.md](ux-screens.md).
 
 ## Modes
 
@@ -16,7 +16,7 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
-| Insert | `:profile add` (the first editable form) | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
+| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose) | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
@@ -26,7 +26,7 @@ Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and t
 
 - Keys are spelled out everywhere: `Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`; never `^d` or `c-d`.
 - Exactly one place has focus: the overlay when one is open, otherwise the body. An overlay takes every key; nothing falls through to the body.
-- `Esc` backs out one level: it clears a half-typed sequence or the status message, closes an overlay or cancels Command and Confirm mode. In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
+- `Esc` backs out one level: it clears a half-typed sequence or the status message, closes an overlay or cancels Command and Confirm mode. In a tab it also pops the issue stack (issue detail back to the view it was opened from). In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
 - `Ctrl-c` quits from Normal, Help and Command mode (never from Confirm).
 - `q` quits only in Normal mode. In Help it closes the overlay; in Command mode it is text; in Confirm mode it does nothing.
 - Multi-key bindings (`g g`) show the typed prefix in the status line; any key that does not continue the binding drops it.
