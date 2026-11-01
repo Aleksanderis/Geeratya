@@ -73,4 +73,4 @@ Follow the `work-task` skill (`.claude/skills/work-task/`) for the procedure. To
 - Every PR carries the reviewer's findings as a PR comment; every owner comment gets an agent-marked reply; loose ends are registered as issues, not left in notes.
 - Don't block on questions: decide from the docs or take the recommended default, log it, and say so in the PR.
 - Models: use Sonnet for every role, not Opus. Cost is tuned with reasoning effort, set in the skill and agent frontmatter, not repeated in prose.
-- Never: spend money or create paid resources/accounts, delete branches you didn't create, touch anything outside this repo and the scratchpad, write to any Jira other than the dev site, or create, edit or delete dev-site data outside the test project the `testing` skill names.
+- Never: spend money or create paid resources/accounts, delete branches you didn't create, touch anything outside this repo and the scratchpad, write to any Jira other than the dev site, or create, edit or delete dev-site data outside the sandbox projects the `testing` skill names.

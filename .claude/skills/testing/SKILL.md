@@ -42,9 +42,11 @@ Name tests `Given<Context>_When<Action>_Then<Outcome>` (PascalCase parts). Tests
 
 The owner's free Jira Cloud dev site is the only live Jira agents may use. The company site is never used, not even read-only.
 
-- Environment: `GEERATYA_LIVE_HOSTS` (comma-separated allowlist, the dev site host only), `GEERATYA_LIVE_EMAIL`, `GEERATYA_LIVE_TOKEN`, `GEERATYA_LIVE_PROJECT` (the sandbox project key). Missing variables mean live tests skip; they never fail the normal run. The token is never echoed: no `set -x`, no `env` dumps, no printing the variable.
+- Environment: `GEERATYA_LIVE_HOSTS` (comma-separated allowlist, the dev site host only), `GEERATYA_LIVE_EMAIL`, `GEERATYA_LIVE_TOKEN`, `GEERATYA_LIVE_PROJECT` (the sandbox project key). Missing variables mean live tests skip; they never fail the normal run. The token is never echoed: no `set -x`, no `env` dumps, no printing the variable, no `cat` of the env file.
+- The variables live in the owner's env file `${GEERATYA_LIVE_ENV:-$HOME/.config/geeratya/dev-site.env}` (outside the repo). A session may have started before they were set (remote sessions cannot restart), so every live command loads the file itself in the same shell call: `. "${GEERATYA_LIVE_ENV:-$HOME/.config/geeratya/dev-site.env}" && dotnet test --filter "Live=true"`. Live scripts in `scripts/` load it themselves when the variables are missing.
+- Dev site: `GCM` (company-managed, board 4) and `GTM` (team-managed, board 3), both Kanban with a backlog. `GEERATYA_LIVE_PROJECT` is `GCM`; tests that need the team-managed kind use `GTM`. Both are sandboxes under the write rule below.
 - Live tests (M0: `[LiveFact]`, skips without the env and refuses a host outside the allowlist) run with `dotnet test --filter "Live=true"`, only when the issue needs it, and are never part of the review or CI gate.
-- Writes on the dev site only inside `GEERATYA_LIVE_PROJECT`. Every issue a test or agent creates carries the label `geeratya-test-<run id>` and is deleted at the end of the run; never edit or delete data you did not create. No project, user, workflow, scheme or permission changes.
+- Writes on the dev site only inside `GCM` and `GTM`. Every issue a test or agent creates carries the label `geeratya-test-<run id>` and is deleted at the end of the run; never edit or delete data you did not create. No project, user, workflow, scheme or permission changes.
 - Seeding the dev site with sample data (M0: `scripts/seed-dev-site.sh`) is idempotent and only adds to the sandbox project.
 
 ## Driving the real binary (tmux)
