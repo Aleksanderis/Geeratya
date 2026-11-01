@@ -9,8 +9,8 @@ paths:
 
 The contract, models, endpoints and refresh design are in `docs/jira-layer.md`; read the section you work in. The rules:
 
-- Every call is connection-scoped: it takes a `JiraConnection` (site base URL, account, credential reference) as an argument. No static "current site", no base URL in a static field.
-- One transport sends every request (`JiraTransport` over one `HttpClient` per connection). It owns auth headers, `Accept`/`Content-Type`, the user agent, timeouts, retries and rate limiting. No `HttpClient` or `HttpRequestMessage` outside it.
+- Every call is connection-scoped: a `JiraTransport` is created per `JiraConnection` (site base URL, account) with its token, and clients take only that transport; a tab holds the transport of its site. No static "current site", no base URL in a static field.
+- One transport sends every request (`JiraTransport` over one `HttpClient` per connection). It owns auth headers, `Accept`/`Content-Type`, the user agent, timeouts, retries and rate limiting. No `HttpClient` or `HttpRequestMessage` outside it. The site URL must be https (http only for loopback, for the fake Jira), and the transport never follows redirects (a 3xx is an error), so the credential cannot be sent to another host.
 - Credentials: Jira Cloud uses Basic auth with the account email and an API token (scoped tokens go through `api.atlassian.com/ex/jira/<cloudId>`). The token comes from the credential store and lives only in the transport. It never reaches logs, exception messages, `ToString()`, snapshots, fixtures or error text shown in the UI; redact the `Authorization` header in any request dump.
 - Every call has a `CancellationToken` and a timeout, and maps the status to a typed error: 401 (bad or expired token), 403 (no permission), 404/410 (gone or hidden), 429 (rate limited), 5xx and network failures. No raw `HttpRequestException` crosses the layer boundary.
 - Rate limits: honour `Retry-After` on 429 and 503, back off with jitter, retry only idempotent requests (GET, and POST search) automatically, never a write. Cap concurrent requests per site. Background refresh yields to user-initiated requests.
