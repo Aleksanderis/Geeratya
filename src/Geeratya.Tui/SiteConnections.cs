@@ -14,6 +14,9 @@ namespace Geeratya.Tui;
 public sealed class SiteConnections : IDisposable
 {
     private const string NoTokenMessage =
+        "No API token stored for this profile: add the profile again to store one.";
+
+    private const string NoTokenSingleProfileMessage =
         $"No API token for this profile: add it again or set {TokenProvider.EnvironmentVariable}.";
 
     private const string BadSiteMessage = "The profile's site URL cannot be used: it must be https.";
@@ -66,9 +69,13 @@ public sealed class SiteConnections : IDisposable
     /// <summary>
     /// Makes <paramref name="profile"/> the connected profile (null disconnects). Does nothing when it already is.
     /// The synchronous part only swaps state; the token lookup runs off the calling thread. Returns the failure to
-    /// report, or null.
+    /// report, or null. <paramref name="profileCount"/> is the number of saved profiles: the process-wide
+    /// <c>GEERATYA_TOKEN</c> is used only when it is 1, so one site's token is never sent to another profile's host.
     /// </summary>
-    public Task<ConnectionFailed?> ActivateAsync(Profile? profile, CancellationToken cancellationToken)
+    public Task<ConnectionFailed?> ActivateAsync(
+        Profile? profile,
+        int profileCount,
+        CancellationToken cancellationToken)
     {
         int generation;
 
@@ -87,7 +94,7 @@ public sealed class SiteConnections : IDisposable
             return Task.FromResult<ConnectionFailed?>(null);
         }
 
-        return ConnectAsync(profile, generation, cancellationToken);
+        return ConnectAsync(profile, profileCount == 1, generation, cancellationToken);
     }
 
     /// <summary>Closes the connection of <paramref name="profile"/> if it is the connected one.</summary>
@@ -117,6 +124,7 @@ public sealed class SiteConnections : IDisposable
 
     private async Task<ConnectionFailed?> ConnectAsync(
         Profile profile,
+        bool allowEnvironment,
         int generation,
         CancellationToken cancellationToken)
     {
@@ -125,7 +133,7 @@ public sealed class SiteConnections : IDisposable
         try
         {
             resolution = await Task.Run(
-                () => _tokens.ResolveAsync(profile.CredentialKey, cancellationToken),
+                () => _tokens.ResolveAsync(profile.CredentialKey, allowEnvironment, cancellationToken),
                 cancellationToken);
         }
         catch (OperationCanceledException)
@@ -139,7 +147,7 @@ public sealed class SiteConnections : IDisposable
 
         if (string.IsNullOrWhiteSpace(resolution.Token))
         {
-            return new ConnectionFailed(profile, NoTokenMessage);
+            return new ConnectionFailed(profile, allowEnvironment ? NoTokenSingleProfileMessage : NoTokenMessage);
         }
 
         JiraTransport transport;

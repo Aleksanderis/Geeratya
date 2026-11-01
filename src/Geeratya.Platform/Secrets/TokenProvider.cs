@@ -1,6 +1,7 @@
 namespace Geeratya.Platform.Secrets;
 
-/// <summary>Finds the API token for a credential key: the secret store first, then <c>GEERATYA_TOKEN</c>.</summary>
+/// <summary>Finds the API token for a credential key: the secret store first, then <c>GEERATYA_TOKEN</c>.
+/// The variable is one token for the whole process, so the caller allows it only where it cannot reach another site.</summary>
 public sealed class TokenProvider
 {
     public const string EnvironmentVariable = "GEERATYA_TOKEN";
@@ -15,13 +16,21 @@ public sealed class TokenProvider
 
     public ISecretStore Store { get; }
 
-    public async Task<TokenResolution> ResolveAsync(string credentialKey, CancellationToken cancellationToken)
+    public async Task<TokenResolution> ResolveAsync(
+        string credentialKey,
+        bool allowEnvironment,
+        CancellationToken cancellationToken)
     {
         var stored = await Store.GetAsync(credentialKey, cancellationToken);
 
         if (stored is not null)
         {
             return new TokenResolution(stored, TokenSource.SecretStore);
+        }
+
+        if (!allowEnvironment)
+        {
+            return new TokenResolution(null, TokenSource.None);
         }
 
         var fromEnvironment = _environment.Get(EnvironmentVariable);
