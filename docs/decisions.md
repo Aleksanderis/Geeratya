@@ -23,3 +23,5 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 **Architecture:** A view is a source (JQL, filter, board, backlog) plus a layout (list, columns). Why: the owner wants boards flexible; new board kinds are then a new source or layout.
 
 **UI:** The keymap is `keymap.default.json` embedded in Core and read with source-generated System.Text.Json; `docs/keymap.md` is generated from it by `--print-keymap-doc` through `scripts/gen-keymap-doc.sh` (no separate generator tool). Why: one code path renders help and the reference, and a test compares the committed file.
+
+**Stack:** Secret store: `secret-tool` on Linux (token on stdin), advapi32 Credential Manager on Windows, no store on macOS yet (`GEERATYA_TOKEN`). The store is tried first, the variable is the fallback. Why: no native library dependency, AOT-safe, and a keychain binding can come later.
