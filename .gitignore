@@ -426,3 +426,8 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/worktrees/
+.claude/scheduled_tasks.lock
