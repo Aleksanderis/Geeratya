@@ -12,6 +12,7 @@ Solution layout, layering, composition, threading and cross-platform rules. Code
 | `src/Geeratya.Core` | State layer: views, commands, reducer and effects, caches. Pure, runs without a terminal. | Jira |
 | `src/Geeratya.Platform` | Operating-system abstraction: config/state/cache directories, console capabilities, environment lookup. | none |
 | `src/Geeratya.Tui` | The `geeratya` executable: composition root, Terminal.Gui rendering, input. The only project that touches the console. | Core, Jira, Platform |
+| `tools/FakeJira` | Local fake Jira server over the recorded fixtures (Native AOT compatible); tests in `tests/Geeratya.FakeJira.Tests`. See `docs/testing.md`. | none |
 | `tests/Geeratya.<Name>.Tests` | xUnit, one per source project, same folder layout as the code under test. | its source project |
 
 Layering is `Jira -> Core -> Tui`, with `Platform` beside them: Jira never references Core, Core never references Tui, and only Tui touches Terminal.Gui. Core takes platform facts (paths, capabilities) as plain values from the composition root rather than referencing Platform, so the state layer stays testable with literals.
