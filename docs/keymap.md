@@ -129,5 +129,6 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

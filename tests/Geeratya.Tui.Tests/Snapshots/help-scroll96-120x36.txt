@@ -1,14 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Ctrl-n     Next source in the picker                                                                                  
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
-  Ctrl-s     Save the form                                                                                              
-  Alt-Enter  Save the form                                                                                              
-  Left       Move the cursor left                                                                                       
-  Right      Move the cursor right                                                                                      
-  Home       Move the cursor to the start of the row                                                                    
   End        Move the cursor to the end of the row                                                                      
   Delete     Delete the character under the cursor                                                                      
   Ctrl-o     Open the issue page in the browser from the form                                                           
@@ -30,7 +22,15 @@ Palette commands
       Edit the labels of the selected or shown issue (field form)                                                       
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
+  :keys reload                                                                                                          
+      Read keymap.json again and apply it                                                                               
   :help                                                                                                                 
       Show or hide help                                                                                                 
   :quit                                                                                                                 
+      Quit                                                                                                              
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
  HELP                                                                                            j down  k up  Esc close
