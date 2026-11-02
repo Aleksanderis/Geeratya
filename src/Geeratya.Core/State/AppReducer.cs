@@ -185,9 +185,33 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            _ when IsJqlCommand(text) => OpenJql(normal, text["jql".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
+    }
+
+    private static bool IsJqlCommand(string text)
+    {
+        return text == "jql" || text.StartsWith("jql ", StringComparison.Ordinal);
+    }
+
+    /// <summary>Temporary minimal parse of <c>:jql &lt;query&gt;</c>: everything after the word is the query (#87 replaces it).</summary>
+    private static ReduceResult OpenJql(AppState state, string query)
+    {
+        if (query.Length == 0)
+        {
+            return Result(state with { Message = "Usage: :jql <query>" });
+        }
+
+        if (state.Profiles.Active is null)
+        {
+            return Result(state with { Message = "No profile yet: add one with :profile add." });
+        }
+
+        var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, query);
+
+        return ViewReducer.Reduce(state, new ViewOpenRequested(definition));
     }
 
     private static bool IsProfileCommand(string text)

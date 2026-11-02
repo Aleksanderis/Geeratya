@@ -14,10 +14,22 @@ public static class LoadErrorText
             JiraErrorKind.Unauthorized => "Jira rejected the credentials. Check the token with :profile.",
             JiraErrorKind.Forbidden or JiraErrorKind.NotFound => "Not found, or you have no access to it.",
             JiraErrorKind.PageExpired => "The page expired. Refresh to start again.",
-            JiraErrorKind.RateLimited => "Jira is rate limiting requests. Try again shortly.",
+            JiraErrorKind.RateLimited => RateLimited(error.RetryAfter),
             JiraErrorKind.Timeout => "Jira did not answer in time.",
             JiraErrorKind.Network or JiraErrorKind.HostRefused => "Cannot reach Jira.",
             _ => error.Message,
         };
+    }
+
+    private static string RateLimited(TimeSpan? wait)
+    {
+        if (wait is not { } span || span <= TimeSpan.Zero)
+        {
+            return "Jira is rate limiting requests. Try again shortly.";
+        }
+
+        var seconds = (int)Math.Ceiling(span.TotalSeconds);
+
+        return $"Jira is rate limiting requests. Try again in {seconds} s.";
     }
 }
