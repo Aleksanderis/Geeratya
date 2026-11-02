@@ -167,13 +167,31 @@ public class FormOverlaySnapshotTests
         var target = new TransitionPickTarget("A-1", [], null, [])
             .With([Transition("21", "In Progress"), Transition("41", "Done")]);
         var form = FormState.Opened(target, 3, null) with { Fields = target.Fields(), IsLoading = false };
+        var shown = form with { Suggest = ChoicePopup.For(form.Fields[0], 0, null) };
 
-        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Change status of A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("> Move to *", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("( ) In Progress", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("( ) Done", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("> In Progress", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("  Done", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAMultiChoiceWithChipsAndAFilter_WhenBuildingTheFrame_ThenChipsFilterAndRankedRowsShow()
+    {
+        FieldOption[] options = [new("1", "Backend"), new("2", "Frontend"), new("3", "Docs")];
+        var field = FormField.Create("components", "Components", FormFieldKind.MultiSelect, false, options);
+        var typed = field with { Value = FormValue.OfChosen(["1"]), Entry = "oc" };
+        var form = FormState.Opened(Target(), 3, null) with { Fields = [typed], IsLoading = false };
+        var shown = form with { Suggest = ChoicePopup.For(typed, 0, null) };
+
+        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("[Backend] oc_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("> Docs", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));
     }
 
     [Fact]

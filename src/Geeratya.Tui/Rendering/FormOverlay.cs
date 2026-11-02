@@ -4,7 +4,6 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Create.Models;
-using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -32,13 +31,13 @@ public static class FormOverlay
     private const int FooterMinimumInner = 8;
     private const int TopGap = 1;
     private const int Indent = 4;
-    private const int OptionRows = 5;
     private const int ParagraphRows = 4;
     private const int PopupRows = 5;
     private const int PopupMargin = 2;
     private const string SearchingText = "searching…";
     private const string LookupFailedText = "lookup failed, showing what is loaded";
     private const string NoMatchText = "No match";
+    private const string NoMoreText = "No more values";
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -182,6 +181,16 @@ public static class FormOverlay
             return $"{down}/{up} type   {choose} choose   {cancel} cancel";
         }
 
+        if (form.Suggest is { Source.Kind: SuggestionKind.Options, Items.Count: > 0 } choice)
+        {
+            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
+            var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+            var escape = choice.Query.Length == 0 ? "cancel" : "clear filter";
+
+            return $"{down}/{up} choose   {accept} accept   {next}/{previous} field   {cancel} {escape}";
+        }
+
         if (form.Suggest is { Items.Count: > 0 })
         {
             var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
@@ -300,7 +309,7 @@ public static class FormOverlay
         return field.Kind switch
         {
             FormFieldKind.Paragraph => ParagraphLines(field, focused, valueWidth),
-            FormFieldKind.Select or FormFieldKind.MultiSelect => focused ? OptionLines(field) : [ChosenLine(field)],
+            FormFieldKind.Select or FormFieldKind.MultiSelect => ChoiceLines(field, focused, form, valueWidth),
             FormFieldKind.Labels => [.. LabelLines(field, focused, valueWidth), .. PopupLines(focused, form, valueWidth)],
             FormFieldKind.User or FormFieldKind.Parent => PickedLines(field, focused, form, valueWidth),
             _ => [TextLine(field, focused, valueWidth)],
@@ -448,56 +457,22 @@ public static class FormOverlay
         {
             SuggestionStatus.Loading => new PopupNotice(SearchingText, TextRole.Loading),
             SuggestionStatus.Failed => new PopupNotice($"{LookupFailedText}: {popup.Error}", TextRole.Error),
+            SuggestionStatus.Loaded when popup.Items.Count == 0 && popup.Query.Length == 0
+                => new PopupNotice(NoMoreText, TextRole.Muted),
             SuggestionStatus.Loaded when popup.Items.Count == 0 => new PopupNotice(NoMatchText, TextRole.Muted),
             _ => null,
         };
     }
 
-    private static List<StyledLine> OptionLines(FormField field)
+    // A choice shows its chosen values like chips and, while focused, the typed filter and the suggestion popup.
+    private static List<StyledLine> ChoiceLines(FormField field, bool focused, FormState form, int valueWidth)
     {
-        var visible = FormEditor.VisibleOptions(field);
-        var lines = new List<StyledLine>();
-
-        if (field.Entry.Length > 0)
+        if (!focused)
         {
-            lines.Add(Indented($"filter: {field.Entry}{Caret}", TextRole.Editable));
+            return [ChosenLine(field)];
         }
 
-        if (visible.Count == 0)
-        {
-            lines.Add(Indented("No match", TextRole.Muted));
-
-            return lines;
-        }
-
-        var cursor = Math.Clamp(field.Cursor, 0, visible.Count - 1);
-        var first = Math.Clamp(cursor - OptionRows + 1, 0, Math.Max(0, visible.Count - OptionRows));
-
-        foreach (var index in Enumerable.Range(first, Math.Min(OptionRows, visible.Count - first)))
-        {
-            lines.Add(OptionLine(field, visible[index], index == cursor));
-        }
-
-        return lines;
-    }
-
-    private static StyledLine OptionLine(FormField field, FieldOption option, bool highlighted)
-    {
-        var chosen = field.Value.Chosen.Contains(option.Id) || (option.Id.Length == 0 && field.Value.Chosen.Count == 0);
-        var mark = MarkOf(field.Kind, chosen);
-        var pointer = highlighted ? ">" : " ";
-
-        return Indented($"{pointer} {mark} {option.Label}", highlighted ? TextRole.Selected : TextRole.Body);
-    }
-
-    private static string MarkOf(FormFieldKind kind, bool chosen)
-    {
-        if (kind == FormFieldKind.MultiSelect)
-        {
-            return chosen ? "[x]" : "[ ]";
-        }
-
-        return chosen ? "(x)" : "( )";
+        return [.. LabelLines(field, true, valueWidth), .. PopupLines(true, form, valueWidth)];
     }
 
     private static string LabelOf(FormField field, string id)

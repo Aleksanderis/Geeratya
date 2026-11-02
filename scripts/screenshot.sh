@@ -55,6 +55,7 @@ all_scenarios=(
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-suggest;120;36;dark;:jql project = GEN|:labels|geer;geeratya-seed"
+  "form-choice;120;36;dark;:jql project = GEN|:priority|h;Edit GEN-"
   "assign;120;36;dark;:jql project = GEN| iatest;Test User 1"
   "assign-quick;120;36;dark;:jql project = GEN| ia;Me ("
   "status-picker;120;36;dark;:board GCM|j is;Change status of"

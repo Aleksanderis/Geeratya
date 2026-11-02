@@ -83,9 +83,9 @@ public static partial class FormReducer
             return CreateFormReducer.ChoosingType(state, tab, form, action);
         }
 
-        if (form.Suggest is { } popup && Suggesting(state, tab, form, popup, action) is { } handled)
+        if (form.Suggest is { } popup && Suggesting(state, tab, form, popup, action, at) is { } handled)
         {
-            return handled;
+            return Choosing(handled, tab.Id);
         }
 
         var result = action switch
@@ -98,13 +98,11 @@ public static partial class FormReducer
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
             ActionIds.FormBackspace => Edited(Edit(state, tab, form, FormEditor.Backspace), tab.Id),
-            ActionIds.PickerNext => Result(Edit(state, tab, form, field => FormEditor.Move(field, 1))),
-            ActionIds.PickerPrevious => Result(Edit(state, tab, form, field => FormEditor.Move(field, -1))),
             null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
             _ => Result(state),
         };
 
-        return LeavesField(action) ? Unsuggested(result, tab.Id) : result;
+        return Choosing(LeavesField(action) ? Unsuggested(result, tab.Id) : result, tab.Id);
     }
 
     /// <summary>Pasted text goes to the focused field (first line only).</summary>
@@ -115,7 +113,7 @@ public static partial class FormReducer
 
         return form.IsSaving || form.DiscardPending || text.Length == 0
             ? Result(state)
-            : Edited(Typed(state, tab, form, text), tab.Id);
+            : Choosing(Edited(Typed(state, tab, form, text), tab.Id), tab.Id);
     }
 
     /// <summary>
@@ -139,9 +137,13 @@ public static partial class FormReducer
             return result;
         }
 
-        var settled = applied ? Closed(state, tab) : Unlocked(state, tab, error);
+        if (applied)
+        {
+            return result with { State = Closed(state, tab) };
+        }
 
-        return result with { State = settled };
+        // Unlocked: the focused choice field shows its list again.
+        return Choosing(result with { State = Unlocked(state, tab, error) }, tab.Id);
     }
 
     internal static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
@@ -328,7 +330,7 @@ public static partial class FormReducer
             return Send(Replace(state, tab, shown), tab, shown, changes, loaded.At);
         }
 
-        return Result(Replace(state, tab, shown));
+        return Choosing(Result(Replace(state, tab, shown)), tab.Id);
     }
 
     private static ReduceResult Failed(AppState state, FormMetadataFailed failed)
