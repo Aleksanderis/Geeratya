@@ -278,6 +278,36 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenAMovedCard_WhenTheMoveFails_ThenTheCursorFollowsTheCardBackToItsColumn()
+    {
+        var tabbed = Keys(Tabbed(ViewLayout.Columns), "j").State;
+        var moved = LoadedPick(tabbed, "Alt-l", Transition("21", _progress)).State;
+        var id = moved.Session.Operations[0].Id;
+        var denied = new WriteError(WriteErrorKind.Permission, 403, "no", [], []);
+
+        var failed = _reducer.Reduce(moved, new WriteFailed(id, _start, denied)).State;
+
+        var tab = failed.Session.Tabs[0];
+        Assert.Equal("To Do", tab.Rows[0].Status.Name);
+        Assert.Equal(0, tab.Cursor!.Column);
+        Assert.Equal(0, tab.Cursor.Card);
+    }
+
+    [Fact]
+    public void GivenTheSelectionLeftTheCard_WhenTheMoveFails_ThenTheCursorStays()
+    {
+        var tabbed = Keys(Tabbed(ViewLayout.Columns), "j").State;
+        var moved = LoadedPick(tabbed, "Alt-l", Transition("21", _progress)).State;
+        var id = moved.Session.Operations[0].Id;
+        var elsewhere = moved.Session.Tabs[0] with { SelectedKey = "B-9" };
+        var denied = new WriteError(WriteErrorKind.Permission, 403, "no", [], []);
+
+        var failed = _reducer.Reduce(Replace(moved, elsewhere), new WriteFailed(id, _start, denied)).State;
+
+        Assert.Equal(1, failed.Session.Tabs[0].Cursor!.Column);
+    }
+
+    [Fact]
     public void GivenTwoTransitionsIntoTheColumn_WhenTheMetadataLoads_ThenThePickerShowsOnlyThose()
     {
         var other = new IssueStatus("2", "In Progress", "indeterminate");
