@@ -35,6 +35,21 @@ public sealed class CommentClientTests
     }
 
     [Fact]
+    public async Task GivenRecordedDevSiteComment_WhenGetting_ThenRichBodyAndMentionAreMapped()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GCM-10/comment", "comments/comments-gcm10.json");
+
+        var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-10", 0, CancellationToken.None);
+
+        var comment = Assert.Single(result.Value.Items);
+        Assert.True(result.Value.IsLast);
+        Assert.NotNull(comment.Created);
+        Assert.StartsWith("Test User", comment.Author?.DisplayName, StringComparison.Ordinal);
+        Assert.IsType<AdfHeading>(comment.Body.Content[0]);
+        Assert.Contains(comment.Body.Content, node => node is AdfTable);
+    }
+
+    [Fact]
     public async Task GivenInactiveAuthorAndEmptyBody_WhenGetting_ThenNameIsKeptAndBodyIsEmpty()
     {
         using var fixture = Serving(GcmPath, "comments/comments-gcm6.json");
