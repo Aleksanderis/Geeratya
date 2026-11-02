@@ -5,6 +5,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
@@ -37,6 +38,27 @@ public class ListBodyRendererTests
         Assert.Matches(@"^  A-1 +T Summary +To Do +-", lines[2]);
         Assert.Matches(@"^> A-2 +T Summary +To Do +-", lines[3]);
         Assert.StartsWith("  A-3", lines[4]);
+    }
+
+    [Fact]
+    public void GivenARunningWriteOnAnIssue_WhenBuilding_ThenOnlyThatRowShowsTheBusyMarker()
+    {
+        var state = Active(Tab(LoadState.Idle, 3));
+        var request = new RankRequest("A-2", "A-3", false, null);
+        var operation = new Operation(
+            9,
+            request,
+            new TabId(1),
+            OperationPhase.Sending,
+            [],
+            DateTimeOffset.UnixEpoch);
+        var busy = state with { Session = state.Session with { Operations = [operation] } };
+
+        var lines = Body(busy, 100, 10);
+
+        Assert.Matches(@"^> A-1 +T Summary ", lines[2]);
+        Assert.Matches(@"^  A-2 +T … Summary ", lines[3]);
+        Assert.Matches(@"^  A-3 +T Summary ", lines[4]);
     }
 
     [Fact]

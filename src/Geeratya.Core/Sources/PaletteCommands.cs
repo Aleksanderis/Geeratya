@@ -16,6 +16,7 @@ public static class PaletteCommands
     public const string Priority = "priority";
     public const string Assign = "assign";
     public const string AssignMe = "assign-me";
+    public const string Status = "status";
     public const string Profile = "profile";
     public const string Help = "help";
     public const string Quit = "quit";
@@ -28,6 +29,7 @@ public static class PaletteCommands
         new(Backlog, "backlog [name]", "Open a board's backlog in a new tab"),
         new(Tab, "tab new|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
         new(Edit, "edit", "Edit the fields of the selected or shown issue (field form)"),
+        new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
         new(Priority, "priority", "Change the priority of the selected or shown issue (field form)"),
         new(Assign, "assign", "Assign the selected or shown issue: search people, or unassign"),

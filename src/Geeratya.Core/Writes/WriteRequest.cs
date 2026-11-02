@@ -14,6 +14,12 @@ public abstract record WriteRequest
     public abstract IReadOnlyList<string> Keys { get; }
 
     /// <summary>
+    /// Whether the write changes what the list rows and the issue header show. False for a write that only touches
+    /// the issue's comments: no row is marked stale, no search is read and the issue is not reloaded.
+    /// </summary>
+    public virtual bool ChangesRows => true;
+
+    /// <summary>
     /// True for a write that deletes its issues: no optimistic change, the rows and open details of the issues go
     /// when Jira confirmed, and the read after the write is not made (the issues are gone).
     /// </summary>
@@ -38,6 +44,12 @@ public abstract record WriteRequest
     public abstract string ActionText { get; }
 
     /// <summary>
+    /// The question to ask before the write starts (what changes, and that Jira cannot undo it), or null when the
+    /// write starts at once. The answer <c>y</c> runs the request again with <c>Confirmed</c> set.
+    /// </summary>
+    public virtual string? AskText => null;
+
+    /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or
     /// the write is not optimistic).
     /// </summary>
@@ -48,4 +60,10 @@ public abstract record WriteRequest
     /// lost reply, and to not trust a read that still lags behind the write (the search index is not instant).
     /// </summary>
     public abstract bool IsShownBy(IssueSummary row);
+
+    /// <summary>
+    /// Whether the issues are read again after the write (one search): false when a row shows nothing of the write
+    /// (a rank), so a re-read would prove nothing and is not made.
+    /// </summary>
+    public virtual bool ReadsBack => true;
 }

@@ -85,6 +85,34 @@ public class FormReducerTests
     }
 
     [Fact]
+    public void GivenAnOpenForm_WhenCtrlOIsPressed_ThenTheIssuePageOpensAndTheFormIsUntouched()
+    {
+        var state = Type(Loaded(["backend"]), "new");
+        var before = state.Session.Tabs[0].Form;
+
+        var result = Press(state, "Ctrl-o", _start);
+
+        var effect = Assert.IsType<OpenUrlEffect>(Assert.Single(result.Effects));
+        Assert.Equal("https://work.atlassian.net/browse/A-1", effect.Url.AbsoluteUri);
+        Assert.Equal(before, result.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+    }
+
+    [Fact]
+    public void GivenAFormWithoutAnIssuePage_WhenCtrlOIsPressed_ThenNothingOpensAndTheStatusSaysWhy()
+    {
+        var state = Open();
+        var tab = state.Session.Tabs[0];
+        var form = tab.Form! with { BrowserUrl = null };
+        var bare = state with { Session = state.Session with { Tabs = [tab with { Form = form }] } };
+
+        var result = Press(bare, "Ctrl-o", _start);
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("No issue page", result.State.Message);
+    }
+
+    [Fact]
     public void GivenASubmittedLabelEdit_WhenItStarts_ThenTheRowShowsTheLabelsAndTheFormShowsSaving()
     {
         var state = Type(Loaded(["backend"]), "new");

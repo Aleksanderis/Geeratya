@@ -16,11 +16,12 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
-# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter);
+# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s);
 # wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
-# Scenarios named detail-relations-* run against a second fake on the recorded fixtures (no --issues), because only
+# Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
+# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -34,6 +35,10 @@ all_scenarios=(
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"
+  "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
+  "comment-delete;120;36;dark;:jql project = GEN|jjjj|]]]] md;Jira cannot undo"
+  "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
+  "comment-recorded-edit;120;36;dark;:jql key = GTM-11||]]]]]]]]]]]] me;formatting"
   "detail-relations-gtm;120;36;dark;:jql key = GTM-11||]]]];Remote"
   "detail-relations-gcm;120;36;dark;:jql key = GCM-10||]]]];Remote"
   "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Epic children"
@@ -43,11 +48,17 @@ all_scenarios=(
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "assign;120;36;dark;:jql project = GEN| iatest;Test User 1"
+  "status-picker;120;36;dark;:board GCM|j is;Change status of"
+  "status-confirm;120;36;dark;:board GCM|j isDon|;Move GCM-"
+  "status-moved;120;36;dark;:board GCM|j isIn P|;Moved GCM-"
   "board;120;36;dark;:board GCM|;In Progress 4"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "backlog;120;36;dark;:backlog GCM|;GCM"
   "filter;120;36;dark;:filter Filter for GCM|;GCM"
+  "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
+  "rank-board;120;36;dark;:board GCM|};Ranked"
+  "rank-board-team;120;36;dark;:board GTM|};Ranked"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )
 
@@ -130,6 +141,12 @@ capture_scenario() {
     key=${keys:index:1}
     if [ "$key" = "|" ]; then
       tmux -L "$socket" send-keys -t s Enter
+    elif [ "$key" = "~" ]; then
+      tmux -L "$socket" send-keys -t s C-s
+    elif [ "$key" = "}" ]; then
+      tmux -L "$socket" send-keys -t s M-j
+    elif [ "$key" = "{" ]; then
+      tmux -L "$socket" send-keys -t s M-k
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi
@@ -180,7 +197,7 @@ render() {
 
   # The recorded dataset is scrubbed fixtures; only the relations scenarios use it.
   # Started only when a selected scenario needs it.
-  if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* ]]; then
+  if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* || $wanted == *comment-recorded-* ]]; then
     dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
     recorded_pid=$!
     for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
@@ -192,7 +209,7 @@ render() {
   for spec in "${all_scenarios[@]}"; do
     name=${spec%%;*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
-    if [[ $name == detail-relations-* ]]; then
+    if [[ $name == detail-relations-* || $name == comment-recorded-* ]]; then
       seed_fake_profile "$work/config" "$recorded_url"
     else
       seed_fake_profile "$work/config" "$fake_url"

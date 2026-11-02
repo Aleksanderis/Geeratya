@@ -123,6 +123,37 @@ public class FormOverlaySnapshotTests
         Assert.InRange(unassigned, 0, eve - 1);
     }
 
+    [Fact]
+    public void GivenTheStatusPicker_WhenBuildingTheFrameAt80x24_ThenTheTitleTheFieldAndTheTransitionsShow()
+    {
+        var target = new TransitionPickTarget("A-1", [], null, [])
+            .With([Transition("21", "In Progress"), Transition("41", "Done")]);
+        var form = FormState.Opened(target, 3, null) with { Fields = target.Fields(), IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Change status of A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("> Move to *", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("( ) In Progress", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("( ) Done", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenACardMoveStillLoading_WhenBuildingTheFrame_ThenNoFormBoxShows()
+    {
+        var target = new TransitionPickTarget("A-1", ["2"], "In Progress", []);
+
+        var lines = FrameBuilder.Build(WithForm(FormState.Opened(target, 3, null)), 80, 24, _helpLines, _keymap);
+
+        Assert.DoesNotContain(lines, line => line.Contains("Move A-1 to In Progress", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Loading fields", StringComparison.Ordinal) && line.Contains('┌'));
+    }
+
+    private static Transition Transition(string id, string name)
+    {
+        return new Transition(id, name, new IssueStatus(id, name, "indeterminate"), false, true, []);
+    }
+
     private static EditFormTarget Target()
     {
         return new EditFormTarget("A-1", new Dictionary<string, FormValue>(), false, null);

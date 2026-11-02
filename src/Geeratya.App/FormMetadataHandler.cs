@@ -13,12 +13,15 @@ namespace Geeratya.App;
 public sealed class FormMetadataHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
+    private const string NeedsBrowserMessage =
+        "This transition asks for a field Geeratya cannot edit yet; do it in the browser (<space>o).";
     private const string UnsupportedMessage = "This form cannot be opened yet.";
 
     private static readonly TimeSpan _defaultDebounce = TimeSpan.FromMilliseconds(250);
 
     private readonly NetworkRunner _runner;
     private readonly TimeSpan _debounce;
+    private readonly TimeProvider _clock;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly Dictionary<long, CancellationTokenSource> _searches = [];
     private readonly Lock _lock = new();
@@ -26,14 +29,17 @@ public sealed class FormMetadataHandler
     /// <param name="runner">Runs the reads.</param>
     /// <param name="debounce">How long a search waits for more typing; tests pass zero.</param>
     /// <param name="delay">The wait itself; tests inject one they control.</param>
+    /// <param name="clock">The time stamped on a loaded transition list.</param>
     public FormMetadataHandler(
         NetworkRunner runner,
         TimeSpan? debounce = null,
-        Func<TimeSpan, CancellationToken, Task>? delay = null)
+        Func<TimeSpan, CancellationToken, Task>? delay = null,
+        TimeProvider? clock = null)
     {
         _runner = runner;
         _debounce = debounce ?? _defaultDebounce;
         _delay = delay ?? Task.Delay;
+        _clock = clock ?? TimeProvider.System;
     }
 
     /// <summary>
@@ -65,15 +71,26 @@ public sealed class FormMetadataHandler
     {
         return _runner.Start(
             effect.Tab.Value,
-            (services, token) => LoadAsync(services, effect, token),
+            (services, token) => LoadAsync(services, effect, _clock.GetUtcNow(), token),
             () => new FormMetadataFailed(effect.Tab, effect.RequestId, NoConnectionMessage));
     }
 
     private static async Task<Command?> LoadAsync(
         JiraServices services,
         LoadFormMetadataEffect effect,
+        DateTimeOffset at,
         CancellationToken token)
     {
+        if (effect.Target is TransitionPickTarget pick)
+        {
+            return await LoadPickAsync(services, effect, pick, at, token);
+        }
+
+        if (effect.Target is TransitionFormTarget transition)
+        {
+            return await LoadTransitionAsync(services, effect, transition, token);
+        }
+
         if (effect.Target is not EditFormTarget edit)
         {
             return new FormMetadataFailed(effect.Tab, effect.RequestId, UnsupportedMessage);
@@ -146,6 +163,58 @@ public sealed class FormMetadataHandler
             // A newer search replaced this one; its answer is the one that counts.
             return null;
         }
+    }
+
+    private static async Task<Command?> LoadPickAsync(
+        JiraServices services,
+        LoadFormMetadataEffect effect,
+        TransitionPickTarget pick,
+        DateTimeOffset at,
+        CancellationToken token)
+    {
+        var result = await services.Transitions.GetTransitionsAsync(pick.Key, token);
+
+        if (!result.IsSuccess)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, pick.Key));
+        }
+
+        var loaded = pick.With(result.Value);
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, loaded.Fields(), loaded, at);
+    }
+
+    private static async Task<Command?> LoadTransitionAsync(
+        JiraServices services,
+        LoadFormMetadataEffect effect,
+        TransitionFormTarget target,
+        CancellationToken token)
+    {
+        var result = await services.Transitions.GetTransitionsAsync(target.Key, token);
+
+        if (!result.IsSuccess)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, target.Key));
+        }
+
+        var transition = result.Value.FirstOrDefault(candidate => candidate.Id == target.Choice.Id);
+
+        if (transition is null)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, target.EmptyText);
+        }
+
+        // A field Jira fills in when it is left out is not required of the user.
+        var metas = transition.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
+
+        var fields = FormFieldMapper.FromTransition([.. metas]);
+
+        if (!fields.Any(field => field.IsEditable))
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, NeedsBrowserMessage);
+        }
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, fields);
     }
 
     private static string MessageOf(JiraError error, string key)

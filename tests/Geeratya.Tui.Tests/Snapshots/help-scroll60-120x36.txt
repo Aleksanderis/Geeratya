@@ -1,6 +1,17 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i m  Assign the issue to me                                                                                     
+                                                                                                                        
+Help mode                                                                                                               
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
+  k          Move up                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
+  Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
@@ -22,15 +33,4 @@ Insert mode
   Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
-  Ctrl-s     Save the form                                                                                              
-                                                                                                                        
-Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
-  :filter [name]                                                                                                        
-      Open a saved filter in a new tab                                                                                  
-  :board [name]                                                                                                         
-      Open a board as columns in a new tab                                                                              
  HELP                                                                                            j down  k up  Esc close

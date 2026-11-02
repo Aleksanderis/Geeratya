@@ -38,6 +38,11 @@ public static class FormOverlay
         int width,
         int height)
     {
+        if (form is { IsLoading: true, Target.ShowsWhileLoading: false })
+        {
+            return body;
+        }
+
         var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
 
         if (boxWidth < 8 || height < MinimumBoxHeight)
@@ -152,7 +157,11 @@ public static class FormOverlay
             return $"{yes} discard   {no}/{cancel} keep editing";
         }
 
-        return $"{next}/{previous} field   {submit} save   {cancel} cancel";
+        var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
+            ? $"   {keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
+            : string.Empty;
+
+        return $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
     }
 
     private static FormContent Content(FormState form, int valueWidth)

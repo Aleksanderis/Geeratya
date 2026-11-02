@@ -1,3 +1,4 @@
+using Geeratya.Core.Views;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
@@ -21,4 +22,22 @@ public abstract record RowChange(string Key)
     /// a reload) wins and the row is returned as it is.
     /// </summary>
     public abstract IssueSummary Revert(IssueSummary row);
+
+    /// <summary>
+    /// The rows of <paramref name="tab"/> in the order the change gives them (a rank moves a row inside the list);
+    /// the same list when the change is about a field only or does not apply to the tab.
+    /// </summary>
+    public virtual IReadOnlyList<IssueSummary> PatchOrder(TabState tab)
+    {
+        return tab.Rows;
+    }
+
+    /// <summary>
+    /// The rows of <paramref name="tab"/> with the order change undone, but only where the order is still the
+    /// patched one (a reload that brought a newer order wins).
+    /// </summary>
+    public virtual IReadOnlyList<IssueSummary> RevertOrder(TabState tab)
+    {
+        return tab.Rows;
+    }
 }

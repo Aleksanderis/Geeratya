@@ -51,6 +51,17 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Space m a` | Add a comment to the issue |
+| `Space m e` | Edit the comment under the cursor |
+| `Space m d` | Delete the comment under the cursor |
+| `Space i s` | Change the status of the issue |
+| `Alt-l` | Move the card to the next column |
+| `Alt-h` | Move the card to the previous column |
+| `Alt-k` | Rank the issue up (a count moves it that many places) |
+| `Alt-j` | Rank the issue down (a count moves it that many places) |
+| `Space k t` | Rank the issue to the top of the list or column |
+| `Space k b` | Rank the issue to the bottom of the list or column |
+| `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 | `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
 | `Space i a` | Assign the issue: search people, or unassign |
@@ -101,6 +112,13 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Alt-Enter` | Save the form |
+| `Left` | Move the cursor left |
+| `Right` | Move the cursor right |
+| `Home` | Move the cursor to the start of the row |
+| `End` | Move the cursor to the end of the row |
+| `Delete` | Delete the character under the cursor |
+| `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands
 
@@ -112,6 +130,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
+| `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:priority` | Change the priority of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |

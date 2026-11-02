@@ -81,16 +81,22 @@ public sealed class FakeJiraWriteStore
 
     private readonly Func<string, byte[]> _readFixture;
     private readonly Func<string, bool> _isRecordedIssue;
+    private readonly Func<string, bool> _isListedIssue;
     private readonly Dictionary<string, StoredIssue> _issues = [];
     private readonly Dictionary<string, int> _nextNumber = new() { ["GCM"] = FirstCreatedNumber, ["GTM"] = FirstCreatedNumber };
     private readonly Lock _lock = new();
+    private readonly FakeRankOrder _order = new();
     private int _nextId = FirstCreatedId;
     private int _nextCommentId = FirstCommentId;
 
-    public FakeJiraWriteStore(Func<string, byte[]> readFixture, Func<string, bool> isRecordedIssue)
+    public FakeJiraWriteStore(
+        Func<string, byte[]> readFixture,
+        Func<string, bool> isRecordedIssue,
+        Func<string, bool> isListedIssue)
     {
         _readFixture = readFixture;
         _isRecordedIssue = isRecordedIssue;
+        _isListedIssue = isListedIssue;
     }
 
     /// <summary>True when the issue was created through the fake or has edits to lay over its recorded reply.</summary>
@@ -387,16 +393,24 @@ public sealed class FakeJiraWriteStore
         }
     }
 
+    /// <summary>The reply of a board or backlog list with the rank calls laid over its order.</summary>
+    public FakeReply Ranked(FakeReply reply)
+    {
+        return _order.Apply(reply);
+    }
+
     public FakeReply Rank(string body)
     {
         var keys = ReadRankKeys(body);
 
         lock (_lock)
         {
-            if (keys.Count == 0 || keys.Any(key => Find(key) is null))
+            if (keys.Count == 0 || keys.Any(key => Find(key) is null && !_isListedIssue(key)))
             {
                 return Reply(BadRequest, MissingRankIssueFixture);
             }
+
+            _order.Record(body);
 
             return Empty(NoContent);
         }
