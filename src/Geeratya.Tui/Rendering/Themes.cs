@@ -1,8 +1,8 @@
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The built-in themes: dark (the default), light, high contrast and ansi16 (only the 16 terminal colours, so it looks
-/// the same in every tier and takes its colours from the terminal's own palette).
+/// The built-in themes: dark (the default), light, high contrast and ansi16 (only the 16 terminal colours: meant for
+/// the 16-colour tier, where they are the terminal's own palette; in 24-bit it draws typical xterm values).
 /// </summary>
 public static class Themes
 {

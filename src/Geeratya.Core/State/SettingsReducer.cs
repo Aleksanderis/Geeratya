@@ -38,7 +38,9 @@ public static class SettingsReducer
             [new SaveSettingsEffect(changed)]);
     }
 
-    /// <summary><c>:theme [name]</c>: asks the host to switch (or list); the choice is saved once the host confirms.</summary>
+    /// <summary>
+    /// <c>:theme [name]</c>: asks the host to switch (or list); the choice is saved once the host confirms.
+    /// </summary>
     public static ReduceResult Theme(AppState state, string name)
     {
         return name.Contains(' ')

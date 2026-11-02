@@ -51,6 +51,12 @@ public sealed class ThemeFileTests : IDisposable
     [InlineData("""{ "base": "neon" }""", "unknown base theme")]
     [InlineData("{ not json", "not valid JSON")]
     [InlineData("null", "empty")]
+    [InlineData("""{ "roles": { "link": null } }""", "role 'link' is empty")]
+    [InlineData("""{ "base": 5 }""", "not valid JSON")]
+    [InlineData("""{ "roles": { "body,muted": {} } }""", "unknown role")]
+    [InlineData("""{ "roles": { "body": { "foreground16": "3" } } }""", "not one of the 16 colours")]
+    [InlineData("""{ "roles": { "selected": { "style": ["bold"] } } }""", "must include reverse")]
+    [InlineData("""{ "roles": { "status": { "style": [] } } }""", "must include reverse")]
     public void GivenAProblem_WhenParsing_ThenTheThemeIsRefusedWithTheReason(string json, string reason)
     {
         var result = ThemeFile.Parse("bad", json);

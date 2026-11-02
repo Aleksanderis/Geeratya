@@ -149,7 +149,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:set hints|whichkey on|off` | Show or hide the status bar hints or the which-key popup (saved) |
-| `:theme [name]` | Switch the colour theme (no name: list them); saved. Your own are files in the themes folder |
+| `:theme [name]` | Switch the colour theme (no name: list them); saved. Own themes are files in the themes folder |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

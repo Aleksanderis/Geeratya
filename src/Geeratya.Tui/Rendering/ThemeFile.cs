@@ -44,9 +44,16 @@ public static class ThemeFile
 
         foreach (var (roleName, role) in model.Roles ?? [])
         {
-            if (!Enum.TryParse<PaletteRole>(roleName, true, out var paletteRole) || !Enum.IsDefined(paletteRole))
+            if (!TryParseName<PaletteRole>(roleName, out var paletteRole))
             {
                 errors.Add($"unknown role '{roleName}'");
+
+                continue;
+            }
+
+            if (role is null)
+            {
+                errors.Add($"role '{roleName}' is empty");
 
                 continue;
             }
@@ -55,6 +62,7 @@ public static class ThemeFile
 
             entries[paletteRole] = entry;
             CheckContrast(paletteRole, roleName, entry, errors);
+            CheckSelectionStyle(paletteRole, roleName, entry, errors);
         }
 
         if (errors.Count > 0)
@@ -89,7 +97,11 @@ public static class ThemeFile
 
         if (text.Length == HexLength
             && text[0] == HexPrefix
-            && int.TryParse(text.AsSpan(1), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value))
+            && int.TryParse(
+                text.AsSpan(1),
+                NumberStyles.AllowHexSpecifier,
+                CultureInfo.InvariantCulture,
+                out var value))
         {
             return Rgb.FromHex(value);
         }
@@ -111,7 +123,7 @@ public static class ThemeFile
             return fallback;
         }
 
-        if (Enum.TryParse<Ansi16Color>(text, true, out var colour) && Enum.IsDefined(colour))
+        if (TryParseName<Ansi16Color>(text, out var colour))
         {
             return colour;
         }
@@ -132,7 +144,7 @@ public static class ThemeFile
 
         foreach (var name in names)
         {
-            if (Enum.TryParse<RoleStyle>(name, true, out var flag) && flag != RoleStyle.None && Enum.IsDefined(flag))
+            if (TryParseName<RoleStyle>(name, out var flag) && flag != RoleStyle.None)
             {
                 style |= flag;
             }
@@ -161,6 +173,34 @@ public static class ThemeFile
         {
             errors.Add($"{roleName}: contrast {basicRatio:F2} in 16 colours is below {required:F1}");
         }
+    }
+
+    // Selection and the status bar must stand out without colour (NO_COLOR), so they stay reversed.
+    private static void CheckSelectionStyle(PaletteRole role, string roleName, PaletteEntry entry, List<string> errors)
+    {
+        if (role is PaletteRole.Selected or PaletteRole.Status && !entry.NoColorStyle.HasFlag(RoleStyle.Reverse))
+        {
+            errors.Add($"{roleName}.style: must include reverse, so it shows without colour");
+        }
+    }
+
+    // Matches a single enum name only: no numbers and no comma lists, which Enum.TryParse would accept.
+    private static bool TryParseName<TEnum>(string text, out TEnum value)
+        where TEnum : struct, Enum
+    {
+        value = default;
+
+        foreach (var name in Enum.GetNames<TEnum>())
+        {
+            if (string.Equals(name, text, StringComparison.OrdinalIgnoreCase))
+            {
+                value = Enum.Parse<TEnum>(name);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static string NamesOf16()
