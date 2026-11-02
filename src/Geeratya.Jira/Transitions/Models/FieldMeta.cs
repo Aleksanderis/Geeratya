@@ -10,10 +10,16 @@ namespace Geeratya.Jira.Transitions.Models;
 /// <param name="SchemaType">Jira's schema type (<c>resolution</c>, <c>string</c>); empty when unknown.</param>
 /// <param name="HasDefaultValue">True when Jira fills the field in when it is left out.</param>
 /// <param name="AllowedValues">The choices Jira lists; empty for free-form fields.</param>
+/// <param name="SchemaItems">The element type of an array field (<c>option</c>, <c>string</c>); else empty.</param>
+/// <param name="SchemaSystem">The system name of a built-in field (<c>labels</c>, <c>description</c>); else empty.</param>
+/// <param name="SchemaCustom">The custom field type key (a text area is one); else empty.</param>
 public sealed record FieldMeta(
     string FieldId,
     string Name,
     bool Required,
     string SchemaType,
     bool HasDefaultValue,
-    IReadOnlyList<FieldOption> AllowedValues);
+    IReadOnlyList<FieldOption> AllowedValues,
+    string SchemaItems = "",
+    string SchemaSystem = "",
+    string SchemaCustom = "");

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -26,10 +27,14 @@ public static class WriteReducer
             AssignToMeRequested me => AssignToMe(state, me),
             WriteRequested requested => Request(state, requested),
             OperationPhaseChanged changed => PhaseChanged(state, changed),
-            WriteSucceeded succeeded => Succeeded(state, succeeded),
-            WriteFailed failed => Failed(state, failed),
+            WriteSucceeded succeeded => FormReducer.Settled(Succeeded(state, succeeded), succeeded.OperationId, true, null),
+            WriteFailed failed => FormReducer.Settled(Failed(state, failed), failed.OperationId, false, failed.Error),
             WriteOutcomeUnknown unknown => Unknown(state, unknown.OperationId),
-            WriteVerified verified => Verified(state, verified),
+            WriteVerified verified => FormReducer.Settled(
+                Verified(state, verified),
+                verified.OperationId,
+                verified.Outcome == VerifyOutcome.Applied,
+                null),
             _ => new ReduceResult(state, _noEffects),
         };
     }
