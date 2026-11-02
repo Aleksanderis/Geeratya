@@ -13,11 +13,11 @@ Mouse input is optional and never the only way: everything doable by mouse is do
 3. `MouseHitTester` (Core, pure) turns a cell and a `MouseContext` (size, header rows, overlay open, issue open, the cells of each tab and whether the banner shows a line) into a `MouseTarget`: the tab bar row, the banner row, the body (lists or detail) and the status line.
 4. `DefaultMouseMap` (Core) gives the row for the target and gesture; `MouseResolver` makes the commands from it (a list: an `ActionRequested`, or a `PointerPlaced` that carries the action to run after placing).
 
-While an overlay, prompt, picker, form, editor, help or confirm is open, only the tab bar and banner rows count, as the `Backdrop` (a click there closes the overlay like `Esc`); the overlay's own rectangle is not known to the hit test, so clicks in the body then do nothing instead of closing what the user clicked on. Wheel events do nothing while an overlay is open.
+While an overlay, prompt, picker, form, editor, help or confirm is open, only the tab bar and banner rows count, as the `Backdrop` (a click there closes the overlay like `Esc`), and the clickable rows the overlay reports. The renderer places the overlay and hands the hit test its row rectangles (`OverlayRegion`, in `StyledFrame.Regions`), so the hit test never guesses the layout; a click anywhere else in the body does nothing instead of closing what the user clicked on. A click on a row resolves to `OverlayRowClicked` (the row is chosen, then the key's handler runs); only the row targets resolve that way, and a click on a form field while it saves or asks to discard does nothing, as its keys do nothing. Wheel events do nothing while an overlay is open.
 
 ## Parts
 
-The table is delivered in three parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **C** writes and drags (status badge, assignee, `+` buttons, comments, drag between columns, rank). A row moves to the wired set when its part lands.
+The table is delivered in parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **O** overlays (this slice of the issue #200 part C: the rows of the source picker, jump prompt, profile list, field forms and suggestion popups; the editor text itself takes no clicks), **C** writes and drags (status badge, assignee, `+` buttons, comments, drag between columns, rank). A row moves to the wired set when its part lands.
 
 ## Placing the cursor
 
@@ -35,6 +35,13 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the opened issue (like `3j`) |
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed) |
+| PickerRow | Click | `form.next` | O | Source picker: opens the clicked board, filter or query, same as `Enter` on it |
+| JumpRow | Click | `form.next` | O | Jump prompt: opens the clicked issue, same as `Enter` on it |
+| ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
+| ProfileRow | Right-click | `profile.remove` | O | Profile list: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
+| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked field, same as `Tab` until there |
+| FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
+| EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
 | Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there) |
 | Lists | Right-click | `palette.open` | B | Selects the row under the pointer and opens the command palette; part C limits it to the actions of the row (context menu) |

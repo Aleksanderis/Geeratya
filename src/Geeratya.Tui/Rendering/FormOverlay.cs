@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Create.Models;
@@ -45,7 +46,8 @@ public static class FormOverlay
         FormState form,
         KeymapTable keymap,
         int width,
-        int height)
+        int height,
+        List<OverlayRegion>? regions = null)
     {
         if (form is { IsLoading: true, Target.ShowsWhileLoading: false })
         {
@@ -67,6 +69,8 @@ public static class FormOverlay
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
         var result = body.ToList();
+
+        MarkRows(regions, content, top, left, boxWidth, inner - footer);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -145,6 +149,34 @@ public static class FormOverlay
         return lines;
     }
 
+    // The visible content rows are the box rows after the top edge; each is a field row or a popup or type row.
+    private static void MarkRows(
+        List<OverlayRegion>? regions,
+        FormContent content,
+        int top,
+        int left,
+        int boxWidth,
+        int area)
+    {
+        if (regions is null)
+        {
+            return;
+        }
+
+        var first = FirstVisible(content, Math.Max(0, area));
+        var visible = Math.Max(0, Math.Min(area, content.Lines.Count - first));
+
+        for (var index = 0; index < visible; index++)
+        {
+            if (content.Tags[first + index] is { } tag)
+            {
+                var region = new OverlayRegion(tag.Target, top + 1 + index, left + 1, Math.Max(1, boxWidth - 2), 1, tag.Index);
+
+                regions.Add(region);
+            }
+        }
+    }
+
     private static int FirstVisible(FormContent content, int area)
     {
         var end = content.FocusStart + content.FocusLength;
@@ -219,14 +251,18 @@ public static class FormOverlay
     private static FormContent Content(FormState form, int valueWidth)
     {
         var lines = new List<StyledLine>();
+        var tags = new List<RowTag?>();
         var focusStart = 0;
         var focusLength = 0;
 
         AddNotices(lines, form);
+        PadTags(tags, lines.Count, null);
 
         if (form.TypeChoices is { } types)
         {
             AddTypes(lines, form, types);
+
+            tags.AddRange(types.Select((_, index) => new RowTag(MouseTarget.FormChoice, index)));
         }
 
         for (var index = 0; index < form.Fields.Count; index++)
@@ -240,9 +276,56 @@ public static class FormOverlay
             }
 
             lines.AddRange(block);
+
+            tags.AddRange(BlockTags(form, index, block, valueWidth));
         }
 
-        return new FormContent(lines, focusStart, focusLength);
+        return new FormContent(lines, focusStart, focusLength, tags);
+    }
+
+    private static void PadTags(List<RowTag?> tags, int count, RowTag? tag)
+    {
+        while (tags.Count < count)
+        {
+            tags.Add(tag);
+        }
+    }
+
+    // Every row of a field block focuses the field; the rows of its open popup take the popup row instead.
+    private static List<RowTag?> BlockTags(FormState form, int index, List<StyledLine> block, int valueWidth)
+    {
+        var tags = new List<RowTag?>();
+
+        PadTags(tags, block.Count, new RowTag(MouseTarget.FormField, index));
+
+        var field = form.Fields[index];
+        var focused = index == form.Focus && !form.IsSaving;
+        var hasPopup = field.IsEditable && field.Kind is FormFieldKind.Labels or FormFieldKind.User
+            or FormFieldKind.Parent or FormFieldKind.Select or FormFieldKind.MultiSelect;
+
+        if (!focused || !hasPopup || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
+        {
+            return tags;
+        }
+
+        var popupRows = PopupLines(true, form, valueWidth).Count;
+        var items = popupRows - (PopupStatus(popup) is null ? 0 : 1);
+        var start = block.Count - (field.Error is null ? 0 : 1) - popupRows;
+        var first = PopupFirst(popup);
+
+        for (var row = 0; row < items; row++)
+        {
+            tags[start + row] = new RowTag(MouseTarget.FormChoice, first + row);
+        }
+
+        return tags;
+    }
+
+    private static int PopupFirst(SuggestionState popup)
+    {
+        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
+
+        return Math.Clamp(Math.Max(cursor, 0) - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
     }
 
     private static void AddTypes(List<StyledLine> lines, FormState form, IReadOnlyList<CreateIssueType> types)
@@ -431,7 +514,7 @@ public static class FormOverlay
         var margin = new string(' ', PopupMargin);
         var lines = new List<StyledLine>();
         var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
-        var first = Math.Clamp(Math.Max(cursor, 0) - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        var first = PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         foreach (var index in Enumerable.Range(first, shown))
@@ -487,5 +570,7 @@ public static class FormOverlay
 
     private sealed record PopupNotice(string Text, TextRole Role);
 
-    private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength);
+    private sealed record RowTag(MouseTarget Target, int Index);
+
+    private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength, List<RowTag?> Tags);
 }

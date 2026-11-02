@@ -1,5 +1,6 @@
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -30,6 +31,47 @@ public class SourcePickerSnapshotTests
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"picker-{width}x{height}.txt");
 
         Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+    }
+
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAnOpenPicker_WhenReadingTheRegions_ThenEachRowCoversItsChoiceWithinTheBox(int width, int height)
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), width, height, _helpLines, _keymap)!;
+        var rows = RegionProbe.Rows(frame, MouseTarget.PickerRow);
+
+        Assert.NotEmpty(rows);
+        Assert.All(rows, row => Assert.InRange(row.Region.Top, FrameBuilder.HeaderRows, height - 2));
+        Assert.All(rows, row => Assert.InRange(row.Region.Left + row.Region.Width, 1, width));
+        Assert.Equal(rows.Count, rows.Select(row => row.Region.Top).Distinct().Count());
+        Assert.Contains(rows, row => row.Text.Contains("GCM board", StringComparison.Ordinal) && row.Index == 0);
+    }
+
+    [Fact]
+    public void GivenAnOpenPicker_WhenClickingAFilterChoice_ThenTheFilterOpensInANewTab()
+    {
+        var state = Sample(string.Empty);
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.PickerRow).Single(candidate => candidate.Index == 4);
+
+        var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
+
+        Assert.Contains("My open bugs", row.Text);
+        Assert.Null(result.State.Picker);
+        Assert.Equal("My open bugs", Assert.Single(result.State.Session.Tabs).Definition.Title);
+    }
+
+    [Fact]
+    public void GivenAnOpenPicker_WhenClickingOutsideTheRows_ThenNothingIsResolved()
+    {
+        var state = Sample(string.Empty);
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, frame.Regions);
+
+        Assert.Null(MouseResolver.ResolveOverlay(context, 0, 20, MouseGesture.Click, default));
+        Assert.Null(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
     }
 
     [Fact]

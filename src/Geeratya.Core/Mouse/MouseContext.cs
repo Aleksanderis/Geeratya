@@ -19,16 +19,26 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The banner row shows a line (a click there refreshes).</summary>
     public bool BannerShown { get; init; }
 
-    public static MouseContext From(AppState state, int width, int height, int headerRows, DateTimeOffset now)
+    /// <summary>The clickable rectangles of the open overlay as drawn, later ones on top; may be empty.</summary>
+    public IReadOnlyList<OverlayRegion> Regions { get; init; } = [];
+
+    public static MouseContext From(
+        AppState state,
+        int width,
+        int height,
+        int headerRows,
+        DateTimeOffset now,
+        IReadOnlyList<OverlayRegion>? regions = null)
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
         var overlay = state.Mode != InputMode.Normal || state.Picker is not null || state.Jump is not null
-            || state.Editor is not null || FormReducer.IsOpen(state);
+            || state.Editor is not null || state.ProfileList is not null || FormReducer.IsOpen(state);
 
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {
             TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
+            Regions = regions ?? [],
         };
     }
 }

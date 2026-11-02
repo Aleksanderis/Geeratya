@@ -1,6 +1,7 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
@@ -221,6 +222,34 @@ public class CommentEditorOverlayTests
     }
 
     [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAPopupWithRows_WhenReadingTheRegions_ThenEachRowCoversItsSuggestion(int width, int height)
+    {
+        var frame = Frame(EditorWithPopup(), width, height);
+        var rows = RegionProbe.Rows(frame, MouseTarget.EditorChoice);
+
+        Assert.Equal([0, 1], rows.Select(row => row.Index));
+        Assert.Contains("Olga Other", rows[0].Text);
+        Assert.Contains("Oleg Two", rows[1].Text);
+    }
+
+    [Fact]
+    public void GivenAPopupWithRows_WhenClickingTheFirstRow_ThenTheMentionReplacesTheTypedWord()
+    {
+        var state = StateWith(EditorWithPopup());
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, [], _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.EditorChoice).Single(candidate => candidate.Index == 0);
+
+        var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
+
+        Assert.Null(result.State.Editor!.Suggest);
+        Assert.Contains("Olga Other", result.State.Editor.Buffer.Text);
+        Assert.DoesNotContain("@ol ", result.State.Editor.Buffer.Text);
+    }
+
+    [Theory]
     [InlineData(SuggestionStatus.Loading, "searching…")]
     [InlineData(SuggestionStatus.Failed, "lookup failed: boom")]
     [InlineData(SuggestionStatus.Loaded, "No match")]
@@ -257,6 +286,19 @@ public class CommentEditorOverlayTests
 
         Assert.Contains("CONFIRM Discard the unsent comment text?", frame.StatusLine);
         Assert.Contains("draft", string.Join('\n', frame.PlainLines()));
+    }
+
+    private static CommentEditor EditorWithPopup()
+    {
+        var rows = new[]
+        {
+            new Suggestion("acc-1", "Olga Other", null, false),
+            new Suggestion("acc-2", "Oleg Two", null, true),
+        };
+        var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+
+        return Editor("hi @ol") with { Suggest = popup };
     }
 
     private static StyledFrame Frame(CommentEditor editor, int width, int height)

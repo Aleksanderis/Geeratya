@@ -18,6 +18,22 @@ public class MouseResolverTests
     }
 
     [Fact]
+    public void GivenARowRegion_WhenClickingAndRightClicking_ThenTheRowCommandCarriesTheTableAction()
+    {
+        OverlayRegion[] regions = [new(MouseTarget.ProfileRow, 4, 1, 30, 1, 2)];
+        var context = new MouseContext(80, 24, 2, true, false, regions);
+
+        var click = MouseResolver.ResolveOverlay(context, 5, 4, MouseGesture.Click, default);
+        var right = MouseResolver.ResolveOverlay(context, 5, 4, MouseGesture.RightClick, default);
+        var wheel = MouseResolver.ResolveOverlay(context, 5, 4, MouseGesture.WheelDown, default);
+
+        Assert.Equal(new OverlayRowClicked(MouseTarget.ProfileRow, 2, ActionIds.FormNext), click);
+        Assert.Equal(new OverlayRowClicked(MouseTarget.ProfileRow, 2, ActionIds.ProfileRemove), right);
+        Assert.Null(wheel);
+        Assert.Null(MouseResolver.Resolve(context, 5, 4, MouseGesture.Click, default));
+    }
+
+    [Fact]
     public void GivenClickOnStatusLine_WhenResolving_ThenOpensPalette()
     {
         var commands = MouseResolver.Resolve(_normal, 5, 23, MouseGesture.Click, default);

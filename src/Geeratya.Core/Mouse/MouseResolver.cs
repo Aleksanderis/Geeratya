@@ -7,7 +7,7 @@ namespace Geeratya.Core.Mouse;
 public static class MouseResolver
 {
     /// <summary>The parts of the mouse table that are wired today; rows of later parts have no effect yet.</summary>
-    public const string WiredParts = "AB";
+    public const string WiredParts = "ABO";
 
     private static readonly IReadOnlyList<Command> _none = [];
 
@@ -25,6 +25,11 @@ public static class MouseResolver
         if (MouseHitTester.Locate(context, column, row) is not { } hit)
         {
             return _none;
+        }
+
+        if (IsOverlayRow(hit.Target))
+        {
+            return OverlayClick(hit, gesture, at);
         }
 
         if (hit.Target == MouseTarget.Tabs)
@@ -55,6 +60,24 @@ public static class MouseResolver
         var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick;
 
         return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
+    }
+
+    // A row of an open overlay (picker, jump prompt, profile list, form field, suggestion popup): the row is chosen,
+    // then the key's handler runs.
+    private static IReadOnlyList<Command> OverlayClick(MouseHit hit, MouseGesture gesture, DateTimeOffset at)
+    {
+        if (DefaultMouseMap.Find(hit.Target, gesture) is not { } found || !WiredParts.Contains(found.Part))
+        {
+            return _none;
+        }
+
+        return [new OverlayRowClicked(hit.Target, hit.Row, found.Action, at)];
+    }
+
+    private static bool IsOverlayRow(MouseTarget target)
+    {
+        return target is MouseTarget.PickerRow or MouseTarget.JumpRow or MouseTarget.ProfileRow
+            or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice;
     }
 
     private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture)

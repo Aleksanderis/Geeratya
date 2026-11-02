@@ -92,6 +92,7 @@
     { "mode": "insert", "keys": "Ctrl-p", "action": "picker.previous" },
     { "mode": "insert", "keys": "Down", "action": "picker.next" },
     { "mode": "insert", "keys": "Ctrl-n", "action": "picker.next" },
+    { "mode": "insert", "keys": "Ctrl-x", "action": "profile.remove" },
     { "mode": "insert", "keys": "Tab", "action": "form.field-next" },
     { "mode": "insert", "keys": "Shift-Tab", "action": "form.field-previous" },
     { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" },

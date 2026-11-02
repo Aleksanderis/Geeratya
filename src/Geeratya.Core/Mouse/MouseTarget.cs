@@ -43,4 +43,22 @@ public enum MouseTarget
 
     /// <summary>A row of the context menu that a right-click opens (the other actions of the row).</summary>
     ContextMenu,
+
+    /// <summary>A choice row of the source picker overlay.</summary>
+    PickerRow,
+
+    /// <summary>A completion row of the jump prompt.</summary>
+    JumpRow,
+
+    /// <summary>A profile row of the profile list overlay.</summary>
+    ProfileRow,
+
+    /// <summary>A field of an open field form (a click focuses it).</summary>
+    FormField,
+
+    /// <summary>A row of the issue type list or of a form field's suggestion popup (a click takes it).</summary>
+    FormChoice,
+
+    /// <summary>A row of the comment editor's suggestion popup (a click takes it).</summary>
+    EditorChoice,
 }

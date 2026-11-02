@@ -18,6 +18,7 @@ Insert mode
   Ctrl-p     Previous row in the picker                                                                                 
   Down       Next row in the picker                                                                                     
   Ctrl-n     Next row in the picker                                                                                     
+  Ctrl-x     Remove the highlighted profile (asks first; the stored token is deleted)                                   
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
@@ -32,5 +33,4 @@ Insert mode
   PageDown   Move the cursor down half a screen                                                                         
   Ctrl-Left  Move the cursor to the start of the word                                                                   
   Ctrl-Right Move the cursor to the end of the word                                                                     
-  Ctrl-o     Open the issue page in the browser from the form                                                           
  HELP                                                                                            j down  k up  Esc close
