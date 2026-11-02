@@ -24,6 +24,7 @@ profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
 all_scenarios=(
   "default:120:36:dark::$profile_line"
+  "connected:120:36:dark::Connected as"
   "help:120:36:dark:?:Help"
   "narrow:64:30:dark::$profile_ready"
   "light:120:36:light::$profile_line"

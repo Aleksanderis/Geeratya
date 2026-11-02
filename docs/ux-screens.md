@@ -263,7 +263,7 @@ Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9`
 
 ## Connection check and network states
 
-Connection check line: while the first request of a profile is in flight the status bar text reads `Checking example.atlassian.net…` (role `Loading`); on success `Connected as <display name>` stays until the next message or a keypress, and the body shows what is cached. The first frame is drawn before any reply. On failure the banner states the reason (below).
+Implemented (#83): the check line described here is shown on the start screen under the profile line and in the status line (text only, without the `Loading` role yet); `:profile check` runs it again. Connection check line: while the first request of a profile is in flight the status bar text reads `Checking example.atlassian.net…` (role `Loading`); on success `Connected as <display name>` stays until the next message or a keypress, and the body shows what is cached. The first frame is drawn before any reply. On failure the banner states the reason (below).
 
 States, as a one-line banner under the tab bar (highest priority wins: error, offline, rate limited, stale):
 

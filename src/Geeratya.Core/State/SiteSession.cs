@@ -13,15 +13,17 @@ namespace Geeratya.Core.State;
 /// <param name="Tabs">The tabs open on that site, in open order.</param>
 /// <param name="Active">The active tab, null when there is none (start screen).</param>
 /// <param name="Link">Whether the site can be reached.</param>
+/// <param name="Connection">The result of the last credential check of this profile.</param>
 public sealed record SiteSession(
     string? ProfileName,
     string? SiteUrl,
     IReadOnlyList<TabState> Tabs,
     TabId? Active,
     // ReSharper disable once NotAccessedPositionalProperty.Global (read by the status and refresh issues, #89, #90)
-    SiteLink Link)
+    SiteLink Link,
+    ConnectionState Connection)
 {
-    public static SiteSession None { get; } = new(null, null, [], null, new Online());
+    public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked());
 
     /// <summary>A session with no tabs for <paramref name="profile"/>.</summary>
     public static SiteSession Empty(Profile? profile)
