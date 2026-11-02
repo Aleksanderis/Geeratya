@@ -85,7 +85,13 @@ public static class JumpReducer
     /// <summary>Closes the prompt and leaves Insert mode.</summary>
     public static AppState Close(AppState state)
     {
-        return state with { Mode = InputMode.Normal, Jump = null, PendingKeys = string.Empty, PaletteText = string.Empty };
+        return state with
+        {
+            Mode = InputMode.Normal,
+            Jump = null,
+            PendingKeys = string.Empty,
+            PaletteText = string.Empty,
+        };
     }
 
     /// <summary>Puts <paramref name="key"/> first among the recently opened keys of the session.</summary>

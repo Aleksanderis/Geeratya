@@ -110,6 +110,17 @@ public class JumpReducerTests
     }
 
     [Fact]
+    public void GivenPartialTextThatCompletesARow_WhenPressingEnter_ThenTheHighlightedCompletionOpens()
+    {
+        var state = Press(WithList(), "Space", "g").State;
+
+        var result = Press(state, "a", "Enter");
+
+        Assert.Equal("A-1", Active(result.State).Detail[0].Key);
+        Assert.Null(result.State.Jump);
+    }
+
+    [Fact]
     public void GivenANumberAndNoProjectKnown_WhenPressingEnter_ThenTheNoticeAsksForTheFullKey()
     {
         var profiles = ProfileCatalog.Empty.With(_work);

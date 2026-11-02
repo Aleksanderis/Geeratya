@@ -76,7 +76,9 @@ public static class JumpRows
         {
             foreach (var detail in tab.Detail.Reverse())
             {
-                rows.Add(new JumpRow(detail.Key, detail.Row?.Summary ?? detail.Issue?.Summary ?? string.Empty, JumpOrigin.Tab));
+                var title = detail.Row?.Summary ?? detail.Issue?.Summary ?? string.Empty;
+
+                rows.Add(new JumpRow(detail.Key, title, JumpOrigin.Tab));
             }
 
             rows.AddRange(tab.Rows.Select(row => new JumpRow(row.Key, row.Summary, JumpOrigin.Tab)));

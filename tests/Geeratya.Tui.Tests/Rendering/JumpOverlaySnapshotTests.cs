@@ -33,7 +33,8 @@ public class JumpOverlaySnapshotTests
     [Fact]
     public void GivenNothingToOffer_WhenBuildingTheFrame_ThenThePromptShowsTheHint()
     {
-        var empty = Sample(string.Empty) with { Session = SiteSession.Empty(new Profile("w", "https://w.test", "a@w.test")) };
+        var profile = new Profile("w", "https://w.test", "a@w.test");
+        var empty = Sample(string.Empty) with { Session = SiteSession.Empty(profile) };
 
         var lines = FrameBuilder.Build(empty, 80, 24, _helpLines, _keymap);
 
@@ -85,7 +86,12 @@ public class JumpOverlaySnapshotTests
         {
             Mode = InputMode.Insert,
             Profiles = ProfileCatalog.Empty.With(profile),
-            Session = SiteSession.Empty(profile) with { Tabs = [tab], Active = tab.Id, RecentKeys = ["GCM-4", "GTM-9"] },
+            Session = SiteSession.Empty(profile) with
+            {
+                Tabs = [tab],
+                Active = tab.Id,
+                RecentKeys = ["GCM-4", "GTM-9"],
+            },
             Jump = new JumpState(text, 0, null),
         };
     }

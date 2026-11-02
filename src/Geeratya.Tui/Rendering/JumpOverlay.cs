@@ -23,7 +23,7 @@ public static class JumpOverlay
     private const int KeyColumn = 12;
     private const int TopGap = 2;
 
-    /// <summary>Draws the prompt of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
+    /// <summary>Draws the prompt of <paramref name="state"/> over <paramref name="body"/>, <paramref name="height"/> lines.</summary>
     public static IReadOnlyList<StyledLine> Compose(
         IReadOnlyList<StyledLine> body,
         AppState state,
@@ -69,7 +69,11 @@ public static class JumpOverlay
         var contentWidth = boxWidth - 2;
         var area = Math.Max(0, inner - 1 - footer);
         var first = area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, rows.Count - area));
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title), OverlayBox.Wall(Prompt(jump), contentWidth) };
+        var lines = new List<StyledLine>
+        {
+            OverlayBox.Top(boxWidth, Title),
+            OverlayBox.Wall(Prompt(jump), contentWidth),
+        };
 
         foreach (var line in rows.Skip(first).Take(area))
         {
