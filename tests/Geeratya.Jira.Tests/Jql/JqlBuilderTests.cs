@@ -184,7 +184,19 @@ public sealed class JqlBuilderTests
         Assert.Equal("project = \"GCM\" AND parent = GCM-5 AND filter = 10001 ORDER BY Rank ASC", received);
     }
 
+    [Theory]
+    [InlineData("OR-1")]
+    [InlineData("IN-5")]
+    [InlineData("AND-3")]
+    [InlineData("ORDER-2")]
+    public void GivenReservedWordProjectKey_WhenBuilding_ThenKeyStaysBare(string key)
+    {
+        Assert.Equal($"parent = {key}", JqlBuilder.Parent(key));
+        Assert.Equal($"key in ({key}, GCM-1)", JqlBuilder.KeyIn([key, "GCM-1"]));
+    }
+
     /// <summary>Strict: fails when a quote inside the literal is unescaped or an escape dangles at the end.</summary>
+
     private static string Unquote(string literal)
     {
         Assert.StartsWith("\"", literal);
