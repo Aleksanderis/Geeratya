@@ -54,14 +54,18 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>
     private static StyledLine AsciiBorders(StyledLine line)
     {
-        if (!line.Spans.Any(static span => span.Role == TextRole.Muted && span.Text.Any(IsBorder)))
+        if (!line.Spans.Any(static span => (span.Role == TextRole.Muted && span.Text.Any(IsBorder))
+            || span.Role == TextRole.Editable))
         {
             return line;
         }
 
-        return new StyledLine(line.Spans.Select(static span => span.Role == TextRole.Muted
-            ? span with { Text = SwapBorders(span.Text) }
-            : span).ToArray());
+        return new StyledLine(line.Spans.Select(static span => span.Role switch
+        {
+            TextRole.Muted => span with { Text = SwapBorders(span.Text) },
+            TextRole.Editable => span with { Text = span.Text.Replace('▾', 'v') },
+            _ => span,
+        }).ToArray());
     }
 
     private static string SwapBorders(string text)

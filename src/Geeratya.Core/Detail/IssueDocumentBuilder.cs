@@ -20,6 +20,7 @@ public static class IssueDocumentBuilder
     private const int StackedFieldsWidth = 24;
     private const int ColumnGap = 3;
     private const int LabelWidth = 10;
+    private const string EditableMarker = " ▾";
     private const string DescriptionTitle = "Description";
     private const string RelationsTitle = "Relations";
     private const string RelationsText = "Sub-tasks, linked issues, remote links and attachments are not shown yet.";
@@ -112,13 +113,13 @@ public static class IssueDocumentBuilder
 
         if (header.Status is { } status)
         {
-            fields.Add(new Field("Status", status.Name, StatusRole(status)));
+            fields.Add(new Field("Status", status.Name, StatusRole(status), true));
         }
 
-        AddField(fields, "Priority", header.Priority);
-        AddField(fields, "Assignee", header.Assignee);
+        AddField(fields, "Priority", header.Priority, true);
+        AddField(fields, "Assignee", header.Assignee, true);
         AddField(fields, "Reporter", header.Reporter);
-        AddField(fields, "Labels", header.Labels.Count == 0 ? null : string.Join(", ", header.Labels));
+        AddField(fields, "Labels", header.Labels.Count == 0 ? null : string.Join(", ", header.Labels), true);
         AddField(fields, "Parent", header.Parent);
 
         if (header.Updated is { } updated && reference is { } now)
@@ -129,11 +130,11 @@ public static class IssueDocumentBuilder
         return fields;
     }
 
-    private static void AddField(List<Field> fields, string label, string? value)
+    private static void AddField(List<Field> fields, string label, string? value, bool editable = false)
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
-            fields.Add(new Field(label, value, TextRole.Body));
+            fields.Add(new Field(label, value, TextRole.Strong, editable));
         }
     }
 
@@ -200,8 +201,9 @@ public static class IssueDocumentBuilder
         {
             var stacked = new WrappedText(inner, false);
 
-            stacked.Append($"{field.Label}: ", TextRole.Muted);
+            stacked.Append($"{field.Label}: ", TextRole.FieldLabel);
             stacked.Append(field.Value, field.Role);
+            field.AppendMarker(stacked);
             stacked.Finish(content);
 
             return;
@@ -211,12 +213,13 @@ public static class IssueDocumentBuilder
         var rows = new List<StyledLine>();
 
         wrapped.Append(field.Value, field.Role);
+        field.AppendMarker(wrapped);
         wrapped.Finish(rows);
 
         for (var index = 0; index < rows.Count; index++)
         {
             var lead = index == 0
-                ? new StyledSpan(field.PaddedLabel, TextRole.Muted)
+                ? new StyledSpan(field.PaddedLabel, TextRole.FieldLabel)
                 : new StyledSpan(new string(' ', LabelWidth), TextRole.Body);
 
             content.Add(new StyledLine([lead, .. rows[index].Spans]));
@@ -371,12 +374,20 @@ public static class IssueDocumentBuilder
         return string.Concat(text.Select(static character => char.IsControl(character) ? ' ' : character));
     }
 
-    private sealed record Field(string Label, string Value, TextRole Role)
+    private sealed record Field(string Label, string Value, TextRole Role, bool Editable = false)
     {
+        public void AppendMarker(WrappedText text)
+        {
+            if (Editable)
+            {
+                text.Append(EditableMarker, TextRole.Editable);
+            }
+        }
+
         public string PaddedLabel => Label.PadRight(LabelWidth);
 
         /// <summary>Columns of the label and the value on one row.</summary>
-        public int CellWidth => LabelWidth + DisplayWidth.Of(Clean(Value));
+        public int CellWidth => LabelWidth + DisplayWidth.Of(Clean(Value)) + (Editable ? DisplayWidth.Of(EditableMarker) : 0);
 
         public bool Fits(int half)
         {
@@ -385,8 +396,13 @@ public static class IssueDocumentBuilder
 
         public void AddCell(List<StyledSpan> spans)
         {
-            spans.Add(new StyledSpan(PaddedLabel, TextRole.Muted));
+            spans.Add(new StyledSpan(PaddedLabel, TextRole.FieldLabel));
             spans.Add(new StyledSpan(Clean(Value), Role));
+
+            if (Editable)
+            {
+                spans.Add(new StyledSpan(EditableMarker, TextRole.Editable));
+            }
         }
     }
 

@@ -191,9 +191,9 @@ GCM board › GCM-12                                                            
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────╮
 │ Fix login redirect after token refresh                                                           │
 │                                                                                                  │
-│ Status    In Progress                          Priority  High                                    │
-│ Assignee  Jane Doe                             Reporter  Ola Nordmann                            │
-│ Labels    auth, bug-bash                       Parent    GCM-17 Reporting overhaul               │
+│ Status    In Progress ▾                        Priority  High ▾                                  │
+│ Assignee  Jane Doe ▾                           Reporter  Ola Nordmann                            │
+│ Labels    auth, bug-bash ▾                     Parent    GCM-17 Reporting overhaul               │
 │ Updated   2 h ago                                                                                │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Description ────────────────────────────────────────────────────────────────────────────────────╮
@@ -218,7 +218,7 @@ GCM board › GCM-12                                                            
 ```
 
 - **Panels.** A rounded frame (`╭ ╮ ╰ ╯ ─ │`, `+ - |` on terminals without Unicode, one cell for one cell) with one column of padding inside the sides and the title in the top edge. Borders are `Muted`, titles `Heading` (the header panel's title is the key in `Key` and the type in `Muted`). Panels follow each other without a gap. Below 12 columns the frames are dropped and the titles stay as plain lines. Content never touches the border: it wraps at the inner width, and a title that does not fit is cut with `…`.
-- **Header.** The panel title is `KEY · Type`; inside, the summary (wrapped, bold), a blank line and the fields as a table with a 10-cell label column in `Muted`: status (category role), priority, assignee, reporter, labels, parent (`KEY summary`, opens with `<space>p`), updated time. From 60 inner columns two fields that fit half the panel share a row; a field that does not fit (a long parent, many labels) takes a row of its own and wraps under its value. Below 24 inner columns the label and value run together as `Label: value`. Missing values are omitted, not shown as empty.
+- **Header.** The panel title is `KEY · Type`; inside, the summary (wrapped, bold), a blank line and the fields as a table with a 10-cell label column in `FieldLabel` (steel blue, apart from the values, which are `Strong` or the status colour; `StatusToDo` is bright, not muted, so a To Do value is never mistaken for a label): status (category role), priority, assignee, reporter, labels, parent (`KEY summary`, opens with `<space>p`), updated time. From 60 inner columns two fields that fit half the panel share a row; a field that does not fit (a long parent, many labels) takes a row of its own and wraps under its value. Below 24 inner columns the label and value run together as `Label: value`. Missing values are omitted, not shown as empty. Fields that can be changed (status, priority, assignee, labels) end with a ` ▾` marker (`v` on terminals without Unicode) in the `Editable` role (amber); read-only fields (reporter, parent, updated) have none. The editing keys arrive with the write issues; the marker only shows what is editable.
 - **Description.** In the `Description` panel: the ADF rendered as formatted text (`docs/jira-layer.md` "ADF in real data"). Media nodes show as `[image] name` or `[image]` when no name can be matched; nothing is rendered as an image. A missing description shows `No description.` in `Muted`.
 - **Sections, in order:** Sub-tasks, Epic children (epics only, loaded with `parent = KEY` when the issue is opened), Linked issues (direction text from the link type, `blocks`, `is blocked by`, ...), Remote links (Confluence and others: application and title), Attachments (name, type, size; the row opens the issue page in the browser because the API download URL needs the auth header, jira-layer.md "Links"), Comments. Until #88 a `Relations` panel stands in for the first five (one muted line saying they are not shown yet) and is replaced by the real panels, each drawn only when it has entries. Panel titles carry the count, `Name (n)`.
 - **Comments.** The `Comments` panel; oldest first, newest last, 50 per page. A thread with more comments ends with `Load more comments (Enter)`; `Enter` loads the next page below. The title reads `Comments (n)`, or `Comments (n of total)` while pages are missing; a thread is cut at 1000 comments with `Showing the first comments only.` A comment shows author, relative time (against the time of the last reply, so it does not tick on its own), `(edited)` when it changed more than a minute after writing, and the rendered ADF body, a blank line between comments. A failed page shows its error with `(Enter to retry)`.
@@ -239,7 +239,7 @@ GCM board › GCM-12 · Top
 │ Fix login redirect after token       │
 │ refresh                              │
 │                                      │
-│ Status    In Progress                │
+│ Status    In Progress ▾              │
  NORMAL  j/k Esc back <space>o ?
 ```
 

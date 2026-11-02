@@ -5,6 +5,6 @@ My open issues › GCM-12 · Top
 │ Fix login redirect after token       │
 │ refresh                              │
 │                                      │
-│ Status    In Progress                │
-│ Priority  High                       │
+│ Status    In Progress ▾              │
+│ Priority  High ▾                     │
  NORMAL        ? help  : command  q quit

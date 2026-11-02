@@ -30,6 +30,8 @@ public class StyledRenderingTests
     [InlineData(TextRole.StatusInProgress, PaletteRole.StatusInProgress)]
     [InlineData(TextRole.StatusDone, PaletteRole.StatusDone)]
     [InlineData(TextRole.Error, PaletteRole.Error)]
+    [InlineData(TextRole.FieldLabel, PaletteRole.FieldLabel)]
+    [InlineData(TextRole.Editable, PaletteRole.Editable)]
     public void GivenTextRole_WhenMappingToPalette_ThenItIsTheExpectedPaletteRole(TextRole role, PaletteRole expected)
     {
         Assert.Equal(expected, PaletteTable.For(role));

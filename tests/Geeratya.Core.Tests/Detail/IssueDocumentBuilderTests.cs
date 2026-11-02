@@ -67,14 +67,27 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
+    public void GivenHeader_WhenBuilding_ThenEditableFieldsCarryMarkerAndLabelsHaveOwnRole()
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 120);
+        var spans = document.Lines.SelectMany(line => line.Spans).ToList();
+
+        Assert.Contains(spans, span => span.Role == TextRole.FieldLabel && span.Text.StartsWith("Status"));
+        Assert.Contains(spans, span => span.Role == TextRole.Editable && span.Text == " ▾");
+        Assert.DoesNotContain(
+            document.Lines.Where(line => line.PlainText.Contains("Reporter")),
+            line => line.Spans.Any(span => span.Role == TextRole.Editable && line.PlainText.EndsWith('▾')));
+    }
+
+    [Fact]
     public void GivenWideTerminal_WhenBuilding_ThenFieldsShareLinesAndNarrowTerminalsPutOneOnEach()
     {
         var wide = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 120));
         var narrow = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 50));
 
         Assert.Contains(wide, line => line.Contains("Status    In Progress") && line.Contains("Priority  High"));
-        Assert.Contains("Status    In Progress", narrow);
-        Assert.Contains("Priority  High", narrow);
+        Assert.Contains("Status    In Progress ▾", narrow);
+        Assert.Contains("Priority  High ▾", narrow);
     }
 
     [Fact]

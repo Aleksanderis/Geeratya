@@ -4,9 +4,9 @@ My open issues › GCM-12 · Top
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
 │ Fix login redirect after token refresh                                       │
 │                                                                              │
-│ Status    In Progress                  Priority  High                        │
-│ Assignee  Jane Doe                     Reporter  Ola Nordmann                │
-│ Labels    auth, bug-bash               Parent    GCM-17 Reporting overhaul   │
+│ Status    In Progress ▾                Priority  High ▾                      │
+│ Assignee  Jane Doe ▾                   Reporter  Ola Nordmann                │
+│ Labels    auth, bug-bash ▾             Parent    GCM-17 Reporting overhaul   │
 │ Updated   2 h ago                                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Description ────────────────────────────────────────────────────────────────╮
