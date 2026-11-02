@@ -146,6 +146,7 @@ public sealed class FakeJiraServerTests : IDisposable
         using var comments = JsonDocument.Parse(
             await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-5/comment?startAt=100&maxResults=50"));
         var links = await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-3/remotelink");
+        var linked = await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-2/remotelink");
         var missing = await _client.GetAsync($"{baseUrl}/rest/api/3/issue/GEN-11");
 
         Assert.Equal("GEN-3", issue.RootElement.GetProperty("key").GetString());
@@ -153,6 +154,7 @@ public sealed class FakeJiraServerTests : IDisposable
         Assert.Equal(120, comments.RootElement.GetProperty("total").GetInt32());
         Assert.Equal(20, comments.RootElement.GetProperty("comments").GetArrayLength());
         Assert.Equal("[]", links);
+        Assert.Contains("\"url\":\"https://example.invalid/design\"", linked, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 

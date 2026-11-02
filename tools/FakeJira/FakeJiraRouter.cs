@@ -166,7 +166,7 @@ public sealed partial class FakeJiraRouter
             2 when parts[1] == "comment" => new FakeReply(
                 200,
                 GeneratedIssues.Comments(number, IntOf(query, StartAtName, 0), IntOf(query, MaxResultsName, DefaultPageSize))),
-            2 when parts[1] == "remotelink" => new FakeReply(200, "[]"u8.ToArray()),
+            2 when parts[1] == "remotelink" => new FakeReply(200, GeneratedIssues.RemoteLinks(number)),
             _ => null,
         };
     }

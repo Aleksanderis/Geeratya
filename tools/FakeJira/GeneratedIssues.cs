@@ -6,6 +6,8 @@ namespace Geeratya.FakeJira;
 /// <summary>Builds search pages over a generated dataset (same shape as the recorded search replies).</summary>
 public static class GeneratedIssues
 {
+    private const int LinkedIssueNumber = 2;
+
     private static readonly string[] _statuses = ["Backlog", "To Do", "In Progress", "Done"];
     private const int LongThreadEvery = 5;
     private const int LongThreadComments = 120;
@@ -91,6 +93,17 @@ public static class GeneratedIssues
         var json = $$$"""{"startAt":{{{Math.Max(0, startAt)}}},"maxResults":{{{pageSize}}},"total":{{{total}}},"comments":[{{{string.Join(',', comments)}}}]}""";
 
         return Encoding.UTF8.GetBytes(json);
+    }
+
+    /// <summary>
+    /// The remote links of generated issue <paramref name="number"/>: issue <see cref="LinkedIssueNumber"/> has one
+    /// https link (to try the browser launcher), the others none.
+    /// </summary>
+    public static byte[] RemoteLinks(int number)
+    {
+        return number == LinkedIssueNumber
+            ? """[{"id":1,"self":"https://example.invalid/rest/api/3/issue/GEN-2/remotelink/1","object":{"url":"https://example.invalid/design","title":"Generated design notes"}}]"""u8.ToArray()
+            : "[]"u8.ToArray();
     }
 
     public static byte[] Count(int total) => Encoding.UTF8.GetBytes($"{{\"count\":{total}}}");
