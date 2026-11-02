@@ -59,6 +59,10 @@ Only on the owner's dev site, opt-in, never part of the review or CI gate; rules
 
 For screenshots and manual tmux runs use the same pattern (`testing` skill, "Driving the real binary").
 
+## Open-in-browser smoke
+
+`scripts/smoke-browser.sh --binary <geeratya>` runs the real binary against the fake Jira with a minimal `PATH` (no `xdg-open`, no `BROWSER`), presses `<space>o` on a list row and again in the issue detail, and checks the status line. The fake is served over http, which the https-only gate (`BrowserUrlCheck`) refuses before any opener runs, so the checked message is `Cannot open the link: only https links can be opened`; the launcher's own "no browser opener found" message is covered by the Platform tests. Linux only.
+
 ## Screenshot pipeline
 
 `scripts/screenshot.sh render|publish|clean` (skill `screenshots`) captures the real binary against `tools/FakeJira` (generated issues, `--issues 40`; never a real site) in a private tmux server with private `XDG_*` directories. `tools/AnsiToSvg` (tests in `tests/Geeratya.AnsiToSvg.Tests`) turns the `capture-pane -p -e` text (SGR colours: 16, 256 and 24-bit; bold, dim, italic, underline, reverse; wide characters) into an SVG, `rsvg-convert` into a PNG.
