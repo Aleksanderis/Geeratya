@@ -171,10 +171,10 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
-    public async Task GivenWriteRateLimited_WhenSending_ThenItIsNotRetried()
+    public async Task GivenWriteRateLimitedWithoutRetryAfter_WhenSending_ThenItIsNotRetried()
     {
         using var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Post, "/rest/api/3/issue", FakeResponse.RateLimited("1"));
+        fixture.Handler.Serve(HttpMethod.Post, "/rest/api/3/issue", FakeResponse.WithStatus((HttpStatusCode)429));
         var request = JiraRequest.Write(HttpMethod.Post, "/rest/api/3/issue", "{}");
 
         var result = await SendAsync(fixture, request);

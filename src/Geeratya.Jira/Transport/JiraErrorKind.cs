@@ -17,4 +17,7 @@ public enum JiraErrorKind
     HostRefused,
     InvalidResponse,
     Unexpected,
+
+    /// <summary>409: the issue changed or a workflow rule refuses the change.</summary>
+    Conflict,
 }

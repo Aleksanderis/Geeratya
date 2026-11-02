@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using Geeratya.Jira.Writes;
+using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Transport;
 
@@ -70,9 +72,55 @@ public sealed class JiraTransport : IDisposable
         remove => _rateWaits.Changed -= value;
     }
 
-    public async Task<JiraResult<T>> SendAsync<T>(
+    public Task<JiraResult<T>> SendAsync<T>(
         JiraRequest request,
         JsonTypeInfo<T> resultInfo,
+        CancellationToken cancellationToken) =>
+        SendCoreAsync(request, resultInfo, cancellationToken);
+
+    /// <summary>
+    /// Sends a write and parses a JSON reply of <typeparamref name="T"/>. Never retried, except on a 429 that names
+    /// a <c>Retry-After</c> (the request was not processed). A timeout, network failure, 5xx or unreadable reply
+    /// is an unknown outcome; a cancelled call throws <see cref="OperationCanceledException"/>, also unknown.
+    /// </summary>
+    public async Task<WriteResult<T>> SendWriteAsync<T>(
+        JiraRequest request,
+        JsonTypeInfo<T> resultInfo,
+        CancellationToken cancellationToken)
+    {
+        RequireWrite(request);
+        var result = await SendCoreAsync(request, resultInfo, cancellationToken);
+
+        return WriteResults.From(result);
+    }
+
+    /// <summary>Sends a write whose reply body is not read (204 or an ignored body); same rules as above.</summary>
+    public async Task<WriteResult<WriteAccepted>> SendWriteAsync(
+        JiraRequest request,
+        CancellationToken cancellationToken)
+    {
+        RequireWrite(request);
+        var result = await SendCoreAsync<WriteAccepted>(request, null, cancellationToken);
+
+        return WriteResults.From(result);
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+    }
+
+    private static void RequireWrite(JiraRequest request)
+    {
+        if (request.IsIdempotent)
+        {
+            throw new ArgumentException("A write must be built with JiraRequest.Write.", nameof(request));
+        }
+    }
+
+    private async Task<JiraResult<T>> SendCoreAsync<T>(
+        JiraRequest request,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         if (!IsHostAllowed())
@@ -108,11 +156,6 @@ public sealed class JiraTransport : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _client.Dispose();
-    }
-
     private static SocketsHttpHandler CreateDefaultHandler() =>
         new()
         {
@@ -136,9 +179,15 @@ public sealed class JiraTransport : IDisposable
 
     private bool ShouldRetry(JiraRequest request, JiraError error, int attempt)
     {
-        if (!request.IsIdempotent || attempt >= _options.MaxRetries)
+        if (attempt >= _options.MaxRetries)
         {
             return false;
+        }
+
+        if (!request.IsIdempotent)
+        {
+            // A 429 means Jira did not process the write; without a Retry-After the wait is a guess, so give up.
+            return error.Kind == JiraErrorKind.RateLimited && error.RetryAfter is not null;
         }
 
         return error.Kind switch
@@ -164,7 +213,7 @@ public sealed class JiraTransport : IDisposable
 
     private async Task<JiraResult<T>> AttemptAsync<T>(
         JiraRequest request,
-        JsonTypeInfo<T> resultInfo,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         await ThrottleAsync(request.Priority, cancellationToken);
@@ -182,7 +231,7 @@ public sealed class JiraTransport : IDisposable
 
     private async Task<JiraResult<T>> SendOnceAsync<T>(
         JiraRequest request,
-        JsonTypeInfo<T> resultInfo,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -288,8 +337,13 @@ public sealed class JiraTransport : IDisposable
         return message;
     }
 
-    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T> resultInfo)
+    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T>? resultInfo)
     {
+        if (resultInfo is null)
+        {
+            return JiraResults.Success<T>(default!);
+        }
+
         try
         {
             var value = JsonSerializer.Deserialize(body, resultInfo);
@@ -308,7 +362,12 @@ public sealed class JiraTransport : IDisposable
     {
         var error = JiraErrorMapper.Map(response.StatusCode, body, ReadRetryAfter(response));
 
-        return error with { Message = Redact(error.Message) };
+        return error with
+        {
+            Message = Redact(error.Message),
+            FieldErrors = error.FieldErrors?.ToDictionary(pair => pair.Key, pair => Redact(pair.Value)),
+            Messages = error.Messages?.Select(Redact).ToList(),
+        };
     }
 
     private TimeSpan? ReadRetryAfter(HttpResponseMessage response)
