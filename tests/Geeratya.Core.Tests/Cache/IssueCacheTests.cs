@@ -63,6 +63,20 @@ public sealed class IssueCacheTests : IDisposable
             new AdfBlockquote([new AdfRule()]),
             new AdfPanel("warning", []),
             new AdfTable([new AdfTableRow([new AdfTableHeader(2, []), new AdfTableCell(3, [])])]),
+            new AdfTable(
+            [
+                new AdfTableRow(
+                [
+                    new AdfTableHeader(2, []) { RowSpan = 3, ColumnWidths = [100, 150] },
+                    new AdfTableCell(1, [new AdfNestedExpand("Inner", [new AdfParagraph([new AdfText("n", [])])])])
+                    {
+                        RowSpan = 2,
+                    },
+                ]),
+            ]),
+            new AdfDecisionList([new AdfDecisionItem("DECIDED", [new AdfText("choice", [])])]),
+            new AdfParagraph([new AdfMediaInline("m-2", "file", "coll", null, 10, 20)]),
+            new AdfMediaSingle(null, [new AdfMedia("m-3", "file", null, null, null, null), new AdfCaption([new AdfText("cap", [])])]),
             new AdfExpand("More", []),
             new AdfMediaSingle("wide", [new AdfMedia("m-1", "file", "coll", "alt text", 640, 480)]),
             new AdfMediaGroup([new AdfMedia(null, null, null, null, null, null)]),

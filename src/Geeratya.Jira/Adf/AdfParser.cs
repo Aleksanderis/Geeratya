@@ -189,6 +189,14 @@ public static class AdfParser
                     GetString(attributes, AdfAttributeNames.Alt),
                     GetInt(attributes, AdfAttributeNames.Width),
                     GetInt(attributes, AdfAttributeNames.Height));
+            case AdfNodeTypes.MediaInline:
+                return new AdfMediaInline(
+                    GetString(attributes, AdfAttributeNames.Id),
+                    GetString(attributes, TypeProperty),
+                    GetString(attributes, AdfAttributeNames.Collection),
+                    GetString(attributes, AdfAttributeNames.Alt),
+                    GetInt(attributes, AdfAttributeNames.Width),
+                    GetInt(attributes, AdfAttributeNames.Height));
         }
 
         var children = ParseChildren(element, depth + 1, state);
@@ -211,9 +219,25 @@ public static class AdfParser
                 children),
             AdfNodeTypes.Table => new AdfTable(children),
             AdfNodeTypes.TableRow => new AdfTableRow(children),
-            AdfNodeTypes.TableHeader => new AdfTableHeader(ParseSpan(attributes), children),
-            AdfNodeTypes.TableCell => new AdfTableCell(ParseSpan(attributes), children),
+            AdfNodeTypes.TableHeader => new AdfTableHeader(
+                ParseSpan(attributes, AdfAttributeNames.ColumnSpan),
+                children)
+            {
+                RowSpan = ParseSpan(attributes, AdfAttributeNames.RowSpan),
+                ColumnWidths = ParseColumnWidths(attributes),
+            },
+            AdfNodeTypes.TableCell => new AdfTableCell(
+                ParseSpan(attributes, AdfAttributeNames.ColumnSpan),
+                children)
+            {
+                RowSpan = ParseSpan(attributes, AdfAttributeNames.RowSpan),
+                ColumnWidths = ParseColumnWidths(attributes),
+            },
             AdfNodeTypes.Expand => new AdfExpand(GetString(attributes, AdfAttributeNames.Title), children),
+            AdfNodeTypes.NestedExpand => new AdfNestedExpand(GetString(attributes, AdfAttributeNames.Title), children),
+            AdfNodeTypes.DecisionList => new AdfDecisionList(children),
+            AdfNodeTypes.DecisionItem => new AdfDecisionItem(GetString(attributes, AdfAttributeNames.State), children),
+            AdfNodeTypes.Caption => new AdfCaption(children),
             AdfNodeTypes.MediaSingle => new AdfMediaSingle(GetString(attributes, AdfAttributeNames.Layout), children),
             AdfNodeTypes.MediaGroup => new AdfMediaGroup(children),
             _ => new AdfUnknownNode(
@@ -331,11 +355,46 @@ public static class AdfParser
         return Math.Clamp(level, DefaultHeadingLevel, MaxHeadingLevel);
     }
 
-    private static int ParseSpan(JsonElement attributes)
+    private static int ParseSpan(JsonElement attributes, string name)
     {
-        var span = GetInt(attributes, AdfAttributeNames.ColumnSpan) ?? DefaultSpan;
+        var span = GetInt(attributes, name) ?? DefaultSpan;
 
         return Math.Max(span, DefaultSpan);
+    }
+
+    /// <summary>
+    /// Reads <c>colwidth</c>, an array of numbers (one per spanned column). A non-array, or any entry that is not a
+    /// whole number, gives an empty list so a reader never sees a partial or misaligned set of widths.
+    /// </summary>
+    private static List<int> ParseColumnWidths(JsonElement attributes)
+    {
+        if (attributes.ValueKind != JsonValueKind.Object
+            || !attributes.TryGetProperty(AdfAttributeNames.ColumnWidth, out var array)
+            || array.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        var widths = new List<int>(array.GetArrayLength());
+
+        foreach (var entry in array.EnumerateArray())
+        {
+            if (entry.ValueKind == JsonValueKind.Number && entry.TryGetInt32(out var width) && width >= 0)
+            {
+                widths.Add(width);
+            }
+            else if (entry.ValueKind == JsonValueKind.Number && entry.TryGetDouble(out var fraction)
+                && fraction is >= 0 and <= int.MaxValue)
+            {
+                widths.Add((int)Math.Round(fraction));
+            }
+            else
+            {
+                return [];
+            }
+        }
+
+        return widths;
     }
 
     private static AdfTaskState ParseTaskState(JsonElement attributes)

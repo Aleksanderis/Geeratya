@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Cache;
@@ -5,7 +6,8 @@ namespace Geeratya.Core.Cache;
 /// <summary>
 /// Converts ADF documents to the cache DTOs and back. Pure. Per kind the DTO members hold: heading Number=level;
 /// orderedList Number=order; taskItem Value=state; codeBlock Value=language; panel Value=panel type; table header
-/// and cell Number=column span; expand Value=title; mediaSingle Value=layout; media Value=id, Second=media type,
+/// and cell Number=column span, Value=row span (absent for 1), Second=column widths joined by commas; expand and
+/// nestedExpand Value=title; decisionItem Value=state; mediaInline as media; mediaSingle Value=layout; media Value=id, Second=media type,
 /// Third=collection, Alt, Number=width, Height; text Text and Marks; inlineCard Value=URL; emoji Value=short name,
 /// Text=glyph; date Number=epoch milliseconds; status Text and Value=colour; mention Value=id, Text; unknown
 /// Value=type name, Text.
@@ -53,11 +55,18 @@ public static class AdfCacheMapper
             AdfRule => Leaf(AdfNodeTypes.Rule),
             AdfTable table => Container(AdfNodeTypes.Table, table),
             AdfTableRow row => Container(AdfNodeTypes.TableRow, row),
-            AdfTableHeader header => Container(AdfNodeTypes.TableHeader, header, number: header.ColumnSpan),
-            AdfTableCell cell => Container(AdfNodeTypes.TableCell, cell, number: cell.ColumnSpan),
+            AdfTableHeader header => Container(AdfNodeTypes.TableHeader, header, number: header.ColumnSpan)
+                with { Value = RowSpanText(header.RowSpan), Second = WidthsText(header.ColumnWidths) },
+            AdfTableCell cell => Container(AdfNodeTypes.TableCell, cell, number: cell.ColumnSpan)
+                with { Value = RowSpanText(cell.RowSpan), Second = WidthsText(cell.ColumnWidths) },
             AdfExpand expand => Container(AdfNodeTypes.Expand, expand, value: expand.Title),
+            AdfNestedExpand expand => Container(AdfNodeTypes.NestedExpand, expand, value: expand.Title),
+            AdfDecisionList list => Container(AdfNodeTypes.DecisionList, list),
+            AdfDecisionItem item => Container(AdfNodeTypes.DecisionItem, item, value: item.State),
+            AdfCaption caption => Container(AdfNodeTypes.Caption, caption),
             AdfMediaSingle single => Container(AdfNodeTypes.MediaSingle, single, value: single.Layout),
             AdfMediaGroup group => Container(AdfNodeTypes.MediaGroup, group),
+            AdfMediaInline media => ToMedia(media) with { Kind = AdfNodeTypes.MediaInline },
             AdfMedia media => ToMedia(media),
             AdfText text => Leaf(AdfNodeTypes.Text, text: text.Text) with { Marks = ToMarks(text.Marks) },
             AdfHardBreak => Leaf(AdfNodeTypes.HardBreak),
@@ -153,12 +162,25 @@ public static class AdfCacheMapper
             AdfNodeTypes.Rule => new AdfRule(),
             AdfNodeTypes.Table => new AdfTable(children),
             AdfNodeTypes.TableRow => new AdfTableRow(children),
-            AdfNodeTypes.TableHeader => new AdfTableHeader(Int(node.Number, 1), children),
-            AdfNodeTypes.TableCell => new AdfTableCell(Int(node.Number, 1), children),
+            AdfNodeTypes.TableHeader => new AdfTableHeader(Int(node.Number, 1), children)
+            {
+                RowSpan = RowSpan(node.Value),
+                ColumnWidths = Widths(node.Second),
+            },
+            AdfNodeTypes.TableCell => new AdfTableCell(Int(node.Number, 1), children)
+            {
+                RowSpan = RowSpan(node.Value),
+                ColumnWidths = Widths(node.Second),
+            },
             AdfNodeTypes.Expand => new AdfExpand(node.Value, children),
+            AdfNodeTypes.NestedExpand => new AdfNestedExpand(node.Value, children),
+            AdfNodeTypes.DecisionList => new AdfDecisionList(children),
+            AdfNodeTypes.DecisionItem => new AdfDecisionItem(node.Value, children),
+            AdfNodeTypes.Caption => new AdfCaption(children),
             AdfNodeTypes.MediaSingle => new AdfMediaSingle(node.Value, children),
             AdfNodeTypes.MediaGroup => new AdfMediaGroup(children),
             AdfNodeTypes.Media => FromMedia(node),
+            AdfNodeTypes.MediaInline => FromMediaInline(node),
             AdfNodeTypes.Text => new AdfText(node.Text ?? string.Empty, FromMarks(node.Marks)),
             AdfNodeTypes.HardBreak => new AdfHardBreak(),
             AdfNodeTypes.InlineCard => new AdfInlineCard(node.Value),
@@ -170,11 +192,52 @@ public static class AdfCacheMapper
         };
     }
 
+    // A row span and column widths ride in the string slots of the flat shape; absent means 1 and none, so files
+    // written before these attributes existed read back unchanged.
+    private static string? RowSpanText(int rowSpan)
+    {
+        return rowSpan > 1 ? rowSpan.ToString(CultureInfo.InvariantCulture) : null;
+    }
+
+    private static int RowSpan(string? text)
+    {
+        return int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var span) && span > 1 ? span : 1;
+    }
+
+    private static string? WidthsText(IReadOnlyList<int> widths)
+    {
+        return widths.Count == 0 ? null : string.Join(',', widths.Select(width => width.ToString(CultureInfo.InvariantCulture)));
+    }
+
+    private static List<int> Widths(string? text)
+    {
+        var widths = new List<int>();
+
+        foreach (var part in (text ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!int.TryParse(part, NumberStyles.None, CultureInfo.InvariantCulture, out var width))
+            {
+                return [];
+            }
+
+            widths.Add(width);
+        }
+
+        return widths;
+    }
+
     private static AdfMedia FromMedia(CachedAdfNode node)
     {
         int? width = node.Number is null ? null : Int(node.Number, 0);
 
         return new AdfMedia(node.Value, node.Second, node.Third, node.Alt, width, node.Height);
+    }
+
+    private static AdfMediaInline FromMediaInline(CachedAdfNode node)
+    {
+        var media = FromMedia(node);
+
+        return new AdfMediaInline(media.Id, media.MediaType, media.Collection, media.Alt, media.Width, media.Height);
     }
 
     private static AdfMark FromMark(CachedAdfMark mark)
