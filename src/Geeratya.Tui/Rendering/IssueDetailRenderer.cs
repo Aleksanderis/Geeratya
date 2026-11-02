@@ -22,6 +22,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     private const string TopText = "Top";
     private const string BottomText = "Bot";
     private const int Percent = 100;
+    private const string CursorMark = ">";
 
     public bool AppliesTo(AppState state)
     {
@@ -45,10 +46,36 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(document.Lines[index]) : document.Lines[index]);
+            var line = index == top.Cursor ? CursorLine(document.Lines[index]) : document.Lines[index];
+
+            lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(line) : line);
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Marks the cursor row: a panel edge character (a border, which is always the first span) becomes <c>&gt;</c> in
+    /// the selected role; a line without one (frames are dropped on a very narrow screen) is shown selected as a whole.
+    /// </summary>
+    private static StyledLine CursorLine(StyledLine line)
+    {
+        if (line.Spans.Count > 0 && line.Spans[0] is { Role: TextRole.Muted, Text.Length: > 0 } first
+            && IsBorder(first.Text[0]))
+        {
+            var marked = new List<StyledSpan>(line.Spans.Count + 1) { new(CursorMark, TextRole.Selected) };
+
+            if (first.Text.Length > 1)
+            {
+                marked.Add(first with { Text = first.Text[1..] });
+            }
+
+            marked.AddRange(line.Spans.Skip(1));
+
+            return new StyledLine(marked);
+        }
+
+        return new StyledLine(line.Spans.Select(static span => span with { Role = TextRole.Selected }).ToArray());
     }
 
     /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>

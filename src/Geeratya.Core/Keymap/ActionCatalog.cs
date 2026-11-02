@@ -59,10 +59,7 @@ public static class ActionCatalog
         ActionIds.NavigateRight,
         ActionIds.NavigateFirstColumn,
         ActionIds.NavigateLastColumn,
-        ActionIds.SectionNext,
-        ActionIds.SectionPrevious,
         ActionIds.ViewLayoutToggle,
-        ActionIds.IssueOpenParent,
     ];
 
     /// <summary>

@@ -5,6 +5,6 @@ My open issues › GCM-12 · Bot
 │ · 5 h ago                            │
 ╰──────────────────────────────────────╯
 ╭─ Comments ───────────────────────────╮
-│ No comments.                         │
+> No comments.                         │
 ╰──────────────────────────────────────╯
  NORMAL        ? help  : command  q quit
