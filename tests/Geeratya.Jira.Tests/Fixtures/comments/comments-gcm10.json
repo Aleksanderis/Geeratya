@@ -1,0 +1,256 @@
+{
+  "comments": [
+    {
+      "author": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "emailAddress": "user1@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "content": [
+          {
+            "attrs": {
+              "level": 2
+            },
+            "content": [
+              {
+                "text": "Seed comment with rich content",
+                "type": "text"
+              }
+            ],
+            "type": "heading"
+          },
+          {
+            "content": [
+              {
+                "text": "Hello ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "accessLevel": "",
+                  "id": "fake-account-1",
+                  "text": "@Test User 1"
+                },
+                "type": "mention"
+              },
+              {
+                "text": ", this has ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "bold",
+                "type": "text"
+              },
+              {
+                "text": " and ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "inline code",
+                "type": "text"
+              },
+              {
+                "text": ".",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "first bullet",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "listItem"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "second bullet",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "listItem"
+              }
+            ],
+            "type": "bulletList"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "step one",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "listItem"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "step two",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "listItem"
+              }
+            ],
+            "type": "orderedList"
+          },
+          {
+            "attrs": {
+              "language": "csharp"
+            },
+            "content": [
+              {
+                "text": "var x = 1;\nConsole.WriteLine(x);",
+                "type": "text"
+              }
+            ],
+            "type": "codeBlock"
+          },
+          {
+            "attrs": {
+              "isNumberColumnEnabled": false,
+              "layout": "default"
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "attrs": {},
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "Key",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "tableHeader"
+                  },
+                  {
+                    "attrs": {},
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "Value",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "tableHeader"
+                  }
+                ],
+                "type": "tableRow"
+              },
+              {
+                "content": [
+                  {
+                    "attrs": {},
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "a",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "tableCell"
+                  },
+                  {
+                    "attrs": {},
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "1",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "tableCell"
+                  }
+                ],
+                "type": "tableRow"
+              }
+            ],
+            "type": "table"
+          }
+        ],
+        "type": "doc",
+        "version": 1
+      },
+      "created": "2026-11-01T17:48:38.502+0200",
+      "id": "10002",
+      "jsdPublic": true,
+      "self": "https://example.atlassian.net/rest/api/3/issue/10017/comment/10002",
+      "updateAuthor": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "emailAddress": "user1@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "updated": "2026-11-01T17:48:38.502+0200"
+    }
+  ],
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 1
+}

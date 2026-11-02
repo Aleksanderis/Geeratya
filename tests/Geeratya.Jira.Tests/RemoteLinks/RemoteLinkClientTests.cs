@@ -40,6 +40,30 @@ public sealed class RemoteLinkClientTests
     }
 
     [Fact]
+    public async Task GivenRecordedDevSiteRemoteLink_WhenGetting_ThenLinkIsMapped()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GCM-10/remotelink", "links/remotelink-list-gcm10.json");
+
+        var result = await new RemoteLinkClient(fixture.Transport).GetRemoteLinksAsync("GCM-10", CancellationToken.None);
+
+        var link = Assert.Single(result.Value);
+        Assert.Equal("10001", link.Id);
+        Assert.Equal("Seed remote link", link.Title);
+        Assert.Equal("https://example.com/geeratya-seed", link.Url);
+        Assert.Null(link.ApplicationName);
+    }
+
+    [Fact]
+    public async Task GivenNonHttpScheme_WhenGetting_ThenUrlIsPassedThroughForTheOpenGate()
+    {
+        using var fixture = Serving(GcmPath, """[{"id": 1, "object": {"url": "javascript:alert(1)"}}]""", isJson: true);
+
+        var result = await new RemoteLinkClient(fixture.Transport).GetRemoteLinksAsync("GCM-6", CancellationToken.None);
+
+        Assert.Equal("javascript:alert(1)", Assert.Single(result.Value).Url);
+    }
+
+    [Fact]
     public async Task GivenNoLinks_WhenGetting_ThenListIsEmpty()
     {
         using var fixture = Serving("/rest/api/3/issue/GCM-2/remotelink", "links/remotelink-list-empty.json");

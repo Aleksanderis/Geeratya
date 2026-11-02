@@ -1,0 +1,16 @@
+[
+  {
+    "application": {},
+    "globalId": "geeratya-seed-remote",
+    "id": 10001,
+    "object": {
+      "icon": {},
+      "status": {
+        "icon": {}
+      },
+      "title": "Seed remote link",
+      "url": "https://example.com/geeratya-seed"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issue/GCM-10/remotelink/10001"
+  }
+]
