@@ -428,6 +428,29 @@ public class ColumnsBodyRendererTests
         Assert.Contains("↑A-1", Render(tab, 120, 8)[2].PlainText);
     }
 
+    [Fact]
+    public void GivenANestedCompactCard_WhenRendering_ThenItIsIndentedWithTheTypeColourOnTheMarker()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
+        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
+
+        var body = Render(tab, 120, 8);
+
+        Assert.Contains("   T A-2", body[3].PlainText);
+        Assert.Contains(body[3].Spans, span => span.Text == "T" && span.Role == TextRole.TypeTask);
+    }
+
+    [Fact]
+    public void GivenANestedCardInANarrowColumn_WhenRendering_ThenItKeepsItsParentHeaderWithoutIndent()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent") };
+        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
+
+        var body = Render(tab, 13, 30);
+
+        Assert.Single(body, line => line.PlainText.Contains('↑', StringComparison.Ordinal));
+    }
+
     private static IssueSummary Issue(string statusId, string key, string summary = "Summary", string? assignee = null)
     {
         return new IssueSummary(

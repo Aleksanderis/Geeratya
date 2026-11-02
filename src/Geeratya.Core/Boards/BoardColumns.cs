@@ -91,25 +91,27 @@ public static class BoardColumns
     /// </summary>
     public static BoardColumnGroup Arrange(string name, IReadOnlyList<IssueSummary> rows)
     {
-        var keys = new HashSet<string>(rows.Count, StringComparer.Ordinal);
-        var children = new Dictionary<string, List<IssueSummary>>(StringComparer.Ordinal);
-
-        foreach (var row in rows)
+        if (!rows.Any(row => row.Parent is not null))
         {
-            keys.Add(row.Key);
+            return new BoardColumnGroup(name, rows);
         }
 
-        foreach (var row in rows)
-        {
-            if (row.Parent is { } parent && parent.Key != row.Key && keys.Contains(parent.Key))
-            {
-                if (!children.TryGetValue(parent.Key, out var list))
-                {
-                    children[parent.Key] = list = [];
-                }
+        var keys = new HashSet<string>(rows.Select(row => row.Key), StringComparer.Ordinal);
+        var children = new Dictionary<string, List<IssueSummary>>(StringComparer.Ordinal);
 
-                list.Add(row);
+        bool UnderParent(IssueSummary row)
+        {
+            return row.Parent is { } parent && parent.Key != row.Key && keys.Contains(parent.Key);
+        }
+
+        foreach (var row in rows.Where(UnderParent))
+        {
+            if (!children.TryGetValue(row.Parent!.Key, out var list))
+            {
+                children[row.Parent.Key] = list = [];
             }
+
+            list.Add(row);
         }
 
         if (children.Count == 0)
@@ -123,13 +125,13 @@ public static class BoardColumns
 
         foreach (var row in rows)
         {
-            if (!(row.Parent is { } parent && parent.Key != row.Key && keys.Contains(parent.Key)))
+            if (!UnderParent(row))
             {
                 Place(row, false, children, ordered, nested, placed);
             }
         }
 
-        // A parent loop (not possible in Jira) would leave rows unplaced; none may vanish.
+        // A parent loop (not possible in Jira) would leave rows unplaced; they are appended in load order.
         foreach (var row in rows)
         {
             Place(row, false, children, ordered, nested, placed);

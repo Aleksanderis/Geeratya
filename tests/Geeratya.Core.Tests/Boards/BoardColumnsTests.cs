@@ -129,8 +129,8 @@ public class BoardColumnsTests
 
         var group = BoardColumns.Arrange("Col", rows);
 
-        Assert.Equal(5, group.Rows.Count);
-        Assert.Equal(["A-5", "A-4", "A-3"], group.Rows.Select(row => row.Key).Skip(0).Take(3));
+        Assert.Equal(["A-5", "A-4", "A-3", "A-1", "A-2"], group.Rows.Select(row => row.Key));
+        Assert.Equal([false, true, true, false, true], Enumerable.Range(0, 5).Select(group.IsNested));
     }
 
     private static BoardConfiguration Configuration(BoardType type, params BoardColumn[] columns)

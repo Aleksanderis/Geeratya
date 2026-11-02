@@ -346,7 +346,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
                 _ => ("└", "┘"),
             };
             var fill = heavy ? '━' : HorizontalChar;
-            var label = within == 0 && indent == 0 && !nested ? ParentLabel(issue, width - 2, fill) : string.Empty;
+            var label = within == 0 && indent == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
             var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
 
             spans.Add(new StyledSpan($"{left}{bar}{right}", frame));
