@@ -58,6 +58,7 @@ public sealed class SiteCache : IDisposable
     private long _stamp;
     private bool _disposed;
     private bool _viewsRemoved;
+    private int _viewsRemovedEpoch;
     private bool _failureReported;
 
     public SiteCache(
@@ -240,6 +241,7 @@ public sealed class SiteCache : IDisposable
             _views.Clear();
             _pending.Clear();
             _viewsRemoved = true;
+            _viewsRemovedEpoch++;
             _timer.Change(_debounce, Timeout.InfiniteTimeSpan);
         }
     }
@@ -255,6 +257,7 @@ public sealed class SiteCache : IDisposable
             List<CachedIssue> issues;
             List<string> removed;
             bool removeViews;
+            int epoch;
 
             lock (_memoryLock)
             {
@@ -263,8 +266,9 @@ public sealed class SiteCache : IDisposable
                     return;
                 }
 
+                // The flag stays set until the files are gone, so a read in between is still a miss.
                 removeViews = _viewsRemoved;
-                _viewsRemoved = false;
+                epoch = _viewsRemovedEpoch;
 
                 batch = new Dictionary<CacheKey, CachedView>(_pending);
                 issues = [.. _pendingIssues.Values];
@@ -277,6 +281,7 @@ public sealed class SiteCache : IDisposable
             if (removeViews)
             {
                 DeleteViewFiles();
+                ClearViewsRemoved(epoch);
             }
 
             foreach (var key in removed)
@@ -317,6 +322,18 @@ public sealed class SiteCache : IDisposable
         lock (_diskLock)
         {
             Discard();
+        }
+    }
+
+    /// <summary>Ends the "views removed" state, unless another removal came in while the files were deleted.</summary>
+    private void ClearViewsRemoved(int epoch)
+    {
+        lock (_memoryLock)
+        {
+            if (_viewsRemovedEpoch == epoch)
+            {
+                _viewsRemoved = false;
+            }
         }
     }
 

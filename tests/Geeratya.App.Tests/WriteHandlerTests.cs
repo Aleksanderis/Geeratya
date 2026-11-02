@@ -160,9 +160,9 @@ public sealed class WriteHandlerTests
 
     [Theory]
     [InlineData(Assigned, VerifyOutcome.Applied)]
-    [InlineData(StillOther, VerifyOutcome.NotApplied)]
-    [InlineData(Unassigned, VerifyOutcome.NotApplied)]
-    public async Task GivenALostReply_WhenVerifying_ThenTheIssueDecidesAppliedOrNot(string body, VerifyOutcome expected)
+    [InlineData(StillOther, VerifyOutcome.Unreachable)]
+    [InlineData(Unassigned, VerifyOutcome.Unreachable)]
+    public async Task GivenALostReply_WhenVerifying_ThenOnlyARowShowingTheChangeCountsAsApplied(string body, VerifyOutcome expected)
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, body));
 
@@ -185,7 +185,7 @@ public sealed class WriteHandlerTests
     }
 
     [Fact]
-    public async Task GivenTheIssueIsGone_WhenVerifying_ThenItIsUnreachableNotApplied()
+    public async Task GivenTheIssueIsGone_WhenVerifying_ThenItIsUnreachable()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
 

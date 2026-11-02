@@ -493,6 +493,19 @@ public class WriteReducerTests
     }
 
     [Fact]
+    public void GivenARunningWrite_WhenRemovingTheActiveProfile_ThenTheQuestionNamesTheLostResult()
+    {
+        var state = TwoTabs() with { Profiles = ProfileCatalog.Empty.With(_work).With(_dev).Activate("work") };
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+
+        var active = Palette(started.State, "profile remove work");
+        var other = Palette(started.State, "profile remove dev");
+
+        Assert.Contains("1 write is still running", active.State.Confirm!.Message);
+        Assert.DoesNotContain("write is still running", other.State.Confirm!.Message);
+    }
+
+    [Fact]
     public void GivenNoWrite_WhenSwitchingProfile_ThenItSwitchesWithoutAsking()
     {
         var state = TwoTabs() with { Profiles = ProfileCatalog.Empty.With(_work).With(_dev).Activate("work") };

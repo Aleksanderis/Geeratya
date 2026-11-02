@@ -136,7 +136,9 @@ public sealed class WriteHandler
             return VerifyOutcome.Unreachable;
         }
 
-        return rows.All(request.IsShownBy) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
+        // The read is a search, and the search index lags behind a write: an old value proves nothing, so only a
+        // row that shows the change decides. "Not applied" needs a read that cannot lag (none is used yet).
+        return rows.All(request.IsShownBy) ? VerifyOutcome.Applied : VerifyOutcome.Unreachable;
     }
 
     private static async Task<IReadOnlyList<IssueSummary>?> ReadAsync(

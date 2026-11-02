@@ -278,10 +278,21 @@ public static class ProfileReducer
         }
 
         var question = $"Remove profile {profile.Name} ({profile.Email} on {profile.SiteUrl}) and delete its stored "
-            + $"token?{ActiveNotice(state.Profiles, profile)} This cannot be undone";
+            + $"token?{ActiveNotice(state.Profiles, profile)}{RunningNotice(state, profile)} This cannot be undone";
         var request = new ConfirmRequest(question, RemoveAction, profile.Name);
 
         return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
+    }
+
+    /// <summary>Removing the active profile drops its session, so running writes lose their results too.</summary>
+    private static string RunningNotice(AppState state, Profile profile)
+    {
+        if (state.Profiles.ActiveName != profile.Name || WriteReducer.RunningText(state) is not { } running)
+        {
+            return string.Empty;
+        }
+
+        return $" {running}.";
     }
 
     private static string ActiveNotice(ProfileCatalog catalog, Profile profile)
