@@ -28,6 +28,24 @@ public sealed record FormField(
     int Cursor,
     string? Error)
 {
+    /// <summary>The label of the first row of a single choice that is not required, which clears the value.</summary>
+    public string NoneLabel { get; init; } = "(none)";
+
+    /// <summary>
+    /// The options come from a search of the typed text (people), not from the metadata: typing asks for a new list
+    /// and the list is not filtered again here.
+    /// </summary>
+    public bool Searchable { get; init; }
+
+    /// <summary>
+    /// The typed text of a searchable field has been sent to the search and the answer is not in yet, so the options
+    /// shown belong to older text and Enter must not choose from them.
+    /// </summary>
+    public bool Searching { get; init; }
+
+    /// <summary>What a searchable field lists while nothing is typed.</summary>
+    public IReadOnlyList<FieldOption> Suggested { get; init; } = [];
+
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
     /// <summary>True when the user changed the field, counting a label that is typed and not yet added.</summary>

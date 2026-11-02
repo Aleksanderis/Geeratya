@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  y          Confirm                                                                                                    
+  n          Decline                                                                                                    
+  Esc        Decline                                                                                                    
                                                                                                                         
 Insert mode                                                                                                             
   Enter      Accept the field and go to the next                                                                        
@@ -30,7 +33,4 @@ Palette commands
   :board [name]                                                                                                         
       Open a board as columns in a new tab                                                                              
   :backlog [name]                                                                                                       
-      Open a board's backlog in a new tab                                                                               
-  :history clear                                                                                                        
-      Forget the recent JQL queries and issues of this profile                                                          
  HELP                                                                                            j down  k up  Esc close

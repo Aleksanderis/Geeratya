@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i m  Assign the issue to me                                                                                     
+  Space g    Jump to an issue by key                                                                                    
+                                                                                                                        
 Help mode                                                                                                               
   j          Move down                                                                                                  
   Down       Move down                                                                                                  
@@ -30,7 +33,4 @@ Insert mode
   Up         Previous row in the picker                                                                                 
   Ctrl-p     Previous row in the picker                                                                                 
   Down       Next row in the picker                                                                                     
-  Ctrl-n     Next row in the picker                                                                                     
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
  HELP                                                                                            j down  k up  Esc close
