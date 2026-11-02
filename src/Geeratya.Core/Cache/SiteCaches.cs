@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Geeratya.Core.Profiles;
 
 namespace Geeratya.Core.Cache;
@@ -11,8 +9,6 @@ namespace Geeratya.Core.Cache;
 /// </summary>
 public sealed class SiteCaches : IDisposable
 {
-    private const int FolderHashLength = 16;
-
     private readonly string _root;
     private readonly FilePermissions _permissions;
     private readonly TimeSpan? _debounce;
@@ -38,9 +34,7 @@ public sealed class SiteCaches : IDisposable
     /// <summary>The folder of a profile's cache (it may not exist yet).</summary>
     public string FolderOf(Profile profile)
     {
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(profile.CredentialKey));
-
-        return Path.Combine(_root, Convert.ToHexStringLower(hash)[..FolderHashLength]);
+        return Path.Combine(_root, ProfileFolder.NameOf(profile));
     }
 
     /// <summary>The open cache of <paramref name="profile"/>, created on first use (no file is touched yet).</summary>

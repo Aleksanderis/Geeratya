@@ -7,4 +7,7 @@ public enum SourceChoiceKind
     Backlog,
     Filter,
     Query,
+
+    /// <summary>A JQL string opened before (history).</summary>
+    Recent,
 }

@@ -125,10 +125,11 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 
 | Command | What it does |
 |---|---|
-| `:jql <query>` | Open a JQL query in a new tab |
+| `:jql [query]` | Open a JQL query in a new tab (no query: pick from recent ones) |
 | `:filter [name]` | Open a saved filter in a new tab |
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
+| `:history clear` | Forget the recent JQL queries and issues of this profile |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |

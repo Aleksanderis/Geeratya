@@ -37,7 +37,7 @@ public class SourceReducerTests
 
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.Equal(PickerScope.All, result.State.Picker!.Scope);
-        var effect = Assert.IsType<LoadSourcesEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadSourcesEffect>());
         Assert.True(effect.Boards);
         Assert.True(effect.Filters);
         Assert.True(result.State.Session.Sources.BoardsLoading);
@@ -63,7 +63,7 @@ public class SourceReducerTests
 
         var result = Press(Press(state, "Space").State, "t");
 
-        Assert.Empty(result.Effects);
+        Assert.DoesNotContain(result.Effects, effect => effect is LoadSourcesEffect);
         Assert.NotNull(result.State.Picker);
     }
 
@@ -76,7 +76,7 @@ public class SourceReducerTests
 
         var second = Press(Press(boards.State, "Space").State, "t");
 
-        Assert.Empty(second.Effects);
+        Assert.DoesNotContain(second.Effects, effect => effect is LoadSourcesEffect);
         Assert.True(second.State.Session.Sources.FiltersLoading);
     }
 
@@ -89,7 +89,7 @@ public class SourceReducerTests
 
         var again = Press(Press(closed.State, "Space").State, "t");
 
-        var effect = Assert.IsType<LoadSourcesEffect>(Assert.Single(again.Effects));
+        var effect = Assert.Single(again.Effects.OfType<LoadSourcesEffect>());
         Assert.True(effect.Boards);
         Assert.False(effect.Filters);
         Assert.Null(again.State.Session.Sources.BoardsError);
@@ -432,11 +432,12 @@ public class SourceReducerTests
     }
 
     [Fact]
-    public void GivenJqlWithoutQuery_WhenRun_ThenUsageIsShownEvenWithoutProfile()
+    public void GivenJqlWithoutQuery_WhenRunWithoutProfile_ThenTheMessageSaysToAddOne()
     {
         var result = Run(AppState.Initial, "jql");
 
-        Assert.Equal("Usage: :jql <query>", result.State.Message);
+        Assert.Null(result.State.Picker);
+        Assert.Equal("No profile yet: add one with :profile add.", result.State.Message);
     }
 
     [Fact]

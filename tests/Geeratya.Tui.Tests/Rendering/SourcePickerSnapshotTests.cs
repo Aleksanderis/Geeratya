@@ -1,3 +1,4 @@
+using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -46,6 +47,21 @@ public class SourcePickerSnapshotTests
         var lines = FrameBuilder.Build(Sample("zzz"), 80, 24, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("zzz", StringComparison.Ordinal) && line.Contains("JQL", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenTheJqlPickerWithHistory_WhenBuildingTheFrame_ThenRecentQueriesShowWithoutBoardGroups()
+    {
+        var state = Sample("") with { Picker = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null) };
+        var lists = state.Session.Sources with { Boards = null, History = SiteHistory.Empty.WithQuery("project = GCM") };
+        var shown = state with { Session = state.Session with { Sources = lists } };
+
+        var lines = FrameBuilder.Build(shown, 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Recent", StringComparison.Ordinal)
+            && line.Contains("project = GCM", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Loading", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Boards", StringComparison.Ordinal));
     }
 
     private static AppState Sample(string text)

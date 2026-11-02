@@ -1,3 +1,4 @@
+using Geeratya.Core.History;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
@@ -60,7 +61,8 @@ public class JumpReducerTests
         var tab = Active(result.State);
         Assert.Equal("A-2", Assert.Single(tab.Detail).Key);
         Assert.Equal("A-2", Assert.Single(result.Effects.OfType<LoadIssueDetailEffect>()).Key);
-        Assert.Equal(3, result.Effects.Count);
+        Assert.Equal(4, result.Effects.Count);
+        Assert.Single(result.Effects.OfType<RecordHistoryEffect>());
         Assert.Null(result.State.Jump);
         Assert.Equal(InputMode.Normal, result.State.Mode);
     }

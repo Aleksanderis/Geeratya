@@ -26,8 +26,8 @@ Insert mode
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
+  :jql [query]                                                                                                          
+      Open a JQL query in a new tab (no query: pick from recent ones)                                                   
   :filter [name]                                                                                                        
       Open a saved filter in a new tab                                                                                  
   :board [name]                                                                                                         
