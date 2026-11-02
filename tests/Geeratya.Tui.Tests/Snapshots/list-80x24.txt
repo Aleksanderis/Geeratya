@@ -21,4 +21,4 @@ Loading more…
                                                                                 
                                                                                 
                                                                                 
- NORMAL loading                                        ? help  : command  q quit
+ NORMAL loading                  j/k move  Enter open  ? help  : command  q quit

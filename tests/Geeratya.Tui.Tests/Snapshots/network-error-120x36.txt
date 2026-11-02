@@ -33,4 +33,4 @@ My open issues · 3 issues
                                                                                                                         
                                                                                                                         
                                                                                                                         
- NORMAL error                                                                                  ? help  : command  q quit
+ NORMAL error                                           j/k move  Enter open  Space o browser  ? help  : command  q quit

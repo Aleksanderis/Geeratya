@@ -21,4 +21,4 @@ My open issues · 3 issues
                                                                                 
                                                                                 
                                                                                 
- NORMAL offline                                        ? help  : command  q quit
+ NORMAL offline                  j/k move  Enter open  ? help  : command  q quit
