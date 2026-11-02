@@ -19,6 +19,7 @@ public sealed partial class WriteFixtureTests
     [InlineData("transition-post-gtm-reply", "POST", "/rest/api/3/issue/GTM-25/transitions")]
     [InlineData("rank-put-gtm-reply", "PUT", "/rest/agile/1.0/issue/rank")]
     [InlineData("issue-delete-gtm-reply", "DELETE", "/rest/api/3/issue/GTM-25")]
+    [InlineData("issue-delete-subtasks-gtm-reply", "DELETE", "/rest/api/3/issue/GTM-32")]
     public async Task GivenRecordedEmptyReply_WhenWriting_ThenNoContentIsSuccess(string name, string method, string path)
     {
         using var fixture = new TransportFixture();

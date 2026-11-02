@@ -243,7 +243,7 @@ Dev site facts: `GCM` is board 4 (`type: kanban`), `GTM` is board 3 (`type: simp
 - The issue detail (#88) asks for children only when the opened issue's type has `hierarchyLevel` 1 or above, with `parent = KEY ORDER BY Rank ASC` and one page of the default size 50 (`IssueSearchQuery.DefaultPageSize`); a longer list is marked, not paged. The sub-tasks of a level-0 issue come from its `subtasks` field with no search.
 - Quirk: a sub-task can be created directly under an epic in a company-managed project (201, `hierarchy/create-gcm-subtask-under-epic.json`), and a task can be made a child of an epic and still have sub-tasks. Do not assume only three levels are consistent.
 - Create requires `parent` for sub-types (`required: true` in `metadata/createmeta-fields-gcm-subtask.json`, `metadata/createmeta-fields-gtm-subtask.json`), `parent` is optional for Task/Story (`metadata/createmeta-fields-gcm-task.json`) and absent for Epic.
-- Deleting a parent with sub-tasks is 400 `The issue 'GTM-6' has subtasks. You must specify the 'deleteSubtasks' parameter` (`hierarchy/delete-400-has-subtasks.json`); the confirm dialog must say that sub-tasks go too.
+- Deleting a parent with sub-tasks is 400 `The issue 'GTM-6' has subtasks. You must specify the 'deleteSubtasks' parameter` (`hierarchy/delete-400-has-subtasks.json`); the confirm dialog must say that sub-tasks go too. Confirmed live (#281): `deleteSubtasks=true` answers 204 and the sub-tasks are 404 afterwards; the sub-task search (`search/search-subtasks-of-gtm.json`) found a new sub-task immediately; a 404 on the verify read has the same body for a deleted issue and for one the user cannot browse, so "404 means done" is a best guess (#316).
 
 ### Create and edit metadata
 

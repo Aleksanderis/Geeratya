@@ -34,6 +34,8 @@ public class LiveSubtaskDeleteTests
             var search = new JiraSearchClient(transport);
             var found = await search.SearchAsync(new IssueSearchQuery(JqlBuilder.SubTasksOf(parent)), null, token);
             Assert.True(found.IsSuccess);
+            // The sub-task was found at once in every run so far; the index is eventually consistent, so a failure
+            // here may be lag, not a wrong query.
             Assert.Equal([child], found.Value.Items.Select(item => item.Key));
 
             var refused = await edits.DeleteIssueAsync(parent, false, token);
@@ -55,7 +57,7 @@ public class LiveSubtaskDeleteTests
         }
         finally
         {
-            // Already gone on success (404, ignored); removes the sub-task with the parent after a failed step.
+            // Already gone on success (404, result ignored on purpose); removes the sub-task with the parent after a failed step.
             await edits.DeleteIssueAsync(parent, true, token);
         }
     }
@@ -68,8 +70,9 @@ public class LiveSubtaskDeleteTests
         CancellationToken token)
     {
         var parentPart = parent is null ? string.Empty : $$$""","parent":{"key":"{{{parent}}}"}""";
-        var body =
-            $$$"""{"fields":{"project":{"key":"GTM"},"issuetype":{"name":"{{{issueType}}}"},"summary":"geeratya live sub-task delete"{{{parentPart}}},"labels":["geeratya-test-{{{runId}}}"]}}""";
+        var fields =
+            $$$"""{"project":{"key":"GTM"},"issuetype":{"name":"{{{issueType}}}"},"summary":"geeratya live sub-task delete",""";
+        var body = $$$"""{"fields":{{{fields}}}"labels":["geeratya-test-{{{runId}}}"]{{{parentPart}}}}}""";
         var created = await transport.SendWriteAsync(
             JiraRequest.Write(HttpMethod.Post, IssuePath, body),
             LiveWriteJsonContext.Default.LiveCreatedIssue,
