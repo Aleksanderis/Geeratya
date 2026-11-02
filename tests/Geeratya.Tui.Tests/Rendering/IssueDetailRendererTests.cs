@@ -20,7 +20,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// comments. To refresh after an intended change, copy the actual frame from the failure into the matching file and
 /// review the diff.
 /// </summary>
-[Trait("Os", "Independent")]
 public class IssueDetailRendererTests
 {
     private static readonly DateTimeOffset _now = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);

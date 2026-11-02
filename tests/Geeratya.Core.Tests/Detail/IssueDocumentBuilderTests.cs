@@ -117,8 +117,8 @@ public class IssueDocumentBuilderTests
     [Fact]
     public void GivenControlCharactersInNames_WhenBuilding_ThenNoLineCarriesThem()
     {
-        var comment = Comment("Mal\u001b[31mory\n", "Body");
-        var detail = Loaded(null, [comment]) with { Issue = Issue(null) with { Summary = "Sum\u0007mary\r\nline" } };
+        var comment = Comment($"Mal{(char)27}[31mory{(char)10}", "Body");
+        var detail = Loaded(null, [comment]) with { Issue = Issue(null) with { Summary = $"Sum{(char)7}mary{(char)13}{(char)10}line" } };
 
         var document = IssueDocumentBuilder.Build(detail, 80);
 
