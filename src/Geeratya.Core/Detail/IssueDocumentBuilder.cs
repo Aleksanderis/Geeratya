@@ -1,7 +1,6 @@
 using Geeratya.Core.Adf;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
-using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
@@ -17,12 +16,15 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 public static class IssueDocumentBuilder
 {
-    private const int FieldsSideBySideWidth = 80;
-    private const int Indent = 2;
-    private const string FieldGap = "   ";
-    private const string Divider = "─";
+    private const int PairingWidth = 60;
+    private const int StackedFieldsWidth = 24;
+    private const int ColumnGap = 3;
+    private const int LabelWidth = 10;
     private const string DescriptionTitle = "Description";
+    private const string RelationsTitle = "Relations";
+    private const string RelationsText = "Sub-tasks, linked issues, remote links and attachments are not shown yet.";
     private const string CommentsTitle = "Comments";
+    private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
     private const string NoCommentsText = "No comments.";
@@ -46,21 +48,25 @@ public static class IssueDocumentBuilder
     public static DetailDocument Build(DetailState detail, int width)
     {
         var columns = Math.Max(1, width);
+        var inner = Panel.InnerWidth(columns);
         var lines = new List<StyledLine>();
 
-        AddHeader(lines, detail, columns);
+        AddHeader(lines, detail, columns, inner);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)
         {
-            lines.Add(StyledLine.Empty);
-            lines.Add(StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error));
-            lines.Add(StyledLine.Of(BackText, TextRole.Muted));
+            Panel.Add(
+                lines,
+                [new StyledSpan(ErrorTitle, TextRole.Error)],
+                [StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error), StyledLine.Of(BackText, TextRole.Muted)],
+                columns);
 
             return new DetailDocument(columns, lines);
         }
 
-        AddDescription(lines, detail, columns);
-        AddComments(lines, detail, columns);
+        AddDescription(lines, detail, columns, inner);
+        AddRelations(lines, columns, inner);
+        AddComments(lines, detail, columns, inner);
 
         return new DetailDocument(columns, lines);
     }
@@ -70,19 +76,31 @@ public static class IssueDocumentBuilder
         return failed.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden ? NotFoundText(key) : failed.Message;
     }
 
-    private static void AddHeader(List<StyledLine> lines, DetailState detail, int width)
+    private static void AddHeader(List<StyledLine> lines, DetailState detail, int width, int inner)
     {
         var header = HeaderFields.Of(detail);
+        var content = new List<StyledLine>();
+        var wrapped = new WrappedText(inner, false);
 
-        lines.Add(new StyledLine(
-        [
-            new StyledSpan(Clean(detail.Key), TextRole.Key),
-            new StyledSpan($"  {Clean(header.TypeName)}", TextRole.Muted),
-        ]));
+        wrapped.Append(header.Summary, TextRole.Strong);
+        wrapped.Finish(content);
 
-        AddWrapped(lines, header.Summary, TextRole.Strong, width);
-        AddFields(lines, Fields(header, detail.LoadedAt), width);
-        lines.Add(StyledLine.Of(string.Concat(Enumerable.Repeat(Divider, width)), TextRole.Muted));
+        var fields = Fields(header, detail.LoadedAt);
+
+        if (fields.Count > 0)
+        {
+            content.Add(StyledLine.Empty);
+            AddFields(content, fields, inner);
+        }
+
+        var title = new List<StyledSpan> { new(Clean(detail.Key), TextRole.Key) };
+
+        if (header.TypeName.Length > 0)
+        {
+            title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
+        }
+
+        Panel.Add(lines, title, content, width);
     }
 
     private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference)
@@ -117,99 +135,138 @@ public static class IssueDocumentBuilder
     }
 
     /// <summary>
-    /// Side by side while they fit on a wide terminal, one per line below 80 columns or when one alone is too long
-    /// (that one wraps).
+    /// A label column of fixed width, then the value. On a wide panel two short fields share a row; a value that does
+    /// not fit half the panel gets a row of its own and wraps under its first line.
     /// </summary>
-    private static void AddFields(List<StyledLine> lines, List<Field> fields, int width)
+    private static void AddFields(List<StyledLine> content, List<Field> fields, int inner)
     {
-        var spans = new List<StyledSpan>();
-        var used = 0;
+        var half = (inner - ColumnGap) / 2;
+        var pairing = inner >= PairingWidth;
+        Field? held = null;
 
         foreach (var field in fields)
         {
-            var size = field.Width;
-            var alone = width < FieldsSideBySideWidth || size > width;
-
-            if (spans.Count > 0 && (alone || used + FieldGap.Length + size > width))
+            if (pairing && field.Fits(half))
             {
-                lines.Add(new StyledLine(spans.ToArray()));
-                spans.Clear();
-                used = 0;
-            }
-
-            if (size > width)
-            {
-                AddWrappedField(lines, field, width);
+                if (held is null)
+                {
+                    held = field;
+                }
+                else
+                {
+                    content.Add(FieldRow(held, half, field));
+                    held = null;
+                }
 
                 continue;
             }
 
-            if (spans.Count > 0)
+            if (held is not null)
             {
-                spans.Add(new StyledSpan(FieldGap, TextRole.Body));
-                used += FieldGap.Length;
+                content.Add(FieldRow(held, half, null));
+                held = null;
             }
 
-            spans.Add(new StyledSpan($"{field.Label}: ", TextRole.Muted));
-            spans.Add(new StyledSpan(Clean(field.Value), field.Role));
-            used += size;
+            AddFieldRows(content, field, inner);
         }
 
-        if (spans.Count > 0)
+        if (held is not null)
         {
-            lines.Add(new StyledLine(spans.ToArray()));
+            content.Add(FieldRow(held, half, null));
         }
     }
 
-    private static void AddWrappedField(List<StyledLine> lines, Field field, int width)
+    private static StyledLine FieldRow(Field left, int half, Field? right)
     {
-        var wrapped = new WrappedText(width, false);
+        var spans = new List<StyledSpan>();
 
-        wrapped.Append($"{field.Label}: ", TextRole.Muted);
+        left.AddCell(spans);
+
+        if (right is not null)
+        {
+            spans.Add(new StyledSpan(new string(' ', Math.Max(0, half + ColumnGap - left.CellWidth)), TextRole.Body));
+            right.AddCell(spans);
+        }
+
+        return new StyledLine(spans);
+    }
+
+    private static void AddFieldRows(List<StyledLine> content, Field field, int inner)
+    {
+        if (inner < StackedFieldsWidth)
+        {
+            var stacked = new WrappedText(inner, false);
+
+            stacked.Append($"{field.Label}: ", TextRole.Muted);
+            stacked.Append(field.Value, field.Role);
+            stacked.Finish(content);
+
+            return;
+        }
+
+        var wrapped = new WrappedText(Math.Max(1, inner - LabelWidth), false);
+        var rows = new List<StyledLine>();
+
         wrapped.Append(field.Value, field.Role);
-        wrapped.Finish(lines);
+        wrapped.Finish(rows);
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            var lead = index == 0
+                ? new StyledSpan(field.PaddedLabel, TextRole.Muted)
+                : new StyledSpan(new string(' ', LabelWidth), TextRole.Body);
+
+            content.Add(new StyledLine([lead, .. rows[index].Spans]));
+        }
     }
 
-    private static void AddWrapped(List<StyledLine> lines, string text, TextRole role, int width)
+    private static void AddDescription(List<StyledLine> lines, DetailState detail, int width, int inner)
     {
-        var wrapped = new WrappedText(width, false);
-
-        wrapped.Append(text, role);
-        wrapped.Finish(lines);
-    }
-
-    private static void AddDescription(List<StyledLine> lines, DetailState detail, int width)
-    {
-        lines.Add(StyledLine.Of(DescriptionTitle, TextRole.Heading));
+        var content = new List<StyledLine>();
 
         if (detail.Issue is null)
         {
-            lines.Add(StyledLine.Of($"{new string(' ', Indent)}{LoadingText}", TextRole.Loading));
-
-            return;
+            content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
         }
-
-        if (detail.Issue.Description is null)
+        else if (detail.Issue.Description is null)
         {
-            lines.Add(StyledLine.Of($"{new string(' ', Indent)}{NoDescriptionText}", TextRole.Muted));
-
-            return;
+            content.Add(StyledLine.Of(NoDescriptionText, TextRole.Muted));
+        }
+        else
+        {
+            content.AddRange(AdfRenderer.Render(detail.Issue.Description, inner).Lines);
         }
 
-        AddIndented(lines, detail.Issue.Description, width);
+        Panel.Add(lines, [new StyledSpan(DescriptionTitle, TextRole.Heading)], content, width);
     }
 
-    private static void AddComments(List<StyledLine> lines, DetailState detail, int width)
+    /// <summary>The place of sub-tasks, links, remote links and attachments until #88 fills it.</summary>
+    private static void AddRelations(List<StyledLine> lines, int width, int inner)
     {
-        lines.Add(StyledLine.Empty);
-        lines.Add(StyledLine.Of(CommentsHeading(detail), TextRole.Heading));
+        var content = new List<StyledLine>();
+        var wrapped = new WrappedText(inner, false);
 
-        foreach (var comment in detail.Comments)
+        wrapped.Append(RelationsText, TextRole.Muted);
+        wrapped.Finish(content);
+        Panel.Add(lines, [new StyledSpan(RelationsTitle, TextRole.Heading)], content, width);
+    }
+
+    private static void AddComments(List<StyledLine> lines, DetailState detail, int width, int inner)
+    {
+        var content = new List<StyledLine>();
+
+        for (var index = 0; index < detail.Comments.Count; index++)
         {
-            AddComment(lines, comment, detail.LoadedAt, width);
+            if (index > 0)
+            {
+                content.Add(StyledLine.Empty);
+            }
+
+            AddComment(content, detail.Comments[index], detail.LoadedAt, inner);
         }
 
-        AddCommentsFooter(lines, detail);
+        AddCommentsFooter(content, detail);
+        Panel.Add(lines, [new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
     }
 
     private static string CommentsHeading(DetailState detail)
@@ -226,79 +283,66 @@ public static class IssueDocumentBuilder
             : $"{CommentsTitle} ({loaded})";
     }
 
-    private static void AddComment(List<StyledLine> lines, IssueComment comment, DateTimeOffset? reference, int width)
+    private static void AddComment(List<StyledLine> lines, IssueComment comment, DateTimeOffset? reference, int inner)
     {
-        lines.Add(StyledLine.Empty);
+        var byline = new WrappedText(inner, false);
 
-        var spans = new List<StyledSpan> { new(Clean(comment.Author?.DisplayName ?? UnknownAuthor), TextRole.Strong) };
+        byline.Append(Clean(comment.Author?.DisplayName ?? UnknownAuthor), TextRole.Strong);
 
         if (comment.Created is { } created && reference is { } now)
         {
-            spans.Add(new StyledSpan($" · {RelativeTime.Format(created, now)}", TextRole.Muted));
+            byline.Append($" · {RelativeTime.Format(created, now)}", TextRole.Muted);
         }
 
         if (comment.Created is { } first && comment.Updated is { } last && last - first > _editedAfter)
         {
-            spans.Add(new StyledSpan(EditedText, TextRole.Muted));
+            byline.Append(EditedText, TextRole.Muted);
         }
 
-        lines.Add(new StyledLine(spans));
+        byline.Finish(lines);
 
         if (comment.Body.Content.Count == 0)
         {
-            lines.Add(StyledLine.Of($"{new string(' ', Indent)}{EmptyCommentText}", TextRole.Muted));
+            lines.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted));
 
             return;
         }
 
-        AddIndented(lines, comment.Body, width);
+        lines.AddRange(AdfRenderer.Render(comment.Body, inner).Lines);
     }
 
     private static void AddCommentsFooter(List<StyledLine> lines, DetailState detail)
     {
-        var indent = new string(' ', Indent);
-
         switch (detail.CommentsLoad)
         {
             case Loading when detail.Comments.Count == 0:
-                lines.Add(StyledLine.Of($"{indent}{LoadingText}", TextRole.Loading));
+                lines.Add(StyledLine.Of(LoadingText, TextRole.Loading));
                 break;
             case Loading:
-                lines.Add(StyledLine.Of($"{indent}{LoadingMoreText}", TextRole.Loading));
+                lines.Add(StyledLine.Of(LoadingMoreText, TextRole.Loading));
                 break;
             case Failed failed:
-                lines.Add(StyledLine.Of($"{indent}{failed.Message}{RetryText}", TextRole.Error));
+                lines.Add(StyledLine.Of($"{failed.Message}{RetryText}", TextRole.Error));
                 break;
             default:
-                AddIdleFooter(lines, detail, indent);
+                AddIdleFooter(lines, detail);
                 break;
         }
     }
 
-    private static void AddIdleFooter(List<StyledLine> lines, DetailState detail, string indent)
+    private static void AddIdleFooter(List<StyledLine> lines, DetailState detail)
     {
         if (detail.NextComments is not null)
         {
-            lines.Add(StyledLine.Of($"{indent}{LoadMoreText}", TextRole.Link));
+            lines.Add(StyledLine.Of(LoadMoreText, TextRole.Link));
         }
         else if (detail.Comments.Count == 0)
         {
-            lines.Add(StyledLine.Of($"{indent}{NoCommentsText}", TextRole.Muted));
+            lines.Add(StyledLine.Of(NoCommentsText, TextRole.Muted));
         }
         else if (detail.CommentTotal is { } total && total > detail.Comments.Count)
         {
-            lines.Add(StyledLine.Of($"{indent}{TooManyText}", TextRole.Muted));
-        }
-    }
-
-    private static void AddIndented(List<StyledLine> lines, AdfDocument document, int width)
-    {
-        var rendering = AdfRenderer.Render(document, Math.Max(1, width - Indent));
-        var indent = new StyledSpan(new string(' ', Indent), TextRole.Body);
-
-        foreach (var line in rendering.Lines)
-        {
-            lines.Add(line.Spans.Count == 0 ? line : new StyledLine([indent, .. line.Spans]));
+            lines.Add(StyledLine.Of(TooManyText, TextRole.Muted));
         }
     }
 
@@ -326,7 +370,21 @@ public static class IssueDocumentBuilder
 
     private sealed record Field(string Label, string Value, TextRole Role)
     {
-        public int Width => DisplayWidth.Of(Label) + 2 + DisplayWidth.Of(Clean(Value));
+        public string PaddedLabel => Label.PadRight(LabelWidth);
+
+        /// <summary>Columns of the label and the value on one row.</summary>
+        public int CellWidth => LabelWidth + DisplayWidth.Of(Clean(Value));
+
+        public bool Fits(int half)
+        {
+            return CellWidth <= half;
+        }
+
+        public void AddCell(List<StyledSpan> spans)
+        {
+            spans.Add(new StyledSpan(PaddedLabel, TextRole.Muted));
+            spans.Add(new StyledSpan(Clean(Value), Role));
+        }
     }
 
     private sealed record HeaderFields(

@@ -1,24 +1,24 @@
  [1 JQL: My open issues]                                                        
+                                                                                
 My open issues › GCM-12 · Bot                                                   
-  ----------------------------------------                                      
-                                                                                
-  | H1 | H2 |                                                                   
-  |----|----|                                                                   
-  | a  | b  |                                                                   
-                                                                                
-  v Expand me                                                                   
-    hidden                                                                      
-                                                                                
-  https://example.com/card                                                      
-                                                                                
-Comments (3)                                                                    
-                                                                                
-Jane Doe · 1 d ago                                                              
-  Found it: the redirect target is dropped after the refresh.                   
-                                                                                
-日本語の作者 · 3 h ago                                                          
-  日本語のコメント。これは長い文章で、折り返しが必要になります。                
-                                                                                
-Ola Nordmann · 5 min ago                                                        
-  See also café and 😀 in the second paragraph, which is long enough to wrap.   
+│ | a  | b  |                                                                  │
+│                                                                              │
+│ v Expand me                                                                  │
+│   hidden                                                                     │
+│                                                                              │
+│ https://example.com/card                                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Relations ──────────────────────────────────────────────────────────────────╮
+│ Sub-tasks, linked issues, remote links and attachments are not shown yet.    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments (3) ───────────────────────────────────────────────────────────────╮
+│ Jane Doe · 1 d ago                                                           │
+│ Found it: the redirect target is dropped after the refresh.                  │
+│                                                                              │
+│ 日本語の作者 · 3 h ago                                                       │
+│ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
+│                                                                              │
+│ Ola Nordmann · 5 min ago                                                     │
+│ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
+╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL                                                ? help  : command  q quit

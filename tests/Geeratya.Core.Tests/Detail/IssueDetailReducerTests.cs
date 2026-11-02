@@ -70,9 +70,9 @@ public class IssueDetailReducerTests
         state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now));
 
         var text = Text(Active(state).Detail[0]);
-        Assert.Contains("A-1  Task", text);
-        Assert.Contains("Status: To Do", text);
-        Assert.Contains("Reporter: Rita Reporter", text);
+        Assert.Contains("A-1 · Task", text);
+        Assert.Contains("Status    To Do", text);
+        Assert.Contains("Reporter  Rita Reporter", text);
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
         Assert.Contains("Comments (2)", text);
@@ -89,7 +89,7 @@ public class IssueDetailReducerTests
 
         var text = Text(Active(opened.State).Detail[0]);
 
-        Assert.Contains("A-1  Task", text);
+        Assert.Contains("A-1 · Task", text);
         Assert.Contains("Issue 1", text);
         Assert.Contains("Loading…", text);
     }

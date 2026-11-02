@@ -73,7 +73,7 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var text = Text(Top(state));
         Assert.Contains("No description.", text);
-        Assert.Contains("Parent: GCM-1", text);
+        Assert.Contains("Parent    GCM-1", text);
         Assert.Contains("Comments (3)", text);
         Assert.Contains("Written by an inactive account", text);
         Assert.Contains("żółć 日本語", text);

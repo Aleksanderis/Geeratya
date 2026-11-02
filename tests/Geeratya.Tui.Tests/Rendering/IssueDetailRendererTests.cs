@@ -11,6 +11,7 @@ using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Tests.Fakes;
 
@@ -53,7 +54,20 @@ public class IssueDetailRendererTests
     {
         var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _helpLines, _keymap);
 
-        Assert.StartsWith("My open issues › GCM-12", lines[1]);
+        Assert.StartsWith("My open issues › GCM-12", lines[FrameBuilder.HeaderRows]);
+    }
+
+    [Fact]
+    public void GivenAsciiGlyphs_WhenBuilding_ThenPanelBordersAreAsciiAndKeepTheirWidth()
+    {
+        var lines = FrameBuilder.Build(Loaded(80, 24), 80, 24, _helpLines, _keymap, null, GlyphSet.Ascii);
+
+        var body = lines.Skip(FrameBuilder.HeaderRows).Take(9).ToList();
+        Assert.StartsWith("+- GCM-12 · Task ", body[1]);
+        Assert.StartsWith("| Fix login", body[2]);
+        Assert.StartsWith("+--", body[8]);
+        Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
+        Assert.All(lines, line => Assert.Equal(80, DisplayWidth.Of(line)));
     }
 
     [Fact]
@@ -63,9 +77,9 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 100, 30, _helpLines, _keymap);
 
-        Assert.Contains("Loading…", lines[1]);
-        Assert.Contains(lines, line => line.StartsWith("GCM-12  Task"));
-        Assert.Contains(lines, line => line.StartsWith("Row summary"));
+        Assert.Contains("Loading…", lines[FrameBuilder.HeaderRows]);
+        Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12 · Task "));
+        Assert.Contains(lines, line => line.StartsWith("│ Row summary"));
     }
 
     [Fact]
@@ -79,10 +93,10 @@ public class IssueDetailRendererTests
         var end = FrameBuilder.Build(bottom, 80, 12, _helpLines, _keymap);
         var half = FrameBuilder.Build(middle, 80, 12, _helpLines, _keymap);
 
-        Assert.EndsWith("Top", top[1].TrimEnd());
-        Assert.EndsWith("Bot", end[1].TrimEnd());
-        Assert.Matches(@"\d+%$", half[1].TrimEnd());
-        Assert.NotEqual(top[2], end[2]);
+        Assert.EndsWith("Top", top[FrameBuilder.HeaderRows].TrimEnd());
+        Assert.EndsWith("Bot", end[FrameBuilder.HeaderRows].TrimEnd());
+        Assert.Matches(@"\d+%$", half[FrameBuilder.HeaderRows].TrimEnd());
+        Assert.NotEqual(top[FrameBuilder.HeaderRows + 1], end[FrameBuilder.HeaderRows + 1]);
         Assert.Contains("second paragraph", string.Join('\n', end));
     }
 
@@ -117,7 +131,7 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(state, 50, 24, _helpLines, _keymap);
 
         Assert.All(lines, line => Assert.Equal(50, DisplayWidth.Of(line)));
-        Assert.Contains("Status: In Progress", string.Join('\n', lines));
+        Assert.Contains("Status    In Progress", string.Join('\n', lines));
     }
 
     private static void AssertSnapshot(AppState state, int width, int height, string name)
@@ -138,7 +152,7 @@ public class IssueDetailRendererTests
             Session = SiteSession.Empty(_profile),
         };
 
-        state = _reducer.Reduce(state, new ViewportChanged(height - 1 - TabBar.Rows - ListLayout.HeaderRows, width)).State;
+        state = _reducer.Reduce(state, new ViewportChanged(height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows, width)).State;
 
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));

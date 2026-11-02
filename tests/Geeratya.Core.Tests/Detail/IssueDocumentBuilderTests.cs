@@ -7,6 +7,7 @@ using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Tests.Detail;
 
@@ -56,24 +57,24 @@ public class IssueDocumentBuilderTests
     public void GivenRichDescription_WhenBuilding_ThenItIsRenderedAsFormattedTextUnderTheHeading()
     {
         var description = AdfTestSupport.FixtureDescription(AdfTestSupport.RichDescription);
-        var expected = AdfRenderer.Render(description, 78).Lines.Select(line => line.PlainText).Take(12).ToList();
+        var expected = AdfRenderer.Render(description, 76).Lines.Select(line => line.PlainText).Take(12).ToList();
 
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(description, []), 80));
 
-        var heading = lines.IndexOf("Description");
+        var heading = lines.FindIndex(line => line.StartsWith("╭─ Description "));
         Assert.True(heading > 0);
-        Assert.Equal(expected.Select(text => $"  {text}".TrimEnd()), lines.Skip(heading + 1).Take(expected.Count));
+        Assert.Equal(expected.Select(text => text.TrimEnd()), lines.Skip(heading + 1).Take(expected.Count));
     }
 
     [Fact]
     public void GivenWideTerminal_WhenBuilding_ThenFieldsShareLinesAndNarrowTerminalsPutOneOnEach()
     {
         var wide = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 120));
-        var narrow = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 79));
+        var narrow = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 50));
 
-        Assert.Contains(wide, line => line.Contains("Status: In Progress") && line.Contains("Priority: High"));
-        Assert.Contains("Status: In Progress", narrow);
-        Assert.Contains("Priority: High", narrow);
+        Assert.Contains(wide, line => line.Contains("Status    In Progress") && line.Contains("Priority  High"));
+        Assert.Contains("Status    In Progress", narrow);
+        Assert.Contains("Priority  High", narrow);
     }
 
     [Fact]
@@ -97,7 +98,7 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 60));
 
-        Assert.Contains(lines, line => line.StartsWith("Labels: label-number-1,"));
+        Assert.Contains(lines, line => line.StartsWith("Labels    label-number-1,"));
         Assert.Contains(lines, line => line.Contains("label-number-40"));
     }
 
@@ -111,7 +112,7 @@ public class IssueDocumentBuilderTests
 
         Assert.Contains("Eve · 2 h ago (edited)", lines);
         Assert.Contains("Unknown · 5 min ago", lines);
-        Assert.Contains("  (no text)", lines);
+        Assert.Contains("(no text)", lines);
     }
 
     [Fact]
@@ -132,8 +133,8 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 80));
 
-        Assert.Equal("A-1", lines[0].TrimEnd());
-        Assert.Equal(2, lines.Count(line => line.Trim() == "Loading…"));
+        Assert.StartsWith("╭─ A-1 ", lines[0]);
+        Assert.Equal(2, lines.Count(line => line == "Loading…"));
     }
 
     [Fact]
@@ -171,9 +172,86 @@ public class IssueDocumentBuilderTests
         Assert.Equal("2026-11-01", RelativeTime.Format(_now.AddMinutes(1), _now));
     }
 
+    [Fact]
+    public void GivenLoadedIssue_WhenBuilding_ThenHeaderDescriptionRelationsAndCommentsEachGetAFramedPanel()
+    {
+        var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, [Comment("Eve", "Text")]), 80));
+
+        var tops = lines.Where(line => line.StartsWith("╭─ ")).Select(line => line.Split(' ')[1]).ToList();
+        Assert.Equal(["A-1", "Description", "Relations", "Comments"], tops);
+        Assert.Equal(4, lines.Count(line => line.StartsWith('╰')));
+    }
+
+    [Theory]
+    [InlineData(120)]
+    [InlineData(80)]
+    [InlineData(40)]
+    [InlineData(12)]
+    public void GivenAnyFramedWidth_WhenBuilding_ThenEveryPanelLineIsExactlyAsWideAsTheTerminal(int width)
+    {
+        var description = AdfTestSupport.FixtureDescription(AdfTestSupport.RichDescription);
+        var comments = new[] { Comment("日本語の作者", "日本語のコメント。これはとても長い文章です。") };
+
+        var document = IssueDocumentBuilder.Build(Loaded(description, comments), width);
+        Assert.All(document.Lines, line => Assert.Equal(width, DisplayWidth.Of(line.PlainText)));
+    }
+
+    [Fact]
+    public void GivenHeaderPanel_WhenBuilding_ThenTheTitleHoldsKeyAndTypeAndTheSummaryIsInside()
+    {
+        var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 80));
+
+        Assert.StartsWith("╭─ A-1 · Story ", lines[0]);
+        Assert.Equal("A summary", lines[1]);
+    }
+
+    [Fact]
+    public void GivenShortAndLongFields_WhenBuilding_ThenShortOnesPairAndTheParentKeepsItsOwnRow()
+    {
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with { Parent = new IssueStub("A-0", new string('x', 60), _status, _type) },
+        };
+
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 100));
+
+        Assert.Contains(lines, line => line.StartsWith("Status    In Progress") && line.Contains("Priority  High"));
+        Assert.Contains(lines, line => line.StartsWith("Parent    A-0 xxxx"));
+    }
+
+    [Fact]
+    public void GivenFailedIssueLoad_WhenBuilding_ThenTheErrorSitsInItsOwnPanel()
+    {
+        var detail = DetailState.Opened("A-9", null, 1, 2, 3) with
+        {
+            IssueLoad = new Failed(JiraErrorKind.NotFound, "x"),
+        };
+
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 80));
+
+        Assert.Contains(lines, line => line.StartsWith("╭─ Error "));
+        Assert.Contains("Not found or no access: A-9", lines);
+        Assert.DoesNotContain(lines, line => line.StartsWith("╭─ Description"));
+    }
+
+    [Fact]
+    public void GivenTinyWidth_WhenBuilding_ThenContentIsDrawnWithoutAFrame()
+    {
+        var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 10));
+
+        Assert.DoesNotContain(lines, line => line.Contains('╭'));
+        Assert.Contains("Description", lines);
+    }
+
     private static List<string> Texts(DetailDocument document)
     {
-        return [.. document.Lines.Select(line => line.PlainText.TrimEnd())];
+        return [.. document.Lines.Select(static line => Inside(line.PlainText))];
+    }
+
+    /// <summary>The text between the side borders; border lines stay as they are.</summary>
+    private static string Inside(string text)
+    {
+        return text.StartsWith("│ ") && text.EndsWith(" │") ? text[2..^2].TrimEnd() : text;
     }
 
     private static DetailState Loaded(AdfDocument? description, IReadOnlyList<IssueComment> comments)

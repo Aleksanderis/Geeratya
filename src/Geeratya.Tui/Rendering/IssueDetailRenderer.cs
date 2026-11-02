@@ -3,6 +3,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -44,10 +45,38 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(document.Lines[index]);
+            lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(document.Lines[index]) : document.Lines[index]);
         }
 
         return lines;
+    }
+
+    /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>
+    private static StyledLine AsciiBorders(StyledLine line)
+    {
+        if (!line.Spans.Any(static span => span.Role == TextRole.Muted && span.Text.Any(IsBorder)))
+        {
+            return line;
+        }
+
+        return new StyledLine(line.Spans.Select(static span => span.Role == TextRole.Muted
+            ? span with { Text = string.Concat(span.Text.Select(static character => IsBorder(character) ? AsciiOf(character) : character)) }
+            : span).ToArray());
+    }
+
+    private static bool IsBorder(char character)
+    {
+        return character is '╭' or '╮' or '╰' or '╯' or '─' or '│';
+    }
+
+    private static char AsciiOf(char character)
+    {
+        return character switch
+        {
+            '─' => '-',
+            '│' => '|',
+            _ => '+',
+        };
     }
 
     private static TabState? ActiveTab(AppState state)
