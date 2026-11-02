@@ -76,6 +76,30 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenUpdateStyleEdit_WhenPut_ThenUnknownFieldErrorNotSummaryRequired()
+    {
+        Start(0);
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", """{"update":{"labels":[{"add":"x"}]}}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, edit.StatusCode);
+        Assert.Contains("cannot be set", await edit.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenNonStringSummary_WhenCreating_ThenBadRequestNotServerError()
+    {
+        Start(0);
+
+        var response = await Send(
+            HttpMethod.Post,
+            "/rest/api/3/issue",
+            """{"fields":{"project":{"key":"GTM"},"issuetype":{"name":"Task"},"summary":5}}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenCreatedAndRecordedIssue_WhenDeleting_ThenCreatedIsGoneAndRecordedIsForbidden()
     {
         Start(0);

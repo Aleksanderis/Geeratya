@@ -28,6 +28,4 @@ public sealed class StoredIssue
     public JsonNode? Status { get; set; }
 
     public List<JsonObject> Comments { get; } = [];
-
-    public HashSet<string> DeletedCommentIds { get; } = [];
 }

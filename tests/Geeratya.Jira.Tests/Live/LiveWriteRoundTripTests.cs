@@ -1,4 +1,5 @@
 using Geeratya.Jira.Transport;
+using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Tests.Live;
@@ -30,15 +31,19 @@ public class LiveWriteRoundTripTests
         Assert.True(created.IsSuccess, Describe(created.IsSuccess ? null : created.Error));
         var path = $"{IssuePath}/{created.Value.Key}";
 
+        WriteResult<WriteAccepted> deleted;
+
         try
         {
             await EditCommentAndTransition(transport, path, runId, token);
         }
         finally
         {
-            var deleted = await transport.SendWriteAsync(JiraRequest.Write(HttpMethod.Delete, path, null), token);
-            Assert.True(deleted.IsSuccess, Describe(deleted.IsSuccess ? null : deleted.Error));
+            // Asserted after the try so a failed step is not hidden by a cleanup failure.
+            deleted = await transport.SendWriteAsync(JiraRequest.Write(HttpMethod.Delete, path, null), token);
         }
+
+        Assert.True(deleted.IsSuccess, Describe(deleted.IsSuccess ? null : deleted.Error));
 
         var gone = await transport.SendAsync(
             JiraRequest.Get(path),

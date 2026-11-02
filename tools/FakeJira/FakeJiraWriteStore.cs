@@ -29,7 +29,7 @@ public sealed class FakeJiraWriteStore
     private const string IssueTypeName = "issuetype";
     private const string ProjectName = "project";
     private const string TotalName = "total";
-    private const string DefaultStatusTransitionId = "11";
+    private const string InitialStatusTransitionId = "11";
     private const string CreatedName = "created";
     private const string UpdatedName = "updated";
     private const int FirstCreatedNumber = 100;
@@ -44,6 +44,7 @@ public sealed class FakeJiraWriteStore
     private const string NotFoundFixture = "errors/issue-404.json";
     private const string DeleteForbiddenFixture = "errors/issue-delete-403-no-permission.json";
     private const string CreateTemplateFixture = "writes/create-gtm-task-reply.json";
+    private const string MissingFieldsFixture = "errors/create-400-missing-summary.json";
     private const string NoSummaryFixture = "writes/create-400-no-summary.json";
     private const string BadIssueTypeFixture = "errors/create-400-bad-issuetype.json";
     private const string UnknownFieldFixture = "adf/edit-400-unknown-field.json";
@@ -53,7 +54,6 @@ public sealed class FakeJiraWriteStore
     private const string EmptyCommentsFixture = "comments/comments-empty.json";
     private const string GtmTransitionsFixture = "transitions/transitions-gtm-5.json";
     private const string GcmTransitionsFixture = "transitions/transitions-gcm-1.json";
-    private const string GtmPrefix = "GTM-";
     private const string GcmPrefix = "GCM-";
 
     private static readonly string[] _editableFields = [SummaryName, LabelsName, DescriptionName, DueDateName];
@@ -108,12 +108,12 @@ public sealed class FakeJiraWriteStore
 
         if (fields is null)
         {
-            return Reply(BadRequest, "errors/create-400-missing-summary.json");
+            return Reply(BadRequest, MissingFieldsFixture);
         }
 
-        var projectKey = (fields[ProjectName] as JsonObject)?[KeyName]?.GetValue<string>();
-        var typeName = (fields[IssueTypeName] as JsonObject)?[NameName]?.GetValue<string>();
-        var summary = fields[SummaryName]?.GetValue<string>();
+        var projectKey = StringOf((fields[ProjectName] as JsonObject)?[KeyName]);
+        var typeName = StringOf((fields[IssueTypeName] as JsonObject)?[NameName]);
+        var summary = StringOf(fields[SummaryName]);
 
         lock (_lock)
         {
@@ -152,7 +152,8 @@ public sealed class FakeJiraWriteStore
 
         if (fields is null)
         {
-            return Reply(BadRequest, "errors/create-400-missing-summary.json");
+            // An "update" edit is a real Jira shape the fake does not model; say so instead of "summary required".
+            return Reply(BadRequest, body.Contains("\"update\"", StringComparison.Ordinal) ? UnknownFieldFixture : MissingFieldsFixture);
         }
 
         foreach (var field in fields)
@@ -163,7 +164,7 @@ public sealed class FakeJiraWriteStore
             }
         }
 
-        if (fields.ContainsKey(SummaryName) && string.IsNullOrWhiteSpace(fields[SummaryName]?.ToString()))
+        if (fields.ContainsKey(SummaryName) && string.IsNullOrWhiteSpace(StringOf(fields[SummaryName])))
         {
             return Reply(BadRequest, NoSummaryFixture);
         }
@@ -428,6 +429,9 @@ public sealed class FakeJiraWriteStore
         }
     }
 
+    private static string? StringOf(JsonNode? node) =>
+        node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+
     private static FakeReply Empty(int status) => new(status, []);
 
     private FakeReply Reply(int status, string fixture) => new(status, _readFixture(fixture));
@@ -468,9 +472,7 @@ public sealed class FakeJiraWriteStore
 
     private JsonObject CreatedIssueNode(StoredIssue stored)
     {
-        var status = stored.Status ?? StatusAfter(
-            stored.Key.StartsWith(GcmPrefix, StringComparison.Ordinal) ? GcmPrefix : GtmPrefix,
-            DefaultStatusTransitionId);
+        var status = stored.Status ?? StatusAfter(stored.Key, InitialStatusTransitionId);
         var projectKey = stored.Key[..stored.Key.IndexOf('-')];
         var fields = new JsonObject
         {
