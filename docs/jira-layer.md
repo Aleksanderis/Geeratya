@@ -46,7 +46,7 @@ Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(start
 The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys what a client returned, never raw HTTP:
 
 - Views: `(ViewSourceKind, SourceValue)` inside the profile's folder. Source value is the JQL text, the filter id or the board id. The profile (site plus account) is the folder, so the same JQL on two sites never collides. A board key caches the board's configuration with its first page.
-- Issue details: the issue key inside the profile's folder.
+- Issue details: the issue key inside the profile's folder. An entry is removed when the issue load answers 404 or 403 (the issue is gone or hidden).
 - Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile).
 - Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
 
@@ -263,5 +263,5 @@ Fixtures: `adf/issue-gtm5-rich-description.json` (description and two comments),
 - Fixtures were recorded without keeping the request; the requests are given in prose above. Keys are sorted by the scrubber, so property order is not Jira's.
 - `search/search-fields-navigable.json` is large on purpose (it is the only fixture showing the full field set of one issue, including the per-site `customfield_*` ids); trim it if a test needs less.
 - Issues created for the survey carried the label `geeratya-test-survey3`; the three in `GTM` were deleted, the four in `GCM` could not be (403) and remain until the owner removes them or grants the permission (#19). Part 2 added `GCM-5..7` (label `geeratya-test-survey4`) to that list; `GTM-4..8` were deleted.
-- Part 2 recording notes: the script also allows rank/backlog writes and issue links when every key is in `GCM`/`GTM`, and `RECORD_XSRF=1` for attachment uploads. The scrubber also anonymises ADF `mention` nodes. Empty-body answers (204, link 201) have no fixture.
+- Part 2 recording notes: the script also allows rank/backlog writes and issue links when every key is in `GCM`/`GTM`, and `RECORD_XSRF=1` for attachment uploads. The scrubber also anonymises ADF `mention` nodes. Empty-body answers (204, link 201) have no body fixture; `Fixtures/writes/*.meta.txt` holds the status line of the ones recorded for #156 (`docs/testing.md`, "Write fixtures"), and `writes/synthetic-*` is the one synthetic pair (transition with a required field, #31).
 - Part 2 fixtures not named in the text are intermediate reads kept for comparison (`*-before`, `*-after*`, `*-final`, `boards/gtm-board-*`, `hierarchy/agile-board-*`, `links/issue-gtm6-links.json`, `transitions/transitions-gtm-5-after.json`).

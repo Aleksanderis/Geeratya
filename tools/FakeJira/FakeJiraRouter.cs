@@ -23,6 +23,12 @@ public sealed partial class FakeJiraRouter
     private const string IssuePrefix = "/rest/api/3/issue/";
     private const string Get = "GET";
     private const string Post = "POST";
+    private const string Put = "PUT";
+    private const string Delete = "DELETE";
+    private const string RankPath = "/rest/agile/1.0/issue/rank";
+    private const string CreatePath = "/rest/api/3/issue";
+    private const string CommentPart = "comment";
+    private const string TransitionsPart = "transitions";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;
 
@@ -95,11 +101,16 @@ public sealed partial class FakeJiraRouter
     private readonly FakeJiraOptions _options;
     private readonly Dictionary<string, byte[]> _fixtureCache = [];
     private readonly Lock _cacheLock = new();
+    private readonly FakeJiraWriteStore _writes;
 
     public FakeJiraRouter(FakeJiraOptions options)
     {
         _options = options;
+        _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue);
     }
+
+    /// <summary>True for the verbs that change data; the server may drop the connection after reading one.</summary>
+    public static bool IsWrite(string method) => method is Post or Put or Delete;
 
     public FakeReply Route(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
@@ -111,6 +122,16 @@ public sealed partial class FakeJiraRouter
         if (path == CountPath && _options.GeneratedIssues > 0)
         {
             return new FakeReply(200, GeneratedIssues.Count(_options.GeneratedIssues));
+        }
+
+        if (TryWrite(method, path, body) is { } written)
+        {
+            return written;
+        }
+
+        if (method == Get && TryStoredRead(path) is { } stored)
+        {
+            return stored;
         }
 
         if (method == Get && path == BoardIssuesPath)
@@ -171,6 +192,76 @@ public sealed partial class FakeJiraRouter
             _ => null,
         };
     }
+
+    /// <summary>Create, edit, delete, transition, comment and rank calls; null for any other request.</summary>
+    private FakeReply? TryWrite(string method, string path, string body)
+    {
+        if (method == Put && path == RankPath)
+        {
+            return _writes.Rank(body);
+        }
+
+        if (method == Post && path == CreatePath)
+        {
+            return _writes.Create(body);
+        }
+
+        if (!IsWrite(method) || !path.StartsWith(IssuePrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parts = path[IssuePrefix.Length..].Split('/');
+        var key = parts[0];
+
+        return (method, parts.Length) switch
+        {
+            (Put, 1) => _writes.Edit(key, body),
+            (Delete, 1) => _writes.Delete(key),
+            (Post, 2) when parts[1] == TransitionsPart => _writes.Transition(key, body),
+            (Post, 2) when parts[1] == CommentPart => _writes.AddComment(key, body),
+            (Put, 3) when parts[1] == CommentPart => _writes.EditComment(key, parts[2], body),
+            (Delete, 3) when parts[1] == CommentPart => _writes.DeleteComment(key, parts[2]),
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// The reads the write store changes: an issue (created, edited or transitioned), its comments and its
+    /// transitions. Null when the store holds nothing for the path, so the recorded route answers.
+    /// </summary>
+    private FakeReply? TryStoredRead(string path)
+    {
+        if (!path.StartsWith(IssuePrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parts = path[IssuePrefix.Length..].Split('/');
+        var key = parts[0];
+        var recorded = _routes.TryGetValue(path, out var fixture) ? ReadFixture(fixture) : null;
+
+        if (parts.Length == 1)
+        {
+            return _writes.Issue(key, recorded) is { } issue ? new FakeReply(200, issue) : null;
+        }
+
+        if (parts.Length != 2)
+        {
+            return null;
+        }
+
+        if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || _writes.Knows(key)))
+        {
+            return _writes.Transitions(key);
+        }
+
+        return parts[1] == CommentPart && _writes.Comments(key, recorded) is { } comments
+            ? new FakeReply(200, comments)
+            : null;
+    }
+
+    private static bool IsRecordedIssue(string key) => _routes.ContainsKey($"{IssuePrefix}{key}");
 
     private static int IntOf(IReadOnlyDictionary<string, string> query, string name, int fallback)
     {
@@ -284,13 +375,20 @@ public sealed partial class FakeJiraRouter
     /// </summary>
     private FakeReply? RecordedIssueOf(string? jql)
     {
-        if (jql is null || KeyJql().Match(jql) is not { Success: true } match
-            || !_routes.TryGetValue(IssuePrefix + match.Groups[1].Value, out var fixture))
+        if (jql is null || KeyJql().Match(jql) is not { Success: true } match)
         {
             return null;
         }
 
-        var issue = Encoding.UTF8.GetString(ReadFixture(fixture));
+        var key = match.Groups[1].Value;
+        var recorded = _routes.TryGetValue(IssuePrefix + key, out var fixture) ? ReadFixture(fixture) : null;
+
+        if ((_writes.Issue(key, recorded) ?? recorded) is not { } bytes)
+        {
+            return null;
+        }
+
+        var issue = Encoding.UTF8.GetString(bytes);
 
         return new FakeReply(200, Encoding.UTF8.GetBytes($"{{\"isLast\":true,\"issues\":[{issue}]}}"));
     }

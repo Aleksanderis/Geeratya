@@ -1,0 +1,57 @@
+{
+  "expand": "transitions",
+  "transitions": [
+    {
+      "fields": {
+        "resolution": {
+          "required": true,
+          "schema": {
+            "type": "resolution",
+            "system": "resolution"
+          },
+          "name": "Resolution",
+          "key": "resolution",
+          "fieldId": "resolution",
+          "hasDefaultValue": false,
+          "operations": [
+            "set"
+          ],
+          "allowedValues": [
+            {
+              "id": "10000",
+              "name": "Done",
+              "self": "https://example.atlassian.net/rest/api/3/resolution/10000"
+            },
+            {
+              "id": "10001",
+              "name": "Won't Do",
+              "self": "https://example.atlassian.net/rest/api/3/resolution/10001"
+            }
+          ]
+        }
+      },
+      "hasScreen": true,
+      "id": "41",
+      "isAvailable": true,
+      "isConditional": false,
+      "isGlobal": true,
+      "isInitial": false,
+      "isLooped": false,
+      "name": "Done",
+      "to": {
+        "description": "",
+        "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+        "id": "10005",
+        "name": "Done",
+        "self": "https://example.atlassian.net/rest/api/3/status/10003",
+        "statusCategory": {
+          "colorName": "green",
+          "id": 3,
+          "key": "done",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/3/statuscategory/3"
+        }
+      }
+    }
+  ]
+}
