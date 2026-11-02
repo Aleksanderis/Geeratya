@@ -380,7 +380,40 @@ internal static class DetailReducer
     {
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
 
-        return Clamp(detail with { Document = IssueDocumentBuilder.Build(detail, width) }, listRows);
+        var document = IssueDocumentBuilder.Build(detail, width);
+        var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
+
+        return Clamp(detail with { Document = document, Cursor = anchored }, listRows);
+    }
+
+    /// <summary>
+    /// The cursor line in <paramref name="document"/> that shows the same row as the cursor did in
+    /// <paramref name="old"/> (same target, same offset inside a wrapped row), so data arriving above the cursor does
+    /// not move it onto another row. A plain line keeps its line number.
+    /// </summary>
+    private static int Anchored(DetailState detail, DetailDocument old, DetailDocument document)
+    {
+        if (detail.Cursor < 0 || detail.Cursor >= old.Targets.Count || old.Targets[detail.Cursor] is not { } target)
+        {
+            return detail.Cursor;
+        }
+
+        var start = detail.Cursor;
+
+        while (start > 0 && Equals(old.Targets[start - 1], target))
+        {
+            start--;
+        }
+
+        for (var line = 0; line < document.Targets.Count; line++)
+        {
+            if (Equals(document.Targets[line], target))
+            {
+                return Math.Min(line + detail.Cursor - start, document.Targets.Count - 1);
+            }
+        }
+
+        return detail.Cursor;
     }
 
     private static DetailState Clamp(DetailState detail, int listRows)
