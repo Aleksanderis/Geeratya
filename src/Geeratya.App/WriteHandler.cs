@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Geeratya.Core.Links;
 using Geeratya.Core.State;
@@ -30,6 +31,7 @@ public sealed class WriteHandler
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly HashSet<Task> _running = [];
     private readonly Lock _lock = new();
+    private readonly ConcurrentDictionary<long, DateTimeOffset> _createSubmitted = new();
 
     /// <param name="runner">Runs the writes.</param>
     /// <param name="clock">Stamps the replies.</param>
@@ -227,14 +229,23 @@ public sealed class WriteHandler
             return new WriteFailed(effect.OperationId, _clock.GetUtcNow(), error);
         }
 
+        // Remembered so the check of a lost reply only accepts issues created from now on, not an identical older twin.
+        _createSubmitted[effect.OperationId] = _clock.GetUtcNow();
         var result = await services.Creates.CreateIssueAsync(issue, token);
 
         if (!result.IsSuccess)
         {
+            if (!result.Error.IsOutcomeUnknown)
+            {
+                _createSubmitted.TryRemove(effect.OperationId, out _);
+            }
+
             return result.Error.IsOutcomeUnknown
                 ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), result.Error)
                 : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), result.Error);
         }
+
+        _createSubmitted.TryRemove(effect.OperationId, out _);
 
         var key = result.Value.Key;
         var rows = await ReadKeysAsync(services, [key], token);
@@ -255,12 +266,22 @@ public sealed class WriteHandler
     {
         try
         {
+            // Only issues created since the submit count (minutes rounded up, relative to the server's now,
+            // so no time zone is involved); without a remembered submit time the old ten minutes apply.
+            var recent = _createSubmitted.TryGetValue(effect.OperationId, out var submitted)
+                ? JqlBuilder.OwnIssuesSince((int)Math.Ceiling((_clock.GetUtcNow() - submitted).TotalMinutes))
+                : JqlBuilder.RecentOwnIssues();
             var jql = JqlBuilder.WithOrder(
-                JqlBuilder.And(JqlBuilder.Project(create.ProjectKey), JqlBuilder.RecentOwnIssues()),
+                JqlBuilder.And(JqlBuilder.Project(create.ProjectKey), recent),
                 JqlOrder.CreatedDescending);
             var result = await services.Search.SearchAsync(new IssueSearchQuery(jql), null, token);
             var found = result.IsSuccess ? result.Value.Items.Where(create.IsShownBy).Take(1).ToArray() : [];
             var outcome = found.Length > 0 ? VerifyOutcome.Applied : VerifyOutcome.Unreachable;
+
+            if (outcome == VerifyOutcome.Applied)
+            {
+                _createSubmitted.TryRemove(effect.OperationId, out _);
+            }
 
             return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, found);
         }

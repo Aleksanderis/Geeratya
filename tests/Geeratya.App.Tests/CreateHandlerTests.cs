@@ -184,6 +184,22 @@ public sealed class CreateHandlerTests
     }
 
     [Fact]
+    public async Task GivenACreateWhoseReplyWasLost_WhenVerified_ThenOnlyIssuesCreatedSinceTheSubmitCount()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.InternalServerError, "{}")
+            .Reply(HttpStatusCode.OK, FoundRow));
+        var request = Request("GCM", "10010", null, Change("summary", FormFieldKind.Text, FormValue.OfText("Title")));
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, request));
+        await fixture.Writes.StartAsync(new VerifyWriteEffect(5, request));
+
+        var query = Uri.UnescapeDataString(fixture.Http.Requests.Last().Query.Replace('+', ' '));
+        Assert.Contains("created >= -1m", query, StringComparison.Ordinal);
+        Assert.DoesNotContain("-10m", query);
+    }
+
+    [Fact]
     public async Task GivenALostCreate_WhenTheSearchFindsNothing_ThenTheOutcomeStaysUndecided()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));

@@ -19,6 +19,14 @@ public sealed class JqlBuilderTests
         Assert.Equal($"statusCategory = \"{key}\"", JqlBuilder.StatusCategory(constant));
     }
 
+    [Theory]
+    [InlineData(0, "reporter = currentUser() AND created >= -1m")]
+    [InlineData(3, "reporter = currentUser() AND created >= -3m")]
+    public void GivenMinutes_WhenBuildingOwnIssuesSince_ThenAtLeastOneMinuteIsUsed(int minutes, string expected)
+    {
+        Assert.Equal(expected, JqlBuilder.OwnIssuesSince(minutes));
+    }
+
     [Fact]
     public void GivenIssueKey_WhenBuildingParent_ThenVerbatim()
     {
