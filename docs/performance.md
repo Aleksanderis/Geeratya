@@ -14,7 +14,7 @@ Budgets and measured numbers. The checklist for writing fast code is the `perfor
 | Opening a cached view | Cached rows drawn without waiting for the network; the cache read is off the UI thread and after the first frame (target, measured in #91) |
 | Refresh tick | An idle `Tick` returns the same state (no redraw unless time-dependent text is visible) and costs a comparison; only the active tab refreshes |
 
-Bounds from the M1 design (`docs/architecture.md`, "Views and tabs", "Cache and refresh"): 10 000 rows per tab, 50 000 across tabs, 32 cached views and 200 cached issue details in memory, 20 MB of cache per profile on disk. The first measurements of these are #91.
+Bounds from the M1 design (`docs/architecture.md`, "Views and tabs", "Cache and refresh"): 10 000 rows per tab, 50 000 across tabs, 32 cached views and 200 cached issue details in memory, 20 MB of cache per profile on disk. The first measurements of these are in "M1 measurements (#91)" below.
 
 ## How numbers are taken
 
@@ -38,7 +38,7 @@ Reading the key-to-frame figure (ad hoc checks, not committed and not reproducib
 
 ## Notes for later rows
 
-Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed loop, command in the PR), list scrolling, ADF rendering of the longest recorded description, memory (RSS) after opening a 10k list. Record binary type, dataset size, injected latency, median and p95.
+Add a row per measured path with binary type, dataset size, injected latency, median and p95. The M1 rows are in "M1 measurements (#91)" at the end; the per-feature tables in between are the numbers taken while each feature was written.
 
 ### Local cache (#82)
 
@@ -94,3 +94,38 @@ Method: temporary console project outside the repo (2000 warm-up, 5000 timed ite
 | same at width 120 | same | same synthetic document | 1.7 ms | 7.5 ms |
 
 Method: temporary console project outside the repo (warm-up of a fifth of the runs, 3000 timed renders for the recorded descriptions, 40 for the synthetic one, `Stopwatch`), machine under load (load average 18 on 14 cores), so p95 is noisy. Rendering is pure and happens once per (document, width), when an issue is opened or the terminal is resized, never per frame; the renderer wraps the whole document (no laziness), which is far below a frame even at 5000 lines. `DisplayWidth.Of` got an ASCII fast path (a scan for printable ASCII before the grapheme enumerator) because table padding measures every line.
+
+## M1 measurements (#91)
+
+Environment: Linux x86_64, 14 cores, load average 2 to 6 during the runs (the harness prints it; never trust a run near 14), tmux 120x40. Native AOT `geeratya` from `dotnet publish src/Geeratya.Tui -c Release` at `b270a46` (the publish printed no warning at all, so no `IL*` warning). Fake: `fakejira --issues 10000 --latency-ms 50` unless a row says 300. Every figure here is an upper bound that includes tmux (floor below). Commands:
+
+- `scripts/measure.sh <binary> <fake url> 20` (cold start, `?` key).
+- `SCENARIO=list scripts/measure.sh <binary> <fake url> 8` (open a list, key in a loaded list, 10k rows loaded page by page with `G`, RSS).
+- `SCENARIO=views scripts/measure.sh <binary> <fake url> 8` (issue detail, second start from the disk cache, 10 tabs, tab switch, RSS). Each run uses fresh private cache directories; the first session is left 2 s to flush the debounced cache write.
+- `GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter HotPathMeasurements --logger "console;verbosity=detailed"` (in-process, JIT; opt-in, a no-op otherwise).
+
+| Path | Binary | Dataset, latency | Median (ms) | p95 (ms) | Budget |
+|---|---|---|---|---|---|
+| tmux floor | n/a | `printf x`, 20 sessions | 9 | 27 | n/a |
+| Cold start to first frame, empty shell | AOT | 20 sessions | 35 | 55 | under 100: met |
+| Key to frame (`?` help) | AOT | 20 sessions x 5 | 37 | 63 | next frame: met |
+| Second start, cold start to first frame, disk cache present | AOT | 8 sessions, 50 ms latency | 33 | 51 | under 100: met |
+| Open a list, `:jql` to first rows, no cache | AOT | 10k-issue fake, 50 ms latency, 8 sessions | 162 | 175 | n/a (search and approximate count at 50 ms each, the prompt and tmux) |
+| Open a list, `:jql` to first rows, cache present | AOT | same, second start | 82 | 97 | cached rows without the network: met (with 300 ms latency: 84 vs 401 without) |
+| `j` key to frame in a loaded list | AOT | 100 rows loaded | 38 | 44 | next frame: met (about the 37 of the `?` key, so the tmux and polling floor) |
+| `k` key to frame, 10k rows loaded | AOT | 10 000 rows, 8 sessions | 34 | 61 | no dropped frames: met |
+| Enter to issue detail loaded | AOT | fake detail, 50 ms latency (300 ms: 384 / 423) | 153 | 202 | n/a (network bound; the frame with `Loading…` is drawn at once) |
+| `Tab` key to frame, 10 tabs open | AOT | 10 tabs of one page | 39 | 63 | next frame: met |
+| RSS with a 10 000-row list loaded | AOT | 10 000 rows in one tab | 50 MB | 53 MB | bounded: met (cap 10 000 rows per tab) |
+| RSS with 10 tabs | AOT | 10 tabs of 100 rows | 42 MB | 42 MB | bounded: met |
+| Nav key + frame, list | JIT, in process | 10 000 rows, 3000 keys, 120x36 | 0.17 | 0.21 | met |
+| Nav key + frame, board | JIT, in process | 10 000 cards, 4 columns | 0.54 | 1.17 | met |
+| Nav key + frame, board with sub-tasks under parents | JIT, in process | 10 000 cards, every fifth a child in its parent's column | 2.4 | 3.5 | met (frame is 16 ms at 60 Hz) |
+| `BoardColumns.Visible` alone (regrouping) | JIT, in process | 10 000 cards | 0.11 | 0.20 | see below |
+| same, with parents (`Arrange` builds the key set and child map) | JIT, in process | 10 000 cards, every fifth a child | 1.0 | 2.4 | see below |
+
+Columns regrouping per key (the open question from #85): at the 10 000-row cap it costs 0.1 ms (no parents) to 1.0 ms (a fifth of the cards nested), and a key plus its frame stays under 3.5 ms at p95, so the groups are not cached. A board with a few thousand cards and no sub-tasks is the realistic case and is far cheaper. Caching would add an invalidation rule for no measurable gain; revisit only if a row cap above 10 000 or a per-key cost above a few ms appears.
+
+Not re-measured here: JSON mapping of a 10k-issue search (the #66 row stands: 80 ms median JIT for 10 000 issues in one 18 MB body; the app asks for 100 per page, so one page is about a millisecond) and ADF parse and render (the #68 and #80 rows stand: 10 us for the longest recorded description on AOT, 1.2 ms for 5000 lines). No harness exists for the AOT in-process figures of the JSON mapping; the end-to-end rows above include it.
+
+No budget is missed. One defect found while measuring: cached rows draw a 3-character key column on a cache hit (#236).
