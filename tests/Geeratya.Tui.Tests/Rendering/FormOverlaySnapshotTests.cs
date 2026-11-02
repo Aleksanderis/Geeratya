@@ -2,6 +2,7 @@ using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -70,7 +71,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(form), 40, 10, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("> ", StringComparison.Ordinal));
-        Assert.All(lines, line => Assert.Equal(40, Geeratya.Core.Text.DisplayWidth.Of(line)));
+        Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 
     private static EditFormTarget Target()
