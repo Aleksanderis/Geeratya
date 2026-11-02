@@ -71,6 +71,10 @@ public static class ActionIds
     public const string EditorRowStart = "editor.row-start";
     public const string EditorRowEnd = "editor.row-end";
     public const string EditorDelete = "editor.delete";
+    public const string EditorPageUp = "editor.page-up";
+    public const string EditorPageDown = "editor.page-down";
+    public const string EditorWordLeft = "editor.word-left";
+    public const string EditorWordRight = "editor.word-right";
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";

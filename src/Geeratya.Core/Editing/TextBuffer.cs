@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Geeratya.Core.Editing;
 
 /// <summary>
@@ -69,19 +71,58 @@ public sealed record TextBuffer(string Text, int Cursor)
         return this with { Cursor = EditorLayout.NextStart(Text, Cursor) };
     }
 
-    /// <summary>One visual row up or down, keeping the display column where the row is long enough.</summary>
+    /// <summary>
+    /// <paramref name="direction"/> visual rows up (negative) or down, stopping at the first or last row, keeping
+    /// the display column where the row is long enough.
+    /// </summary>
     public TextBuffer Vertical(int direction, int capacity)
     {
         var rows = EditorLayout.Rows(Text, capacity);
         var position = EditorLayout.Locate(Text, rows, Cursor);
-        var target = position.Row + direction;
+        var target = Math.Clamp(position.Row + direction, 0, rows.Count - 1);
 
-        if (target < 0 || target >= rows.Count)
+        if (target == position.Row)
         {
             return this;
         }
 
         return this with { Cursor = EditorLayout.IndexAt(Text, rows, target, position.Column) };
+    }
+
+    /// <summary>The start of the word before the cursor (spaces and punctuation skipped first), or the text start.</summary>
+    public TextBuffer WordLeft()
+    {
+        var index = Cursor;
+
+        while (index > 0 && !IsWordCharacter(Text[index - 1]))
+        {
+            index--;
+        }
+
+        while (index > 0 && IsWordCharacter(Text[index - 1]))
+        {
+            index--;
+        }
+
+        return this with { Cursor = index };
+    }
+
+    /// <summary>The end of the word at or after the cursor (spaces and punctuation skipped first), or the text end.</summary>
+    public TextBuffer WordRight()
+    {
+        var index = Cursor;
+
+        while (index < Text.Length && !IsWordCharacter(Text[index]))
+        {
+            index++;
+        }
+
+        while (index < Text.Length && IsWordCharacter(Text[index]))
+        {
+            index++;
+        }
+
+        return this with { Cursor = index };
     }
 
     /// <summary>The start of the visual row the cursor is on.</summary>
@@ -99,6 +140,21 @@ public sealed record TextBuffer(string Text, int Cursor)
         var row = EditorLayout.Locate(Text, rows, Cursor).Row;
 
         return this with { Cursor = EditorLayout.IndexAt(Text, rows, row, int.MaxValue) };
+    }
+
+    private static bool IsWordCharacter(char value)
+    {
+        if (char.IsLetterOrDigit(value) || value == '_' || char.IsSurrogate(value))
+        {
+            return true;
+        }
+
+        // Marks and joiners (a zero-width joiner is a format character) keep a grapheme cluster in one piece.
+        return CharUnicodeInfo.GetUnicodeCategory(value)
+            is UnicodeCategory.NonSpacingMark
+            or UnicodeCategory.SpacingCombiningMark
+            or UnicodeCategory.EnclosingMark
+            or UnicodeCategory.Format;
     }
 
     private static string Truncated(string typed, int room)

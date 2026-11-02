@@ -117,7 +117,9 @@ internal static class CommentEditing
     {
         var capacity = EditorLayout.Capacity(CommentEditor.InnerWidth(state.ViewportColumns));
 
-        return Change(state, buffer => Moved(buffer, move, capacity));
+        var page = Math.Max(1, state.ViewportRows / 2);
+
+        return Change(state, buffer => Moved(buffer, move, capacity, page));
     }
 
     /// <summary>
@@ -363,7 +365,7 @@ internal static class CommentEditing
             && !string.Equals(mine, theirs, StringComparison.Ordinal);
     }
 
-    private static TextBuffer Moved(TextBuffer buffer, EditorMove move, int capacity)
+    private static TextBuffer Moved(TextBuffer buffer, EditorMove move, int capacity, int page)
     {
         return move switch
         {
@@ -372,6 +374,10 @@ internal static class CommentEditing
             EditorMove.Up => buffer.Vertical(-1, capacity),
             EditorMove.Down => buffer.Vertical(1, capacity),
             EditorMove.RowStart => buffer.RowStart(capacity),
+            EditorMove.PageUp => buffer.Vertical(-page, capacity),
+            EditorMove.PageDown => buffer.Vertical(page, capacity),
+            EditorMove.WordLeft => buffer.WordLeft(),
+            EditorMove.WordRight => buffer.WordRight(),
             _ => buffer.RowEnd(capacity),
         };
     }

@@ -355,13 +355,13 @@ public sealed partial class FakeJiraWriteStore
         }
     }
 
-    public FakeReply EditComment(string key, string commentId, string body)
+    public FakeReply EditComment(string key, string commentId, string body, byte[]? recorded = null)
     {
         var comment = ReadCommentBody(body);
 
         lock (_lock)
         {
-            var entry = FindComment(key, commentId);
+            var entry = FindComment(key, commentId, recorded);
 
             if (entry is null)
             {
@@ -380,7 +380,7 @@ public sealed partial class FakeJiraWriteStore
         }
     }
 
-    public FakeReply DeleteComment(string key, string commentId)
+    public FakeReply DeleteComment(string key, string commentId, byte[]? recorded = null)
     {
         lock (_lock)
         {
@@ -389,18 +389,25 @@ public sealed partial class FakeJiraWriteStore
                 return Reply(NotFound, NotFoundFixture);
             }
 
-            if (FindComment(key, commentId) is not { } entry)
+            if (FindComment(key, commentId, recorded) is not { } entry)
             {
                 return Reply(NotFound, NotFoundFixture);
             }
 
-            stored.Comments.Remove(entry);
+            if (!stored.Comments.Remove(entry))
+            {
+                stored.EditedRecordedComments.Remove(commentId);
+                stored.DeletedRecordedComments.Add(commentId);
+            }
 
             return Empty(NoContent);
         }
     }
 
-    /// <summary>The comments list: the recorded one (or an empty one) plus the comments added through the fake.</summary>
+    /// <summary>
+    /// The comments list: the recorded one (or an empty one) with its edits and deletes, plus the comments added
+    /// through the fake.
+    /// </summary>
     public byte[]? Comments(string key, byte[]? recorded)
     {
         lock (_lock)
@@ -412,6 +419,25 @@ public sealed partial class FakeJiraWriteStore
 
             var node = (JsonObject)JsonNode.Parse(recorded ?? _readFixture(EmptyCommentsFixture))!;
             var list = node[CommentsName] as JsonArray ?? [];
+
+            for (var index = list.Count - 1; index >= 0; index--)
+            {
+                var id = list[index]?[IdName]?.GetValue<string>();
+
+                if (id is null)
+                {
+                    continue;
+                }
+
+                if (stored.DeletedRecordedComments.Contains(id))
+                {
+                    list.RemoveAt(index);
+                }
+                else if (stored.EditedRecordedComments.TryGetValue(id, out var edited))
+                {
+                    list[index] = edited.DeepClone();
+                }
+            }
 
             foreach (var entry in stored.Comments)
             {
@@ -680,9 +706,41 @@ public sealed partial class FakeJiraWriteStore
         return stored;
     }
 
-    private JsonObject? FindComment(string key, string commentId)
+    /// <summary>A comment added through the fake, or a recorded one (edited in a copy kept in the edit layer).</summary>
+    private JsonObject? FindComment(string key, string commentId, byte[]? recorded)
     {
-        return Find(key)?.Comments.FirstOrDefault(entry => entry[IdName]?.GetValue<string>() == commentId);
+        if (Find(key) is not { } stored)
+        {
+            return null;
+        }
+
+        if (stored.Comments.FirstOrDefault(entry => entry[IdName]?.GetValue<string>() == commentId) is { } added)
+        {
+            return added;
+        }
+
+        if (stored.DeletedRecordedComments.Contains(commentId))
+        {
+            return null;
+        }
+
+        if (stored.EditedRecordedComments.TryGetValue(commentId, out var edited))
+        {
+            return edited;
+        }
+
+        var list = recorded is null ? null : JsonNode.Parse(recorded)?[CommentsName] as JsonArray;
+        var original = list?.FirstOrDefault(entry => entry?[IdName]?.GetValue<string>() == commentId) as JsonObject;
+
+        if (original is null)
+        {
+            return null;
+        }
+
+        var copy = (JsonObject)original.DeepClone();
+        stored.EditedRecordedComments[commentId] = copy;
+
+        return copy;
     }
 
     private static bool IsSetByCreate(string fieldId)

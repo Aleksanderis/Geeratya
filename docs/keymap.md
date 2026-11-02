@@ -124,6 +124,10 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Home` | Move the cursor to the start of the row |
 | `End` | Move the cursor to the end of the row |
 | `Delete` | Delete the character under the cursor |
+| `PageUp` | Move the cursor up half a screen |
+| `PageDown` | Move the cursor down half a screen |
+| `Ctrl-Left` | Move the cursor to the start of the word |
+| `Ctrl-Right` | Move the cursor to the end of the word |
 | `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands

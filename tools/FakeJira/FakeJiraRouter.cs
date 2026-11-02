@@ -239,6 +239,11 @@ public sealed partial class FakeJiraRouter
         };
     }
 
+    private byte[]? RecordedComments(string key)
+    {
+        return _routes.TryGetValue($"{IssuePrefix}{key}/{CommentPart}", out var fixture) ? ReadFixture(fixture) : null;
+    }
+
     /// <summary>Create, edit, delete, transition, comment, rank and issue link calls; null for any other request.</summary>
     private FakeReply? TryWrite(string method, string path, string body)
     {
@@ -277,8 +282,8 @@ public sealed partial class FakeJiraRouter
             (Put, 2) when parts[1] == AssigneePart => _writes.Assign(key, body),
             (Post, 2) when parts[1] == TransitionsPart => _writes.Transition(key, body),
             (Post, 2) when parts[1] == CommentPart => _writes.AddComment(key, body),
-            (Put, 3) when parts[1] == CommentPart => _writes.EditComment(key, parts[2], body),
-            (Delete, 3) when parts[1] == CommentPart => _writes.DeleteComment(key, parts[2]),
+            (Put, 3) when parts[1] == CommentPart => _writes.EditComment(key, parts[2], body, RecordedComments(key)),
+            (Delete, 3) when parts[1] == CommentPart => _writes.DeleteComment(key, parts[2], RecordedComments(key)),
             _ => null,
         };
     }

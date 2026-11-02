@@ -130,4 +130,55 @@ public class TextBufferTests
         Assert.Equal(5, next.Cursor);
         Assert.Equal(10, next.Vertical(1, 5).Cursor);
     }
+
+    [Fact]
+    public void GivenWords_WhenMovingByWord_ThenTheCursorSkipsPunctuationAndStopsAtTheTextEdges()
+    {
+        var buffer = new TextBuffer("one, two  three", 0);
+
+        var first = buffer.WordRight();
+        var second = first.WordRight();
+        var back = second.WordLeft();
+
+        Assert.Equal(3, first.Cursor);
+        Assert.Equal(8, second.Cursor);
+        Assert.Equal(5, back.Cursor);
+        Assert.Equal(0, buffer.WordLeft().Cursor);
+        Assert.Equal(15, TextBuffer.Of(buffer.Text).WordRight().Cursor);
+        Assert.Equal(0, new TextBuffer("..", 2).WordLeft().Cursor);
+    }
+
+    [Fact]
+    public void GivenAnEmoji_WhenMovingByWord_ThenTheCursorNeverLandsInsideIt()
+    {
+        var buffer = new TextBuffer("a \U0001F600 b", 0);
+
+        Assert.Equal(1, buffer.WordRight().Cursor);
+        Assert.Equal(4, buffer.WordRight().WordRight().Cursor);
+        Assert.Equal(2, new TextBuffer(buffer.Text, 5).WordLeft().Cursor);
+    }
+
+    [Fact]
+    public void GivenAJoinedEmojiFamily_WhenMovingByWord_ThenTheCursorStaysOutsideTheCluster()
+    {
+        const string family = "\U0001F468\u200D\U0001F469\u200D\U0001F467";
+        var buffer = new TextBuffer($"a {family}", 0);
+
+        Assert.Equal(buffer.Text.Length, buffer.WordRight().WordRight().Cursor);
+        Assert.Equal(2, TextBuffer.Of(buffer.Text).WordLeft().Cursor);
+    }
+
+    [Fact]
+    public void GivenManyRows_WhenPaging_ThenTheCursorMovesThatManyRowsAndStopsAtTheEnds()
+    {
+        var buffer = new TextBuffer("a\nb\nc\nd\ne", 0);
+
+        var down = buffer.Vertical(3, Wide);
+        var past = buffer.Vertical(50, Wide);
+        var up = past.Vertical(-50, Wide);
+
+        Assert.Equal(6, down.Cursor);
+        Assert.Equal(8, past.Cursor);
+        Assert.Equal(0, up.Cursor);
+    }
 }

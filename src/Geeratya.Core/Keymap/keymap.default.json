@@ -102,6 +102,10 @@
     { "mode": "insert", "keys": "Home", "action": "editor.row-start" },
     { "mode": "insert", "keys": "End", "action": "editor.row-end" },
     { "mode": "insert", "keys": "Delete", "action": "editor.delete" },
+    { "mode": "insert", "keys": "PageUp", "action": "editor.page-up" },
+    { "mode": "insert", "keys": "PageDown", "action": "editor.page-down" },
+    { "mode": "insert", "keys": "Ctrl-Left", "action": "editor.word-left" },
+    { "mode": "insert", "keys": "Ctrl-Right", "action": "editor.word-right" },
     { "mode": "insert", "keys": "Ctrl-o", "action": "form.open-browser" }
   ]
 }

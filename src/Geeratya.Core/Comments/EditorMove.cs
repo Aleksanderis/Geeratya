@@ -9,4 +9,8 @@ public enum EditorMove
     Down,
     RowStart,
     RowEnd,
+    PageUp,
+    PageDown,
+    WordLeft,
+    WordRight,
 }
