@@ -80,7 +80,7 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     {
         Start(0);
 
-        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", """{"update":{"labels":[{"add":"x"}]}}""");
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", """{"update":{"summary":[{"set":"x"}]}}""");
 
         Assert.Equal(HttpStatusCode.BadRequest, edit.StatusCode);
         Assert.Contains("cannot be set", await edit.Content.ReadAsStringAsync(), StringComparison.Ordinal);
@@ -218,6 +218,47 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GTM-100"));
 
         Assert.Equal("Applied anyway", issue.GetProperty("fields").GetProperty("summary").GetString());
+    }
+
+    [Fact]
+    public async Task GivenRecordedLabels_WhenAnUpdateAddsAndRemoves_ThenOtherLabelsStayAndOrderIsKept()
+    {
+        Start(0);
+        var before = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-24"));
+        var recorded = before.GetProperty("fields").GetProperty("labels").EnumerateArray().Select(l => l.GetString()!).ToArray();
+        var body = $$$"""{"update":{"labels":[{"add":"zz-new"},{"remove":"{{{recorded[0]}}}"}]}}""";
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GCM-24", body);
+        var after = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-24"));
+
+        var labels = after.GetProperty("fields").GetProperty("labels").EnumerateArray().Select(l => l.GetString()!).ToArray();
+        Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);
+        Assert.Equal([.. recorded.Skip(1), "zz-new"], labels);
+    }
+
+    [Fact]
+    public async Task GivenAnUpdateOfAnotherField_WhenPut_ThenTheFakeRefusesIt()
+    {
+        Start(0);
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GCM-24", """{"update":{"summary":[{"set":"x"}]}}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, edit.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("GCM-24", "Team")]
+    [InlineData("GTM-11", "Labels")]
+    public async Task GivenAnIssueKey_WhenEditMetaIsRead_ThenTheRecordedFieldListOfItsProjectKindIsServed(
+        string key,
+        string expectedField)
+    {
+        Start(0);
+
+        var meta = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/{key}/editmeta"));
+
+        var names = meta.GetProperty("fields").EnumerateObject().Select(field => field.Value.GetProperty("name").GetString());
+        Assert.Contains(expectedField, names);
     }
 
     public void Dispose()

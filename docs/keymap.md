@@ -94,6 +94,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous source in the picker |
 | `Down` | Next source in the picker |
 | `Ctrl-n` | Next source in the picker |
+| `Tab` | Next field of the form |
+| `Shift-Tab` | Previous field of the form |
+| `Ctrl-s` | Save the form |
 
 ## Palette commands
 
@@ -104,6 +107,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

@@ -1,0 +1,24 @@
+ [1 JQL: A]                                                                     
+                                                                                
+A · 1 issue                                                                     
+  ┌─ Edit A-1 ───────────────────────────────────────────────────────────────┐  
+  │ > Labels                                                                 │  
+  │     [backend] [ui] _                                                     │  
+  │   Summary *                                                              │  
+  │     -                                                                    │  
+  │     ! Required                                                           │  
+  │   Priority                                                               │  
+  │     Low                                                                  │  
+  │   Eine sehr lange Bezeichnung für 日本語 das Feld Schätzung in Stunden p │  
+  │     -                                                                    │  
+  │   Team  (edit in browser)                                                │  
+  │     https://work.atlassian.net/browse/A-1                                │  
+  │ ──────────────────────────────────────────────────────────────────────── │  
+  │ Tab/Shift-Tab field   Ctrl-s save   Esc cancel                           │  
+  └──────────────────────────────────────────────────────────────────────────┘  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ INSERT Edit A-1                    Tab/Shift-Tab field  Ctrl-s save  Esc cancel

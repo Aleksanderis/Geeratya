@@ -28,4 +28,7 @@ public sealed class StoredIssue
     public JsonNode? Status { get; set; }
 
     public List<JsonObject> Comments { get; } = [];
+
+    /// <summary>Label adds and removes laid over the recorded labels, in the order they were sent.</summary>
+    public List<LabelOperation> LabelOperations { get; } = [];
 }

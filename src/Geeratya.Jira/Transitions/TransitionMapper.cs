@@ -56,7 +56,10 @@ internal static class TransitionMapper
                 field?.Required ?? false,
                 field?.Schema?.Type ?? string.Empty,
                 field?.HasDefaultValue ?? false,
-                MapOptions(field?.AllowedValues)));
+                MapOptions(field?.AllowedValues),
+                field?.Schema?.Items ?? string.Empty,
+                field?.Schema?.System ?? string.Empty,
+                field?.Schema?.Custom ?? string.Empty));
         }
 
         return result;

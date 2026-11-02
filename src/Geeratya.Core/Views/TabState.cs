@@ -1,5 +1,6 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -72,6 +73,9 @@ public sealed record TabState(
     /// its reply keeps the tab's own rows for these keys. Cleared when the load ends.
     /// </summary>
     public IReadOnlyList<string> ProtectedKeys { get; init; } = [];
+
+    /// <summary>The open field form (edit, later create and transition) of this tab; null when none.</summary>
+    public FormState? Form { get; init; }
 
     /// <summary>
     /// The rows Jira returned for <see cref="ProtectedKeys"/> when the write ended. A reply keeps these for a key the

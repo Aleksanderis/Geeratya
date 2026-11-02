@@ -15,9 +15,6 @@ public static class SourcePickerOverlay
     private const string Title = "Open a view";
     private const string LoadingText = "Loading…";
     private const string NothingText = "Nothing to choose from.";
-    private const string Corner = "┌┐└┘";
-    private const char Horizontal = '─';
-    private const string Vertical = "│";
     private const int MaxBoxWidth = 100;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
@@ -53,7 +50,7 @@ public static class SourcePickerOverlay
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
-            result[top + index] = Place(box[index], left, width);
+            result[top + index] = OverlayBox.Place(box[index], left, width);
         }
 
         return result;
@@ -70,25 +67,27 @@ public static class SourcePickerOverlay
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
         var first = FirstVisible(rows, area);
-        var lines = new List<StyledLine> { Top(boxWidth), Wall(Prompt(picker), contentWidth) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title), OverlayBox.Wall(Prompt(picker), contentWidth) };
 
         foreach (var line in rows.Lines.Skip(first).Take(Math.Max(0, area)))
         {
-            lines.Add(Wall(line, contentWidth));
+            lines.Add(OverlayBox.Wall(line, contentWidth));
         }
 
         while (lines.Count < inner + 1 - footer)
         {
-            lines.Add(Wall(StyledLine.Empty, contentWidth));
+            lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth));
         }
 
         if (footer > 0)
         {
-            lines.Add(Wall(StyledLine.Of(new string(Horizontal, contentWidth - 2), TextRole.Muted), contentWidth));
-            lines.Add(Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
+            var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
+
+            lines.Add(OverlayBox.Wall(rule, contentWidth));
+            lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
         }
 
-        lines.Add(Bottom(boxWidth));
+        lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;
     }
@@ -116,41 +115,6 @@ public static class SourcePickerOverlay
         var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
 
         return $"{up}/{down} choose   {accept} open in a new tab   {cancel} close";
-    }
-
-    private static StyledLine Top(int boxWidth)
-    {
-        var title = $" {Title} ";
-        var fill = Math.Max(0, boxWidth - 3 - TextWidth.Of(title));
-
-        return StyledLine.Of($"{Corner[0]}{Horizontal}{title}{new string(Horizontal, fill)}{Corner[1]}", TextRole.Muted);
-    }
-
-    private static StyledLine Bottom(int boxWidth)
-    {
-        return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", TextRole.Muted);
-    }
-
-    /// <summary>A box row: the content padded to the inner width between two walls, with one space of padding.</summary>
-    private static StyledLine Wall(StyledLine content, int contentWidth)
-    {
-        var spans = new List<StyledSpan> { new(Vertical, TextRole.Muted), new(" ", TextRole.Body) };
-
-        spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
-        spans.Add(new StyledSpan(" ", TextRole.Body));
-        spans.Add(new StyledSpan(Vertical, TextRole.Muted));
-
-        return new StyledLine(spans);
-    }
-
-    /// <summary>The box row between blank margins, exactly <paramref name="width"/> columns.</summary>
-    private static StyledLine Place(StyledLine box, int left, int width)
-    {
-        var spans = new List<StyledSpan> { new(new string(' ', left), TextRole.Body) };
-
-        spans.AddRange(box.Spans);
-
-        return StyledLines.Fit(new StyledLine(spans), width);
     }
 
     private static PickerRows Rows(SourcePickerState picker, SourceLists lists, int width)

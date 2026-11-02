@@ -48,6 +48,9 @@ public static class ActionCatalog
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
+        new(ActionIds.FormFieldNext, "Next field of the form"),
+        new(ActionIds.FormFieldPrevious, "Previous field of the form"),
+        new(ActionIds.FormSubmit, "Save the form"),
     ];
 
     /// <summary>
@@ -71,6 +74,9 @@ public static class ActionCatalog
         ActionIds.FormBackspace,
         ActionIds.PickerPrevious,
         ActionIds.PickerNext,
+        ActionIds.FormFieldNext,
+        ActionIds.FormFieldPrevious,
+        ActionIds.FormSubmit,
     ];
 
     public static bool IsModalOnly(string id)

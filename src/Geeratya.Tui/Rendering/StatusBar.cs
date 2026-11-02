@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -58,6 +59,14 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.PickerNext, "choose"),
         new(InputMode.Insert, ActionIds.FormNext, "open"),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
+    /// <summary>The hints shown while a field form is open (Insert mode, the active tab's form).</summary>
+    public static IReadOnlyList<StatusHint> FormHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
     /// <summary>
@@ -120,6 +129,11 @@ public static class StatusBar
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
+        if (FormReducer.IsOpen(state))
+        {
+            return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
+        }
+
         if (state.Picker is not null)
         {
             return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
@@ -235,6 +249,7 @@ public static class StatusBar
             InputMode.Command => $":{state.PaletteText}",
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
+            InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };

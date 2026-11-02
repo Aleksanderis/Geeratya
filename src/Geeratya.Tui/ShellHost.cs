@@ -1,6 +1,7 @@
 using Geeratya.App;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -48,6 +49,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly IssueDetailLoadHandler _detailLoads;
     private readonly SourceLoadHandler _sourceLoads;
     private readonly WriteHandler _writes;
+    private readonly FormMetadataHandler _formMetadata;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -76,6 +78,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _detailLoads = new IssueDetailLoadHandler(_network);
         _sourceLoads = new SourceLoadHandler(_network);
         _writes = new WriteHandler(_network);
+        _formMetadata = new FormMetadataHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
@@ -184,7 +187,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         key.Handled = true;
 
-        Dispatch(new KeyPressed(spelled));
+        Dispatch(new KeyPressed(spelled, TimeProvider.System.GetUtcNow()));
     }
 
     /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>
@@ -243,6 +246,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             else if (effect is ExecuteWriteEffect or VerifyWriteEffect)
             {
                 _ = _writes.StartAsync(effect);
+            }
+            else if (effect is LoadFormMetadataEffect formMetadata)
+            {
+                _ = _formMetadata.StartAsync(formMetadata);
             }
             else if (effect is InvalidateCacheEffect invalidate)
             {
