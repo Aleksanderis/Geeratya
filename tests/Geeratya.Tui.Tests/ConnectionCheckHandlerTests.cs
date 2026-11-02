@@ -98,7 +98,6 @@ public sealed class ConnectionCheckHandlerTests : IDisposable
     [Fact]
     public async Task GivenNoToken_WhenChecking_ThenNothingIsPostedAndNoRequestIsSent()
     {
-        var http = new ScriptedJiraHandler();
         var connections = new SiteConnections(new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
 
         _owned.Add(connections);
@@ -110,7 +109,6 @@ public sealed class ConnectionCheckHandlerTests : IDisposable
 
         Assert.NotNull(failure);
         Assert.Empty(_posted);
-        Assert.Empty(http.Requests);
     }
 
     [Fact]

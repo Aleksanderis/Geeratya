@@ -66,7 +66,7 @@ public class ConnectionCheckReducerTests
     }
 
     [Theory]
-    [InlineData(JiraErrorKind.Unauthorized, ConnectionFailureKind.Unauthorized, "rejected the token or the email")]
+    [InlineData(JiraErrorKind.Unauthorized, ConnectionFailureKind.Unauthorized, "Token or email rejected")]
     [InlineData(JiraErrorKind.Forbidden, ConnectionFailureKind.Forbidden, "denied access (403)")]
     [InlineData(JiraErrorKind.Network, ConnectionFailureKind.Network, "Cannot reach work.atlassian.net")]
     [InlineData(JiraErrorKind.Timeout, ConnectionFailureKind.Timeout, "did not answer in time")]

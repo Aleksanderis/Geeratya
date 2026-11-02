@@ -39,7 +39,7 @@ public class ConnectionLineTests
 
         var line = StatusBar.Render(With(failure), 120, _keymap);
 
-        Assert.Contains("rejected the token or the email", line);
+        Assert.Contains("Token or email rejected", line);
     }
 
     [Fact]
