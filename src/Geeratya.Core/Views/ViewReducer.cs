@@ -46,6 +46,7 @@ public static class ViewReducer
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
             IssueDetailOpenRequested open => DetailReducer.Open(state, open.Tab, open.Key, open.Row, effects),
             IssueDetailBackRequested back => DetailReducer.Back(state, back.Tab),
+            IssueDetailCached cached => DetailReducer.IssueCached(state, cached),
             IssueDetailLoaded loaded => DetailReducer.IssueLoaded(state, loaded, effects),
             IssueChildrenLoaded loaded => DetailReducer.ChildrenLoaded(state, loaded),
             IssueCommentsLoaded loaded => DetailReducer.CommentsLoaded(state, loaded),

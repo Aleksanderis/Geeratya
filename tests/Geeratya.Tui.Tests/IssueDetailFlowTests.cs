@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using System.Net;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform;
@@ -30,11 +32,50 @@ public sealed class IssueDetailFlowTests : IDisposable
     private SiteConnections? _connections;
     private NetworkRunner? _runner;
     private IssueDetailLoadHandler? _handler;
+    private readonly List<string> _folders = [];
+    private SiteCache? _cache;
 
     public void Dispose()
     {
         _runner?.Dispose();
         _connections?.Dispose();
+        _cache?.Dispose();
+
+        foreach (var folder in _folders.Where(Directory.Exists))
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    private string CacheFolder()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), $"geeratya-detail-{Guid.NewGuid():N}");
+
+        _folders.Add(folder);
+
+        return folder;
+    }
+
+    private static IssueDetail Sample()
+    {
+        return new IssueDetail(
+            "1",
+            "GTM-5",
+            "Sample",
+            new IssueStatus("1", "To Do", "new"),
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            null,
+            [],
+            DateTimeOffset.UnixEpoch,
+            DateTimeOffset.UnixEpoch,
+            "GTM",
+            null,
+            null,
+            [],
+            [],
+            []);
     }
 
     [Fact]
@@ -60,6 +101,71 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Equal(
             [$"{Site}/GTM-5", $"{Site}/GTM-5/comment", $"{Site}/GTM-5/remotelink"],
             _http.Requests.Select(uri => uri.AbsolutePath).Order());
+    }
+
+    [Fact]
+    public async Task GivenCachedIssue_WhenOpened_ThenTheCachedIssueIsPostedBeforeTheNetworkReply()
+    {
+        _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json")
+            .Fixture($"{Site}/GTM-5/comment", "adf/comments-gtm5.json")
+            .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json");
+        await ConnectAsync();
+        var cache = new SiteCache(CacheFolder());
+        _cache = cache;
+        var fresh = await OpenAsync("GTM-5");
+        var issue = Top(fresh).Issue!;
+        cache.PutIssue(new CachedIssue(issue with { Summary = "Cached summary" }, DateTimeOffset.UnixEpoch));
+        _handler = new IssueDetailLoadHandler(_runner!);
+
+        var state = ListState("GTM-5");
+        var opened = _reducer.Reduce(state, new KeyPressed("Enter"));
+        var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
+        _posted.Clear();
+
+        await _handler.StartAsync(effect, cache);
+
+        var posted = _posted.ToArray();
+        var cached = Assert.IsType<IssueDetailCached>(posted[0]);
+        Assert.IsType<IssueDetailLoaded>(posted[1]);
+        Assert.Equal("Cached summary", cached.Cached.Detail.Summary);
+
+        var shown = _reducer.Reduce(opened.State, cached).State;
+        Assert.True(Top(shown).IssueStale);
+        Assert.Contains("Cached summary", Text(Top(shown)));
+    }
+
+    [Fact]
+    public async Task GivenEmptyCache_WhenOpened_ThenOnlyTheNetworkReplyIsPosted()
+    {
+        _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json");
+        await ConnectAsync();
+        _cache = new SiteCache(CacheFolder());
+        var opened = _reducer.Reduce(ListState("GTM-5"), new KeyPressed("Enter"));
+        var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
+        _posted.Clear();
+
+        await _handler!.StartAsync(effect, _cache);
+
+        Assert.IsType<IssueDetailLoaded>(Assert.Single(_posted));
+    }
+
+    [Fact]
+    public async Task GivenCachedIssueAndNoConnection_WhenOpened_ThenTheCachedIssueIsPostedBeforeTheFailure()
+    {
+        _runner = new NetworkRunner(new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)),
+            (connection, token) => new JiraTransport(connection, token, _http)), _posted.Enqueue, CancellationToken.None);
+        _handler = new IssueDetailLoadHandler(_runner);
+        _cache = new SiteCache(CacheFolder());
+        var opened = _reducer.Reduce(ListState("GTM-5"), new KeyPressed("Enter"));
+        var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
+        _cache.PutIssue(new CachedIssue(Sample(), DateTimeOffset.UnixEpoch));
+        _posted.Clear();
+
+        await _handler.StartAsync(effect, _cache);
+
+        Assert.IsType<IssueDetailCached>(_posted.ToArray()[0]);
+        Assert.IsType<IssueDetailFailed>(_posted.ToArray()[1]);
     }
 
     [Fact]

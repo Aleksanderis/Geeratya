@@ -1,7 +1,9 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
 
@@ -110,6 +112,8 @@ internal static class DetailReducer
         var wantsChildren = loaded.Issue.IssueType.HierarchyLevel >= DetailPaging.ParentLevel;
         var childrenRequest = wantsChildren ? state.Sequence + 1 : 0;
 
+        effects.Add(new WriteIssueCacheEffect(new CachedIssue(loaded.Issue, loaded.At)));
+
         var next = Update(
             state,
             loaded.Tab,
@@ -123,6 +127,20 @@ internal static class DetailReducer
         effects.Add(new LoadIssueChildrenEffect(loaded.Tab, loaded.Issue.Key, childrenRequest));
 
         return next with { Sequence = childrenRequest };
+    }
+
+    /// <summary>
+    /// The cached issue is shown (marked stale) while its request is still in flight; once an issue is shown, or the
+    /// request ended, the cache reply is dropped.
+    /// </summary>
+    public static AppState IssueCached(AppState state, IssueDetailCached cached)
+    {
+        return Update(
+            state,
+            cached.Tab,
+            detail => detail.IssueRequest == cached.RequestId && detail.Issue is null
+                ? detail with { Issue = cached.Cached.Detail, IssueStale = true, IssueSavedAt = cached.Cached.SavedAt }
+                : null);
     }
 
     public static AppState ChildrenLoaded(AppState state, IssueChildrenLoaded loaded)
@@ -315,7 +333,17 @@ internal static class DetailReducer
     {
         if (detail.IssueRequest == requestId)
         {
-            return detail with { IssueLoad = failure, IssueRequest = 0 };
+            // A cached copy of an issue that is gone or forbidden must not stay on screen.
+            return failure.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden
+                ? detail with
+                {
+                    Issue = null,
+                    IssueStale = false,
+                    IssueSavedAt = null,
+                    IssueLoad = failure,
+                    IssueRequest = 0,
+                }
+                : detail with { IssueLoad = failure, IssueRequest = 0 };
         }
 
         if (detail.CommentsRequest == requestId)
@@ -336,6 +364,8 @@ internal static class DetailReducer
         return detail with
         {
             Issue = loaded.Issue,
+            IssueStale = false,
+            IssueSavedAt = null,
             IssueLoad = LoadState.Idle,
             IssueRequest = 0,
             LoadedAt = loaded.At,

@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
@@ -20,6 +21,11 @@ public sealed record IssueDetailBackRequested(TabId Tab) : ViewCommand;
 /// The issue arrived; applied only while <paramref name="RequestId"/> is the current issue request of a stacked issue.
 /// </summary>
 public sealed record IssueDetailLoaded(TabId Tab, long RequestId, IssueDetail Issue, DateTimeOffset At) : ViewCommand;
+
+/// <summary>
+/// The cache had the issue; applied only while <paramref name="RequestId"/> is current and no issue is shown yet.
+/// </summary>
+public sealed record IssueDetailCached(TabId Tab, long RequestId, CachedIssue Cached) : ViewCommand;
 
 /// <summary>A comment page arrived; applied only while <paramref name="RequestId"/> is current.</summary>
 public sealed record IssueCommentsLoaded(

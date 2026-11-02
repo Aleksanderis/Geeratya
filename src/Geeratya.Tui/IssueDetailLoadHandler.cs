@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -29,7 +30,30 @@ public sealed class IssueDetailLoadHandler
     /// <summary>
     /// Starts the load of <paramref name="effect"/> and returns the task that ends when it is posted or dropped.
     /// </summary>
-    public Task StartAsync(Effect effect)
+    public async Task StartAsync(Effect effect, SiteCache? cache = null)
+    {
+        if (cache is not null && effect is LoadIssueDetailEffect opening)
+        {
+            // Off the UI thread and without a connection; posted before the network reply or failure, as for views.
+            await _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
+        }
+
+        await StartNetwork(effect);
+    }
+
+    private static IssueDetailCached? ReadCache(LoadIssueDetailEffect effect, SiteCache cache, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        var cached = cache.GetIssue(effect.Key);
+
+        return cached is null ? null : new IssueDetailCached(effect.Tab, effect.RequestId, cached);
+    }
+
+    private Task StartNetwork(Effect effect)
     {
         return effect switch
         {
