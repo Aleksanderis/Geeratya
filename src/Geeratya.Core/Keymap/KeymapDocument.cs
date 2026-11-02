@@ -1,4 +1,5 @@
 using System.Text;
+using Geeratya.Core.Sources;
 
 namespace Geeratya.Core.Keymap;
 
@@ -28,6 +29,13 @@ public static class KeymapDocument
             }
         }
 
+        builder.Append("\n## Palette commands\n\n| Command | What it does |\n|---|---|\n");
+
+        foreach (var command in PaletteCommands.All)
+        {
+            builder.Append($"| `:{command.Usage}` | {command.Description} |\n");
+        }
+
         return builder.ToString();
     }
 
@@ -49,6 +57,15 @@ public static class KeymapDocument
             {
                 lines.Add($"  {binding.Keys,-10} {ActionCatalog.FindTitle(binding.Action)}");
             }
+        }
+
+        lines.Add(string.Empty);
+        lines.Add("Palette commands");
+
+        foreach (var command in PaletteCommands.All)
+        {
+            lines.Add($"  :{command.Usage}");
+            lines.Add($"      {command.Description}");
         }
 
         return lines;

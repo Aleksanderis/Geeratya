@@ -1,4 +1,5 @@
 using Geeratya.Jira.Boards;
+using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
@@ -19,10 +20,14 @@ public sealed class JiraServices
         Search = new JiraSearchClient(transport);
         Users = new JiraUserClient(transport);
         Boards = new BoardClient(transport);
+        Filters = new FilterClient(transport);
     }
 
     /// <summary>Boards, board configuration, board issues and backlog (agile API).</summary>
     public BoardClient Boards { get; }
+
+    /// <summary>Saved filters: the caller's own and favourites.</summary>
+    public FilterClient Filters { get; }
 
     /// <summary>The current account (<c>/myself</c>), also the credential check.</summary>
     public JiraUserClient Users { get; }

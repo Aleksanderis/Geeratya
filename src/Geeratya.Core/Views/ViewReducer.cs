@@ -384,21 +384,6 @@ public static class ViewReducer
     }
 
     /// <summary>
-    /// Opens a new tab with the active tab's view definition; without an active tab the status line says so.
-    /// </summary>
-    public static ReduceResult DuplicateActiveTab(AppState state)
-    {
-        var active = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
-
-        if (active is null)
-        {
-            return new ReduceResult(state with { Message = "No view to copy: open one with :jql <query>." }, _noEffects);
-        }
-
-        return Reduce(state, new ViewOpenRequested(active.Definition));
-    }
-
-    /// <summary>
     /// The clock tick: refreshes the active tab in the background when its schedule says so. Returns the same state
     /// instance and no effects when nothing is due, which is almost every tick.
     /// </summary>

@@ -55,7 +55,12 @@ public static class FrameBuilder
         var context = new BodyContext(helpLines, keymap);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
-        var body = renderer.Render(state, context, width, bodyHeight);
+        var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);
+
+        if (state.Picker is not null)
+        {
+            body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+        }
 
         return new StyledFrame(
             Fit(header == 0 ? [] : [TabBar.Build(state.Session.Tabs, state.Session.Active, width)], width, header),
