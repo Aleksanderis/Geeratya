@@ -147,7 +147,7 @@ public class IssueDocumentBuilderTests
         var lines = Texts(IssueDocumentBuilder.Build(detail, 80));
 
         Assert.StartsWith("╭─ A-1 ", lines[0]);
-        Assert.Equal(2, lines.Count(line => line == "Loading…"));
+        Assert.Equal(3, lines.Count(line => line == "Loading…"));
     }
 
     [Fact]
@@ -186,13 +186,13 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenLoadedIssue_WhenBuilding_ThenHeaderDescriptionRelationsAndCommentsEachGetAFramedPanel()
+    public void GivenLoadedIssueWithoutRelations_WhenBuilding_ThenHeaderDescriptionAndCommentsEachGetAFramedPanel()
     {
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, [Comment("Eve", "Text")]), 80));
 
         var tops = lines.Where(line => line.StartsWith("╭─ ")).Select(line => line.Split(' ')[1]).ToList();
-        Assert.Equal(["A-1", "Description", "Relations", "Comments"], tops);
-        Assert.Equal(4, lines.Count(line => line.StartsWith('╰')));
+        Assert.Equal(["A-1", "Description", "Comments"], tops);
+        Assert.Equal(3, lines.Count(line => line.StartsWith('╰')));
     }
 
     [Theory]
@@ -276,6 +276,8 @@ public class IssueDocumentBuilderTests
             Comments = comments,
             NextComments = null,
             CommentsLoad = LoadState.Idle,
+            RemoteLinks = [],
+            LinksLoad = LoadState.Idle,
             LoadedAt = _now,
         };
     }

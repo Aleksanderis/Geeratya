@@ -114,13 +114,15 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
     private static StyledSpan? StateNote(DetailState detail)
     {
-        if (detail.IssueLoad is Loading || detail.CommentsLoad is Loading || detail.LinksLoad is Loading)
+        if (detail.IssueLoad is Loading || detail.CommentsLoad is Loading || detail.LinksLoad is Loading
+            || detail.ChildrenLoad is Loading)
         {
             return new StyledSpan(LoadingText, TextRole.Loading);
         }
 
         var failed = detail.Issue is not null
-            && (detail.IssueLoad is Failed || detail.CommentsLoad is Failed || detail.LinksLoad is Failed);
+            && (detail.IssueLoad is Failed || detail.CommentsLoad is Failed || detail.LinksLoad is Failed
+                || detail.ChildrenLoad is Failed);
 
         return failed ? new StyledSpan(FailedText, TextRole.Error) : null;
     }

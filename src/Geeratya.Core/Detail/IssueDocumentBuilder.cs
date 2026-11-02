@@ -22,8 +22,6 @@ public static class IssueDocumentBuilder
     private const int LabelWidth = 10;
     private const string EditableMarker = " ▾";
     private const string DescriptionTitle = "Description";
-    private const string RelationsTitle = "Relations";
-    private const string RelationsText = "Sub-tasks, linked issues, remote links and attachments are not shown yet.";
     private const string CommentsTitle = "Comments";
     private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
@@ -69,7 +67,7 @@ public static class IssueDocumentBuilder
         }
 
         AddDescription(lines, detail, columns, inner);
-        AddRelations(lines, columns, inner);
+        IssueRelationsBuilder.Add(lines, detail, detail.LoadedAt, columns, inner);
         AddComments(lines, detail, columns, inner);
 
         return new DetailDocument(columns, lines);
@@ -113,7 +111,7 @@ public static class IssueDocumentBuilder
 
         if (header.Status is { } status)
         {
-            fields.Add(new Field("Status", status.Name, StatusRole(status), true));
+            fields.Add(new Field("Status", status.Name, StatusRoles.Of(status), true));
         }
 
         AddField(fields, "Priority", header.Priority, true);
@@ -246,17 +244,6 @@ public static class IssueDocumentBuilder
         Panel.Add(lines, [new StyledSpan(DescriptionTitle, TextRole.Heading)], content, width);
     }
 
-    /// <summary>The place of sub-tasks, links, remote links and attachments until #88 fills it.</summary>
-    private static void AddRelations(List<StyledLine> lines, int width, int inner)
-    {
-        var content = new List<StyledLine>();
-        var wrapped = new WrappedText(inner, false);
-
-        wrapped.Append(RelationsText, TextRole.Muted);
-        wrapped.Finish(content);
-        Panel.Add(lines, [new StyledSpan(RelationsTitle, TextRole.Heading)], content, width);
-    }
-
     private static void AddComments(List<StyledLine> lines, DetailState detail, int width, int inner)
     {
         var content = new List<StyledLine>();
@@ -350,17 +337,6 @@ public static class IssueDocumentBuilder
         {
             lines.Add(StyledLine.Of(TooManyText, TextRole.Muted));
         }
-    }
-
-    private static TextRole StatusRole(IssueStatus status)
-    {
-        return status.CategoryKey switch
-        {
-            StatusCategoryKeys.New => TextRole.StatusToDo,
-            StatusCategoryKeys.Indeterminate => TextRole.StatusInProgress,
-            StatusCategoryKeys.Done => TextRole.StatusDone,
-            _ => TextRole.Body,
-        };
     }
 
     /// <summary>Replaces control characters, which a terminal would act on, with spaces.</summary>

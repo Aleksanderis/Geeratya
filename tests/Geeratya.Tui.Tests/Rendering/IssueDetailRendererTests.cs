@@ -10,6 +10,7 @@ using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Paging;
+using Geeratya.Jira.RemoteLinks.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -19,11 +20,13 @@ namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
 /// The issue detail at the three snapshot sizes with the longest recorded description and wide characters in the
-/// comments. To refresh after an intended change, copy the actual frame from the failure into the matching file and
-/// review the diff.
+/// comments. To refresh after an intended change, run the tests with <c>GEERATYA_UPDATE_SNAPSHOTS=1</c> and review the
+/// diff of the written files.
 /// </summary>
 public class IssueDetailRendererTests
 {
+    private const string UpdateVariable = "GEERATYA_UPDATE_SNAPSHOTS";
+
     private static readonly DateTimeOffset _now = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _profile = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
@@ -39,6 +42,19 @@ public class IssueDetailRendererTests
     public void GivenALoadedIssue_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
         AssertSnapshot(Loaded(width, height), width, height, $"detail-{width}x{height}.txt");
+    }
+
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAnEpicWithEveryRelation_WhenScrolledToTheEnd_ThenTheRelationPanelsMatchTheSnapshot(
+        int width,
+        int height)
+    {
+        var state = _reducer.Reduce(LoadedEpic(width, height), new KeyPressed("G")).State;
+
+        AssertSnapshot(state, width, height, $"detail-relations-{width}x{height}.txt");
     }
 
     [Fact]
@@ -141,9 +157,26 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
         var actual = string.Join('\n', lines) + "\n";
 
+        if (Environment.GetEnvironmentVariable(UpdateVariable) == "1")
+        {
+            File.WriteAllText(SourcePath(name), actual);
+        }
+
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+    }
+
+    private static string SourcePath(string file)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Geeratya.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return Path.Combine(directory!.FullName, "tests", "Geeratya.Tui.Tests", "Snapshots", file);
     }
 
     private AppState Opened(int width, int height)
@@ -163,6 +196,48 @@ public class IssueDetailRendererTests
         var loaded = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now));
 
         return _reducer.Reduce(loaded.State, new KeyPressed("Enter")).State;
+    }
+
+    private AppState LoadedEpic(int width, int height)
+    {
+        var state = Opened(width, height);
+        var tab = state.Session.Tabs[0];
+        var detail = tab.Detail[0];
+        var epicType = new IssueTypeSummary("1", "Epic", 1, false);
+        var done = new IssueStatus("2", "Done", "done");
+        var todo = new IssueStatus("1", "To Do", "new");
+        var subtaskType = new IssueTypeSummary("3", "Sub-task", -1, true);
+        var epic = Issue() with
+        {
+            Description = null,
+            IssueType = epicType,
+            Subtasks = [new IssueStub("GCM-18", "Write the migration", todo, subtaskType)],
+            Links =
+            [
+                new IssueLink("1", "Blocks", IssueLinkDirection.Outward, "blocks", new IssueStub("GCM-30", "Launch", todo, _type)),
+                new IssueLink("2", "Blocks", IssueLinkDirection.Inward, "is blocked by", new IssueStub("GCM-9", "Legal review", done, _type)),
+            ],
+            Attachments =
+            [
+                new IssueAttachment("1", "日本語のノート.txt", "text/plain", 47, _now.AddDays(-2), null, null),
+                new IssueAttachment("2", "screenshot.png", "image/png", 3_500_000, _now.AddHours(-5), null, null),
+            ],
+        };
+        var children = new IssuePage([Row("GCM-21", "Child story"), Row("GCM-22", "Another child")], null, null);
+        var remote = new RemoteLink("9", "https://example.com/spec", "Design spec", "Confluence");
+
+        state = _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, epic, _now)).State;
+        state = Active(state) is { ChildrenRequest: var childrenRequest }
+            ? _reducer.Reduce(state, new IssueChildrenLoaded(tab.Id, childrenRequest, children, _now)).State
+            : state;
+        state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, new OffsetPage<IssueComment>([], 0, 50, 0, true), _now)).State;
+
+        return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [remote], _now)).State;
+    }
+
+    private static DetailState Active(AppState state)
+    {
+        return state.Session.Tabs[0].Detail[0];
     }
 
     private AppState Loaded(int width, int height)
@@ -185,12 +260,12 @@ public class IssueDetailRendererTests
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now)).State;
     }
 
-    private static IssueSummary Row()
+    private static IssueSummary Row(string key = "GCM-12", string summary = "Row summary")
     {
         return new IssueSummary(
             "1",
-            "GCM-12",
-            "Row summary",
+            key,
+            summary,
             _status,
             _type,
             null,

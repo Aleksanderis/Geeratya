@@ -20,6 +20,7 @@ namespace Geeratya.Tui.Tests;
 public sealed class IssueDetailFlowTests : IDisposable
 {
     private const string Site = "/rest/api/3/issue";
+    private const string SearchPath = "/rest/api/3/search/jql";
 
     private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
 
@@ -92,6 +93,96 @@ public sealed class IssueDetailFlowTests : IDisposable
         var text = Text(Top(state));
         Assert.Contains("[image]", text);
         Assert.Contains("No comments.", text);
+    }
+
+    [Theory]
+    [InlineData("GTM-11", "GTM-9", "GTM-19", "GTM-20", "GTM-12", "GTM-17")]
+    [InlineData("GCM-10", "GCM-8", "GCM-18", "GCM-19", "GCM-11", "GCM-16")]
+    public async Task GivenStoryWithRelationsOfEitherProjectKind_WhenOpened_ThenSubtasksLinksRemoteLinksAndAttachmentsShow(
+        string key,
+        string parent,
+        string firstSubtask,
+        string secondSubtask,
+        string blockedBy,
+        string relatesTo)
+    {
+        var fixture = key.StartsWith("GTM", StringComparison.Ordinal) ? "gtm11" : "gcm10";
+        var links = key.StartsWith("GTM", StringComparison.Ordinal)
+            ? new RemoteLinkFixture("links/remotelink-list-gtm5.json", 1, "Remote page")
+            : new RemoteLinkFixture("links/remotelink-list-gcm6.json", 3, "Design notes · Confluence");
+
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", links.File);
+        await ConnectAsync();
+
+        var state = await OpenAsync(key);
+
+        var text = Text(Top(state));
+        Assert.Contains($"Parent    {parent}", text);
+        Assert.Contains("Sub-tasks (2)", text);
+        Assert.Contains(firstSubtask, text);
+        Assert.Contains(secondSubtask, text);
+        Assert.Contains("Linked issues (2)", text);
+        Assert.Contains($"is blocked by {blockedBy} ", text);
+        Assert.Contains($"relates to {relatesTo} ", text);
+        Assert.Contains($"Remote links ({links.Count})", text);
+        Assert.Contains(links.Title, text);
+        Assert.Contains("Attachments (1)", text);
+        Assert.Contains("seed-notes.txt · ", text);
+        Assert.Contains(" · 47 B", text);
+        Assert.DoesNotContain("Epic children", text);
+        Assert.DoesNotContain(_http.Requests, uri => uri.AbsolutePath.Contains("/search/"));
+    }
+
+    [Theory]
+    [InlineData("GTM-9", "hierarchy/search-epic-children-gtm.json", "GTM-7", "GTM-6")]
+    [InlineData("GCM-8", "hierarchy/search-epic-children-gcm.json", "GCM-7", "GCM-1")]
+    public async Task GivenEpicOfEitherProjectKind_WhenOpened_ThenItsChildrenAreSearchedByParentAndShown(
+        string key,
+        string childrenFixture,
+        string firstChild,
+        string secondChild)
+    {
+        var issue = key.StartsWith("GTM", StringComparison.Ordinal) ? "gtm9" : "gcm8";
+
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{issue}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-empty.json")
+            .Fixture(SearchPath, childrenFixture);
+        await ConnectAsync();
+
+        var state = await OpenAsync(key);
+
+        var detail = Top(state);
+        var text = Text(detail);
+        Assert.Contains("Epic children (2)", text);
+        Assert.Contains(firstChild, text);
+        Assert.Contains(secondChild, text);
+        Assert.DoesNotContain("Remote links", text);
+        Assert.Equal(LoadState.Idle, detail.ChildrenLoad);
+
+        var search = Assert.Single(_http.Requests, uri => uri.AbsolutePath == SearchPath);
+        Assert.Contains(Uri.EscapeDataString($"parent = {key}"), search.Query);
+    }
+
+    [Fact]
+    public async Task GivenChildrenSearchRefused_WhenEpicOpened_ThenOnlyTheChildrenSectionShowsTheError()
+    {
+        _http.Fixture($"{Site}/GTM-9", "issues/issue-gtm9.json")
+            .Fixture($"{Site}/GTM-9/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/GTM-9/remotelink", "links/remotelink-list-empty.json")
+            .Fixture(SearchPath, "errors/myself-401-bad-token.json", HttpStatusCode.Unauthorized);
+        await ConnectAsync();
+
+        var state = await OpenAsync("GTM-9");
+
+        var detail = Top(state);
+        Assert.IsType<Failed>(detail.ChildrenLoad);
+        Assert.Contains("Epic children", Text(detail));
+        Assert.Contains("Check the token", Text(detail));
+        Assert.Contains("No comments.", Text(detail));
+        Assert.NotNull(detail.Issue);
     }
 
     [Fact]
@@ -172,6 +263,8 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         Assert.Empty(_posted);
     }
+
+    private sealed record RemoteLinkFixture(string File, int Count, string Title);
 
     private static TabState Tab(AppState state)
     {

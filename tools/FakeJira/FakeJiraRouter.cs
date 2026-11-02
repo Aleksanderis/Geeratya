@@ -1,11 +1,12 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Geeratya.FakeJira;
 
 /// <summary>Maps a request (method, path, query, body) to a reply built from recorded fixtures or generated data.</summary>
-public sealed class FakeJiraRouter
+public sealed partial class FakeJiraRouter
 {
     private const string SearchPath = "/rest/api/3/search/jql";
     private const string CountPath = "/rest/api/3/search/approximate-count";
@@ -14,6 +15,7 @@ public sealed class FakeJiraRouter
     private const string MissingFilterFixture = "filters/filter-get-missing.json";
     private const string MaxResultsName = "maxResults";
     private const string PageTokenName = "nextPageToken";
+    private const string JqlName = "jql";
     private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
     private const string StartAtName = "startAt";
     private const string Get = "GET";
@@ -47,6 +49,7 @@ public sealed class FakeJiraRouter
         ["/rest/api/3/issue/GTM-20"] = "issues/issue-gtm20.json",
         ["/rest/api/3/issue/GCM-2"] = "issues/issue-gcm2.json",
         ["/rest/api/3/issue/GCM-6"] = "issues/issue-gcm6.json",
+        ["/rest/api/3/issue/GCM-8"] = "issues/issue-gcm8.json",
         ["/rest/api/3/issue/GCM-10"] = "issues/issue-gcm10.json",
         ["/rest/api/3/issue/GCM-24"] = "issues/issue-gcm24.json",
         ["/rest/api/3/issue/GTM-5/comment"] = "adf/comments-gtm5.json",
@@ -55,6 +58,21 @@ public sealed class FakeJiraRouter
         ["/rest/api/3/issue/GTM-5/remotelink"] = "links/remotelink-list-gtm5.json",
         ["/rest/api/3/issue/GCM-6/remotelink"] = "links/remotelink-list-gcm6.json",
         ["/rest/api/3/issue/GCM-2/remotelink"] = "links/remotelink-list-empty.json",
+        ["/rest/api/3/issue/GTM-9/remotelink"] = "links/remotelink-list-empty.json",
+        ["/rest/api/3/issue/GTM-11/remotelink"] = "links/remotelink-list-gtm5.json",
+        ["/rest/api/3/issue/GCM-8/remotelink"] = "links/remotelink-list-empty.json",
+        ["/rest/api/3/issue/GCM-10/remotelink"] = "links/remotelink-list-gcm6.json",
+        ["/rest/api/3/issue/GTM-9/comment"] = "comments/comments-empty.json",
+        ["/rest/api/3/issue/GTM-11/comment"] = "adf/comments-gtm5.json",
+        ["/rest/api/3/issue/GCM-8/comment"] = "comments/comments-empty.json",
+        ["/rest/api/3/issue/GCM-10/comment"] = "comments/comments-gcm6.json",
+    };
+
+    /// <summary>Children of an epic (<c>parent = KEY</c>) by the epic's key: one team-managed, one company-managed.</summary>
+    private static readonly Dictionary<string, string> _childrenSearches = new()
+    {
+        ["GTM-9"] = "hierarchy/search-epic-children-gtm.json",
+        ["GCM-8"] = "hierarchy/search-epic-children-gcm.json",
     };
 
     private static readonly string[] _searchPages =
@@ -180,6 +198,11 @@ public sealed class FakeJiraRouter
             return GeneratedPage(parameters, token);
         }
 
+        if (ChildrenFixtureOf(parameters.GetValueOrDefault(JqlName)) is { } children)
+        {
+            return new FakeReply(200, ReadFixture(children));
+        }
+
         var page = token is null ? 0 : FixturePageOf(token);
 
         return new FakeReply(200, ReadFixture(_searchPages[page]));
@@ -204,6 +227,19 @@ public sealed class FakeJiraRouter
 
         return new FakeReply(200, GeneratedIssues.Page(_options.GeneratedIssues, start, pageSize));
     }
+
+    /// <summary>The fixture for a <c>parent = KEY</c> search of a known epic; null for any other JQL.</summary>
+    private static string? ChildrenFixtureOf(string? jql)
+    {
+        var match = jql is null ? null : ParentJql().Match(jql);
+
+        return match is { Success: true } && _childrenSearches.TryGetValue(match.Groups[1].Value, out var fixture)
+            ? fixture
+            : null;
+    }
+
+    [GeneratedRegex(@"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*(?:order\s+by.*)?$", RegexOptions.IgnoreCase)]
+    private static partial Regex ParentJql();
 
     private int FixturePageOf(string token)
     {

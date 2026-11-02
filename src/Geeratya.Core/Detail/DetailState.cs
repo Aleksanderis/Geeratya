@@ -22,9 +22,15 @@ namespace Geeratya.Core.Detail;
 /// <param name="CommentTotal">The number of comments Jira reports, when it does.</param>
 /// <param name="CommentsLoad">Whether a comment page is loading or failed.</param>
 /// <param name="CommentsRequest">The id of the comment request in flight, 0 when none.</param>
-/// <param name="RemoteLinks">The remote links, null until they arrive (drawn by the relations issue, #88).</param>
+/// <param name="RemoteLinks">The remote links, null until they arrive.</param>
 /// <param name="LinksLoad">Whether the remote links are loading or failed.</param>
 /// <param name="LinksRequest">The id of the remote link request in flight, 0 when none.</param>
+/// <param name="Children">
+/// The children of the issue (<c>parent = KEY</c>), null until they arrive or when the issue type has no children.
+/// </param>
+/// <param name="ChildrenMore">Whether the children are cut at the first page.</param>
+/// <param name="ChildrenLoad">Whether the children are loading or failed.</param>
+/// <param name="ChildrenRequest">The id of the children request in flight, 0 when none.</param>
 /// <param name="LoadedAt">When the last reply arrived; the reference for relative times.</param>
 /// <param name="Scroll">The first visible document line.</param>
 /// <param name="Document">The laid-out lines for the last known width, null before the first layout.</param>
@@ -42,6 +48,10 @@ public sealed record DetailState(
     IReadOnlyList<RemoteLink>? RemoteLinks,
     LoadState LinksLoad,
     long LinksRequest,
+    IReadOnlyList<IssueSummary>? Children,
+    bool ChildrenMore,
+    LoadState ChildrenLoad,
+    long ChildrenRequest,
     DateTimeOffset? LoadedAt,
     int Scroll,
     DetailDocument? Document)
@@ -68,6 +78,10 @@ public sealed record DetailState(
             null,
             new Loading(LoadReason.Open),
             linksRequest,
+            null,
+            false,
+            LoadState.Idle,
+            0,
             null,
             0,
             null);
