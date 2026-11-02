@@ -115,19 +115,22 @@ public static class CommentEditorOverlay
 
     private static StyledLine Plain(string text, EditorRow row)
     {
-        return StyledLine.Of(text[row.Start..row.End]);
+        return StyledLine.Of(string.Concat(EditorLayout.RowCells(text, row).Select(cell => cell.Display)));
     }
 
+    // The cell under the cursor is drawn selected; a cursor inside a token (moved by rows) selects the whole token.
     private static StyledLine CursorRow(CommentEditor editor, string text, EditorRow row)
     {
-        var index = Math.Clamp(editor.Buffer.Cursor, row.Start, row.End);
-        var end = index < row.End ? EditorLayout.NextStart(text, index) : index;
-        var under = index < row.End ? text[index..end] : " ";
+        var cursor = editor.Buffer.Cursor;
+        var cells = EditorLayout.RowCells(text, row).ToList();
+        var under = cells.FindIndex(cell => cursor >= cell.Start && cursor < cell.End);
+        var before = under < 0 ? cells : [.. cells.Take(under)];
+        List<EditorCell> after = under < 0 ? [] : [.. cells.Skip(under + 1)];
         var spans = new List<StyledSpan>
         {
-            new(text[row.Start..index], TextRole.Body),
-            new(under, TextRole.Selected),
-            new(text[end..row.End], TextRole.Body),
+            new(string.Concat(before.Select(cell => cell.Display)), TextRole.Body),
+            new(under < 0 ? " " : cells[under].Display, TextRole.Selected),
+            new(string.Concat(after.Select(cell => cell.Display)), TextRole.Body),
         };
 
         if (text.Length == 0)

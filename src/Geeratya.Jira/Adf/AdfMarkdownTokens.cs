@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Geeratya.Jira.Adf;
 
 /// <summary>
@@ -28,6 +30,36 @@ public static class AdfMarkdownTokens
         var href = $"{site.GetLeftPart(UriPartial.Authority)}{BrowseSegment}{key}";
 
         return Written(new AdfText(key, [new AdfLinkMark(href)]));
+    }
+
+    /// <summary>
+    /// The short form the editor shows for <paramref name="span"/>: <c>@Name</c> for a mention, the key for an issue
+    /// link (escapes removed). The saved text is not changed.
+    /// </summary>
+    public static string Label(string text, AdfTokenSpan span)
+    {
+        var isMention = text[span.Start] == AdfMarkdownSyntax.MentionStart;
+        var from = span.Start + (isMention ? 2 : 1);
+        var close = Closing(text, from, AdfMarkdownSyntax.LinkTextEnd);
+
+        if (close < 0)
+        {
+            return text[span.Start..span.End];
+        }
+
+        var label = new StringBuilder(isMention ? "@" : string.Empty);
+
+        for (var index = from; index < close; index++)
+        {
+            if (text[index] == AdfMarkdownSyntax.Escape && index + 1 < close)
+            {
+                index++;
+            }
+
+            label.Append(text[index]);
+        }
+
+        return label.ToString();
     }
 
     /// <summary>The spans of every token in <paramref name="text"/>, in order.</summary>
