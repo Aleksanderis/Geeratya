@@ -16,7 +16,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Process:** Milestones after M2 follow what Gitunia had to redo, not its order: the write pipeline and a UI-free `Geeratya.App` project come first in M2 (running operations in state, rollback, mutual exclusion), the keymap gets command levels and a completeness test (M5), themes get a contrast test each (M6), and version stamping, idle CPU and macOS come before release week (M7). Why: Gitunia's M5 keymap redesign, M7 effects-as-data refactor and M6 theme and console fixes were rework.
 
-**UI:** The columns layout groups children under their parent card (any issue with a `parent`, so stories under an epic as well as sub-tasks) and names the parent in the top border of a child whose parent is in another column; no swimlanes needed. A parent and its children in one column share one outer frame (no indent), at the card pitch of five rows, so the viewport maths is unchanged. Overrides the earlier note that grouping belongs to swimlanes (#192). Why: owner feedback on PR #143, issue #85.
+**UI:** The columns layout groups children under their parent card (any issue with a `parent`, so stories under an epic as well as sub-tasks) and names the parent in the top border of a child whose parent is in another column; no swimlanes needed. A parent and its children in one column share one outer frame with the children indented by two cells, at the card pitch of five rows, so the viewport maths is unchanged. Overrides the earlier note that grouping belongs to swimlanes (#192). Why: owner feedback on PR #143, issue #85.
 
 ## 2026-11-01
 

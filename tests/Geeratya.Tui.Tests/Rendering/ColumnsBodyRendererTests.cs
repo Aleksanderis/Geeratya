@@ -405,6 +405,21 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAGroupWithTheLastChildSelected_WhenRendering_ThenItIsClosedByAHeavyBottomAndTheParentSideStaysLight()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
+        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("│ ┣━", body[6].PlainText);
+        Assert.Contains("│ ┃   Task A-2", body[7].PlainText);
+        Assert.Contains("│ ┗━", body[11].PlainText);
+        Assert.Contains("┛", body[11].PlainText);
+        Assert.Contains("│ │ Task A-1", body[3].PlainText);
+    }
+
+    [Fact]
     public void GivenAnUnselectedParent_WhenRendering_ThenItsSummaryIsStrongAndItsChildIsNot()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
