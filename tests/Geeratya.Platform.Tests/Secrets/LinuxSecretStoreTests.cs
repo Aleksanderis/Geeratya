@@ -71,7 +71,7 @@ public class LinuxSecretStoreTests
 
     [Theory]
     [InlineData(OperatingSystemKind.Linux, typeof(LinuxSecretStore))]
-    [InlineData(OperatingSystemKind.MacOs, typeof(UnsupportedSecretStore))]
+    [InlineData(OperatingSystemKind.MacOs, typeof(MacOsSecretStore))]
     public void GivenOperatingSystem_WhenCreatingStore_ThenPicksItsStore(OperatingSystemKind kind, Type expected)
     {
         var store = SecretStores.Create(kind, FakeProcessRunner.Missing());
