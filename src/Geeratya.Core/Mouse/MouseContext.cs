@@ -1,6 +1,7 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Mouse;
 
@@ -12,12 +13,22 @@ namespace Geeratya.Core.Mouse;
 /// <param name="DetailOpen">An issue is opened in the active tab.</param>
 public sealed record MouseContext(int Width, int Height, int HeaderRows, bool OverlayOpen, bool DetailOpen)
 {
-    public static MouseContext From(AppState state, int width, int height, int headerRows)
+    /// <summary>The cells of each tab in the tab bar row.</summary>
+    public IReadOnlyList<TabArea> TabAreas { get; init; } = [];
+
+    /// <summary>The banner row shows a line (a click there refreshes).</summary>
+    public bool BannerShown { get; init; }
+
+    public static MouseContext From(AppState state, int width, int height, int headerRows, DateTimeOffset now)
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
         var overlay = state.Mode != InputMode.Normal || state.Picker is not null || state.Jump is not null
             || state.Editor is not null || FormReducer.IsOpen(state);
 
-        return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 });
+        return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
+        {
+            TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width),
+            BannerShown = NetworkBanner.Line(state, now, width) is not null,
+        };
     }
 }

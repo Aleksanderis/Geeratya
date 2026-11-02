@@ -46,6 +46,7 @@ public sealed class AppReducer
         {
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
+            PointerPlaced placed => ViewReducer.PlaceCursor(state, placed),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,

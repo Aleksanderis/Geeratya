@@ -22,6 +22,7 @@ public static class DefaultMouseMap
         new(MouseTarget.Status, MouseGesture.Click, ActionIds.PaletteOpen, 1, 'A'),
         new(MouseTarget.Backdrop, MouseGesture.Click, ActionIds.Cancel, 1, 'A'),
         new(MouseTarget.Lists, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
+        new(MouseTarget.Detail, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
         new(MouseTarget.Detail, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
         new(MouseTarget.Tabs, MouseGesture.Click, ActionIds.TabNext, 1, 'B'),

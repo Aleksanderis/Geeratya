@@ -20,6 +20,23 @@ public static class ColumnsNavigation
         return Follow(tab, columns, cursor);
     }
 
+    /// <summary>
+    /// A click: places the cursor on the card or column header at a body cell drawn for <paramref name="width"/>.
+    /// A cell with neither is returned unchanged.
+    /// </summary>
+    public static TabState Place(TabState tab, int width, int column, int row)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+
+        if (BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row) is not { } hit)
+        {
+            return tab;
+        }
+
+        return Follow(tab, columns, BoardMotion.Place(columns, tab.Cursor, tab.SelectedKey, hit, CardsVisible(tab)));
+    }
+
     /// <summary>Moves to another column.</summary>
     public static TabState MoveColumn(TabState tab, BoardColumnMove move)
     {

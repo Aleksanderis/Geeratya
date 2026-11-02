@@ -17,7 +17,11 @@ While an overlay, prompt, picker, form, editor, help or confirm is open, only th
 
 ## Parts
 
-The table is delivered in three parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row by click, tab and banner clicks, context menu, the finer targets inside rows), **C** writes and drags (status badge, assignee, `+` buttons, comments, drag between columns, rank). A row moves to the wired set when its part lands.
+The table is delivered in three parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **C** writes and drags (status badge, assignee, `+` buttons, comments, drag between columns, rank). A row moves to the wired set when its part lands.
+
+## Placing the cursor
+
+A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column header (that column keeps its own card); in an opened issue the line (the breadcrumb row and rows past the end do nothing; the view does not scroll). Rows without an issue, the view title and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
 
 ## Table
 
@@ -32,11 +36,12 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed) |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
-| Lists | Right-click | `palette.open` | B | Opens the context menu of the row (a command palette limited to the actions of the row) |
-| Detail | Right-click | `palette.open` | B | Opens the context menu of the line under the pointer |
-| Tabs | Click | `tab.next` | B | Switches to the clicked tab (same as `Alt-N` with its number) |
-| NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t` |
-| Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r` (error and offline banners) |
+| Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there) |
+| Lists | Right-click | `palette.open` | B | Selects the row under the pointer and opens the command palette; part C limits it to the actions of the row (context menu) |
+| Detail | Right-click | `palette.open` | B | Puts the cursor on the line under the pointer and opens the command palette; part C limits it to the actions of the line |
+| Tabs | Click | `tab.next` | B | Switches to the clicked tab (the same switch as `Alt-N`, also for tabs past nine; the separators and the `‹n` and `+n ›` marks do nothing) |
+| NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t` (not drawn yet: no cell to click, see the follow-up on the tab bar) |
+| Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
 | Assignee | Click | `issue.assign` | C | Opens the people picker |
 | NewIssueButton | Click | `issue.create` | C | Starts the create flow |

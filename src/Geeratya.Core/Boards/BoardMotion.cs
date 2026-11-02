@@ -158,6 +158,32 @@ public static class BoardMotion
         return With(current, target, position, current.Wanted);
     }
 
+    /// <summary>
+    /// Puts the cursor on a column and card (a click). Without a card the column keeps the card it remembers; the
+    /// chosen card becomes the one a later column change aims at.
+    /// </summary>
+    public static BoardCursor Place(
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor? cursor,
+        string? selectedKey,
+        BoardHit hit,
+        int cardsVisible)
+    {
+        var current = Resolve(columns, cursor, selectedKey, cardsVisible);
+
+        if (columns.Count == 0)
+        {
+            return current;
+        }
+
+        var column = Math.Clamp(hit.Column, 0, columns.Count - 1);
+        var count = columns[column].Rows.Count;
+        var card = Math.Clamp(hit.Card ?? current.Cards[column], 0, Math.Max(0, count - 1));
+        var position = ListMotion.Reveal(new ListPosition(card, current.Scrolls[column]), count, cardsVisible);
+
+        return With(current, column, position, hit.Card is null ? current.Wanted : card);
+    }
+
     private static BoardCursor With(BoardCursor current, int column, ListPosition position, int wanted)
     {
         var cards = current.Cards.ToArray();

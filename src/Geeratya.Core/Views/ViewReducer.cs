@@ -309,6 +309,44 @@ public static class ViewReducer
         return Reduce(state, new SelectionMoved(tab.Id, position.Selected));
     }
 
+    /// <summary>
+    /// A click on the body of the active tab: selects the row or card under the pointer, or puts the cursor on the
+    /// line of the opened issue. Anything else (a blank row, the column titles) changes nothing.
+    /// </summary>
+    public static ReduceResult PlaceCursor(AppState state, PointerPlaced placed)
+    {
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is null)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        if (tab.Detail.Count > 0)
+        {
+            return new ReduceResult(DetailReducer.PlaceCursor(state, tab, placed.Row), _noEffects);
+        }
+
+        if (tab.Rows.Count == 0)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        if (tab.Definition.Layout == ViewLayout.Columns)
+        {
+            return MovedInColumns(state, ColumnsNavigation.Place(tab, placed.Width, placed.Column, placed.Row));
+        }
+
+        var index = tab.Scroll + placed.Row - ListLayout.HeaderRows;
+
+        if (placed.Row < ListLayout.HeaderRows || index >= tab.Rows.Count || index >= tab.Scroll + tab.VisibleRows)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        return Reduce(state, new SelectionMoved(tab.Id, index));
+    }
+
     /// <summary>Enter: opens the selected row as an issue, or loads more comments inside an issue.</summary>
     public static ReduceResult OpenSelected(AppState state)
     {

@@ -218,18 +218,22 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
 
         var size = _application!.Screen.Size;
-        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows);
+        var now = TimeProvider.System.GetUtcNow();
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now);
         var position = mouse.ScreenPosition;
-        var command = MouseResolver.Resolve(context, position.X, position.Y, gesture, TimeProvider.System.GetUtcNow());
+        var commands = MouseResolver.Resolve(context, position.X, position.Y, gesture, now);
 
-        if (command is null)
+        if (commands.Count == 0)
         {
             return;
         }
 
         mouse.Handled = true;
 
-        Dispatch(command);
+        foreach (var command in commands)
+        {
+            Dispatch(command);
+        }
     }
 
     /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>
