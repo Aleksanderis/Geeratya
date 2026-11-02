@@ -24,11 +24,11 @@ internal static class RegionProbe
     {
         var height = frame.Header.Count + frame.Body.Count + 1;
         var width = frame.Body[0].PlainText.Length;
-        var context = MouseContext.From(state, width, height, frame.Header.Count, frame.Regions);
+        var context = MouseContext.From(state, width, height, frame.Header.Count, _at, frame.Regions);
         var column = region.Left + region.Width / 2;
-        var command = MouseResolver.ResolveOverlay(context, column, region.Top, gesture, _at);
+        var commands = MouseResolver.Resolve(context, column, region.Top, gesture, _at);
 
-        return command is null ? null : new AppReducer(DefaultKeymap.Load()).Reduce(state, command);
+        return commands.Count == 0 ? null : new AppReducer(DefaultKeymap.Load()).Reduce(state, commands[0]);
     }
 
     internal sealed record RegionRow(int Index, string Text, OverlayRegion Region);

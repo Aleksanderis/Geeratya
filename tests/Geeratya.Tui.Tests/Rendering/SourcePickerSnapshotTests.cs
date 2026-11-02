@@ -68,10 +68,9 @@ public class SourcePickerSnapshotTests
     {
         var state = Sample(string.Empty);
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
-        var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, frame.Regions);
+        var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, default, frame.Regions);
 
-        Assert.Null(MouseResolver.ResolveOverlay(context, 0, 20, MouseGesture.Click, default));
-        Assert.Null(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
+        Assert.Empty(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
     }
 
     [Fact]

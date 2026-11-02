@@ -43,7 +43,7 @@ public class MouseHitTesterTests
             new(MouseTarget.PickerRow, 3, 1, width - 2, 1, 0),
             new(MouseTarget.PickerRow, 3, 1, width - 2, 1, 5),
         ];
-        var context = new MouseContext(width, height, 2, true, false, regions);
+        var context = new MouseContext(width, height, 2, true, false) { Regions = regions };
 
         Assert.Equal(new MouseHit(MouseTarget.PickerRow, 5, 1), MouseHitTester.Locate(context, 1, 3));
         Assert.Null(MouseHitTester.Locate(context, 0, 3));
@@ -55,7 +55,7 @@ public class MouseHitTesterTests
     public void GivenRegionsButNoOverlay_WhenLocating_ThenRegionsAreIgnored()
     {
         OverlayRegion[] regions = [new(MouseTarget.PickerRow, 3, 1, 10, 1, 0)];
-        var context = new MouseContext(80, 24, 2, false, false, regions);
+        var context = new MouseContext(80, 24, 2, false, false) { Regions = regions };
 
         Assert.Equal(MouseTarget.Lists, MouseHitTester.Locate(context, 1, 3)!.Target);
     }
