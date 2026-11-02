@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Jira.Paging;
@@ -28,6 +29,7 @@ public static class ViewReducer
             ViewportChanged viewport => ChangeViewport(state, viewport.Rows, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
+            ViewCacheLoaded cached => CacheLoaded(state, cached),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
             _ => state,
@@ -258,11 +260,48 @@ public static class ViewReducer
 
         var selected = appended ? updated : KeepSelection(updated);
 
+        if (!appended)
+        {
+            effects.Add(FirstPageWrite(tab.Definition, loaded));
+        }
+
         var enforced = EnforceTotal(Replace(state, selected), effects);
         var current = Find(enforced.Session.Tabs, selected.Id)!;
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
         return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
+    }
+
+    /// <summary>
+    /// Cached rows for a tab that is still loading: shown at once, marked stale, only while no rows are there (a
+    /// network reply that came first wins) and the request is still the tab's current one.
+    /// </summary>
+    private static AppState CacheLoaded(AppState state, ViewCacheLoaded cached)
+    {
+        var tab = Find(state.Session.Tabs, cached.Tab);
+
+        if (tab is null || tab.RequestId != cached.RequestId || tab.Load is not Loading || tab.Rows.Count > 0)
+        {
+            return state;
+        }
+
+        var rows = cached.View.Rows;
+
+        if (rows.Count == 0)
+        {
+            return state;
+        }
+
+        var shown = tab with { Rows = rows, Next = null, IsStale = true, LoadedAt = cached.View.SavedAt };
+
+        return Replace(state, KeepSelection(shown));
+    }
+
+    private static WriteCacheEffect FirstPageWrite(ViewDefinition definition, ViewPageLoaded loaded)
+    {
+        var rows = loaded.Page.Items.Take(ViewPaging.PageSize).ToArray();
+
+        return new WriteCacheEffect(CacheKey.For(definition), new CachedView(rows, null, loaded.At));
     }
 
     private static int KeyWidthOf(int known, IReadOnlyList<IssueSummary> items)

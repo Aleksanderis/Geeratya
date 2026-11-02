@@ -14,6 +14,8 @@ public sealed class ProfileEffectHandler
 
     private const string TokenVariableHint = "set GEERATYA_TOKEN to supply the token";
 
+    private const string CacheLeftMessage = "Its cache folder could not be deleted completely.";
+
     private readonly ProfileServices _services;
 
     public ProfileEffectHandler(ProfileServices services)
@@ -74,7 +76,10 @@ public sealed class ProfileEffectHandler
 
         _services.Store.Save(remove.Catalog);
 
-        return new ProfilesChanged(remove.Catalog, RemovedMessage(remove));
+        var cacheDeleted = _services.Caches.Delete(remove.Profile);
+        var message = RemovedMessage(remove);
+
+        return new ProfilesChanged(remove.Catalog, cacheDeleted ? message : $"{message} {CacheLeftMessage}");
     }
 
     private static string RemovedMessage(RemoveProfileEffect remove)

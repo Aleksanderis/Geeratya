@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -28,10 +29,22 @@ public sealed class ViewLoadHandler
     }
 
     /// <summary>
-    /// Starts the load and returns at once with the task that ends when it is posted (or dropped). Without a
-    /// connection the tab is told so immediately instead of loading forever.
+    /// Starts the load and returns at once with the task that ends when it is posted (or dropped). An opening load
+    /// first answers from <paramref name="cache"/> (off the UI thread, no connection needed) and only then asks
+    /// Jira, so the cached rows are always posted before any reply or failure. Without a connection the tab is told
+    /// so instead of loading forever.
     /// </summary>
-    public Task StartAsync(LoadViewPageEffect effect)
+    public async Task StartAsync(LoadViewPageEffect effect, SiteCache? cache = null)
+    {
+        if (cache is not null && effect.Reason == LoadReason.Open && effect.Cursor is null)
+        {
+            await _runner.StartLocal(effect.Tab.Value, token => ReadCache(effect, cache, token));
+        }
+
+        await StartNetwork(effect);
+    }
+
+    private Task StartNetwork(LoadViewPageEffect effect)
     {
         var jql = ViewQuery.JqlFor(effect.Definition);
 
@@ -47,6 +60,18 @@ public sealed class ViewLoadHandler
             effect.Tab.Value,
             (services, token) => SearchAsync(services, effect, jql, token),
             () => Failure(effect, NoConnectionMessage));
+    }
+
+    private static ViewCacheLoaded? ReadCache(LoadViewPageEffect effect, SiteCache cache, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        var view = cache.Get(CacheKey.For(effect.Definition));
+
+        return view is null ? null : new ViewCacheLoaded(effect.Tab, effect.RequestId, view);
     }
 
     private async Task<Command?> SearchAsync(
