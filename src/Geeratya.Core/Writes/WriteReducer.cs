@@ -112,7 +112,7 @@ public static class WriteReducer
         var id = state.Sequence + 1;
         var changes = Plan(session.Tabs, write);
         var operation = new Operation(id, write, requested.Tab, OperationPhase.Sending, changes, requested.At);
-        var patched = FollowCard(Patch(state, changes), requested);
+        var patched = FollowCard(Patch(state, changes), write, requested.Tab);
 
         var next = patched with
         {
@@ -140,18 +140,21 @@ public static class WriteReducer
     }
 
     /// <summary>
-    /// A card that changes status leaves its column: the cursor of the tab that started the move is dropped, so the
-    /// selection finds the card by key in its new column (and back again if the move is rolled back).
+    /// A card that changes status leaves its column: the cursor of the tab that started the move follows the card
+    /// into its new column (and back again if the move is rolled back) and keeps the scroll of every column. Only
+    /// while the card is still the tab's selection.
     /// </summary>
-    private static AppState FollowCard(AppState state, WriteRequested requested)
+    private static AppState FollowCard(AppState state, WriteRequest request, TabId tabId)
     {
-        if (requested.Request.Kind != OperationKind.Transition ||
-            ViewReducer.Find(state.Session.Tabs, requested.Tab) is not { Cursor: not null } tab)
+        if (request.Kind != OperationKind.Transition ||
+            request.Keys.Count == 0 ||
+            ViewReducer.Find(state.Session.Tabs, tabId) is not { Cursor: not null } tab ||
+            !string.Equals(tab.SelectedKey, request.Keys[0], StringComparison.OrdinalIgnoreCase))
         {
             return state;
         }
 
-        return ViewReducer.Replace(state, tab with { Cursor = null });
+        return ViewReducer.Replace(state, ColumnsNavigation.FollowCard(tab, request.Keys[0]));
     }
 
     private static string? BusyText(IReadOnlyList<Operation> operations, WriteRequest write)
@@ -405,6 +408,8 @@ public static class WriteReducer
             reverted = MapRows(reverted, [change.Key], change.Revert);
             reverted = Reorder(reverted, change, true);
         }
+
+        reverted = FollowCard(reverted, operation.Request, operation.Origin);
 
         var queued = reload ? QueueRankReload(reverted, operation) : reverted;
         var finished = Finish(queued, operation, false, effects);

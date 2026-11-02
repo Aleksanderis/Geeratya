@@ -264,6 +264,20 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenABoardCursor_WhenACardMoves_ThenTheCursorIsKeptAndFollowsTheCardToItsColumn()
+    {
+        var tabbed = Keys(Tabbed(ViewLayout.Columns), "j").State;
+
+        var state = LoadedPick(tabbed, "Alt-l", Transition("21", _progress));
+
+        var tab = state.State.Session.Tabs[0];
+        Assert.NotNull(tab.Cursor);
+        Assert.Equal(1, tab.Cursor.Column);
+        Assert.Equal(0, tab.Cursor.Card);
+        Assert.Equal("A-1", tab.SelectedKey);
+    }
+
+    [Fact]
     public void GivenTwoTransitionsIntoTheColumn_WhenTheMetadataLoads_ThenThePickerShowsOnlyThose()
     {
         var other = new IssueStatus("2", "In Progress", "indeterminate");

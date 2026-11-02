@@ -59,6 +59,31 @@ public static class BoardMotion
         return new BoardCursor(column, cards, scrolls, Math.Max(0, wanted));
     }
 
+    /// <summary>
+    /// Selects the card with <paramref name="key"/> wherever it is now (a card whose status changed sits in another
+    /// column) and keeps the scroll offsets of every column. A key that is not on the board leaves the cursor alone.
+    /// </summary>
+    public static BoardCursor Follow(
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
+        string key,
+        int cardsVisible)
+    {
+        var current = Resolve(columns, cursor, null, cardsVisible);
+
+        if (FindKey(columns, key) is not { } found)
+        {
+            return current;
+        }
+
+        var position = ListMotion.Reveal(
+            new ListPosition(found.Card, current.Scrolls[found.Column]),
+            columns[found.Column].Rows.Count,
+            cardsVisible);
+
+        return With(current, found.Column, position, found.Card);
+    }
+
     /// <summary>The issue under the cursor; null when the selected column is empty.</summary>
     public static IssueSummary? SelectedIssue(IReadOnlyList<BoardColumnGroup> columns, BoardCursor cursor)
     {
