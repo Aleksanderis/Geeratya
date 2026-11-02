@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -74,7 +75,11 @@ public sealed class FakeJiraRouter
         }
 
         if (method == Get && path.StartsWith(FilterPrefix, StringComparison.Ordinal)
-            && long.TryParse(path.AsSpan(FilterPrefix.Length), out _))
+            && long.TryParse(
+                path.AsSpan(FilterPrefix.Length),
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out _))
         {
             return new FakeReply(404, ReadFixture(MissingFilterFixture));
         }
