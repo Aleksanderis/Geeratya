@@ -284,6 +284,40 @@ public class MousePlacementTests
         var keyed = _reducer.Reduce(_reducer.Reduce(Start(), new KeyPressed("Space")).State, new KeyPressed("A")).State;
 
         Assert.Null(keyed.ContextMenu);
+        Assert.Equal("No tab open.", keyed.Message);
+    }
+
+    [Fact]
+    public void GivenTab_WhenPressingSpaceShiftA_ThenTheViewMenuOpens()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+
+        var keyed = _reducer.Reduce(_reducer.Reduce(state, new KeyPressed("Space")).State, new KeyPressed("A")).State;
+
+        var actions = keyed.ContextMenu!.Items.Select(item => item.Action).ToArray();
+
+        Assert.Contains(ActionIds.TabClose, actions);
+        Assert.Contains(ActionIds.ViewLayoutToggle, actions);
+        Assert.Equal(InputMode.Insert, keyed.Mode);
+    }
+
+    [Theory]
+    [InlineData(ActionIds.IssueJump)]
+    [InlineData(ActionIds.HelpToggle)]
+    public void GivenViewMenu_WhenClickingAnItem_ThenItRunsLikeItsKey(string action)
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var opened = _reducer.Reduce(state, new ActionRequested(ActionIds.ViewMenuOpen)).State;
+        var index = opened.ContextMenu!.Items.ToList().FindIndex(item => item.Action == action);
+        var regions = new[] { new OverlayRegion(MouseTarget.ContextMenu, 6, 10, 30, 1, index) };
+        var context = MouseContext.From(opened, 80, 24, HeaderRows, _now, regions);
+
+        var commands = MouseResolver.Resolve(context, 12, 6, MouseGesture.Click, _now);
+        var result = _reducer.Reduce(opened, Assert.Single(commands)).State;
+
+        Assert.Null(result.ContextMenu);
+        Assert.Equal(action == ActionIds.HelpToggle ? InputMode.Help : InputMode.Insert, result.Mode);
+        Assert.Equal(action == ActionIds.IssueJump, result.Jump is not null);
     }
 
     [Fact]
