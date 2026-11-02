@@ -42,6 +42,22 @@ public sealed class FakeJiraServerTests : IDisposable
         Assert.Contains(expected, body, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(0, "\"startAt\": 0")]
+    [InlineData(10, "\"startAt\": 10")]
+    [InlineData(20, "\"startAt\": 20")]
+    [InlineData(500, "\"startAt\": 20")]
+    public async Task GivenCompanyManagedBoard_WhenPagedByStartAt_ThenTheMatchingRecordedPageIsServed(
+        int startAt,
+        string expected)
+    {
+        var baseUrl = StartServer(0, 0, 0);
+
+        var body = await _client.GetStringAsync($"{baseUrl}/rest/agile/1.0/board/4/issue?startAt={startAt}");
+
+        Assert.Contains(expected, body, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task GivenUnknownFilterId_WhenRequested_ThenRecordedNotAvailableReplyWith404()
     {
