@@ -25,6 +25,12 @@ public sealed record ViewportChanged(int Rows) : ViewCommand;
 /// <summary>Load the next page of a tab.</summary>
 public sealed record NextPageRequested(TabId Tab) : ViewCommand;
 
+/// <summary>
+/// The selection of a tab moved to <paramref name="Index"/> (clamped to the loaded rows); within one screen of the
+/// end it asks for the next page. The list motion (#79) sends it.
+/// </summary>
+public sealed record SelectionMoved(TabId Tab, int Index) : ViewCommand;
+
 /// <summary>A page arrived; applied only while <paramref name="RequestId"/> is the tab's current request.</summary>
 public sealed record ViewPageLoaded(TabId Tab, long RequestId, IssuePage Page, DateTimeOffset At) : ViewCommand;
 

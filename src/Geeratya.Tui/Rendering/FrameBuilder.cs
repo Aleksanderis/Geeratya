@@ -10,7 +10,12 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class FrameBuilder
 {
-    private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers = [new HelpBodyRenderer(), new StartBodyRenderer()];
+    private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers =
+    [
+        new HelpBodyRenderer(),
+        new ViewBodyRenderer(),
+        new StartBodyRenderer(),
+    ];
 
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.

@@ -15,7 +15,6 @@ namespace Geeratya.Core.Views;
 /// <param name="Background">Run in the background lane (refreshes) rather than the user lane.</param>
 public sealed record LoadViewPageEffect(
     TabId Tab,
-    // ReSharper disable once NotAccessedPositionalProperty.Global (read by the view load handler, #77)
     ViewDefinition Definition,
     PageCursor? Cursor,
     long RequestId,
