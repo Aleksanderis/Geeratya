@@ -313,6 +313,27 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Empty(Tab(back).Detail);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound, true)]
+    [InlineData(HttpStatusCode.Forbidden, true)]
+    [InlineData(HttpStatusCode.InternalServerError, false)]
+    public async Task GivenCachedIssueAndIssuePoppedBeforeReply_WhenGoneReplyArrives_ThenTheCacheEntryIsDropped(
+        HttpStatusCode status,
+        bool dropped)
+    {
+        _http.Fixture($"{Site}/GTM-5", "errors/issue-404.json", status);
+        await ConnectAsync();
+        _cache = new SiteCache(CacheFolder());
+        _cache.PutIssue(new CachedIssue(Sample(), DateTimeOffset.UnixEpoch));
+        var opened = _reducer.Reduce(ListState("GTM-5"), new KeyPressed("Enter"));
+        var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
+
+        // The reducer never sees the failure with a stacked issue to name the key: only the handler can drop it.
+        await _handler!.StartAsync(effect, _cache);
+
+        Assert.Equal(dropped, _cache.GetIssue("GTM-5") is null);
+    }
+
     [Fact]
     public async Task GivenLowerCaseKeyTyped_WhenJumping_ThenTheIssueOpensOnTheTabAndIsRemembered()
     {
