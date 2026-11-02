@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Measure cold start to first frame and key-to-frame of the real binary in tmux.
-# Usage: scripts/measure.sh <binary> <fake url> [runs]
+# Usage: [SCENARIO=list|views] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  base URL printed by tools/FakeJira; written as the site of one active fake profile into the
 #               private configuration directory (token: GEERATYA_TOKEN=fake), so the binary talks to the fake
@@ -88,6 +88,7 @@ start_session() {
   wait_frame ""
 }
 
+case ${SCENARIO:-} in '' | list | views) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list or views)" >&2; exit 2 ;; esac
 base_runs=$runs
 if [ -n "${SCENARIO:-}" ]; then base_runs=0; fi
 # The floor: a shell that prints one character, so the numbers can be read net of tmux and polling cost.
@@ -204,7 +205,6 @@ if [ "${SCENARIO:-}" = list ]; then
     export XDG_CACHE_HOME=$work/cache-l$run XDG_STATE_HOME=$work/state-l$run
     mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
     start_session "$binary" > /dev/null
-    before=$(frame)
     tmux -L "$socket" send-keys -t m ":jql $jql" Enter
     open+=("$(wait_match 'Generated issue 1  ')")
     for ((press = 1; press <= keys; press++)); do
@@ -223,6 +223,13 @@ if [ "${SCENARIO:-}" = list ]; then
       done
     done
     wait_match "· $rows issues" > /dev/null
+    last=$(frame)
+    for ((settle = 0; settle < 20; settle++)); do # queued G presses may still redraw; wait for a stable frame
+      sleep 0.1
+      now=$(frame)
+      if [ "$now" = "$last" ]; then break; fi
+      last=$now
+    done
     rss+=("$(pane_rss_mb)")
     for ((press = 1; press <= keys; press++)); do
       before=$(frame)

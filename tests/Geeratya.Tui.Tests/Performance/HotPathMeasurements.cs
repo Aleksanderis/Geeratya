@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace Geeratya.Tui.Tests.Performance;
 
 /// <summary>
-/// Opt-in timing of the in-process hot paths of docs/performance.md. Does nothing unless GEERATYA_BENCH=1, so
+/// Opt-in timing of the in-process hot paths of docs/performance.md. Skipped unless GEERATYA_BENCH=1, so
 /// <c>dotnet test</c> stays fast and deterministic. Run: <c>GEERATYA_BENCH=1 dotnet test -c Release
 /// tests/Geeratya.Tui.Tests --filter HotPathMeasurements --logger "console;verbosity=detailed"</c>. JIT numbers,
 /// not Native AOT; with-parent rows sit in the same column as their parent. They exclude the terminal draw and tmux.
@@ -45,46 +45,33 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
 
     private readonly AppReducer _reducer = new(_keymap);
 
-    [Fact]
+    [MeasurementFact]
     public void ListOf10kRows_NavKeyThroughReducerAndFrame()
     {
-        if (!Enabled)
-        {
-            return;
-        }
-
         var state = Active(Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false));
 
         Report("list 10k rows, nav key + frame", TimeKeys(state, ["Ctrl-d", "j"]));
     }
 
-    [Theory]
+    [MeasurementTheory]
     [InlineData(false, "board 10k cards, nav key + frame")]
     [InlineData(true, "board 10k cards with sub-tasks under parents, nav key + frame")]
     public void BoardOf10kCards_NavKeyThroughReducerAndFrame(bool withParents, string label)
     {
-        if (!Enabled)
-        {
-            return;
-        }
-
         var state = Active(Tab(ViewLayout.Columns, ViewSourceKind.Board, withParents));
 
         Report(label, TimeKeys(state, ["j", "l", "Ctrl-d", "h", "Ctrl-u"]));
     }
 
-    [Theory]
+    [MeasurementTheory]
     [InlineData(false)]
     [InlineData(true)]
     public void BoardOf10kCards_RegroupingAloneCostsPerKey(bool withParents)
     {
-        if (!Enabled)
-        {
-            return;
-        }
-
         var rows = Issues(withParents);
         var samples = new List<double>();
+
+        BoardColumns.Visible(_configuration, rows);
 
         for (var run = 0; run < 100; run++)
         {
@@ -98,7 +85,7 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         Report($"BoardColumns.Visible alone, 10k cards{(withParents ? " with parents" : string.Empty)}", samples);
     }
 
-    private static bool Enabled => Environment.GetEnvironmentVariable("GEERATYA_BENCH") == "1";
+    internal static bool Enabled => Environment.GetEnvironmentVariable("GEERATYA_BENCH") == "1";
 
     private static List<IssueSummary> Issues(bool withParents)
     {

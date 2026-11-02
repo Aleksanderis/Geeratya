@@ -159,7 +159,7 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 - A failed refresh never destroys rows: they stay, `IsStale` is set and the error is shown.
 - A failed next page is not a refresh failure: it does not count towards the backoff, blocks automatic refresh of that tab (which would replace the rows under the reader) and is retried by the refresh key. Pages that shift between requests can repeat an issue; an appended page drops keys that are already loaded.
 
-**Bounds.** Every cache and list has a size bound and an owner that drops it (`docs/performance.md`): 10 000 rows per tab, 50 000 across tabs, 32 cached views, 200 cached details, 20 MB of disk per profile. #91 measures them.
+**Bounds.** Every cache and list has a size bound and an owner that drops it (`docs/performance.md`): 10 000 rows per tab, 50 000 across tabs, 32 cached views, 200 cached details, 20 MB of disk per profile. #91 measured them (`docs/performance.md`, "M1 measurements").
 
 ## Cross-platform
 
