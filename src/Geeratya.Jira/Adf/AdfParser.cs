@@ -16,13 +16,6 @@ public static class AdfParser
     /// <summary>Deepest JSON nesting the reader accepts (a 1000-level document must not crash).</summary>
     private const int MaxJsonDepth = 10_000;
 
-    private const string TypeProperty = "type";
-    private const string ContentProperty = "content";
-    private const string AttrsProperty = "attrs";
-    private const string MarksProperty = "marks";
-    private const string TextProperty = "text";
-    private const string VersionProperty = "version";
-    private const string TaskDoneState = "DONE";
     private const string DefaultPanelType = "info";
     private const int DefaultHeadingLevel = 1;
     private const int MaxHeadingLevel = 6;
@@ -86,14 +79,14 @@ public static class AdfParser
         var state = new ParseState();
         var version = DefaultVersion;
 
-        if (element.TryGetProperty(VersionProperty, out var versionElement)
+        if (element.TryGetProperty(AdfPropertyNames.Version, out var versionElement)
             && versionElement.ValueKind == JsonValueKind.Number
             && versionElement.TryGetInt32(out var parsedVersion))
         {
             version = parsedVersion;
         }
 
-        if (GetString(element, TypeProperty) == AdfNodeTypes.Doc)
+        if (GetString(element, AdfPropertyNames.Type) == AdfNodeTypes.Doc)
         {
             var content = ParseChildren(element, 1, state);
 
@@ -101,7 +94,7 @@ public static class AdfParser
         }
 
         // Not wrapped in a doc: tolerate a bare node, but an object without a type is not ADF.
-        if (!element.TryGetProperty(TypeProperty, out _))
+        if (!element.TryGetProperty(AdfPropertyNames.Type, out _))
         {
             return AdfDocument.Empty;
         }
@@ -121,7 +114,8 @@ public static class AdfParser
     {
         var children = new List<AdfNode>();
 
-        if (!parent.TryGetProperty(ContentProperty, out var content) || content.ValueKind != JsonValueKind.Array)
+        if (!parent.TryGetProperty(AdfPropertyNames.Content, out var content)
+            || content.ValueKind != JsonValueKind.Array)
         {
             return children;
         }
@@ -156,13 +150,13 @@ public static class AdfParser
             return null;
         }
 
-        var type = GetString(element, TypeProperty) ?? string.Empty;
+        var type = GetString(element, AdfPropertyNames.Type) ?? string.Empty;
         var attributes = GetAttributes(element);
 
         switch (type)
         {
             case AdfNodeTypes.Text:
-                return new AdfText(GetString(element, TextProperty) ?? string.Empty, ParseMarks(element));
+                return new AdfText(GetString(element, AdfPropertyNames.Text) ?? string.Empty, ParseMarks(element));
             case AdfNodeTypes.HardBreak:
                 return new AdfHardBreak();
             case AdfNodeTypes.Rule:
@@ -172,19 +166,21 @@ public static class AdfParser
             case AdfNodeTypes.Emoji:
                 return new AdfEmoji(
                     GetString(attributes, AdfAttributeNames.ShortName),
-                    GetString(attributes, TextProperty));
+                    GetString(attributes, AdfPropertyNames.Text));
             case AdfNodeTypes.Date:
                 return new AdfDate(GetLong(attributes, AdfAttributeNames.Timestamp));
             case AdfNodeTypes.Status:
                 return new AdfStatus(
-                    GetString(attributes, TextProperty) ?? string.Empty,
+                    GetString(attributes, AdfPropertyNames.Text) ?? string.Empty,
                     GetString(attributes, AdfAttributeNames.Color));
             case AdfNodeTypes.Mention:
-                return new AdfMention(GetString(attributes, AdfAttributeNames.Id), GetString(attributes, TextProperty));
+                return new AdfMention(
+                    GetString(attributes, AdfAttributeNames.Id),
+                    GetString(attributes, AdfPropertyNames.Text));
             case AdfNodeTypes.Media:
                 return new AdfMedia(
                     GetString(attributes, AdfAttributeNames.Id),
-                    GetString(attributes, TypeProperty),
+                    GetString(attributes, AdfPropertyNames.Type),
                     GetString(attributes, AdfAttributeNames.Collection),
                     GetString(attributes, AdfAttributeNames.Alt),
                     GetInt(attributes, AdfAttributeNames.Width),
@@ -192,7 +188,7 @@ public static class AdfParser
             case AdfNodeTypes.MediaInline:
                 return new AdfMediaInline(
                     GetString(attributes, AdfAttributeNames.Id),
-                    GetString(attributes, TypeProperty),
+                    GetString(attributes, AdfPropertyNames.Type),
                     GetString(attributes, AdfAttributeNames.Collection),
                     GetString(attributes, AdfAttributeNames.Alt),
                     GetInt(attributes, AdfAttributeNames.Width),
@@ -242,7 +238,7 @@ public static class AdfParser
             AdfNodeTypes.MediaGroup => new AdfMediaGroup(children),
             _ => new AdfUnknownNode(
                 type,
-                GetString(element, TextProperty) ?? GetString(attributes, TextProperty),
+                GetString(element, AdfPropertyNames.Text) ?? GetString(attributes, AdfPropertyNames.Text),
                 children),
         };
     }
@@ -251,7 +247,8 @@ public static class AdfParser
     {
         var marks = new List<AdfMark>();
 
-        if (!node.TryGetProperty(MarksProperty, out var markArray) || markArray.ValueKind != JsonValueKind.Array)
+        if (!node.TryGetProperty(AdfPropertyNames.Marks, out var markArray)
+            || markArray.ValueKind != JsonValueKind.Array)
         {
             return marks;
         }
@@ -263,7 +260,7 @@ public static class AdfParser
                 continue;
             }
 
-            var type = GetString(markElement, TypeProperty) ?? string.Empty;
+            var type = GetString(markElement, AdfPropertyNames.Type) ?? string.Empty;
             var attributes = GetAttributes(markElement);
 
             marks.Add(
@@ -276,7 +273,7 @@ public static class AdfParser
                     AdfMarkTypes.Underline => new AdfUnderlineMark(),
                     AdfMarkTypes.Link => new AdfLinkMark(GetString(attributes, AdfAttributeNames.Href)),
                     AdfMarkTypes.TextColor => new AdfTextColorMark(GetString(attributes, AdfAttributeNames.Color)),
-                    AdfMarkTypes.SubSup => new AdfSubSupMark(GetString(attributes, TypeProperty)),
+                    AdfMarkTypes.SubSup => new AdfSubSupMark(GetString(attributes, AdfPropertyNames.Type)),
                     _ => new AdfUnknownMark(type),
                 });
         }
@@ -286,7 +283,8 @@ public static class AdfParser
 
     private static JsonElement GetAttributes(JsonElement element)
     {
-        if (element.TryGetProperty(AttrsProperty, out var attributes) && attributes.ValueKind == JsonValueKind.Object)
+        if (element.TryGetProperty(AdfPropertyNames.Attributes, out var attributes)
+            && attributes.ValueKind == JsonValueKind.Object)
         {
             return attributes;
         }
@@ -399,7 +397,9 @@ public static class AdfParser
 
     private static AdfTaskState ParseTaskState(JsonElement attributes)
     {
-        return GetString(attributes, AdfAttributeNames.State) == TaskDoneState ? AdfTaskState.Done : AdfTaskState.Todo;
+        var state = GetString(attributes, AdfAttributeNames.State);
+
+        return state == AdfTaskStateNames.Done ? AdfTaskState.Done : AdfTaskState.Todo;
     }
 
     private sealed class ParseState
