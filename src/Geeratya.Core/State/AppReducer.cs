@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
@@ -40,7 +41,7 @@ public sealed class AppReducer
     {
         return command switch
         {
-            KeyPressed pressed => ReduceKey(state, pressed.Key),
+            KeyPressed pressed => ReduceKey(state, pressed.Key, pressed.At),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -49,6 +50,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
+            FormCommand form => FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
@@ -101,8 +103,13 @@ public sealed class AppReducer
         };
     }
 
-    private ReduceResult ReduceKey(AppState state, string key)
+    private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)
     {
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Key(state, key, at, _keymap);
+        }
+
         var resolution = _keymap.Resolve(state.Mode, state.PendingKeys, key);
 
         if (resolution.Kind == KeyResolutionKind.Prefix)
@@ -150,6 +157,11 @@ public sealed class AppReducer
         if (text.Length == 0)
         {
             return state;
+        }
+
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Paste(state, text);
         }
 
         if (state.Mode == InputMode.Insert)
@@ -321,6 +333,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),

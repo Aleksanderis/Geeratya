@@ -30,6 +30,10 @@ public sealed partial class FakeJiraRouter
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
     private const string AssigneePart = "assignee";
+    private const string EditMetaPart = "editmeta";
+    private const string TeamManagedPrefix = "GTM-";
+    private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
+    private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
     private const int DefaultPageSize = 50;
     private static readonly byte[] _emptyPage = Encoding.UTF8.GetBytes("{\"isLast\":true,\"issues\":[]}");
     private const int MaxPageSize = 5000;
@@ -252,6 +256,14 @@ public sealed partial class FakeJiraRouter
         if (parts.Length != 2)
         {
             return null;
+        }
+
+        if (parts[1] == EditMetaPart)
+        {
+            var isTeamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal);
+            var fixtureName = isTeamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
+
+            return new FakeReply(200, ReadFixture(fixtureName));
         }
 
         if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || _writes.Knows(key)))

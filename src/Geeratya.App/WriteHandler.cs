@@ -208,7 +208,34 @@ public sealed class WriteHandler
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
         }
 
+        if (request is EditRequest edit)
+        {
+            return await EditAsync(services, edit, token);
+        }
+
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> EditAsync(
+        JiraServices services,
+        EditRequest edit,
+        CancellationToken token)
+    {
+        IReadOnlyList<FieldUpdate> updates;
+
+        try
+        {
+            updates = FieldUpdates.For(edit.Changes);
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            // Nothing was sent, so this is a definite failure and not a lost reply.
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(error);
+        }
+
+        return await services.Edits.UpdateAsync(edit.Key, updates, token);
     }
 
     /// <summary>
