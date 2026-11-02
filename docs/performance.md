@@ -57,6 +57,15 @@ Nothing is read from the cache before the first frame: the cache is opened lazil
 
 Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the terminal draw and tmux. The renderer produces only the viewport rows (a test builds a frame over 10 000 rows and checks it holds the window and nothing else); the work per key is the reducer's list copy of one tab and the visible rows. Real-binary check: `fakejira --issues 10000` with the Native AOT binary under tmux, `:jql`, then `j`, `G` and `Ctrl-d` moved the selection, the next page loaded when `G` came within one screen of the end, and `gg` returned to the top. Not measured: Native AOT in-process figures and RSS of a fully loaded 10k tab (#91).
 
+### Columns layout (#85)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| Nav key (`j`, `l`, `Ctrl-d`, `h`, `Ctrl-u`) through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 | .NET 10 Release JIT, in process | board of 200 cards, 2500 timed keys | 0.31 ms | 0.56 ms |
+| same | same | board of 2000 cards, 2500 timed keys | 0.29 ms | 0.59 ms |
+
+Method: temporary xUnit test (not committed), 500 warm-up keys, four columns, assignee on every card; it excludes the terminal draw and tmux. The renderer draws only the cards in the viewport. Each key and each frame still regroup all rows into the columns (`BoardColumns.Visible`, one dictionary lookup per row) and a key looks the selected issue up by key once (linear); that is below the noise at these sizes and the board is capped at 500 cards in the UI, so the groups are not cached. Not measured: Native AOT in-process figures.
+
 ### JSON mapping of a search result (#66)
 
 | Path | Binary | Dataset | Median | p95 |

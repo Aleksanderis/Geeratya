@@ -6,7 +6,9 @@ public static class BoardWindows
     /// <summary>The narrowest a column gets; fewer columns are drawn rather than narrower ones.</summary>
     public const int MinimumColumnWidth = 20;
 
-    /// <summary>Below this terminal width one column is drawn at a time, with its neighbours named in the header.</summary>
+    /// <summary>
+    /// Below this terminal width one column is drawn at a time, with its neighbours named in the header.
+    /// </summary>
     public const int SingleColumnBelow = 60;
 
     /// <summary>

@@ -157,7 +157,9 @@ public sealed class FakeJiraRouter
         return new FakeReply(200, ReadFixture(_searchPages[page]));
     }
 
-    /// <summary>The board's issues by offset: the recorded page that starts at <c>startAt</c>, the last one past the end.</summary>
+    /// <summary>
+    /// The board's issues by offset: the recorded page that starts at <c>startAt</c>, the last one past the end.
+    /// </summary>
     private FakeReply BoardIssues(IReadOnlyDictionary<string, string> query)
     {
         var start = 0;

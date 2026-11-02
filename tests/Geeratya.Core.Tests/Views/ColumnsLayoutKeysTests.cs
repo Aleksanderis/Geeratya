@@ -105,6 +105,19 @@ public class ColumnsLayoutKeysTests
     }
 
     [Fact]
+    public void GivenCardAndEmptyColumn_WhenPressingSpaceO_ThenTheCardOpensAndTheEmptyColumnOpensNothing()
+    {
+        var state = Loaded(Issues("1:A-1", "1:A-2"));
+        var emptyColumn = Press(Press(state, "l"), "l");
+
+        var onCard = Press(Press(state, "Space"), "o");
+        var onEmpty = Press(Press(emptyColumn, "Space"), "o");
+
+        Assert.Equal("Opening in the browser...", onCard.Message);
+        Assert.StartsWith("No issue selected", onEmpty.Message);
+    }
+
+    [Fact]
     public void GivenListLayout_WhenPressingColumnKeys_ThenNothingHappens()
     {
         var state = Press(Loaded(Issues("1:A-1", "2:A-2")), "Space");

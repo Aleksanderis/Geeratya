@@ -22,7 +22,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const string MoreMark = "+";
     private const string SelectedMark = ">";
     private const string Blank = " ";
-    private const int InitialsMinimumWidth = 8;
     private const int FirstSummaryLine = 1;
     private const int SeparatorLine = 3;
 
@@ -258,7 +257,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     {
         var initials = assignee is null ? string.Empty : AssigneeInitials.Of(assignee.DisplayName);
 
-        if (initials.Length == 0 || width < InitialsMinimumWidth)
+        if (initials.Length == 0 || width < TextWidth.Of(key) + TextWidth.Of(initials) + 1)
         {
             return TextWidth.Fit(key, width);
         }

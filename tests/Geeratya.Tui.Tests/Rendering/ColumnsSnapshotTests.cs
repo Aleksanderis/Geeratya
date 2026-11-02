@@ -24,13 +24,17 @@ public class ColumnsSnapshotTests
     [InlineData("gtm", 120, 36)]
     [InlineData("gtm", 80, 24)]
     [InlineData("gtm", 40, 10)]
-    public async Task GivenALoadedBoard_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(string kind, int width, int height)
+    public async Task GivenALoadedBoard_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(
+        string kind,
+        int width,
+        int height)
     {
         var state = await OpenAsync(kind, height);
 
         var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
         var actual = string.Join('\n', lines) + "\n";
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", $"columns-{kind}-{width}x{height}.txt"));
+        var name = $"columns-{kind}-{width}x{height}.txt";
+        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
     }

@@ -1,6 +1,8 @@
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>Text of a board card: the summary wrapped over two lines. Pure; widths go through <see cref="TextWidth"/>.</summary>
+/// <summary>
+/// Text of a board card: the summary wrapped over two lines. Pure; widths go through <see cref="TextWidth"/>.
+/// </summary>
 public static class CardText
 {
     private const string Ellipsis = "…";

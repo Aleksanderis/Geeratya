@@ -1,6 +1,7 @@
 using Geeratya.Core.Browser;
 using Geeratya.Jira;
 using Geeratya.Jira.Issues;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
 
@@ -63,7 +64,17 @@ public static class BrowserReducer
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
 
-        if (tab is null || tab.Selected < 0 || tab.Selected >= tab.Rows.Count)
+        if (tab is null)
+        {
+            return null;
+        }
+
+        if (tab.Definition.Layout == ViewLayout.Columns)
+        {
+            return ColumnsNavigation.SelectedIssue(tab)?.Key;
+        }
+
+        if (tab.Selected < 0 || tab.Selected >= tab.Rows.Count)
         {
             return null;
         }

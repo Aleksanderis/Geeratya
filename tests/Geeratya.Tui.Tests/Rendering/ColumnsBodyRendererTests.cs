@@ -69,8 +69,10 @@ public class ColumnsBodyRendererTests
 
         Assert.StartsWith(" T A-1", body[2].PlainText);
         Assert.Contains(">T A-2", body[6].PlainText);
-        Assert.Equal(TextRole.Selected, body[6].Spans.First(span => span.Text.Contains('>', StringComparison.Ordinal)).Role);
-        Assert.Equal(TextRole.Selected, body[7].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal)).Role);
+        var markSpan = body[6].Spans.First(span => span.Text.Contains('>', StringComparison.Ordinal));
+        var summarySpan = body[7].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
+        Assert.Equal(TextRole.Selected, markSpan.Role);
+        Assert.Equal(TextRole.Selected, summarySpan.Role);
         Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
         Assert.Single(body, line => line.PlainText.Contains('>', StringComparison.Ordinal));
         Assert.All(body.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
@@ -91,7 +93,8 @@ public class ColumnsBodyRendererTests
     [Fact]
     public void GivenALongSummary_WhenRendering_ThenItWrapsOverTwoLinesWithAnEllipsisOnTheSecond()
     {
-        var summary = "Fix the login redirect after the token refresh when the user comes back from the identity provider";
+        var summary = "Fix the login redirect after the token refresh when the user comes back "
+            + "from the identity provider";
 
         var body = Render(Tab(Issue("1", "A-1", summary)), 80, 30);
 
@@ -259,7 +262,9 @@ public class ColumnsBodyRendererTests
     [InlineData(2000)]
     public void GivenBigBoard_WhenRendering_ThenOnlyTheViewportIsBuilt(int count)
     {
-        var rows = Enumerable.Range(1, count).Select(number => Issue((number % 4 + 1).ToString(CultureInfo.InvariantCulture), $"A-{number}")).ToArray();
+        var rows = Enumerable.Range(1, count)
+            .Select(number => Issue(((number % 4) + 1).ToString(CultureInfo.InvariantCulture), $"A-{number}"))
+            .ToArray();
         var tab = Tab(rows);
 
         var body = Render(tab, 120, 36);

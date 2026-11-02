@@ -124,7 +124,9 @@ public class BoardMotionTests
     [InlineData(BoardColumnMove.First, 0)]
     [InlineData(BoardColumnMove.Last, 3)]
     [InlineData(BoardColumnMove.Left, 0)]
-    public void GivenFirstColumnSelected_WhenMovingAcrossTheBoard_ThenItStopsAtTheEnds(BoardColumnMove move, int expected)
+    public void GivenFirstColumnSelected_WhenMovingAcrossTheBoard_ThenItStopsAtTheEnds(
+        BoardColumnMove move,
+        int expected)
     {
         var columns = Columns(1, 1, 1, 1);
 
