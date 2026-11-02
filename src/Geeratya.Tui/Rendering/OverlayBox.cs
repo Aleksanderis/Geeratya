@@ -27,7 +27,7 @@ public static class OverlayBox
         return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", TextRole.Muted);
     }
 
-    /// <summary>A box row: the content padded to the inner width between two walls, with one space of padding.</summary>
+    /// <summary>A box row: the content padded to the inner width between two walls and a space.</summary>
     public static StyledLine Wall(StyledLine content, int contentWidth)
     {
         var spans = new List<StyledSpan> { new(Vertical, TextRole.Muted), new(" ", TextRole.Body) };

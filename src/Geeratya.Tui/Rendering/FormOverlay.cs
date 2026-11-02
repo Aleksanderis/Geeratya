@@ -1,6 +1,5 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Transitions.Models;
 
@@ -45,7 +44,7 @@ public static class FormOverlay
             return body;
         }
 
-        var content = Content(form, boxWidth - 6);
+        var content = Content(form);
         var inner = Math.Min(height - TopGap, content.Lines.Count + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
         var box = BoxLines(form, content, keymap, boxWidth, inner, footer);
@@ -152,7 +151,7 @@ public static class FormOverlay
         return $"{next}/{previous} field   {submit} save   {cancel} cancel";
     }
 
-    private static FormContent Content(FormState form, int width)
+    private static FormContent Content(FormState form)
     {
         var lines = new List<StyledLine>();
         var focusStart = 0;
@@ -162,7 +161,7 @@ public static class FormOverlay
 
         for (var index = 0; index < form.Fields.Count; index++)
         {
-            var block = Block(form, index, width);
+            var block = Block(form, index);
 
             if (index == form.Focus)
             {
@@ -199,7 +198,7 @@ public static class FormOverlay
         }
     }
 
-    private static List<StyledLine> Block(FormState form, int index, int width)
+    private static List<StyledLine> Block(FormState form, int index)
     {
         var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
@@ -245,7 +244,7 @@ public static class FormOverlay
     private static List<StyledLine> ParagraphLines(FormField field, bool focused)
     {
         var rows = field.Value.Text.Split('\n');
-        var shown = focused ? rows.TakeLast(ParagraphRows).ToArray() : rows.Take(1).ToArray();
+        string[] shown = focused ? [.. rows.TakeLast(ParagraphRows)] : [rows[0]];
         var lines = new List<StyledLine>();
 
         for (var index = 0; index < shown.Length; index++)

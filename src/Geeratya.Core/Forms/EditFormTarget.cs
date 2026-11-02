@@ -16,7 +16,7 @@ public sealed record EditFormTarget(
 {
     public override string Title => $"Edit {Key}";
 
-    public override string? IssueKey => Key;
+    public override string IssueKey => Key;
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {

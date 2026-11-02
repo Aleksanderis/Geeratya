@@ -19,7 +19,12 @@ public static class FormValueParser
 
     public static bool TryDate(string text, out DateOnly date)
     {
-        return DateOnly.TryParseExact(text.Trim(), DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+        return DateOnly.TryParseExact(
+            text.Trim(),
+            DateFormat,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out date);
     }
 
     /// <summary>A moment typed in the local time zone.</summary>

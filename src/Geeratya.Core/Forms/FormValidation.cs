@@ -11,7 +11,7 @@ public static class FormValidation
     public const string DateText = "Use yyyy-MM-dd";
     public const string DateTimeText = "Use yyyy-MM-dd HH:mm";
 
-    /// <summary>The fields with <see cref="FormField.Error"/> set where they are wrong and cleared where they are fine.</summary>
+    /// <summary>The fields with <see cref="FormField.Error"/> set where wrong and cleared where fine.</summary>
     public static IReadOnlyList<FormField> Check(IReadOnlyList<FormField> fields)
     {
         return [.. fields.Select(Check)];
@@ -24,7 +24,7 @@ public static class FormValidation
 
     private static string? ErrorOf(FormField field)
     {
-        var empty = FormFieldKinds.IsText(field.Kind) ? field.Value.Text.Trim().Length == 0 : field.Value.Chosen.Count == 0;
+        var empty = FormFieldKinds.IsText(field.Kind) ? field.Value.Text.Trim().Length == 0 : field.Value.IsEmpty;
 
         if (empty)
         {

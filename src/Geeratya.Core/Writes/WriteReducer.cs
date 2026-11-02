@@ -27,7 +27,11 @@ public static class WriteReducer
             AssignToMeRequested me => AssignToMe(state, me),
             WriteRequested requested => Request(state, requested),
             OperationPhaseChanged changed => PhaseChanged(state, changed),
-            WriteSucceeded succeeded => FormReducer.Settled(Succeeded(state, succeeded), succeeded.OperationId, true, null),
+            WriteSucceeded succeeded => FormReducer.Settled(
+                Succeeded(state, succeeded),
+                succeeded.OperationId,
+                true,
+                null),
             WriteFailed failed => FormReducer.Settled(Failed(state, failed), failed.OperationId, false, failed.Error),
             WriteOutcomeUnknown unknown => Unknown(state, unknown.OperationId),
             WriteVerified verified => FormReducer.Settled(

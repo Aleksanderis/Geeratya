@@ -7,7 +7,7 @@ namespace Geeratya.Core.Forms;
 /// <summary>
 /// Turns the three kinds of Jira field metadata (editmeta, createmeta, transition fields) into one list of form
 /// fields. Pure and tolerant: nothing is listed in code, a schema type it does not know is
-/// <see cref="FormFieldKind.Unsupported"/> (shown read-only, never dropped), and an unseen custom field renders by name.
+/// <see cref="FormFieldKind.Unsupported"/> (shown read-only, never dropped), and an unseen field renders by name.
 /// Editable fields come first (required ones before optional ones), read-only fields last.
 /// </summary>
 public static class FormFieldMapper

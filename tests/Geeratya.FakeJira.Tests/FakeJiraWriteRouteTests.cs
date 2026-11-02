@@ -220,6 +220,21 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         Assert.Equal("Applied anyway", issue.GetProperty("fields").GetProperty("summary").GetString());
     }
 
+    [Theory]
+    [InlineData("GCM-24", "Team")]
+    [InlineData("GTM-11", "Labels")]
+    public async Task GivenAnIssueKey_WhenEditMetaIsRead_ThenTheRecordedFieldListOfItsProjectKindIsServed(
+        string key,
+        string expectedField)
+    {
+        Start(0);
+
+        var meta = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/{key}/editmeta"));
+
+        var names = meta.GetProperty("fields").EnumerateObject().Select(field => field.Value.GetProperty("name").GetString());
+        Assert.Contains(expectedField, names);
+    }
+
     public void Dispose()
     {
         _server?.Dispose();

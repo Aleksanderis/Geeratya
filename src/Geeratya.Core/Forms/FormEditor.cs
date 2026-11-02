@@ -31,7 +31,7 @@ public static class FormEditor
         return offersNone ? [_none, .. matching] : matching;
     }
 
-    /// <summary>Typed or pasted text goes to the field the kind says: its value, its filter or its label buffer.</summary>
+    /// <summary>Typed or pasted text goes to the value, the filter or the label buffer, as the kind says.</summary>
     public static FormField Type(FormField field, string text)
     {
         if (!field.IsEditable || text.Length == 0)

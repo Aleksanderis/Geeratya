@@ -1,3 +1,4 @@
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Writes;
@@ -16,6 +17,11 @@ public sealed record EditRowChange(
     public override IssueSummary Patch(IssueSummary row)
     {
         return row with { Summary = SummaryAfter ?? row.Summary, Labels = LabelsAfter ?? row.Labels };
+    }
+
+    public override IssueDetail Patch(IssueDetail detail)
+    {
+        return detail with { Summary = SummaryAfter ?? detail.Summary, Labels = LabelsAfter ?? detail.Labels };
     }
 
     public override IssueSummary Revert(IssueSummary row)

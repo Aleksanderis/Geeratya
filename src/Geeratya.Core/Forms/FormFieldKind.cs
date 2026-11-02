@@ -35,6 +35,6 @@ public enum FormFieldKind
     /// <summary>A user; searching for one arrives with the suggestion popup, so it is read-only for now.</summary>
     User,
 
-    /// <summary>The parent or epic; searching for one arrives with the suggestion popup, so it is read-only for now.</summary>
+    /// <summary>The parent or epic; searching arrives with the suggestion popup, so it is read-only for now.</summary>
     Parent,
 }

@@ -22,7 +22,7 @@ public static class FormReducer
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary>True when the keys go to a form: Insert mode, no picker or profile form, and the active tab has one.</summary>
+    /// <summary>True when the keys go to a form: Insert mode, no picker or profile form, the active tab has one.</summary>
     public static bool IsOpen(AppState state)
     {
         return OpenForm(state) is not null;
@@ -51,7 +51,7 @@ public static class FormReducer
         };
     }
 
-    /// <summary>A key while a form is open. Printable keys are text; only Esc, Enter and Ctrl- combinations act.</summary>
+    /// <summary>A key while a form is open. Printable keys are text; only Esc, Enter and Ctrl- keys act.</summary>
     public static ReduceResult Key(AppState state, string key, DateTimeOffset at, KeymapTable keymap)
     {
         var tab = ActiveTab(state)!;
@@ -185,7 +185,12 @@ public static class FormReducer
     {
         var profile = state.Profiles.Active;
 
-        if (target.IssueKey is not { } key || profile is null || !Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
+        if (target.IssueKey is not { } key || profile is null)
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
         {
             return null;
         }
@@ -220,7 +225,7 @@ public static class FormReducer
         return Result(Replace(state, tab, form with { IsLoading = false, TopError = failed.Message }));
     }
 
-    /// <summary>While the save runs the form ignores edits; Esc closes it and the result goes to the status line.</summary>
+    /// <summary>While the save runs the form ignores edits; Esc closes it, the result goes to the status line.</summary>
     private static ReduceResult Saving(AppState state, TabState tab, string? action)
     {
         if (action != ActionIds.Cancel)
@@ -338,7 +343,8 @@ public static class FormReducer
 
     private static AppState Closed(AppState state, TabState tab)
     {
-        var closed = ViewReducer.Replace(state, tab with { Form = null });
+        var current = ViewReducer.Find(state.Session.Tabs, tab.Id) ?? tab;
+        var closed = ViewReducer.Replace(state, current with { Form = null });
         var active = closed.Session.Active == tab.Id && closed.Mode == InputMode.Insert;
 
         return active ? closed with { Mode = InputMode.Normal, PendingKeys = string.Empty } : closed;
@@ -353,9 +359,15 @@ public static class FormReducer
         var allMapped = error is not null && mapped == error.FieldErrors.Count && error.Messages.Count == 0;
         var top = allMapped && mapped > 0 ? null : state.Message;
 
-        return ViewReducer.Replace(
-            state,
-            tab with { Form = form with { OperationId = null, Fields = fields, Focus = focus >= 0 ? focus : form.Focus, TopError = top } });
+        var unlocked = form with
+        {
+            OperationId = null,
+            Fields = fields,
+            Focus = focus >= 0 ? focus : form.Focus,
+            TopError = top,
+        };
+
+        return ViewReducer.Replace(state, tab with { Form = unlocked });
     }
 
     private static string? FieldErrorOf(WriteError? error, FormField field)
@@ -435,9 +447,12 @@ public static class FormReducer
         return null;
     }
 
+    // The tab is looked up again: the state may have changed since the caller read it (a write patched its rows).
     private static AppState Replace(AppState state, TabState tab, FormState form)
     {
-        return ViewReducer.Replace(state, tab with { Form = form });
+        var current = ViewReducer.Find(state.Session.Tabs, tab.Id) ?? tab;
+
+        return ViewReducer.Replace(state, current with { Form = form });
     }
 
     private static TabState? ActiveTab(AppState state)
