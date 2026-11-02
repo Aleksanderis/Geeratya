@@ -86,13 +86,13 @@ public sealed class IssueDetailLoadHandler
         };
     }
 
-    private IssueDetailFailed Failure(TabId tab, long requestId, string message)
+    private static IssueDetailFailed Failure(TabId tab, long requestId, string message)
     {
         return Failure(tab, requestId, new JiraError(JiraErrorKind.Unexpected, null, message));
     }
 
-    private IssueDetailFailed Failure(TabId tab, long requestId, JiraError error)
+    private static IssueDetailFailed Failure(TabId tab, long requestId, JiraError error)
     {
-        return new IssueDetailFailed(tab, requestId, error, _clock.GetUtcNow());
+        return new IssueDetailFailed(tab, requestId, error);
     }
 }

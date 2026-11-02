@@ -121,7 +121,7 @@ public class IssueDetailReducerTests
 
         state = Deliver(
             state,
-            new IssueDetailFailed(tab.Id, detail.CommentsRequest, new JiraError(JiraErrorKind.Timeout, null, "t"), _now));
+            new IssueDetailFailed(tab.Id, detail.CommentsRequest, new JiraError(JiraErrorKind.Timeout, null, "t")));
 
         var failed = Active(state).Detail[0];
         Assert.Contains("The description of A-1", Text(failed));
@@ -146,7 +146,7 @@ public class IssueDetailReducerTests
 
         var state = Deliver(
             opened.State,
-            new IssueDetailFailed(tab.Id, detail.IssueRequest, new JiraError(kind, null, "no"), _now));
+            new IssueDetailFailed(tab.Id, detail.IssueRequest, new JiraError(kind, null, "no")));
 
         var text = Text(Active(state).Detail[0]);
         Assert.Contains("Not found or no access: A-1", text);
@@ -164,8 +164,7 @@ public class IssueDetailReducerTests
             new IssueDetailFailed(
                 tab.Id,
                 tab.Detail[0].IssueRequest,
-                new JiraError(JiraErrorKind.Network, null, "x"),
-                _now));
+                new JiraError(JiraErrorKind.Network, null, "x")));
 
         Assert.Contains("Cannot reach Jira.", Text(Active(failed).Detail[0]));
 
@@ -382,7 +381,7 @@ public class IssueDetailReducerTests
 
         state = Deliver(
             state,
-            new IssueDetailFailed(tab.Id, detail.LinksRequest, new JiraError(JiraErrorKind.Forbidden, null, "x"), _now));
+            new IssueDetailFailed(tab.Id, detail.LinksRequest, new JiraError(JiraErrorKind.Forbidden, null, "x")));
 
         var links = Active(state).Detail[0];
         Assert.IsType<Failed>(links.LinksLoad);

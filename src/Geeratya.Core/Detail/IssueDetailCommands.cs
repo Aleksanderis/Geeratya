@@ -32,4 +32,4 @@ public sealed record IssueRemoteLinksLoaded(
     DateTimeOffset At) : ViewCommand;
 
 /// <summary>One of the three loads failed; the part is the one whose current request id matches.</summary>
-public sealed record IssueDetailFailed(TabId Tab, long RequestId, JiraError Error, DateTimeOffset At) : ViewCommand;
+public sealed record IssueDetailFailed(TabId Tab, long RequestId, JiraError Error) : ViewCommand;
