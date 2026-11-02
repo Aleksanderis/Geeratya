@@ -150,8 +150,24 @@ public static class CommentEditorOverlay
 
         AddWrapped(lines, editor.Error, TextRole.Error, inner);
         AddWrapped(lines, editor.Warning, TextRole.Stale, inner);
+        AddWrapped(lines, UnseenText(editor), TextRole.Stale, inner);
 
         return lines.Count <= MaxNoteRows ? lines : [.. lines.Take(MaxNoteRows)];
+    }
+
+    // People already mentioned in the opened comment who did not show up among those who can see the issue.
+    private static string? UnseenText(CommentEditor editor)
+    {
+        var people = editor.UnseenNow;
+
+        if (people.Count == 0)
+        {
+            return null;
+        }
+
+        var names = string.Join(", ", people.Select(person => person.Name));
+
+        return $"May not see {editor.Key}, so the mention may do nothing: {names}.";
     }
 
     /// <summary>The suggestion rows under the text (the chosen row marked with <c>&gt;</c>) and a line for the lookup.</summary>

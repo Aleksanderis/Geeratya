@@ -5,6 +5,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
@@ -12,6 +13,7 @@ using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes.Models;
 using Geeratya.Platform;
@@ -234,6 +236,50 @@ public sealed class CommentWriteHandlerTests
         Assert.Equal("500", comment.Id);
         Assert.Contains("Looks good", AdfMarkdownWriter.ToText(comment.Body));
         Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenAMentionAndAnIssueLinkChosenInThePopups_WhenSaving_ThenJiraGetsAMentionNodeAndALinkMarkAndTheDetailShowsBoth()
+    {
+        const string stored =
+            """{"id":"501","author":{"accountId":"acc-me","displayName":"Me"},"body":{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"cc "},{"type":"mention","attrs":{"id":"acc-olga","text":"@Olga Other"}},{"type":"text","text":" see "},{"type":"text","text":"GCM-12","marks":[{"type":"link","attrs":{"href":"https://a.atlassian.net/browse/GCM-12"}}]}]}]},"created":"2026-11-02T10:00:00.000+0000","updated":"2026-11-02T10:00:00.000+0000"}""";
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Created, stored));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = Press(reducer, OpenIssue(reducer), "Space", "m", "a").State;
+        var tab = state.Editor!.Tab;
+
+        state = Press(reducer, state, "c", "c", "Space", "@", "o").State;
+        state = reducer.Reduce(state, new SuggestionsLoaded(
+            tab,
+            state.Editor!.Suggest!.RequestId,
+            [new Suggestion("acc-olga", "Olga Other", null, false)])).State;
+        state = Press(reducer, state, "Tab", "s", "e", "e", "Space", "#", "G").State;
+        state = reducer.Reduce(state, new SuggestionsLoaded(
+            tab,
+            state.Editor!.Suggest!.RequestId,
+            [new Suggestion("GCM-12", "Fix", "GCM-12", false)])).State;
+        state = Press(reducer, state, "Tab").State;
+
+        var saving = reducer.Reduce(state, new KeyPressed("Ctrl-s"));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(saving.Effects)));
+        var done = reducer.Reduce(saving.State, Assert.Single(fixture.Posted));
+
+        using var sent = System.Text.Json.JsonDocument.Parse(Assert.Single(fixture.Http.Bodies));
+        var inline = sent.RootElement.GetProperty("body").GetProperty("content")[0].GetProperty("content");
+        var mention = inline.EnumerateArray().Single(node => node.GetProperty("type").GetString() == "mention");
+        Assert.Equal("acc-olga", mention.GetProperty("attrs").GetProperty("id").GetString());
+        var link = inline.EnumerateArray()
+            .Single(node => node.TryGetProperty("marks", out var marks) && marks[0].GetProperty("type").GetString() == "link");
+        Assert.Equal("GCM-12", link.GetProperty("text").GetString());
+        Assert.Equal(
+            "https://a.atlassian.net/browse/GCM-12",
+            link.GetProperty("marks")[0].GetProperty("attrs").GetProperty("href").GetString());
+
+        var comment = Assert.Single(done.State.Session.Tabs[0].Detail[0].Comments);
+        Assert.Contains("@[Olga Other](mention:acc-olga)", AdfMarkdownWriter.ToText(comment.Body));
+        var text = string.Join('\n', done.State.Session.Tabs[0].Detail[0].Document!.Lines.Select(line => line.PlainText));
+        Assert.Contains("@Olga Other", text);
+        Assert.Contains("GCM-12", text);
     }
 
     [Fact]

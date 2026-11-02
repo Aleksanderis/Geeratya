@@ -42,6 +42,23 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
+    public void GivenAMentionOfSomeoneWhoMayNotSeeTheIssue_WhenRendering_ThenAWarningNamesThem()
+    {
+        var editor = Editor("hi @[Olga Other](mention:acc-o)") with
+        {
+            CommentId = "5",
+            Original = "hi @[Olga Other](mention:acc-o)",
+            Unseen = [new MentionedPerson("acc-o", "Olga Other")],
+        };
+
+        var frame = Frame(editor, 80, 24);
+
+        var line = Assert.Single(frame.Body, row => row.PlainText.Contains("May not see A-1", StringComparison.Ordinal));
+        Assert.Contains("Olga Other", line.PlainText);
+        Assert.Contains(line.Spans, span => span.Role == TextRole.Stale && span.Text.Contains("Olga Other", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenText_WhenRendering_ThenTheCursorIsASelectedCellAtItsPosition()
     {
         var editor = Editor("hello") with { Buffer = new TextBuffer("hello", 2) };
