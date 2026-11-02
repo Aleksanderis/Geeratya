@@ -36,6 +36,18 @@ public class ViewCacheReducerTests
     }
 
     [Fact]
+    public void GivenOpeningTab_WhenCachedRowsArrive_ThenKeyWidthCoversTheWidestCachedKey()
+    {
+        var opened = Open();
+
+        var result = _reducer.Reduce(opened.State, Cached(opened, 3));
+
+        Assert.Equal("A-1".Length, Assert.Single(result.State.Session.Tabs).KeyWidth);
+        var wide = _reducer.Reduce(opened.State, Cached(opened, 12));
+        Assert.Equal("A-12".Length, Assert.Single(wide.State.Session.Tabs).KeyWidth);
+    }
+
+    [Fact]
     public void GivenNetworkReplyAlreadyShown_WhenCachedRowsArriveLate_ThenTheyAreIgnored()
     {
         var opened = Open();

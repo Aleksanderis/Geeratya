@@ -737,6 +737,7 @@ public static class ViewReducer
         {
             Rows = rows,
             Next = null,
+            KeyWidth = KeyWidthOf(0, rows),
             IsStale = true,
             LoadedAt = cached.View.SavedAt,
             Board = tab.Board ?? cached.View.Board,
