@@ -9,9 +9,9 @@ namespace Geeratya.Jira.Edit;
 /// <summary>
 /// Edits the fields of one issue and assigns it. <see cref="GetEditFieldsAsync"/> is a read (the assignee
 /// picker's user search is <c>SuggestionClient.SearchAssignableUsersAsync</c>); <see cref="UpdateAsync"/> and
-/// <see cref="AssignAsync"/> are writes: call them only from a confirmed command, never retry them silently, and drop the cache of the issue and
-/// of the views that may show it after a success and after an unknown outcome (the client keeps no cache). Works
-/// the same for company-managed and team-managed projects.
+/// <see cref="AssignAsync"/> are writes: call them only from a confirmed command, never retry them silently,
+/// and drop the cache of the issue and of the views that may show it after a success and after an unknown
+/// outcome (the client keeps no cache). Works the same for company-managed and team-managed projects.
 /// </summary>
 public sealed class EditClient(JiraTransport transport)
 {
