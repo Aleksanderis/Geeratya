@@ -234,10 +234,19 @@ public static class WriteReducer
 
         return verified.Outcome switch
         {
-            VerifyOutcome.Applied => Complete(state, operation, verified.Rows, FirstKey(verified.Rows)),
+            VerifyOutcome.Applied => WithMessage(
+                Complete(state, operation, verified.Rows, FirstKey(verified.Rows)),
+                operation.Request),
             VerifyOutcome.NotApplied => RolledBack(state, operation, operation.Request.NotAppliedText, []),
             _ => Unreachable(state, operation),
         };
+    }
+
+    private static ReduceResult WithMessage(ReduceResult result, WriteRequest request)
+    {
+        return result.State.Message == request.DoneText
+            ? result with { State = result.State with { Message = request.VerifiedDoneText } }
+            : result;
     }
 
     /// <summary>The check itself failed: nothing is known, so the rows go back and are marked stale.</summary>

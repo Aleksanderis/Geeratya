@@ -37,6 +37,13 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
 
     public override string DoneText => $"Deleted {Key}{WithSubtasksText}";
 
+    /// <summary>
+    /// Jira answers 404 for a deleted issue and for one the user cannot see alike, so the check after a lost reply
+    /// cannot tell them apart.
+    /// </summary>
+    public override string VerifiedDoneText =>
+        $"{Key}: probably deleted, or no longer visible to you (Jira answers alike)";
+
     public override string CheckingText => $"{Key}: not sure the delete worked, checking";
 
     public override string NotAppliedText => $"{Key}: the delete was not applied";
@@ -54,7 +61,7 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
             var title = Shorten(Summary);
             var suffix = title.Length == 0 ? string.Empty : $" \"{title}\"";
 
-            return $"Delete {Key}{WithSubtasksText}? Jira cannot undo this.{suffix}";
+            return $"Delete {Key}{WithSubtasksText}? Jira cannot undo this; sub-tasks hidden from you go too.{suffix}";
         }
     }
 
