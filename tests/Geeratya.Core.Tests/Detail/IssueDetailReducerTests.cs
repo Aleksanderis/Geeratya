@@ -129,7 +129,10 @@ public class IssueDetailReducerTests
 
         var remove = failed.Effects.OfType<RemoveIssueCacheEffect>().SingleOrDefault();
         Assert.Equal(removes, remove is not null);
-        Assert.Equal(detail.Key, remove?.Key ?? detail.Key);
+        if (removes)
+        {
+            Assert.Equal(detail.Key, remove!.Key);
+        }
     }
 
     [Fact]
