@@ -1,6 +1,6 @@
 # UX
 
-Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse arrives with its own part. The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). Mouse arrives with its own part. The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
 
 ## Shell
 
@@ -16,7 +16,7 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
-| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the field form (`<space>ie`, `<space>ia`, `:edit`, `:priority`, `:labels`, `:assign`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
+| Insert | `:profile add` (the first editable form), the jump-to-issue prompt (`<space>g`, same choose keys as the picker), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the field form (`<space>ie`, `<space>ia`, `:edit`, `:priority`, `:labels`, `:assign`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
@@ -54,7 +54,7 @@ The start screen shows the active profile, or `:profile add` when there is none.
 
 ## Command palette
 
-`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...` and the view commands `jql <query>`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
+`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...`, `keys reload` (read the user's `keymap.json` again) and the view commands `jql <query>`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
 
 ## Help
 

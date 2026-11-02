@@ -56,6 +56,7 @@ public static class ActionIds
     public const string IssueEdit = "issue.edit";
     public const string IssueAssign = "issue.assign";
     public const string IssueAssignMe = "issue.assign-me";
+    public const string IssueJump = "issue.jump";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string CommentAdd = "comment.add";

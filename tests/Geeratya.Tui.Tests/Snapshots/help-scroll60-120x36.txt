@@ -2,6 +2,7 @@
                                                                                                                         
 Help                                                                                                                    
   Space i m  Assign the issue to me                                                                                     
+  Space g    Jump to an issue by key                                                                                    
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -29,8 +30,7 @@ Insert mode
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
   Ctrl-c     Cancel or close                                                                                            
-  Up         Previous source in the picker                                                                              
-  Ctrl-p     Previous source in the picker                                                                              
-  Down       Next source in the picker                                                                                  
-  Ctrl-n     Next source in the picker                                                                                  
+  Up         Previous row in the picker                                                                                 
+  Ctrl-p     Previous row in the picker                                                                                 
+  Down       Next row in the picker                                                                                     
  HELP                                                                                            j down  k up  Esc close

@@ -1,9 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Delete     Delete the character under the cursor                                                                      
-  Ctrl-o     Open the issue page in the browser from the form                                                           
-                                                                                                                        
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
       Open a JQL query in a new tab                                                                                     
@@ -29,8 +26,11 @@ Palette commands
       Assign the selected or shown issue to me                                                                          
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
+  :keys reload                                                                                                          
+      Read keymap.json again and apply it                                                                               
   :help                                                                                                                 
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
+                                                                                                                        
  HELP                                                                                            j down  k up  Esc close

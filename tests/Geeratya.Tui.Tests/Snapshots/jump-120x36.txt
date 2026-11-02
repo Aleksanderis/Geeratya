@@ -1,0 +1,36 @@
+ [1 JQL: project = GCM …]                                                                                               
+                                                                                                                        
+project = GCM · 4 issues                                                                                                
+  Key T Summary                                                                          Status         Assignee        
+                    ┌─ Jump to an issue ───────────────────────────────────────────────────────────┐                    
+                    │ > gcm_                                                                       │                    
+                    │ > GCM-12      Fix the login redirect                                         │                    
+                    │   GCM-120     日本語の見出しを含む課題                                       │                    
+                    │   GCM-7       A rather long summary that cannot possibly fit into the narrow │                    
+                    │   GCM-4       recent                                                         │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    └──────────────────────────────────────────────────────────────────────────────┘                    
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ INSERT jump to an issue                                                              Down choose  Enter open  Esc close

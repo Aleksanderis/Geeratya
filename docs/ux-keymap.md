@@ -8,6 +8,10 @@ Rows of `{ "mode", "keys", "action" }`. `keys` is one key or a space-separated s
 
 Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints.
 
+## User file
+
+`keymap.json` in the configuration directory adds, replaces and removes rows over the defaults (`UserKeymap`, `UserKeymapStore` in Core); the guide is [customising-keys.md](customising-keys.md). Rows that fail the checks above (plus printable keys in Command and Insert mode and dialog-only actions in Normal mode) are skipped and reported in the status line, a file that does not parse leaves the defaults, and `:keys reload` swaps the bindings of the running shell (`KeymapTable.Replace`; the reducer and the shell share one table on the UI thread). The user's rows are listed first so hints show their keys.
+
 ## Key rule
 
 - Standard vim and neovim keys keep their vim meaning (`h j k l`, `g g`, `G`, `Ctrl-d`, `Ctrl-u`, `/`, `n`, `N`, `:`, `q`).
@@ -34,7 +38,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M3) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
@@ -66,6 +70,7 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M3 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker (type to search, `(Unassigned)` first) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
+| `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |

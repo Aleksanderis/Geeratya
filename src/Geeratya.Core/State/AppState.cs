@@ -1,4 +1,5 @@
 using Geeratya.Core.Comments;
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -39,6 +40,9 @@ public sealed record AppState(
 
     /// <summary>The open comment editor (Insert mode, or Confirm while it asks to discard), otherwise null.</summary>
     public CommentEditor? Editor { get; init; }
+
+    /// <summary>The open jump-to-issue prompt (Insert mode), otherwise null.</summary>
+    public JumpState? Jump { get; init; }
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 

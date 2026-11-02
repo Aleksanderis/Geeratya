@@ -5,6 +5,9 @@ namespace Geeratya.Core.Keymap;
 
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    ReadCommentHandling = JsonCommentHandling.Skip)]
+    PropertyNameCaseInsensitive = true,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    AllowTrailingCommas = true)]
 [JsonSerializable(typeof(KeymapFile))]
+[JsonSerializable(typeof(UserKeymapFile))]
 internal sealed partial class KeymapJsonContext : JsonSerializerContext;

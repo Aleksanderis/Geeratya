@@ -4,6 +4,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
@@ -30,12 +31,10 @@ public sealed class AppReducer
     ];
 
     private readonly KeymapTable _keymap;
-    private readonly int _helpLineCount;
 
     public AppReducer(KeymapTable keymap)
     {
         _keymap = keymap;
-        _helpLineCount = KeymapDocument.RenderHelpLines(keymap).Count;
     }
 
     public ReduceResult Reduce(AppState state, Command command)
@@ -63,6 +62,7 @@ public sealed class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
             _ => Result(state),
         };
     }
@@ -114,6 +114,7 @@ public sealed class AppReducer
             Confirm = null,
             Form = null,
             Picker = null,
+            Jump = null,
             Editor = null,
         };
     }
@@ -265,6 +266,11 @@ public sealed class AppReducer
             return CommentEditing.Type(state, text);
         }
 
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Type(state, text);
+        }
+
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
@@ -290,6 +296,7 @@ public sealed class AppReducer
             ActionIds.FormBackspace => Result(Erase(state)),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
             ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
@@ -353,12 +360,22 @@ public sealed class AppReducer
             return Result(CommentEditing.Type(state, "\n"));
         }
 
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Accept(state);
+        }
+
         return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
     }
 
     /// <summary>Up and down in Insert mode: a row up or down in the editor, else the picker selection.</summary>
     private static AppState MovePicker(AppState state, int direction)
     {
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Move(state, direction);
+        }
+
         if (state.Editor is null)
         {
             return SourceReducer.Move(state, direction);
@@ -383,6 +400,11 @@ public sealed class AppReducer
         if (state.Editor is not null)
         {
             return CommentEditing.Backspace(state);
+        }
+
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Backspace(state);
         }
 
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
@@ -454,7 +476,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, _helpLineCount - 1)) };
+        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, KeymapDocument.RenderHelpLines(_keymap).Count - 1)) };
     }
 
     private static AppState Backspace(AppState state)
@@ -490,6 +512,7 @@ public sealed class AppReducer
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
+            _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
     }
@@ -566,6 +589,21 @@ public sealed class AppReducer
         }
 
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+    }
+
+    private static ReduceResult KeysCommand(AppState state, string argument)
+    {
+        if (argument == "reload")
+        {
+            return new ReduceResult(state, [new ReloadKeymapEffect()]);
+        }
+
+        return Result(state with { Message = $"Usage: :{PaletteCommands.UsageOf(PaletteCommands.Keys)}" });
+    }
+
+    private static bool IsKeysCommand(string text)
+    {
+        return text == PaletteCommands.Keys || text.StartsWith($"{PaletteCommands.Keys} ", StringComparison.Ordinal);
     }
 
     private static bool IsProfileCommand(string text)

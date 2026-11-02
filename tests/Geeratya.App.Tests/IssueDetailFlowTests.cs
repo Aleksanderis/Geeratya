@@ -314,6 +314,55 @@ public sealed class IssueDetailFlowTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenLowerCaseKeyTyped_WhenJumping_ThenTheIssueOpensOnTheTabAndIsRemembered()
+    {
+        _http.Fixture($"{Site}/GCM-6", "issues/issue-gcm6.json")
+            .Fixture($"{Site}/GCM-6/comment", "comments/comments-gcm6.json")
+            .Fixture($"{Site}/GCM-6/remotelink", "links/remotelink-list-gcm6.json");
+        await ConnectAsync();
+
+        var state = await JumpAsync(ListState("A-1"), "gcm-6");
+
+        var tab = Tab(state);
+        Assert.Equal("GCM-6", Assert.Single(tab.Detail).Key);
+        Assert.Contains("Comments (3)", Text(Top(state)));
+        Assert.Equal(["GCM-6"], state.Session.RecentKeys);
+        Assert.Null(state.Jump);
+        Assert.Equal(InputMode.Normal, state.Mode);
+    }
+
+    [Fact]
+    public async Task GivenAKeyThatDoesNotExist_WhenJumping_ThenTheDetailSaysNotFoundAndNothingIsRemembered()
+    {
+        _http.Fixture($"{Site}/GCM-99", "errors/issue-404.json", HttpStatusCode.NotFound)
+            .Fixture($"{Site}/GCM-99/comment", "errors/issue-404.json", HttpStatusCode.NotFound)
+            .Fixture($"{Site}/GCM-99/remotelink", "errors/issue-404.json", HttpStatusCode.NotFound);
+        await ConnectAsync();
+
+        var state = await JumpAsync(ListState("A-1"), "GCM-99");
+
+        Assert.Contains("Not found or no access: GCM-99", Text(Top(state)));
+        Assert.Empty(state.Session.RecentKeys);
+    }
+
+    [Fact]
+    public async Task GivenNoTabOpen_WhenJumping_ThenATabForTheKeyOpensWithTheIssueOnTop()
+    {
+        _http.Fixture($"{Site}/GCM-6", "issues/issue-gcm6.json")
+            .Fixture($"{Site}/GCM-6/comment", "comments/comments-gcm6.json")
+            .Fixture($"{Site}/GCM-6/remotelink", "links/remotelink-list-gcm6.json");
+        await ConnectAsync();
+        var profiles = ProfileCatalog.Empty.With(_profile);
+        var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(_profile) };
+
+        var state = await JumpAsync(start, "GCM-6");
+
+        var tab = Tab(state);
+        Assert.Equal("key = GCM-6", tab.Definition.SourceValue);
+        Assert.Equal("GCM-6", Assert.Single(tab.Detail).Key);
+    }
+
+    [Fact]
     public async Task GivenRateLimitedJira_WhenOpened_ThenTheRateLimitTextShows()
     {
         _http.Fixture($"{Site}/GCM-6", "errors/search-429-rate-limited.json", HttpStatusCode.TooManyRequests)
@@ -480,6 +529,21 @@ public sealed class IssueDetailFlowTests : IDisposable
     private async Task<AppState> OpenAsync(string key)
     {
         return await PumpAsync(ListState(key), new KeyPressed("Enter"));
+    }
+
+    /// <summary>Opens the jump prompt, types <paramref name="text"/> and presses Enter, then runs the loads.</summary>
+    private async Task<AppState> JumpAsync(AppState state, string text)
+    {
+        var typed = _reducer.Reduce(state, new KeyPressed("Space")).State;
+
+        typed = _reducer.Reduce(typed, new KeyPressed("g")).State;
+
+        foreach (var character in text)
+        {
+            typed = _reducer.Reduce(typed, new KeyPressed(character.ToString())).State;
+        }
+
+        return await PumpAsync(typed, new KeyPressed("Enter"));
     }
 
     private async Task<AppState> PumpAsync(AppState state, Command command)
