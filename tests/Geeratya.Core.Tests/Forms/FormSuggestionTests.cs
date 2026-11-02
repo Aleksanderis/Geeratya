@@ -343,7 +343,7 @@ public class FormSuggestionTests
     [Fact]
     public void GivenACreateForm_WhenTypingInANonAssigneePersonField_ThenNoLookupIsRequested()
     {
-        var result = Press(AsCreateForm(Focused("customfield_9", FormFieldKind.User)), "j");
+        var result = Press(AsCreateForm(Focused("customfield_9")), "j");
 
         Assert.Empty(result.Effects);
     }
