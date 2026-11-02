@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # tmux smoke of open-in-browser against the fake Jira, with no usable opener (issue #134).
 #   scripts/smoke-browser.sh --binary <geeratya>
-# Runs the real binary in a private tmux server with private XDG directories and a PATH without xdg-open or BROWSER,
+# Runs the real binary in a private tmux server with private XDG directories and an empty PATH and no BROWSER,
 # opens a list row and its detail, presses `<space>o` and checks the status line for the failure message.
 # The fake serves http on loopback, which the https-only gate (BrowserUrlCheck) refuses before any opener runs, so the
 # message checked is the refusal "Cannot open the link: ..."; no browser can start. Exit 0 pass, 1 check failed,
-# 2 bad arguments, 3 missing tool. Linux only.
+# 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -61,20 +61,20 @@ case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpecte
 mkdir -p "$work/config/geeratya" "$work/state" "$work/cache"
 printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"fake@example.com"}]}\n' "$fake_url" \
   > "$work/config/geeratya/profiles.json"
-dotnet_dir=$(dirname "$(command -v dotnet)")
+mkdir -p "$work/bin"
 
-# PATH holds tmux-free basics only: no xdg-open, no BROWSER.
+# The binary gets an empty PATH directory and no BROWSER: no opener can run even if the https gate regressed.
 tmux -L "$socket" -f /dev/null new-session -d -s s -x 120 -y 36 \
-  "env -i HOME=$work PATH=$dotnet_dir:/usr/bin:/bin COLORTERM=truecolor TERM=tmux-256color \
+  "env -i HOME=$work PATH=$work/bin COLORTERM=truecolor TERM=tmux-256color \
     GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache '$binary'"
 
 wait_for "fake: fake@example.com"
 send ":jql project = GEN|"
 wait_for "issues"
 send " o"
-wait_for "Cannot open the link"
+wait_for "Cannot open the link: only https links can be opened"
 send ":jql project = GEN|jj|"
 wait_for "Generated comment"
 send " o"
-wait_for "Cannot open the link"
+wait_for "Cannot open the link: only https links can be opened"
 echo "PASS"

@@ -61,7 +61,7 @@ For screenshots and manual tmux runs use the same pattern (`testing` skill, "Dri
 
 ## Open-in-browser smoke
 
-`scripts/smoke-browser.sh --binary <geeratya>` runs the real binary against the fake Jira with a minimal `PATH` (no `xdg-open`, no `BROWSER`), presses `<space>o` on a list row and again in the issue detail, and checks the status line. The fake is served over http, which the https-only gate (`BrowserUrlCheck`) refuses before any opener runs, so the checked message is `Cannot open the link: only https links can be opened`; the launcher's own "no browser opener found" message is covered by the Platform tests. Linux only.
+`scripts/smoke-browser.sh --binary <geeratya>` runs the real binary against the fake Jira with an empty `PATH` directory and no `BROWSER` (no opener can run), presses `<space>o` on a list row and again in the issue detail, and checks the status line. The fake is served over http, which the https-only gate (`BrowserUrlCheck`) refuses before any opener runs, so the checked message is `Cannot open the link: only https links can be opened`; the launcher's own "no browser opener found" message is covered by the Platform tests. Linux only. `TIMEOUT_MS` bounds each wait. Run it by hand after changing the browser path (nothing runs it automatically).
 
 ## Screenshot pipeline
 
