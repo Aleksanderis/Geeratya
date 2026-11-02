@@ -155,7 +155,7 @@ public class StyledRenderingTests
     [Fact]
     public void GivenHeaderRow_WhenBuilding_ThenFrameKeepsItsHeightWithABlankHeaderLine()
     {
-        var frame = FrameBuilder.BuildStyled(AppState.Initial, 30, 8, _helpLines, _keymap, null, 1)!;
+        var frame = FrameBuilder.BuildStyled(AppState.Initial, 30, 8, _helpLines, _keymap)!;
 
         Assert.Single(frame.Header);
         Assert.Equal(6, frame.Body.Count);

@@ -20,7 +20,7 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenNoTab_WhenBuilding_ThenTheStartScreenStillShows()
     {
-        var lines = FrameBuilder.Build(AppState.Initial, 60, 10, _helpLines, _keymap);
+        var lines = Body(AppState.Initial, 60, 10);
 
         Assert.Contains(lines, line => line.Contains("Geeratya"));
     }
@@ -153,7 +153,7 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenLoadingMoreWithRowsFillingTheScreen_WhenBuilding_ThenTheHeaderCarriesTheNote()
     {
-        var lines = FrameBuilder.Build(Active(Tab(new Loading(LoadReason.NextPage), 20)), 60, 8, _helpLines, _keymap);
+        var lines = Body(Active(Tab(new Loading(LoadReason.NextPage), 20)), 60, 8);
 
         Assert.Contains("Loading more…", lines[0]);
     }
@@ -229,7 +229,7 @@ public class ListBodyRendererTests
             {
                 for (var height = 1; height <= 8; height++)
                 {
-                    var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+                    var lines = Body(state, width, height);
 
                     Assert.Equal(height, lines.Count);
                     Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
@@ -245,9 +245,9 @@ public class ListBodyRendererTests
         return new ListBodyRenderer().Render(Active(tab), context, width, height);
     }
 
-    private static IReadOnlyList<string> Frame(TabState tab, int width = 100)
+    private static List<string> Frame(TabState tab, int width = 100)
     {
-        return FrameBuilder.Build(Active(tab), width, 10, _helpLines, _keymap);
+        return Body(Active(tab), width, 10);
     }
 
     private static AppState Active(TabState tab)
@@ -285,5 +285,11 @@ public class ListBodyRendererTests
             null,
             null,
             "A");
+    }
+
+    /// <summary>The frame without its tab bar line, so the rows below it keep their meaning.</summary>
+    private static List<string> Body(AppState state, int width, int height)
+    {
+        return [.. FrameBuilder.Build(state, width, height + 1, _helpLines, _keymap).Skip(1)];
     }
 }

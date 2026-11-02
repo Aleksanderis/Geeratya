@@ -5,5 +5,4 @@ namespace Geeratya.Core.Views;
 /// <param name="SourceValue">The JQL text, filter id or board id, depending on <paramref name="Source"/>.</param>
 /// <param name="Layout">How the issues are shown.</param>
 /// <param name="Title">The tab title (for boards the board name).</param>
-// ReSharper disable once NotAccessedPositionalProperty.Global (Title is drawn by the tab bar, #76)
 public sealed record ViewDefinition(ViewSourceKind Source, string SourceValue, ViewLayout Layout, string Title);

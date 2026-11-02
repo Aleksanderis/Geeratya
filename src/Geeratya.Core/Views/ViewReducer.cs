@@ -217,6 +217,64 @@ public static class ViewReducer
     }
 
     /// <summary>
+    /// Makes the tab <paramref name="delta"/> places from the active one active, wrapping around the ends. Nothing
+    /// happens with fewer than two tabs.
+    /// </summary>
+    public static ReduceResult StepTab(AppState state, int delta)
+    {
+        var tabs = state.Session.Tabs;
+        var current = state.Session.Active is { } id ? IndexOf(tabs, id) : -1;
+
+        if (tabs.Count < 2 || current < 0)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        var target = (((current + delta) % tabs.Count) + tabs.Count) % tabs.Count;
+
+        return Reduce(state, new TabActivated(tabs[target].Id));
+    }
+
+    /// <summary>Makes the tab with the 1-based <paramref name="number"/> active; a missing number says so.</summary>
+    public static ReduceResult GoToTab(AppState state, int number)
+    {
+        var tabs = state.Session.Tabs;
+
+        if (number < 1 || number > tabs.Count)
+        {
+            return new ReduceResult(state with { Message = $"No tab {number}." }, _noEffects);
+        }
+
+        return Reduce(state, new TabActivated(tabs[number - 1].Id));
+    }
+
+    /// <summary>Closes the active tab (cancelling its work); without one the status line says so.</summary>
+    public static ReduceResult CloseActiveTab(AppState state)
+    {
+        if (state.Session.Active is not { } id)
+        {
+            return new ReduceResult(state with { Message = "No tab to close." }, _noEffects);
+        }
+
+        return Reduce(state, new TabClosed(id));
+    }
+
+    /// <summary>
+    /// Opens a new tab with the active tab's view definition; without an active tab the status line says so.
+    /// </summary>
+    public static ReduceResult DuplicateActiveTab(AppState state)
+    {
+        var active = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (active is null)
+        {
+            return new ReduceResult(state with { Message = "No view to copy: open one with :jql <query>." }, _noEffects);
+        }
+
+        return Reduce(state, new ViewOpenRequested(active.Definition));
+    }
+
+    /// <summary>
     /// A continued load came back with a rejected page token: start again at the first page, keeping the rows on
     /// screen and the selection by issue key, instead of showing an error.
     /// </summary>

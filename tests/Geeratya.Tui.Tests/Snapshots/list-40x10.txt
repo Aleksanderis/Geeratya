@@ -1,3 +1,4 @@
+ [1 JQL: My open issues …]              
 My open issues · 10+ · Loading more…    
   Key    T Summary                     S
   GCM-12 T Fix login redirect after to ◐
@@ -6,5 +7,4 @@ My open issues · 10+ · Loading more…
   GCM-17 E Reporting overhaul with a v ◐
   GCM-18 s Write the CSV exporter 😀 é ●
   GCM-21 ? Upgrade the build image     ○
-  GCM-22 B Tooltip overlaps the header ○
  NORMAL        ? help  : command  q quit
