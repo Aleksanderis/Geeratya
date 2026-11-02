@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -16,6 +17,7 @@ namespace Geeratya.Core.Writes;
 public static class WriteReducer
 {
     private const string NotConnectedText = "Not connected to Jira: cannot tell which account is yours.";
+    private const string ConfirmWriteAction = "write";
     private const string NoProfileText = "No profile is active.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -95,10 +97,15 @@ public static class WriteReducer
             return Say(state, busy);
         }
 
+        if (!requested.Confirmed && write.AskText is { } question)
+        {
+            return Ask(state, requested, question);
+        }
+
         var id = state.Sequence + 1;
         var changes = Plan(session.Tabs, write);
         var operation = new Operation(id, write, requested.Tab, OperationPhase.Sending, changes, requested.At);
-        var patched = Patch(state, changes);
+        var patched = FollowCard(Patch(state, changes), requested);
 
         var next = patched with
         {
@@ -108,6 +115,36 @@ public static class WriteReducer
         };
 
         return new ReduceResult(next, [new ExecuteWriteEffect(id, write)]);
+    }
+
+    /// <summary>Opens Confirm mode; <c>y</c> runs the same request again, marked as confirmed.</summary>
+    private static ReduceResult Ask(AppState state, WriteRequested requested, string question)
+    {
+        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, requested with { Confirmed = true });
+        var asking = state with
+        {
+            Mode = InputMode.Confirm,
+            Confirm = confirm,
+            PendingKeys = string.Empty,
+            Message = null,
+        };
+
+        return new ReduceResult(asking, _noEffects);
+    }
+
+    /// <summary>
+    /// A card that changes status leaves its column: the cursor of the tab that started the move is dropped, so the
+    /// selection finds the card by key in its new column (and back again if the move is rolled back).
+    /// </summary>
+    private static AppState FollowCard(AppState state, WriteRequested requested)
+    {
+        if (requested.Request.Kind != OperationKind.Transition ||
+            ViewReducer.Find(state.Session.Tabs, requested.Tab) is not { Cursor: not null } tab)
+        {
+            return state;
+        }
+
+        return ViewReducer.Replace(state, tab with { Cursor = null });
     }
 
     private static string? BusyText(IReadOnlyList<Operation> operations, WriteRequest write)

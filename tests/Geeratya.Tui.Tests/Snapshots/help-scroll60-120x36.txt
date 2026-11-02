@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
   q          Close help                                                                                                 
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
@@ -30,7 +33,4 @@ Insert mode
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
-  :filter [name]                                                                                                        
  HELP                                                                                            j down  k up  Esc close

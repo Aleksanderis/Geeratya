@@ -38,6 +38,12 @@ public abstract record WriteRequest
     public abstract string ActionText { get; }
 
     /// <summary>
+    /// The question to ask before the write starts (what changes, and that Jira cannot undo it), or null when the
+    /// write starts at once. The answer <c>y</c> runs the request again with <c>Confirmed</c> set.
+    /// </summary>
+    public virtual string? AskText => null;
+
+    /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or
     /// the write is not optimistic).
     /// </summary>

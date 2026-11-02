@@ -59,8 +59,8 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 
 | Keys | Action id | What | Level | Mouse | Bound by |
 |---|---|---|---|---|---|
-| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159 |
-| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159 |
+| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159, built |
+| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 |
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
