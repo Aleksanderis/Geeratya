@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+                                                                                                                        
+Confirm mode                                                                                                            
+  y          Confirm                                                                                                    
   n          Decline                                                                                                    
   Esc        Decline                                                                                                    
                                                                                                                         
@@ -30,7 +33,4 @@ Palette commands
   :filter [name]                                                                                                        
       Open a saved filter in a new tab                                                                                  
   :board [name]                                                                                                         
-      Open a board as columns in a new tab                                                                              
-  :backlog [name]                                                                                                       
-      Open a board's backlog in a new tab                                                                               
  HELP                                                                                            j down  k up  Esc close

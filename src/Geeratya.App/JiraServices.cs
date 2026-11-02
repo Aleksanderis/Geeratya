@@ -7,6 +7,7 @@ using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Transitions;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
@@ -33,12 +34,15 @@ public sealed class JiraServices
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
         Links = new LinkClient(transport);
+        Suggestions = new SuggestionClient(transport);
         Transitions = new TransitionClient(transport);
         Ranks = new RankClient(transport);
     }
 
     /// <summary>Link types, and creating and removing issue links (writes: only called from the write handler).</summary>
     public LinkClient Links { get; }
+    /// <summary>Lookups behind pickers: people, labels, components (reads).</summary>
+    public SuggestionClient Suggestions { get; }
 
     /// <summary>Lists the transitions of an issue and performs one (the write only from the write handler).</summary>
     public TransitionClient Transitions { get; }

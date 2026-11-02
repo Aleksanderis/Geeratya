@@ -65,6 +65,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 | `Space i l` | Link the issue to another issue |
 | `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) |
+| `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
+| `Space i a` | Assign the issue: search people, or unassign |
+| `Space i m` | Assign the issue to me |
 | `Space g` | Jump to an issue by key |
 
 ## Help mode
@@ -130,8 +133,12 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:history clear` | Forget the recent JQL queries and issues of this profile |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
+| `:priority` | Change the priority of the selected or shown issue (field form) |
+| `:assign` | Assign the selected or shown issue: search people, or unassign |
+| `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |

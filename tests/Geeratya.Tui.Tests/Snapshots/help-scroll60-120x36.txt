@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
+  Space i a  Assign the issue: search people, or unassign                                                               
+  Space i m  Assign the issue to me                                                                                     
   Space g    Jump to an issue by key                                                                                    
                                                                                                                         
 Help mode                                                                                                               
@@ -30,7 +33,4 @@ Insert mode
   Esc        Cancel or close                                                                                            
   Ctrl-c     Cancel or close                                                                                            
   Up         Previous row in the picker                                                                                 
-  Ctrl-p     Previous row in the picker                                                                                 
-  Down       Next row in the picker                                                                                     
-  Ctrl-n     Next row in the picker                                                                                     
  HELP                                                                                            j down  k up  Esc close

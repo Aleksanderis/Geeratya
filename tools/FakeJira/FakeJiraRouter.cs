@@ -34,6 +34,11 @@ public sealed partial class FakeJiraRouter
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
     private const string AssigneePart = "assignee";
+    private const string AssignableUsersPath = "/rest/api/3/user/assignable/search";
+    private const string AssignableUsersFixture = "suggestions/users-assignable-gcm.json";
+    private const string QueryName = "query";
+    private const string DisplayName = "displayName";
+    private const string AccountIdName = "accountId";
     private const string EditMetaPart = "editmeta";
     private const string TeamManagedPrefix = "GTM-";
     private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
@@ -135,6 +140,11 @@ public sealed partial class FakeJiraRouter
         if (path == CountPath && _options.GeneratedIssues > 0)
         {
             return new FakeReply(200, GeneratedIssues.Count(_options.GeneratedIssues));
+        }
+
+        if (method == Get && path == AssignableUsersPath)
+        {
+            return AssignableUsers(query);
         }
 
         if (TryWrite(method, path, body) is { } written)
@@ -300,6 +310,32 @@ public sealed partial class FakeJiraRouter
         return parts[1] == CommentPart && _writes.Comments(key, recorded) is { } comments
             ? new FakeReply(200, comments)
             : null;
+    }
+
+    /// <summary>
+    /// <c>GET user/assignable/search</c>: the recorded users whose name contains the query (those without an account
+    /// id or a name are left out), as Jira's search does.
+    /// </summary>
+    private FakeReply AssignableUsers(IReadOnlyDictionary<string, string> query)
+    {
+        var text = query.TryGetValue(QueryName, out var typed) ? typed.Trim() : string.Empty;
+        var matches = new JsonArray();
+
+        if (JsonNode.Parse(ReadFixture(AssignableUsersFixture)) is JsonArray users)
+        {
+            foreach (var user in users.OfType<JsonObject>())
+            {
+                var name = user[DisplayName]?.GetValue<string>();
+
+                if (name is not null && user[AccountIdName] is not null
+                    && name.Contains(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    matches.Add(user.DeepClone());
+                }
+            }
+        }
+
+        return new FakeReply(200, Encoding.UTF8.GetBytes(matches.ToJsonString()));
     }
 
     /// <summary>True for an issue that a board or backlog list serves, so it can be ranked.</summary>

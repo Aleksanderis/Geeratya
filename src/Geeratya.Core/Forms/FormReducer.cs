@@ -5,6 +5,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira;
 using Geeratya.Jira.Issues;
+using Geeratya.Jira.Transitions.Models;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Core.Forms;
@@ -44,10 +45,13 @@ public static class FormReducer
     {
         return command switch
         {
+            OpenFormRequested { Target: AssignFormTarget assign } open => OpenAssign(state, open.Tab, assign),
             OpenFormRequested open => Open(state, open.Tab, open.Target),
             OpenLabelsFormRequested => OpenLabels(state),
             OpenLinkFormRequested => OpenLink(state),
             FormMetadataLoaded loaded => Loaded(state, loaded),
+            FieldOptionsLoaded found => Found(state, found),
+            FieldOptionsFailed failed => SearchFailed(state, failed),
             FormMetadataFailed failed => Failed(state, failed),
             _ => new ReduceResult(state, _noEffects),
         };
@@ -78,21 +82,26 @@ public static class FormReducer
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
-            ActionIds.FormBackspace => Result(Edit(state, tab, form, FormEditor.Backspace)),
+            ActionIds.FormBackspace => Searched(state, Edit(state, tab, form, FormEditor.Backspace)),
             ActionIds.PickerNext => Result(Edit(state, tab, form, field => FormEditor.Move(field, 1))),
             ActionIds.PickerPrevious => Result(Edit(state, tab, form, field => FormEditor.Move(field, -1))),
-            null => Result(Typed(state, tab, form, KeyNotation.ToText(key))),
+            null => Searched(state, Typed(state, tab, form, KeyNotation.ToText(key))),
             _ => Result(state),
         };
     }
 
     /// <summary>Pasted text goes to the focused field (first line only).</summary>
-    public static AppState Paste(AppState state, string text)
+    public static ReduceResult Paste(AppState state, string text)
     {
         var tab = ActiveTab(state)!;
         var form = tab.Form!;
 
-        return form.IsSaving || form.DiscardPending ? state : Typed(state, tab, form, text);
+        if (form.IsSaving || form.DiscardPending)
+        {
+            return Result(state);
+        }
+
+        return Searched(state, Typed(state, tab, form, text));
     }
 
     /// <summary>
@@ -121,7 +130,7 @@ public static class FormReducer
         return result with { State = settled };
     }
 
-    private static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
+    internal static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
     {
         var tab = ViewReducer.Find(state.Session.Tabs, tabId);
 
@@ -142,6 +151,157 @@ public static class FormReducer
         };
 
         return new ReduceResult(next, [new LoadFormMetadataEffect(tabId, requestId, target)]);
+    }
+
+    /// <summary>
+    /// Opens the people picker at once: there is no metadata to fetch, the people come from a search of the typed
+    /// text. It starts with the account of the profile and the current assignee.
+    /// </summary>
+    internal static ReduceResult OpenAssign(AppState state, TabId tabId, AssignFormTarget target)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, tabId);
+
+        if (tab is null)
+        {
+            return Result(state);
+        }
+
+        var requestId = state.Sequence + 1;
+        var field = AssigneeField(state, target);
+        var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
+        var form = opened with { Fields = [field], IsLoading = false };
+        var next = ViewReducer.Replace(state, tab with { Form = form }) with
+        {
+            Mode = InputMode.Insert,
+            Sequence = requestId,
+            Message = null,
+            PendingKeys = string.Empty,
+        };
+
+        return Result(next);
+    }
+
+    private static FormField AssigneeField(AppState state, AssignFormTarget target)
+    {
+        var suggested = new List<FieldOption>();
+
+        if (state.Session.Connection is Connected { AccountId: { } accountId } connected)
+        {
+            suggested.Add(new FieldOption(accountId, connected.DisplayName));
+        }
+
+        if (target.Current is { } current && suggested.All(option => option.Id != current.AccountId))
+        {
+            suggested.Add(new FieldOption(current.AccountId, current.DisplayName));
+        }
+
+        var field = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.Select, false, suggested) with
+        {
+            NoneLabel = "Unassigned",
+            Searchable = true,
+            Suggested = suggested,
+        };
+
+        if (target.Current is not { } assignee)
+        {
+            return field;
+        }
+
+        // The cursor starts on the current assignee (Unassigned is the row above), so a bare Enter keeps them.
+        var row = suggested.FindIndex(option => option.Id == assignee.AccountId) + 1;
+
+        return field.WithInitial(FormValue.OfChosen([assignee.AccountId])) with { Cursor = row };
+    }
+
+    private static FieldChange ChangeOf(FormField field)
+    {
+        var display = FormFieldKinds.IsChoice(field.Kind)
+            ? field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray()
+            : null;
+
+        return new FieldChange(field.Id, field.Kind, field.Value, field.Initial, display);
+    }
+
+    private static string LabelOf(FormField field, string id)
+    {
+        return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
+    }
+
+    /// <summary>
+    /// After an edit of the focused field: a searchable field whose typed text changed asks for new options and
+    /// waits for them (<see cref="FormField.Searching"/>). An empty text asks for none; a search still running is
+    /// not cancelled, but its answer is ignored because only the newest request id counts.
+    /// </summary>
+    private static ReduceResult Searched(AppState before, AppState after)
+    {
+        var tab = ActiveTab(after);
+        var old = ActiveTab(before)?.Form;
+
+        if (tab?.Form is not { } form || old is null || form.Focus >= form.Fields.Count)
+        {
+            return Result(after);
+        }
+
+        if (form.Target.IssueKey is not { } key)
+        {
+            return Result(after);
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (!field.Searchable || field.Entry == old.Fields[old.Focus].Entry)
+        {
+            return Result(after);
+        }
+
+        var requestId = after.Sequence + 1;
+        var query = field.Entry.Trim();
+        var waiting = field with { Searching = query.Length > 0 };
+        var fields = WithField(form.Fields, form.Focus, waiting);
+        var changed = form with { Fields = fields, SearchRequestId = requestId };
+        var next = Replace(after with { Sequence = requestId }, tab, changed);
+
+        if (query.Length == 0)
+        {
+            return Result(next);
+        }
+
+        return new ReduceResult(next, [new SearchFieldOptionsEffect(tab.Id, requestId, key, query)]);
+    }
+
+    private static ReduceResult Found(AppState state, FieldOptionsLoaded found)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, found.Tab);
+
+        if (tab?.Form is not { } form || form.SearchRequestId != found.RequestId || form.Focus >= form.Fields.Count)
+        {
+            return Result(state);
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (!field.Searchable)
+        {
+            return Result(state);
+        }
+
+        var fields = WithField(form.Fields, form.Focus, FormEditor.WithOptions(field, found.Options));
+
+        return Result(Replace(state, tab, form with { Fields = fields, TopError = null }));
+    }
+
+    private static ReduceResult SearchFailed(AppState state, FieldOptionsFailed failed)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, failed.Tab);
+
+        if (tab?.Form is not { } form || form.SearchRequestId != failed.RequestId)
+        {
+            return Result(state);
+        }
+
+        var fields = form.Fields.Select(field => field with { Searching = false }).ToArray();
+
+        return Result(Replace(state, tab, form with { Fields = fields, TopError = failed.Message }));
     }
 
     private static ReduceResult OpenLabels(AppState state)
@@ -335,7 +495,7 @@ public static class FormReducer
 
         var changes = checkedFields
             .Where(field => field.IsChanged)
-            .Select(field => new FieldChange(field.Id, field.Kind, field.Value, field.Initial))
+            .Select(ChangeOf)
             .ToArray();
 
         if (changes.Length == 0 && !form.Target.AllowsNoChanges)

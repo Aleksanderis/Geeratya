@@ -102,6 +102,28 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenThePeoplePicker_WhenBuildingTheFrame_ThenUnassignedLeadsTheListAndTheTitleNamesTheIssue()
+    {
+        var people = new[] { new FieldOption("acc-me", "Me Myself"), new FieldOption("acc-eve", "Eve Example") };
+        var field = FormField.Create("assignee", "Assignee", FormFieldKind.Select, false, people) with
+        {
+            NoneLabel = "Unassigned",
+            Searchable = true,
+            Suggested = people,
+        };
+        var opened = FormState.Opened(new AssignFormTarget("A-1", null), 3, null);
+        var form = opened with { Fields = [field], IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+
+        var rows = lines.ToArray();
+        var unassigned = Array.FindIndex(rows, line => line.Contains("Unassigned", StringComparison.Ordinal));
+        var eve = Array.FindIndex(rows, line => line.Contains("Eve Example", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Assign A-1", StringComparison.Ordinal));
+        Assert.InRange(unassigned, 0, eve - 1);
+    }
+
+    [Fact]
     public void GivenTheStatusPicker_WhenBuildingTheFrameAt80x24_ThenTheTitleTheFieldAndTheTransitionsShow()
     {
         var target = new TransitionPickTarget("A-1", [], null, [])
