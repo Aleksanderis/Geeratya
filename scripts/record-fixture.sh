@@ -6,7 +6,7 @@
 #   env RECORD_CONTENT_TYPE=<type>  request Content-Type (default application/json)
 #   env RECORD_XSRF=1       send X-Atlassian-Token: no-check (attachment upload)
 #   env RECORD_RAW=1        skip scrubbing (inspection only, never commit the output)
-# Writes also allowed: agile rank/backlog moves and creating issue links, only between GCM/GTM keys (no link deletes).
+# Writes also allowed: agile rank/backlog moves and creating issue links, only between sandbox (GCM/GTM/GCS/GTS) keys (no link deletes).
 # Also allowed: PUT and DELETE of one comment by id on a GCM/GTM issue.
 # The Scrum sandboxes GCS/GTS (boards 6 and 5) count as sandbox projects too, and sprint writes are allowed
 # there only: create a sprint on board 5/6, update, delete or move issues into a sprint whose originBoardId
@@ -76,8 +76,8 @@ if [ "$method" != GET ]; then
   fi
 fi
 
-# Bodies that name issues: every key must be in GCM/GTM.
-case "$path" in
+# Bodies that name issues (writes only): every key must be in a sandbox project (GCM/GTM/GCS/GTS).
+case "$method:$path" in GET:*) ;; *) case "$path" in
   /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink | /rest/agile/1.0/sprint/[0-9]*/issue)
     case "$path" in
       /rest/api/3/issueLink)
@@ -86,9 +86,9 @@ case "$path" in
         jq_check='(.issues | type == "array" and length > 0 and all(type == "string" and test("^G[CT][MS]-[0-9]+$"))) and ([.rankBeforeIssue, .rankAfterIssue] | all(. == null or (type == "string" and test("^G[CT][MS]-[0-9]+$"))))' ;;
     esac
     if [ -z "$body" ] || ! jq -e "$jq_check" "$body" > /dev/null 2>&1; then
-      echo "write refused: body must name only GCM/GTM issue keys" >&2; exit 3
+      echo "write refused: body must name only sandbox issue keys" >&2; exit 3
     fi ;;
-esac
+esac ;; esac
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

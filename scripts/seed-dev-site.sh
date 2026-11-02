@@ -194,7 +194,8 @@ if [ "$reset" = 1 ]; then
     if [ "$yes" != 1 ]; then
       jq -r '.issues[]|"  "+.key+" "+.fields.summary' "$work/res.json"
       if is_scrum "$p"; then
-        sprints_of "$(board_of "$p")"
+        sb=$(board_of "$p")
+        if [ -n "$sb" ]; then sprints_of "$sb"; fi
         jq -r '.values[]|select(.name|startswith("Seed Sprint "))|"  sprint "+.name+" ("+.state+")"' "$work/sprints.json"
       fi
       continue
@@ -208,7 +209,9 @@ if [ "$reset" = 1 ]; then
     echo "$p: $ok deleted, $bad failed"
     if [ "$bad" -gt 0 ]; then fail=1; fi
     if is_scrum "$p"; then
-      sprints_of "$(board_of "$p")"
+      sb=$(board_of "$p")
+      if [ -z "$sb" ]; then echo "no scrum board for $p" >&2; fail=1; continue; fi
+      sprints_of "$sb"
       for sid in $(jq -r '.values[]|select(.name|startswith("Seed Sprint "))|.id' "$work/sprints.json"); do
         if write DELETE "/rest/agile/1.0/sprint/$sid" > /dev/null; then echo "  deleted sprint $sid"; else fail=1; fi
       done
@@ -235,7 +238,8 @@ ensure_points() { # project slug points
   if [ "$3" = "-" ] || [ "${pointsof[$k]:-}" = "$3" ]; then return 0; fi
   # A company-managed project's Story Points field is on the screens of Stories only: Jira would drop the
   # value of a task, bug or sub-task silently, so those keep no estimate there (editmeta says which).
-  if [ "$(api GET "/rest/api/3/issue/$key/editmeta" | jq --arg f "$pf" '.fields|has($f)')" != true ]; then
+  editmeta=$(api GET "/rest/api/3/issue/$key/editmeta") || return 1
+  if [ "$(jq --arg f "$pf" '.fields|has($f)' <<< "$editmeta")" != true ]; then
     echo "  points  $key: $pf is not on its edit screen, no estimate set"
     return 0
   fi
