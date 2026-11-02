@@ -63,7 +63,6 @@ public static class ActionCatalog
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,
         ActionIds.ViewLayoutToggle,
-        ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
     ];
 
