@@ -5,7 +5,7 @@ namespace Geeratya.Jira.Transitions.Models;
 /// <summary>
 /// A workflow transition available on one issue right now. Ids are per project, so a caller picks by
 /// <see cref="Target"/>, never from a stored id. Workflow side effects (post-functions, validators) are invisible
-/// to the API: a transition with a screen is the only hint, and the UI confirms before posting it.
+/// to the API: a screen and a done target are the only hints, and the UI decides from them whether to confirm.
 /// </summary>
 /// <param name="Id">The transition id to post.</param>
 /// <param name="Name">The transition name (often the target status name).</param>

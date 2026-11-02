@@ -5,6 +5,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes.Models;
@@ -298,6 +299,140 @@ public sealed class WriteHandlerTests
         Assert.Null(failed.State.Session.Tabs[0].Rows[0].Assignee);
         Assert.Empty(failed.State.Session.Operations);
         Assert.Equal("No permission to assign A-1: User cannot be assigned", failed.State.Message);
+    }
+
+    [Fact]
+    public async Task GivenRankBelow_WhenExecuting_ThenOneRankWriteAndNoReadAreSent()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+
+        await fixture.Handler.StartAsync(
+            new ExecuteWriteEffect(41, new RankRequest("A-1", "A-2", false, "customfield_10019")));
+
+        var succeeded = Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Empty(succeeded.Rows);
+        Assert.Equal(["PUT"], fixture.Http.Methods);
+        Assert.EndsWith("/rest/agile/1.0/issue/rank", Assert.Single(fixture.Http.Requests).AbsolutePath);
+        var body = Assert.Single(fixture.Http.Bodies);
+        Assert.Contains("\"rankAfterIssue\":\"A-2\"", body);
+        Assert.Contains("\"rankCustomFieldId\":10019", body);
+        Assert.Contains("\"A-1\"", body);
+    }
+
+    [Fact]
+    public async Task GivenRankAbove_WhenExecuting_ThenTheBodyNamesTheBeforeIssue()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, new RankRequest("A-1", "A-2", true, null)));
+
+        var body = Assert.Single(fixture.Http.Bodies);
+        Assert.Contains("\"rankBeforeIssue\":\"A-2\"", body);
+        Assert.DoesNotContain("rankCustomFieldId", body);
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+    }
+
+    [Fact]
+    public async Task GivenMultiStatusThatRefusesTheIssue_WhenRanking_ThenItFailsDefinitelyWithJirasText()
+    {
+        const string body = """{"entries":[{"issueKey":"A-1","status":400,"errors":["Cannot rank an epic here"]}]}""";
+        using var fixture = await ConnectedAsync(h => h.Reply((HttpStatusCode)207, body));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, new RankRequest("A-1", "A-2", true, null)));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.Validation, failed.Error.Kind);
+        Assert.Equal("Cannot rank an epic here", failed.Error.Message);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, WriteErrorKind.Validation)]
+    [InlineData(HttpStatusCode.Forbidden, WriteErrorKind.Permission)]
+    [InlineData(HttpStatusCode.TooManyRequests, WriteErrorKind.RateLimited)]
+    public async Task GivenARefusedRank_WhenExecuting_ThenItFailsDefinitely(HttpStatusCode status, WriteErrorKind kind)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(status, Refused));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, new RankRequest("A-1", "A-2", true, null)));
+
+        Assert.Equal(kind, Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted)).Error.Kind);
+    }
+
+    [Fact]
+    public async Task GivenALostRankReply_WhenVerifying_ThenNothingIsReadAndTheOutcomeIsUnreachable()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.InternalServerError, ""));
+        var rank = new RankRequest("A-1", "A-2", true, null);
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, rank));
+        await fixture.Handler.StartAsync(new VerifyWriteEffect(41, rank));
+
+        Assert.IsType<WriteOutcomeUnknown>(fixture.Posted[0]);
+        Assert.Equal(VerifyOutcome.Unreachable, Assert.IsType<WriteVerified>(fixture.Posted[1]).Outcome);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenRankingWithTheKeyOnABacklog_ThenTheOrderIsOptimisticThenKept()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = OpenBacklog(reducer);
+
+        var started = reducer.Reduce(state, new KeyPressed("Alt-j", DateTimeOffset.UnixEpoch));
+        var optimistic = started.State.Session.Tabs[0].Rows.Select(row => row.Key).ToArray();
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(started.Effects)));
+        var finished = reducer.Reduce(started.State, Assert.Single(fixture.Posted));
+
+        Assert.Equal(["A-2", "A-1"], optimistic);
+        Assert.Equal(["A-2", "A-1"], finished.State.Session.Tabs[0].Rows.Select(row => row.Key));
+        Assert.Equal("Ranked A-1 below A-2", finished.State.Message);
+        Assert.Contains(finished.Effects, effect => effect is LoadViewPageEffect);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenTheRankIsForbidden_ThenTheOrderGoesBackAndTheReasonIsShown()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Forbidden, Refused));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = OpenBacklog(reducer);
+
+        var started = reducer.Reduce(state, new KeyPressed("Alt-j", DateTimeOffset.UnixEpoch));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(started.Effects)));
+        var failed = reducer.Reduce(started.State, Assert.Single(fixture.Posted));
+
+        Assert.Equal(["A-1", "A-2"], failed.State.Session.Tabs[0].Rows.Select(row => row.Key));
+        Assert.Equal("No permission to rank A-1: User cannot be assigned", failed.State.Message);
+        Assert.Empty(failed.State.Session.Operations);
+    }
+
+    private static AppState OpenBacklog(AppReducer reducer)
+    {
+        var profiles = ProfileCatalog.Empty.With(_a);
+        var start = AppState.Initial with
+        {
+            Profiles = profiles,
+            Session = SiteSession.Empty(_a) with { Connection = new Connected("Eve", "acc-1") },
+        };
+
+        var definition = new ViewDefinition(ViewSourceKind.Backlog, "4", ViewLayout.List, "A");
+        var opened = reducer.Reduce(start, new ViewOpenRequested(definition)).State;
+        var tab = opened.Session.Tabs[0];
+        var second = Row() with { Id = "2", Key = "A-2" };
+        var page = new IssuePage([Row(), second], null, 2);
+        var configuration = new BoardConfiguration(
+            4,
+            "A",
+            BoardType.Kanban,
+            [new BoardColumn("To Do", ["1"])],
+            "1",
+            null,
+            "customfield_10019",
+            null);
+        var configured = reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, configuration));
+
+        return reducer.Reduce(configured.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, DateTimeOffset.UnixEpoch))
+            .State;
     }
 
     private static AppState OpenTab(AppReducer reducer)
