@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -128,6 +129,35 @@ public class ColumnsLayoutKeysTests
 
         Assert.Single(Tab(onCard).Detail);
         Assert.Empty(Tab(onEmpty).Detail);
+    }
+
+    [Fact]
+    public void GivenCardInSecondColumn_WhenPressingEnter_ThenThatIssueDetailLoadsAndEmptyColumnStartsNoLoad()
+    {
+        var state = Press(Loaded(Issues("1:A-1", "2:A-2")), "l");
+        var empty = Press(state, "l");
+
+        var onCard = _reducer.Reduce(state, new KeyPressed("Enter"));
+        var onEmpty = _reducer.Reduce(empty, new KeyPressed("Enter"));
+
+        Assert.Equal("A-2", Tab(onCard.State).Detail.Single().Key);
+        Assert.Equal("A-2", Assert.Single(onCard.Effects.OfType<LoadIssueDetailEffect>()).Key);
+        Assert.Empty(onEmpty.Effects);
+        Assert.Equal(empty, onEmpty.State);
+    }
+
+    [Fact]
+    public void GivenCardAndEmptyColumn_WhenPressingSpaceO_ThenTheCardBrowseUrlOpensAndEmptyColumnOpensNothing()
+    {
+        var state = Press(Loaded(Issues("1:A-1", "2:A-2")), "l");
+        var empty = Press(state, "l");
+
+        var onCard = _reducer.Reduce(Press(state, "Space"), new KeyPressed("o"));
+        var onEmpty = _reducer.Reduce(Press(empty, "Space"), new KeyPressed("o"));
+
+        var effect = Assert.IsType<OpenUrlEffect>(Assert.Single(onCard.Effects));
+        Assert.Equal("https://work.atlassian.net/browse/A-2", effect.Url.AbsoluteUri);
+        Assert.Empty(onEmpty.Effects);
     }
 
     [Fact]
@@ -261,11 +291,11 @@ public class ColumnsLayoutKeysTests
         return _reducer.Reduce(opened, new ViewportChanged(20)).State;
     }
 
-    private AppState Loaded(IssueSummary[] rows)
+    private AppState Loaded(IssueSummary[] rows, BoardConfiguration? configuration = null)
     {
         var opened = Open(ViewSourceKind.Board, ViewLayout.Columns);
         var tab = Tab(opened);
-        var configured = _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, _configuration));
+        var configured = _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, configuration ?? _configuration));
         var page = new IssuePage(rows, null, rows.Length);
 
         return _reducer.Reduce(configured.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
