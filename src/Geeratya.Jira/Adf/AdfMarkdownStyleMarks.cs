@@ -1,7 +1,7 @@
 namespace Geeratya.Jira.Adf;
 
 /// <summary>Converts between ADF marks and <see cref="AdfMarkdownStyle" /> flags.</summary>
-public static class AdfMarkdownStyleMarks
+internal static class AdfMarkdownStyleMarks
 {
     public static AdfMarkdownStyle StyleOf(IReadOnlyList<AdfMark> marks)
     {

@@ -7,7 +7,7 @@ namespace Geeratya.Jira.Adf;
 /// tolerant: it never throws, and a delimiter without its partner is plain text. Styles toggle, so they may overlap;
 /// a backslash makes the next punctuation character (or space) literal. A newline is a hard break.
 /// </summary>
-public static class AdfMarkdownInlineParser
+internal static class AdfMarkdownInlineParser
 {
     private const string AutolinkSchemeExtras = "+-.";
 
@@ -278,9 +278,11 @@ public static class AdfMarkdownInlineParser
         return -1;
     }
 
+    /// <summary>Finds the closing parenthesis; balanced unescaped pairs inside belong to the address.</summary>
     private static int FindDestinationEnd(string text, int start, int end)
     {
         var index = start;
+        var depth = 0;
 
         while (index < end)
         {
@@ -296,7 +298,11 @@ public static class AdfMarkdownInlineParser
                 continue;
             }
 
-            if (text[index] == AdfMarkdownSyntax.DestinationEnd)
+            if (text[index] == AdfMarkdownSyntax.DestinationStart)
+            {
+                depth++;
+            }
+            else if (text[index] == AdfMarkdownSyntax.DestinationEnd && depth-- == 0)
             {
                 return index;
             }

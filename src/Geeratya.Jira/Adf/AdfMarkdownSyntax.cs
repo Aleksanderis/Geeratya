@@ -5,7 +5,7 @@ namespace Geeratya.Jira.Adf;
 /// one emits the other reads. Beyond plain Markdown: <c>++text++</c> is underline, a mention is
 /// <c>@[Name](mention:accountId)</c> and an inline card is an autolink <c>&lt;https://...&gt;</c>.
 /// </summary>
-public static class AdfMarkdownSyntax
+internal static class AdfMarkdownSyntax
 {
     public const char Escape = '\\';
     public const char Emphasis = '*';

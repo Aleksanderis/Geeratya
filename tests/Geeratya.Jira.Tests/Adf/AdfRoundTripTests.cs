@@ -149,7 +149,7 @@ public sealed class AdfRoundTripTests
     public void GivenRecordedComments_WhenChecked_ThenOnlyTheOnesTextCanHoldRoundTrip()
     {
         var plainComment = Body(Comments, 1);
-        var richComment = Body(Comments, 0);
+        var richComment = Body(Comments);
 
         Assert.True(AdfRoundTrip.RoundTrips(plainComment));
         Assert.False(AdfRoundTrip.RoundTrips(richComment));
@@ -218,6 +218,73 @@ public sealed class AdfRoundTripTests
         Assert.False(AdfRoundTrip.RoundTrips(document), name);
     }
 
+    [Theory]
+    [InlineData("- ")]
+    [InlineData("1. ")]
+    [InlineData(">")]
+    [InlineData("- - a")]
+    [InlineData("- # heading")]
+    [InlineData("- > quote")]
+    [InlineData("> # heading")]
+    [InlineData("> > nested")]
+    [InlineData("> ---")]
+    public void GivenShapesJiraRejects_WhenParsed_ThenOnlyAllowedChildrenRemain(string text)
+    {
+        var document = AdfMarkdownParser.Parse(text);
+
+        AssertSchemaShape(document.Content, false, false);
+    }
+
+    [Fact]
+    public void GivenHeadingInQuote_WhenParsed_ThenItBecomesAParagraphWithTheSameText()
+    {
+        var document = AdfMarkdownParser.Parse("> # note");
+
+        var quote = Assert.IsType<AdfBlockquote>(Assert.Single(document.Content));
+        var paragraph = Assert.IsType<AdfParagraph>(Assert.Single(quote.Children));
+        Assert.Equal("note", Assert.IsType<AdfText>(Assert.Single(paragraph.Children)).Text);
+    }
+
+    [Theory]
+    [InlineData("[x](javascript:alert(1))", "javascript:alert(1)")]
+    [InlineData("[w](https://en.wikipedia.org/wiki/Foo_(bar))", "https://en.wikipedia.org/wiki/Foo_(bar)")]
+    public void GivenLinkAddressWithBalancedParentheses_WhenParsed_ThenTheWholeAddressIsKept(string text, string href)
+    {
+        var document = AdfMarkdownParser.Parse(text);
+
+        var paragraph = Assert.IsType<AdfParagraph>(Assert.Single(document.Content));
+        var link = Assert.IsType<AdfText>(Assert.Single(paragraph.Children));
+        Assert.Equal(href, Assert.IsType<AdfLinkMark>(Assert.Single(link.Marks)).Href);
+        Assert.True(AdfRoundTrip.RoundTrips(document));
+    }
+
+    [Fact]
+    public void GivenJiraShapedRichDocument_WhenChecked_ThenItRoundTripsFromAdf()
+    {
+        var document = AdfParser.Parse(
+            """
+            {"version":1,"type":"doc","content":[
+            {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Plan"}]},
+            {"type":"paragraph","content":[{"type":"text","text":"See "},
+              {"type":"text","text":"the docs","marks":[{"type":"strong"},
+                {"type":"link","attrs":{"href":"https://example.com/a"}}]},
+              {"type":"hardBreak"},{"type":"text","text":"next line"}]},
+            {"type":"bulletList","content":[{"type":"listItem","content":[
+              {"type":"paragraph","content":[{"type":"text","text":"one"}]},
+              {"type":"orderedList","attrs":{"order":2},"content":[{"type":"listItem","content":[
+                {"type":"paragraph","content":[{"type":"text","text":"deep"}]}]}]}]}]},
+            {"type":"codeBlock","attrs":{"language":"csharp"},"content":[{"type":"text","text":"var x = 1;"}]},
+            {"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q"}]}]},
+            {"type":"rule"}]}
+            """);
+
+        Assert.True(AdfRoundTrip.RoundTrips(document));
+        Assert.Equal(
+            "## Plan\n\nSee [**the docs**](https://example.com/a)\nnext line\n\n- one\n  2. deep\n\n"
+            + "```csharp\nvar x = 1;\n```\n\n> q\n\n---",
+            AdfMarkdownWriter.ToText(document));
+    }
+
     [Fact]
     public void GivenTruncatedDocument_WhenChecked_ThenItDoesNotRoundTrip()
     {
@@ -263,6 +330,8 @@ public sealed class AdfRoundTripTests
     [Fact]
     public void GivenParserOutputOfRandomText_WhenWrittenAndParsedAgain_ThenItIsTheSameDocument()
     {
+        // The seed fixes the sequence; the known limits in docs/jira-layer.md (a leading or trailing break, runs of
+        // three delimiter characters) are not hit by it, and a failure here is a new kind of difference.
         var random = new Random(161);
         var failures = new List<string>();
 
@@ -323,6 +392,28 @@ public sealed class AdfRoundTripTests
             "{\"version\":1,\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":"
             + "[{\"type\":\"text\",\"text\":\"x\"}]}]}",
             AdfJsonWriter.ToJson(document));
+    }
+
+    private static void AssertSchemaShape(IReadOnlyList<AdfNode> nodes, bool inQuote, bool inItem)
+    {
+        foreach (var node in nodes)
+        {
+            Assert.False(inQuote && node is AdfHeading or AdfRule or AdfBlockquote);
+            Assert.False(inItem && node is AdfHeading or AdfRule or AdfBlockquote);
+
+            if (node is AdfListItem or AdfBlockquote)
+            {
+                var children = ((AdfContainerNode)node).Children;
+
+                Assert.NotEmpty(children);
+                Assert.True(node is not AdfListItem || children[0] is AdfParagraph);
+            }
+
+            if (node is AdfContainerNode container)
+            {
+                AssertSchemaShape(container.Children, node is AdfBlockquote, node is AdfListItem);
+            }
+        }
     }
 
     private static AdfDocument Body(string fixture, int commentIndex = 0)

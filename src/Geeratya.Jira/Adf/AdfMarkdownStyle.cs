@@ -2,7 +2,7 @@ namespace Geeratya.Jira.Adf;
 
 /// <summary>The toggled text styles of the Markdown-like text (code and link are not toggles).</summary>
 [Flags]
-public enum AdfMarkdownStyle
+internal enum AdfMarkdownStyle
 {
     None = 0,
     Strong = 1,

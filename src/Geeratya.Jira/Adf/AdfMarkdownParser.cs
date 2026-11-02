@@ -171,7 +171,12 @@ public static class AdfMarkdownParser
             index++;
         }
 
-        blocks.Add(new AdfBlockquote(ParseBlocks(inner, depth + 1)));
+        var quoted = ConstrainContainer(ParseBlocks(inner, depth + 1), false);
+
+        if (quoted.Count > 0)
+        {
+            blocks.Add(new AdfBlockquote(quoted));
+        }
 
         return index;
     }
@@ -211,7 +216,12 @@ public static class AdfMarkdownParser
             index = next;
         }
 
-        blocks.Add(BuildList(entries, depth, isOrdered, firstNumber));
+        var list = BuildList(entries, depth, isOrdered, firstNumber);
+
+        if (list is AdfContainerNode { Children.Count: > 0 })
+        {
+            blocks.Add(list);
+        }
 
         return index;
     }
@@ -275,10 +285,53 @@ public static class AdfMarkdownParser
 
         for (var index = 0; index < entries.Count; index++)
         {
-            items.Add(new AdfListItem(ParseBlocks(entries[index].Content, depth + 1)));
+            var content = ConstrainContainer(ParseBlocks(entries[index].Content, depth + 1), true);
+
+            if (content.Count > 0)
+            {
+                items.Add(new AdfListItem(content));
+            }
         }
 
         return isOrdered ? new AdfOrderedList(firstNumber, items) : new AdfBulletList(items);
+    }
+
+    /// <summary>
+    /// Keeps the blocks Jira accepts inside a quote or list item: a heading becomes a paragraph, a rule is dropped, a
+    /// nested quote is flattened into its blocks, and a list item starts with a paragraph (an empty one if needed).
+    /// Without this the text <c>&gt; # note</c> would give ADF that Jira rejects with 400.
+    /// </summary>
+    private static List<AdfNode> ConstrainContainer(List<AdfNode> blocks, bool isListItem)
+    {
+        var allowed = new List<AdfNode>(blocks.Count);
+
+        for (var index = 0; index < blocks.Count; index++)
+        {
+            switch (blocks[index])
+            {
+                case AdfHeading heading:
+                    allowed.Add(new AdfParagraph(heading.Children));
+
+                    break;
+                case AdfRule:
+                    break;
+                case AdfBlockquote quote:
+                    allowed.AddRange(quote.Children);
+
+                    break;
+                default:
+                    allowed.Add(blocks[index]);
+
+                    break;
+            }
+        }
+
+        if (isListItem && allowed.Count > 0 && allowed[0] is not AdfParagraph)
+        {
+            allowed.Insert(0, new AdfParagraph([]));
+        }
+
+        return allowed;
     }
 
     /// <summary>

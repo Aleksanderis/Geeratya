@@ -8,7 +8,7 @@ namespace Geeratya.Jira.Adf;
 /// the parser reads as syntax are escaped with a backslash; what the text cannot say (colour, sub and superscript,
 /// dates, statuses) is written as its plain text, which is why <see cref="AdfRoundTrip" /> reports such documents.
 /// </summary>
-public static class AdfMarkdownInlineWriter
+internal static class AdfMarkdownInlineWriter
 {
     public static string Write(IReadOnlyList<AdfNode> children)
     {
