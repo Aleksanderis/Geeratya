@@ -202,6 +202,8 @@ public sealed class ViewLoadHandlerBoardTests
 
         var run = fixture.Handler.StartAsync(effect);
 
+        // The switch has to land while the request is in flight, not before the background task has sent it.
+        await fixture.Http.GateReached.WaitAsync(TimeSpan.FromSeconds(30));
         await fixture.Connections.ActivateAsync(_b, 2, CancellationToken.None);
         gate.SetResult();
         await run;

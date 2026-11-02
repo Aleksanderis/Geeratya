@@ -83,11 +83,19 @@ public sealed class ConnectionCheckHandlerTests : IDisposable
     public async Task GivenCheckInFlight_WhenTheProfileIsSwitched_ThenNothingIsPosted()
     {
         var gate = new TaskCompletionSource();
-        var connections = await ConnectionsAsync(http => http.Reply(HttpStatusCode.OK, Myself, gate.Task), null);
+        ScriptedJiraHandler? script = null;
+
+        var connections = await ConnectionsAsync(
+            http =>
+            {
+                script = http.Reply(HttpStatusCode.OK, Myself, gate.Task);
+            },
+            null);
         var handler = HandlerFor(connections);
 
         var run = handler.StartAsync(new CheckConnectionEffect(_a));
 
+        await script!.GateReached.WaitAsync(TimeSpan.FromSeconds(30));
         await connections.ActivateAsync(_b, 2, CancellationToken.None);
         gate.SetResult();
         await run;
