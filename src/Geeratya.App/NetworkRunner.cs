@@ -91,6 +91,32 @@ public sealed class NetworkRunner : IDisposable
         Cancel(source);
     }
 
+    /// <summary>
+    /// Like <see cref="Start"/>, for work that belongs to no tab and that closing a tab must never cancel (a write
+    /// that was sent). Only <see cref="CancelAll"/> (a profile drop) and the shutdown cancel it. Nothing is kept
+    /// after it ends, so a long session of writes does not pile up scopes.
+    /// </summary>
+    public Task StartDetached(
+        Func<JiraServices, CancellationToken, Task<Command?>> work,
+        Func<Command?>? whenUnavailable = null)
+    {
+        var services = JiraServices.Create(_connections);
+
+        if (services is null)
+        {
+            return Unavailable(whenUnavailable);
+        }
+
+        CancellationTokenSource source;
+
+        lock (_lock)
+        {
+            source = CancellationTokenSource.CreateLinkedTokenSource(_all.Token);
+        }
+
+        return Task.Run(() => RunDetachedAsync(services, work, source), CancellationToken.None);
+    }
+
     /// <summary>Cancels all in-flight work (<c>DropSiteCacheEffect</c>); later runs start fresh.</summary>
     public void CancelAll()
     {
@@ -195,6 +221,17 @@ public sealed class NetworkRunner : IDisposable
     private bool IsObsolete(JiraServices services, CancellationToken token)
     {
         return token.IsCancellationRequested || !_connections.IsCurrent(services.Generation);
+    }
+
+    private async Task RunDetachedAsync(
+        JiraServices services,
+        Func<JiraServices, CancellationToken, Task<Command?>> work,
+        CancellationTokenSource source)
+    {
+        using (source)
+        {
+            await RunAsync(services, (owner, _, token) => work(owner, token), source.Token);
+        }
     }
 
     private async Task RunAsync(

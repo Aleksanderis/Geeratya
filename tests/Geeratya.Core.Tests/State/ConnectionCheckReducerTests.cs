@@ -61,7 +61,7 @@ public class ConnectionCheckReducerTests
 
         var result = _reducer.Reduce(checking, new ConnectionChecked(_work, _user));
 
-        Assert.Equal(new Connected("Test User 1"), result.State.Session.Connection);
+        Assert.Equal(new Connected("Test User 1", "1"), result.State.Session.Connection);
         Assert.Equal("Connected as Test User 1 on work.atlassian.net", ConnectionText.Line(result.State.Session));
     }
 
@@ -73,7 +73,7 @@ public class ConnectionCheckReducerTests
 
         var result = _reducer.Reduce(checking, new ConnectionChecked(_work, user));
 
-        Assert.Equal(new Connected("Eve [2J X "), result.State.Session.Connection);
+        Assert.Equal(new Connected("Eve [2J X ", "1"), result.State.Session.Connection);
     }
 
     [Theory]

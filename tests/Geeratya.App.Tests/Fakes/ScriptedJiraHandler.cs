@@ -12,8 +12,16 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
 {
     private readonly ConcurrentQueue<ScriptedReply> _replies = new();
     private readonly ConcurrentQueue<Uri> _requests = new();
+    private readonly ConcurrentQueue<string> _methods = new();
+    private readonly ConcurrentQueue<string> _bodies = new();
 
     public IReadOnlyCollection<Uri> Requests => _requests;
+
+    /// <summary>The HTTP method of each request, in order.</summary>
+    public IReadOnlyCollection<string> Methods => _methods;
+
+    /// <summary>The body text of each request, in order (empty when it had none).</summary>
+    public IReadOnlyCollection<string> Bodies => _bodies;
 
     public ScriptedJiraHandler Reply(HttpStatusCode status, string body, Task? gate = null)
     {
@@ -34,6 +42,16 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
         CancellationToken cancellationToken)
     {
         _requests.Enqueue(request.RequestUri!);
+        _methods.Enqueue(request.Method.Method);
+
+        var body = string.Empty;
+
+        if (request.Content is not null)
+        {
+            body = await request.Content.ReadAsStringAsync(cancellationToken);
+        }
+
+        _bodies.Enqueue(body);
 
         if (!_replies.TryDequeue(out var reply))
         {

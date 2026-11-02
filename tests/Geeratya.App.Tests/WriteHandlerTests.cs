@@ -1,0 +1,330 @@
+using System.Net;
+using Geeratya.App.Tests.Fakes;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
+using Geeratya.Core.State;
+using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
+using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
+using Geeratya.Jira.Writes.Models;
+using Geeratya.Platform;
+using Geeratya.Platform.Secrets;
+
+namespace Geeratya.App.Tests;
+
+[Trait("Os", "Independent")]
+public sealed class WriteHandlerTests
+{
+    private const string Assigned =
+        """{"issues":[{"id":"1","key":"A-1","fields":{"summary":"One","assignee":{"accountId":"acc-1","displayName":"Eve"}}}],"isLast":true}""";
+
+    private const string StillOther =
+        """{"issues":[{"id":"1","key":"A-1","fields":{"summary":"One","assignee":{"accountId":"acc-9","displayName":"Bob"}}}],"isLast":true}""";
+
+    private const string Unassigned =
+        """{"issues":[{"id":"1","key":"A-1","fields":{"summary":"One"}}],"isLast":true}""";
+
+    private const string Refused = """{"errorMessages":["User cannot be assigned"],"errors":{}}""";
+
+    private static readonly Profile _a = new("a", "https://a.atlassian.net", "me@a.test");
+    private static readonly Profile _b = new("b", "https://b.atlassian.net", "me@b.test");
+    private static readonly IssueAssignee _eve = new("acc-1", "Eve");
+    private static readonly AssignRequest _assign = new("A-1", _eve);
+
+    [Fact]
+    public async Task GivenAcceptedAssign_WhenExecuting_ThenOneWriteThenOneReadAndTheServerRowIsPosted()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, Assigned));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        var succeeded = Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Equal(41, succeeded.OperationId);
+        Assert.Equal("acc-1", Assert.Single(succeeded.Rows).Assignee!.AccountId);
+        Assert.Equal(["PUT", "GET"], fixture.Http.Methods);
+        Assert.EndsWith("/rest/api/3/issue/A-1/assignee", fixture.Http.Requests.First().AbsolutePath);
+        Assert.Contains("acc-1", fixture.Http.Bodies.First());
+        Assert.Contains("key in (A-1)", Uri.UnescapeDataString(fixture.Http.Requests.Last().Query.Replace('+', ' ')));
+    }
+
+    [Fact]
+    public async Task GivenAcceptedAssignButLaggingRead_WhenExecuting_ThenTheStaleRowIsNotPassedOn()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, StillOther));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        var succeeded = Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Empty(succeeded.Rows);
+    }
+
+    [Fact]
+    public async Task GivenAcceptedAssignButFailedRead_WhenExecuting_ThenItIsStillASuccessWithNoRows()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, "")
+            .Reply(HttpStatusCode.InternalServerError, ""));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        Assert.Empty(Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted)).Rows);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, WriteErrorKind.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, WriteErrorKind.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden, WriteErrorKind.Permission)]
+    [InlineData(HttpStatusCode.NotFound, WriteErrorKind.NotFound)]
+    [InlineData(HttpStatusCode.TooManyRequests, WriteErrorKind.RateLimited)]
+    public async Task GivenARefusedWrite_WhenExecuting_ThenItFailsDefinitelyAndNothingIsRead(
+        HttpStatusCode status,
+        WriteErrorKind kind)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(status, Refused));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(kind, failed.Error.Kind);
+        Assert.False(failed.Error.IsOutcomeUnknown);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    public async Task GivenALostReply_WhenExecuting_ThenTheOutcomeIsUnknownAndTheWriteIsNotRepeated(
+        HttpStatusCode status)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(status, "").Reply(HttpStatusCode.NoContent, ""), 3);
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        var unknown = Assert.IsType<WriteOutcomeUnknown>(Assert.Single(fixture.Posted));
+        Assert.True(unknown.Error.IsOutcomeUnknown);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenNoConnection_WhenExecuting_ThenTheWriteFailsAsNotSent()
+    {
+        using var fixture = Disconnected();
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.NotSent, failed.Error.Kind);
+        Assert.Equal(41, failed.OperationId);
+    }
+
+    [Fact]
+    public async Task GivenWriteInFlight_WhenTheProfileIsSwitched_ThenTheReplyIsNeverPosted()
+    {
+        var gate = new TaskCompletionSource();
+
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, "", gate.Task));
+
+        var run = fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        await fixture.Connections.ActivateAsync(_b, 2, CancellationToken.None);
+        gate.SetResult();
+        await run;
+
+        Assert.Empty(fixture.Posted);
+    }
+
+    [Fact]
+    public async Task GivenWriteInFlight_WhenTheTabScopeIsCancelled_ThenTheWriteStillFinishes()
+    {
+        var gate = new TaskCompletionSource();
+
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, "", gate.Task)
+            .Reply(HttpStatusCode.OK, Assigned));
+
+        var run = fixture.Handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+
+        // The tab that started the write was closed (any tab id, and the operation id itself).
+        fixture.Runner.CancelScope(41);
+        fixture.Runner.CancelScope(3);
+        gate.SetResult();
+        await run;
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+    }
+
+    [Theory]
+    [InlineData(Assigned, VerifyOutcome.Applied)]
+    [InlineData(StillOther, VerifyOutcome.NotApplied)]
+    [InlineData(Unassigned, VerifyOutcome.NotApplied)]
+    public async Task GivenALostReply_WhenVerifying_ThenTheIssueDecidesAppliedOrNot(string body, VerifyOutcome expected)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, body));
+
+        await fixture.Handler.StartAsync(new VerifyWriteEffect(41, _assign));
+
+        var verified = Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted));
+        Assert.Equal(expected, verified.Outcome);
+        Assert.Equal(41, verified.OperationId);
+        Assert.Equal(["GET"], fixture.Http.Methods);
+    }
+
+    [Fact]
+    public async Task GivenTheCheckCannotRead_WhenVerifying_ThenItIsUnreachable()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.InternalServerError, ""));
+
+        await fixture.Handler.StartAsync(new VerifyWriteEffect(41, _assign));
+
+        Assert.Equal(VerifyOutcome.Unreachable, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
+    [Fact]
+    public async Task GivenTheIssueIsGone_WhenVerifying_ThenItIsUnreachableNotApplied()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+
+        await fixture.Handler.StartAsync(new VerifyWriteEffect(41, _assign));
+
+        Assert.Equal(VerifyOutcome.Unreachable, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenAssigningToMe_ThenTheRowIsOptimisticThenServerTruth()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, Assigned));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = OpenTab(reducer);
+        var tab = state.Session.Tabs[0].Id;
+
+        var started = reducer.Reduce(state, new AssignToMeRequested(tab, "A-1", DateTimeOffset.UnixEpoch));
+        var optimistic = started.State.Session.Tabs[0].Rows[0].Assignee;
+        var busy = reducer.Reduce(started.State, new AssignToMeRequested(tab, "A-1", DateTimeOffset.UnixEpoch));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(started.Effects)));
+        var finished = reducer.Reduce(started.State, Assert.Single(fixture.Posted));
+
+        Assert.Equal(_eve, optimistic);
+        Assert.Equal("A-1 is busy (assigning)", busy.State.Message);
+        Assert.Empty(finished.State.Session.Operations);
+        Assert.Equal("Assigned A-1 to Eve", finished.State.Message);
+        Assert.Equal(_eve, finished.State.Session.Tabs[0].Rows[0].Assignee);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenTheWriteIsForbidden_ThenTheRowGoesBackAndTheReasonIsShown()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Forbidden, Refused));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = OpenTab(reducer);
+
+        var tab = state.Session.Tabs[0].Id;
+
+        var started = reducer.Reduce(state, new AssignToMeRequested(tab, "A-1", DateTimeOffset.UnixEpoch));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(started.Effects)));
+        var failed = reducer.Reduce(started.State, Assert.Single(fixture.Posted));
+
+        Assert.Null(failed.State.Session.Tabs[0].Rows[0].Assignee);
+        Assert.Empty(failed.State.Session.Operations);
+        Assert.Equal("No permission to assign A-1: User cannot be assigned", failed.State.Message);
+    }
+
+    private static AppState OpenTab(AppReducer reducer)
+    {
+        var profiles = ProfileCatalog.Empty.With(_a);
+        var start = AppState.Initial with
+        {
+            Profiles = profiles,
+            Session = SiteSession.Empty(_a) with { Connection = new Connected("Eve", "acc-1") },
+        };
+
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "A");
+        var opened = reducer.Reduce(start, new ViewOpenRequested(definition)).State;
+        var tab = opened.Session.Tabs[0];
+        var page = new IssuePage([Row()], null, null);
+
+        return reducer.Reduce(opened, new ViewPageLoaded(tab.Id, tab.RequestId, page, DateTimeOffset.UnixEpoch)).State;
+    }
+
+    private static IssueSummary Row()
+    {
+        return new IssueSummary(
+            "1",
+            "A-1",
+            "One",
+            new IssueStatus("1", "To Do", "new"),
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            [],
+            null,
+            null,
+            "A");
+    }
+
+    private static Fixture Disconnected()
+    {
+        var connections = new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
+
+        return new Fixture(connections, new ScriptedJiraHandler());
+    }
+
+    private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script, int maxRetries = 0)
+    {
+        var http = new ScriptedJiraHandler();
+        var store = new FakeSecretStore();
+
+        script(http);
+        await store.SetAsync(_a.CredentialKey, "token-a", CancellationToken.None);
+        await store.SetAsync(_b.CredentialKey, "token-b", CancellationToken.None);
+
+        var options = new JiraTransportOptions
+        {
+            MaxRetries = maxRetries,
+            Delay = (_, _) => Task.CompletedTask,
+            Jitter = () => 0.5,
+        };
+
+        var connections = new SiteConnections(
+            new TokenProvider(store, new EnvironmentReader(_ => null)),
+            new FakeTransportFactory(http, options));
+
+        await connections.ActivateAsync(_a, 2, CancellationToken.None);
+
+        return new Fixture(connections, http);
+    }
+
+    private sealed class Fixture : IDisposable
+    {
+        public Fixture(SiteConnections connections, ScriptedJiraHandler http)
+        {
+            Connections = connections;
+            Http = http;
+            Runner = new NetworkRunner(connections, new ListCommandSink(Posted), CancellationToken.None);
+            Handler = new WriteHandler(Runner);
+        }
+
+        public SiteConnections Connections { get; }
+
+        public ScriptedJiraHandler Http { get; }
+
+        public NetworkRunner Runner { get; }
+
+        public WriteHandler Handler { get; }
+
+        public List<Command> Posted { get; } = [];
+
+        public void Dispose()
+        {
+            Runner.Dispose();
+            Connections.Dispose();
+        }
+    }
+}

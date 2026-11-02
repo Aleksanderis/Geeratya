@@ -14,8 +14,11 @@ public sealed record Unchecked : ConnectionState;
 /// <summary>A check is in flight.</summary>
 public sealed record Checking : ConnectionState;
 
-/// <summary>Jira accepted the credentials; <paramref name="DisplayName"/> is the account's display name.</summary>
-public sealed record Connected(string DisplayName) : ConnectionState;
+/// <summary>
+/// Jira accepted the credentials; <paramref name="DisplayName"/> is the account's display name and
+/// <paramref name="AccountId"/> its Jira account id (what "assign to me" sends), null when not known.
+/// </summary>
+public sealed record Connected(string DisplayName, string? AccountId = null) : ConnectionState;
 
 /// <summary>The check failed for <paramref name="Kind"/>; <paramref name="Hint"/> is the one-line text to show.</summary>
 public sealed record ConnectionCheckFailure(ConnectionFailureKind Kind, string Hint) : ConnectionState;

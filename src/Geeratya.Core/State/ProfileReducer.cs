@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
 
@@ -13,6 +14,7 @@ namespace Geeratya.Core.State;
 public static class ProfileReducer
 {
     public const string RemoveAction = "profile.remove";
+    public const string SwitchAction = "profile.switch";
 
     private const string AddVerb = "add";
     private const string ListVerb = "list";
@@ -163,7 +165,8 @@ public static class ProfileReducer
             return Plain(state);
         }
 
-        var checkedState = SetConnection(state, new Connected(ConnectionText.Sanitize(connected.User.DisplayName)));
+        var name = ConnectionText.Sanitize(connected.User.DisplayName);
+        var checkedState = SetConnection(state, new Connected(name, connected.User.AccountId));
 
         // Working credentials end the "rejected" stop of the automatic refresh.
         if (checkedState.Session.Link is Rejected)
@@ -229,7 +232,13 @@ public static class ProfileReducer
             [new RemoveProfileEffect(profile, !shared, catalog, state.Profiles.ActiveName == profile.Name)]);
     }
 
-    private static ReduceResult Switch(AppState state, string name)
+    /// <summary>Runs the switch the user confirmed while writes were running.</summary>
+    public static ReduceResult ConfirmedSwitch(AppState state, string? target)
+    {
+        return Switch(state, target ?? string.Empty, confirmed: true);
+    }
+
+    private static ReduceResult Switch(AppState state, string name, bool confirmed = false)
     {
         var profile = state.Profiles.Find(name);
 
@@ -241,6 +250,15 @@ public static class ProfileReducer
         if (state.Profiles.ActiveName == profile.Name)
         {
             return Plain(Say(state, $"{profile.Name} is already the active profile."));
+        }
+
+        if (!confirmed && WriteReducer.RunningText(state) is { } running)
+        {
+            var question = $"{running}. Switch to {profile.Name} anyway?";
+
+            var request = new ConfirmRequest(question, SwitchAction, profile.Name);
+
+            return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
         }
 
         var message = $"Switched to {profile.Name} ({profile.SiteUrl}).";

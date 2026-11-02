@@ -347,6 +347,50 @@ public sealed class SiteCacheTests : IDisposable
         Assert.True(caches.Delete(new Profile("a", "https://a.atlassian.net", "me@a.test")));
     }
 
+    [Fact]
+    public void GivenFlushedViews_WhenViewsAreRemoved_ThenTheyMissAtOnceAndTheFilesGoWithTheNextFlush()
+    {
+        var folder = Path.Combine(_root, "p");
+        var other = new CacheKey(ViewSourceKind.SavedFilter, "10001");
+        using var cache = new SiteCache(folder);
+        cache.Put(_key, new CachedView([Issue(1)], null, _saved));
+        cache.Put(other, new CachedView([Issue(2)], null, _saved));
+        cache.Flush();
+
+        cache.RemoveViews();
+
+        Assert.Null(cache.Get(_key));
+        Assert.Null(cache.Get(other));
+        Assert.True(File.Exists(Path.Combine(folder, SiteCache.ViewFileName(_key))));
+
+        cache.Flush();
+
+        Assert.False(File.Exists(Path.Combine(folder, SiteCache.ViewFileName(_key))));
+        Assert.False(File.Exists(Path.Combine(folder, SiteCache.ViewFileName(other))));
+        using var reader = new SiteCache(folder);
+        Assert.Null(reader.Get(_key));
+    }
+
+    [Fact]
+    public void GivenRemovedViews_WhenOneIsCachedAgainBeforeTheFlush_ThenOnlyTheNewOneSurvives()
+    {
+        var folder = Path.Combine(_root, "p");
+        var other = new CacheKey(ViewSourceKind.SavedFilter, "10001");
+        using var cache = new SiteCache(folder);
+        cache.Put(_key, new CachedView([Issue(1)], null, _saved));
+        cache.Put(other, new CachedView([Issue(2)], null, _saved));
+        cache.Flush();
+
+        cache.RemoveViews();
+        cache.Put(_key, new CachedView([Issue(3)], null, _saved));
+        cache.Flush();
+
+        using var reader = new SiteCache(folder);
+        Assert.Equal(["A-3"], reader.Get(_key)!.Rows.Select(row => row.Key));
+        Assert.Null(reader.Get(other));
+    }
+
+
     public void Dispose()
     {
         _shared?.Dispose();

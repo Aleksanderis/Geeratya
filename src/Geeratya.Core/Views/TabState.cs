@@ -62,6 +62,18 @@ public sealed record TabState(
     public IReadOnlyList<DetailState> Detail { get; init; } = [];
 
     /// <summary>
+    /// The refresh key was pressed while a write ran: the refresh starts when the last operation ends
+    /// (<c>docs/architecture.md</c>, "Write pipeline").
+    /// </summary>
+    public bool RefreshQueued { get; init; }
+
+    /// <summary>
+    /// Issues whose write ended while this tab's load was in flight: the load may have started before the write, so
+    /// its reply keeps the tab's own rows for these keys. Cleared when the load ends.
+    /// </summary>
+    public IReadOnlyList<string> ProtectedKeys { get; init; } = [];
+
+    /// <summary>
     /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the
     /// approximate-count call of a JQL source. Null while unknown (the header then reads <c>N+</c>).
     /// </summary>
