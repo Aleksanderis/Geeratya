@@ -9,6 +9,7 @@ using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
+[Trait("Os", "Independent")]
 public class TabBarFrameTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();

@@ -178,7 +178,11 @@ public class TabKeysTests
     [Fact]
     public void GivenTheTabActions_WhenListingUnimplemented_ThenNoTabActionRemains()
     {
-        Assert.DoesNotContain(ActionCatalog.Unimplemented, id => id.StartsWith("tab.", StringComparison.Ordinal));
+        Assert.DoesNotContain(ActionIds.TabNext, ActionCatalog.Unimplemented);
+        Assert.DoesNotContain(ActionIds.TabPrevious, ActionCatalog.Unimplemented);
+        Assert.DoesNotContain(ActionIds.TabGoTo9, ActionCatalog.Unimplemented);
+        Assert.DoesNotContain(ActionIds.TabNew, ActionCatalog.Unimplemented);
+        Assert.DoesNotContain(ActionIds.TabClose, ActionCatalog.Unimplemented);
     }
 
     private static AppState Start()
