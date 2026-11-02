@@ -15,10 +15,8 @@ internal static class CommentMapper
 
         foreach (var comment in page.Comments ?? [])
         {
-            if (comment is not null)
-            {
-                items.Add(Map(comment));
-            }
+            // A null entry becomes an empty comment so the item count stays the count Jira paged by.
+            items.Add(Map(comment ?? new CommentWire.Comment(null, null, null, null, null)));
         }
 
         var startAt = page.StartAt ?? requestedStartAt;

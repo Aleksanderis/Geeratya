@@ -24,6 +24,7 @@ public sealed class CommentClientTests
         Assert.Equal(3, page.Total);
         var first = page.Items[0];
         Assert.Equal("10010", first.Id);
+        Assert.Equal(first.Created, first.Updated);
         Assert.Equal("Test User 1", first.Author?.DisplayName);
         Assert.Equal(new DateTimeOffset(2026, 11, 1, 18, 0, 0, TimeSpan.FromHours(2)), first.Created);
         var paragraph = Assert.IsType<AdfParagraph>(Assert.Single(first.Body.Content));
@@ -101,7 +102,7 @@ public sealed class CommentClientTests
     public async Task GivenEmptyPageWhileTotalIsLarger_WhenGetting_ThenPageIsLast()
     {
         const string json = """{"startAt": 5, "maxResults": 100, "total": 50, "comments": []}""";
-        using var fixture = Serving(GcmPath, json, true);
+        using var fixture = Serving(GcmPath, json, isJson: true);
 
         var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-6", 5, CancellationToken.None);
 
@@ -109,16 +110,18 @@ public sealed class CommentClientTests
     }
 
     [Fact]
-    public async Task GivenOddEntries_WhenGetting_ThenNullEntriesAreSkippedAndMissingFieldsAreNeutral()
+    public async Task GivenOddEntries_WhenGetting_ThenNullEntryKeepsItsSlotAndMissingFieldsAreNeutral()
     {
         const string json = """
             {"total": 2, "comments": [null, {"id": "7", "body": "not an object", "created": "garbage"}]}
             """;
-        using var fixture = Serving(GcmPath, json, true);
+        using var fixture = Serving(GcmPath, json, isJson: true);
 
         var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-6", 0, CancellationToken.None);
 
-        var comment = Assert.Single(result.Value.Items);
+        Assert.Equal(2, result.Value.Items.Count);
+        Assert.True(result.Value.IsLast);
+        var comment = result.Value.Items[1];
         Assert.Equal("7", comment.Id);
         Assert.Null(comment.Author);
         Assert.Null(comment.Created);

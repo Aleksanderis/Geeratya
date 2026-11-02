@@ -53,8 +53,11 @@ public sealed class RemoteLinkClientTests
     [Fact]
     public async Task GivenEntriesWithoutUrl_WhenGetting_ThenTheyAreSkipped()
     {
-        const string json = """[null, {"id": 1}, {"id": 2, "object": {"title": "x"}}, {"id": 3, "object": {"url": "https://a.test"}}]""";
-        using var fixture = Serving(GcmPath, json, true);
+        const string json = """
+            [null, {"id": 1}, {"id": 2, "object": {"title": "x"}},
+             {"id": 3, "object": {"url": "https://a.test"}}]
+            """;
+        using var fixture = Serving(GcmPath, json, isJson: true);
 
         var result = await new RemoteLinkClient(fixture.Transport).GetRemoteLinksAsync("GCM-6", CancellationToken.None);
 
