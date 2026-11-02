@@ -22,13 +22,22 @@ public sealed class StartBodyRenderer : IBodyRenderer
         var hints = string.Join(HintGap, StatusBar.HintsFor(InputMode.Normal, context.Keymap));
         var hint = Center(hints, width, TextRole.Muted);
 
-        if (height >= BlockHeight)
+        var connection = ConnectionText.Line(state.Session);
+        var blockHeight = connection.Length == 0 ? BlockHeight : BlockHeight + 1;
+
+        if (height >= blockHeight)
         {
-            var top = (height - BlockHeight) / 2;
+            var top = (height - blockHeight) / 2;
 
             lines[top] = Center(Title, width, TextRole.Heading);
             lines[top + 1] = Center(ProfileLine(state, context.Keymap), width, TextRole.Body);
-            lines[top + 2] = hint;
+
+            if (connection.Length > 0)
+            {
+                lines[top + 2] = Center(connection, width, ConnectionRole(state.Session.Connection));
+            }
+
+            lines[top + blockHeight - 1] = hint;
         }
         else if (height > 0)
         {
@@ -36,6 +45,16 @@ public sealed class StartBodyRenderer : IBodyRenderer
         }
 
         return lines;
+    }
+
+    private static TextRole ConnectionRole(ConnectionState connection)
+    {
+        return connection switch
+        {
+            ConnectionCheckFailure => TextRole.Error,
+            Checking => TextRole.Muted,
+            _ => TextRole.Body,
+        };
     }
 
     private static string ProfileLine(AppState state, KeymapTable keymap)

@@ -40,6 +40,15 @@ Reading the key-to-frame figure (ad hoc checks, not committed and not reproducib
 
 Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed loop, command in the PR), list scrolling, ADF rendering of the longest recorded description, memory (RSS) after opening a 10k list. Record binary type, dataset size, injected latency, median and p95.
 
+### Local cache (#82)
+
+| Measurement (ms) | Median | p95 | Budget |
+|---|---|---|---|
+| Cold start to first frame, Native AOT, with the cache wired in (20 sessions, load 11 on 14 cores) | 33 | 44 | under 100 |
+| tmux floor | 3 | 14 | n/a |
+
+Nothing is read from the cache before the first frame: the cache is opened lazily when a view is opened, so the start path is unchanged (before #82: 43 / 63 on an equally busy machine). The saving of a cache hit (rows drawn before the network answers) is tested with a gated fake reply (`ViewLoadHandlerCacheTests`), not timed; no screen opens a view yet (#79), so the end-to-end "second start" figure is registered for #91. Memory: at most 32 views times 100 rows in memory per profile (about 50 KB a view), 20 MB on disk; the RSS delta is not measured.
+
 ### List scrolling (#79)
 
 | Path | Binary | Dataset | Median | p95 |

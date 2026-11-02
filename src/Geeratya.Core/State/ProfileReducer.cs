@@ -18,8 +18,9 @@ public static class ProfileReducer
     private const string ListVerb = "list";
     private const string SwitchVerb = "switch";
     private const string RemoveVerb = "remove";
+    private const string CheckVerb = "check";
     private const string BusyMessage = "Still saving the previous profile change; try again in a moment.";
-    private const string Usage = "Usage: profile add | list | switch <name> | remove <name>";
+    private const string Usage = "Usage: profile add | list | switch <name> | remove <name> | check";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -47,6 +48,7 @@ public static class ProfileReducer
             "" or ListVerb => Plain(Say(state, List(state.Profiles))),
             SwitchVerb => Switch(state, name),
             RemoveVerb => AskRemove(state, name),
+            CheckVerb => CheckConnection(state, announce: true),
             _ => Plain(Say(state, Usage)),
         };
     }
@@ -123,19 +125,72 @@ public static class ProfileReducer
         }
 
         var replaced = next with { Session = SiteSession.Empty(current) };
+        var effects = new List<Effect>();
 
-        if (previous is null)
+        if (previous is not null)
         {
-            return Plain(replaced);
+            effects.Add(new DropSiteCacheEffect(previous));
         }
 
-        return new ReduceResult(replaced, [new DropSiteCacheEffect(previous)]);
+        if (current is not null)
+        {
+            replaced = SetConnection(replaced, new Checking());
+            effects.Add(new CheckConnectionEffect(current));
+        }
+
+        return new ReduceResult(replaced, effects);
+    }
+
+    /// <summary>
+    /// Starts the credential check of the active profile. <paramref name="announce"/> is true for the palette
+    /// command, which says so when there is no profile; the start-up request stays silent.
+    /// </summary>
+    public static ReduceResult CheckConnection(AppState state, bool announce)
+    {
+        if (state.Profiles.Active is not { } profile)
+        {
+            return Plain(announce ? Say(state, "No profile yet: add one with :profile add.") : state);
+        }
+
+        return new ReduceResult(SetConnection(state, new Checking()), [new CheckConnectionEffect(profile)]);
+    }
+
+    /// <summary>A success for a profile that is no longer active is dropped.</summary>
+    public static ReduceResult ConnectionChecked(AppState state, ConnectionChecked connected)
+    {
+        if (connected.Profile != state.Profiles.Active)
+        {
+            return Plain(state);
+        }
+
+        return Plain(SetConnection(state, new Connected(ConnectionText.Sanitize(connected.User.DisplayName))));
+    }
+
+    /// <summary>A failure for a profile that is no longer active is dropped.</summary>
+    public static ReduceResult ConnectionCheckFailed(AppState state, ConnectionCheckFailed failed)
+    {
+        if (failed.Profile != state.Profiles.Active)
+        {
+            return Plain(state);
+        }
+
+        return Plain(SetConnection(state, ConnectionText.Failure(failed.Error, failed.Profile.SiteUrl)));
+    }
+
+    private static AppState SetConnection(AppState state, ConnectionState connection)
+    {
+        return state with { Session = state.Session with { Connection = connection } };
     }
 
     /// <summary>A reply for a profile that is no longer active is dropped.</summary>
     public static ReduceResult ConnectionFailed(AppState state, ConnectionFailed failed)
     {
-        return failed.Profile == state.Profiles.Active ? Plain(state with { Message = failed.Message }) : Plain(state);
+        if (failed.Profile != state.Profiles.Active)
+        {
+            return Plain(state);
+        }
+
+        return Plain(SetConnection(state, ConnectionText.Setup(failed.Message)) with { Message = failed.Message });
     }
 
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)

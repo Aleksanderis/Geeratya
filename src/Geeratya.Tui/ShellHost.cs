@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -33,6 +34,7 @@ public sealed class ShellHost : IDisposable
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
+    private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
@@ -48,10 +50,13 @@ public sealed class ShellHost : IDisposable
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
+        profiles.Caches.WriteFailed += OnCacheWriteFailed;
     }
 
     public void Dispose()
     {
+        _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+        _profiles.Caches.Dispose();
         _network?.Dispose();
         _connections.Dispose();
     }
@@ -66,6 +71,7 @@ public sealed class ShellHost : IDisposable
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
+        _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
         _application = application;
         application.Init();
@@ -85,9 +91,10 @@ public sealed class ShellHost : IDisposable
         screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
         screen.Render(_state);
         Dispatch(new ViewportChanged(screen.BodyRows));
-        _ = ConnectAsync();
+        Dispatch(new ConnectionCheckRequested());
         application.Run(screen);
         shutdown.Cancel();
+        _profiles.Caches.FlushAll();
 
         return 0;
     }
@@ -132,6 +139,8 @@ public sealed class ShellHost : IDisposable
         _state = result.State;
         _screen!.Render(_state);
 
+        var checks = new List<CheckConnectionEffect>();
+
         foreach (var effect in result.Effects)
         {
             if (effect is QuitEffect)
@@ -140,8 +149,8 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is DropSiteCacheEffect drop)
             {
-                // The cache drop (#82) hooks in here too.
                 _network!.CancelAll();
+                _profiles.Caches.Drop(drop.Profile);
                 _connections.Drop(drop.Profile);
             }
             else if (effect is CancelTabEffect cancel)
@@ -150,7 +159,15 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is LoadViewPageEffect load)
             {
-                _ = _viewLoads!.StartAsync(load);
+                _ = _viewLoads!.StartAsync(load, ActiveCache());
+            }
+            else if (effect is WriteCacheEffect write)
+            {
+                ActiveCache()?.Put(write.Key, write.View);
+            }
+            else if (effect is CheckConnectionEffect check)
+            {
+                checks.Add(check);
             }
             else
             {
@@ -158,7 +175,32 @@ public sealed class ShellHost : IDisposable
             }
         }
 
+        if (checks.Count > 0 || command is ProfilesChanged)
+        {
+            // A check or a profile change (a token stored again) retries a failed profile; the failure reply must not.
+            _connections.RetryFailed();
+        }
+
         _ = ConnectAsync();
+
+        // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
+        foreach (var check in checks)
+        {
+            _ = _connectionChecks!.StartAsync(check);
+        }
+    }
+
+    /// <summary>The cache of the active profile, or null while there is none.</summary>
+    private SiteCache? ActiveCache()
+    {
+        var profile = _state.Profiles.Active;
+
+        return profile is null ? null : _profiles.Caches.For(profile);
+    }
+
+    private void OnCacheWriteFailed(string notice)
+    {
+        Post(new CacheWriteFailed(notice));
     }
 
     /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
