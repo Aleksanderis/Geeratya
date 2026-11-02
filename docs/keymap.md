@@ -98,6 +98,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands
 

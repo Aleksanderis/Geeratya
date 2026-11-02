@@ -14,7 +14,7 @@ A · 1 issue
           │   Team  (edit in browser)                                                                        │          
           │     https://work.atlassian.net/browse/A-1                                                        │          
           │ ──────────────────────────────────────────────────────────────────────────────────────────────── │          
-          │ Tab/Shift-Tab field   Ctrl-s save   Esc cancel                                                   │          
+          │ Tab/Shift-Tab field   Ctrl-s save   Ctrl-o browser   Esc cancel                                  │          
           └──────────────────────────────────────────────────────────────────────────────────────────────────┘          
                                                                                                                         
                                                                                                                         
@@ -33,4 +33,4 @@ A · 1 issue
                                                                                                                         
                                                                                                                         
                                                                                                                         
- INSERT Edit A-1                                                            Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+ INSERT Edit A-1                                            Tab/Shift-Tab field  Ctrl-s save  Ctrl-o browser  Esc cancel
