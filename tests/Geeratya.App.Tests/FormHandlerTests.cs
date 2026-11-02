@@ -53,19 +53,25 @@ public sealed class FormHandlerTests
     }
 
     [Fact]
-    public async Task GivenALabelsEdit_WhenExecuted_ThenOneReplacingPutCarriesTheLabels()
+    public async Task GivenALabelsEdit_WhenExecuted_ThenOnePutCarriesOnlyTheAddsAndRemovesNotTheWholeSet()
     {
         using var fixture = await ConnectedAsync(h => h
             .Reply(HttpStatusCode.NoContent, string.Empty)
             .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
-        var change = new FieldChange("labels", FormFieldKind.Labels, FormValue.OfChosen(["a", "b"]));
+        var change = new FieldChange(
+            "labels",
+            FormFieldKind.Labels,
+            FormValue.OfChosen(["a", "b"]),
+            FormValue.OfChosen(["a", "c"]));
 
         await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [change])));
 
         Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
         Assert.Equal("PUT", fixture.Http.Methods.First());
         Assert.EndsWith("/rest/api/3/issue/A-1", fixture.Http.Requests.First().AbsolutePath);
-        Assert.Contains("\"labels\":[\"a\",\"b\"]", fixture.Http.Bodies.First().Replace(" ", string.Empty));
+        var body = fixture.Http.Bodies.First().Replace(" ", string.Empty);
+        Assert.Contains("\"update\":{\"labels\":[{\"add\":\"b\"},{\"remove\":\"c\"}]}", body);
+        Assert.DoesNotContain("\"fields\"", body);
     }
 
     [Fact]

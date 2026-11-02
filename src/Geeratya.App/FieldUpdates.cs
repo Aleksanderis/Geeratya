@@ -30,12 +30,40 @@ public static class FieldUpdates
             FormFieldKind.Date => FieldUpdate.Date(change.FieldId, Date(text)),
             FormFieldKind.DateTime => FieldUpdate.DateTime(change.FieldId, DateTime(text)),
             FormFieldKind.Select => FieldUpdate.Option(change.FieldId, first),
-            FormFieldKind.MultiSelect => FieldUpdate.Options(change.FieldId, chosen),
-            FormFieldKind.Labels => FieldUpdate.Labels(change.FieldId, chosen),
+            FormFieldKind.MultiSelect => ChangedOptions(change),
+            FormFieldKind.Labels => ChangedLabels(change),
             FormFieldKind.User => FieldUpdate.User(change.FieldId, first),
             FormFieldKind.Parent => FieldUpdate.Parent(change.FieldId, first),
             _ => throw new NotSupportedException($"The field {change.FieldId} cannot be written."),
         };
+    }
+
+    // Adds and removes leave what someone else changed since the form was opened alone; without a known initial
+    // value the whole set is the change.
+    private static FieldUpdate ChangedLabels(FieldChange change)
+    {
+        if (change.Initial is not { } initial)
+        {
+            return FieldUpdate.Labels(change.FieldId, change.Value.Chosen);
+        }
+
+        var added = change.Value.Chosen.Except(initial.Chosen).ToArray();
+        var removed = initial.Chosen.Except(change.Value.Chosen).ToArray();
+
+        return FieldUpdate.ChangeLabels(change.FieldId, added, removed);
+    }
+
+    private static FieldUpdate ChangedOptions(FieldChange change)
+    {
+        if (change.Initial is not { } initial)
+        {
+            return FieldUpdate.Options(change.FieldId, change.Value.Chosen);
+        }
+
+        var added = change.Value.Chosen.Except(initial.Chosen).ToArray();
+        var removed = initial.Chosen.Except(change.Value.Chosen).ToArray();
+
+        return FieldUpdate.ChangeOptions(change.FieldId, added, removed);
     }
 
     private static AdfDocument? RichText(string text)

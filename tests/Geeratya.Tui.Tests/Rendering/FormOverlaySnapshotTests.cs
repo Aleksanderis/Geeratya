@@ -74,6 +74,33 @@ public class FormOverlaySnapshotTests
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 
+    [Fact]
+    public void GivenManyLongLabelsAndATypedOne_WhenBuildingANarrowFrame_ThenLabelsWrapAndTheCaretStaysVisible()
+    {
+        var labels = Enumerable.Range(1, 12).Select(number => $"team-label-{number}").ToArray();
+        var field = FormField.Create("labels", "Labels", FormFieldKind.Labels, false, [])
+            .WithInitial(FormValue.OfChosen(labels)) with { Entry = "typing-now" };
+        var form = SampleForm() with { Fields = [field], Focus = 0 };
+
+        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("[team-label-12]", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("typing-now_", StringComparison.Ordinal));
+        Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
+    }
+
+    [Fact]
+    public void GivenALongTextValue_WhenFocused_ThenTheEndWithTheCaretShowsAfterAnEllipsis()
+    {
+        var field = FormField.Create("summary", "Summary", FormFieldKind.Text, false, [])
+            .WithInitial(FormValue.OfText(new string('x', 80) + "THE-END"));
+        var form = SampleForm() with { Fields = [field], Focus = 0 };
+
+        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END_", StringComparison.Ordinal));
+    }
+
     private static EditFormTarget Target()
     {
         return new EditFormTarget("A-1", new Dictionary<string, FormValue>(), false, null);

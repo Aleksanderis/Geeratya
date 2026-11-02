@@ -210,7 +210,15 @@ public static class FormEditor
 
     private static string Bounded(string text)
     {
-        return text.Length <= MaxTextLength ? text : text[..MaxTextLength];
+        if (text.Length <= MaxTextLength)
+        {
+            return text;
+        }
+
+        // Never end on half of a surrogate pair.
+        var length = char.IsHighSurrogate(text[MaxTextLength - 1]) ? MaxTextLength - 1 : MaxTextLength;
+
+        return text[..length];
     }
 
     private static string RemoveLast(string text)

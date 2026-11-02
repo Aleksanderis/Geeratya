@@ -27,7 +27,7 @@ public sealed record EditRowChange(
     public override IssueSummary Revert(IssueSummary row)
     {
         var summary = SummaryAfter is not null && row.Summary == SummaryAfter ? SummaryBefore : row.Summary;
-        var labels = LabelsAfter is not null && row.Labels.SequenceEqual(LabelsAfter) ? LabelsBefore : row.Labels;
+        var labels = LabelsAfter is not null && row.Labels.ToHashSet().SetEquals(LabelsAfter) ? LabelsBefore : row.Labels;
 
         return row with { Summary = summary, Labels = labels };
     }

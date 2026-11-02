@@ -81,7 +81,9 @@ public static class SourcePickerOverlay
 
         if (footer > 0)
         {
-            lines.Add(OverlayBox.Wall(StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted), contentWidth));
+            var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
+
+            lines.Add(OverlayBox.Wall(rule, contentWidth));
             lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
         }
 

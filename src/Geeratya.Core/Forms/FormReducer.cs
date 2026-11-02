@@ -22,7 +22,7 @@ public static class FormReducer
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary>True when the keys go to a form: Insert mode, no picker or profile form, the active tab has one.</summary>
+    /// <summary>True when the keys go to a form: Insert mode, no picker or profile form, the tab has one.</summary>
     public static bool IsOpen(AppState state)
     {
         return OpenForm(state) is not null;
@@ -65,7 +65,7 @@ public static class FormReducer
 
         if (form.DiscardPending)
         {
-            return Discarding(state, tab, key, action);
+            return Discarding(state, tab, keymap.Resolve(InputMode.Confirm, string.Empty, key).Action, action);
         }
 
         return action switch
@@ -236,14 +236,14 @@ public static class FormReducer
         return Result(Closed(state, tab) with { Message = DetachedText });
     }
 
-    private static ReduceResult Discarding(AppState state, TabState tab, string key, string? action)
+    private static ReduceResult Discarding(AppState state, TabState tab, string? answer, string? action)
     {
-        if (key == "y")
+        if (answer == ActionIds.ConfirmYes)
         {
             return Result(Closed(state, tab) with { Message = "Discarded the changes" });
         }
 
-        if (key == "n" || action == ActionIds.Cancel)
+        if (answer == ActionIds.ConfirmNo || action == ActionIds.Cancel)
         {
             return Result(Replace(state, tab, tab.Form! with { DiscardPending = false }));
         }
@@ -307,7 +307,7 @@ public static class FormReducer
 
         var changes = checkedFields
             .Where(field => field.IsChanged)
-            .Select(field => new FieldChange(field.Id, field.Kind, field.Value))
+            .Select(field => new FieldChange(field.Id, field.Kind, field.Value, field.Initial))
             .ToArray();
 
         if (changes.Length == 0)

@@ -41,6 +41,16 @@ public class EditRequestTests
         Assert.False(request.IsShownBy(Row("b")));
     }
 
+    [Fact]
+    public void GivenARowWithTheSameLabelsInAnotherOrder_WhenChecked_ThenItShowsTheEditAndTheUndoStillApplies()
+    {
+        var request = Labels("a", "b");
+        var change = request.Plan(Row("x"));
+
+        Assert.True(request.IsShownBy(Row("b", "a")));
+        Assert.Equal(["x"], change!.Revert(Row("b", "a")).Labels);
+    }
+
     private static EditRequest Labels(params string[] labels)
     {
         return new EditRequest("A-1", [new FieldChange("labels", FormFieldKind.Labels, FormValue.OfChosen(labels))]);

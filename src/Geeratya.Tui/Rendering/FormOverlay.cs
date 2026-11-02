@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Text;
@@ -44,7 +45,7 @@ public static class FormOverlay
             return body;
         }
 
-        var content = Content(form);
+        var content = Content(form, boxWidth - 4 - Indent);
         var inner = Math.Min(height - TopGap, content.Lines.Count + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
         var box = BoxLines(form, content, keymap, boxWidth, inner, footer);
@@ -145,13 +146,16 @@ public static class FormOverlay
 
         if (form.DiscardPending)
         {
-            return $"y discard   n keep editing   {cancel} keep editing";
+            var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
+            var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
+
+            return $"{yes} discard   {no}/{cancel} keep editing";
         }
 
         return $"{next}/{previous} field   {submit} save   {cancel} cancel";
     }
 
-    private static FormContent Content(FormState form)
+    private static FormContent Content(FormState form, int valueWidth)
     {
         var lines = new List<StyledLine>();
         var focusStart = 0;
@@ -161,7 +165,7 @@ public static class FormOverlay
 
         for (var index = 0; index < form.Fields.Count; index++)
         {
-            var block = Block(form, index);
+            var block = Block(form, index, valueWidth);
 
             if (index == form.Focus)
             {
@@ -198,7 +202,7 @@ public static class FormOverlay
         }
     }
 
-    private static List<StyledLine> Block(FormState form, int index)
+    private static List<StyledLine> Block(FormState form, int index, int valueWidth)
     {
         var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
@@ -208,7 +212,7 @@ public static class FormOverlay
         var role = focused ? TextRole.Strong : TextRole.FieldLabel;
         var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}", role) };
 
-        lines.AddRange(ValueLines(field, focused, form.BrowserUrl));
+        lines.AddRange(ValueLines(field, focused, form.BrowserUrl, valueWidth));
 
         if (field.Error is not null)
         {
@@ -218,7 +222,7 @@ public static class FormOverlay
         return lines;
     }
 
-    private static List<StyledLine> ValueLines(FormField field, bool focused, string? browserUrl)
+    private static List<StyledLine> ValueLines(FormField field, bool focused, string? browserUrl, int valueWidth)
     {
         if (!field.IsEditable)
         {
@@ -227,21 +231,40 @@ public static class FormOverlay
 
         return field.Kind switch
         {
-            FormFieldKind.Paragraph => ParagraphLines(field, focused),
+            FormFieldKind.Paragraph => ParagraphLines(field, focused, valueWidth),
             FormFieldKind.Select or FormFieldKind.MultiSelect => focused ? OptionLines(field) : [ChosenLine(field)],
-            FormFieldKind.Labels => [LabelsLine(field, focused)],
-            _ => [TextLine(field, focused)],
+            FormFieldKind.Labels => LabelLines(field, focused, valueWidth),
+            _ => [TextLine(field, focused, valueWidth)],
         };
     }
 
-    private static StyledLine TextLine(FormField field, bool focused)
+    private static StyledLine TextLine(FormField field, bool focused, int valueWidth)
     {
         var text = field.Value.Text.Length == 0 && !focused ? EmptyText : field.Value.Text;
 
-        return Indented($"{text}{(focused ? Caret : string.Empty)}", TextRole.Editable);
+        return Indented(focused ? Tail($"{text}{Caret}", valueWidth) : text, TextRole.Editable);
     }
 
-    private static List<StyledLine> ParagraphLines(FormField field, bool focused)
+    /// <summary>The end of the text that fits, so the caret stays in view; a cut text starts with an ellipsis.</summary>
+    private static string Tail(string text, int width)
+    {
+        if (TextWidth.Of(text) <= width || width < 2)
+        {
+            return text;
+        }
+
+        var starts = StringInfo.ParseCombiningCharacters(text);
+        var start = starts.Length;
+
+        while (start > 0 && TextWidth.Of(text[starts[start - 1]..]) + 1 <= width)
+        {
+            start--;
+        }
+
+        return $"…{text[(start < starts.Length ? starts[start] : text.Length)..]}";
+    }
+
+    private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
     {
         var rows = field.Value.Text.Split('\n');
         string[] shown = focused ? [.. rows.TakeLast(ParagraphRows)] : [rows[0]];
@@ -252,7 +275,9 @@ public static class FormOverlay
             var last = index == shown.Length - 1;
             var text = shown[index].Length == 0 && !focused ? EmptyText : shown[index];
 
-            lines.Add(Indented($"{text}{(focused && last ? Caret : string.Empty)}", TextRole.Editable));
+            var shownText = focused && last ? Tail($"{text}{Caret}", valueWidth) : text;
+
+            lines.Add(Indented(shownText, TextRole.Editable));
         }
 
         if (!focused && rows.Length > 1)
@@ -270,16 +295,40 @@ public static class FormOverlay
         return Indented(labels.Length == 0 ? EmptyText : string.Join(", ", labels), TextRole.Editable);
     }
 
-    private static StyledLine LabelsLine(FormField field, bool focused)
+    /// <summary>The labels as tokens wrapped to the box; the buffer being typed ends the last line, caret in view.</summary>
+    private static List<StyledLine> LabelLines(FormField field, bool focused, int valueWidth)
     {
         var tokens = field.Value.Chosen.Select(label => $"[{label}]").ToList();
 
         if (focused)
         {
-            tokens.Add($"{field.Entry}{Caret}");
+            tokens.Add(Tail($"{field.Entry}{Caret}", valueWidth));
         }
 
-        return Indented(tokens.Count == 0 ? EmptyText : string.Join(' ', tokens), TextRole.Editable);
+        if (tokens.Count == 0)
+        {
+            return [Indented(EmptyText, TextRole.Editable)];
+        }
+
+        var rows = new List<string>();
+        var current = string.Empty;
+
+        foreach (var token in tokens)
+        {
+            var joined = current.Length == 0 ? token : $"{current} {token}";
+
+            if (current.Length > 0 && TextWidth.Of(joined) > valueWidth)
+            {
+                rows.Add(current);
+                joined = token;
+            }
+
+            current = joined;
+        }
+
+        rows.Add(current);
+
+        return [.. rows.Select(row => Indented(row, TextRole.Editable))];
     }
 
     private static List<StyledLine> OptionLines(FormField field)
@@ -313,10 +362,20 @@ public static class FormOverlay
     private static StyledLine OptionLine(FormField field, FieldOption option, bool highlighted)
     {
         var chosen = field.Value.Chosen.Contains(option.Id) || (option.Id.Length == 0 && field.Value.Chosen.Count == 0);
-        var mark = field.Kind == FormFieldKind.MultiSelect ? (chosen ? "[x]" : "[ ]") : (chosen ? "(x)" : "( )");
+        var mark = MarkOf(field.Kind, chosen);
         var pointer = highlighted ? ">" : " ";
 
         return Indented($"{pointer} {mark} {option.Label}", highlighted ? TextRole.Selected : TextRole.Body);
+    }
+
+    private static string MarkOf(FormFieldKind kind, bool chosen)
+    {
+        if (kind == FormFieldKind.MultiSelect)
+        {
+            return chosen ? "[x]" : "[ ]";
+        }
+
+        return chosen ? "(x)" : "( )";
     }
 
     private static string LabelOf(FormField field, string id)

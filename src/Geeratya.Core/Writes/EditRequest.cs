@@ -5,8 +5,9 @@ namespace Geeratya.Core.Writes;
 
 /// <summary>
 /// Change fields of <paramref name="Key"/> (the form's edit target). Jira applies all of it or none, so one shown
-/// field proves the whole write. The row patch covers the fields a list row shows (summary, labels); the other fields
-/// are verified only through those, so a write without any of them cannot be verified by a read.
+/// field proves the whole write. The row patch covers the fields a list row shows (summary, labels; labels are a set,
+/// so their order is ignored); the other fields are verified only through those, so a write without any of them
+/// cannot be verified by a read: after a lost reply its check ends as "could not check", never as "not applied".
 /// </summary>
 public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes) : WriteRequest
 {
@@ -50,7 +51,7 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes)
         }
 
         var summaryShown = summary is null || row.Summary == summary;
-        var labelsShown = labels is null || row.Labels.SequenceEqual(labels);
+        var labelsShown = labels is null || row.Labels.ToHashSet().SetEquals(labels);
 
         return summaryShown && labelsShown;
     }
