@@ -421,8 +421,8 @@ public static class FormOverlay
         var width = Math.Max(1, valueWidth - 2 - PopupMargin);
         var margin = new string(' ', PopupMargin);
         var lines = new List<StyledLine>();
-        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-        var first = Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
+        var first = Math.Clamp(Math.Max(cursor, 0) - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         foreach (var index in Enumerable.Range(first, shown))

@@ -184,6 +184,106 @@ public class FormOpenerTests
     }
 
     [Fact]
+    public void GivenAnUnassignedIssue_WhenThePickerOpens_ThenOnlyMeIsOfferedAndNothingIsHighlighted()
+    {
+        var popup = Keys(Tabbed(), "Space", "i", "a").State.Session.Tabs[0].Form!.Suggest!;
+
+        var me = Assert.Single(popup.Items);
+        Assert.Equal("acc-me", me.Id);
+        Assert.Equal("Me (Me)", SuggestionText.Row(me));
+        Assert.Null(popup.Selected);
+    }
+
+    [Fact]
+    public void GivenAnAssignedIssue_WhenThePickerOpens_ThenMeAndUnassignedAreOfferedInThatOrder()
+    {
+        var popup = Keys(Tabbed(_eve), "Space", "i", "a").State.Session.Tabs[0].Form!.Suggest!;
+
+        Assert.Equal(["acc-me", string.Empty], popup.Items.Select(item => item.Id));
+        Assert.Equal("Unassigned", SuggestionText.Row(popup.Items[1]));
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenMeIsChosenAndSaved_ThenTheIssueIsAssignedToTheAccountOfTheProfile()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var chosen = Press(Press(opened, "Down").State, "Enter").State;
+        var saved = Press(chosen, "Enter", _start);
+
+        var request = Assert.IsType<AssignRequest>(WrittenBy(saved));
+        Assert.Equal("acc-me", request.Assignee!.AccountId);
+        Assert.Equal("Me", saved.State.Session.Tabs[0].Rows[0].Assignee!.DisplayName);
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenUnassignedIsChosenAndSaved_ThenTheIssueIsUnassigned()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var chosen = Keys(opened, "Down", "Down", "Enter").State;
+        var saved = Press(chosen, "Enter", _start);
+
+        Assert.Null(Assert.IsType<AssignRequest>(WrittenBy(saved)).Assignee);
+        Assert.Null(saved.State.Session.Tabs[0].Rows[0].Assignee);
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenTyping_ThenTheyGiveWayToTheSearchAndReturnWhenTheFieldIsEmptyAgain()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var typed = Press(opened, "e");
+        var emptied = Press(typed.State, "Backspace");
+
+        Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
+        Assert.Equal("e", typed.State.Session.Tabs[0].Form!.Suggest!.Query);
+        Assert.IsType<CancelSuggestionsEffect>(Assert.Single(emptied.Effects));
+        Assert.Equal(2, emptied.State.Session.Tabs[0].Form!.Suggest!.Items.Count);
+    }
+
+    [Fact]
+    public void GivenTheCurrentAssigneeIsMe_WhenThePickerOpens_ThenOnlyUnassignedIsOffered()
+    {
+        var popup = Keys(Tabbed(new IssueAssignee("acc-me", "Me")), "Space", "i", "a")
+            .State.Session.Tabs[0].Form!.Suggest!;
+
+        Assert.Equal(string.Empty, Assert.Single(popup.Items).Id);
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenBackspaceClearsTheAssignee_ThenTheRowsFollowTheNewValue()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var cleared = Press(opened, "Backspace").State;
+
+        var popup = cleared.Session.Tabs[0].Form!.Suggest!;
+        Assert.Equal(["acc-me"], popup.Items.Select(item => item.Id));
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenEscIsPressed_ThenTheFormClosesAtOnce()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var closed = Press(opened, "Esc");
+
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+    }
+
+    [Fact]
+    public void GivenAnEmptyId_WhenChosenOnAPickedField_ThenTheValueIsCleared()
+    {
+        var field = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.User, false, [])
+            .WithInitial(FormValue.OfChosen(["acc-eve"]));
+
+        var chosen = FormEditor.Choose(field, AssigneeQuickRows.Unassigned);
+
+        Assert.Empty(chosen.Value.Chosen);
+    }
+
+    [Fact]
     public void GivenAnAnswerArrived_WhenEnterIsPressed_ThenThePersonIsChosen()
     {
         var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");
