@@ -151,7 +151,7 @@ The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third)
 - **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
 - **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
 - **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. No swimlanes in M1.
-- **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or 500 issues are loaded; past the cap the banner says `Showing the first 500 of N issues. Narrow the board filter or use :jql.`
+- **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or the per-tab row cap (`ViewPaging.MaxRowsPerTab`, 10 000; `architecture.md`) is hit.
 
 At 40x10 (body of six rows, one-line cards, one column at a time, the neighbours named in the frame):
 

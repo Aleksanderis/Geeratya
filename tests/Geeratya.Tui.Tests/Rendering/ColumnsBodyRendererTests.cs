@@ -57,7 +57,8 @@ public class ColumnsBodyRendererTests
         Assert.Contains("┬─ Empty 0 ", body[1].PlainText);
         Assert.Contains("┬─ Done 0 ", body[1].PlainText);
         Assert.EndsWith("┐", body[1].PlainText);
-        Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text.Contains("To Do", StringComparison.Ordinal)).Role);
+        var toDo = body[1].Spans.Single(span => span.Text.Contains("To Do", StringComparison.Ordinal));
+        Assert.Equal(TextRole.Heading, toDo.Role);
         Assert.DoesNotContain(
             body[1].Spans.Where(span => span.Text.Contains("Doing", StringComparison.Ordinal)),
             span => span.Role == TextRole.Heading);
@@ -190,10 +191,11 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        // The scroll is corrected to keep the selection inside the viewport with context above it.
-        var selected = body.ToList().FindIndex(line => line.PlainText.Contains("T A-31", StringComparison.Ordinal));
-        Assert.True(selected > 2);
-        Assert.Contains("┏", body[selected - 1].PlainText);
+        // Five cards fit, so the scroll is corrected to 28: two cards of context above the selection (the most the
+        // viewport allows while keeping scrolloff below it), A-29 on the first card row.
+        Assert.Contains("A-29", body[3].PlainText);
+        Assert.Contains("T A-31", body[3 + (2 * 5)].PlainText);
+        Assert.Contains("┏", body[2 + (2 * 5)].PlainText);
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-3 ", StringComparison.Ordinal));
         Assert.Equal(30, body.Count);
     }
@@ -279,7 +281,12 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 36);
 
         Assert.Equal(36, body.Count);
-        Assert.True(body.Sum(line => line.Spans.Count) < 36 * 30);
+        Assert.Equal(SpanCount(Render(Tab([.. rows.Take(200)]), 120, 36)), SpanCount(body));
+    }
+
+    private static int SpanCount(IReadOnlyList<StyledLine> body)
+    {
+        return body.Sum(line => line.Spans.Count);
     }
 
     private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height)

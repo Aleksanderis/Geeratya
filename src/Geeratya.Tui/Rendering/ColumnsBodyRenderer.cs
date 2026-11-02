@@ -27,10 +27,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int MinimumBoxWidth = 8;
     private const string Vertical = "│";
     private const char HorizontalChar = '─';
-    private const string Horizontal = "─";
     private const string TopLeft = "┌";
     private const string TopJoin = "┬";
     private const string TopRight = "┐";
+    private const string BottomLeft = "└";
+    private const string BottomJoin = "┴";
+    private const string BottomRight = "┘";
 
     public bool AppliesTo(AppState state)
     {
@@ -135,11 +137,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var selected = column == cursor.Column;
             var width = window.ColumnWidth(position);
             var last = position == window.Count - 1;
-            var title = TextWidth.Fit($" {ColumnTitle(tab, columns[column])} ", Math.Max(0, width - 2 - (last ? 1 : 0)));
+            var room = Math.Max(0, width - 2 - (last ? 1 : 0));
+            var title = TextWidth.Fit($" {ColumnTitle(tab, columns[column])} ", room);
             var fill = width - 2 - TextWidth.Of(title) - (last ? 1 : 0);
 
             spans.Add(new StyledSpan(position == 0 ? TopLeft : TopJoin, TextRole.Muted));
-            spans.Add(new StyledSpan(Horizontal, TextRole.Muted));
+            spans.Add(new StyledSpan(HorizontalChar.ToString(), TextRole.Muted));
             spans.Add(new StyledSpan(title, selected ? TextRole.Heading : TextRole.Muted));
             spans.Add(new StyledSpan(new string(HorizontalChar, Math.Max(0, fill)), TextRole.Muted));
         }
@@ -160,7 +163,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         BoardWindow window)
     {
         var selected = cursor.Column;
-        var spans = new List<StyledSpan>(5) { new(TopLeft + Horizontal, TextRole.Muted) };
+        var spans = new List<StyledSpan>(5) { new(TopLeft + HorizontalChar, TextRole.Muted) };
 
         if (selected > 0)
         {
@@ -179,7 +182,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return new StyledLine([.. fitted.Spans, new StyledSpan(TopRight, TextRole.Muted)]);
     }
 
-    /// <summary>The spans cut to <paramref name="width"/> columns and filled with <paramref name="fill"/> to exactly that.</summary>
+    /// <summary>The spans cut to <paramref name="width"/> columns, then filled with <paramref name="fill"/>.</summary>
     private static StyledLine Fitted(List<StyledSpan> spans, int width, char fill)
     {
         var fitted = new List<StyledSpan>(spans.Count + 1);
@@ -214,10 +217,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var last = position == window.Count - 1;
             var width = window.ColumnWidth(position) - (last ? 1 : 0);
 
-            spans.Add(new StyledSpan((position == 0 ? "└" : "┴") + new string(HorizontalChar, Math.Max(0, width - 1)), TextRole.Muted));
+            var corner = position == 0 ? BottomLeft : BottomJoin;
+
+            spans.Add(new StyledSpan(corner + new string(HorizontalChar, Math.Max(0, width - 1)), TextRole.Muted));
         }
 
-        spans.Add(new StyledSpan("┘", TextRole.Muted));
+        spans.Add(new StyledSpan(BottomRight, TextRole.Muted));
 
         return new StyledLine(spans);
     }

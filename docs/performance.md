@@ -64,7 +64,7 @@ Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the 
 | Nav key (`j`, `l`, `Ctrl-d`, `h`, `Ctrl-u`) through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 | .NET 10 Release JIT, in process | board of 200 cards, 2500 timed keys | 0.31 ms | 0.56 ms |
 | same | same | board of 2000 cards, 2500 timed keys | 0.29 ms | 0.59 ms |
 
-Method: temporary xUnit test (not committed), 500 warm-up keys, four columns, assignee on every card; it excludes the terminal draw and tmux. The renderer draws only the cards in the viewport. Each key and each frame still regroup all rows into the columns (`BoardColumns.Visible`, one dictionary lookup per row) and a key looks the selected issue up by key once (linear); that is below the noise at these sizes and the board is capped at 500 cards in the UI, so the groups are not cached. Not measured: Native AOT in-process figures.
+Method: temporary xUnit test (not committed), 500 warm-up keys, four columns, assignee on every card; it excludes the terminal draw and tmux. The renderer draws only the cards in the viewport. Each key and each frame still regroup all rows into the columns (`BoardColumns.Visible`, one dictionary lookup per row) and a key looks the selected issue up by key once (linear); that is below the noise up to 2000 cards, so the groups are not cached; boards up to the 10 000-row cap are not measured, and the table predates the border rework (the per-frame cost is still bounded by the viewport). Not measured: Native AOT in-process figures.
 
 ### JSON mapping of a search result (#66)
 
