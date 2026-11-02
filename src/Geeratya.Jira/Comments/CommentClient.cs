@@ -1,8 +1,8 @@
 using System.Globalization;
+using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Paging;
-using Geeratya.Jira.Adf;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
@@ -95,9 +95,14 @@ public sealed class CommentClient(JiraTransport transport)
         AdfDocument body,
         CancellationToken cancellationToken)
     {
-        if (Refusal<IssueComment>(key, commentId, commentId is not null) is { } refused)
+        if ((commentId is null ? Refusal<IssueComment>(key) : Refusal<IssueComment>(key, commentId)) is { } refused)
         {
             return refused;
+        }
+
+        if (body.Content.Count == 0)
+        {
+            return Refused<IssueComment>(WriteErrorKind.Validation, "A comment cannot be empty.");
         }
 
         var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}}""";
@@ -115,14 +120,14 @@ public sealed class CommentClient(JiraTransport transport)
         commentId is null ? $"{IssuePath}/{key}/comment" : $"{IssuePath}/{key}/comment/{commentId}";
 
     // Refused before sending: a bad key or id would otherwise address another resource.
-    private static WriteResult<T>? Refusal<T>(string key, string? commentId, bool needsId = true)
+    private static WriteResult<T>? Refusal<T>(string key, string? commentId = null)
     {
         if (!IssueUrls.IsValidKey(key))
         {
             return Refused<T>(WriteErrorKind.NotFound, "Not found or no access.");
         }
 
-        return needsId && (commentId is null || commentId.Length is 0 or > 20 || !commentId.All(char.IsAsciiDigit))
+        return commentId is not null && (commentId.Length is 0 or > 20 || !commentId.All(char.IsAsciiDigit))
             ? Refused<T>(WriteErrorKind.NotFound, "Comment not found.")
             : null;
     }

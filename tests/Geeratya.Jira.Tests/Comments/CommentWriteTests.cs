@@ -56,6 +56,9 @@ public sealed class CommentWriteTests
         var sent = Assert.Single(fixture.Handler.Requests);
         Assert.Equal(HttpMethod.Put, sent.Method);
         Assert.Equal(OnePath, sent.PathAndQuery);
+        using var body = JsonDocument.Parse(sent.Body!);
+        Assert.Equal(["body"], body.RootElement.EnumerateObject().Select(property => property.Name));
+        Assert.Equal("doc", body.RootElement.GetProperty("body").GetProperty("type").GetString());
         Assert.Contains("edited comment", sent.Body);
     }
 
@@ -154,6 +157,34 @@ public sealed class CommentWriteTests
         Assert.Equal(WriteErrorKind.NotFound, edit.Error.Kind);
         Assert.Equal(WriteErrorKind.NotFound, delete.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenEmptyText_WhenAddingOrEditing_ThenValidationErrorAndNothingIsSent()
+    {
+        using var fixture = new TransportFixture();
+        var client = new CommentClient(fixture.Transport);
+
+        var add = await client.AddCommentAsync("GTM-5", AdfMarkdownParser.Parse("  "), Cancel());
+        var edit = await client.EditCommentAsync("GTM-5", "10006", AdfMarkdownParser.Parse(""), Cancel());
+
+        Assert.Equal(WriteErrorKind.Validation, add.Error.Kind);
+        Assert.Equal(WriteErrorKind.Validation, edit.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden, WriteErrorKind.Permission)]
+    [InlineData(HttpStatusCode.NotFound, WriteErrorKind.NotFound)]
+    public async Task GivenErrorReply_WhenAdding_ThenTypedWriteError(HttpStatusCode status, WriteErrorKind kind)
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Post, ListPath, FakeResponse.WithStatus(status, "{}"));
+
+        var result = await new CommentClient(fixture.Transport)
+            .AddCommentAsync("GTM-5", AdfMarkdownParser.Parse("x"), Cancel());
+
+        Assert.Equal(kind, result.Error.Kind);
     }
 
     [Fact]
