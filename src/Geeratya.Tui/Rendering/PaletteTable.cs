@@ -62,6 +62,7 @@ public static class PaletteTable
         [TextRole.StatusInProgress] = PaletteRole.StatusInProgress,
         [TextRole.StatusDone] = PaletteRole.StatusDone,
         [TextRole.Error] = PaletteRole.Error,
+        [TextRole.Loading] = PaletteRole.Loading,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();

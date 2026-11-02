@@ -51,18 +51,12 @@ public static class ActionCatalog
     ];
 
     /// <summary>
-    /// Actions bound ahead of their feature: the keys resolve but nothing happens yet (the shell has no list).
+    /// Actions bound ahead of their feature: the keys resolve but nothing happens yet (no columns, tabs or detail).
     /// </summary>
     public static IReadOnlyCollection<string> Unimplemented { get; } =
     [
-        ActionIds.NavigateDown,
-        ActionIds.NavigateUp,
         ActionIds.NavigateLeft,
         ActionIds.NavigateRight,
-        ActionIds.NavigateTop,
-        ActionIds.NavigateBottom,
-        ActionIds.NavigatePageDown,
-        ActionIds.NavigatePageUp,
         ActionIds.ItemOpen,
         ActionIds.NavigateFirstColumn,
         ActionIds.NavigateLastColumn,
