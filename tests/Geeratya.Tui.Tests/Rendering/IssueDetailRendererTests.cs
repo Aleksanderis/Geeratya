@@ -67,6 +67,8 @@ public class IssueDetailRendererTests
         Assert.StartsWith("| Fix login", body[2]);
         Assert.StartsWith("+--", body[8]);
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
+        Assert.Contains(lines, line => line.Contains("In Progress v"));
+        Assert.DoesNotContain(lines, line => line.Contains('▾'));
         Assert.All(lines, line => Assert.Equal(80, DisplayWidth.Of(line)));
     }
 
