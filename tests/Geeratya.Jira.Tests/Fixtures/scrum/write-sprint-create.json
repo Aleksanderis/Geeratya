@@ -1,0 +1,9 @@
+{
+  "createdDate": "2026-11-02T18:04:44.019Z",
+  "goal": "survey goal",
+  "id": 12,
+  "name": "s172 tmp 6",
+  "originBoardId": 6,
+  "self": "https://example.atlassian.net/rest/agile/1.0/sprint/12",
+  "state": "future"
+}

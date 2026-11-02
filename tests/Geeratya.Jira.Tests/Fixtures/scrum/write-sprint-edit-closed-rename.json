@@ -1,0 +1,11 @@
+{
+  "completeDate": "2026-11-02T18:05:59.145Z",
+  "createdDate": "2026-11-02T18:05:42.239Z",
+  "endDate": "2026-11-09T10:00:00.000Z",
+  "id": 14,
+  "name": "s172 fut 6 renamed",
+  "originBoardId": 6,
+  "self": "https://example.atlassian.net/rest/agile/1.0/sprint/14",
+  "startDate": "2026-11-02T10:00:00.000Z",
+  "state": "closed"
+}

@@ -1,0 +1,24 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 2,
+  "values": [
+    {
+      "boardId": 6,
+      "description": "Displays work items which have been updated in the last day",
+      "id": 5,
+      "jql": "updatedDate >= -1d",
+      "name": "Recently Updated",
+      "position": 0
+    },
+    {
+      "boardId": 6,
+      "description": "Displays work items which are currently assigned to the current user",
+      "id": 6,
+      "jql": "assignee = currentUser()",
+      "name": "Assigned to me",
+      "position": 1
+    }
+  ]
+}

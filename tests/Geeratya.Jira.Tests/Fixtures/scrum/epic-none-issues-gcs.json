@@ -1,0 +1,146 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Build the login form"
+      },
+      "id": "10081",
+      "key": "GCS-7",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10081"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Notification preferences UI"
+      },
+      "id": "10088",
+      "key": "GCS-14",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10088"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: dark mode"
+      },
+      "id": "10092",
+      "key": "GCS-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10092"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: keyboard shortcuts help"
+      },
+      "id": "10093",
+      "key": "GCS-19",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10093"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: tooltip clipped"
+      },
+      "id": "10094",
+      "key": "GCS-20",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10094"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: update dependencies"
+      },
+      "id": "10095",
+      "key": "GCS-21",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10095"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 6
+}

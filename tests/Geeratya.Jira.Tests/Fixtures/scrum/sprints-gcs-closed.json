@@ -1,0 +1,19 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 1,
+  "values": [
+    {
+      "completeDate": "2026-11-02T17:21:00.060Z",
+      "createdDate": "2026-11-02T17:20:55.901Z",
+      "endDate": "2026-11-01T17:20:59.000Z",
+      "id": 6,
+      "name": "Seed Sprint 1",
+      "originBoardId": 6,
+      "self": "https://example.atlassian.net/rest/agile/1.0/sprint/6",
+      "startDate": "2026-10-19T17:20:59.000Z",
+      "state": "closed"
+    }
+  ]
+}

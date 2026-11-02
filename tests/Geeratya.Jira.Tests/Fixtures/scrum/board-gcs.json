@@ -1,0 +1,16 @@
+{
+  "id": 6,
+  "isPrivate": false,
+  "location": {
+    "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10412?size=small",
+    "displayName": "GCS (GCS)",
+    "name": "GCS (GCS)",
+    "projectId": 10005,
+    "projectKey": "GCS",
+    "projectName": "GCS",
+    "projectTypeKey": "software"
+  },
+  "name": "GCS board",
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/6",
+  "type": "scrum"
+}

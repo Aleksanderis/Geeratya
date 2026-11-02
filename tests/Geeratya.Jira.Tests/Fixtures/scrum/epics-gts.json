@@ -1,0 +1,35 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "values": [
+    {
+      "color": {
+        "key": "color_7"
+      },
+      "done": false,
+      "id": 10096,
+      "issueColor": {
+        "key": "purple"
+      },
+      "key": "GTS-22",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10096",
+      "summary": "Seed: Platform"
+    },
+    {
+      "color": {
+        "key": "color_7"
+      },
+      "done": false,
+      "id": 10097,
+      "issueColor": {
+        "key": "purple"
+      },
+      "key": "GTS-23",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10097",
+      "summary": "Seed: Insights"
+    }
+  ]
+}

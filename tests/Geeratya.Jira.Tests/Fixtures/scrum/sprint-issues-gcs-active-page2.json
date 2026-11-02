@@ -1,0 +1,26 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "summary": "Email notifications"
+      },
+      "id": "10084",
+      "key": "GCS-10",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10084"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "summary": "Notification preferences UI"
+      },
+      "id": "10088",
+      "key": "GCS-14",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10088"
+    }
+  ],
+  "maxResults": 2,
+  "startAt": 2,
+  "total": 7
+}

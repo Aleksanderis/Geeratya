@@ -1,0 +1,78 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": null,
+        "summary": "s172 survey GCS B"
+      },
+      "id": "10119",
+      "key": "GCS-23",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10119"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": null,
+        "summary": "Backlog: dark mode"
+      },
+      "id": "10092",
+      "key": "GCS-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10092"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": null,
+        "summary": "Backlog: keyboard shortcuts help"
+      },
+      "id": "10093",
+      "key": "GCS-19",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10093"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": null,
+        "summary": "Backlog: tooltip clipped"
+      },
+      "id": "10094",
+      "key": "GCS-20",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10094"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": null,
+        "summary": "Backlog: update dependencies"
+      },
+      "id": "10095",
+      "key": "GCS-21",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10095"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10020": [
+          {
+            "boardId": 6,
+            "completeDate": "2026-11-02T18:05:59.145Z",
+            "endDate": "2026-11-09T10:00:00.000Z",
+            "id": 14,
+            "name": "s172 fut 6",
+            "startDate": "2026-11-02T10:00:00.000Z",
+            "state": "closed"
+          }
+        ],
+        "summary": "s172 survey GCS A"
+      },
+      "id": "10118",
+      "key": "GCS-22",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10118"
+    }
+  ],
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 6
+}

@@ -1,0 +1,72 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 4,
+  "values": [
+    {
+      "id": 3,
+      "isPrivate": false,
+      "location": {
+        "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10425?size=small",
+        "displayName": "GTM (GTM)",
+        "name": "GTM (GTM)",
+        "projectId": 10002,
+        "projectKey": "GTM",
+        "projectName": "GTM",
+        "projectTypeKey": "software"
+      },
+      "name": "GTM board",
+      "self": "https://example.atlassian.net/rest/agile/1.0/board/3",
+      "type": "simple"
+    },
+    {
+      "id": 4,
+      "isPrivate": false,
+      "location": {
+        "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10400?size=small",
+        "displayName": "GCM (GCM)",
+        "name": "GCM (GCM)",
+        "projectId": 10003,
+        "projectKey": "GCM",
+        "projectName": "GCM",
+        "projectTypeKey": "software"
+      },
+      "name": "GCM board",
+      "self": "https://example.atlassian.net/rest/agile/1.0/board/4",
+      "type": "kanban"
+    },
+    {
+      "id": 5,
+      "isPrivate": false,
+      "location": {
+        "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10414?size=small",
+        "displayName": "GTS (GTS)",
+        "name": "GTS (GTS)",
+        "projectId": 10004,
+        "projectKey": "GTS",
+        "projectName": "GTS",
+        "projectTypeKey": "software"
+      },
+      "name": "GTS board",
+      "self": "https://example.atlassian.net/rest/agile/1.0/board/5",
+      "type": "simple"
+    },
+    {
+      "id": 6,
+      "isPrivate": false,
+      "location": {
+        "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10412?size=small",
+        "displayName": "GCS (GCS)",
+        "name": "GCS (GCS)",
+        "projectId": 10005,
+        "projectKey": "GCS",
+        "projectName": "GCS",
+        "projectTypeKey": "software"
+      },
+      "name": "GCS board",
+      "self": "https://example.atlassian.net/rest/agile/1.0/board/6",
+      "type": "scrum"
+    }
+  ]
+}

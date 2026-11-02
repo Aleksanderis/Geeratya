@@ -1,0 +1,59 @@
+{
+  "isLast": true,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Backlog: update dependencies"
+      },
+      "id": "10095",
+      "key": "GCS-21",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10095"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Backlog: tooltip clipped"
+      },
+      "id": "10094",
+      "key": "GCS-20",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10094"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Backlog: keyboard shortcuts help"
+      },
+      "id": "10093",
+      "key": "GCS-19",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10093"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Backlog: dark mode"
+      },
+      "id": "10092",
+      "key": "GCS-18",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10092"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Seed: Insights"
+      },
+      "id": "10076",
+      "key": "GCS-2",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10076"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Seed: Platform"
+      },
+      "id": "10075",
+      "key": "GCS-1",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10075"
+    }
+  ]
+}
