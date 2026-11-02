@@ -41,7 +41,7 @@ public sealed partial class FakeJiraRouter
     private const string AccountIdName = "accountId";
     private const string EditMetaPart = "editmeta";
     private const string TeamManagedPrefix = "GTM-";
-    private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
+    private const string EditMetaGcmFixture = "metadata/editmeta-gcm-26.json";
     private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;

@@ -332,6 +332,19 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Theory]
+    [InlineData("components")]
+    [InlineData("fixVersions")]
+    public async Task GivenAGcmIssue_WhenEditMetaIsRead_ThenComponentAndVersionAllowedValuesAreServed(string field)
+    {
+        Start(0);
+
+        var meta = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-24/editmeta"));
+
+        var allowed = meta.GetProperty("fields").GetProperty(field).GetProperty("allowedValues");
+        Assert.True(allowed.GetArrayLength() > 0);
+    }
+
+    [Theory]
     [InlineData("GCM", "10007")]
     [InlineData("GTM", "10011")]
     public async Task GivenEitherProject_WhenCreateMetadataIsRead_ThenTypesAndFieldsAreServed(string project, string subtaskId)
