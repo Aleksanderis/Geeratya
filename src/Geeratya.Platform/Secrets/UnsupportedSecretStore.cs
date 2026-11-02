@@ -1,7 +1,7 @@
 namespace Geeratya.Platform.Secrets;
 
 /// <summary>
-/// Used where no secret store exists (macOS for now): the token then comes from the <c>GEERATYA_TOKEN</c>
+/// Used where no secret store exists (an unknown system): the token then comes from the <c>GEERATYA_TOKEN</c>
 /// environment variable.
 /// </summary>
 public sealed class UnsupportedSecretStore : ISecretStore

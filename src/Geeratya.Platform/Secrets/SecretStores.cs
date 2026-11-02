@@ -12,6 +12,7 @@ public static class SecretStores
         {
             OperatingSystemKind.Windows when OperatingSystem.IsWindows() => new WindowsSecretStore(),
             OperatingSystemKind.Linux => new LinuxSecretStore(processRunner),
+            OperatingSystemKind.MacOs => new MacOsSecretStore(processRunner),
             _ => new UnsupportedSecretStore(),
         };
     }
