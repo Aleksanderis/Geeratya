@@ -75,7 +75,8 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 | `LoadIssueDetailEffect(TabId, Key, RequestId)`, `LoadIssueCommentsEffect(..., StartAt, ...)`, `LoadRemoteLinksEffect` | effects | #84 | Run by `IssueDetailLoadHandler` (App) under the tab's `NetworkRunner` scope, so closing the tab cancels them; popping one issue does not cancel its loads, their replies are dropped by the id rule. With a cache, the handler first posts `IssueDetailCached` (read off the UI thread, no connection needed; applied only while the request is current and no issue is shown, marked `IssueStale`), then asks Jira; the load result replaces it and emits `WriteIssueCacheEffect` (#221), a 404/403 emits `RemoveIssueCacheEffect` (#243). |
 | `Tick(DateTimeOffset Now)`, `RefreshRequested(TabId)`, `LinkChanged(SiteLink)`, `RefreshSchedule` | commands, static timings | #89 | See "Cache and refresh". `LinkChanged` carries the transport's rate-limit wait (`RateLimited(until)`, or `Online` when it ended; `Online` clears only a rate-limit state). The host (`ShellHost`) owns the one-second timer and maps `SiteConnections.RateLimitChanged` to it. |
 | `TabStatus.Of(tab, link, now)` | pure function | #90 | Status text from the link (`LinkChanged` is #89, above) and failures. |
-| `JiraServices`, `NetworkRunner`, `ViewLoadHandler`, `ShellHost.Post(Command)` | App (`ShellHost` in Tui) | #57, #77, #153 | See "Loading". |
+| `JiraServices`, `NetworkRunner`, `ViewLoadHandler` | App | #57, #77, #153 |
+| `ShellHost.Post(Command)` | Tui | #57, #153 | See "Loading". |
 | `ViewPaging.PageSize` (100), `LoadErrorText.For(JiraError)` (pure message table) | Core | #75, #77 | The table is in Core so the reducer builds `Failed(kind, message)` itself. |
 | `ConnectionChecked` (result of #83) | command | #83 | The reducer maps it to `Link`: success `Online`, 401 `Rejected`. |
 
