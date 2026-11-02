@@ -43,6 +43,30 @@ public sealed class ViewLoadHandlerBoardTests
     }
 
     [Fact]
+    public async Task GivenOpenBoard_WhenRefreshedByHandAndByTheClock_ThenOnlyTheManualRefreshFetchesTheConfiguration()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues")));
+        var opened = await OpenAsync(fixture, ViewSourceKind.Board, "3");
+        var loadedAt = opened.Session.Tabs[0].LoadedAt!.Value;
+
+        var byClock = await RunAsync(fixture, opened, new Tick(loadedAt + RefreshSchedule.Interval));
+        var byHand = await RunAsync(fixture, byClock, new RefreshRequested(byClock.Session.Tabs[0].Id));
+
+        Assert.Equal(5, fixture.Http.Requests.Count);
+        Assert.Contains("/board/3/issue", fixture.Path(2));
+        Assert.Contains("/board/3/configuration", fixture.Path(3));
+        Assert.Contains("/board/3/issue", fixture.Path(4));
+        Assert.Equal(16, byHand.Session.Tabs[0].Rows.Count);
+        Assert.Equal(LoadState.Idle, byHand.Session.Tabs[0].Load);
+    }
+
+    [Fact]
     public async Task GivenCompanyManagedBoard_WhenOpened_ThenBacklogIsTheFirstColumnAndEveryIssueIsPlaced()
     {
         using var fixture = await ConnectedAsync(
@@ -220,11 +244,17 @@ public sealed class ViewLoadHandlerBoardTests
         return new ViewDefinition(source, id, ViewLayout.Columns, "Board");
     }
 
-    private static async Task<AppState> OpenAsync(Fixture fixture, ViewSourceKind source, string id)
+    private static Task<AppState> OpenAsync(Fixture fixture, ViewSourceKind source, string id)
+    {
+        return RunAsync(fixture, Start(), new ViewOpenRequested(Definition(source, id)));
+    }
+
+    /// <summary>Feeds <paramref name="command"/> to the reducer and every effect and reply that follows.</summary>
+    private static async Task<AppState> RunAsync(Fixture fixture, AppState start, Command command)
     {
         var reducer = new AppReducer(DefaultKeymap.Load());
-        var pending = new Queue<Command>([new ViewOpenRequested(Definition(source, id))]);
-        var state = Start();
+        var pending = new Queue<Command>([command]);
+        var state = start;
 
         while (pending.Count > 0)
         {

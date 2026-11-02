@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+          ┌─ Open a view ────────────────────────────────────────────────────────────────────────────────────┐          
+          │ > g_                                                                                             │          
+          │ Boards                                                                                           │          
+          │ > Board   GCM board (scrum, GCM)                                                                 │          
+          │   Backlog GCM board (scrum, GCM)                                                                 │          
+          │   Board   GTM 日本語 board with a rather long name that cannot fit (kanban, GTM)                 │          
+          │   Backlog GTM 日本語 board with a rather long name that cannot fit (kanban, GTM)                 │          
+          │ Filters                                                                                          │          
+          │   Filter  My open bugs (favourite)                                                               │          
+          │   Filter  Filter for GCM board (Jane Doe)                                                        │          
+          │ Query                                                                                            │          
+          │   JQL     text ~ "g"                                                                             │          
+          │ ──────────────────────────────────────────────────────────────────────────────────────────────── │          
+          │ Up/Down choose   Enter open in a new tab   Esc close                                             │          
+          └──────────────────────────────────────────────────────────────────────────────────────────────────┘          
+                                              ? help   : command   q quit                                               
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ INSERT open a view                                                                   Down choose  Enter open  Esc close

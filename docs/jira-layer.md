@@ -65,11 +65,11 @@ Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer b
 | `JiraErrorKind` | State | Refresh behaviour |
 |---|---|---|
 | `Network`, `Timeout`, `HostRefused` | offline (last data stays, marked stale) | backoff probe |
-| `RateLimited` | rate limited; the load error text names the wait ("Try again in N s") when `Retry-After` is known; the banner shows the wait end | paused until the wait ends |
+| `RateLimited` | rate limited; the load error text names the wait ("Try again in N s") when `Retry-After` is known; the banner counts the wait down from `RateLimitedUntil` | paused until the wait ends |
 | `Unauthorized` | error "token rejected" with a `:profile` hint | refresh stops until the connection check succeeds |
 | `Forbidden`, `NotFound` | error "not found or no access" (the two cannot be told apart, see Errors) | backoff |
 | `BadRequest` | Jira's own message (JQL syntax); on a request that carried a page token, "page expired": reload from the first page | none for JQL errors; reload once for an expired token |
-| `ServerError`, `InvalidResponse`, `Unexpected` | error with Jira's or the client's own message (the retry hint comes with refresh, #89) | backoff |
+| `ServerError`, `InvalidResponse`, `Unexpected` | error with Jira's or the client's own message (the refresh key retries, see "Refresh rules") | backoff |
 
 ## Current user: `GET /rest/api/3/myself`
 
@@ -173,6 +173,7 @@ Dev site facts: `GCM` is board 4 (`type: kanban`), `GTM` is board 3 (`type: simp
 - Loading a board or backlog view (#78, `ViewLoadHandler`): configuration (`board/{id}/configuration`) first, then `board/{id}/issue` or `board/{id}/backlog` with `startAt` from the previous page (page size 100) until `total` is reached. Both dev boards were exercised through the handler with the recorded fixtures (`boards/board-gtm-config.json` with `rows-gtm-issues.json`, `board-gcm-config.json` with `rows-gcm-issues.json`, the backlog pairs and the three-page walk). `BoardColumns.Group` places issues by status id; on both dev boards every status of the fixtures is mapped, so the unmapped group was only covered with hand-made configurations (see the unobserved case above).
 - Kanban backlog: `GET /rest/agile/1.0/board/{id}/backlog` (`boards/board-gcm-backlog.json`). On a Kanban board with the backlog enabled, "backlog" means the issues whose status is in the Backlog column: moving GCM-1 to `To Do` removed it from the backlog list but not from the board list (`boards/gcm-board-backlog-after-todo.json` against `boards/gcm-board-issues-after-todo.json`). The team-managed board behaved differently: its backlog listed `To Do` and `In Progress` issues and left out only `Done` (`boards/gtm-board-backlog-after-transition.json` against `boards/gtm-board-issues-after-transition.json`). So the backlog is whatever the endpoint returns per board kind; do not compute it from column names.
 - Sprints: `GET /rest/agile/1.0/board/{id}/sprint` on a Kanban board is 400 `The board does not support sprints` (`boards/board-gcm-sprints-kanban.json`). Only call it for `scrum` boards (not surveyed: no Scrum board on the dev site, the app is Kanban first).
+- Scrum pair surveyed 2026-11-02 (read only, empty backlogs; full survey is an M3 issue): `GCS` is board 6 `type: scrum` (company-managed), `GTS` is board 5 `type: simple` (team-managed), the same type as the team-managed Kanban board 3. Only the sprint endpoint tells them apart: board 5 answers 200 with its sprints, board 3 answers 400 `The board does not support sprints`. So `type` alone cannot say "Scrum" for team-managed projects (roadmap, open question 4). Each Scrum board has one `future` sprint (`id`, `name`, `state`, `originBoardId`, `createdDate`). The board configuration names the estimation field (`estimation.field.fieldId`): `customfield_10047` "Story Points" on board 6, `customfield_10016` "Story point estimate" on board 5, so the story point field is per board, never hard-coded.
 - Other: `GET board/{id}/epic` lists epics (`done`, `id`, `key`, `name` (empty), `summary`, `color`; `hierarchy/agile-board-epics-gtm.json`; `boards/board-gcm-epics.json` is the empty case), `GET board/{id}/project` the projects, `GET board/{id}/properties` the board property keys (`boards/board-gcm-projects.json`, `boards/board-gcm-properties.json`).
 
 ### Ranking

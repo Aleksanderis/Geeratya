@@ -29,6 +29,7 @@ public sealed class FakeJiraRouter
         ["/rest/api/3/issuetype"] = "metadata/issuetype-list.json",
         ["/rest/api/3/filter/my"] = "filters/filter-my.json",
         ["/rest/api/3/filter/search"] = "filters/filter-search.json",
+        ["/rest/api/3/filter/favourite"] = "filters/filter-favourite-empty.json",
         ["/rest/agile/1.0/board"] = "boards/board-list.json",
         ["/rest/agile/1.0/board/3"] = "boards/board-gtm.json",
         ["/rest/agile/1.0/board/4"] = "boards/board-gcm.json",
@@ -74,7 +75,7 @@ public sealed class FakeJiraRouter
 
     public FakeReply Route(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
-        if (path == SearchPath && method is Get or Post)
+        if (path == SearchPath && (method == Get || method == Post))
         {
             return Search(method, query, body);
         }

@@ -7,7 +7,7 @@ Every screen shares the shell frame:
 | Row | Content |
 |---|---|
 | 0 | Tab bar (one line) |
-| 1 (optional) | Network banner, present only while a state needs one |
+| 1 | Network banner of the active tab: blank while no state needs one (the row is always reserved, so the body never changes height when a state starts or ends) |
 | next | View header: title and count |
 | body | The view's layout |
 | last | Status bar (mode badge, text, right-aligned hints), see `ux.md` |
@@ -70,10 +70,10 @@ My open issues · 10 of about 340
  NORMAL  j/k move  Enter open  <space>r refresh  ? help
 ```
 
-- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
+- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. Only the list draws them so far (tab bar, banner, status bar and overlays still use `·`/`…`/box lines). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
 - **Header.** Column titles in the `Muted` role, then the view title and the count: `N issues` when every page is loaded, `N of about M` when the approximate count is known (`/search/approximate-count`, JQL sources only; "about" is never dropped), `N+` while the total is unknown. A board or backlog list knows its total (offset paged) and shows `N of M`.
 - **Selection and scroll.** `j`/`k`/`Up`/`Down` move by one row, `Ctrl-d`/`Ctrl-u`/`PageDown`/`PageUp` by half the viewport (at least one row), `g g`/`G`/`Home`/`End` jump. The selection keeps three rows of context (`scrolloff=3`, fewer in a very short viewport) and the scroll never leaves blank rows above the last. Selection survives a refresh or a page append by issue key; when the issue is gone the nearest row is selected. The motion is `Core/Lists/ListMotion` (pure and clamped; it takes a repeat count, but the keymap has no count prefix yet); the keys send `SelectionMoved`. The viewport height the reducer works with excludes the list's two header rows (title with count, column titles). Only the rows in the viewport are rendered, never the loaded 10 000.
-- **Loading more.** Pages are fetched when the selection comes within one screen of the last loaded row. The note `Loading more…` (role `Loading`) shows in a row under the last row while the page is in flight; when the rows fill the screen it shows at the end of the header line instead. If the page fails the note becomes `Could not load more: <reason>` and the loaded rows stay; moving does not retry (a held key never hammers a failing Jira), an explicit retry does (wired with refresh and retry, #89). The count is `N+` while more pages exist and `N issues` once all are loaded (`N of about M` arrives with the approximate count).
+- **Loading more.** Pages are fetched when the selection comes within one screen of the last loaded row. The note `Loading more…` (role `Loading`) shows in a row under the last row while the page is in flight; when the rows fill the screen it shows at the end of the header line instead. If the page fails the note becomes `Could not load more: <reason>` and the loaded rows stay; moving does not retry (a held key never hammers a failing Jira), an explicit retry does: `<space>r` retries the failed page (the loaded rows and the position stay). `Enter` is the open key, so it does not retry. The count is `N+` while more pages exist and `N issues` once all are loaded (`N of about M` arrives with the approximate count).
 - **Empty.** The body shows `No issues match.` centred on the first line, and for a JQL source the query below it in `Muted`. A board with no issues says `The board has no issues.`
 - **Error body** (first load failed, nothing cached): the error text (see "Errors" below) and `<space>r to retry`. If a cache exists the old rows stay and the banner carries the error instead.
 - **Narrow terminals.** Columns drop in this order as the width shrinks: assignee (below 100 columns), then status shrinks to the category glyph (below 56), then the key never drops. At 80 columns:
@@ -262,7 +262,7 @@ Overflow: when the titles do not fit, the window of tabs slides so the active on
 
 The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab (until the picker exists it opens a copy of the current tab's view), `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
+Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
 ## Connection check and network states
 
@@ -271,30 +271,32 @@ Implemented (#83): the check line is shown on the start screen under the profile
 States, as a one-line banner under the tab bar (highest priority wins: error, offline, rate limited, stale):
 
 ```text
- OFFLINE  Cannot reach example.atlassian.net. Showing data from 12:03. Retrying in 8 s, <space>r retries now.
- RATE LIMITED  Jira asked us to wait. Retrying in 25 s.
- STALE  Showing data from 11:40 (23 min old). Refreshing…
- ERROR  Jira rejected the token for me@example.com (401). Replace it: :profile remove NAME, then :profile add.
+ OFFLINE  Cannot reach example.atlassian.net. Retrying in 8 s, <space>r retries now. Data is 23 min old.
+ RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.
+ STALE  Data is 23 min old. Refreshing…
+ ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :profile add.
 ```
+
+Ages are relative (`45 s`, `23 min`, `5 h`, `3 d`), not clock times, so the text does not depend on the time zone. The part to act on comes before the age, so a line that is cut loses the age first. A 401 is a site-wide state: every tab shows it. Other errors show Jira's own message (`ERROR  Not found, or you have no access to it.`, `ERROR  Jira returned an error (503). <space>r tries again.`).
 
 At 40 columns:
 
 ```text
- OFFLINE  Showing data from 12:03
+ OFFLINE  Data 23 min old
  RATE LIMITED  Retrying in 25 s
  STALE  23 min old, refreshing…
- ERROR  Token rejected (401). See…
+ ERROR  Token rejected. See :profile
 ```
 
 | State | When | Banner and indicator | Role |
 |---|---|---|---|
-| Loading | a request is in flight | no banner; the tab shows `…`, the status bar `loading` | `Loading` |
-| Offline | transport failure or timeout | `OFFLINE`, cached data kept, last good time, next automatic retry | `Offline` |
+| Loading | a request of the user lane is in flight (a refresh by the clock is not announced) | no banner; the status bar `loading` | `Loading` |
+| Offline | transport failure or timeout | `OFFLINE`, cached data kept, age of the data, next automatic retry | `Offline` |
 | Rate limited | `429` with `Retry-After` | `RATE LIMITED`, wait in seconds counting down (honours the header, `RateLimitWait`) | `RateLimited` |
-| Stale | cached data older than the refresh interval, refresh pending or failed | `STALE`, age of the data | `Stale` |
+| Stale | cached rows shown while the refresh runs (or has not started) | `STALE`, age of the data, `Refreshing…` while a load runs | `Stale` |
 | Error | the request got an error reply | `ERROR`, the message below | `Error` |
 
-The status bar mirrors the state in its text (`offline`, `rate limited 25s`, `stale`, `error`) so it stays visible when the banner is cut. The no-colour tier relies on the words and the bold or underline of the roles.
+The status bar mirrors the state in its text (`offline`, `rate limited 25s`, `stale`, `error`, `loading`) before the connection line, so it stays visible when the banner is cut; a notice or pending keys still win over it. Wide terminals (60 columns and up) get the full wording, narrower ones the short one. The no-colour tier relies on the words and the bold or underline of the roles. Precedence when several apply: error (rejected token), rate limited, offline, other errors, stale, loading. The banner counts down from the clock the host passes in (the host redraws on the one-second tick only while a banner counts time), so a state needs no command of its own to tick. The tab bar marks a failed tab with `!`. Retry is `<space>r` (user lane); the clock retries by itself with the backoff of `architecture.md` ("Cache and refresh"); the first reply after a failure clears offline and rejected-token states.
 
 ### Errors
 
@@ -307,11 +309,11 @@ Wording by status (jira-layer.md "Errors"); the body of an HTML or plain-text re
 | 400 on a JQL source | `Query error: <Jira's message>` with the line and character; the JQL stays in the tab so it can be fixed with `:jql` |
 | 429 | rate-limited state, not an error |
 | 5xx | `Jira returned an error (<status>). <space>r tries again.` |
-| network | `Cannot reach <host>.` (offline state) |
+| network, timeout | `Cannot reach <host>.` / `<host> did not answer in time.` (offline state) |
 
 ## Source picker overlay
 
-`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty; text that is not a valid JQL clause (no operator, like `gcm`) is sent as `text ~ "gcm"`, anything else as typed. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. The lists load when the picker first opens and are cached, so the picker works offline from cache; an empty cache shows `Loading…` in each group.
+`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty; text that is not a valid JQL clause (no operator, like `gcm`) is sent as `text ~ "gcm"`, anything else as typed. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. Boards load in pages up to 20 pages (1000 boards), more are not offered; narrow with `:jql`. The lists load when the picker first opens and are cached, so reopening it does not reload (the lists live in memory for the session, not on disk; after a cold start offline the groups show the error); an empty cache shows `Loading…` in each group.
 
 ```text
  1 Board: GCM board  2 Backlog: GCM board  [3 JQL: assignee = currentUser() AND resolution = Unresolved]  4 Filter: Mine
@@ -376,10 +378,11 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 | Command | Effect |
 |---|---|
 | `:jql <query>` | JQL list; the query is everything after the first space |
+| `:browse [KEY]` | open the issue in the browser (`<space>o` handler): `KEY` is upper-cased and must be a valid issue key; without it, the selected row. Status line: `Opened KEY in the browser` or the launcher failure |
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
-| `:tab new` | the source picker (until it exists, a copy of the current tab's view); `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
+| `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
 | `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
 | `:refresh` | alias of `<space>r` |
 | `:browse` | alias of `<space>o` |

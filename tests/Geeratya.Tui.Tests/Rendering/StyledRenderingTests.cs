@@ -157,9 +157,9 @@ public class StyledRenderingTests
     {
         var frame = FrameBuilder.BuildStyled(AppState.Initial, 30, 8, _helpLines, _keymap)!;
 
-        Assert.Single(frame.Header);
-        Assert.Equal(6, frame.Body.Count);
+        Assert.Equal(FrameBuilder.HeaderRows, frame.Header.Count);
+        Assert.Equal(8 - 1 - FrameBuilder.HeaderRows, frame.Body.Count);
         Assert.Equal(8, frame.PlainLines().Count);
-        Assert.Equal(new string(' ', 30), frame.Header[0].PlainText);
+        Assert.All(frame.Header, line => Assert.Equal(new string(' ', 30), line.PlainText));
     }
 }

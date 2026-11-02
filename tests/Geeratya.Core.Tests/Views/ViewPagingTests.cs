@@ -229,7 +229,7 @@ public class ViewPagingTests
         var tab = failed.State.Session.Tabs[0];
         Assert.Empty(failed.Effects);
         Assert.Equal(100, tab.Rows.Count);
-        Assert.Equal(new Failed(JiraErrorKind.Unauthorized, LoadErrorText.For(error)), tab.Load);
+        Assert.Equal(new Failed(JiraErrorKind.Unauthorized, LoadErrorText.For(error), LoadReason.NextPage), tab.Load);
         Assert.True(tab.IsStale);
     }
 
@@ -271,7 +271,6 @@ public class ViewPagingTests
 
     [Theory]
     [InlineData(JiraErrorKind.BadRequest)]
-    [InlineData(JiraErrorKind.ServerError)]
     [InlineData(JiraErrorKind.InvalidResponse)]
     [InlineData(JiraErrorKind.Unexpected)]
     public void GivenKindWithoutTableText_WhenBuildingTheText_ThenJirasMessageIsShown(JiraErrorKind kind)
@@ -279,6 +278,14 @@ public class ViewPagingTests
         var text = LoadErrorText.For(new JiraError(kind, null, "Error in the JQL Query: bad"));
 
         Assert.Equal("Error in the JQL Query: bad", text);
+    }
+
+    [Fact]
+    public void GivenServerError_WhenBuildingTheText_ThenTheStatusAndTheRetryKeyAreNamed()
+    {
+        var text = LoadErrorText.For(new JiraError(JiraErrorKind.ServerError, 503, "raw body"));
+
+        Assert.Equal("Jira returned an error (503). <space>r tries again.", text);
     }
 
     [Fact]

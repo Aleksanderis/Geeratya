@@ -39,7 +39,6 @@ public sealed record SelectionMoved(TabId Tab, int Index) : ViewCommand;
 public sealed record ViewPageLoaded(TabId Tab, long RequestId, IssuePage Page, DateTimeOffset At) : ViewCommand;
 
 /// <summary>A load failed; applied only while <paramref name="RequestId"/> is the tab's current request.</summary>
-// ReSharper disable once NotAccessedPositionalProperty.Global (read by the backoff schedule, #89)
 public sealed record ViewLoadFailed(TabId Tab, long RequestId, JiraError Error, DateTimeOffset At) : ViewCommand;
 
 /// <summary>
@@ -48,3 +47,18 @@ public sealed record ViewLoadFailed(TabId Tab, long RequestId, JiraError Error, 
 /// </summary>
 public sealed record BoardConfigurationLoaded(TabId Tab, long RequestId, BoardConfiguration Configuration)
     : ViewCommand;
+
+/// <summary>
+/// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab
+/// refreshes; time is only ever read from here and from the replies.
+/// </summary>
+public sealed record Tick(DateTimeOffset Now) : ViewCommand;
+
+/// <summary>Refresh a tab now on the user lane (the refresh key); a failed next page is retried instead.</summary>
+public sealed record RefreshRequested(TabId Tab) : ViewCommand;
+
+/// <summary>
+/// The transport reports its rate-limit state: <see cref="RateLimited"/> while a wait is active, <see cref="Online"/>
+/// when it ended (which clears only a rate-limit state, not an offline or rejected link).
+/// </summary>
+public sealed record LinkChanged(SiteLink Link) : ViewCommand;

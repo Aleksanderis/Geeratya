@@ -19,18 +19,21 @@ public sealed class ApplicationRunner
     private readonly bool _isInteractive;
     private readonly Func<ProfileServices> _createProfiles;
     private readonly ColorSupport _colors;
+    private readonly GlyphSet _glyphs;
 
     public ApplicationRunner(
         TextWriter output,
         bool isInteractive,
         ColorSupport colors = ColorSupport.TrueColor,
         TextWriter? error = null,
-        Func<ProfileServices>? createProfiles = null)
+        Func<ProfileServices>? createProfiles = null,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         _output = output;
         _error = error ?? Console.Error;
         _isInteractive = isInteractive;
         _colors = colors;
+        _glyphs = glyphs;
         _createProfiles = createProfiles ?? ProfileServices.CreateForProcess;
     }
 
@@ -82,7 +85,7 @@ public sealed class ApplicationRunner
             return 1;
         }
 
-        using var host = new ShellHost(keymap, _colors, profiles);
+        using var host = new ShellHost(keymap, _colors, profiles, _glyphs);
 
         return host.Run();
     }
@@ -101,7 +104,8 @@ public sealed class ApplicationRunner
         }
 
         var state = FrameOptions.SampleState(mode.Value);
-        var lines = FrameBuilder.Build(state, size.Width, size.Height, KeymapDocument.RenderHelpLines(keymap), keymap);
+        var helpLines = KeymapDocument.RenderHelpLines(keymap);
+        var lines = FrameBuilder.Build(state, size.Width, size.Height, helpLines, keymap, null, _glyphs);
 
         foreach (var line in lines)
         {

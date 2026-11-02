@@ -18,4 +18,7 @@ public enum TextRole
     StatusDone,
     Error,
     Loading,
+    Offline,
+    RateLimited,
+    Stale,
 }

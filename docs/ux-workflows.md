@@ -39,7 +39,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 ## 6. Refresh, offline, rate limits
 
 - `<space>r` reloads the active tab (or the open issue). Background refresh uses the same path and shows `STALE` only when it fails or the data is older than the refresh interval.
-- Offline: the cached data stays, the banner shows the time of the data and the next retry (exponential back-off, capped at 60 s); `<space>r` retries at once. A reply ends the state.
+- Offline: the cached data stays, the banner shows the age of the data and the next retry (exponential back-off, 60 s doubling to 300 s, `architecture.md`); `<space>r` retries at once. A reply ends the state. An offline start shows the cached rows marked stale, or without a cache the error body.
 - Rate limited: the banner counts the `Retry-After` seconds down; requests wait, nothing is dropped, and the keys keep working on the data already shown.
 - A reply that is a 401 stops all automatic retries for the profile until the token is replaced (a repeating wrong token would lock the account); the banner stays.
 

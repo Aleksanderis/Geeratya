@@ -3,6 +3,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -15,6 +16,14 @@ public sealed class AppReducer
 {
     private static readonly IReadOnlyList<Effect> _noEffects = [];
     private static readonly IReadOnlyList<Effect> _quitEffects = [new QuitEffect()];
+
+    private static readonly string[] _sourceVerbs =
+    [
+        PaletteCommands.Jql,
+        PaletteCommands.Filter,
+        PaletteCommands.Board,
+        PaletteCommands.Backlog,
+    ];
 
     private readonly KeymapTable _keymap;
     private readonly int _helpLineCount;
@@ -38,6 +47,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
+            SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             CacheWriteFailed failed => Result(state with { Message = failed.Message }),
@@ -71,6 +81,7 @@ public sealed class AppReducer
             HelpScroll = 0,
             Confirm = null,
             Form = null,
+            Picker = null,
         };
     }
 
@@ -127,7 +138,7 @@ public sealed class AppReducer
 
         if (state.Mode == InputMode.Insert)
         {
-            return ProfileReducer.Type(state, text);
+            return TypeInInsert(state, text);
         }
 
         return state.Mode == InputMode.Command ? state with { PaletteText = $"{state.PaletteText}{text}" } : state;
@@ -139,7 +150,7 @@ public sealed class AppReducer
 
         if (state.Mode == InputMode.Insert && text is not null)
         {
-            return ProfileReducer.Type(state, text);
+            return TypeInInsert(state, text);
         }
 
         if (state.Mode != InputMode.Command || text is null)
@@ -148,6 +159,11 @@ public sealed class AppReducer
         }
 
         return state with { PaletteText = $"{state.PaletteText}{text}" };
+    }
+
+    private static AppState TypeInInsert(AppState state, string text)
+    {
+        return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
     private ReduceResult Apply(AppState state, string action)
@@ -163,8 +179,10 @@ public sealed class AppReducer
             ActionIds.Cancel => Result(ToNormal(state)),
             ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
             ActionIds.ConfirmYes => Confirmed(state),
-            ActionIds.FormNext => ProfileReducer.Submit(state),
-            ActionIds.FormBackspace => Result(ProfileReducer.Backspace(state)),
+            ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
+            ActionIds.FormBackspace => Result(Erase(state)),
+            ActionIds.PickerNext => Result(SourceReducer.Move(state, 1)),
+            ActionIds.PickerPrevious => Result(SourceReducer.Move(state, -1)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
@@ -174,11 +192,18 @@ public sealed class AppReducer
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? ViewReducer.OpenSelected(state) : Result(state),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
-            ActionIds.TabNew => ViewReducer.DuplicateActiveTab(state),
+            ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.IssueOpenInBrowser => BrowserReducer.OpenIssue(state, null),
+            ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
             _ => Result(state),
         };
+    }
+
+    private static AppState Erase(AppState state)
+    {
+        return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
     }
 
     private static int? TabNumber(string action)
@@ -248,34 +273,39 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
-            _ when IsJqlCommand(text) => OpenJql(normal, text["jql".Length..].Trim()),
+            _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
+            _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
     }
 
-    private static bool IsJqlCommand(string text)
+    /// <summary>The source command the text starts with (<c>jql</c>, <c>filter</c>, ...), or null.</summary>
+    private static string? SourceVerb(string text)
     {
-        return text == "jql" || text.StartsWith("jql ", StringComparison.Ordinal);
+        foreach (var verb in _sourceVerbs)
+        {
+            if (text == verb || text.StartsWith($"{verb} ", StringComparison.Ordinal))
+            {
+                return verb;
+            }
+        }
+
+        return null;
     }
 
-    /// <summary>Temporary minimal parse of <c>:jql &lt;query&gt;</c>: everything after the word is the query (#87 replaces it).</summary>
-    private static ReduceResult OpenJql(AppState state, string query)
+    private static bool IsBrowseCommand(string text)
     {
-        if (query.Length == 0)
-        {
-            return Result(state with { Message = "Usage: :jql <query>" });
-        }
+        return text == "browse" || text.StartsWith("browse ", StringComparison.Ordinal);
+    }
 
-        if (state.Profiles.Active is null)
-        {
-            return Result(state with { Message = "No profile yet: add one with :profile add." });
-        }
+    /// <summary>The typed key of <c>:browse KEY</c>, upper-cased; null when none was typed.</summary>
+    private static string? BrowseKey(string text)
+    {
+        var key = text["browse".Length..].Trim().ToUpperInvariant();
 
-        var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, query);
-
-        return ViewReducer.Reduce(state, new ViewOpenRequested(definition));
+        return key.Length == 0 ? null : key;
     }
 
     private static bool IsTabCommand(string text)
@@ -288,7 +318,7 @@ public sealed class AppReducer
     {
         if (argument == "new")
         {
-            return ViewReducer.DuplicateActiveTab(state);
+            return SourceReducer.OpenPicker(state);
         }
 
         if (argument == "close")

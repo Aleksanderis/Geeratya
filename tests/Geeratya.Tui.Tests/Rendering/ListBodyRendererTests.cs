@@ -7,6 +7,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -161,7 +162,7 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenAFailedNextPage_WhenBuilding_ThenTheRowsStayAndTheFooterNamesTheReason()
     {
-        var lines = Frame(Tab(new Failed(JiraErrorKind.RateLimited, "Jira is rate limiting requests."), 2));
+        var lines = Frame(Tab(new Failed(JiraErrorKind.RateLimited, "Jira is rate limiting requests.", LoadReason.NextPage), 2));
 
         Assert.Contains("A-1", lines[2]);
         Assert.StartsWith("Could not load more: Jira is rate limiting requests.", lines[4]);
@@ -238,9 +239,59 @@ public class ListBodyRendererTests
         }
     }
 
-    private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height)
+    [Theory]
+    [InlineData("new", ".")]
+    [InlineData("indeterminate", "~")]
+    [InlineData("done", "x")]
+    [InlineData("other", "?")]
+    public void GivenTheAsciiGlyphSet_WhenRenderingNarrowRows_ThenStatusUsesAsciiGlyphs(string category, string glyph)
     {
-        var context = new BodyContext(_helpLines, _keymap);
+        var tab = Tab(LoadState.Idle) with { Rows = [Issue(1, status: new IssueStatus("1", "Any", category))] };
+
+        var lines = Render(tab, 40, 6, GlyphSet.Ascii);
+
+        Assert.EndsWith($" {glyph}", lines[2].PlainText.TrimEnd());
+    }
+
+    [Fact]
+    public void GivenTheAsciiGlyphSet_WhenRenderingEveryListState_ThenNoNonAsciiCharacterIsDrawn()
+    {
+        var failed = new Failed(JiraErrorKind.RateLimited, "Jira is rate limiting requests.", LoadReason.NextPage);
+        var states = new[]
+        {
+            Tab(LoadState.Idle, 3) with { Next = new PageCursor("n") },
+            Tab(new Loading(LoadReason.NextPage), 3),
+            Tab(LoadState.Idle, 3) with { Truncated = true },
+            Tab(failed, 3),
+            Tab(new Loading(LoadReason.Open)),
+            Tab(LoadState.Idle) with { Rows = [Issue(1, status: new IssueStatus("2", "Doing", "indeterminate"))] },
+            Tab(LoadState.Idle) with { Rows = [Issue(1, status: new IssueStatus("3", "Done", "done"))] },
+        };
+
+        foreach (var tab in states)
+        {
+            foreach (var width in new[] { 40, 80, 120 })
+            {
+                var lines = Render(tab, width, 10, GlyphSet.Ascii).Select(line => line.PlainText);
+
+                Assert.All(lines, line => Assert.True(line.All(character => character < 128), line));
+            }
+        }
+    }
+
+    [Fact]
+    public void GivenTheUnicodeGlyphSet_WhenRenderingNarrowRows_ThenTheCategoryCirclesAreDrawn()
+    {
+        var tab = Tab(LoadState.Idle, 1);
+
+        var lines = Render(tab, 40, 6);
+
+        Assert.Contains('○', lines[2].PlainText);
+    }
+
+    private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height, GlyphSet glyphs = GlyphSet.Unicode)
+    {
+        var context = new BodyContext(_helpLines, _keymap, glyphs);
 
         return new ListBodyRenderer().Render(Active(tab), context, width, height);
     }
@@ -287,9 +338,10 @@ public class ListBodyRendererTests
             "A");
     }
 
-    /// <summary>The frame without its tab bar line, so the rows below it keep their meaning.</summary>
+    /// <summary>The frame without its header lines, so the rows below them keep their meaning.</summary>
     private static List<string> Body(AppState state, int width, int height)
     {
-        return [.. FrameBuilder.Build(state, width, height + 1, _helpLines, _keymap).Skip(1)];
+        return [.. FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _helpLines, _keymap)
+            .Skip(FrameBuilder.HeaderRows)];
     }
 }

@@ -163,7 +163,15 @@ public static class ProfileReducer
             return Plain(state);
         }
 
-        return Plain(SetConnection(state, new Connected(ConnectionText.Sanitize(connected.User.DisplayName))));
+        var checkedState = SetConnection(state, new Connected(ConnectionText.Sanitize(connected.User.DisplayName)));
+
+        // Working credentials end the "rejected" stop of the automatic refresh.
+        if (checkedState.Session.Link is Rejected)
+        {
+            checkedState = checkedState with { Session = checkedState.Session with { Link = new Online() } };
+        }
+
+        return Plain(checkedState);
     }
 
     /// <summary>A failure for a profile that is no longer active is dropped.</summary>

@@ -40,7 +40,7 @@ public static class ActionCatalog
         new(ActionIds.TabGoTo7, "Go to tab 7"),
         new(ActionIds.TabGoTo8, "Go to tab 8"),
         new(ActionIds.TabGoTo9, "Go to tab 9"),
-        new(ActionIds.TabNew, "Open a view in a new tab"),
+        new(ActionIds.TabNew, "Open the source picker for a new tab"),
         new(ActionIds.TabClose, "Close the tab"),
         new(ActionIds.ViewRefresh, "Refresh the view (also retries after an error)"),
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
@@ -61,9 +61,7 @@ public static class ActionCatalog
         ActionIds.NavigateLastColumn,
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,
-        ActionIds.ViewRefresh,
         ActionIds.ViewLayoutToggle,
-        ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
     ];
 

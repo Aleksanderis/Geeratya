@@ -20,6 +20,11 @@ public static class ViewReducer
 
     public static ReduceResult Reduce(AppState state, ViewCommand command)
     {
+        if (command is Tick tick)
+        {
+            return Ticked(state, tick.Now);
+        }
+
         var effects = new List<Effect>();
 
         var next = command switch
@@ -41,6 +46,8 @@ public static class ViewReducer
             IssueCommentsLoaded loaded => DetailReducer.CommentsLoaded(state, loaded),
             IssueRemoteLinksLoaded loaded => DetailReducer.LinksLoaded(state, loaded),
             IssueDetailFailed failed => DetailReducer.LoadFailed(state, failed),
+            RefreshRequested refresh => Refresh(state, refresh.Tab, effects),
+            LinkChanged changed => ChangeLink(state, changed.Link),
             _ => state,
         };
 
@@ -325,18 +332,141 @@ public static class ViewReducer
     }
 
     /// <summary>
-    /// Opens a new tab with the active tab's view definition; without an active tab the status line says so.
+    /// The clock tick: refreshes the active tab in the background when its schedule says so. Returns the same state
+    /// instance and no effects when nothing is due, which is almost every tick.
     /// </summary>
-    public static ReduceResult DuplicateActiveTab(AppState state)
+    private static ReduceResult Ticked(AppState state, DateTimeOffset now)
     {
-        var active = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
 
-        if (active is null)
+        if (tab is null || !IsDue(state.Session.Link, tab, now))
         {
-            return new ReduceResult(state with { Message = "No view to copy: open one with :jql <query>." }, _noEffects);
+            return new ReduceResult(state, _noEffects);
         }
 
-        return Reduce(state, new ViewOpenRequested(active.Definition));
+        var effects = new List<Effect>(1);
+
+        return new ReduceResult(StartRefresh(state, tab, true, effects), effects);
+    }
+
+    /// <summary>
+    /// An automatic refresh is due when the tab is idle (or backing off after a failed load), its schedule has
+    /// passed, the link allows traffic and the rows are a first page that can be replaced as a whole.
+    /// </summary>
+    private static bool IsDue(SiteLink link, TabState tab, DateTimeOffset now)
+    {
+        if (tab.Cold || tab.Load is Loading || tab.Load is Failed { Reason: LoadReason.NextPage })
+        {
+            return false;
+        }
+
+        if (tab.NextRefreshAt is not { } due || now < due)
+        {
+            return false;
+        }
+
+        var paused = link is Rejected || (link is RateLimited limited && limited.Until > now);
+
+        return !paused && !HasMoreThanFirstPage(tab);
+    }
+
+    /// <summary>
+    /// A list tab that loaded further pages is not refreshed on its own: tokens only go forward, so replacing the
+    /// rows would throw the reader's position away every minute. The manual key resets it.
+    /// </summary>
+    private static bool HasMoreThanFirstPage(TabState tab)
+    {
+        return tab.Definition.Source is ViewSourceKind.Jql or ViewSourceKind.SavedFilter
+            && tab.Rows.Count > ViewPaging.PageSize;
+    }
+
+    private static AppState StartRefresh(AppState state, TabState tab, bool background, List<Effect> effects)
+    {
+        var requestId = state.Sequence + 1;
+
+        // A board tab whose configuration never arrived (the open failed on it) fetches it with this refresh, which
+        // only a user-lane refresh does, so the clock's refresh is promoted to that lane.
+        var needsConfiguration = tab.Board is null && LoadsAllPages(tab.Definition.Source);
+        background = background && !needsConfiguration;
+
+        var loading = tab with
+        {
+            Load = new Loading(LoadReason.Refresh, background),
+            RequestId = requestId,
+            PendingRows = null,
+        };
+
+        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, null, requestId, LoadReason.Refresh, background));
+
+        return Replace(state, loading) with { Sequence = requestId };
+    }
+
+    /// <summary>
+    /// The refresh key: user lane, never a second load while one is in flight. A failed next page is retried as a
+    /// next page (the rows stay and the reader keeps the position).
+    /// </summary>
+    private static AppState Refresh(AppState state, TabId id, List<Effect> effects)
+    {
+        var tab = Find(state.Session.Tabs, id);
+
+        if (tab is null || tab.Cold || tab.Load is Loading)
+        {
+            return state;
+        }
+
+        if (tab.Load is Failed { Reason: LoadReason.NextPage } && tab.Rows.Count > 0 && tab.Next is not null)
+        {
+            return RequestNext(state, tab, effects);
+        }
+
+        return StartRefresh(state, tab, false, effects);
+    }
+
+    /// <summary>
+    /// Refreshes the active tab (the <c>view.refresh</c> key); without one the status line says so.
+    /// </summary>
+    public static ReduceResult RefreshActive(AppState state)
+    {
+        if (state.Session.Active is not { } id)
+        {
+            return new ReduceResult(state with { Message = "No view to refresh." }, _noEffects);
+        }
+
+        return Reduce(state, new RefreshRequested(id));
+    }
+
+    /// <summary>A rate-limit state from the transport; "online" clears only a rate-limit state.</summary>
+    private static AppState ChangeLink(AppState state, SiteLink link)
+    {
+        if (link is Online && state.Session.Link is not RateLimited)
+        {
+            return state;
+        }
+
+        // A rate-limit wait does not hide a rejected login: it would be forgotten when the wait ends.
+        if (link is RateLimited && state.Session.Link is Rejected)
+        {
+            return state;
+        }
+
+        return WithLink(state, link);
+    }
+
+    private static AppState WithLink(AppState state, SiteLink link)
+    {
+        return state with { Session = state.Session with { Link = link } };
+    }
+
+    /// <summary>What a failed reply says about the link: a 401 rejects it, an unreachable site is offline.</summary>
+    private static SiteLink LinkAfterFailure(SiteLink link, JiraErrorKind kind, DateTimeOffset at)
+    {
+        return kind switch
+        {
+            JiraErrorKind.Unauthorized => new Rejected(),
+            JiraErrorKind.Network or JiraErrorKind.Timeout or JiraErrorKind.HostRefused =>
+                link is Offline ? link : new Offline(at),
+            _ => link,
+        };
     }
 
     /// <summary>
@@ -353,6 +483,47 @@ public static class ViewReducer
         return Replace(state, loading) with { Sequence = requestId };
     }
 
+    private static IReadOnlyList<IssueSummary> CombinedRows(
+        TabState tab,
+        ViewPageLoaded loaded,
+        bool appended,
+        bool gathering)
+    {
+        if (appended)
+        {
+            return Append(tab.Rows, loaded.Page.Items);
+        }
+
+        return gathering && tab.PendingRows is { } gathered ? Append(gathered, loaded.Page.Items) : loaded.Page.Items;
+    }
+
+    /// <summary>
+    /// A board refresh page that is not the last: keeps the rows gathered so far aside and asks for the next page
+    /// with the same lane. The rows on screen stay until the last page arrives.
+    /// </summary>
+    private static AppState GatherMore(
+        AppState state,
+        TabState tab,
+        Loading loading,
+        IReadOnlyList<IssueSummary> gathered,
+        PageCursor cursor,
+        List<Effect> effects)
+    {
+        var requestId = state.Sequence + 1;
+        var gathering = tab with { PendingRows = gathered, RequestId = requestId };
+
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                cursor,
+                requestId,
+                LoadReason.Refresh,
+                loading.Background));
+
+        return EnforceTotal(Replace(state, gathering) with { Sequence = requestId }, effects);
+    }
+
     private static AppState PageLoaded(AppState state, ViewPageLoaded loaded, List<Effect> effects)
     {
         var tab = Find(state.Session.Tabs, loaded.Tab);
@@ -363,7 +534,15 @@ public static class ViewReducer
         }
 
         var appended = loading.Reason == LoadReason.NextPage;
-        var combined = appended ? Append(tab.Rows, loaded.Page.Items) : loaded.Page.Items;
+        var gathering = loading.Reason == LoadReason.Refresh && LoadsAllPages(tab.Definition.Source);
+        var combined = CombinedRows(tab, loaded, appended, gathering);
+
+        // A board refresh swaps its rows in with the last page, so the screen never shows a half-refreshed board.
+        if (gathering && loaded.Page.Next is { } more && combined.Count < ViewPaging.MaxRowsPerTab)
+        {
+            return GatherMore(state, tab, loading, combined, more, effects);
+        }
+
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? combined.Take(ViewPaging.MaxRowsPerTab).ToArray() : combined;
         var cursor = truncated ? null : loaded.Page.Next;
@@ -378,17 +557,28 @@ public static class ViewReducer
             IsStale = false,
             LoadedAt = loaded.At,
             PendingRows = null,
-            KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, loaded.Page.Items),
+            KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : combined),
+            Failures = 0,
+            NextRefreshAt = appended && tab.Failures == 0
+                ? tab.NextRefreshAt
+                : RefreshSchedule.AfterSuccess(loaded.At),
         };
 
         var selected = appended ? updated : KeepSelection(updated);
 
         if (!appended)
         {
-            effects.Add(FirstPageWrite(tab.Definition, tab.Board, loaded));
+            effects.Add(FirstPageWrite(tab.Definition, tab.Board, combined, loaded.At));
         }
 
-        var enforced = EnforceTotal(Replace(state, selected), effects);
+        var recovered = Replace(state, selected);
+
+        if (state.Session.Link is Offline or Rejected)
+        {
+            recovered = WithLink(recovered, new Online());
+        }
+
+        var enforced = EnforceTotal(recovered, effects);
         var current = Find(enforced.Session.Tabs, selected.Id)!;
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
@@ -458,11 +648,12 @@ public static class ViewReducer
     private static WriteCacheEffect FirstPageWrite(
         ViewDefinition definition,
         BoardConfiguration? board,
-        ViewPageLoaded loaded)
+        IReadOnlyList<IssueSummary> items,
+        DateTimeOffset at)
     {
-        var rows = loaded.Page.Items.Take(ViewPaging.PageSize).ToArray();
+        var rows = items.Take(ViewPaging.PageSize).ToArray();
 
-        return new WriteCacheEffect(CacheKey.For(definition), new CachedView(rows, board, loaded.At));
+        return new WriteCacheEffect(CacheKey.For(definition), new CachedView(rows, board, at));
     }
 
     private static int KeyWidthOf(int known, IReadOnlyList<IssueSummary> items)
@@ -498,16 +689,23 @@ public static class ViewReducer
         }
 
         var message = LoadErrorText.For(failed.Error);
+        var backsOff = loading.Reason != LoadReason.NextPage;
+        var failures = backsOff ? tab.Failures + 1 : tab.Failures;
+        var nextRefresh = backsOff ? RefreshSchedule.AfterFailure(failed.At, failures) : tab.NextRefreshAt;
 
-        return Replace(
-            state,
-            tab with
-            {
-                Load = new Failed(failed.Error.Kind, message),
-                RequestId = 0,
-                IsStale = tab.Rows.Count > 0,
-                PendingRows = null,
-            });
+        var failedTab = tab with
+        {
+            Load = new Failed(failed.Error.Kind, message, loading.Reason),
+            RequestId = 0,
+            IsStale = tab.Rows.Count > 0,
+            PendingRows = null,
+            Failures = failures,
+            NextRefreshAt = nextRefresh,
+        };
+
+        var link = LinkAfterFailure(state.Session.Link, failed.Error.Kind, failed.At);
+
+        return WithLink(Replace(state, failedTab), link);
     }
 
     /// <summary>Makes <paramref name="id"/> active and reloads it when it is cold.</summary>
@@ -515,7 +713,11 @@ public static class ViewReducer
     {
         var sequence = state.Sequence;
         var tab = Find(state.Session.Tabs, id)!;
-        var shown = tab with { LastActiveSeq = ++sequence };
+        var shown = tab with
+        {
+            LastActiveSeq = ++sequence,
+            NextRefreshAt = RefreshSchedule.OnActivation(tab.NextRefreshAt, tab.LoadedAt, tab.Failures),
+        };
 
         if (tab.Cold)
         {

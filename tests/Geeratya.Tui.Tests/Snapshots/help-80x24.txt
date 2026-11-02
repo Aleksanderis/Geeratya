@@ -1,4 +1,5 @@
                                                                                 
+                                                                                
 Help                                                                            
 Normal mode                                                                     
   j          Move down                                                          
@@ -20,5 +21,4 @@ Normal mode
   ?          Show or hide help                                                  
   :          Open the command palette                                           
   q          Quit                                                               
-  Esc        Cancel or close                                                    
  HELP                                                    j down  k up  Esc close

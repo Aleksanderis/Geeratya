@@ -2,6 +2,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Platform.Browser;
@@ -23,11 +24,14 @@ namespace Geeratya.Tui;
 /// </summary>
 public sealed class ShellHost : IDisposable
 {
+    private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
+
     private const string CorruptNotice =
         "profiles.json could not be read and was ignored; a copy was kept as profiles.json.corrupt.";
 
     private readonly KeymapTable _keymap;
     private readonly ColorSupport _colors;
+    private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
@@ -36,16 +40,23 @@ public sealed class ShellHost : IDisposable
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
     private IssueDetailLoadHandler? _detailLoads;
+    private SourceLoadHandler? _sourceLoads;
     private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
     private AppState _state = AppState.Initial;
+    private ITimer? _tickTimer;
 
-    public ShellHost(KeymapTable keymap, ColorSupport colors, ProfileServices profiles)
+    public ShellHost(
+        KeymapTable keymap,
+        ColorSupport colors,
+        ProfileServices profiles,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         _keymap = keymap;
         _colors = colors;
+        _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
         _browserEffects = new BrowserEffectHandler(
@@ -53,11 +64,14 @@ public sealed class ShellHost : IDisposable
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
+        _connections.RateLimitChanged += OnRateLimitChanged;
     }
 
     public void Dispose()
     {
         _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+        _connections.RateLimitChanged -= OnRateLimitChanged;
+        _tickTimer?.Dispose();
         _profiles.Caches.Dispose();
         _network?.Dispose();
         _connections.Dispose();
@@ -74,6 +88,7 @@ public sealed class ShellHost : IDisposable
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
         _detailLoads = new IssueDetailLoadHandler(_network);
+        _sourceLoads = new SourceLoadHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
         _application = application;
@@ -88,13 +103,14 @@ public sealed class ShellHost : IDisposable
         application.Keyboard.KeyDown += OnKeyDown;
         application.Paste += OnPaste;
 
-        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
+        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
 
         _screen = screen;
         screen.BodyRowsChanged += OnBodyRowsChanged;
-        screen.Render(_state);
+        screen.Render(_state, TimeProvider.System.GetUtcNow());
         Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns));
         Dispatch(new ConnectionCheckRequested());
+        _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
         shutdown.Cancel();
         _profiles.Caches.FlushAll();
@@ -116,6 +132,18 @@ public sealed class ShellHost : IDisposable
     private void OnBodyRowsChanged(int rows)
     {
         Dispatch(new ViewportChanged(rows, _screen!.BodyColumns));
+    }
+
+    /// <summary>Timer callback (not the UI thread): hands the clock to the reducer, which decides about refreshes.</summary>
+    private void PostTick(object? timerState)
+    {
+        Post(new Tick(TimeProvider.System.GetUtcNow()));
+    }
+
+    /// <summary>The transport's rate-limit wait started or ended (not the UI thread).</summary>
+    private void OnRateLimitChanged(DateTimeOffset? until)
+    {
+        Post(new LinkChanged(SiteLink.FromRateLimit(until)));
     }
 
     private void OnKeyDown(object? sender, Key key)
@@ -144,8 +172,15 @@ public sealed class ShellHost : IDisposable
     {
         var result = _reducer.Reduce(_state, command);
 
+        // An idle tick changes nothing: no redraw, unless the banner counts time (a wait, the age of the data).
+        if (command is Tick tick && ReferenceEquals(result.State, _state) && result.Effects.Count == 0
+            && !TabStatus.Of(_state.Session, tick.Now).ShowsTime)
+        {
+            return;
+        }
+
         _state = result.State;
-        _screen!.Render(_state);
+        _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
         var checks = new List<CheckConnectionEffect>();
 
@@ -172,6 +207,10 @@ public sealed class ShellHost : IDisposable
             else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect)
             {
                 _ = _detailLoads!.StartAsync(effect);
+            }
+            else if (effect is LoadSourcesEffect sources)
+            {
+                _ = _sourceLoads!.StartAsync(sources);
             }
             else if (effect is WriteCacheEffect write)
             {
