@@ -22,6 +22,7 @@ public sealed record TransitionPickTarget(
 
     public override string Title => ColumnName is null ? $"Change status of {Key}" : $"Move {Key} to {ColumnName}";
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
 
     public override string EmptyText => $"No transition is available for {Key}";

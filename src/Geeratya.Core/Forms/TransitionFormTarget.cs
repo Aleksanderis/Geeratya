@@ -10,6 +10,7 @@ public sealed record TransitionFormTarget(string Key, TransitionChoice Choice) :
 {
     public override string Title => $"Move {Key} to {Choice.Target.Name}";
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
 
     public override string EmptyText => $"{Choice.Name} is no longer available for {Key}";
