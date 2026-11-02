@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -31,11 +32,21 @@ public static class WriteReducer
         {
             AssignToMeRequested me => AssignToMe(state, me),
             WriteRequested requested => Request(state, requested),
+            SubtasksCounted counted => DeleteReducer.Counted(state, counted),
+            SubtasksCountFailed failed => DeleteReducer.CountFailed(state, failed),
             OperationPhaseChanged changed => PhaseChanged(state, changed),
-            WriteSucceeded succeeded => Succeeded(state, succeeded),
-            WriteFailed failed => Failed(state, failed),
+            WriteSucceeded succeeded => FormReducer.Settled(
+                Succeeded(state, succeeded),
+                succeeded.OperationId,
+                true,
+                null),
+            WriteFailed failed => FormReducer.Settled(Failed(state, failed), failed.OperationId, false, failed.Error),
             WriteOutcomeUnknown unknown => Unknown(state, unknown.OperationId),
-            WriteVerified verified => Verified(state, verified),
+            WriteVerified verified => FormReducer.Settled(
+                Verified(state, verified),
+                verified.OperationId,
+                verified.Outcome == VerifyOutcome.Applied,
+                null),
             _ => new ReduceResult(state, _noEffects),
         };
     }
@@ -202,6 +213,11 @@ public static class WriteReducer
     /// <summary>Jira confirmed the write: the server rows replace the tabs' rows, the caches are dropped.</summary>
     private static ReduceResult Complete(AppState state, Operation operation, IReadOnlyList<IssueSummary> rows)
     {
+        if (operation.Request.RemovesIssues)
+        {
+            return CompleteRemoval(state, operation);
+        }
+
         var effects = new List<Effect>();
 
         if (operation.Request.ChangesRows)
@@ -213,6 +229,23 @@ public static class WriteReducer
         var stale = operation.Request.ChangesRows ? MarkStale(replaced, operation.Keys) : replaced;
         var finished = Finish(stale, operation, true, effects, rows);
         var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
+
+        return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
+    /// <summary>
+    /// Jira deleted the issues: their rows and open details go from every tab, the caches are dropped, and the
+    /// origin tab reloads (membership changed; the server is the truth, <c>docs/architecture.md</c>).
+    /// </summary>
+    private static ReduceResult CompleteRemoval(AppState state, Operation operation)
+    {
+        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        var removed = WriteRemoval.Apply(state, operation.Keys);
+        var finished = Finish(removed, operation, false, effects);
+        var origin = ViewReducer.Find(finished.Session.Tabs, operation.Origin);
+        var reloaded = origin is { Cold: false, Load: not Loading }
+            ? ViewReducer.StartRefresh(finished, origin, false, effects)
+            : finished;
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }

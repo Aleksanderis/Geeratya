@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -65,7 +66,15 @@ public static class StatusBar
     /// <summary>The hints shown while the comment editor is open (Insert mode, <see cref="AppState.Editor"/>).</summary>
     public static IReadOnlyList<StatusHint> EditorHints { get; } =
     [
-        new(InputMode.Insert, ActionIds.EditorSave, "save"),
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
+    /// <summary>The hints shown while a field form is open (Insert mode, the active tab's form).</summary>
+    public static IReadOnlyList<StatusHint> FormHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
@@ -132,6 +141,11 @@ public static class StatusBar
         if (state.Editor is not null && state.Mode == InputMode.Insert)
         {
             return new HintList([], TextsOf(EditorHints, state.Mode, HintScope.Global, keymap));
+        }
+
+        if (FormReducer.IsOpen(state))
+        {
+            return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
         }
 
         if (state.Picker is not null)
@@ -250,6 +264,7 @@ public static class StatusBar
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
+            InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };

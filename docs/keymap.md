@@ -54,6 +54,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space m a` | Add a comment to the issue |
 | `Space m e` | Edit the comment under the cursor |
 | `Space m d` | Delete the comment under the cursor |
+| `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 
 ## Help mode
 
@@ -97,8 +98,10 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous source in the picker |
 | `Down` | Next source in the picker |
 | `Ctrl-n` | Next source in the picker |
-| `Ctrl-s` | Save the comment |
-| `Alt-Enter` | Save the comment |
+| `Tab` | Next field of the form |
+| `Shift-Tab` | Previous field of the form |
+| `Ctrl-s` | Save the form |
+| `Alt-Enter` | Save the form |
 | `Left` | Move the cursor left |
 | `Right` | Move the cursor right |
 | `Home` | Move the cursor to the start of the row |
@@ -114,6 +117,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

@@ -19,6 +19,12 @@ public abstract record WriteRequest
     /// </summary>
     public virtual bool ChangesRows => true;
 
+    /// <summary>
+    /// True for a write that deletes its issues: no optimistic change, the rows and open details of the issues go
+    /// when Jira confirmed, and the read after the write is not made (the issues are gone).
+    /// </summary>
+    public virtual bool RemovesIssues => false;
+
     /// <summary>The activity for the busy refusal: <c>GCM-3 is busy (assigning)</c>.</summary>
     public abstract string BusyText { get; }
 

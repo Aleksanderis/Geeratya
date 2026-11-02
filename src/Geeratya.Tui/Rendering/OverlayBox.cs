@@ -3,18 +3,18 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The frame of a centred box over the body (source picker, comment editor): top edge with a title, walls with one
-/// space of padding, bottom edge, and the placement of a box row between blank margins. Pure.
+/// The frame of a centred box over the body, shared by the overlays (source picker, field form). Every box row
+/// replaces the whole body row it sits on, so nothing of the screen behind shows through at its sides.
 /// </summary>
 public static class OverlayBox
 {
-    private const string Corner = "┌┐└┘";
-    private const char Horizontal = '─';
-    private const string Vertical = "│";
-    private const int DividerMargin = 2;
+    public const char Horizontal = '─';
 
-    /// <summary>The top edge of a box <paramref name="boxWidth"/> columns wide, with the title set into it.</summary>
-    public static StyledLine Top(string title, int boxWidth)
+    private const string Corner = "┌┐└┘";
+    private const string Vertical = "│";
+
+    /// <summary>The top edge with <paramref name="title"/> after the first rule character.</summary>
+    public static StyledLine Top(int boxWidth, string title)
     {
         var text = $" {title} ";
         var fill = Math.Max(0, boxWidth - 3 - TextWidth.Of(text));
@@ -27,13 +27,7 @@ public static class OverlayBox
         return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", TextRole.Muted);
     }
 
-    /// <summary>A rule across the inside of a box whose content is <paramref name="contentWidth"/> columns wide.</summary>
-    public static StyledLine Divider(int contentWidth)
-    {
-        return StyledLine.Of(new string(Horizontal, Math.Max(0, contentWidth - DividerMargin)), TextRole.Muted);
-    }
-
-    /// <summary>A box row: the content padded to the inner width between two walls, with one space of padding.</summary>
+    /// <summary>A box row: the content padded to the inner width between two walls and a space.</summary>
     public static StyledLine Wall(StyledLine content, int contentWidth)
     {
         var spans = new List<StyledSpan> { new(Vertical, TextRole.Muted), new(" ", TextRole.Body) };

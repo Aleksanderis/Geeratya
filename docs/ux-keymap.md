@@ -66,7 +66,7 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
-| `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 |
+| `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
@@ -102,8 +102,8 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 
 ### Text input
 
-- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves (`Alt-Enter` too, for a terminal that swallows `Ctrl-s`), `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts. Built for comments in #167 (`Left`/`Right`/`Up`/`Down`/`Home`/`End`/`Delete` move and edit; the editor actions are `editor.*`, Insert mode only); `docs/ux-screens.md`, "Comment editor".
-- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request.
+- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves (`Alt-Enter` too, for a terminal that swallows `Ctrl-s`), `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts. Built for comments in #167 (`Left`/`Right`/`Up`/`Down`/`Home`/`End`/`Delete` move and edit; `Ctrl-s` is the form's `form.submit`, the cursor actions are `editor.*`, Insert mode only); `docs/ux-screens.md`, "Comment editor".
+- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`.
 - **Suggestions** (owner's decision, #213 to #215): `@` (people) and `#` plus a project key (issues) open the popup inside text editors; picker fields (labels, components, assignee, selects) suggest by context as you type. No extra key opens a picker field's list. `Up`/`Down` and `Ctrl-p`/`Ctrl-n` choose, `Enter` or `Tab` accepts, `Esc` closes the popup only.
 - **Pickers** reuse the source picker's keys (`ux.md`, Insert mode).
 

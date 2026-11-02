@@ -67,7 +67,7 @@ public static class SourcePickerOverlay
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
         var first = FirstVisible(rows, area);
-        var lines = new List<StyledLine> { OverlayBox.Top(Title, boxWidth), OverlayBox.Wall(Prompt(picker), contentWidth) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title), OverlayBox.Wall(Prompt(picker), contentWidth) };
 
         foreach (var line in rows.Lines.Skip(first).Take(Math.Max(0, area)))
         {
@@ -81,7 +81,9 @@ public static class SourcePickerOverlay
 
         if (footer > 0)
         {
-            lines.Add(OverlayBox.Wall(OverlayBox.Divider(contentWidth), contentWidth));
+            var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
+
+            lines.Add(OverlayBox.Wall(rule, contentWidth));
             lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
         }
 

@@ -60,7 +60,7 @@ public static class BrowserReducer
         return Request(state, new OpenUrlRequested(url.AbsoluteUri, false, key));
     }
 
-    private static string? SelectedKey(AppState state)
+    internal static string? SelectedKey(AppState state)
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
 

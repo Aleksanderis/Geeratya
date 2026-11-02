@@ -46,17 +46,20 @@ public static class ActionCatalog
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
+        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor"),
-        new(ActionIds.EditorSave, "Save the comment"),
         new(ActionIds.EditorLeft, "Move the cursor left"),
         new(ActionIds.EditorRight, "Move the cursor right"),
         new(ActionIds.EditorRowStart, "Move the cursor to the start of the row"),
         new(ActionIds.EditorRowEnd, "Move the cursor to the end of the row"),
         new(ActionIds.EditorDelete, "Delete the character under the cursor"),
+        new(ActionIds.FormFieldNext, "Next field of the form"),
+        new(ActionIds.FormFieldPrevious, "Previous field of the form"),
+        new(ActionIds.FormSubmit, "Save the form"),
     ];
 
     /// <summary>
@@ -80,12 +83,14 @@ public static class ActionCatalog
         ActionIds.FormBackspace,
         ActionIds.PickerPrevious,
         ActionIds.PickerNext,
-        ActionIds.EditorSave,
         ActionIds.EditorLeft,
         ActionIds.EditorRight,
         ActionIds.EditorRowStart,
         ActionIds.EditorRowEnd,
         ActionIds.EditorDelete,
+        ActionIds.FormFieldNext,
+        ActionIds.FormFieldPrevious,
+        ActionIds.FormSubmit,
     ];
 
     public static bool IsModalOnly(string id)

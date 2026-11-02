@@ -24,6 +24,7 @@ public static class CommentEditorOverlay
     private const int MaxNoteRows = 3;
     private const int TopGap = 1;
     private const int WallColumns = 4;
+    private const int DividerMargin = 2;
 
     /// <summary>Draws the editor of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -68,11 +69,11 @@ public static class CommentEditorOverlay
     {
         var contentWidth = boxWidth - 2;
         var title = editor.IsEdit ? EditTitle : NewTitle;
-        var lines = new List<StyledLine> { OverlayBox.Top($"{title} {editor.Key}", boxWidth) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, $"{title} {editor.Key}") };
 
         lines.AddRange(TextLines(editor, rows, area).Select(line => OverlayBox.Wall(line, contentWidth)));
         lines.AddRange(notes.Select(note => OverlayBox.Wall(note, contentWidth)));
-        lines.Add(OverlayBox.Wall(OverlayBox.Divider(contentWidth), contentWidth));
+        lines.Add(OverlayBox.Wall(Divider(contentWidth), contentWidth));
         lines.Add(OverlayBox.Wall(StyledLine.Of(footer, TextRole.Muted), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
@@ -100,6 +101,11 @@ public static class CommentEditorOverlay
         }
 
         return lines;
+    }
+
+    private static StyledLine Divider(int contentWidth)
+    {
+        return StyledLine.Of(new string(OverlayBox.Horizontal, Math.Max(0, contentWidth - DividerMargin)), TextRole.Muted);
     }
 
     private static StyledLine Plain(string text, EditorRow row)
@@ -159,7 +165,7 @@ public static class CommentEditorOverlay
 
     private static string FooterText(KeymapTable keymap, CommentEditor editor)
     {
-        var save = keymap.FindKeys(InputMode.Insert, ActionIds.EditorSave);
+        var save = keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit);
         var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
         var newLine = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
         var verb = editor.IsEdit ? "save" : "send";

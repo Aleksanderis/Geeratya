@@ -23,13 +23,9 @@ internal static class CommentEditing
     /// <summary>The confirm action that throws the editor text away.</summary>
     public const string DiscardAction = "comment.discard";
 
-    /// <summary>The confirm action that deletes the comment named by the confirm target.</summary>
-    public const string DeleteAction = "comment.delete-confirmed";
-
     private const string OpenIssueText = "Open an issue first.";
     private const string NoCommentText = "Put the cursor on a comment first.";
     private const string EmptyText = "A comment cannot be empty.";
-    private const string GoneText = "That comment is no longer shown.";
     private const string NoChangeText = "No change to save.";
     private const string LostFormattingText =
         "This comment has formatting the editor cannot show; saving replaces it with the text below.";
@@ -78,7 +74,7 @@ internal static class CommentEditing
     }
 
     /// <summary><c>comment.delete</c>: asks first, naming the comment and that Jira cannot undo the delete.</summary>
-    public static ReduceResult Delete(AppState state)
+    public static ReduceResult Delete(AppState state, DateTimeOffset at)
     {
         if (TopOf(state) is not { } top)
         {
@@ -93,22 +89,11 @@ internal static class CommentEditing
         var author = comment.Author?.DisplayName ?? "unknown";
         var message =
             $"Delete the {top.Detail.Key} comment? Jira cannot undo this. By {Clean(author)}: \"{Quote(comment)}\"";
-        var request = new ConfirmRequest(message, DeleteAction, comment.Id);
+        var write = new DeleteCommentRequest(top.Detail.Key, comment.Id);
+        var confirmed = new WriteRequested(top.Tab.Id, write, at);
+        var request = new ConfirmRequest(message, ActionIds.CommentDelete, comment.Id, confirmed);
 
         return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
-    }
-
-    /// <summary>The delete was confirmed: starts the write for the comment named by the confirm target.</summary>
-    public static ReduceResult ConfirmedDelete(AppState state, string? commentId)
-    {
-        if (TopOf(state) is not { } top || top.Detail.Comments.All(comment => comment.Id != commentId))
-        {
-            return Say(state, GoneText);
-        }
-
-        var request = new DeleteCommentRequest(top.Detail.Key, commentId!);
-
-        return WriteReducer.Reduce(state, new WriteRequested(top.Tab.Id, request, top.Detail.LoadedAt ?? default));
     }
 
     /// <summary>Types text (or a paste) at the cursor.</summary>
@@ -161,8 +146,8 @@ internal static class CommentEditing
         return state with { Mode = InputMode.Insert, Confirm = null, PendingKeys = string.Empty };
     }
 
-    /// <summary>Ctrl-s: starts the write, or says in the editor why it did not start.</summary>
-    public static ReduceResult Save(AppState state)
+    /// <summary><c>form.submit</c> (Ctrl-s): starts the write, or says in the editor why it did not start.</summary>
+    public static ReduceResult Save(AppState state, DateTimeOffset at)
     {
         if (state.Editor is not { IsSaving: false } editor || TopOf(state) is not { } top)
         {
@@ -182,9 +167,7 @@ internal static class CommentEditing
         }
 
         var request = RequestFor(state, editor, top.Detail);
-        var started = WriteReducer.Reduce(
-            state,
-            new WriteRequested(editor.Tab, request, top.Detail.LoadedAt ?? default));
+        var started = WriteReducer.Reduce(state, new WriteRequested(editor.Tab, request, at));
 
         if (started.State.Sequence == state.Sequence)
         {

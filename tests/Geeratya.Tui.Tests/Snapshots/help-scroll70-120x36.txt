@@ -1,13 +1,21 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Esc        Decline                                                                                                    
+                                                                                                                        
+Insert mode                                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
   Ctrl-c     Cancel or close                                                                                            
   Up         Previous source in the picker                                                                              
   Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
-  Ctrl-s     Save the comment                                                                                           
-  Alt-Enter  Save the comment                                                                                           
+  Tab        Next field of the form                                                                                     
+  Shift-Tab  Previous field of the form                                                                                 
+  Ctrl-s     Save the form                                                                                              
+  Alt-Enter  Save the form                                                                                              
   Left       Move the cursor left                                                                                       
   Right      Move the cursor right                                                                                      
   Home       Move the cursor to the start of the row                                                                    
@@ -25,12 +33,4 @@ Palette commands
       Open a board's backlog in a new tab                                                                               
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
-  :profile add|list|switch <name>|remove <name>|check                                                                   
-      Manage Jira profiles                                                                                              
-  :help                                                                                                                 
-      Show or hide help                                                                                                 
-  :quit                                                                                                                 
-      Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
  HELP                                                                                            j down  k up  Esc close

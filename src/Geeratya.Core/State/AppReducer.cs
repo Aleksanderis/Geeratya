@@ -3,6 +3,7 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
@@ -41,7 +42,7 @@ public sealed class AppReducer
     {
         return command switch
         {
-            KeyPressed pressed => ReduceKey(state, pressed.Key),
+            KeyPressed pressed => ReduceKey(state, pressed.Key, pressed.At),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -50,6 +51,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
+            FormCommand form => FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
@@ -103,8 +105,13 @@ public sealed class AppReducer
         };
     }
 
-    private ReduceResult ReduceKey(AppState state, string key)
+    private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)
     {
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Key(state, key, at, _keymap);
+        }
+
         var resolution = _keymap.Resolve(state.Mode, state.PendingKeys, key);
 
         if (resolution.Kind == KeyResolutionKind.Prefix)
@@ -124,7 +131,7 @@ public sealed class AppReducer
             return Result(TypeText(cleared, key));
         }
 
-        return Apply(cleared with { Message = null }, resolution.Action!);
+        return Apply(cleared with { Message = null }, resolution.Action!, at);
     }
 
     /// <summary>
@@ -157,6 +164,11 @@ public sealed class AppReducer
         if (text.Length == 0)
         {
             return state;
+        }
+
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Paste(state, text);
         }
 
         if (state.Mode == InputMode.Insert)
@@ -194,7 +206,7 @@ public sealed class AppReducer
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
-    private ReduceResult Apply(AppState state, string action)
+    private ReduceResult Apply(AppState state, string action, DateTimeOffset at = default)
     {
         return action switch
         {
@@ -211,7 +223,7 @@ public sealed class AppReducer
             ActionIds.FormBackspace => Result(Erase(state)),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
-            ActionIds.EditorSave => CommentEditing.Save(state),
+            ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
             ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
             ActionIds.EditorRowStart => Result(CommentEditing.Move(state, EditorMove.RowStart)),
@@ -219,7 +231,7 @@ public sealed class AppReducer
             ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
-            ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state)),
+            ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state, at)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
@@ -239,6 +251,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
@@ -379,6 +392,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
@@ -494,9 +508,9 @@ public sealed class AppReducer
             return ProfileReducer.ConfirmedSwitch(normal, request.Target);
         }
 
-        if (request.ActionOnConfirm == CommentEditing.DeleteAction)
+        if (request.OnConfirm is { } command)
         {
-            return CommentEditing.ConfirmedDelete(normal, request.Target);
+            return Reduce(normal, command);
         }
 
         // The quit that was asked for while writes ran: the answer was yes, so no second question.

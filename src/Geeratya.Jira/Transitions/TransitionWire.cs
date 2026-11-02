@@ -30,5 +30,5 @@ internal static class TransitionWire
         bool? HasDefaultValue,
         List<JsonElement>? AllowedValues);
 
-    internal sealed record Schema(string? Type);
+    internal sealed record Schema(string? Type, string? Items, string? System, string? Custom);
 }

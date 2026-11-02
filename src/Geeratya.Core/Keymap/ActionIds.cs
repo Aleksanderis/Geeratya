@@ -44,15 +44,18 @@ public static class ActionIds
     public const string ViewLayoutToggle = "view.layout-toggle";
     public const string IssueOpenInBrowser = "issue.open-in-browser";
     public const string IssueOpenParent = "issue.open-parent";
+    public const string IssueDelete = "issue.delete";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";
-    public const string EditorSave = "editor.save";
     public const string EditorLeft = "editor.left";
     public const string EditorRight = "editor.right";
     public const string EditorRowStart = "editor.row-start";
     public const string EditorRowEnd = "editor.row-end";
     public const string EditorDelete = "editor.delete";
+    public const string FormFieldNext = "form.field-next";
+    public const string FormFieldPrevious = "form.field-previous";
+    public const string FormSubmit = "form.submit";
 }
