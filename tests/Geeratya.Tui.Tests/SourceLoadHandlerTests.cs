@@ -23,7 +23,9 @@ public sealed class SourceLoadHandlerTests
                 .Reply(HttpStatusCode.OK, Read("filters", "filter-favourite-empty"))
                 .Reply(HttpStatusCode.OK, Read("filters", "filter-my")));
 
-        await fixture.Handler.StartAsync(new LoadSourcesEffect(true, true));
+        // Sequential: the scripted fake answers in call order, so concurrent loads would swap replies.
+        await fixture.Handler.StartAsync(new LoadSourcesEffect(true, false));
+        await fixture.Handler.StartAsync(new LoadSourcesEffect(false, true));
 
         var boards = fixture.Posted.OfType<BoardsLoaded>().Single();
         var filters = fixture.Posted.OfType<FiltersLoaded>().Single();

@@ -79,7 +79,7 @@ public static class SourceReducer
             return state;
         }
 
-        return state with { Picker = picker with { Text = $"{picker.Text}{text}", Selected = 0, Notice = null } };
+        return state with { Picker = picker with { Text = $"{picker.Text}{text}", Selected = 0, AutoOpen = false, Notice = null } };
     }
 
     public static AppState Backspace(AppState state)
@@ -94,7 +94,7 @@ public static class SourceReducer
         var starts = StringInfo.ParseCombiningCharacters(picker.Text);
         var text = picker.Text[..starts[^1]];
 
-        return state with { Picker = picker with { Text = text, Selected = 0, Notice = null } };
+        return state with { Picker = picker with { Text = text, Selected = 0, AutoOpen = false, Notice = null } };
     }
 
     /// <summary>Moves the highlight by <paramref name="delta"/> rows, stopping at the first and last row.</summary>
@@ -111,7 +111,7 @@ public static class SourceReducer
         var current = Math.Clamp(picker.Selected, 0, Math.Max(0, count - 1));
         var selected = Math.Clamp(current + delta, 0, Math.Max(0, count - 1));
 
-        return state with { Picker = picker with { Selected = selected, Notice = null } };
+        return state with { Picker = picker with { Selected = selected, AutoOpen = false, Notice = null } };
     }
 
     /// <summary>Opens the highlighted row in a new tab and closes the picker.</summary>

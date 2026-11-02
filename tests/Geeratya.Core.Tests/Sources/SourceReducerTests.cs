@@ -209,6 +209,31 @@ public class SourceReducerTests
     }
 
     [Fact]
+    public void GivenAWaitingCommand_WhenTheUserTypesBeforeTheReply_ThenNothingOpensWithoutEnter()
+    {
+        var waiting = Run(Start(), "board");
+        var typed = Press(waiting.State, "g");
+
+        var arrived = _reducer.Reduce(typed.State, new BoardsLoaded(_boards));
+
+        Assert.Empty(arrived.State.Session.Tabs);
+        Assert.NotNull(arrived.State.Picker);
+    }
+
+    [Fact]
+    public void GivenAFilterThatIsFavouriteAndOwn_WhenMerging_ThenItAppearsOnceFirstAndStarred()
+    {
+        var own = new SavedFilter("10002", "Minefield", null, "Me", false, null);
+        var starred = new SavedFilter("10002", "Minefield", null, "Me", true, null);
+        var other = new SavedFilter("10001", "Mine", null, "Me", false, null);
+
+        var merged = SourceChoices.MergeFilters([starred], [other, own]);
+
+        Assert.Equal(["10002", "10001"], merged.Select(filter => filter.Id));
+        Assert.True(merged[0].IsFavourite);
+    }
+
+    [Fact]
     public void GivenAWaitingCommand_WhenTheLoadFails_ThenThePickerStaysOpenAndShowsNoAutoOpen()
     {
         var waiting = Run(Start(), "filter mine");
