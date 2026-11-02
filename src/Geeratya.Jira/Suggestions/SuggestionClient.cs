@@ -8,11 +8,11 @@ using Geeratya.Jira.Transport;
 namespace Geeratya.Jira.Suggestions;
 
 /// <summary>
-/// Read-only lookups behind pickers: text in, a short ranked list out. Every call is cancellable (a cancelled call
+/// Read-only lookups behind pickers: text in, a short list out. Every call is cancellable (a cancelled call
 /// throws <see cref="OperationCanceledException"/>) and at most <see cref="SuggestionFilter.MaxResults"/> long.
 /// An empty query sends no request and returns nothing, except issues, where Jira's own recents answer.
-/// Nothing is cached here. A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. Team-managed projects
-/// have no components and their own version model: those calls return an empty list, not an error.
+/// Nothing is cached here. A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. How team-managed
+/// projects answer for components and versions is not yet recorded (#260); the client treats them like any list.
 /// </summary>
 public sealed partial class SuggestionClient(JiraTransport transport)
 {
@@ -21,34 +21,56 @@ public sealed partial class SuggestionClient(JiraTransport transport)
 
     private const string ApiPath = "/rest/api/3";
     private const string ApiPrefix = "/rest/api/";
+    private const string AssignableSearch = "user/assignable/search";
+    private const string ViewIssueSearch = "user/viewissue/search";
+    private const string LabelPath = ApiPath + "/label";
+    private const string PickerPath = ApiPath + "/issue/picker";
+    private const string ProjectPath = ApiPath + "/project";
+    private const string ComponentsSegment = "components";
+    private const string VersionsSegment = "versions";
     private const int LabelPageSize = 1000;
 
     /// <summary>People who can be assigned issues of a project (the create form).</summary>
     public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchAssignableUsersForProjectAsync(
         string projectKey,
         string? query,
-        CancellationToken cancellationToken) =>
-        IsProjectKey(projectKey)
-            ? SearchUsersAsync($"user/assignable/search?project={projectKey}", query, cancellationToken)
-            : Task.FromResult(NotFound());
+        CancellationToken cancellationToken)
+    {
+        if (!IsProjectKey(projectKey))
+        {
+            return Task.FromResult(NotFound());
+        }
+
+        return SearchUsersAsync($"{AssignableSearch}?project={projectKey}", query, cancellationToken);
+    }
 
     /// <summary>People who can be assigned one issue (the assignee editor).</summary>
     public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchAssignableUsersAsync(
         string issueKey,
         string? query,
-        CancellationToken cancellationToken) =>
-        IssueUrls.IsValidKey(issueKey)
-            ? SearchUsersAsync($"user/assignable/search?issueKey={issueKey}", query, cancellationToken)
-            : Task.FromResult(NotFound());
+        CancellationToken cancellationToken)
+    {
+        if (!IssueUrls.IsValidKey(issueKey))
+        {
+            return Task.FromResult(NotFound());
+        }
+
+        return SearchUsersAsync($"{AssignableSearch}?issueKey={issueKey}", query, cancellationToken);
+    }
 
     /// <summary>People who can see an issue and so can be mentioned in its comments.</summary>
     public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchMentionableUsersAsync(
         string issueKey,
         string? query,
-        CancellationToken cancellationToken) =>
-        IssueUrls.IsValidKey(issueKey)
-            ? SearchUsersAsync($"user/viewissue/search?issueKey={issueKey}", query, cancellationToken)
-            : Task.FromResult(NotFound());
+        CancellationToken cancellationToken)
+    {
+        if (!IssueUrls.IsValidKey(issueKey))
+        {
+            return Task.FromResult(NotFound());
+        }
+
+        return SearchUsersAsync($"{ViewIssueSearch}?issueKey={issueKey}", query, cancellationToken);
+    }
 
     /// <summary>
     /// Labels matching <paramref name="query"/>: those already on visible issues (<paramref name="knownLabels"/>,
@@ -73,24 +95,20 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         for (var page = 0; page < MaxLabelPages; page++)
         {
             var result = await transport.SendAsync(
-                JiraRequest.Get($"{ApiPath}/label?startAt={Number(startAt)}&maxResults={Number(LabelPageSize)}"),
+                JiraRequest.Get($"{LabelPath}?startAt={Number(startAt)}&maxResults={Number(LabelPageSize)}"),
                 SuggestionJsonContext.Default.LabelPage,
                 cancellationToken);
 
             if (!result.IsSuccess)
             {
-                var fallback = SuggestionFilter.Filter(local, query);
-
-                return fallback.Count > 0
-                    ? JiraResults.Success(fallback)
-                    : JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+                return LocalOrError(local, query, result.Error);
             }
 
-            var labels = SuggestionMapper.MapLabels(result.Value);
-            candidates.AddRange(labels.Select(SuggestionFilter.FromLabel));
-            startAt += labels.Count;
+            var rawCount = result.Value.Values?.Count ?? 0;
+            candidates.AddRange(SuggestionMapper.MapLabels(result.Value).Select(SuggestionFilter.FromLabel));
+            startAt += rawCount;
 
-            if (labels.Count == 0 || result.Value.IsLast != false)
+            if (rawCount == 0 || result.Value.IsLast != false)
             {
                 break;
             }
@@ -108,7 +126,7 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         string? currentJql,
         CancellationToken cancellationToken)
     {
-        var url = $"{ApiPath}/issue/picker?query={Uri.EscapeDataString(query?.Trim() ?? string.Empty)}";
+        var url = $"{PickerPath}?query={Uri.EscapeDataString(query?.Trim() ?? string.Empty)}";
 
         if (!string.IsNullOrWhiteSpace(currentJql))
         {
@@ -120,9 +138,12 @@ public sealed partial class SuggestionClient(JiraTransport transport)
             SuggestionJsonContext.Default.Picker,
             cancellationToken);
 
-        return result.IsSuccess
-            ? JiraResults.Success(Take(SuggestionMapper.MapPicker(result.Value)))
-            : JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        if (!result.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        }
+
+        return JiraResults.Success(Take(SuggestionMapper.MapPicker(result.Value)));
     }
 
     /// <summary>Components of a project whose name contains <paramref name="query"/>.</summary>
@@ -130,20 +151,21 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         string projectKey,
         string? query,
         CancellationToken cancellationToken) =>
-        SearchProjectListAsync(projectKey, "components", query, cancellationToken);
+        SearchProjectListAsync(projectKey, ComponentsSegment, query, cancellationToken);
 
-    /// <summary>Versions of a project whose name contains <paramref name="query"/> (archived ones are marked).</summary>
+    /// <summary>Versions of a project whose name contains <paramref name="query"/> (archived ones marked).</summary>
     public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchVersionsAsync(
         string projectKey,
         string? query,
         CancellationToken cancellationToken) =>
-        SearchProjectListAsync(projectKey, "versions", query, cancellationToken);
+        SearchProjectListAsync(projectKey, VersionsSegment, query, cancellationToken);
 
     /// <summary>
     /// A custom picker's own source (<see cref="CreateField.AutoCompleteUrl"/>). Only a URL on the connection's own
-    /// host and under <c>/rest/api/</c> is requested; anything else is refused with no request. The query is
-    /// appended to the URL, so it must end where the query text goes (<c>...?query=</c>). The reply is read in
-    /// the <c>suggestions</c> shape (label, value); other shapes give an empty list.
+    /// scheme and host under <c>/rest/api/</c> is requested; anything else (including a site URL with a path prefix,
+    /// such as the scoped-token gateway) is refused with no request. The query is appended to the URL, so the URL
+    /// must end where the query text goes (<c>...?query=</c>). The reply is read in the <c>suggestions</c> shape
+    /// (label, value); other shapes give an empty list.
     /// </summary>
     public async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchByAutoCompleteUrlAsync(
         string autoCompleteUrl,
@@ -167,9 +189,12 @@ public sealed partial class SuggestionClient(JiraTransport transport)
             SuggestionJsonContext.Default.AutoComplete,
             cancellationToken);
 
-        return result.IsSuccess
-            ? JiraResults.Success(Take(SuggestionMapper.MapAutoComplete(result.Value)))
-            : JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        if (!result.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        }
+
+        return JiraResults.Success(Take(SuggestionMapper.MapAutoComplete(result.Value)));
     }
 
     /// <summary>
@@ -203,9 +228,12 @@ public sealed partial class SuggestionClient(JiraTransport transport)
             SuggestionJsonContext.Default.ListUser,
             cancellationToken);
 
-        return result.IsSuccess
-            ? JiraResults.Success(Take(SuggestionMapper.MapUsers(result.Value)))
-            : JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        if (!result.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        }
+
+        return JiraResults.Success(Take(SuggestionMapper.MapUsers(result.Value)));
     }
 
     private async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchProjectListAsync(
@@ -225,13 +253,16 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         }
 
         var result = await transport.SendAsync(
-            JiraRequest.Get($"{ApiPath}/project/{projectKey}/{segment}"),
+            JiraRequest.Get($"{ProjectPath}/{projectKey}/{segment}"),
             SuggestionJsonContext.Default.ListNamed,
             cancellationToken);
 
-        return result.IsSuccess
-            ? JiraResults.Success(SuggestionFilter.Filter(SuggestionMapper.MapNamed(result.Value), query))
-            : JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        if (!result.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
+        }
+
+        return JiraResults.Success(SuggestionFilter.Filter(SuggestionMapper.MapNamed(result.Value), query));
     }
 
     // The path and query of a URL on the connection's own host under the REST prefix; null for anything else.
@@ -251,10 +282,33 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         return uri.PathAndQuery;
     }
 
-    private static bool IsProjectKey(string? key) => key is { Length: > 0 and <= 255 } && ProjectKeyPattern().IsMatch(key);
+    private static JiraResult<IReadOnlyList<Suggestion>> LocalOrError(
+        List<Suggestion> local,
+        string query,
+        JiraError error)
+    {
+        var fallback = SuggestionFilter.Filter(local, query);
 
-    private static IReadOnlyList<Suggestion> Take(IReadOnlyList<Suggestion> items) =>
-        items.Count <= SuggestionFilter.MaxResults ? items : items.Take(SuggestionFilter.MaxResults).ToList();
+        if (fallback.Count > 0)
+        {
+            return JiraResults.Success(fallback);
+        }
+
+        return JiraResults.Failure<IReadOnlyList<Suggestion>>(error);
+    }
+
+    private static bool IsProjectKey(string? key) =>
+        key is { Length: > 0 and <= 255 } && ProjectKeyPattern().IsMatch(key);
+
+    private static IReadOnlyList<Suggestion> Take(IReadOnlyList<Suggestion> items)
+    {
+        if (items.Count <= SuggestionFilter.MaxResults)
+        {
+            return items;
+        }
+
+        return items.Take(SuggestionFilter.MaxResults).ToList();
+    }
 
     private static JiraResult<IReadOnlyList<Suggestion>> NotFound() =>
         JiraResults.Failure<IReadOnlyList<Suggestion>>(
