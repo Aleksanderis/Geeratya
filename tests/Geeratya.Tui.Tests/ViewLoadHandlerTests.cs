@@ -244,6 +244,53 @@ public sealed class ViewLoadHandlerTests
         return new Fixture(connections, new ScriptedJiraHandler());
     }
 
+    [Fact]
+    public async Task GivenBackgroundSlotsFull_WhenAUserLoadStarts_ThenOnlyTheBackgroundRefreshesQueue()
+    {
+        var gates = new[] { new TaskCompletionSource(), new TaskCompletionSource(), new TaskCompletionSource() };
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, Empty, gates[0].Task)
+            .Reply(HttpStatusCode.OK, Empty, gates[1].Task)
+            .Reply(HttpStatusCode.OK, Empty, gates[2].Task)
+            .Reply(HttpStatusCode.OK, PageTwo)
+            .Reply(HttpStatusCode.OK, Empty));
+
+        var running = new List<Task>();
+
+        for (var index = 1; index <= 3; index++)
+        {
+            running.Add(fixture.Handler.StartAsync(Load("project = A", null, index) with { Background = true }));
+        }
+
+        await WaitUntilAsync(() => fixture.Http.Requests.Count == 3);
+
+        running.Add(fixture.Handler.StartAsync(Load("project = A", null, 4) with { Background = true }));
+        running.Add(fixture.Handler.StartAsync(Load("project = A", null, 5)));
+        await WaitUntilAsync(() => fixture.Posted.Count == 1);
+
+        var user = Assert.IsType<ViewPageLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(5, user.RequestId);
+        Assert.Equal(4, fixture.Http.Requests.Count);
+
+        foreach (var gate in gates)
+        {
+            gate.SetResult();
+        }
+
+        await WaitUntilAsync(() => fixture.Posted.Count == 5);
+        await Task.WhenAll(running);
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        while (!condition())
+        {
+            await Task.Delay(1, timeout.Token);
+        }
+    }
+
     private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script, int maxRetries = 0)
     {
         var http = new ScriptedJiraHandler();

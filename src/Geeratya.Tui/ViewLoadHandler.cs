@@ -172,12 +172,19 @@ public sealed class ViewLoadHandler
     }
 
     /// <summary>
-    /// Only an opening (or restarting) load fetches the configuration; a refresh keeps the one in the tab until the
-    /// user refreshes by hand (#89).
+    /// Only an opening (or restarting) load and a refresh by hand fetch the configuration; a refresh by the clock
+    /// keeps the one in the tab.
     /// </summary>
     private static bool NeedsConfiguration(LoadViewPageEffect effect)
     {
-        return effect.Cursor is null && effect.Reason is LoadReason.Open or LoadReason.Retry;
+        if (effect.Cursor is not null)
+        {
+            return false;
+        }
+
+        var byHand = effect.Reason == LoadReason.Refresh && !effect.Background;
+
+        return effect.Reason is LoadReason.Open or LoadReason.Retry || byHand;
     }
 
     private ViewLoadFailed Failure(LoadViewPageEffect effect, string message)

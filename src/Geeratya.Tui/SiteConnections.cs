@@ -39,6 +39,12 @@ public sealed class SiteConnections : IDisposable
         _createTransport = createTransport ?? CreateDefault;
     }
 
+    /// <summary>
+    /// Raised when a rate-limit wait of the current transport starts (with its end) or ends (null). It runs on a
+    /// non-UI thread; handlers only post to the UI.
+    /// </summary>
+    public event Action<DateTimeOffset?>? RateLimitChanged;
+
     /// <summary>The transport of the active profile once it is ready, otherwise null.</summary>
     public JiraTransport? Current
     {
@@ -214,6 +220,7 @@ public sealed class SiteConnections : IDisposable
             if (generation == _generation)
             {
                 _transport = transport;
+                transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
 
                 return null;
             }
@@ -222,6 +229,14 @@ public sealed class SiteConnections : IDisposable
         transport.Dispose();
 
         return null;
+    }
+
+    private void OnRateLimitWaitChanged(int generation, JiraTransport transport)
+    {
+        if (IsCurrent(generation))
+        {
+            RateLimitChanged?.Invoke(transport.RateLimitedUntil);
+        }
     }
 
     // A failed profile is not "connected", so activating it again (for example after another profile was removed and

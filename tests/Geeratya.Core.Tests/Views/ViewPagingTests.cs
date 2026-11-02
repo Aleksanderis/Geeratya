@@ -229,7 +229,7 @@ public class ViewPagingTests
         var tab = failed.State.Session.Tabs[0];
         Assert.Empty(failed.Effects);
         Assert.Equal(100, tab.Rows.Count);
-        Assert.Equal(new Failed(JiraErrorKind.Unauthorized, LoadErrorText.For(error)), tab.Load);
+        Assert.Equal(new Failed(JiraErrorKind.Unauthorized, LoadErrorText.For(error), LoadReason.NextPage), tab.Load);
         Assert.True(tab.IsStale);
     }
 
