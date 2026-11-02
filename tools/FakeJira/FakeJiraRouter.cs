@@ -14,6 +14,8 @@ public sealed class FakeJiraRouter
     private const string MissingFilterFixture = "filters/filter-get-missing.json";
     private const string MaxResultsName = "maxResults";
     private const string PageTokenName = "nextPageToken";
+    private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
+    private const string StartAtName = "startAt";
     private const string Get = "GET";
     private const string Post = "POST";
     private const int DefaultPageSize = 50;
@@ -82,6 +84,11 @@ public sealed class FakeJiraRouter
             return new FakeReply(200, GeneratedIssues.Count(_options.GeneratedIssues));
         }
 
+        if (method == Get && _options.GeneratedIssues > 0 && TryGeneratedIssue(path, query) is { } generated)
+        {
+            return generated;
+        }
+
         if (method == Get && _routes.TryGetValue(path, out var fixture))
         {
             return new FakeReply(200, ReadFixture(fixture));
@@ -98,6 +105,42 @@ public sealed class FakeJiraRouter
         }
 
         return new FakeReply(404, ReadFixture(NotFoundFixture));
+    }
+
+    /// <summary>
+    /// The detail, comments and remote links of a generated issue (<c>GEN-n</c>, n within the dataset); null for any
+    /// other path.
+    /// </summary>
+    private FakeReply? TryGeneratedIssue(string path, IReadOnlyDictionary<string, string> query)
+    {
+        if (!path.StartsWith(GeneratedIssuePrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parts = path[GeneratedIssuePrefix.Length..].Split('/');
+
+        if (!int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var number)
+            || number < 1
+            || number > _options.GeneratedIssues)
+        {
+            return null;
+        }
+
+        return parts.Length switch
+        {
+            1 => new FakeReply(200, GeneratedIssues.Detail(number)),
+            2 when parts[1] == "comment" => new FakeReply(
+                200,
+                GeneratedIssues.Comments(number, IntOf(query, StartAtName, 0), IntOf(query, MaxResultsName, DefaultPageSize))),
+            2 when parts[1] == "remotelink" => new FakeReply(200, "[]"u8.ToArray()),
+            _ => null,
+        };
+    }
+
+    private static int IntOf(IReadOnlyDictionary<string, string> query, string name, int fallback)
+    {
+        return query.TryGetValue(name, out var text) && int.TryParse(text, out var value) ? value : fallback;
     }
 
     private static Dictionary<string, string> ReadBody(string body)

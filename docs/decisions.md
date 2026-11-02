@@ -39,3 +39,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 **Architecture:** Load results are applied only if their per-tab request id is current and the host drops results of an older `SiteConnections.Generation`; refresh is the active tab only (60 s, 30 s on switch, `AsBackground()`, backoff to 5 min, injected `Tick`). Why: pure reducer, no stale data after a tab close or profile switch. Detail: `architecture.md`, "Views and tabs", "Loading".
 
 **Architecture:** Switching profile drops the views and memory cache but keeps that profile's disk cache folder; removing the profile deletes it. Why: views reopen instantly when the profile comes back. Ids (`TabId`, request ids) come from one counter in `AppState` that survives a switch, so an old reply never matches a new tab.
+
+## 2026-11-02
+
+**UI:** The issue detail lists comments oldest first and loads further pages at the end (`Load more comments`, `Enter`), instead of the newest 20 with older ones above (supersedes that sentence of `ux-screens.md`, "Issue detail"; issue #84). Why: the comments client pages oldest first with offsets, and a thread of at most 50 comments reads the same either way; reversing the order needs a second client mode for no reader benefit yet. `q` still quits in the detail (Normal mode, `ux.md` "Focus model and key style"; workflow 4 says the same), although the issue text said otherwise.

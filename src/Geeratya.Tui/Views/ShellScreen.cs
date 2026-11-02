@@ -56,6 +56,9 @@ public sealed class ShellScreen : Window
     /// </summary>
     public int BodyRows => Math.Max(0, _size.Height - 1 - ListLayout.HeaderRows);
 
+    /// <summary>The terminal width, which issue details are laid out for.</summary>
+    public int BodyColumns => Math.Max(0, _size.Width);
+
     public void Render(AppState state)
     {
         _state = state;

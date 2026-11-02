@@ -19,8 +19,11 @@ public sealed record TabClosed(TabId Tab) : ViewCommand;
 /// <summary>Change how a tab shows its rows; everything else is kept.</summary>
 public sealed record ViewLayoutChanged(TabId Tab, ViewLayout Layout) : ViewCommand;
 
-/// <summary>The viewport height changed; applies to every tab.</summary>
-public sealed record ViewportChanged(int Rows) : ViewCommand;
+/// <summary>
+/// The viewport changed; applies to every tab. <paramref name="Rows"/> is the list's row count,
+/// <paramref name="Columns"/> the terminal width (0 when the sender does not know it: the last width is kept).
+/// </summary>
+public sealed record ViewportChanged(int Rows, int Columns = 0) : ViewCommand;
 
 /// <summary>Load the next page of a tab.</summary>
 public sealed record NextPageRequested(TabId Tab) : ViewCommand;

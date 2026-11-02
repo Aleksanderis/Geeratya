@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Views;
@@ -82,6 +83,11 @@ public sealed class AppReducer
             return Result(state with { PendingKeys = Join(state.PendingKeys, key), Message = null });
         }
 
+        if (IsBackOut(state, resolution))
+        {
+            return ViewReducer.Reduce(state, new IssueDetailBackRequested(state.Session.Active!.Value));
+        }
+
         var cleared = state with { PendingKeys = string.Empty };
 
         if (resolution.Kind == KeyResolutionKind.None)
@@ -90,6 +96,20 @@ public sealed class AppReducer
         }
 
         return Apply(cleared with { Message = null }, resolution.Action!);
+    }
+
+    /// <summary>
+    /// Esc in Normal mode with nothing typed and no notice to clear pops the issue stack of the active tab
+    /// (<c>docs/ux.md</c>, "Focus model and key style").
+    /// </summary>
+    private static bool IsBackOut(AppState state, KeyResolution resolution)
+    {
+        return resolution.Kind == KeyResolutionKind.Action
+            && resolution.Action == ActionIds.Cancel
+            && state.Mode == InputMode.Normal
+            && state.PendingKeys.Length == 0
+            && state.Message is null
+            && ViewReducer.CanGoBack(state);
     }
 
     /// <summary>
@@ -151,6 +171,7 @@ public sealed class AppReducer
             ActionIds.NavigateBottom => Navigate(state, ListMove.Bottom, 0),
             ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
             ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
+            ActionIds.ItemOpen => state.Mode == InputMode.Normal ? ViewReducer.OpenSelected(state) : Result(state),
             _ => Result(state),
         };
     }

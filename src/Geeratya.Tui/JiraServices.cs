@@ -1,3 +1,6 @@
+using Geeratya.Jira.Comments;
+using Geeratya.Jira.Issues;
+using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
@@ -17,10 +20,22 @@ public sealed class JiraServices
         Generation = generation;
         Search = new JiraSearchClient(transport);
         Users = new JiraUserClient(transport);
+        Issues = new IssueClient(transport);
+        Comments = new CommentClient(transport);
+        RemoteLinks = new RemoteLinkClient(transport);
     }
 
     /// <summary>The current account (<c>/myself</c>), also the credential check.</summary>
     public JiraUserClient Users { get; }
+
+    /// <summary>Reads one issue for the detail screen.</summary>
+    public IssueClient Issues { get; }
+
+    /// <summary>Reads the comments of one issue.</summary>
+    public CommentClient Comments { get; }
+
+    /// <summary>Reads the remote links of one issue.</summary>
+    public RemoteLinkClient RemoteLinks { get; }
 
     public JiraTransport Transport { get; }
 

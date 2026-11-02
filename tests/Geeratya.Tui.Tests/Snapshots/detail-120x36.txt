@@ -1,0 +1,36 @@
+My open issues › GCM-12 · Top                                                                                           
+GCM-12  Task                                                                                                            
+Fix login redirect after token refresh                                                                                  
+Status: In Progress   Priority: High   Assignee: Jane Doe   Reporter: Ola Nordmann   Labels: auth, bug-bash             
+Parent: GCM-17 Reporting overhaul   Updated: 2 h ago                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Description                                                                                                             
+  Heading one                                                                                                           
+                                                                                                                        
+  Heading three                                                                                                         
+                                                                                                                        
+  Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji 😄 and unicode: żółć 日本語 🚀            
+  after break                                                                                                           
+                                                                                                                        
+  Colored H_2 underlined 2026-01-01 [READY]                                                                             
+                                                                                                                        
+  - bullet one                                                                                                          
+  - bullet two                                                                                                          
+    - nested                                                                                                            
+                                                                                                                        
+  3. third                                                                                                              
+  4. fourth                                                                                                             
+                                                                                                                        
+  [x] done task                                                                                                         
+  [ ] todo task                                                                                                         
+                                                                                                                        
+  ```csharp                                                                                                             
+  var x = 1;                                                                                                            
+  Console.WriteLine(x);                                                                                                 
+  ```                                                                                                                   
+                                                                                                                        
+  | quoted                                                                                                              
+                                                                                                                        
+  | [warning]                                                                                                           
+  | panel text                                                                                                          
+ NORMAL                                                                                        ? help  : command  q quit

@@ -1,4 +1,5 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -34,6 +35,7 @@ public sealed class ShellHost : IDisposable
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
+    private IssueDetailLoadHandler? _detailLoads;
     private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -71,6 +73,7 @@ public sealed class ShellHost : IDisposable
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
+        _detailLoads = new IssueDetailLoadHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
         _application = application;
@@ -88,9 +91,9 @@ public sealed class ShellHost : IDisposable
         using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
 
         _screen = screen;
-        screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
+        screen.BodyRowsChanged += OnBodyRowsChanged;
         screen.Render(_state);
-        Dispatch(new ViewportChanged(screen.BodyRows));
+        Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns));
         Dispatch(new ConnectionCheckRequested());
         application.Run(screen);
         shutdown.Cancel();
@@ -108,6 +111,11 @@ public sealed class ShellHost : IDisposable
         }
 
         _application!.Invoke(() => Dispatch(command));
+    }
+
+    private void OnBodyRowsChanged(int rows)
+    {
+        Dispatch(new ViewportChanged(rows, _screen!.BodyColumns));
     }
 
     private void OnKeyDown(object? sender, Key key)
@@ -160,6 +168,10 @@ public sealed class ShellHost : IDisposable
             else if (effect is LoadViewPageEffect load)
             {
                 _ = _viewLoads!.StartAsync(load, ActiveCache());
+            }
+            else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect)
+            {
+                _ = _detailLoads!.StartAsync(effect);
             }
             else if (effect is WriteCacheEffect write)
             {

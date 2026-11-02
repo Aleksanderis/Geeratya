@@ -13,6 +13,7 @@ public static class FrameBuilder
     private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers =
     [
         new HelpBodyRenderer(),
+        new IssueDetailRenderer(),
         new ListBodyRenderer(),
         new StartBodyRenderer(),
     ];

@@ -30,6 +30,9 @@ public sealed record AppState(
     long Sequence,
     int ViewportRows)
 {
+    /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
+    public int ViewportColumns { get; init; }
+
     public static AppState Initial { get; } =
         new(
             InputMode.Normal,
