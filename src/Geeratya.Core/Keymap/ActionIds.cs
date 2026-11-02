@@ -50,4 +50,5 @@ public static class ActionIds
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";
+    public const string FormOpenBrowser = "form.open-browser";
 }

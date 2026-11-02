@@ -75,6 +75,7 @@
     { "mode": "insert", "keys": "Ctrl-n", "action": "picker.next" },
     { "mode": "insert", "keys": "Tab", "action": "form.field-next" },
     { "mode": "insert", "keys": "Shift-Tab", "action": "form.field-previous" },
-    { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" }
+    { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" },
+    { "mode": "insert", "keys": "Ctrl-o", "action": "form.open-browser" }
   ]
 }

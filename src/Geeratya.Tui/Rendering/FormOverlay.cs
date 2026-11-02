@@ -167,7 +167,11 @@ public static class FormOverlay
             return $"{down}/{up} choose   {next}/{accept} accept   {cancel} close list";
         }
 
-        return $"{next}/{previous} field   {submit} save   {cancel} cancel";
+        var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
+            ? $"   {keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
+            : string.Empty;
+
+        return $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
     }
 
     private static FormContent Content(FormState form, int valueWidth)
