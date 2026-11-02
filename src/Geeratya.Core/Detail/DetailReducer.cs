@@ -80,17 +80,49 @@ internal static class DetailReducer
         return ActiveTab(state) is { Detail.Count: > 0 };
     }
 
-    public static AppState IssueLoaded(AppState state, IssueDetailLoaded loaded)
+    /// <summary>
+    /// The issue arrived. An issue of a type with children (hierarchy level 1 or above) starts loading them now,
+    /// one level only: a grandchild is not returned by <c>parent = KEY</c> (<c>docs/jira-layer.md</c>, "Hierarchy").
+    /// </summary>
+    public static AppState IssueLoaded(AppState state, IssueDetailLoaded loaded, List<Effect> effects)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, loaded.Tab);
+
+        if (tab is null || !tab.Detail.Any(detail => detail.IssueRequest == loaded.RequestId))
+        {
+            return state;
+        }
+
+        var wantsChildren = loaded.Issue.IssueType.HierarchyLevel >= DetailPaging.ParentLevel;
+        var childrenRequest = wantsChildren ? state.Sequence + 1 : 0;
+
+        var next = Update(
+            state,
+            loaded.Tab,
+            detail => detail.IssueRequest == loaded.RequestId ? AcceptIssue(detail, loaded, childrenRequest) : null);
+
+        if (!wantsChildren)
+        {
+            return next;
+        }
+
+        effects.Add(new LoadIssueChildrenEffect(loaded.Tab, loaded.Issue.Key, childrenRequest));
+
+        return next with { Sequence = childrenRequest };
+    }
+
+    public static AppState ChildrenLoaded(AppState state, IssueChildrenLoaded loaded)
     {
         return Update(
             state,
             loaded.Tab,
-            detail => detail.IssueRequest == loaded.RequestId
+            detail => detail.ChildrenRequest == loaded.RequestId
                 ? detail with
                 {
-                    Issue = loaded.Issue,
-                    IssueLoad = LoadState.Idle,
-                    IssueRequest = 0,
+                    Children = loaded.Page.Items,
+                    ChildrenMore = !loaded.Page.IsLast,
+                    ChildrenLoad = LoadState.Idle,
+                    ChildrenRequest = 0,
                     LoadedAt = loaded.At,
                 }
                 : null);
@@ -221,7 +253,27 @@ internal static class DetailReducer
             return detail with { CommentsLoad = failure, CommentsRequest = 0 };
         }
 
+        if (detail.ChildrenRequest == requestId)
+        {
+            return detail with { ChildrenLoad = failure, ChildrenRequest = 0 };
+        }
+
         return detail.LinksRequest == requestId ? detail with { LinksLoad = failure, LinksRequest = 0 } : null;
+    }
+
+    private static DetailState AcceptIssue(DetailState detail, IssueDetailLoaded loaded, long childrenRequest)
+    {
+        return detail with
+        {
+            Issue = loaded.Issue,
+            IssueLoad = LoadState.Idle,
+            IssueRequest = 0,
+            LoadedAt = loaded.At,
+            Children = null,
+            ChildrenMore = false,
+            ChildrenLoad = childrenRequest > 0 ? new Loading(LoadReason.Open) : LoadState.Idle,
+            ChildrenRequest = childrenRequest,
+        };
     }
 
     /// <summary>

@@ -204,7 +204,8 @@ public sealed class ShellHost : IDisposable
             {
                 _ = _viewLoads!.StartAsync(load, ActiveCache());
             }
-            else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect)
+            else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect
+                or LoadIssueChildrenEffect)
             {
                 _ = _detailLoads!.StartAsync(effect);
             }

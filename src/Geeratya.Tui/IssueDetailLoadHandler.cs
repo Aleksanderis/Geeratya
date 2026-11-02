@@ -1,6 +1,8 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Jql;
+using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Tui;
@@ -35,6 +37,8 @@ public sealed class IssueDetailLoadHandler
             LoadIssueCommentsEffect comments =>
                 Run(comments.Tab.Value, comments.Tab, comments.RequestId, CommentsAsync(comments)),
             LoadRemoteLinksEffect links => Run(links.Tab.Value, links.Tab, links.RequestId, LinksAsync(links)),
+            LoadIssueChildrenEffect children =>
+                Run(children.Tab.Value, children.Tab, children.RequestId, ChildrenAsync(children)),
             _ => Task.CompletedTask,
         };
     }
@@ -85,6 +89,23 @@ public sealed class IssueDetailLoadHandler
             return result.IsSuccess
                 ? new IssueRemoteLinksLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
                 : Failure(effect.Tab, effect.RequestId, result.Error);
+        };
+    }
+
+    private Func<JiraServices, CancellationToken, Task<Command?>> ChildrenAsync(LoadIssueChildrenEffect effect)
+    {
+        return async (services, token) =>
+        {
+            var jql = JqlBuilder.WithOrder(JqlBuilder.Parent(effect.Key), JqlOrder.RankAscending);
+            var query = new IssueSearchQuery(jql);
+            var result = await services.Search.SearchAsync(query, null, token);
+
+            if (!result.IsSuccess)
+            {
+                return Failure(effect.Tab, effect.RequestId, result.Error);
+            }
+
+            return new IssueChildrenLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow());
         };
     }
 

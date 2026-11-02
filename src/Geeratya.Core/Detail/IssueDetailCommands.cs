@@ -35,5 +35,8 @@ public sealed record IssueRemoteLinksLoaded(
     IReadOnlyList<RemoteLink> Links,
     DateTimeOffset At) : ViewCommand;
 
-/// <summary>One of the three loads failed; the part is the one whose current request id matches.</summary>
+/// <summary>The first page of children arrived; applied only while <paramref name="RequestId"/> is current.</summary>
+public sealed record IssueChildrenLoaded(TabId Tab, long RequestId, IssuePage Page, DateTimeOffset At) : ViewCommand;
+
+/// <summary>One of the loads failed; the part is the one whose current request id matches.</summary>
 public sealed record IssueDetailFailed(TabId Tab, long RequestId, JiraError Error) : ViewCommand;
