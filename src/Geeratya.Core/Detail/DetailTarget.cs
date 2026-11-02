@@ -16,4 +16,5 @@ public enum DetailTargetKind
 /// <summary>An openable document row.</summary>
 /// <param name="Kind">What the row opens.</param>
 /// <param name="Value">The issue key (issue and attachment rows) or the URL (remote link rows).</param>
-public sealed record DetailTarget(DetailTargetKind Kind, string Value);
+/// <param name="LinkId">The id of the issue link the row shows; null for any other row (#190 removes it).</param>
+public sealed record DetailTarget(DetailTargetKind Kind, string Value, string? LinkId = null);

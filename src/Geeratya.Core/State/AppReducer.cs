@@ -4,6 +4,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
@@ -124,6 +125,12 @@ public sealed class AppReducer
 
         var cleared = state with { PendingKeys = string.Empty };
 
+        if (resolution.Action == ActionIds.IssueUnlink)
+        {
+            // The only action that needs the time of the key: the confirm carries the write that will start.
+            return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
+        }
+
         if (resolution.Kind == KeyResolutionKind.None)
         {
             return Result(TypeText(cleared, key));
@@ -231,6 +238,7 @@ public sealed class AppReducer
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
+            ActionIds.IssueLink => InNormal(state, () => FormReducer.Reduce(state, new OpenLinkFormRequested())),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),

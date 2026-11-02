@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -212,6 +213,11 @@ public static class WriteReducer
             return CompleteRemoval(state, operation);
         }
 
+        if (operation.Request is LinkWriteRequest)
+        {
+            return CompleteLink(state, operation);
+        }
+
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
         var replaced = ReplaceRows(state, rows);
         var stale = MarkStale(replaced, operation.Keys);
@@ -234,6 +240,19 @@ public static class WriteReducer
         var reloaded = origin is { Cold: false, Load: not Loading }
             ? ViewReducer.StartRefresh(finished, origin, false, effects)
             : finished;
+
+        return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
+    /// <summary>
+    /// Jira changed a link: no row shows links, so no row is replaced and no tab goes stale; the caches of both
+    /// issues are dropped and every open detail of either reloads.
+    /// </summary>
+    private static ReduceResult CompleteLink(AppState state, Operation operation)
+    {
+        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        var finished = Finish(state, operation, false, effects);
+        var reloaded = ReloadDetails(finished, operation.Keys, effects);
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }

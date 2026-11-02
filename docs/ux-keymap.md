@@ -67,8 +67,8 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
-| `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
-| `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
+| `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M4 #190 (bound) |
+| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M4 #190 (bound) |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor) | E | `+` in the comments section | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (your own; others are refused with the reason) | E | click the comment | M2 #167 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo) | A | context menu on the comment | M2 #167 |

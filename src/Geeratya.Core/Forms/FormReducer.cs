@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -46,6 +47,7 @@ public static class FormReducer
         {
             OpenFormRequested open => Open(state, open.Tab, open.Target),
             OpenLabelsFormRequested => OpenLabels(state),
+            OpenLinkFormRequested => OpenLink(state),
             FormMetadataLoaded loaded => Loaded(state, loaded),
             FormMetadataFailed failed => Failed(state, failed),
             _ => new ReduceResult(state, _noEffects),
@@ -164,6 +166,14 @@ public static class FormReducer
         var target = new EditFormTarget(key, known, true, FormFieldKind.Labels);
 
         return Open(state, tab.Id, target);
+    }
+
+    private static ReduceResult OpenLink(AppState state)
+    {
+        var tab = ActiveTab(state);
+        var key = tab is null ? null : TargetKey(state, tab);
+
+        return tab is null || key is null ? Say(state, NoIssueText) : Open(state, tab.Id, new LinkFormTarget(key));
     }
 
     private static string? TargetKey(AppState state, TabState tab)

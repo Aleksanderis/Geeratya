@@ -67,3 +67,13 @@ Built for the labels pilot; transition, create and the other edits open the same
 2. The labels field starts with the issue's current labels. Type a label and press `Space` or `Enter` to add it; `Backspace` on an empty buffer removes the last one. `Ctrl-s` saves (also from any field), and `Enter` on the empty buffer of the last field does too.
 3. The row shows the new labels at once. If Jira refuses, the row goes back and the form stays open with the message at the field. If the answer is lost, the form stays locked while the issue is checked, as in workflow 8.
 4. `Esc` with changes asks `y`/`n`; without changes it closes. Closing while the save runs leaves the write running and its result goes to the status line.
+
+## 10. Link two issues, remove a link
+
+Built in #190; both work on the selected row or the shown issue and the same way in company-managed and team-managed projects.
+
+1. `<space>il` opens the field form (workflow 9) titled `Link GCM-3`, with `Loading fields…` while the link types are fetched (`GET /issueLinkType`, never at startup). The first field, `Link type`, lists each side of each type as its own choice (`blocks`, `is blocked by`, `clones`, ...; a type that reads the same both ways, `relates to`, is one choice), so type and direction are one pick, and the choice reads as "this issue <choice> the other". `Enter` picks and moves on; typing filters the list.
+2. The second field, `Issue`, takes the other issue's key (lower case is accepted). `Ctrl-s` saves. A key that is not `PROJ-123`, or the issue itself, is refused at the field before anything is sent; an issue Jira does not find or may not link comes back as the status line text and the form stays open.
+3. The write is not optimistic (no row shows links). When Jira confirms, the form closes, the status line says `Linked GCM-3 blocks GCM-5`, and the open detail of either issue reloads. A lost reply is checked by reading the issue, as in workflow 8.
+4. In the issue detail, put the cursor on a row of `Linked issues` and press `<space>iu`: Confirm mode asks `Remove the link GCM-3 blocks GCM-5? Jira cannot undo this.` and only `y` removes it (`n` or `Esc` leaves it). Anywhere else the key says `The cursor is not on a linked issue.`
+5. Only one write per issue at a time (`GCM-5 is busy (assigning)`): a link touches both issues, so both must be free.

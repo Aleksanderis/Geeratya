@@ -52,6 +52,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i l` | Link the issue to another issue |
+| `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) |
 
 ## Help mode
 

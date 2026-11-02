@@ -1,3 +1,4 @@
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Edit.Models;
@@ -208,6 +209,16 @@ public sealed class WriteHandler
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
         }
 
+        if (request is LinkIssuesRequest link)
+        {
+            return await services.Links.CreateLinkAsync(link.TypeId, link.OutwardKey, link.InwardKey, token);
+        }
+
+        if (request is UnlinkIssuesRequest unlink)
+        {
+            return await services.Links.DeleteLinkAsync(unlink.LinkId, token);
+        }
+
         if (request is EditRequest edit)
         {
             return await EditAsync(services, edit, token);
@@ -247,7 +258,7 @@ public sealed class WriteHandler
         ExecuteWriteEffect effect,
         CancellationToken token)
     {
-        if (effect.Request.RemovesIssues)
+        if (effect.Request.RemovesIssues || effect.Request is LinkWriteRequest)
         {
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
@@ -266,6 +277,11 @@ public sealed class WriteHandler
         if (effect.Request is DeleteIssueRequest delete)
         {
             return await VerifyDeleteAsync(services, effect, delete, token);
+        }
+
+        if (effect.Request is LinkWriteRequest linkRequest)
+        {
+            return await VerifyLinkAsync(services, effect, linkRequest, token);
         }
 
         var rows = await ReadAsync(services, effect.Request, token);
@@ -297,6 +313,35 @@ public sealed class WriteHandler
             else if (result.Error.Kind == JiraErrorKind.NotFound)
             {
                 outcome = VerifyOutcome.Applied;
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // A read that breaks is a read that failed: it never changes what is known about the write.
+        }
+
+        return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, []);
+    }
+
+    /// <summary>
+    /// A lost reply of a link write: the issue is read by key (links are part of it, and the read does not lag like
+    /// the search index). The issue shows the change or it does not; a read that fails decides nothing.
+    /// </summary>
+    private async Task<Command?> VerifyLinkAsync(
+        JiraServices services,
+        VerifyWriteEffect effect,
+        LinkWriteRequest request,
+        CancellationToken token)
+    {
+        var outcome = VerifyOutcome.Unreachable;
+
+        try
+        {
+            var result = await services.Issues.GetIssueAsync(request.Key, token);
+
+            if (result.IsSuccess)
+            {
+                outcome = request.IsShownBy(result.Value) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
             }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

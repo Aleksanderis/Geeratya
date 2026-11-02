@@ -2,6 +2,7 @@ using Geeratya.Jira.Boards;
 using Geeratya.Jira.Comments;
 using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
+using Geeratya.Jira.Links;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
@@ -29,7 +30,11 @@ public sealed class JiraServices
         Boards = new BoardClient(transport);
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
+        Links = new LinkClient(transport);
     }
+
+    /// <summary>Link types, and creating and removing issue links (writes: only called from the write handler).</summary>
+    public LinkClient Links { get; }
 
     /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
     public EditClient Edits { get; }

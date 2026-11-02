@@ -8,6 +8,8 @@ Help
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space i l  Link the issue to another issue                                                                            
+  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -31,6 +33,4 @@ Confirm mode
   Esc        Decline                                                                                                    
                                                                                                                         
 Insert mode                                                                                                             
-  Enter      Accept the field and go to the next                                                                        
-  Backspace  Delete the last character                                                                                  
  HELP                                                                                            j down  k up  Esc close

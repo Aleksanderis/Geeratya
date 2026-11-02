@@ -12,6 +12,9 @@ public sealed record OpenFormRequested(TabId Tab, FormTarget Target) : FormComma
 /// <summary>Open the labels pilot form on the issue the active tab shows or has selected (<c>:labels</c>).</summary>
 public sealed record OpenLabelsFormRequested : FormCommand;
 
+/// <summary>Open the link form on the issue the active tab shows or has selected (<c>issue.link</c>).</summary>
+public sealed record OpenLinkFormRequested : FormCommand;
+
 /// <summary>The metadata arrived; applied only while the tab's form waits for that request.</summary>
 public sealed record FormMetadataLoaded(TabId Tab, long RequestId, IReadOnlyList<FormField> Fields) : FormCommand;
 

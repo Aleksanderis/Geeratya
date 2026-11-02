@@ -27,6 +27,8 @@ public sealed partial class FakeJiraRouter
     private const string Delete = "DELETE";
     private const string RankPath = "/rest/agile/1.0/issue/rank";
     private const string CreatePath = "/rest/api/3/issue";
+    private const string LinkPath = "/rest/api/3/issueLink";
+    private const string LinkPrefix = "/rest/api/3/issueLink/";
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
     private const string AssigneePart = "assignee";
@@ -44,6 +46,7 @@ public sealed partial class FakeJiraRouter
         ["/rest/api/3/myself"] = "myself/myself.json",
         ["/rest/api/3/project/search"] = "projects/project-search.json",
         ["/rest/api/3/field"] = "metadata/field-list.json",
+        ["/rest/api/3/issueLinkType"] = "links/issuelink-types.json",
         ["/rest/api/3/issuetype"] = "metadata/issuetype-list.json",
         ["/rest/api/3/filter/my"] = "filters/filter-my.json",
         ["/rest/api/3/filter/search"] = "filters/filter-search.json",
@@ -200,7 +203,7 @@ public sealed partial class FakeJiraRouter
         };
     }
 
-    /// <summary>Create, edit, delete, transition, comment and rank calls; null for any other request.</summary>
+    /// <summary>Create, edit, delete, transition, comment, rank and issue link calls; null for any other request.</summary>
     private FakeReply? TryWrite(string method, string path, string body)
     {
         if (method == Put && path == RankPath)
@@ -211,6 +214,16 @@ public sealed partial class FakeJiraRouter
         if (method == Post && path == CreatePath)
         {
             return _writes.Create(body);
+        }
+
+        if (method == Post && path == LinkPath)
+        {
+            return _writes.CreateLink(body);
+        }
+
+        if (method == Delete && path.StartsWith(LinkPrefix, StringComparison.Ordinal))
+        {
+            return _writes.DeleteLink(path[LinkPrefix.Length..]);
         }
 
         if (!IsWrite(method) || !path.StartsWith(IssuePrefix, StringComparison.Ordinal))

@@ -9,7 +9,7 @@ namespace Geeratya.FakeJira;
 /// The in-memory side of the fake's write routes: created issues, edits laid over recorded issues, transitions,
 /// comments and rank calls. Replies reuse recorded fixtures wherever one exists; nothing leaves the process.
 /// </summary>
-public sealed class FakeJiraWriteStore
+public sealed partial class FakeJiraWriteStore
 {
     private const string SelfPrefix = "https://example.atlassian.net/rest/api/3/issue/";
     private const string FieldsName = "fields";
@@ -96,7 +96,7 @@ public sealed class FakeJiraWriteStore
         {
             if (!_issues.TryGetValue(key, out var stored))
             {
-                return null;
+                return WithoutRemovedLinks(recorded);
             }
 
             var node = stored.IsCreated || recorded is null ? CreatedIssueNode(stored) : JsonNode.Parse(recorded)!;
@@ -105,6 +105,8 @@ public sealed class FakeJiraWriteStore
             {
                 ApplyEdits(node, stored);
             }
+
+            ApplyLinks(node, stored);
 
             return Encoding.UTF8.GetBytes(node.ToJsonString());
         }

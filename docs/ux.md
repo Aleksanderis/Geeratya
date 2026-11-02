@@ -16,7 +16,7 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
-| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the field form (`:labels` until `<space>ie` binds it; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
+| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the field form (`:labels` until `<space>ie` binds it; the link form, `<space>il`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 

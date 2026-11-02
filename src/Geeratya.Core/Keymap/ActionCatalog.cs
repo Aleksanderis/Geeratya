@@ -47,6 +47,8 @@ public static class ActionCatalog
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
+        new(ActionIds.IssueLink, "Link the issue to another issue"),
+        new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
         new(ActionIds.FormFieldNext, "Next field of the form"),
