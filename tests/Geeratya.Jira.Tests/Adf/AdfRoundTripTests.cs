@@ -11,6 +11,7 @@ public sealed class AdfRoundTripTests
     private const string MentionComment = "adf/comment-post-mention-gtm5.json";
     private const string RichDescription = "adf/issue-gtm5-rich-description.json";
     private const string ExtendedNodes = "adf/issue-gcm-extended-nodes.json";
+    private const string LiveWriterBody = "adf/writer-roundtrip-gtm30.json";
     private const string FuzzAlphabet = "ab *_~+`[]()<>\\#-.1\n@:x\"é";
 
     [Theory]
@@ -435,6 +436,22 @@ public sealed class AdfRoundTripTests
                 AssertSchemaShape(container.Children, node is AdfBlockquote, node is AdfListItem);
             }
         }
+    }
+
+    [Fact]
+    public void GivenBodyJiraStoredAfterWriterJson_WhenRoundTripping_ThenDescriptionAndCommentSurvive()
+    {
+        using var stored = JsonDocument.Parse(FixtureFiles.Read(LiveWriterBody));
+        var fields = stored.RootElement.GetProperty("fields");
+        var description = AdfParser.Parse(fields.GetProperty("description").Clone());
+        var commentBody = fields.GetProperty("comment").GetProperty("comments")[0].GetProperty("body");
+        var comment = AdfParser.Parse(commentBody.Clone());
+
+        Assert.True(AdfRoundTrip.RoundTrips(description));
+        Assert.True(AdfRoundTrip.RoundTrips(comment));
+        Assert.Equal(AdfJsonWriter.ToJson(description), AdfJsonWriter.ToJson(comment));
+        Assert.Contains("\"taskList\"", AdfJsonWriter.ToJson(description), StringComparison.Ordinal);
+        Assert.Contains("\"mention\"", AdfJsonWriter.ToJson(description), StringComparison.Ordinal);
     }
 
     private static AdfDocument Body(string fixture, int commentIndex = 0)
