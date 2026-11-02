@@ -8,7 +8,7 @@ namespace Geeratya.Core.Mouse;
 public static class MouseResolver
 {
     /// <summary>The parts of the mouse table that are wired today; rows of later parts have no effect yet.</summary>
-    public const string WiredParts = "ABOM";
+    public const string WiredParts = "ABOMV";
 
     private static readonly IReadOnlyList<Command> _none = [];
 
@@ -35,7 +35,7 @@ public static class MouseResolver
 
         if (hit.Target == MouseTarget.Tabs)
         {
-            return TabClick(context, hit, gesture);
+            return TabClick(context, hit, gesture, at);
         }
 
         var inBody = hit.Target is MouseTarget.Lists or MouseTarget.Detail;
@@ -113,9 +113,9 @@ public static class MouseResolver
             or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice or MouseTarget.ContextMenu;
     }
 
-    private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture)
+    private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture, DateTimeOffset at)
     {
-        if (gesture != MouseGesture.Click)
+        if (gesture is not (MouseGesture.Click or MouseGesture.RightClick))
         {
             return _none;
         }
@@ -124,7 +124,10 @@ public static class MouseResolver
         {
             if (hit.Column >= area.Start && hit.Column < area.End)
             {
-                return [new TabActivated(area.Tab)];
+                // A right-click switches to the tab first, so the menu acts on the tab under the pointer.
+                return gesture == MouseGesture.Click
+                    ? [new TabActivated(area.Tab)]
+                    : [new TabActivated(area.Tab), new ActionRequested(ActionIds.ViewMenuOpen, 1, at)];
             }
         }
 

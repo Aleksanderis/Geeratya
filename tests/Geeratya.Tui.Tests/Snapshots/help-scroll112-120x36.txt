@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-Left  Move the cursor to the start of the word                                                                   
   Ctrl-Right Move the cursor to the end of the word                                                                     
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
@@ -32,5 +33,4 @@ Palette commands
   :assign-me                                                                                                            
       Assign the selected or shown issue to me                                                                          
   :profile add|list|switch <name>|remove <name>|check                                                                   
-      Manage Jira profiles                                                                                              
  HELP                                                                                            j down  k up  Esc close

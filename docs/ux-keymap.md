@@ -38,7 +38,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>g` jump to an issue by key |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M4) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |

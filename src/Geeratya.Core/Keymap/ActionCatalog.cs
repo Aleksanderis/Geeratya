@@ -19,6 +19,7 @@ public static class ActionCatalog
         new(ActionIds.Cancel, "Cancel or close"),
         new(ActionIds.PaletteOpen, "Open the command palette"),
         new(ActionIds.ContextMenuOpen, "Open the actions menu of the selected issue"),
+        new(ActionIds.ViewMenuOpen, "Open the actions menu of the tab and the view"),
         new(ActionIds.PaletteSubmit, "Run the typed command"),
         new(ActionIds.PaletteBackspace, "Delete the last character"),
         new(ActionIds.ConfirmYes, "Confirm"),

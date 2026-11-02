@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
@@ -32,5 +33,4 @@ Insert mode
   Delete     Delete the character under the cursor                                                                      
   PageUp     Move the cursor up half a screen                                                                           
   PageDown   Move the cursor down half a screen                                                                         
-  Ctrl-Left  Move the cursor to the start of the word                                                                   
  HELP                                                                                            j down  k up  Esc close

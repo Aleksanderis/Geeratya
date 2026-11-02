@@ -400,6 +400,7 @@ public sealed class AppReducer
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
+            ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state, at),
             ActionIds.Cancel => state.Editor is null ? Result(ToNormal(RankActions.DropPickup(state))) : CommentEditing.Cancel(state),
@@ -634,6 +635,17 @@ public sealed class AppReducer
         if (ContextMenus.For(state) is not { } menu)
         {
             return Result(state with { Message = "No issue selected." });
+        }
+
+        return Result(ToNormal(state) with { Mode = InputMode.Insert, ContextMenu = menu });
+    }
+
+    /// <summary>Opens the menu of the tab and the view (not of an issue); says so when there is no tab.</summary>
+    private static ReduceResult OpenViewMenu(AppState state)
+    {
+        if (ContextMenus.ForView(state) is not { } menu)
+        {
+            return Result(state with { Message = "No tab open." });
         }
 
         return Result(ToNormal(state) with { Mode = InputMode.Insert, ContextMenu = menu });

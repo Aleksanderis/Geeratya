@@ -17,7 +17,7 @@ While an overlay, prompt, picker, form, editor, help or confirm is open, only th
 
 ## Parts
 
-The table is delivered in parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **O** overlays (this slice of the issue #200 part C: the rows of the source picker, jump prompt, profile list, field forms and suggestion popups; the editor text itself takes no clicks), **M** menu and drag (this slice of part C: the right-click menu of the issue under the pointer, `<space>a` as its key, drag of a card to a neighbouring column; the `+` tab button and the hidden-tab and neighbour-column marks belong to part B and are wired), **C** the rest of the writes (status badge, assignee, `+` buttons, comments, `Ctrl`-click rank, the menu rows for tab and view actions). A row moves to the wired set when its part lands.
+The table is delivered in parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **O** overlays (this slice of the issue #200 part C: the rows of the source picker, jump prompt, profile list, field forms and suggestion popups; the editor text itself takes no clicks), **M** menu and drag (this slice of part C: the right-click menu of the issue under the pointer, `<space>a` as its key, drag of a card to a neighbouring column; the `+` tab button and the hidden-tab and neighbour-column marks belong to part B and are wired), **C** the rest of the writes (status badge, assignee, `+` buttons, comments, `Ctrl`-click rank). **V** the menu of the tab and the view (this slice of part C: right-click on a tab or the status line, `<space>A` as its key; `Esc` closes it). A row moves to the wired set when its part lands.
 
 ## Placing the cursor
 
@@ -47,6 +47,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Lists | Right-click | `menu.context` | M | Selects the row or card under the pointer and opens its menu (only the actions of that issue), same as `<space>a`; the command palette stays on `:` and the status line |
 | Detail | Right-click | `menu.context` | M | Puts the cursor on the line under the pointer and opens the menu of the opened issue (with `comment.delete` on a comment) |
 | Tabs | Click | `tab.next` | B | Switches to the clicked tab (the same switch as `Alt-N`, also for tabs past nine; the separators do nothing). The `‹n` and `+n ›` marks of a scrolled bar step to the neighbouring hidden tab |
+| Tabs | Right-click | `menu.view` | V | Switches to the clicked tab and opens the menu of the tab and the view: close tab, previous tab (with several tabs), toggle layout, jump to an issue, help, quit; same as `<space>A` |
+| Status | Right-click | `menu.view` | V | Opens the same menu of the tab and the view (the command palette stays on a click) |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
@@ -56,7 +58,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Comment | Click | `comment.edit` | C | Edits the comment under the pointer |
 | Lists | Drag | `issue.transition-next` | M | Columns layout: drag a card onto the next or previous column, same as `Alt-l` / `Alt-h` (a single matching transition is sent as the key does, otherwise the picker or form opens); further columns, the same column and a one-column window do nothing |
 | Lists | Ctrl-click | `rank.to` | C | Rank: pick up the row, then `Ctrl`-click the place to drop it (`<space>kk` twice) |
-| ContextMenu | Click | `view.layout-toggle` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `view.layout-toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.open-parent` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.edit` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
@@ -66,16 +68,16 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `issue.create-subtask` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
-| ContextMenu | Click | `issue.jump` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `rank.up` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.down` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.top` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.bottom` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `comment.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
-| ContextMenu | Click | `tab.close` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
-| ContextMenu | Click | `tab.previous` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
-| ContextMenu | Click | `help.toggle` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
-| ContextMenu | Click | `app.quit` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `tab.close` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `tab.previous` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `help.toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `app.quit` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 
 ## Without a path
 
