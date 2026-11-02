@@ -1,0 +1,468 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey task one"
+      },
+      "id": "10000",
+      "key": "GCM-1",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10000"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey4 subtask"
+      },
+      "id": "10013",
+      "key": "GCM-6",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10013"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey task four"
+      },
+      "id": "10003",
+      "key": "GCM-4",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10003"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey story three with unicode café 🚀"
+      },
+      "id": "10002",
+      "key": "GCM-3",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10002"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey4 epic"
+      },
+      "id": "10010",
+      "key": "GCM-5",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10010"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey4 subtask no valid parent"
+      },
+      "id": "10014",
+      "key": "GCM-7",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10014"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Survey bug two"
+      },
+      "id": "10001",
+      "key": "GCM-2",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10001"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Seed: Reporting"
+      },
+      "id": "10016",
+      "key": "GCM-9",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10016"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Sign up with email"
+      },
+      "id": "10017",
+      "key": "GCM-10",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10017"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Build the form"
+      },
+      "id": "10025",
+      "key": "GCM-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10025"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Export report as CSV"
+      },
+      "id": "10019",
+      "key": "GCM-12",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10019"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Pick a chart library"
+      },
+      "id": "10021",
+      "key": "GCM-14",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10021"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "App crashes on empty profile"
+      },
+      "id": "10023",
+      "key": "GCM-16",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10023"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Write the setup guide"
+      },
+      "id": "10022",
+      "key": "GCM-15",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10022"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: dark mode"
+      },
+      "id": "10027",
+      "key": "GCM-20",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10027"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: keyboard shortcuts help"
+      },
+      "id": "10028",
+      "key": "GCM-21",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10028"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: tooltip clipped"
+      },
+      "id": "10029",
+      "key": "GCM-22",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10029"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: update dependencies"
+      },
+      "id": "10030",
+      "key": "GCM-23",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10030"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "media probe 27"
+      },
+      "id": "10047",
+      "key": "GCM-24",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10047"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "ADF node survey 110"
+      },
+      "id": "10048",
+      "key": "GCM-25",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10048"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 20
+}

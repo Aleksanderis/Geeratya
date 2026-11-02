@@ -54,7 +54,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Stack:** The `GEERATYA_TOKEN` fallback applies only when exactly one profile exists; with several profiles a profile needs a stored token, and the status line says so (refines the entry on the secret store; issue #60). Why: the variable carries no site, so a profile switch would send one site's token to another host.
 
-**UI:** M1 view commands and the source picker always open a new tab; `Tab`/`Shift-Tab` switch tabs (the vim jump list does not exist here); a board shows a trailing `Unmapped` column rather than hiding issues whose status maps to no column (issue #65, `ux-screens.md`). Why: no data silently hidden, tabs are cheap.
+**UI:** M1 view commands and the source picker always open a new tab; `Tab`/`Shift-Tab` switch tabs (the vim jump list does not exist here); a board shows a trailing `Unmapped` column rather than hiding a loaded issue whose status maps to no column (issue #65, `ux-screens.md`); Jira's board endpoint never returns such issues (verified, #138), so the column is a safety net for stale data. Why: no data silently hidden, tabs are cheap.
 
 **Architecture:** The cache is a host-owned `SiteCache` (memory plus disk per profile), not part of `AppState`; the reducer asks for writes by effect and the load handler answers with cached rows first. Why: LRU order and byte counts are infrastructure, and this keeps the reducer pure and cheap. Detail: `architecture.md`, "Cache and refresh".
 
