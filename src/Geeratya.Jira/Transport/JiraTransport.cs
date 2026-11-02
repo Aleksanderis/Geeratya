@@ -94,7 +94,7 @@ public sealed class JiraTransport : IDisposable
         return WriteResults.From(result);
     }
 
-    /// <summary>Sends a write whose reply body is not read (204 or an ignored body). Same rules as the typed form.</summary>
+    /// <summary>Sends a write whose reply body is not read (204 or an ignored body); same rules as above.</summary>
     public async Task<WriteResult<WriteAccepted>> SendWriteAsync(
         JiraRequest request,
         CancellationToken cancellationToken)
@@ -362,7 +362,12 @@ public sealed class JiraTransport : IDisposable
     {
         var error = JiraErrorMapper.Map(response.StatusCode, body, ReadRetryAfter(response));
 
-        return error with { Message = Redact(error.Message) };
+        return error with
+        {
+            Message = Redact(error.Message),
+            FieldErrors = error.FieldErrors?.ToDictionary(pair => pair.Key, pair => Redact(pair.Value)),
+            Messages = error.Messages?.Select(Redact).ToList(),
+        };
     }
 
     private TimeSpan? ReadRetryAfter(HttpResponseMessage response)

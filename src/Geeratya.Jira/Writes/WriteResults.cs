@@ -19,7 +19,7 @@ public static class WriteResults
     {
         var kind = error.Kind switch
         {
-            JiraErrorKind.BadRequest or JiraErrorKind.PageExpired => WriteErrorKind.Validation,
+            JiraErrorKind.BadRequest => WriteErrorKind.Validation,
             JiraErrorKind.Unauthorized => WriteErrorKind.Unauthorized,
             JiraErrorKind.Forbidden => WriteErrorKind.Permission,
             JiraErrorKind.NotFound => WriteErrorKind.NotFound,

@@ -70,7 +70,7 @@ Shared base of every write client. A write is built with `JiraRequest.Write` and
 - `WriteError.IsOutcomeUnknown` is true for `Timeout` and `UnknownOutcome`. The UI says "may or may not have been applied" and offers a reload; it never re-sends silently. Caller cancellation throws `OperationCanceledException` and is likewise unknown.
 - `ReadAfterWrite.ReloadIfUnknownAsync(write, reload, ct)` runs the caller's read only after an unknown outcome and returns null otherwise; the caller compares the reloaded issue with the intended change.
 - Error bodies: the three shapes under Errors; `errors` values and `errorMessages` entries are kept as Jira wrote them (truncated at 200 characters), HTML never reaches the message, the token is redacted. Fixtures: `errors/create-400-*.json`, `errors/issue-delete-403-no-permission.json`, `errors/issue-404.json`, `errors/search-429-rate-limited.json`; `errors/transition-409-conflict.json` is synthetic (a 409 was not recorded live).
-- Cache: a successful write invalidates as described under Cache keys; failures with an unknown outcome invalidate too, since the issue may have changed.
+- A 2xx whose body cannot be read is reported as `UnknownOutcome` although the write was applied; the reload settles it. Rule for the first write client: invalidate the cache (Cache keys) after a success and after an unknown outcome, since the issue may have changed.
 
 ## Refresh rules (Jira side)
 

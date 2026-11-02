@@ -49,7 +49,9 @@ public sealed class JiraWriteTests
     public async Task GivenFieldErrors_WhenWriting_ThenValidationKeepsEveryFieldById()
     {
         using var fixture = new TransportFixture();
-        var body = "{\"errorMessages\":[\"General problem\"],\"errors\":{\"summary\":\"Too long\",\"issuetype\":\"Bad\"}}";
+        const string body = """
+            {"errorMessages":["General problem"],"errors":{"summary":"Too long","issuetype":"Bad"}}
+            """;
         fixture.Handler.Serve(HttpMethod.Post, WritePath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
 
         var result = await fixture.Transport.SendWriteAsync(Request(), Cancel());
@@ -115,7 +117,8 @@ public sealed class JiraWriteTests
     {
         using var fixture = new TransportFixture();
         var body = FixtureFiles.Read("errors/500-html-error-page.html");
-        fixture.Handler.Serve(HttpMethod.Post, WritePath, FakeResponse.WithStatus(HttpStatusCode.InternalServerError, body));
+        var reply = FakeResponse.WithStatus(HttpStatusCode.InternalServerError, body);
+        fixture.Handler.Serve(HttpMethod.Post, WritePath, reply);
 
         var result = await fixture.Transport.SendWriteAsync(Request(), Cancel());
 
@@ -230,15 +233,19 @@ public sealed class JiraWriteTests
     }
 
     [Fact]
-    public async Task GivenTokenInErrorBody_WhenWriting_ThenMessageIsRedacted()
+    public async Task GivenTokenInErrorBody_WhenWriting_ThenMessagesAndFieldErrorsAreRedacted()
     {
         using var fixture = new TransportFixture();
-        var body = $"{{\"errorMessages\":[\"bad {TransportFixture.Token}\"],\"errors\":{{}}}}";
-        fixture.Handler.Serve(HttpMethod.Post, WritePath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, body));
+        var token = TransportFixture.Token;
+        var body = $$$"""{"errorMessages":["first","bad {{{token}}}"],"errors":{"summary":"echo {{{token}}}"}}""";
+        fixture.Handler.Serve(HttpMethod.Post, WritePath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
 
         var result = await fixture.Transport.SendWriteAsync(Request(), Cancel());
 
-        Assert.DoesNotContain(TransportFixture.Token, result.Error.Message);
+        Assert.DoesNotContain(token, result.Error.Message);
+        Assert.All(result.Error.Messages, message => Assert.DoesNotContain(token, message));
+        Assert.All(result.Error.FieldErrors, field => Assert.DoesNotContain(token, field.Message));
+        Assert.Contains("[redacted]", Assert.Single(result.Error.FieldErrors).Message);
     }
 
     [Fact]
