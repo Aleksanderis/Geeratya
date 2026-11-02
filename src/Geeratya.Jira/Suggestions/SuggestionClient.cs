@@ -11,7 +11,8 @@ namespace Geeratya.Jira.Suggestions;
 /// Read-only lookups behind pickers: text in, a short list out. Every call is cancellable (a cancelled call
 /// throws <see cref="OperationCanceledException"/>) and at most <see cref="SuggestionFilter.MaxResults"/> long.
 /// An empty query sends no request and returns nothing, except issues, where Jira's own recents answer.
-/// Nothing is cached here (the app keeps a short-lived site label list, #292). A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. How team-managed
+/// Nothing is cached here (the app keeps a short-lived site label list, #292).
+/// A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. How team-managed
 /// projects answer for components and versions is not yet recorded (#260); the client treats them like any list.
 /// </summary>
 public sealed partial class SuggestionClient(JiraTransport transport)
@@ -85,8 +86,9 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         SearchLabelsFromAsync(query, knownLabels, GetSiteLabelsAsync, cancellationToken);
 
     /// <summary>
-    /// Like <see cref="SearchLabelsAsync(string?, IEnumerable{string}, CancellationToken)"/>, but the site's label list comes from <paramref name="siteLabels"/> (a caller's
-    /// short-lived cache around <see cref="GetSiteLabelsAsync"/>); a blank query reads nothing.
+    /// Like <see cref="SearchLabelsAsync(string?, IEnumerable{string}, CancellationToken)"/>, but the site's label
+    /// list comes from <paramref name="siteLabels"/> (a caller's short-lived cache around
+    /// <see cref="GetSiteLabelsAsync"/>); a blank query reads nothing.
     /// </summary>
     public static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchLabelsFromAsync(
         string? query,

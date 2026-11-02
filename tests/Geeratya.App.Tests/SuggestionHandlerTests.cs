@@ -13,9 +13,9 @@ namespace Geeratya.App.Tests;
 [Trait("Os", "Independent")]
 public sealed class SuggestionHandlerTests
 {
-    private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
     private const string SiteLabels = """{"values":["backend-site","frontend-site"],"isLast":true}""";
 
+    private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
     private static readonly Profile _other = new("b", "https://b.atlassian.net", "me@b.test");
     private static readonly TabId _tab = new(1);
     private static readonly SuggestionSource _assignee = new(SuggestionKind.AssignableUsers, "A-1", []);
@@ -156,6 +156,29 @@ public sealed class SuggestionHandlerTests
     }
 
     [Fact]
+    public async Task GivenASlowLabelRead_WhenTheNextKeystrokeCancelsTheLookup_ThenTheReadIsSharedNotRestarted()
+    {
+        var gate = new TaskCompletionSource();
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, SiteLabels, gate.Task));
+        var source = new SuggestionSource(SuggestionKind.Labels, null, []);
+
+        var first = fixture.Handler.StartAsync(
+            new SearchSuggestionsEffect(_tab, 1, source, "b", TimeSpan.FromMilliseconds(250)));
+        await fixture.WaitForTimersAsync(1);
+        fixture.Time.Advance(TimeSpan.FromMilliseconds(250));
+        await fixture.WaitForRequestsAsync(1);
+
+        var second = fixture.Handler.StartAsync(new SearchSuggestionsEffect(_tab, 2, source, "ba", TimeSpan.Zero));
+        await first;
+        gate.SetResult();
+        await second;
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(2, loaded.RequestId);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
     public async Task GivenACachedLabelList_WhenItsLifetimeEnds_ThenTheNextLookupReadsTheSiteAgain()
     {
         using var fixture = await ConnectedAsync(TwoSiteReads);
@@ -285,6 +308,11 @@ public sealed class SuggestionHandlerTests
         public async Task WaitForTimersAsync(int count)
         {
             await WaitUntilAsync(() => Time.PendingTimers >= count);
+        }
+
+        public async Task WaitForRequestsAsync(int count)
+        {
+            await WaitUntilAsync(() => Http.Requests.Count >= count);
         }
 
         public async Task WaitForPostedAsync(int count)

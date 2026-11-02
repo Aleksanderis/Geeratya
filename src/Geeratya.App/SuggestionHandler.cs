@@ -1,7 +1,7 @@
-using Geeratya.Jira.Suggestions;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transport;
 
@@ -139,7 +139,7 @@ public sealed class SuggestionHandler
         {
             if (_labelCache is null || _labelCacheGeneration != services.Generation)
             {
-                _labelCache = new SiteLabelCache(services.Suggestions);
+                _labelCache = new SiteLabelCache(services.Suggestions, _time);
                 _labelCacheGeneration = services.Generation;
             }
 
@@ -160,7 +160,7 @@ public sealed class SuggestionHandler
             SuggestionKind.Labels => SuggestionClient.SearchLabelsFromAsync(
                 effect.Query,
                 source.KnownLabels,
-                cancel => LabelCacheFor(services).GetAsync(_time, cancel),
+                cancel => LabelCacheFor(services).GetAsync(cancel),
                 token),
             SuggestionKind.AssignableUsers => services.Suggestions.SearchAssignableUsersAsync(key, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
