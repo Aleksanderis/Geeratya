@@ -1,0 +1,36 @@
+ [1 JQL: My open issues]                                                                                                
+ RATE LIMITED  Jira asked us to wait. Retrying in 25 s.                                                                 
+My open issues · 3 issues                                                                                               
+  Key    T Summary                                                                       Status         Assignee        
+> GCM-12 T Fix login redirect after token refresh                                        In Progress    -               
+  GCM-14 T Crash when the board has no columns                                           To Do          -               
+  GCM-15 T As a user I can filter by label                                               Done           -               
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ NORMAL rate limited 25s                                                                       ? help  : command  q quit

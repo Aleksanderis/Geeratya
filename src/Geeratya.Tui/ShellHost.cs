@@ -98,7 +98,7 @@ public sealed class ShellHost : IDisposable
 
         _screen = screen;
         screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
-        screen.Render(_state);
+        screen.Render(_state, TimeProvider.System.GetUtcNow());
         Dispatch(new ViewportChanged(screen.BodyRows));
         Dispatch(new ConnectionCheckRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
@@ -129,7 +129,7 @@ public sealed class ShellHost : IDisposable
     /// <summary>The transport's rate-limit wait started or ended (not the UI thread).</summary>
     private void OnRateLimitChanged(DateTimeOffset? until)
     {
-        Post(new LinkChanged(until is { } end ? new RateLimited(end) : new Online()));
+        Post(new LinkChanged(SiteLink.FromRateLimit(until)));
     }
 
     private void OnKeyDown(object? sender, Key key)
@@ -158,14 +158,15 @@ public sealed class ShellHost : IDisposable
     {
         var result = _reducer.Reduce(_state, command);
 
-        // An idle tick changes nothing: no redraw (nothing on screen shows the time yet).
-        if (command is Tick && ReferenceEquals(result.State, _state) && result.Effects.Count == 0)
+        // An idle tick changes nothing: no redraw, unless the banner counts time (a wait, the age of the data).
+        if (command is Tick tick && ReferenceEquals(result.State, _state) && result.Effects.Count == 0
+            && !TabStatus.Of(_state.Session, tick.Now).ShowsTime)
         {
             return;
         }
 
         _state = result.State;
-        _screen!.Render(_state);
+        _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
         var checks = new List<CheckConnectionEffect>();
 

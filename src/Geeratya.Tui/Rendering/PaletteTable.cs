@@ -63,6 +63,9 @@ public static class PaletteTable
         [TextRole.StatusDone] = PaletteRole.StatusDone,
         [TextRole.Error] = PaletteRole.Error,
         [TextRole.Loading] = PaletteRole.Loading,
+        [TextRole.Offline] = PaletteRole.Offline,
+        [TextRole.RateLimited] = PaletteRole.RateLimited,
+        [TextRole.Stale] = PaletteRole.Stale,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();

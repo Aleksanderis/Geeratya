@@ -16,9 +16,17 @@ public static class LoadErrorText
             JiraErrorKind.PageExpired => "The page expired. Refresh to start again.",
             JiraErrorKind.RateLimited => RateLimited(error.RetryAfter),
             JiraErrorKind.Timeout => "Jira did not answer in time.",
+            JiraErrorKind.ServerError => ServerError(error.StatusCode),
             JiraErrorKind.Network or JiraErrorKind.HostRefused => "Cannot reach Jira.",
             _ => error.Message,
         };
+    }
+
+    private static string ServerError(int? status)
+    {
+        return status is { } code
+            ? $"Jira returned an error ({code}). <space>r tries again."
+            : "Jira returned an error. <space>r tries again.";
     }
 
     private static string RateLimited(TimeSpan? wait)

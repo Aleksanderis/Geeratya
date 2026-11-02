@@ -65,7 +65,7 @@ Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer b
 | `JiraErrorKind` | State | Refresh behaviour |
 |---|---|---|
 | `Network`, `Timeout`, `HostRefused` | offline (last data stays, marked stale) | backoff probe |
-| `RateLimited` | rate limited; the load error text names the wait ("Try again in N s") when `Retry-After` is known; the banner shows the wait end | paused until the wait ends |
+| `RateLimited` | rate limited; the load error text names the wait ("Try again in N s") when `Retry-After` is known; the banner counts the wait down from `RateLimitedUntil` | paused until the wait ends |
 | `Unauthorized` | error "token rejected" with a `:profile` hint | refresh stops until the connection check succeeds |
 | `Forbidden`, `NotFound` | error "not found or no access" (the two cannot be told apart, see Errors) | backoff |
 | `BadRequest` | Jira's own message (JQL syntax); on a request that carried a page token, "page expired": reload from the first page | none for JQL errors; reload once for an expired token |

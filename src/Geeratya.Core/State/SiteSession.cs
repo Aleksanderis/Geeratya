@@ -21,7 +21,6 @@ public sealed record SiteSession(
     string? SiteUrl,
     IReadOnlyList<TabState> Tabs,
     TabId? Active,
-    // ReSharper disable once NotAccessedPositionalProperty.Global (read by the status line, #90)
     SiteLink Link,
     ConnectionState Connection,
     SourceLists Sources)
