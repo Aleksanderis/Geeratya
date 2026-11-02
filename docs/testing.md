@@ -48,7 +48,7 @@ Write routes (`FakeJiraWriteStore`) keep their state in memory for the life of t
 
 ## Write fixtures
 
-`Fixtures/writes/` holds the replies of the write calls that were not recorded elsewhere, recorded from `GTM` with `scripts/record-fixture.sh` (which now also allows `PUT`/`DELETE` of one comment by id). Every issue the recording made carried `geeratya-test-156` and was deleted at the end (`GTM` only; `GCM` rejects deletes, issue #19). A `.meta.txt` file holds the status line and rate-limit headers of an empty reply (204 has no body to store):
+`Fixtures/writes/` holds the replies of the write calls that were not recorded elsewhere, recorded from `GTM` with `scripts/record-fixture.sh` (which now also allows `PUT`/`DELETE` of one comment by id and `PUT` of `/assignee`). Every issue the recording made carried `geeratya-test-156` and was deleted at the end (`GTM` only; `GCM` rejects deletes, issue #19). A `.meta.txt` file holds the status line and rate-limit headers of an empty reply (204 has no body to store):
 
 | File | What it shows |
 |---|---|
@@ -57,6 +57,7 @@ Write routes (`FakeJiraWriteStore`) keep their state in memory for the life of t
 | `../create/synthetic-issuetypes-custom.json`, `../create/synthetic-fields-custom.json`, `../create/synthetic-create-400-required-custom.json`, `../create/synthetic-create-400-invalid-parent.json` | **Synthetic, not recorded** (folder `create/`, #160). A custom level-2 issue type, a renamed sub-task type, an entry without id, a required custom select with odd allowed values, an unknown field type, and the 400 bodies for a missing required custom field and an invalid parent (message invented, shape follows the recorded field-error body). |
 | `comment-post-gtm-reply.json`, `comment-put-gtm-reply.json` | 201 and 200 with the whole comment (ADF body, author, timestamps) |
 | `comment-delete-gtm-reply.meta.txt`, `issue-put-gtm-reply.meta.txt`, `transition-post-gtm-reply.meta.txt`, `rank-put-gtm-reply.meta.txt`, `issue-delete-gtm-reply.meta.txt` | 204, no body |
+| `assignee-404-unknown-user.json` | 404 for `PUT /assignee` with an account id that does not exist (not 400). The 400 and 403 variants stay synthetic inline bodies (#268) |
 | `synthetic-transitions-required-field.json`, `synthetic-transition-400-required-field.json` | **Synthetic, not recorded.** A transition that asks for a required `resolution` with choices, and the 400 a missing one would give. The dev workflow has no such transition and cannot be changed (#31); the shapes follow the recorded create-metadata field shape and Jira's field-error body, and are replaced when a real one is recorded |
 
 The other write replies sit with their area: transitions (`transitions/`), create metadata and edit metadata (`metadata/`), create replies and delete errors (`hierarchy/`, `errors/`), rank (`boards/`), comment posts with ADF (`adf/`), edit 400s (`adf/edit-400-*`). The 403 for a missing permission is `errors/issue-delete-403-no-permission.json`; a missing-permission edit could not be reproduced with the sandbox account, which owns the projects.
