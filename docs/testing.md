@@ -66,6 +66,15 @@ The other write replies sit with their area: transitions (`transitions/`), creat
 
 Only on the owner's dev site, opt-in, never part of the review or CI gate; rules and environment in the `testing` skill. `LiveWriteRoundTripTests` creates a `GTM` task labelled `geeratya-test-<run id>`, edits it, adds, edits and deletes a comment, transitions it, reads the result back and deletes the issue in a `finally`; it skips without the environment.
 
+## Seeded dev-site data
+
+`scripts/seed-dev-site.sh` (details in the `testing` skill) fills the four sandbox projects; every issue carries `geeratya-seed` plus `geeratya-seed-<project>-<slug>`, and a second run adds nothing.
+
+- `GCM`, `GTM` (Kanban): 16 issues each (epics, stories, tasks, bugs, sub-tasks and backlog items; `--dry-run` lists them), a rich comment, an attachment, links and a remote link.
+- `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5): 21 issues each. 2 epics, 7 stories, 6 tasks, 4 bugs and 2 sub-tasks, 4 of them left in the backlog, spread over three sprints found by name: `Seed Sprint 1` (closed, 7 issues: 5 done, `story-search` and `task-tests` not finished and carried over), `Seed Sprint 2` (active, 7 issues: the 2 carried over plus 5 more), `Seed Sprint 3` (future, 3 issues). The pre-existing `GCS Sprint 1`/`GTS Sprint 1` stay untouched. Statuses end as 7 Done, 4 In Progress, 10 To Do.
+- Story points come from the board's estimation field (`customfield_10047` on GCS, `customfield_10016` on GTS), read from the board configuration. On `GCS` that field is on the screens of Stories only (Jira drops the value for tasks, bugs and sub-tasks), so only the 7 stories carry points there; on `GTS` every issue in the spec with an estimate has one.
+- `--reset --yes` deletes the labelled issues and the `Seed Sprint ...` sprints (sprint writes are allowed only on boards 5 and 6).
+
 ## Measurement harness
 
 `scripts/measure.sh <binary> <fake url> [runs]` drives the Native AOT binary in a private tmux server with private `XDG_*` directories, so no real profile, token or cache is read. Contract:
