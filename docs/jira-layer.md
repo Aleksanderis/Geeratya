@@ -154,6 +154,24 @@ Fixtures: `filters/filter-search.json`, `filters/filter-my.json`, `filters/filte
 - A filter you cannot see or that does not exist is 404 with `The selected filter is not available to you, perhaps it has been deleted or had its permissions changed.` (`filters/filter-get-missing.json`).
 - The survey did not create filters (writing filters is outside the sandbox rule); creating, sharing and editing filters is out of scope for the app anyway.
 
+## Suggestions
+
+`src/Geeratya.Jira/Suggestions` (#213): `SuggestionClient` over one transport. Read-only, cancellable (cancel throws `OperationCanceledException`), typed `JiraResult<IReadOnlyList<Suggestion>>` with at most 20 entries. `Suggestion` is `Id` (account id, label text, issue key, component or version id), `Label`, `Detail` (issue key for issues) and `IsInactive` (deactivated user, archived version). An empty or blank query sends no request and returns nothing (a picker never lists a whole site); the one exception is issues, where Jira's picker answers recents. Prefix matches rank before contains-matches (`SuggestionFilter`, pure). Nothing is cached by the client; the picker owns debouncing and cancelling the previous call.
+
+| Source | Call | Notes |
+|---|---|---|
+| Assignee | `GET /user/assignable/search?issueKey=` or `?project=` (create form) `&query=&maxResults=20` | Array of users; `active:false` marks a deactivated user, entries without `accountId` are skipped |
+| Mentions | `GET /user/viewissue/search?issueKey=&query=&maxResults=20` | Same user shape; people who can see the issue |
+| Labels | `GET /label?startAt=&maxResults=1000` | No query parameter: filtered locally; labels already on visible issues are passed in (no request) and ranked with the site's; at most 5 pages; a failed call returns the local matches if any, else the error |
+| Issues | `GET /issue/picker?query=&currentJQL=` | Sections flattened, keys deduplicated, `summaryText` used (plain; `summary` has HTML); used for both project kinds, so the planned JQL-search fallback was not needed and is not implemented |
+| Components, versions | `GET /project/{key}/components`, `/versions` | Whole list, filtered locally; archived versions marked. Team-managed projects have no components (empty list, not an error) |
+| Select options | `SearchAllowedValues(field, query)` | From the create/edit metadata `allowedValues`; no request |
+| Custom pickers | `SearchByAutoCompleteUrlAsync(field.AutoCompleteUrl, query)` | Only a URL with the connection's scheme and host (userinfo refused) under `/rest/api/` is requested, else `NotFound` with no request. The query is appended to the URL; the `suggestions` reply shape (`label`/`value`/`displayName`) is read, other shapes give an empty list |
+
+Keys are validated before they enter a path (issue key pattern, upper-case project key). 429 and 5xx follow the transport rules (Retry-After, retry), 401/403/404 map to the usual typed errors.
+
+Fixtures (`Fixtures/suggestions/`) are **synthetic, not recorded**: the dev-site credentials were not available to the run that wrote #213, so the shapes follow Jira's documented replies (including an inactive user, a null entry, an entry without id, HTML in `summary`). They are replaced by scrubbed recordings (GCM and GTM) when recorded.
+
 ## Errors
 
 Fixtures under `errors/`. Statuses were all recorded live unless marked.

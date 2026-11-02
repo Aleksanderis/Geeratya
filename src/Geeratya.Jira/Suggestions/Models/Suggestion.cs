@@ -1,0 +1,10 @@
+namespace Geeratya.Jira.Suggestions.Models;
+
+/// <summary>
+/// One candidate for a picker: what to write (<see cref="Id"/>) and what to show (<see cref="Label"/>).
+/// </summary>
+/// <param name="Id">Account id (users), label text, issue key, or component or version id.</param>
+/// <param name="Label">Display name, label text, issue summary, or component or version name.</param>
+/// <param name="Detail">A second column: the issue key for issues; null otherwise.</param>
+/// <param name="IsInactive">A deactivated user or an archived version: still listed, marked by the UI.</param>
+public sealed record Suggestion(string Id, string Label, string? Detail, bool IsInactive);
