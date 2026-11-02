@@ -159,6 +159,16 @@ public class TextBufferTests
     }
 
     [Fact]
+    public void GivenAJoinedEmojiFamily_WhenMovingByWord_ThenTheCursorStaysOutsideTheCluster()
+    {
+        const string family = "\U0001F468\u200D\U0001F469\u200D\U0001F467";
+        var buffer = new TextBuffer($"a {family}", 0);
+
+        Assert.Equal(buffer.Text.Length, buffer.WordRight().WordRight().Cursor);
+        Assert.Equal(2, TextBuffer.Of(buffer.Text).WordLeft().Cursor);
+    }
+
+    [Fact]
     public void GivenManyRows_WhenPaging_ThenTheCursorMovesThatManyRowsAndStopsAtTheEnds()
     {
         var buffer = new TextBuffer("a\nb\nc\nd\ne", 0);

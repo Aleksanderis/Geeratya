@@ -5,7 +5,8 @@ namespace Geeratya.Core.Editing;
 
 /// <summary>
 /// Lays an edited text out in visual rows of a fixed capacity: a newline ends a row, a row that is full wraps after
-/// its last space (a word longer than the row wraps by character), so a cursor index maps to one row and column. The last column of a row is kept
+/// its last space (a word longer than the row wraps by character; one space may hang past the end), so a cursor
+/// index maps to one row and column. The last column of a row is kept
 /// free for the cursor. Pure; the reducer (cursor moves) and the renderer use the same rows.
 /// </summary>
 public static class EditorLayout
@@ -47,6 +48,16 @@ public static class EditorLayout
             var width = DisplayWidth.Of(element);
             var isSpace = element[0] == ' ';
 
+            if (isSpace && used == limit)
+            {
+                // A space that does not fit hangs at the end of its row (in the column kept for the cursor).
+                used += width;
+                breakAt = index + 1;
+                usedAtBreak = used;
+
+                continue;
+            }
+
             if (used > 0 && used + width > limit)
             {
                 if (!isSpace && breakAt > rowStart)
@@ -64,6 +75,13 @@ public static class EditorLayout
                 }
 
                 breakAt = -1;
+
+                if (used > 0 && used + width > limit)
+                {
+                    rows.Add(new EditorRow(rowStart, index));
+                    rowStart = index;
+                    used = 0;
+                }
             }
 
             used += width;

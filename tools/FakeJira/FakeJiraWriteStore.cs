@@ -404,7 +404,10 @@ public sealed partial class FakeJiraWriteStore
         }
     }
 
-    /// <summary>The comments list: the recorded one (or an empty one) with its edits and deletes, plus the comments added through the fake.</summary>
+    /// <summary>
+    /// The comments list: the recorded one (or an empty one) with its edits and deletes, plus the comments added
+    /// through the fake.
+    /// </summary>
     public byte[]? Comments(string key, byte[]? recorded)
     {
         lock (_lock)

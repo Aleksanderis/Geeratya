@@ -1,4 +1,5 @@
 using Geeratya.Core.Editing;
+using Geeratya.Core.Text;
 using Geeratya.Core.State;
 
 namespace Geeratya.Core.Tests.Editing;
@@ -52,6 +53,24 @@ public class EditorLayoutTests
         var rows = EditorLayout.Rows("a bcdefghij", 4);
 
         Assert.Equal([new EditorRow(0, 2), new EditorRow(2, 6), new EditorRow(6, 10), new EditorRow(10, 11)], rows);
+    }
+
+    [Fact]
+    public void GivenASpaceThatDoesNotFit_WhenLayingOut_ThenItHangsAtTheEndOfItsRowAndNoRowIsBlank()
+    {
+        Assert.Equal([new EditorRow(0, 5), new EditorRow(5, 7)], EditorLayout.Rows("aaaa bb", 4));
+        Assert.Equal([new EditorRow(0, 5), new EditorRow(5, 9)], EditorLayout.Rows("aaaa bbbb", 4));
+    }
+
+    [Theory]
+    [InlineData("a bbb\u4e16\u4e16 c")]
+    [InlineData(" bbb\u4e16")]
+    [InlineData("aa  bbb\u4e16 x\u4e16")]
+    public void GivenWideCharactersAfterWordWraps_WhenLayingOut_ThenNoRowIsWiderThanTheCapacity(string text)
+    {
+        var rows = EditorLayout.Rows(text, 4);
+
+        Assert.All(rows, row => Assert.True(DisplayWidth.Of(text[row.Start..row.End].TrimEnd(' ')) <= 4));
     }
 
     [Fact]

@@ -89,7 +89,7 @@ public sealed record TextBuffer(string Text, int Cursor)
         return this with { Cursor = EditorLayout.IndexAt(Text, rows, target, position.Column) };
     }
 
-    /// <summary>The start of the word before the cursor (skipping spaces and punctuation first); the start of the text at most.</summary>
+    /// <summary>The start of the word before the cursor (spaces and punctuation skipped first), or the text start.</summary>
     public TextBuffer WordLeft()
     {
         var index = Cursor;
@@ -107,7 +107,7 @@ public sealed record TextBuffer(string Text, int Cursor)
         return this with { Cursor = index };
     }
 
-    /// <summary>The end of the word at or after the cursor (skipping spaces and punctuation first); the end of the text at most.</summary>
+    /// <summary>The end of the word at or after the cursor (spaces and punctuation skipped first), or the text end.</summary>
     public TextBuffer WordRight()
     {
         var index = Cursor;
@@ -144,7 +144,17 @@ public sealed record TextBuffer(string Text, int Cursor)
 
     private static bool IsWordCharacter(char value)
     {
-        return char.IsLetterOrDigit(value) || value == '_' || char.IsSurrogate(value) || CharUnicodeInfo.GetUnicodeCategory(value) == UnicodeCategory.NonSpacingMark;
+        if (char.IsLetterOrDigit(value) || value == '_' || char.IsSurrogate(value))
+        {
+            return true;
+        }
+
+        // Marks and joiners (a zero-width joiner is a format character) keep a grapheme cluster in one piece.
+        return CharUnicodeInfo.GetUnicodeCategory(value)
+            is UnicodeCategory.NonSpacingMark
+            or UnicodeCategory.SpacingCombiningMark
+            or UnicodeCategory.EnclosingMark
+            or UnicodeCategory.Format;
     }
 
     private static string Truncated(string typed, int room)

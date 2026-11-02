@@ -225,7 +225,8 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         var total = before.GetProperty("total").GetInt32();
         var ids = before.GetProperty("comments").EnumerateArray().Select(c => c.GetProperty("id").GetString()).ToList();
 
-        var edited = await Send(HttpMethod.Put, $"{path}/{ids[0]}", CommentBody.Replace("hello", "changed", StringComparison.Ordinal));
+        var changedBody = CommentBody.Replace("hello", "changed", StringComparison.Ordinal);
+        var edited = await Send(HttpMethod.Put, $"{path}/{ids[0]}", changedBody);
         var afterEdit = await _client.GetStringAsync($"{_baseUrl}{path}");
         var deleted = await Send(HttpMethod.Delete, $"{path}/{ids[1]}", null);
         var afterDelete = Parse(await _client.GetStringAsync($"{_baseUrl}{path}"));
@@ -237,7 +238,8 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         Assert.Contains("changed", afterEdit, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
         Assert.Equal(total - 1, afterDelete.GetProperty("total").GetInt32());
-        Assert.DoesNotContain(afterDelete.GetProperty("comments").EnumerateArray(), c => c.GetProperty("id").GetString() == ids[1]);
+        var remaining = afterDelete.GetProperty("comments").EnumerateArray().Select(c => c.GetProperty("id").GetString());
+        Assert.DoesNotContain(ids[1], remaining);
         Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
     }
