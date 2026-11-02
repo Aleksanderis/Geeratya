@@ -111,5 +111,6 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:set hints|whichkey on|off` | Show or hide the status bar hints or the which-key popup (saved) |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

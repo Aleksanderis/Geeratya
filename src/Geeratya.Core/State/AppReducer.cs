@@ -338,6 +338,7 @@ public sealed class AppReducer
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
+            _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
@@ -415,6 +416,11 @@ public sealed class AppReducer
         }
 
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+    }
+
+    private static bool IsSetCommand(string text)
+    {
+        return text == "set" || text.StartsWith("set ", StringComparison.Ordinal);
     }
 
     private static bool IsProfileCommand(string text)

@@ -1,5 +1,6 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Platform;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Files;
@@ -12,7 +13,9 @@ namespace Geeratya.App;
 /// The profile file, token lookup and per-profile caches, wired once in the composition root and used by the shell.
 /// </summary>
 // ReSharper disable NotAccessedPositionalProperty.Global
-public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens, SiteCaches Caches)
+public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens,
+    SiteCaches Caches,
+    SettingsStore? Settings = null)
 {
     /// <summary>
     /// Wires the services for the running process; throws <see cref="InvalidOperationException"/> with a readable
@@ -40,6 +43,7 @@ public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens, S
         return new ProfileServices(
             new ProfileStore(directories.ConfigDirectory),
             new TokenProvider(secretStore, environment),
-            new SiteCaches(directories.CacheDirectory, permissions));
+            new SiteCaches(directories.CacheDirectory, permissions),
+            new SettingsStore(directories.ConfigDirectory));
     }
 }

@@ -4,6 +4,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -41,6 +42,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
     private readonly BrowserEffectHandler _browserEffects;
+    private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly CancellationToken _shutdownToken;
@@ -68,6 +70,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
+        _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
@@ -350,8 +353,21 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private async Task<AppCommand?> RunHandlersAsync(Effect effect)
     {
-        return await _profileEffects.RunAsync(effect, _shutdownToken)
+        return _settingsEffects?.Run(effect)
+            ?? await _profileEffects.RunAsync(effect, _shutdownToken)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
+    }
+
+    private AppSettings LoadSettings()
+    {
+        try
+        {
+            return _profiles.Settings?.Load() ?? AppSettings.Default;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return AppSettings.Default;
+        }
     }
 
     private AppState LoadProfiles()
@@ -363,6 +379,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
             return AppState.Initial with
             {
+                Settings = LoadSettings(),
                 Profiles = loaded.Catalog,
                 Session = SiteSession.Empty(loaded.Catalog.Active),
                 Message = notice,

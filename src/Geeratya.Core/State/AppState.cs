@@ -1,5 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 
 namespace Geeratya.Core.State;
@@ -35,6 +36,9 @@ public sealed record AppState(
 {
     /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
     public int ViewportColumns { get; init; }
+
+    /// <summary>The user's switches (hints, which-key); the defaults until the host loads the file.</summary>
+    public AppSettings Settings { get; init; } = AppSettings.Default;
 
     public static AppState Initial { get; } =
         new(

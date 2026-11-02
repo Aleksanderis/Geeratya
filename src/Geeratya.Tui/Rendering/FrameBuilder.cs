@@ -79,6 +79,11 @@ public static class FrameBuilder
             body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight), width, bodyHeight);
         }
 
+        if (WhichKeyOverlay.Applies(state) && state.Picker is null)
+        {
+            body = Fit(WhichKeyOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+        }
+
         return new StyledFrame(
             Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),

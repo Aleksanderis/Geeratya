@@ -319,3 +319,5 @@ Settings and pitfalls:
 - Keys are read from `application.Keyboard.KeyDown` and marked `Handled`, so no view or default binding sees them. The default app key bindings (`Esc` quits) are cleared at start, otherwise `Esc` would quit; quitting is the keymap's decision.
 - Letters arrive as upper-case key codes; without `Shift` they are lower-case characters. `KeyTranslator` handles this (tested). A terminal sends `Esc` immediately followed by a key as `Alt-<key>`, as in any terminal program.
 - Non-interactive stdin or stdout (pipes, `TERM=dumb`) never starts Terminal.Gui: the binary prints a one-line explanation and exits 1. `--version` and `--print-keymap-doc` work everywhere.
+
+`settings.json` (config directory, `Core/Settings`, `SettingsStore`) holds the user's switches (`statusHints`, `whichKey`); it is read at start and written by `SaveSettingsEffect` after `:set`. A missing or unreadable file means the defaults.
