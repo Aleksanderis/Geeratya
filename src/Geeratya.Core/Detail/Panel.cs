@@ -13,10 +13,10 @@ public static class Panel
     /// <summary>Columns taken by the side edges and their padding.</summary>
     public const int Chrome = 4;
 
-    /// <summary>Narrowest width that still gets a frame; below it the content is drawn bare under a title line.</summary>
+    /// <summary>Narrowest width that still gets a frame; below it the content is drawn bare under a title.</summary>
     public const int MinFramedWidth = 12;
 
-    /// <summary>Columns of the top edge besides the title: corner, rule and space before it; space, rule and corner after.</summary>
+    /// <summary>Top edge columns besides the title: corner, rule, space before it; space, rule, corner after.</summary>
     private const int TitleChrome = 6;
 
     public const string TopLeft = "╭";

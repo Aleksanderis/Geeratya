@@ -60,8 +60,13 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return new StyledLine(line.Spans.Select(static span => span.Role == TextRole.Muted
-            ? span with { Text = string.Concat(span.Text.Select(static character => IsBorder(character) ? AsciiOf(character) : character)) }
+            ? span with { Text = SwapBorders(span.Text) }
             : span).ToArray());
+    }
+
+    private static string SwapBorders(string text)
+    {
+        return string.Concat(text.Select(static character => IsBorder(character) ? AsciiOf(character) : character));
     }
 
     private static bool IsBorder(char character)

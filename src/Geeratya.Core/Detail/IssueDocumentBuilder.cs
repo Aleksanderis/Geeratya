@@ -58,7 +58,10 @@ public static class IssueDocumentBuilder
             Panel.Add(
                 lines,
                 [new StyledSpan(ErrorTitle, TextRole.Error)],
-                [StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error), StyledLine.Of(BackText, TextRole.Muted)],
+                [
+                    StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error),
+                    StyledLine.Of(BackText, TextRole.Muted),
+                ],
                 columns);
 
             return new DetailDocument(columns, lines);
