@@ -1,0 +1,133 @@
+{
+  "comments": [
+    {
+      "author": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "emailAddress": "user1@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "Looks good, ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "accessLevel": "",
+                  "id": "fake-account-2",
+                  "text": "@Test User 2"
+                },
+                "type": "mention"
+              },
+              {
+                "text": " please check żółć 日本語 🚀",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "doc",
+        "version": 1
+      },
+      "created": "2026-11-01T18:00:00.000+0200",
+      "id": "10010",
+      "jsdPublic": true,
+      "self": "https://example.atlassian.net/rest/api/3/issue/10006/comment/10010",
+      "updateAuthor": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "emailAddress": "user1@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "updated": "2026-11-01T18:00:00.000+0200"
+    },
+    {
+      "author": {
+        "accountId": "fake-account-3",
+        "accountType": "atlassian",
+        "active": false,
+        "avatarUrls": {},
+        "displayName": "Former user",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-3",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "Written by an inactive account",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "doc",
+        "version": 1
+      },
+      "created": "2026-11-01T18:05:00.000+0200",
+      "id": "10011",
+      "jsdPublic": true,
+      "self": "https://example.atlassian.net/rest/api/3/issue/10006/comment/10011",
+      "updateAuthor": {
+        "accountId": "fake-account-3",
+        "accountType": "atlassian",
+        "active": false,
+        "avatarUrls": {},
+        "displayName": "Former user",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-3",
+        "timeZone": "UTC"
+      },
+      "updated": "2026-11-01T18:05:00.000+0200"
+    },
+    {
+      "author": {
+        "accountId": "fake-account-2",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 2",
+        "emailAddress": "user2@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-2",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "content": [],
+        "type": "doc",
+        "version": 1
+      },
+      "created": "2026-11-01T18:10:00.000+0200",
+      "id": "10012",
+      "jsdPublic": true,
+      "self": "https://example.atlassian.net/rest/api/3/issue/10006/comment/10012",
+      "updateAuthor": {
+        "accountId": "fake-account-2",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 2",
+        "emailAddress": "user2@example.com",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-2",
+        "timeZone": "UTC"
+      },
+      "updated": "2026-11-01T18:10:00.000+0200"
+    }
+  ],
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 3
+}

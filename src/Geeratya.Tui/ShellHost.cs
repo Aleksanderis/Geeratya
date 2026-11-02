@@ -34,6 +34,7 @@ public sealed class ShellHost : IDisposable
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
+    private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
@@ -70,6 +71,7 @@ public sealed class ShellHost : IDisposable
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
+        _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
         _application = application;
         application.Init();
@@ -89,7 +91,7 @@ public sealed class ShellHost : IDisposable
         screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
         screen.Render(_state);
         Dispatch(new ViewportChanged(screen.BodyRows));
-        _ = ConnectAsync();
+        Dispatch(new ConnectionCheckRequested());
         application.Run(screen);
         shutdown.Cancel();
         _profiles.Caches.FlushAll();
@@ -137,6 +139,8 @@ public sealed class ShellHost : IDisposable
         _state = result.State;
         _screen!.Render(_state);
 
+        var checks = new List<CheckConnectionEffect>();
+
         foreach (var effect in result.Effects)
         {
             if (effect is QuitEffect)
@@ -161,6 +165,10 @@ public sealed class ShellHost : IDisposable
             {
                 ActiveCache()?.Put(write.Key, write.View);
             }
+            else if (effect is CheckConnectionEffect check)
+            {
+                checks.Add(check);
+            }
             else
             {
                 _ = RunEffectAsync(effect);
@@ -168,6 +176,12 @@ public sealed class ShellHost : IDisposable
         }
 
         _ = ConnectAsync();
+
+        // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
+        foreach (var check in checks)
+        {
+            _ = _connectionChecks!.StartAsync(check);
+        }
     }
 
     /// <summary>The cache of the active profile, or null while there is none.</summary>

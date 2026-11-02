@@ -49,6 +49,14 @@ Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed lo
 
 Nothing is read from the cache before the first frame: the cache is opened lazily when a view is opened, so the start path is unchanged (before #82: 43 / 63 on an equally busy machine). The saving of a cache hit (rows drawn before the network answers) is tested with a gated fake reply (`ViewLoadHandlerCacheTests`), not timed; no screen opens a view yet (#79), so the end-to-end "second start" figure is registered for #91. Memory: at most 32 views times 100 rows in memory per profile (about 50 KB a view), 20 MB on disk; the RSS delta is not measured.
 
+### List scrolling (#79)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| Nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows loaded in one tab, 2000 timed keys | 0.20 ms | 1.0 ms |
+
+Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the terminal draw and tmux. The renderer produces only the viewport rows (a test builds a frame over 10 000 rows and checks it holds the window and nothing else); the work per key is the reducer's list copy of one tab and the visible rows. Real-binary check: `fakejira --issues 10000` with the Native AOT binary under tmux, `:jql`, then `j`, `G` and `Ctrl-d` moved the selection, the next page loaded when `G` came within one screen of the end, and `gg` returned to the top. Not measured: Native AOT in-process figures and RSS of a fully loaded 10k tab (#91).
+
 ### JSON mapping of a search result (#66)
 
 | Path | Binary | Dataset | Median | p95 |

@@ -1,5 +1,6 @@
 using System.Text;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -49,8 +50,11 @@ public sealed class ShellScreen : Window
     /// <summary>Raised when the body height changes after a resize; the host reports it as a viewport fact.</summary>
     public event Action<int>? BodyRowsChanged;
 
-    /// <summary>The rows the body can show: the window height without the status line.</summary>
-    public int BodyRows => Math.Max(0, _size.Height - 1);
+    /// <summary>
+    /// The issue rows a list can show: the window height without the status line and the list's own header rows
+    /// (title with count, column titles).
+    /// </summary>
+    public int BodyRows => Math.Max(0, _size.Height - 1 - ListLayout.HeaderRows);
 
     public void Render(AppState state)
     {

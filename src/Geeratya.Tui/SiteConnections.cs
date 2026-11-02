@@ -27,6 +27,7 @@ public sealed class SiteConnections : IDisposable
     private Profile? _profile;
     private JiraTransport? _transport;
     private int _generation;
+    private Task _connecting = Task.CompletedTask;
 
     public SiteConnections(
         TokenProvider tokens,
@@ -94,7 +95,29 @@ public sealed class SiteConnections : IDisposable
             return Task.FromResult<ConnectionFailed?>(null);
         }
 
-        return ConnectAsync(profile, profileCount == 1, generation, cancellationToken);
+        var connecting = ConnectAsync(profile, profileCount == 1, generation, cancellationToken);
+
+        lock (_lock)
+        {
+            if (generation == _generation)
+            {
+                _connecting = connecting;
+            }
+        }
+
+        return connecting;
+    }
+
+    /// <summary>
+    /// Ends when the connection being built (token lookup, transport) is ready or has failed; already complete when
+    /// none is being built. A check waits on this so it never runs before the transport exists.
+    /// </summary>
+    public Task WhenReadyAsync()
+    {
+        lock (_lock)
+        {
+            return _connecting;
+        }
     }
 
     /// <summary>Closes the connection of <paramref name="profile"/> if it is the connected one.</summary>

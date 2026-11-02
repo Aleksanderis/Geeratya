@@ -87,8 +87,19 @@ public static class StatusBar
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
             InputMode.Insert => FormText(state.Form, width),
-            _ => state.Message ?? state.PendingKeys,
+            _ => NormalText(state),
         };
+    }
+
+    /// <summary>A notice or pending keys win; otherwise the result of the connection check shows.</summary>
+    private static string NormalText(AppState state)
+    {
+        if (state.Message is not null)
+        {
+            return state.Message;
+        }
+
+        return state.PendingKeys.Length > 0 ? state.PendingKeys : ConnectionText.Line(state.Session);
     }
 
     /// <summary>
