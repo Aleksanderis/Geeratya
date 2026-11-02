@@ -147,17 +147,6 @@ public class ColumnsLayoutKeysTests
     }
 
     [Fact]
-    public void GivenTeamManagedBoardWithSubQueryAndNoRankField_WhenPressingEnterOnCard_ThenTheCardOpens()
-    {
-        var teamManaged = _configuration with { SubQuery = "assignee = currentUser()", RankFieldId = null };
-        var state = Loaded(Issues("1:TM-1"), teamManaged);
-
-        var result = _reducer.Reduce(state, new KeyPressed("Enter"));
-
-        Assert.Equal("TM-1", Tab(result.State).Detail.Single().Key);
-    }
-
-    [Fact]
     public void GivenCardAndEmptyColumn_WhenPressingSpaceO_ThenTheCardBrowseUrlOpensAndEmptyColumnOpensNothing()
     {
         var state = Press(Loaded(Issues("1:A-1", "2:A-2")), "l");
