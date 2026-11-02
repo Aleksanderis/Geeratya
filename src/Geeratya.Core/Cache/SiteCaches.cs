@@ -58,7 +58,7 @@ public sealed class SiteCaches : IDisposable
         }
     }
 
-    /// <summary>Drops the memory part and pending writes of a profile; its folder stays.</summary>
+    /// <summary>Drops the memory part and pending writes of a profile (pending removals finish in the background); its folder stays.</summary>
     public void Drop(Profile profile)
     {
         SiteCache? cache;

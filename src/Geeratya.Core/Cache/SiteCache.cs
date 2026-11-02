@@ -297,7 +297,9 @@ public sealed class SiteCache : IDisposable
     /// Drops the memory part and any pending write at once, without waiting for file work in progress (the UI
     /// thread calls it on a profile switch). A batch already being written may still finish; the disk stays.
     /// Pending removals (an issue that is gone, removed views) are not lost: they are deleted on a pool thread,
-    /// the returned task completes when that is done.
+    /// the returned task completes when that is done. A cache opened later for the same folder has its own disk
+    /// lock, so the two can overlap briefly; at worst that costs one stale hit or one lost page. Not awaited at
+    /// exit: a removal not yet done then leaves a file that is only a stale cache entry.
     /// </summary>
     public Task Discard()
     {
