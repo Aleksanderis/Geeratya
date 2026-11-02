@@ -304,6 +304,32 @@ public sealed class IssueClientTests
     }
 
     [Fact]
+    public async Task GivenValuesOfAnUnexpectedShape_WhenReadingValues_ThenTheFieldsAreLeftOutNotReadAsEmpty()
+    {
+        const string body = """
+            {"fields":{"customfield_1":"5","customfield_2":"yesterday","customfield_3":{"value":"Red"},
+            "customfield_4":[{"id":"1"},{"name":"x"}],"customfield_5":{"foo":1},"customfield_6":{"a":1},
+            "customfield_7":7}}
+            """;
+        using var fixture = Serving("GCM-1", body, true);
+        var fields = new[]
+        {
+            Field("customfield_1", EditFieldKind.Number),
+            Field("customfield_2", EditFieldKind.DateTime),
+            Field("customfield_3", EditFieldKind.Option),
+            Field("customfield_4", EditFieldKind.MultiOption),
+            Field("customfield_5", EditFieldKind.RichText),
+            Field("customfield_6", EditFieldKind.Text),
+            Field("customfield_7", EditFieldKind.Date),
+        };
+
+        var result = await new IssueClient(fixture.Transport)
+            .GetFieldValuesAsync("GCM-1", fields, CancellationToken.None);
+
+        Assert.Empty(result.Value);
+    }
+
+    [Fact]
     public async Task GivenMissingIssue_WhenReadingValues_ThenNotFoundSaysNoAccess()
     {
         using var fixture = new TransportFixture();

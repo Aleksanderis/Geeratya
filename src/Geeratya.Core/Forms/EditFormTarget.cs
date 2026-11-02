@@ -4,8 +4,8 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// Edit fields of one issue. <paramref name="Known"/> holds the current values the opener already has (from the row
-/// or the detail), by field id: the editor metadata carries no values, and a field with an unknown current value would
-/// be overwritten blind, so only fields with a known value are offered when <paramref name="OnlyKnown"/> is set.
+/// or the detail), by field id; the metadata handler adds the values of the other editable fields from the issue
+/// after editmeta (<see cref="EditKnownValues"/>). A field with an unknown current value would be overwritten blind, so only fields with a known value are offered when <paramref name="OnlyKnown"/> is set.
 /// <paramref name="ReadOnlyIds"/> names fields shown read-only with a link to the browser, because editing them here
 /// would lose content (a description that does not survive the Markdown-like text).
 /// A choice field whose current value is only a name (the row shows the priority's name, not its id) is known as

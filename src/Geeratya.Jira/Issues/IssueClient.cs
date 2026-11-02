@@ -67,7 +67,10 @@ public sealed class IssueClient(JiraTransport transport)
         {
             if (result.Value.Values is { } bag && bag.TryGetValue(field.FieldId, out var raw))
             {
-                values[field.FieldId] = IssueFieldValueMapper.Map(field.Kind, raw);
+                if (IssueFieldValueMapper.Map(field.Kind, raw) is { } value)
+                {
+                    values[field.FieldId] = value;
+                }
             }
         }
 
