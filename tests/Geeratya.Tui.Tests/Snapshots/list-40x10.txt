@@ -1,0 +1,10 @@
+My open issues · 10+ · Loading more…    
+  Key    T Summary                     S
+  GCM-12 T Fix login redirect after to ◐
+  GCM-14 B Crash when the board has no ○
+> GCM-15 S As a user I can filter by l ○
+  GCM-17 E Reporting overhaul with a v ◐
+  GCM-18 s Write the CSV exporter 😀 é ●
+  GCM-21 ? Upgrade the build image     ○
+  GCM-22 B Tooltip overlaps the header ○
+ NORMAL        ? help  : command  q quit

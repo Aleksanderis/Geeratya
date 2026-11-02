@@ -16,17 +16,19 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
-# Scenario table: name:columns:rows:theme:keys:wait-for. Keys are sent to tmux one by one; wait-for is text that
-# must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
+# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter);
+# wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
 all_scenarios=(
-  "default:120:36:dark::$profile_line"
-  "help:120:36:dark:?:Help"
-  "narrow:64:30:dark::$profile_ready"
-  "light:120:36:light::$profile_line"
+  "default;120;36;dark;;$profile_line"
+  "help;120;36;dark;?;Help"
+  "narrow;64;30;dark;;$profile_ready"
+  "light;120;36;light;;$profile_line"
+  "list;120;36;dark;:jql project = GCM|;issues"
+  "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
 )
 
 usage() {
@@ -95,7 +97,7 @@ seed_fake_profile() {
 capture_scenario() {
   local spec=$1 binary=$2 out=$3 work=$4 ansitosvg=$5
   local name columns rows theme keys waitfor socket key
-  IFS=: read -r name columns rows theme keys waitfor <<< "$spec"
+  IFS=";" read -r name columns rows theme keys waitfor <<< "$spec"
   socket=geeratya-shot-$$-$name
   tmux -L "$socket" -f /dev/null new-session -d -s s -x "$columns" -y "$rows" \
     "env -u GEERATYA_LIVE_HOSTS COLORTERM=truecolor TERM=tmux-256color \
@@ -106,7 +108,11 @@ capture_scenario() {
   settled_capture "$socket" > /dev/null
   for ((index = 0; index < ${#keys}; index++)); do
     key=${keys:index:1}
-    tmux -L "$socket" send-keys -t s -l "$key"
+    if [ "$key" = "|" ]; then
+      tmux -L "$socket" send-keys -t s Enter
+    else
+      tmux -L "$socket" send-keys -t s -l "$key"
+    fi
     sleep 0.2
   done
   wait_for_text "$socket" "$waitfor"
@@ -155,7 +161,7 @@ render() {
 
   local rendered=0
   for spec in "${all_scenarios[@]}"; do
-    name=${spec%%:*}
+    name=${spec%%;*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
     capture_scenario "$spec" "$binary" "$out" "$work" "$work/ansitosvg"
     rendered=$((rendered + 1))

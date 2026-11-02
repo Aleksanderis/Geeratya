@@ -17,4 +17,5 @@ public enum TextRole
     StatusInProgress,
     StatusDone,
     Error,
+    Loading,
 }

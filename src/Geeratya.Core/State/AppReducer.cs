@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -139,10 +140,27 @@ public sealed class AppReducer
             ActionIds.ConfirmYes => Confirmed(state),
             ActionIds.FormNext => ProfileReducer.Submit(state),
             ActionIds.FormBackspace => Result(ProfileReducer.Backspace(state)),
-            ActionIds.NavigateDown => Result(ScrollHelp(state, 1)),
-            ActionIds.NavigateUp => Result(ScrollHelp(state, -1)),
+            ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
+            ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
+            ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
+            ActionIds.NavigateBottom => Navigate(state, ListMove.Bottom, 0),
+            ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
+            ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
             _ => Result(state),
         };
+    }
+
+    /// <summary>
+    /// Help scrolls by <paramref name="helpDelta"/> lines; in Normal mode the list selection moves.
+    /// </summary>
+    private ReduceResult Navigate(AppState state, ListMove move, int helpDelta)
+    {
+        if (state.Mode == InputMode.Help)
+        {
+            return Result(ScrollHelp(state, helpDelta));
+        }
+
+        return state.Mode == InputMode.Normal ? ViewReducer.Navigate(state, move) : Result(state);
     }
 
     private static AppState ToggleHelp(AppState state)

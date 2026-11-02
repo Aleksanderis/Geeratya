@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -24,7 +25,7 @@ public static class ViewReducer
             TabActivated activated => Activate(state, activated.Tab, effects),
             TabClosed closed => Close(state, closed.Tab, effects),
             ViewLayoutChanged changed => ChangeLayout(state, changed),
-            ViewportChanged viewport => ChangeViewport(state, viewport.Rows),
+            ViewportChanged viewport => ChangeViewport(state, viewport.Rows, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
@@ -106,7 +107,7 @@ public static class ViewReducer
         return Replace(state, tab with { Definition = tab.Definition with { Layout = changed.Layout } });
     }
 
-    private static AppState ChangeViewport(AppState state, int rows)
+    private static AppState ChangeViewport(AppState state, int rows, List<Effect> effects)
     {
         var height = Math.Max(0, rows);
 
@@ -115,9 +116,21 @@ public static class ViewReducer
             return state;
         }
 
-        var tabs = state.Session.Tabs.Select(tab => tab with { VisibleRows = height }).ToArray();
+        var tabs = state.Session.Tabs.Select(tab => Resized(tab, height)).ToArray();
 
-        return WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
+        var resized = WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
+
+        // A taller viewport can bring the end of the loaded rows within reach without any key press.
+        var active = resized.Session.Active is { } id ? Find(resized.Session.Tabs, id) : null;
+
+        return active is not null && WantsNextPage(resized, active) ? RequestNext(resized, active, effects) : resized;
+    }
+
+    private static TabState Resized(TabState tab, int height)
+    {
+        var position = ListMotion.Reveal(new ListPosition(tab.Selected, tab.Scroll), tab.Rows.Count, height);
+
+        return tab with { VisibleRows = height, Selected = position.Selected, Scroll = position.Scroll };
     }
 
     private static AppState NextPage(AppState state, TabId id, List<Effect> effects)
@@ -171,10 +184,34 @@ public static class ViewReducer
         }
 
         var index = Math.Clamp(moved.Index, 0, tab.Rows.Count - 1);
-        var selected = tab with { Selected = index, SelectedKey = tab.Rows[index].Key };
+        var position = ListMotion.Reveal(new ListPosition(index, tab.Scroll), tab.Rows.Count, tab.VisibleRows);
+        var selected = tab with { Selected = index, SelectedKey = tab.Rows[index].Key, Scroll = position.Scroll };
         var next = Replace(state, selected);
 
         return WantsNextPage(next, selected) ? RequestNext(next, selected, effects) : next;
+    }
+
+    /// <summary>
+    /// Moves the selection of the active tab's list by a keyboard motion and goes through <see cref="SelectionMoved"/>,
+    /// so scrolling and the next-page trigger have one path. Other layouts and tabs without rows are left alone.
+    /// </summary>
+    public static ReduceResult Navigate(AppState state, ListMove move)
+    {
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is null || tab.Definition.Layout != ViewLayout.List || tab.Rows.Count == 0)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        var position = ListMotion.Move(
+            new ListPosition(tab.Selected, tab.Scroll),
+            move,
+            1,
+            tab.Rows.Count,
+            tab.VisibleRows);
+
+        return Reduce(state, new SelectionMoved(tab.Id, position.Selected));
     }
 
     /// <summary>
@@ -216,6 +253,7 @@ public static class ViewReducer
             IsStale = false,
             LoadedAt = loaded.At,
             PendingRows = null,
+            KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, loaded.Page.Items),
         };
 
         var selected = appended ? updated : KeepSelection(updated);
@@ -225,6 +263,18 @@ public static class ViewReducer
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
         return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
+    }
+
+    private static int KeyWidthOf(int known, IReadOnlyList<IssueSummary> items)
+    {
+        var width = known;
+
+        for (var index = 0; index < items.Count; index++)
+        {
+            width = Math.Max(width, items[index].Key.Length);
+        }
+
+        return width;
     }
 
     /// <summary>Over the cap, or exactly at it with more pages behind: the tab stops loading more.</summary>
@@ -321,6 +371,7 @@ public static class ViewReducer
             PendingRows = null,
             Truncated = false,
             Scroll = 0,
+            KeyWidth = 0,
             RequestId = 0,
             Load = LoadState.Idle,
             Cold = true,
@@ -340,12 +391,9 @@ public static class ViewReducer
         var found = FindKey(rows, tab.SelectedKey);
         var selected = found >= 0 ? found : Math.Clamp(tab.Selected, 0, rows.Count - 1);
 
-        return tab with
-        {
-            Selected = selected,
-            SelectedKey = rows[selected].Key,
-            Scroll = Math.Clamp(tab.Scroll, 0, rows.Count - 1),
-        };
+        var position = ListMotion.Reveal(new ListPosition(selected, tab.Scroll), rows.Count, tab.VisibleRows);
+
+        return tab with { Selected = selected, SelectedKey = rows[selected].Key, Scroll = position.Scroll };
     }
 
     private static int FindKey(IReadOnlyList<IssueSummary> rows, string? key)

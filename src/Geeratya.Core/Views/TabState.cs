@@ -23,6 +23,7 @@ namespace Geeratya.Core.Views;
 /// <param name="LoadedAt">When the rows last came from the network.</param>
 /// <param name="PendingRows">Rows gathered by a multi-page refresh, swapped in with the last page.</param>
 /// <param name="Cold">The tab gave its rows up; activation reloads it.</param>
+/// <param name="KeyWidth">The widest issue key among the loaded rows, kept so the list needs no scan per frame.</param>
 public sealed record TabState(
     TabId Id,
     ViewDefinition Definition,
@@ -39,7 +40,8 @@ public sealed record TabState(
     bool IsStale,
     DateTimeOffset? LoadedAt,
     IReadOnlyList<IssueSummary>? PendingRows,
-    bool Cold)
+    bool Cold,
+    int KeyWidth)
 {
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
@@ -63,6 +65,7 @@ public sealed record TabState(
             false,
             null,
             null,
-            false);
+            false,
+            0);
     }
 }
