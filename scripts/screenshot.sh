@@ -48,6 +48,7 @@ all_scenarios=(
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
   "link-unlink-confirm;120;36;dark;:jql key = GTM-11||]]]]jj iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"
+  "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"

@@ -2,6 +2,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Platform;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Files;
@@ -19,7 +20,8 @@ public sealed record ProfileServices(
     TokenProvider Tokens,
     SiteCaches Caches,
     HistoryStore Histories,
-    UserKeymapStore? Keymap = null)
+    UserKeymapStore? Keymap = null,
+    SettingsStore? Settings = null)
 {
     /// <summary>
     /// Wires the services for the running process; throws <see cref="InvalidOperationException"/> with a readable
@@ -49,6 +51,7 @@ public sealed record ProfileServices(
             new TokenProvider(secretStore, environment),
             new SiteCaches(directories.CacheDirectory, permissions),
             new HistoryStore(directories.StateDirectory, permissions),
-            new UserKeymapStore(directories.ConfigDirectory));
+            new UserKeymapStore(directories.ConfigDirectory),
+            new SettingsStore(directories.ConfigDirectory));
     }
 }
