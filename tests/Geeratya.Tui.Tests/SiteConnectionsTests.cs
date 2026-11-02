@@ -48,6 +48,17 @@ public sealed class SiteConnectionsTests
     }
 
     [Fact]
+    public async Task GivenFailedProfile_WhenProfileCountChanges_ThenItIsTriedAgain()
+    {
+        using var connections = Create(new FakeSecretStore());
+
+        await connections.ActivateAsync(_work, profileCount: 1, CancellationToken.None);
+        var again = await connections.ActivateAsync(_work, profileCount: 2, CancellationToken.None);
+
+        Assert.Equal(_work, again!.Profile);
+    }
+
+    [Fact]
     public async Task GivenFailedProfile_WhenRetryRequested_ThenItFailsAgainOnce()
     {
         using var connections = Create(new FakeSecretStore());

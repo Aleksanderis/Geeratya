@@ -69,11 +69,11 @@ public class ConnectionCheckReducerTests
     public void GivenDisplayNameWithControlCharacters_WhenTheUserIsReported_ThenTheyAreReplacedBySpaces()
     {
         var checking = _reducer.Reduce(Active(_work), new ConnectionCheckRequested()).State;
-        var user = _user with { DisplayName = "Eve\u001b[2J\nX" };
+        var user = _user with { DisplayName = "Eve\u0007[2J\nX\u202E" };
 
         var result = _reducer.Reduce(checking, new ConnectionChecked(_work, user));
 
-        Assert.Equal(new Connected("Eve [2J X"), result.State.Session.Connection);
+        Assert.Equal(new Connected("Eve [2J X "), result.State.Session.Connection);
     }
 
     [Theory]

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.State;
@@ -50,13 +51,20 @@ public static class ConnectionText
 
         for (var index = 0; index < characters.Length; index++)
         {
-            if (char.IsControl(characters[index]))
+            if (IsUnsafe(characters[index]))
             {
                 characters[index] = ' ';
             }
         }
 
         return new string(characters);
+    }
+
+    private static bool IsUnsafe(char character)
+    {
+        return char.IsControl(character)
+            || char.GetUnicodeCategory(character) is UnicodeCategory.Format
+                or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
     }
 
     /// <summary>The one-line text for the status line and the start screen; empty when nothing was checked.</summary>

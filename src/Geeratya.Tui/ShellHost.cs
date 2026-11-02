@@ -166,9 +166,9 @@ public sealed class ShellHost : IDisposable
             }
         }
 
-        if (checks.Count > 0)
+        if (checks.Count > 0 || command is ProfilesChanged)
         {
-            // Only an explicit check retries a profile that failed to connect; the failure reply must not.
+            // A check or a profile change (a token stored again) retries a failed profile; the failure reply must not.
             _connections.RetryFailed();
         }
 
