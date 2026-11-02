@@ -1,7 +1,7 @@
-using Geeratya.Jira.Adf;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Text;
 using Geeratya.Core.State;
+using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Tests.Editing;
 
@@ -148,6 +148,35 @@ public class EditorLayoutTests
         var down = buffer.Vertical(1, 30);
 
         Assert.Equal(text.IndexOf("abcdefgh", StringComparison.Ordinal) + "GCM-12 x".Length, down.Cursor);
+    }
+
+    [Fact]
+    public void GivenATokenEndingAWrappedRow_WhenMovingToTheRowEnd_ThenTheCursorIsAtTheTokenStart()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
+        var text = $"{token}xyz";
+
+        var end = new TextBuffer(text, 0).RowEnd(5);
+
+        Assert.Equal(0, end.Cursor);
+    }
+
+    [Fact]
+    public void GivenAnEscapedLineBreakInBrackets_WhenListingCells_ThenNoTokenSpansTheLines()
+    {
+        var cells = EditorLayout.Cells("@[a\\\nb](mention:x)");
+
+        Assert.DoesNotContain(cells, cell => cell.Display.Contains('\n') && cell.Display.Length > 1);
+    }
+
+    [Fact]
+    public void GivenAMarkRightAfterAToken_WhenListingCells_ThenTheMarkKeepsACell()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
+        var cells = EditorLayout.Cells($"{token}́x");
+
+        Assert.Equal(token.Length + 2, cells[^1].End);
+        Assert.Equal(3, cells.Count);
     }
 
     [Fact]

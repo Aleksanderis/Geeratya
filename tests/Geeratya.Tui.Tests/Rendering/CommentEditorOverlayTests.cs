@@ -45,7 +45,9 @@ public class CommentEditorOverlayTests
     [Fact]
     public void GivenAMentionAndALink_WhenRendering_ThenTheBoxShowsShortTokensAndNoAddress()
     {
-        var text = $"hi {AdfMarkdownTokens.Mention("acc-o", "Olga Other")} see {AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "A-12")}";
+        var mention = AdfMarkdownTokens.Mention("acc-o", "Olga Other");
+        var link = AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "A-12");
+        var text = $"hi {mention} see {link}";
 
         var shown = string.Join('\n', Frame(Editor(text), 80, 24).PlainLines());
 
@@ -60,9 +62,34 @@ public class CommentEditorOverlayTests
         var text = $"hi {AdfMarkdownTokens.Mention("acc-o", "Olga")}!";
         var editor = Editor(text) with { Buffer = new TextBuffer(text, 3) };
 
-        var line = Assert.Single(Frame(editor, 80, 24).Body, row => row.PlainText.Contains("hi @Olga", StringComparison.Ordinal));
+        var body = Frame(editor, 80, 24).Body;
+        var line = Assert.Single(body, row => row.PlainText.Contains("hi @Olga", StringComparison.Ordinal));
 
         Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text == "@Olga");
+    }
+
+    [Theory]
+    [InlineData(3, "@日本語", "hi ", "!")]
+    [InlineData(0, "h", "", "i @日本語!")]
+    [InlineData(4, "!", "hi @日本語", "")]
+    public void GivenAWideNamedMention_WhenRenderingWithTheCursorAround_ThenTheSelectedCellIsRight(
+        int cursorOffset,
+        string selected,
+        string before,
+        string after)
+    {
+        var token = AdfMarkdownTokens.Mention("acc-o", "日本語");
+        var text = $"hi {token}!";
+        var cursor = cursorOffset == 4 ? text.Length - 1 : cursorOffset;
+        var editor = Editor(text) with { Buffer = new TextBuffer(text, cursor) };
+
+        var body = Frame(editor, 80, 24).Body;
+        var line = Assert.Single(body, row => row.PlainText.Contains("@日本語", StringComparison.Ordinal));
+        var spans = line.Spans.Where(span => span.Text.Length > 0).ToList();
+
+        Assert.Contains(spans, span => span.Role == TextRole.Selected && span.Text == selected);
+        Assert.Contains(spans, span => span.Role == TextRole.Body && span.Text == before || before.Length == 0);
+        Assert.Contains(spans, span => span.Role == TextRole.Body && span.Text == after || after.Length == 0);
     }
 
     [Fact]

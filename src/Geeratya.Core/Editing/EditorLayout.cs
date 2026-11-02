@@ -132,6 +132,7 @@ public static class EditorLayout
         var current = rows[row];
         var used = 0;
         var index = current.Start;
+        var lastStart = current.Start;
 
         foreach (var cell in RowCells(text, current))
         {
@@ -143,6 +144,7 @@ public static class EditorLayout
             }
 
             used += width;
+            lastStart = cell.Start;
             index = cell.End;
         }
 
@@ -150,7 +152,7 @@ public static class EditorLayout
 
         if (wrapsOn && index == current.End && index > current.Start)
         {
-            index = PreviousStart(text, index);
+            index = lastStart;
         }
 
         return index;
@@ -174,6 +176,14 @@ public static class EditorLayout
 
             if (index < skipUntil)
             {
+                var tail = index + elements.GetTextElement().Length;
+
+                // A mark glued to the end of a token is a cell of its own, never lost.
+                if (tail > skipUntil)
+                {
+                    cells.Add(new EditorCell(skipUntil, tail, text[skipUntil..tail]));
+                }
+
                 continue;
             }
 

@@ -166,6 +166,12 @@ public static class AdfMarkdownTokens
 
             if (character == AdfMarkdownSyntax.Escape)
             {
+                // A backslash before a line break does not join the lines into one token.
+                if (index + 1 < text.Length && text[index + 1] == '\n')
+                {
+                    return -1;
+                }
+
                 index++;
             }
             else if (character == closing)
