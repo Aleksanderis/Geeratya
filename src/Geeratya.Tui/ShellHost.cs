@@ -1,4 +1,5 @@
 using Geeratya.App;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
@@ -57,6 +58,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly WriteHandler _writes;
     private readonly FormMetadataHandler _formMetadata;
     private readonly SuggestionHandler _suggestions;
+    private readonly MentionCheckHandler _mentionCheck;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -91,6 +93,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _writes = new WriteHandler(_network);
         _formMetadata = new FormMetadataHandler(_network);
         _suggestions = new SuggestionHandler(_network, TimeProvider.System);
+        _mentionCheck = new MentionCheckHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
@@ -268,6 +271,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             else if (effect is SearchSuggestionsEffect search)
             {
                 _ = _suggestions.StartAsync(search);
+            }
+            else if (effect is CheckMentionsEffect mentions)
+            {
+                _ = _mentionCheck.StartAsync(mentions);
             }
             else if (effect is CancelSuggestionsEffect stop)
             {

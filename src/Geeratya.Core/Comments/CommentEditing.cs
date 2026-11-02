@@ -70,8 +70,12 @@ internal static class CommentEditing
             TextBuffer.Of(text),
             text,
             Warning(state, comment));
+        var people = MentionedIn(comment.Body);
+        var effects = people.Count == 0
+            ? _noEffects
+            : (IReadOnlyList<Effect>)[new CheckMentionsEffect(top.Tab.Id, top.Detail.Key, comment.Id, people)];
 
-        return Result(WithOpenEditor(state, editor));
+        return new ReduceResult(WithOpenEditor(state, editor), effects);
     }
 
     /// <summary><c>comment.delete</c>: asks first, naming the comment and that Jira cannot undo the delete.</summary>
@@ -339,6 +343,35 @@ internal static class CommentEditing
         }
 
         return highest;
+    }
+
+    // Every distinct account the comment mentions, in order of appearance.
+    private static List<MentionedPerson> MentionedIn(AdfDocument body)
+    {
+        var people = new List<MentionedPerson>();
+
+        foreach (var node in body.Content.SelectMany(Walk))
+        {
+            if (node is AdfMention { Id: { Length: > 0 } id } mention && people.TrueForAll(known => known.Id != id))
+            {
+                people.Add(new MentionedPerson(id, (mention.Text ?? string.Empty).TrimStart('@')));
+            }
+        }
+
+        return people;
+    }
+
+    private static IEnumerable<AdfNode> Walk(AdfNode node)
+    {
+        yield return node;
+
+        if (node is AdfContainerNode container)
+        {
+            foreach (var inner in container.Children.SelectMany(Walk))
+            {
+                yield return inner;
+            }
+        }
     }
 
     private static string? Warning(AppState state, IssueComment comment)

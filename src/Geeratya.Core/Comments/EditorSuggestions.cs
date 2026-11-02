@@ -81,6 +81,11 @@ internal static class EditorSuggestions
     /// <summary>The lookup answer for the editor's popup; null when the answer is not for it.</summary>
     public static ReduceResult? Reply(AppState state, FormCommand command)
     {
+        if (command is MentionsChecked checkedMentions)
+        {
+            return Flagged(state, checkedMentions);
+        }
+
         if (state.Editor is not { Suggest: { } popup } editor)
         {
             return null;
@@ -107,6 +112,18 @@ internal static class EditorSuggestions
         }
 
         return Result(next is null ? state : state with { Editor = editor with { Suggest = next } });
+    }
+
+    // Only for the editor still open on that comment; a reply for a closed or other editor is dropped.
+    private static ReduceResult Flagged(AppState state, MentionsChecked reply)
+    {
+        if (state.Editor is not { } editor || editor.Tab != reply.Tab || editor.Key != reply.Key
+            || editor.CommentId != reply.CommentId)
+        {
+            return Result(state);
+        }
+
+        return Result(state with { Editor = editor with { Unseen = reply.Unseen } });
     }
 
     private static bool Matches(SuggestionState popup, EditorTrigger trigger)

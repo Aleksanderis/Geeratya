@@ -371,6 +371,42 @@ public class CommentEditingTests
     }
 
     [Fact]
+    public void GivenACommentMentioningPeople_WhenEditing_ThenOneCheckPerDistinctPersonIsAskedAndNewCommentsAskNothing()
+    {
+        var text = "@[Olga Other](mention:acc-other) and @[Olga Other](mention:acc-other) and @[Me Myself](mention:acc-me)";
+        var state = OnComment(OpenIssue(), "1", Comment(1, _me, text));
+
+        var edit = Press(state, "Space", "m", "e");
+        var add = Press(OpenIssue(), "Space", "m", "a");
+        var plain = Press(OnComment(OpenIssue(), "1", Comment(1, _me, "no mention")), "Space", "m", "e");
+
+        var check = Assert.IsType<CheckMentionsEffect>(Assert.Single(edit.Effects));
+        Assert.Equal(["acc-other", "acc-me"], check.People.Select(person => person.Id));
+        Assert.Equal("Olga Other", check.People[0].Name);
+        Assert.Equal("1", check.CommentId);
+        Assert.Empty(add.Effects);
+        Assert.Empty(plain.Effects);
+    }
+
+    [Fact]
+    public void GivenTheMentionCheckAnswers_WhenItIsForTheOpenEditor_ThenThePersonIsFlaggedUntilTheMentionIsDeleted()
+    {
+        var text = "hi @[Olga Other](mention:acc-other)";
+        var opened = Press(OnComment(OpenIssue(), "1", Comment(1, _me, text)), "Space", "m", "e");
+        var editor = opened.State.Editor!;
+        var olga = new MentionedPerson("acc-other", "Olga Other");
+
+        var flagged = _reducer.Reduce(opened.State, new MentionsChecked(editor.Tab, editor.Key, "1", [olga]));
+        var stale = _reducer.Reduce(opened.State, new MentionsChecked(editor.Tab, editor.Key, "2", [olga]));
+        var deleted = Press(flagged.State, "Backspace");
+
+        Assert.Equal([olga], flagged.State.Editor!.UnseenNow);
+        Assert.Empty(stale.State.Editor!.UnseenNow);
+        Assert.Empty(deleted.State.Editor!.UnseenNow);
+        Assert.Equal("hi ", deleted.State.Editor.Buffer.Text);
+    }
+
+    [Fact]
     public void GivenAForeignCommentWithControlCharacters_WhenEditing_ThenTheEditorTextHasNoneOfThem()
     {
         var hostile = string.Concat("a", (char)27, "[31m", (char)9, "b", (char)13, (char)10, "c", (char)7);
