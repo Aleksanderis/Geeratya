@@ -41,7 +41,6 @@ internal static class TransitionMapper
                 item.To?.StatusCategory?.Key ?? string.Empty),
             item.HasScreen ?? false,
             item.IsGlobal ?? false,
-            item.IsConditional ?? false,
             MapFields(item.Fields));
 
     private static List<FieldMeta> MapFields(Dictionary<string, TransitionWire.Field?>? fields)
@@ -75,7 +74,16 @@ internal static class TransitionMapper
             }
 
             var id = ReadString(value, IdProperty) ?? ReadString(value, KeyProperty) ?? string.Empty;
-            var label = _labelProperties.Select(name => ReadString(value, name)).FirstOrDefault(text => text is not null);
+            var label = _labelProperties
+                .Select(name => ReadString(value, name))
+                .FirstOrDefault(text => text is not null);
+
+            // An entry with neither id nor label (a user entry, say) cannot be posted or shown.
+            if (id.Length == 0 && string.IsNullOrEmpty(label))
+            {
+                continue;
+            }
+
             result.Add(new FieldOption(id, label ?? id));
         }
 

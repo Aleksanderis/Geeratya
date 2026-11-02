@@ -76,7 +76,7 @@ public sealed class TransitionClientTests
                "statusCategory":{"key":"brand-new-category"}},
                "fields":{
                  "customfield_90001":{"required":true,"name":"Sprint goal","schema":{"type":"com.vendor:weird"},
-                   "hasDefaultValue":true,"allowedValues":[{"value":"Fast","id":"7"},"junk",{"key":"k"}]},
+                   "hasDefaultValue":true,"allowedValues":[{"value":"Fast","id":"7"},"junk",{"key":"k"},{"accountId":"a1","displayName":"Ann"}]},
                  "customfield_90002":{"name":"Notes","schema":{"type":"string"}},
                  "customfield_90003":null,
                  "fixVersions":{"required":true,"fieldId":"fixVersions","name":"Fix versions",
@@ -158,6 +158,33 @@ public sealed class TransitionClientTests
 
         Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenUndefinedFieldValue_WhenPerforming_ThenValidationAndNothingIsSent()
+    {
+        using var fixture = new TransportFixture();
+        var fields = new Dictionary<string, JsonElement> { ["resolution"] = default };
+
+        var result = await new TransitionClient(fixture.Transport).PerformAsync("GCM-1", "41", fields, null, Cancel());
+
+        Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenNullPageAndNullTransitions_WhenListing_ThenNoTransitions()
+    {
+        using var nullPage = new TransportFixture();
+        nullPage.Handler.Serve(HttpMethod.Get, GcmPath, FakeResponse.Ok("null"));
+        using var nullList = new TransportFixture();
+        nullList.Handler.Serve(HttpMethod.Get, GcmPath, FakeResponse.Ok("""{"transitions":null}"""));
+
+        var first = await new TransitionClient(nullPage.Transport).GetTransitionsAsync("GCM-1", Cancel());
+        var second = await new TransitionClient(nullList.Transport).GetTransitionsAsync("GCM-1", Cancel());
+
+        Assert.True(first.IsSuccess ? first.Value.Count == 0 : first.Error.Kind == JiraErrorKind.InvalidResponse);
+        Assert.Empty(second.Value);
     }
 
     [Fact]

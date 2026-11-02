@@ -12,7 +12,6 @@ namespace Geeratya.Jira.Transitions.Models;
 /// <param name="Target">The status the issue ends in.</param>
 /// <param name="HasScreen">True when the workflow shows a screen for it.</param>
 /// <param name="IsGlobal">True when it can be done from every status.</param>
-/// <param name="IsConditional">True when a workflow condition applies.</param>
 /// <param name="Fields">The fields the screen asks for, required and optional; empty without a screen.</param>
 public sealed record Transition(
     string Id,
@@ -20,13 +19,15 @@ public sealed record Transition(
     IssueStatus Target,
     bool HasScreen,
     bool IsGlobal,
-    bool IsConditional,
     IReadOnlyList<FieldMeta> Fields)
 {
     /// <summary>The fields that must be sent: required and not filled in by Jira.</summary>
     public IEnumerable<FieldMeta> RequiredFields =>
         Fields.Where(meta => meta is { Required: true, HasDefaultValue: false });
 
-    /// <summary>True when the UI must collect input or confirm: a screen, or a required field without default.</summary>
+    /// <summary>
+    /// True when the UI must collect input or confirm: a screen, or a required field without default. A heuristic:
+    /// post-functions are not visible, so a plain transition can still fire side effects.
+    /// </summary>
     public bool NeedsConfirmation => HasScreen || RequiredFields.Any();
 }

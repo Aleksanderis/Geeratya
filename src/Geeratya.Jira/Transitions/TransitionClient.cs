@@ -68,6 +68,11 @@ public sealed class TransitionClient(JiraTransport transport)
             return Task.FromResult(Refused(WriteErrorKind.Validation, "A transition id is required."));
         }
 
+        if (fields?.Values.Any(value => value.ValueKind == JsonValueKind.Undefined) == true)
+        {
+            return Task.FromResult(Refused(WriteErrorKind.Validation, "A field value is missing."));
+        }
+
         var request = JiraRequest.Write(
             HttpMethod.Post,
             $"{IssuePath}/{key}/{TransitionsPath}",

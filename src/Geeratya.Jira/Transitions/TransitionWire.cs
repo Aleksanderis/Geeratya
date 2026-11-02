@@ -15,7 +15,6 @@ internal static class TransitionWire
         Status? To,
         bool? HasScreen,
         bool? IsGlobal,
-        bool? IsConditional,
         bool? IsAvailable,
         Dictionary<string, Field?>? Fields);
 

@@ -7,7 +7,7 @@ namespace Geeratya.Jira.Transitions.Models;
 /// <param name="FieldId">The id to post under (<c>resolution</c>, <c>customfield_10010</c>).</param>
 /// <param name="Name">The label Jira shows.</param>
 /// <param name="Required">True when the transition is refused without a value.</param>
-/// <param name="SchemaType">Jira's schema type (<c>resolution</c>, <c>string</c>, <c>array</c>); empty when unknown.</param>
+/// <param name="SchemaType">Jira's schema type (<c>resolution</c>, <c>string</c>); empty when unknown.</param>
 /// <param name="HasDefaultValue">True when Jira fills the field in when it is left out.</param>
 /// <param name="AllowedValues">The choices Jira lists; empty for free-form fields.</param>
 public sealed record FieldMeta(
