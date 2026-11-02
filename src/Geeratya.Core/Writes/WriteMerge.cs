@@ -22,6 +22,11 @@ public static class WriteMerge
         TabState tab,
         IReadOnlyList<IssueSummary> incoming)
     {
+        if (tab.RemovedKeys.Count > 0)
+        {
+            incoming = [.. incoming.Where(row => !tab.RemovedKeys.Contains(row.Key, StringComparer.OrdinalIgnoreCase))];
+        }
+
         if (state.Session.Operations.Count == 0 && tab.ProtectedKeys.Count == 0 && tab.ProtectedRows.Count == 0)
         {
             return incoming;

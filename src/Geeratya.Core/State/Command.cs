@@ -4,8 +4,8 @@ namespace Geeratya.Core.State;
 public abstract record Command;
 
 /// <summary>
-/// A key in <see cref="Geeratya.Core.Keymap.KeyNotation"/> spelling. <paramref name="At"/> is the time of the key
-/// (the reducer reads no clock); writes started by a key carry it.
+/// A key in <see cref="Geeratya.Core.Keymap.KeyNotation"/> spelling, with the time it was pressed (the reducer reads
+/// no clock; a submitted form needs the time for its write).
 /// </summary>
 public sealed record KeyPressed(string Key, DateTimeOffset At = default) : Command;
 

@@ -22,6 +22,7 @@ public static class JqlBuilder
 
     private const string AndOperator = " AND ";
     private const string OrOperator = " OR ";
+    private const string SubTaskTypes = "issuetype in subTaskIssueTypes()";
     private const string OrderByKeyword = "ORDER BY";
     private const string OrderWord = "order";
     private const string ByWord = "by";
@@ -49,6 +50,12 @@ public static class JqlBuilder
 
     /// <summary><c>parent = KEY</c>: the direct children of an issue or epic, in both project kinds.</summary>
     public static string Parent(string issueKey) => $"parent = {KeyOrQuoted(issueKey)}";
+
+    /// <summary>
+    /// <c>parent = KEY AND issuetype in subTaskIssueTypes()</c>: the sub-tasks of an issue (not the children of an
+    /// epic), which Jira deletes with it when <c>deleteSubtasks</c> is set.
+    /// </summary>
+    public static string SubTasksOf(string issueKey) => $"{Parent(issueKey)}{AndOperator}{SubTaskTypes}";
 
     /// <summary><c>parent in (A-1, A-2)</c>: one level of children for several parents.</summary>
     public static string ParentIn(IEnumerable<string> issueKeys) => $"parent in ({KeyList(issueKeys)})";

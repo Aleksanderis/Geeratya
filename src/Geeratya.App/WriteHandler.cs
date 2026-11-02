@@ -3,6 +3,7 @@ using Geeratya.Core.Writes;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 
@@ -82,6 +83,12 @@ public sealed class WriteHandler
     /// <summary>Starts the effect and returns the task that ends when its answer is posted or dropped.</summary>
     public Task StartAsync(Effect effect)
     {
+        if (effect is CountSubtasksEffect count)
+        {
+            // A read that asks the question of a confirm: it is not a write, so quitting never waits for it.
+            return StartCount(count);
+        }
+
         var task = effect switch
         {
             ExecuteWriteEffect execute => StartExecute(execute),
@@ -118,6 +125,29 @@ public sealed class WriteHandler
         return _runner.StartDetached(
             (services, token) => ExecuteAsync(services, effect, token),
             () => new WriteFailed(effect.OperationId, _clock.GetUtcNow(), NotSent()));
+    }
+
+    private Task StartCount(CountSubtasksEffect effect)
+    {
+        return _runner.StartDetached(
+            (services, token) => CountAsync(services, effect, token),
+            () => new SubtasksCountFailed(effect.RequestId, NoConnectionMessage));
+    }
+
+    private async Task<Command?> CountAsync(JiraServices services, CountSubtasksEffect effect, CancellationToken token)
+    {
+        var jql = JqlBuilder.WithOrder(JqlBuilder.SubTasksOf(effect.Key), JqlOrder.RankAscending);
+        var query = new IssueSearchQuery(jql);
+        var result = await services.Search.SearchAsync(query, null, token);
+
+        if (!result.IsSuccess)
+        {
+            return new SubtasksCountFailed(effect.RequestId, result.Error.Message);
+        }
+
+        var page = result.Value;
+
+        return new SubtasksCounted(effect.RequestId, page.Items.Count, !page.IsLast, _clock.GetUtcNow());
     }
 
     private Task StartVerify(VerifyWriteEffect effect)
@@ -178,6 +208,16 @@ public sealed class WriteHandler
             return await RankAsync(services, rank, token);
         }
 
+        if (request is DeleteIssueRequest delete)
+        {
+            return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
+        }
+
+        if (request is EditRequest edit)
+        {
+            return await EditAsync(services, edit, token);
+        }
+
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
     }
 
@@ -209,6 +249,28 @@ public sealed class WriteHandler
             new WriteError(WriteErrorKind.Validation, null, message, [], messages));
     }
 
+    private static async Task<WriteResult<WriteAccepted>> EditAsync(
+        JiraServices services,
+        EditRequest edit,
+        CancellationToken token)
+    {
+        IReadOnlyList<FieldUpdate> updates;
+
+        try
+        {
+            updates = FieldUpdates.For(edit.Changes);
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            // Nothing was sent, so this is a definite failure and not a lost reply.
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(error);
+        }
+
+        return await services.Edits.UpdateAsync(edit.Key, updates, token);
+    }
+
     /// <summary>
     /// The write was accepted: reads the issues again (one search) for the server rows. The read is best effort: a
     /// failed one, or one that still shows the old value, leaves the rows to the next reload.
@@ -218,7 +280,7 @@ public sealed class WriteHandler
         ExecuteWriteEffect effect,
         CancellationToken token)
     {
-        if (!effect.Request.ReadsBack)
+        if (effect.Request.RemovesIssues || !effect.Request.ReadsBack)
         {
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
@@ -234,6 +296,11 @@ public sealed class WriteHandler
         VerifyWriteEffect effect,
         CancellationToken token)
     {
+        if (effect.Request is DeleteIssueRequest delete)
+        {
+            return await VerifyDeleteAsync(services, effect, delete, token);
+        }
+
         if (!effect.Request.ReadsBack)
         {
             // Nothing a read of the issue shows can tell (a rank): the user is told to reload.
@@ -244,6 +311,39 @@ public sealed class WriteHandler
         var outcome = OutcomeOf(effect.Request, rows);
 
         return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, rows ?? []);
+    }
+
+    /// <summary>
+    /// A lost reply of a delete: the issue is read by key (a read that does not lag like the search index). Gone
+    /// means the delete happened, readable means it did not, anything else is unknown.
+    /// </summary>
+    private async Task<Command?> VerifyDeleteAsync(
+        JiraServices services,
+        VerifyWriteEffect effect,
+        DeleteIssueRequest delete,
+        CancellationToken token)
+    {
+        var outcome = VerifyOutcome.Unreachable;
+
+        try
+        {
+            var result = await services.Issues.GetIssueAsync(delete.Key, token);
+
+            if (result.IsSuccess)
+            {
+                outcome = VerifyOutcome.NotApplied;
+            }
+            else if (result.Error.Kind == JiraErrorKind.NotFound)
+            {
+                outcome = VerifyOutcome.Applied;
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // A read that breaks is a read that failed: it never changes what is known about the write.
+        }
+
+        return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, []);
     }
 
     private static VerifyOutcome OutcomeOf(WriteRequest request, IReadOnlyList<IssueSummary>? rows)

@@ -1,5 +1,6 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -73,6 +74,9 @@ public sealed record TabState(
     /// </summary>
     public IReadOnlyList<string> ProtectedKeys { get; init; } = [];
 
+    /// <summary>The open field form (edit, later create and transition) of this tab; null when none.</summary>
+    public FormState? Form { get; init; }
+
     /// <summary>
     /// The rows Jira returned for <see cref="ProtectedKeys"/> when the write ended. A reply keeps these for a key the
     /// tab does not hold yet (a next page that arrives after the write). Cleared with the keys.
@@ -84,6 +88,12 @@ public sealed record TabState(
     /// none. Scoped to the tab, like the selection.
     /// </summary>
     public string? RankPickup { get; init; }
+
+    /// <summary>
+    /// Issues deleted while this tab's load was in flight: the reply may still hold them (it started before the
+    /// delete, or the search index lags), so it drops these keys. Cleared when the load ends.
+    /// </summary>
+    public IReadOnlyList<string> RemovedKeys { get; init; } = [];
 
     /// <summary>
     /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the

@@ -66,7 +66,7 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
-| `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 |
+| `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor) | E | `+` in the comments section | M2 #167 |
@@ -103,7 +103,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 ### Text input
 
 - **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves, `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts.
-- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request.
+- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`. `Ctrl-o` (`form.open-browser`, #279) opens the issue page in the browser, for fields the form cannot edit; the form stays as it is. The key shows in the form footer only when a field is read-only. In vim `Ctrl-o` jumps back in the jump list; Geeratya has no jump list, so the key is free here. Its mouse path (click the address) comes with #200.
 - **Suggestions** (owner's decision, #213 to #215): `@` (people) and `#` plus a project key (issues) open the popup inside text editors; picker fields (labels, components, assignee, selects) suggest by context as you type. No extra key opens a picker field's list. `Up`/`Down` and `Ctrl-p`/`Ctrl-n` choose, `Enter` or `Tab` accepts, `Esc` closes the popup only.
 - **Pickers** reuse the source picker's keys (`ux.md`, Insert mode).
 

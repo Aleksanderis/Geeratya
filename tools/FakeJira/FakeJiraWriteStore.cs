@@ -15,6 +15,9 @@ public sealed class FakeJiraWriteStore
     private const string FieldsName = "fields";
     private const string SummaryName = "summary";
     private const string LabelsName = "labels";
+    private const string UpdateName = "update";
+    private const string AddName = "add";
+    private const string RemoveName = "remove";
     private const string DescriptionName = "description";
     private const string DueDateName = "duedate";
     private const string TransitionsName = "transitions";
@@ -160,12 +163,15 @@ public sealed class FakeJiraWriteStore
     public FakeReply Edit(string key, string body)
     {
         var fields = FieldsOf(body);
+        var operations = LabelOperationsOf(body);
 
-        if (fields is null)
+        if (fields is null && operations is null)
         {
-            // An "update" edit is a real Jira shape the fake does not model; say so instead of "summary required".
+            // Only add and remove on labels are modelled of the "update" shape; say so instead of "summary required".
             return Reply(BadRequest, body.Contains("\"update\"", StringComparison.Ordinal) ? UnknownFieldFixture : MissingFieldsFixture);
         }
+
+        fields ??= [];
 
         foreach (var field in fields)
         {
@@ -190,7 +196,14 @@ public sealed class FakeJiraWriteStore
             foreach (var field in fields)
             {
                 stored.Fields[field.Key] = field.Value?.DeepClone();
+
+                if (field.Key == LabelsName)
+                {
+                    stored.LabelOperations.Clear();
+                }
             }
+
+            stored.LabelOperations.AddRange(operations ?? []);
 
             return Empty(NoContent);
         }
@@ -418,6 +431,44 @@ public sealed class FakeJiraWriteStore
         return keys;
     }
 
+    /// <summary>
+    /// The add and remove operations on labels of an <c>update</c> body, in order; null when the body has no
+    /// <c>update</c> or it names a field other than labels or an operation other than add and remove (a 400 then).
+    /// </summary>
+    private static List<LabelOperation>? LabelOperationsOf(string body)
+    {
+        try
+        {
+            var update = (JsonNode.Parse(body) as JsonObject)?[UpdateName] as JsonObject;
+
+            if (update is null || update.Any(entry => entry.Key != LabelsName) || update[LabelsName] is not JsonArray list)
+            {
+                return null;
+            }
+
+            var result = new List<LabelOperation>();
+
+            foreach (var entry in list.OfType<JsonObject>())
+            {
+                var isAdd = entry.ContainsKey(AddName);
+                var label = StringOf(entry[isAdd ? AddName : RemoveName]);
+
+                if (label is null || entry.Count != 1 || !(isAdd || entry.ContainsKey(RemoveName)))
+                {
+                    return null;
+                }
+
+                result.Add(new LabelOperation(isAdd, label));
+            }
+
+            return result;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     private static JsonObject? FieldsOf(string body)
     {
         try
@@ -501,10 +552,36 @@ public sealed class FakeJiraWriteStore
             fields[field.Key] = field.Value?.DeepClone();
         }
 
+        ApplyLabelOperations(fields, stored);
+
         if (stored.Status is not null)
         {
             fields[StatusName] = stored.Status.DeepClone();
         }
+    }
+
+    private static void ApplyLabelOperations(JsonObject fields, StoredIssue stored)
+    {
+        if (stored.LabelOperations.Count == 0)
+        {
+            return;
+        }
+
+        var labels = (fields[LabelsName] as JsonArray)?.Select(StringOf).OfType<string>().ToList() ?? [];
+
+        foreach (var operation in stored.LabelOperations)
+        {
+            if (operation.IsAdd && !labels.Contains(operation.Label))
+            {
+                labels.Add(operation.Label);
+            }
+            else if (!operation.IsAdd)
+            {
+                labels.Remove(operation.Label);
+            }
+        }
+
+        fields[LabelsName] = new JsonArray([.. labels.Select(label => (JsonNode?)JsonValue.Create(label))]);
     }
 
     private static string? StringOf(JsonNode? node) =>

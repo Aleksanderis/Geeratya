@@ -59,3 +59,12 @@ Design in `architecture.md`, "Write pipeline". What the user sees:
 - Delete, bulk changes and assignee or sprint changes for several issues ask first (`y`/`n`/`Esc`): the text names what changes and says Jira cannot undo it.
 - The same issue in other tabs changes too; a list tab whose query no longer matches keeps the row, marked stale, until its next reload.
 - Closing a tab does not stop a write that was sent; quitting or switching profile with writes running asks first.
+
+## 9. Edit with the field form
+
+Built for the labels pilot; transition, create and the other edits open the same form (`ux-screens.md`, "Field form overlay").
+
+1. `:labels` on a selected row (or the shown issue) opens the form at once with `Loading fields…`; the metadata (`editmeta`) is fetched, never at startup. A failure shows on the top line and `Esc` closes the form.
+2. The labels field starts with the issue's current labels. Type a label and press `Space` or `Enter` to add it; `Backspace` on an empty buffer removes the last one. `Ctrl-s` saves (also from any field), and `Enter` on the empty buffer of the last field does too.
+3. The row shows the new labels at once. If Jira refuses, the row goes back and the form stays open with the message at the field. If the answer is lost, the form stays locked while the issue is checked, as in workflow 8.
+4. `Esc` with changes asks `y`/`n`; without changes it closes. Closing while the save runs leaves the write running and its result goes to the status line.

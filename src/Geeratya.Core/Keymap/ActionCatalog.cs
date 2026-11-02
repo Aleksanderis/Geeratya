@@ -51,8 +51,13 @@ public static class ActionCatalog
         new(ActionIds.RankTop, "Rank the issue to the top of the list or column"),
         new(ActionIds.RankBottom, "Rank the issue to the bottom of the list or column"),
         new(ActionIds.RankTo, "Pick up the issue, then drop it at the issue under the cursor"),
+        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
+        new(ActionIds.FormFieldNext, "Next field of the form"),
+        new(ActionIds.FormFieldPrevious, "Previous field of the form"),
+        new(ActionIds.FormSubmit, "Save the form"),
+        new(ActionIds.FormOpenBrowser, "Open the issue page in the browser from the form"),
     ];
 
     /// <summary>
@@ -76,6 +81,10 @@ public static class ActionCatalog
         ActionIds.FormBackspace,
         ActionIds.PickerPrevious,
         ActionIds.PickerNext,
+        ActionIds.FormFieldNext,
+        ActionIds.FormFieldPrevious,
+        ActionIds.FormSubmit,
+        ActionIds.FormOpenBrowser,
     ];
 
     public static bool IsModalOnly(string id)

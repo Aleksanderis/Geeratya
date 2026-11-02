@@ -32,8 +32,14 @@ public sealed partial class FakeJiraRouter
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
     private const string AssigneePart = "assignee";
+    private const string EditMetaPart = "editmeta";
+    private const string TeamManagedPrefix = "GTM-";
+    private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
+    private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;
+
+    private static readonly byte[] _emptyPage = Encoding.UTF8.GetBytes("{\"isLast\":true,\"issues\":[]}");
 
     private static readonly Dictionary<string, string> _routes = new()
     {
@@ -265,6 +271,14 @@ public sealed partial class FakeJiraRouter
             return null;
         }
 
+        if (parts[1] == EditMetaPart)
+        {
+            var isTeamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal);
+            var fixtureName = isTeamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
+
+            return new FakeReply(200, ReadFixture(fixtureName));
+        }
+
         if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || _writes.Knows(key)))
         {
             return _writes.Transitions(key);
@@ -348,6 +362,11 @@ public sealed partial class FakeJiraRouter
 
         var jql = parameters.GetValueOrDefault(JqlName);
 
+        if (SubtasksOf(jql) is { } subtasks)
+        {
+            return subtasks;
+        }
+
         if (ChildrenFixtureOf(jql) is { } children)
         {
             return new FakeReply(200, ReadFixture(children));
@@ -405,6 +424,23 @@ public sealed partial class FakeJiraRouter
         return new FakeReply(200, GeneratedIssues.Page(_options.GeneratedIssues, start, pageSize));
     }
 
+    /// <summary>
+    /// The sub-task question of the delete confirm (<c>parent = KEY AND issuetype in subTaskIssueTypes()</c>). The
+    /// fake has no sub-task data of its own: it answers with the recorded children of the key (an approximation, an
+    /// epic's children are not sub-tasks in Jira) and with an empty page for any other issue.
+    /// </summary>
+    private FakeReply? SubtasksOf(string? jql)
+    {
+        if (jql is null || SubtaskJql().Match(jql) is not { Success: true } match)
+        {
+            return null;
+        }
+
+        var recorded = _childrenSearches.GetValueOrDefault(match.Groups[1].Value);
+
+        return new FakeReply(200, recorded is null ? _emptyPage : ReadFixture(recorded));
+    }
+
     /// <summary>The fixture for a <c>parent = KEY</c> search of a known epic; null for any other JQL.</summary>
     private static string? ChildrenFixtureOf(string? jql)
     {
@@ -442,6 +478,11 @@ public sealed partial class FakeJiraRouter
 
     [GeneratedRegex(@"^\s*(?:issue)?key\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*$", RegexOptions.IgnoreCase)]
     private static partial Regex KeyJql();
+
+    [GeneratedRegex(
+        @"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s+AND\s+issuetype\s+in\s+subTaskIssueTypes\(\)\s*(?:order\s+by.*)?$",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex SubtaskJql();
 
     [GeneratedRegex(
         @"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*(?:order\s+by.*)?$",

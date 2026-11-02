@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
@@ -49,6 +50,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
+            FormCommand form => FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
@@ -104,6 +106,11 @@ public sealed class AppReducer
 
     private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)
     {
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Key(state, key, at, _keymap);
+        }
+
         if (Counts.IsDigit(state, key))
         {
             return Result(state with { Count = Counts.Append(state.Count, key), Message = null });
@@ -207,6 +214,11 @@ public sealed class AppReducer
             return state;
         }
 
+        if (FormReducer.IsOpen(state))
+        {
+            return FormReducer.Paste(state, text);
+        }
+
         if (state.Mode == InputMode.Insert)
         {
             return TypeInInsert(state, text);
@@ -278,6 +290,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
@@ -392,6 +405,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
@@ -505,6 +519,11 @@ public sealed class AppReducer
         if (request.ActionOnConfirm == ProfileReducer.SwitchAction)
         {
             return ProfileReducer.ConfirmedSwitch(normal, request.Target);
+        }
+
+        if (request.OnConfirm is { } command)
+        {
+            return Reduce(normal, command);
         }
 
         // The quit that was asked for while writes ran: the answer was yes, so no second question.

@@ -378,6 +378,35 @@ At 40x10:
 
 The overlay takes every key (`ux.md` "Focus model and key style"); its mode text in the status bar names the keys.
 
+## Field form overlay
+
+One form model serves transition, create and edit (`architecture.md`, "Where form state lives"). It is a centred box over the tab, opened in Insert mode on the active tab (`TabState.Form`); built so far is the edit form, opened by the pilot command `:labels` (the labels of the selected or shown issue) until `<space>ie` binds it (#164). The field list, the kinds, the required marks and the options come only from the metadata Jira returns for the issue (`editmeta`; create and transition metadata map the same way), never from code.
+
+```text
+ [1 JQL: project = GEN]
+
+project = GEN · 40 issues
+          ┌─ Edit GEN-1 ─────────────────────────────────────────────────────────────────────────────────────┐
+          │ > Labels                                                                                         │
+          │     [backend] [ui] _                                                                             │
+          │   Summary *                                                                                      │
+          │     -                                                                                            │
+          │     ! Required                                                                                   │
+          │   Team  (edit in browser)                                                                        │
+          │     https://work.atlassian.net/browse/GEN-1                                                      │
+          │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+          │ Tab/Shift-Tab field   Ctrl-s save   Esc cancel                                                   │
+          └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+ INSERT ! Summary: Required                              Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+```
+
+- One block per field: the label (`*` when required, `>` on the focused one, so focus never relies on colour), then the value, then the field's error (`! message`) in the error colour. A top line holds what belongs to no field (a refused write, a failed metadata load) and the state: `Loading fields…`, `Saving…`, `Discard the changes? (y/n)`. The status line shows the same state, or the error of the focused field.
+- Values by kind: text, number, date (`yyyy-MM-dd`), date-time (`yyyy-MM-dd HH:mm`, local time) show the text and a `_` caret on the focused field; a paragraph shows its last four lines while focused and the first line with `…` otherwise; labels show `[label]` tokens and the label being typed; a single or multiple choice shows its chosen labels, and the focused one lists up to five options (`(x)`/`( )` or `[x]`/`[ ]`, `>` on the highlighted row, a filter line when text is typed, `(none)` first for a single choice that is not required).
+- A field the form cannot edit (an unknown schema type, a field with no operation, and for now user and parent fields, whose search arrives with the suggestion popup #214) is listed last with `(edit in browser)` and the issue page address; it is never dropped and never takes focus.
+- The focused block scrolls into view; the footer drops below 8 inner rows. Long labels are cut at the box edge, wide characters are never split.
+- Keys (`ux-keymap.md`, "Text input"): `Tab`/`Shift-Tab` move between editable fields (they wrap; inside a form they do not change tab), `Ctrl-s` saves, `Ctrl-o` opens the issue page in the browser (the footer shows it when a field is read-only), `Esc` cancels. `Enter` accepts the field and moves on, and on the last field saves; in a paragraph it adds a line; in a multiple choice it toggles the highlighted option; in labels it adds the typed label (`Space` does too). `Up`/`Down` or `Ctrl-p`/`Ctrl-n` move the highlight, typing filters the options, `Backspace` deletes (in empty labels it removes the last label).
+- Save checks first: a required editable field left empty, a number or date that does not read: the error shows at the field, the focus jumps to the first one and nothing is sent. Only changed fields are written. While the write runs the form shows `Saving…` and ignores edits; `Esc` closes it and the result goes to the status line. A refusal from Jira keeps the form open with each message at its field (a field the form does not show goes to the top line) and the text typed is kept. `Esc` on a form with changes asks `y`/`n` first.
+
 ## Palette commands that open views
 
 `:` opens the palette. All of these open a new tab, then load in the background:
