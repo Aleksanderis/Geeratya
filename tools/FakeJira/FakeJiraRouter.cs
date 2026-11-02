@@ -39,6 +39,19 @@ public sealed class FakeJiraRouter
         ["/rest/agile/1.0/board/3/epic"] = "hierarchy/agile-board-epics-gtm.json",
         ["/rest/agile/1.0/board/4/epic"] = "hierarchy/agile-board-epics-gcm.json",
         ["/rest/api/3/filter/10001"] = "filters/filter-get.json",
+        ["/rest/api/3/issue/GTM-9"] = "issues/issue-gtm9.json",
+        ["/rest/api/3/issue/GTM-11"] = "issues/issue-gtm11.json",
+        ["/rest/api/3/issue/GTM-20"] = "issues/issue-gtm20.json",
+        ["/rest/api/3/issue/GCM-2"] = "issues/issue-gcm2.json",
+        ["/rest/api/3/issue/GCM-6"] = "issues/issue-gcm6.json",
+        ["/rest/api/3/issue/GCM-10"] = "issues/issue-gcm10.json",
+        ["/rest/api/3/issue/GCM-24"] = "issues/issue-gcm24.json",
+        ["/rest/api/3/issue/GTM-5/comment"] = "adf/comments-gtm5.json",
+        ["/rest/api/3/issue/GCM-6/comment"] = "comments/comments-gcm6.json",
+        ["/rest/api/3/issue/GCM-2/comment"] = "comments/comments-empty.json",
+        ["/rest/api/3/issue/GTM-5/remotelink"] = "links/remotelink-list-gtm5.json",
+        ["/rest/api/3/issue/GCM-6/remotelink"] = "links/remotelink-list-gcm6.json",
+        ["/rest/api/3/issue/GCM-2/remotelink"] = "links/remotelink-list-empty.json",
     };
 
     private static readonly string[] _searchPages =

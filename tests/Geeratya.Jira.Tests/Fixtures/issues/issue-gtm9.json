@@ -1,0 +1,90 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "assignee": null,
+    "attachment": [],
+    "created": "2026-11-01T17:48:51.926+0200",
+    "description": {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "Sample issue created by scripts/seed-dev-site.sh (epic-onboarding).",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "doc",
+      "version": 1
+    },
+    "issuelinks": [],
+    "issuetype": {
+      "avatarId": 10307,
+      "description": "",
+      "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+      "hierarchyLevel": 1,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+      "id": "10012",
+      "name": "Epic",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10012",
+      "subtask": false
+    },
+    "labels": [
+      "geeratya-seed",
+      "geeratya-seed-GTM-epic-onboarding"
+    ],
+    "priority": {
+      "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+      "id": "3",
+      "name": "Medium",
+      "self": "https://example.atlassian.net/rest/api/3/priority/3"
+    },
+    "project": {
+      "avatarUrls": {},
+      "id": "10002",
+      "key": "GTM",
+      "name": "GTM",
+      "projectCategory": {
+        "description": "",
+        "id": "10000",
+        "name": "Dev",
+        "self": "https://example.atlassian.net/rest/api/3/projectCategory/10000"
+      },
+      "projectTypeKey": "software",
+      "self": "https://example.atlassian.net/rest/api/3/project/10002",
+      "simplified": true
+    },
+    "reporter": {
+      "accountId": "fake-account-1",
+      "accountType": "atlassian",
+      "active": true,
+      "avatarUrls": {},
+      "displayName": "Test User 1",
+      "emailAddress": "user1@example.com",
+      "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+      "timeZone": "UTC"
+    },
+    "status": {
+      "description": "",
+      "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+      "id": "10004",
+      "name": "To Do",
+      "self": "https://example.atlassian.net/rest/api/3/status/10004",
+      "statusCategory": {
+        "colorName": "yellow",
+        "id": 4,
+        "key": "indeterminate",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+      }
+    },
+    "subtasks": [],
+    "summary": "Seed: Onboarding flow",
+    "updated": "2026-11-01T17:48:52.071+0200"
+  },
+  "id": "10031",
+  "key": "GTM-9",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10031"
+}
