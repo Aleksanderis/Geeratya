@@ -46,6 +46,7 @@ public static class ActionCatalog
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
+        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
     ];

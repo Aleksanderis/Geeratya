@@ -921,7 +921,7 @@ public static class ViewReducer
     }
 
     /// <summary>After rows were replaced: selection follows its issue key, else the index is clamped.</summary>
-    private static TabState KeepSelection(TabState tab)
+    internal static TabState KeepSelection(TabState tab)
     {
         var rows = tab.Rows;
 

@@ -7,6 +7,7 @@ Help
   Space l    Switch between list and columns                                                                            
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
+  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -32,5 +33,4 @@ Confirm mode
 Insert mode                                                                                                             
   Enter      Accept the field and go to the next                                                                        
   Backspace  Delete the last character                                                                                  
-  Esc        Cancel or close                                                                                            
  HELP                                                                                            j down  k up  Esc close

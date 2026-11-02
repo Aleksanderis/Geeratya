@@ -19,6 +19,9 @@ public sealed class EditClient(JiraTransport transport)
     private const string EditMetaPart = "editmeta";
     private const string AssigneePart = "assignee";
     private const string AutomaticAccountId = "-1";
+    private const string DeleteSubtasksParameter = "deleteSubtasks";
+    private const string True = "true";
+    private const string False = "false";
     private const string NotFoundMessage = "Not found or no access.";
 
     /// <summary>
@@ -110,6 +113,28 @@ public sealed class EditClient(JiraTransport transport)
             HttpMethod.Put,
             $"{IssuePath}/{key}/{AssigneePart}",
             EditRequestBody.BuildAssignee(change));
+
+        return transport.SendWriteAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Deletes the issue (<c>DELETE /issue/{key}?deleteSubtasks=...</c>, 204). Jira has no undo. With
+    /// <paramref name="deleteSubtasks"/> false an issue that has sub-tasks is refused (400,
+    /// <see cref="WriteErrorKind.Validation"/>); without the permission it is 403 (<see cref="WriteErrorKind.Permission"/>).
+    /// Call it only from a confirmed command; a lost reply is an unknown outcome (read the issue: 404 means done).
+    /// </summary>
+    public Task<WriteResult<WriteAccepted>> DeleteIssueAsync(
+        string key,
+        bool deleteSubtasks,
+        CancellationToken cancellationToken)
+    {
+        if (!IssueUrls.IsValidKey(key))
+        {
+            return Refused(WriteErrorKind.NotFound, NotFoundMessage);
+        }
+
+        var flag = deleteSubtasks ? True : False;
+        var request = JiraRequest.Write(HttpMethod.Delete, $"{IssuePath}/{key}?{DeleteSubtasksParameter}={flag}", null);
 
         return transport.SendWriteAsync(request, cancellationToken);
     }
