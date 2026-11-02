@@ -234,6 +234,20 @@ public class IssueDetailNavigationTests
     }
 
     [Fact]
+    public void GivenCursorOnARelatedRow_WhenChildrenArriveAbove_ThenTheCursorStaysOnThatRow()
+    {
+        var withoutChildren = Opened(withChildren: false);
+        var onRow = OnLine(withoutChildren, IsIssue("A-9"));
+        var before = Top(onRow).Cursor;
+
+        var after = ArriveChildren(onRow);
+
+        Assert.NotEqual(before, Top(after).Cursor);
+        Assert.True(IsKey(Document(after).Targets[Top(after).Cursor], "A-9"));
+        Assert.Equal("A-9", Active(Press(after, "Enter").State).Detail[^1].Key);
+    }
+
+    [Fact]
     public void GivenAnIssueStillLoading_WhenPressingOpenParent_ThenTheParentOfTheListRowIsUsed()
     {
         var state = Press(ListWithParentRow(), "Enter").State;
@@ -398,7 +412,8 @@ public class IssueDetailNavigationTests
         string remoteUrl = "https://example.com/spec",
         IssueStub? parent = null,
         bool longSummary = false,
-        IssueDetail? issue = null)
+        IssueDetail? issue = null,
+        bool withChildren = true)
     {
         var state = Press(ListWithParentRow(), "Enter").State;
         var tab = Active(state);
@@ -423,13 +438,23 @@ public class IssueDetailNavigationTests
         };
 
         state = Deliver(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, loaded, _now));
-        var children = new IssuePage([ChildRow()], null, null);
         var links = new[] { new RemoteLink("1", remoteUrl, "Design spec", "Confluence") };
 
-        state = Deliver(state, new IssueChildrenLoaded(tab.Id, Top(state).ChildrenRequest, children, _now));
+        if (withChildren)
+        {
+            state = ArriveChildren(state);
+        }
+
         state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, links, _now));
 
         return state;
+    }
+
+    private AppState ArriveChildren(AppState state)
+    {
+        var children = new IssuePage([ChildRow(), ChildRow(), ChildRow()], null, null);
+
+        return Deliver(state, new IssueChildrenLoaded(Active(state).Id, Top(state).ChildrenRequest, children, _now));
     }
 
     private static IssueLink Link(string id, IssueLinkDirection direction, string text, IssueStub issue)
