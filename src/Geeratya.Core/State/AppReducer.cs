@@ -46,6 +46,8 @@ public sealed class AppReducer
         {
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
+            PointerPlaced placed => Followed(state, Pointed(state, placed)),
+            TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -127,6 +129,39 @@ public sealed class AppReducer
             Jump = null,
             Editor = null,
         };
+    }
+
+    /// <summary>
+    /// A click on the body: like an action it drops a half-typed chord, a count and the notice, then places the
+    /// cursor and, when something was hit, runs the action that came with the gesture on it.
+    /// </summary>
+    private ReduceResult Pointed(AppState state, PointerPlaced placed)
+    {
+        var cleared = Unpended(state);
+
+        if (ViewReducer.PlaceCursor(cleared, placed) is not { } placement)
+        {
+            return Result(cleared);
+        }
+
+        if (placed.Then is not { } action)
+        {
+            return placement;
+        }
+
+        var acted = ReduceRequested(placement.State, action);
+
+        return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    private static AppState Unpended(AppState state)
+    {
+        if (state.PendingKeys.Length == 0 && state.Count == 0 && state.Message is null)
+        {
+            return state;
+        }
+
+        return state with { PendingKeys = string.Empty, Count = 0, Message = null };
     }
 
     private ReduceResult ReduceRequested(AppState state, ActionRequested request)

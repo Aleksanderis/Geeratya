@@ -12,17 +12,17 @@ public class MouseResolverTests
     [Fact]
     public void GivenWheelDownInBody_WhenResolving_ThenNavigateDownThreeTimes()
     {
-        var command = MouseResolver.Resolve(_normal, 5, 10, MouseGesture.WheelDown, default);
+        var commands = MouseResolver.Resolve(_normal, 5, 10, MouseGesture.WheelDown, default);
 
-        Assert.Equal(new ActionRequested(ActionIds.NavigateDown, 3), command);
+        Assert.Equal(new ActionRequested(ActionIds.NavigateDown, 3), Assert.Single(commands));
     }
 
     [Fact]
     public void GivenClickOnStatusLine_WhenResolving_ThenOpensPalette()
     {
-        var command = MouseResolver.Resolve(_normal, 5, 23, MouseGesture.Click, default);
+        var commands = MouseResolver.Resolve(_normal, 5, 23, MouseGesture.Click, default);
 
-        Assert.Equal(ActionIds.PaletteOpen, command!.Action);
+        Assert.Equal(ActionIds.PaletteOpen, Assert.IsType<ActionRequested>(Assert.Single(commands)).Action);
     }
 
     [Fact]
@@ -30,7 +30,9 @@ public class MouseResolverTests
     {
         var context = _normal with { OverlayOpen = true };
 
-        Assert.Equal(ActionIds.Cancel, MouseResolver.Resolve(context, 5, 0, MouseGesture.Click, default)!.Action);
+        var commands = MouseResolver.Resolve(context, 5, 0, MouseGesture.Click, default);
+
+        Assert.Equal(ActionIds.Cancel, Assert.IsType<ActionRequested>(Assert.Single(commands)).Action);
     }
 
     [Fact]
@@ -38,13 +40,13 @@ public class MouseResolverTests
     {
         var context = _normal with { OverlayOpen = true };
 
-        Assert.Null(MouseResolver.Resolve(context, 5, 10, MouseGesture.WheelDown, default));
+        Assert.Empty(MouseResolver.Resolve(context, 5, 10, MouseGesture.WheelDown, default));
     }
 
     [Fact]
     public void GivenRowOfALaterPart_WhenResolving_ThenNothingYet()
     {
-        Assert.Null(MouseResolver.Resolve(_normal, 5, 10, MouseGesture.DoubleClick, default));
+        Assert.Empty(MouseResolver.Resolve(_normal, 5, 10, MouseGesture.CtrlClick, default));
     }
 
     [Fact]
@@ -77,15 +79,16 @@ public class MouseResolverTests
     {
         var state = AppState.Initial with { Mode = mode };
 
-        Assert.True(MouseContext.From(state, 80, 24, 2).OverlayOpen);
+        Assert.True(MouseContext.From(state, 80, 24, 2, default).OverlayOpen);
     }
 
     [Fact]
     public void GivenNormalModeWithoutTabs_WhenBuildingContext_ThenNoOverlayAndNoDetail()
     {
-        var context = MouseContext.From(AppState.Initial, 80, 24, 2);
+        var context = MouseContext.From(AppState.Initial, 80, 24, 2, default);
 
-        Assert.Equal(new MouseContext(80, 24, 2, false, false), context);
+        Assert.Equal(new MouseContext(80, 24, 2, false, false), context with { TabAreas = [] });
+        Assert.Empty(context.TabAreas);
     }
 
     [Theory]

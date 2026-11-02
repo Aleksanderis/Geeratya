@@ -32,9 +32,26 @@ public static class TabBar
     /// </summary>
     public static StyledLine Build(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
+        return Layout(tabs, active, width).Line;
+    }
+
+    /// <summary>
+    /// The cells each drawn tab occupies in the bar built for <paramref name="width"/>, in the order drawn. A mouse
+    /// click on a cell inside an area activates that tab; the separators and the hidden-tab marks are not areas.
+    /// </summary>
+    public static IReadOnlyList<TabArea> Areas(IReadOnlyList<TabState> tabs, TabId? active, int width)
+    {
+        return Layout(tabs, active, width).Areas;
+    }
+
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Layout(
+        IReadOnlyList<TabState> tabs,
+        TabId? active,
+        int width)
+    {
         if (tabs.Count == 0 || width <= 0)
         {
-            return StyledLine.Empty;
+            return (StyledLine.Empty, []);
         }
 
         var activeIndex = Math.Max(0, IndexOf(tabs, active));
@@ -52,7 +69,7 @@ public static class TabBar
             texts[index] = ItemText(tabs[index], index, index == activeIndex ? ActiveTitleWidth : cap, index == activeIndex);
         }
 
-        return Assemble(texts, activeIndex, 0, tabs.Count - 1);
+        return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1);
     }
 
     /// <summary>
@@ -105,7 +122,10 @@ public static class TabBar
         return total;
     }
 
-    private static StyledLine Window(IReadOnlyList<TabState> tabs, int activeIndex, int width)
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Window(
+        IReadOnlyList<TabState> tabs,
+        int activeIndex,
+        int width)
     {
         var bare = DisplayWidth.Of(ItemText(tabs[activeIndex], activeIndex, 0, true));
         var hidden = (activeIndex > 0 ? Separator.Length + HiddenLeft(activeIndex).Length : 0)
@@ -141,7 +161,7 @@ public static class TabBar
             }
         }
 
-        return Assemble(texts, activeIndex, low, high);
+        return Assemble(tabs, texts, activeIndex, low, high);
     }
 
     private static int WindowWidth(string[] texts, int low, int high)
@@ -166,14 +186,22 @@ public static class TabBar
         return total;
     }
 
-    private static StyledLine Assemble(string[] texts, int activeIndex, int low, int high)
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Assemble(
+        IReadOnlyList<TabState> tabs,
+        string[] texts,
+        int activeIndex,
+        int low,
+        int high)
     {
         var spans = new List<StyledSpan> { new(Lead, TextRole.Body) };
+        var areas = new List<TabArea>(high - low + 1);
+        var column = DisplayWidth.Of(Lead);
 
         if (low > 0)
         {
             spans.Add(new StyledSpan(HiddenLeft(low), TextRole.Muted));
             spans.Add(new StyledSpan(Separator, TextRole.Body));
+            column += DisplayWidth.Of(HiddenLeft(low)) + Separator.Length;
         }
 
         for (var index = low; index <= high; index++)
@@ -181,9 +209,14 @@ public static class TabBar
             if (index > low)
             {
                 spans.Add(new StyledSpan(Separator, TextRole.Body));
+                column += Separator.Length;
             }
 
+            var itemWidth = DisplayWidth.Of(texts[index]);
+
             spans.Add(new StyledSpan(texts[index], index == activeIndex ? TextRole.Selected : TextRole.Body));
+            areas.Add(new TabArea(tabs[index].Id, column, column + itemWidth));
+            column += itemWidth;
         }
 
         if (high < texts.Length - 1)
@@ -192,7 +225,7 @@ public static class TabBar
             spans.Add(new StyledSpan(HiddenRight(texts.Length - 1 - high), TextRole.Muted));
         }
 
-        return new StyledLine(spans);
+        return (new StyledLine(spans), areas);
     }
 
     private static string HiddenLeft(int hidden)
