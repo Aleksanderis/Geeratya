@@ -1,6 +1,7 @@
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transport;
 
@@ -20,6 +21,8 @@ public sealed class SuggestionHandler
     private readonly TimeProvider _time;
     private readonly object _lock = new();
     private readonly Dictionary<long, CancellationTokenSource> _pending = [];
+    private SiteLabelCache? _labelCache;
+    private int _labelCacheGeneration = -1;
 
     public SuggestionHandler(NetworkRunner runner, TimeProvider time)
     {
@@ -129,7 +132,22 @@ public sealed class SuggestionHandler
         return new SuggestionsFailed(effect.Tab, effect.RequestId, result.Error.Message);
     }
 
-    private static Task<JiraResult<IReadOnlyList<Suggestion>>> SearchAsync(
+    // One label cache per connection: services are rebuilt per request, their generation changes on a switch.
+    private SiteLabelCache LabelCacheFor(JiraServices services)
+    {
+        lock (_lock)
+        {
+            if (_labelCache is null || _labelCacheGeneration != services.Generation)
+            {
+                _labelCache = new SiteLabelCache(services.Suggestions, _time);
+                _labelCacheGeneration = services.Generation;
+            }
+
+            return _labelCache;
+        }
+    }
+
+    private Task<JiraResult<IReadOnlyList<Suggestion>>> SearchAsync(
         JiraServices services,
         SearchSuggestionsEffect effect,
         CancellationToken token)
@@ -139,7 +157,11 @@ public sealed class SuggestionHandler
 
         return source.Kind switch
         {
-            SuggestionKind.Labels => services.Suggestions.SearchLabelsAsync(effect.Query, source.KnownLabels, token),
+            SuggestionKind.Labels => SuggestionClient.SearchLabelsFromAsync(
+                effect.Query,
+                source.KnownLabels,
+                cancel => LabelCacheFor(services).GetAsync(cancel),
+                token),
             SuggestionKind.AssignableUsers => services.Suggestions.SearchAssignableUsersAsync(key, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
             _ => services.Suggestions.SearchIssuesAsync(effect.Query, null, token),
