@@ -15,6 +15,9 @@ public sealed class ApplicationRunner
     private const string ModeFlag = "--mode";
     private const string HelpScrollFlag = "--help-scroll";
 
+    private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
+        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>] (scroll needs --mode help)";
+
     private readonly TextWriter _output;
     private readonly TextWriter _error;
     private readonly bool _isInteractive;
@@ -98,8 +101,7 @@ public sealed class ApplicationRunner
 
         if (size is null || mode is null)
         {
-            _output.WriteLine(
-                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>]");
+            _output.WriteLine(Usage);
 
             return 2;
         }
@@ -108,8 +110,7 @@ public sealed class ApplicationRunner
 
         if (scroll is null)
         {
-            _output.WriteLine(
-                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>]");
+            _output.WriteLine(Usage);
 
             return 2;
         }

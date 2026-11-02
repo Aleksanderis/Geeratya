@@ -1,21 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Esc        Cancel or close                                                                                            
-  Ctrl-c     Quit                                                                                                       
-                                                                                                                        
-Confirm mode                                                                                                            
-  y          Confirm                                                                                                    
-  n          Decline                                                                                                    
-  Esc        Decline                                                                                                    
-                                                                                                                        
-Insert mode                                                                                                             
-  Enter      Accept the field and go to the next                                                                        
-  Backspace  Delete the last character                                                                                  
-  Esc        Cancel or close                                                                                            
-  Ctrl-c     Cancel or close                                                                                            
-  Up         Previous source in the picker                                                                              
-  Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
                                                                                                                         
@@ -33,4 +18,19 @@ Palette commands
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
   :help                                                                                                                 
+      Show or hide help                                                                                                 
+  :quit                                                                                                                 
+      Quit                                                                                                              
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
  HELP                                                                                            j down  k up  Esc close

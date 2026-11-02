@@ -6,9 +6,9 @@ public class FrameSnapshotTests
     private static readonly string[] _sizes = ["120x36", "80x24", "40x10"];
 
     private static readonly string[] _sections =
-        ["Normal mode", "Help mode", "Command mode", "Confirm mode", "Insert mode", "Palette commands"];
+        ["Normal mode", "Help mode", "Command mode", "Confirm mode", "Insert mode", "Palette commands", ":quit"];
 
-    private static readonly int[] _scrolls = [0, 20, 40, 60];
+    private static readonly int[] _scrolls = [0, 20, 40, 75];
 
     public static TheoryData<string, string> Snapshots
     {
@@ -44,11 +44,12 @@ public class FrameSnapshotTests
     [Theory]
     [InlineData(20)]
     [InlineData(40)]
-    [InlineData(60)]
+    [InlineData(75)]
     public void GivenHelpScrolled_WhenPrintingTheFrame_ThenItMatchesTheSnapshotThatShowsTheLaterSections(int scroll)
     {
         using var writer = new StringWriter();
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", $"help-scroll{scroll}-120x36.txt"));
+        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"help-scroll{scroll}-120x36.txt");
+        var expected = File.ReadAllText(path);
 
         var exitCode = new ApplicationRunner(writer, false)
             .Run(["--print-frame", "--size", "120x36", "--mode", "help", "--help-scroll", scroll.ToString()]);
