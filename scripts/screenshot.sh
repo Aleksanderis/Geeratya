@@ -45,6 +45,8 @@ all_scenarios=(
   "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Epic children"
   "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Epic children"
   "detail-relations-delete-confirm;120;36;dark;:jql key = GTM-9| id;Jira cannot undo"
+  "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
+  "link-unlink-confirm;120;36;dark;:jql key = GTM-11||]]]]jj iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"

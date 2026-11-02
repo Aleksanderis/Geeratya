@@ -63,6 +63,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space k b` | Rank the issue to the bottom of the list or column |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i l` | Link the issue to another issue |
+| `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) |
 | `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
 | `Space i a` | Assign the issue: search people, or unassign |
 | `Space i m` | Assign the issue to me |

@@ -13,4 +13,6 @@ public enum OperationKind
     CreateIssue,
     DeleteIssue,
     Bulk,
+    LinkIssues,
+    UnlinkIssues,
 }

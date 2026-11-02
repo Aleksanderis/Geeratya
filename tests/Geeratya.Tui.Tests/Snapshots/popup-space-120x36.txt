@@ -29,7 +29,7 @@
 │ o         Open the issue in the browser        │                                                                      
 │ p         Open the parent issue                │                                                                      
 │ m         +comment (3)                         │                                                                      
-│ i         +issue (5)                           │                                                                      
+│ i         +issue (7)                           │                                                                      
 │ k         +rank (3)                            │                                                                      
 │ g         Jump to an issue by key              │                                                                      
 └────────────────────────────────────────────────┘                                                                      

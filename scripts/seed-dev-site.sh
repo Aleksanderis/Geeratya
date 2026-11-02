@@ -81,7 +81,7 @@ backlog-1|Task|Backlog: dark mode||To Do|5|-
 backlog-2|Story|Backlog: keyboard shortcuts help||To Do|3|-
 backlog-3|Bug|Backlog: tooltip clipped||To Do|-|-
 backlog-4|Task|Backlog: update dependencies||To Do|-|-'
-# Links: slug|link type name|other slug (the first issue is the outward side)
+# Links: slug|link type name|other slug (the first issue is posted as outwardIssue, so it reads the inward wording: story-signup "is blocked by" story-welcome; kept so the recorded fixtures stay the same)
 links='story-signup|Blocks|story-welcome
 bug-crash|Relates|story-signup'
 

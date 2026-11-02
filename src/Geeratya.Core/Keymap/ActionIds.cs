@@ -53,6 +53,8 @@ public static class ActionIds
     public const string RankBottom = "rank.bottom";
     public const string RankTo = "rank.to";
     public const string IssueDelete = "issue.delete";
+    public const string IssueLink = "issue.link";
+    public const string IssueUnlink = "issue.unlink";
     public const string IssueEdit = "issue.edit";
     public const string IssueAssign = "issue.assign";
     public const string IssueAssignMe = "issue.assign-me";

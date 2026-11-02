@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+      Open a board as columns in a new tab                                                                              
+  :backlog [name]                                                                                                       
       Open a board's backlog in a new tab                                                                               
   :history clear                                                                                                        
       Forget the recent JQL queries and issues of this profile                                                          
@@ -28,8 +30,6 @@ Help
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         
