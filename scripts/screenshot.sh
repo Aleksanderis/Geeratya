@@ -19,6 +19,8 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter);
 # wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
+# Scenarios named detail-relations-* run against a second fake on the recorded fixtures (no --issues), because only
+# those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -32,6 +34,10 @@ all_scenarios=(
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"
+  "detail-relations-gtm;120;36;dark;:jql key = GTM-11||]]]];Remote"
+  "detail-relations-gcm;120;36;dark;:jql key = GCM-10||]]]];Remote"
+  "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Epic children"
+  "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Epic children"
   "picker;120;36;dark; t;Open a view"
   "board;120;36;dark;:board GCM|;In Progress 4"
   "board-team;120;36;dark;:board GTM|l;In Progress"
@@ -151,6 +157,7 @@ render() {
 
   work=$(mktemp -d)
   fake_pid=""
+  recorded_pid=""
   sockets=()
   trap stop_render EXIT
   mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
@@ -167,12 +174,22 @@ render() {
   fake_url=$(head -n 1 "$work/fake.url")
   case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
 
-  seed_fake_profile "$work/config" "$fake_url"
+  # The recorded dataset is scrubbed fixtures; only the relations scenarios use it.
+  dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
+  recorded_pid=$!
+  for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
+  recorded_url=$(head -n 1 "$work/fake-recorded.url")
+  case $recorded_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
 
   local rendered=0
   for spec in "${all_scenarios[@]}"; do
     name=${spec%%;*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
+    if [[ $name == detail-relations-* ]]; then
+      seed_fake_profile "$work/config" "$recorded_url"
+    else
+      seed_fake_profile "$work/config" "$fake_url"
+    fi
     capture_scenario "$spec" "$binary" "$out" "$work" "$work/ansitosvg"
     rendered=$((rendered + 1))
   done
@@ -184,6 +201,7 @@ stop_render() {
   local socket
   for socket in "${sockets[@]}"; do tmux -L "$socket" kill-server 2> /dev/null || true; done
   if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi
+  if [ -n "$recorded_pid" ]; then kill "$recorded_pid" 2> /dev/null || true; fi
   rm -rf "$work"
 }
 
