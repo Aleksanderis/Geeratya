@@ -145,6 +145,11 @@ public static class FormEditor
             return field;
         }
 
+        if (suggestion.Id.Length == 0)
+        {
+            return field with { Value = FormValue.Empty, Entry = string.Empty, Error = null };
+        }
+
         var option = new FieldOption(suggestion.Id, SuggestionText.Of(suggestion));
 
         return field with

@@ -1,0 +1,654 @@
+{
+  "key": "GTM-30",
+  "fields": {
+    "description": {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "Intro with ",
+              "type": "text"
+            },
+            {
+              "marks": [
+                {
+                  "type": "strong"
+                }
+              ],
+              "text": "bold",
+              "type": "text"
+            },
+            {
+              "text": " and ",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "accessLevel": "",
+                "id": "fake-account-1",
+                "text": "@Test User 1"
+              },
+              "type": "mention"
+            },
+            {
+              "text": " here.",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "one",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "nested a",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "content": [
+                                    {
+                                      "text": "deeper",
+                                      "type": "text"
+                                    }
+                                  ],
+                                  "type": "paragraph"
+                                }
+                              ],
+                              "type": "listItem"
+                            }
+                          ],
+                          "type": "bulletList"
+                        }
+                      ],
+                      "type": "listItem"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "nested b",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        }
+                      ],
+                      "type": "listItem"
+                    }
+                  ],
+                  "type": "bulletList"
+                }
+              ],
+              "type": "listItem"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "two",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "listItem"
+            }
+          ],
+          "type": "bulletList"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "first",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "sub first",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        }
+                      ],
+                      "type": "listItem"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "sub second",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        }
+                      ],
+                      "type": "listItem"
+                    }
+                  ],
+                  "type": "orderedList"
+                }
+              ],
+              "type": "listItem"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "second",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "listItem"
+            }
+          ],
+          "type": "orderedList"
+        },
+        {
+          "attrs": {
+            "localId": "tl1"
+          },
+          "content": [
+            {
+              "attrs": {
+                "localId": "t2",
+                "state": "TODO"
+              },
+              "content": [
+                {
+                  "text": "todo item",
+                  "type": "text"
+                }
+              ],
+              "type": "taskItem"
+            },
+            {
+              "attrs": {
+                "localId": "t3",
+                "state": "DONE"
+              },
+              "content": [
+                {
+                  "text": "done item",
+                  "type": "text"
+                }
+              ],
+              "type": "taskItem"
+            }
+          ],
+          "type": "taskList"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "a quote with ",
+                  "type": "text"
+                },
+                {
+                  "marks": [
+                    {
+                      "type": "em"
+                    }
+                  ],
+                  "text": "italic",
+                  "type": "text"
+                },
+                {
+                  "type": "hardBreak"
+                },
+                {
+                  "text": "second line",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "blockquote"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "item with quote",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                },
+                {
+                  "content": [
+                    {
+                      "text": "inside item",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "listItem"
+            }
+          ],
+          "type": "bulletList"
+        },
+        {
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Heading",
+              "type": "text"
+            }
+          ],
+          "type": "heading"
+        },
+        {
+          "attrs": {
+            "language": "csharp"
+          },
+          "content": [
+            {
+              "text": "var x = 1;",
+              "type": "text"
+            }
+          ],
+          "type": "codeBlock"
+        },
+        {
+          "type": "rule"
+        },
+        {
+          "content": [
+            {
+              "attrs": {
+                "url": "https://example.com/x"
+              },
+              "type": "inlineCard"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "doc",
+      "version": 1
+    },
+    "comment": {
+      "comments": [
+        {
+          "id": "10008",
+          "body": {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Intro with ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "bold",
+                    "type": "text"
+                  },
+                  {
+                    "text": " and ",
+                    "type": "text"
+                  },
+                  {
+                    "attrs": {
+                      "accessLevel": "",
+                      "id": "fake-account-1",
+                      "text": "@Test User 1"
+                    },
+                    "type": "mention"
+                  },
+                  {
+                    "text": " here.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "one",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      },
+                      {
+                        "content": [
+                          {
+                            "content": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "nested a",
+                                    "type": "text"
+                                  }
+                                ],
+                                "type": "paragraph"
+                              },
+                              {
+                                "content": [
+                                  {
+                                    "content": [
+                                      {
+                                        "content": [
+                                          {
+                                            "text": "deeper",
+                                            "type": "text"
+                                          }
+                                        ],
+                                        "type": "paragraph"
+                                      }
+                                    ],
+                                    "type": "listItem"
+                                  }
+                                ],
+                                "type": "bulletList"
+                              }
+                            ],
+                            "type": "listItem"
+                          },
+                          {
+                            "content": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "nested b",
+                                    "type": "text"
+                                  }
+                                ],
+                                "type": "paragraph"
+                              }
+                            ],
+                            "type": "listItem"
+                          }
+                        ],
+                        "type": "bulletList"
+                      }
+                    ],
+                    "type": "listItem"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "two",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "listItem"
+                  }
+                ],
+                "type": "bulletList"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "first",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      },
+                      {
+                        "content": [
+                          {
+                            "content": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "sub first",
+                                    "type": "text"
+                                  }
+                                ],
+                                "type": "paragraph"
+                              }
+                            ],
+                            "type": "listItem"
+                          },
+                          {
+                            "content": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "sub second",
+                                    "type": "text"
+                                  }
+                                ],
+                                "type": "paragraph"
+                              }
+                            ],
+                            "type": "listItem"
+                          }
+                        ],
+                        "type": "orderedList"
+                      }
+                    ],
+                    "type": "listItem"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "second",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "listItem"
+                  }
+                ],
+                "type": "orderedList"
+              },
+              {
+                "attrs": {
+                  "localId": "tl1"
+                },
+                "content": [
+                  {
+                    "attrs": {
+                      "localId": "t2",
+                      "state": "TODO"
+                    },
+                    "content": [
+                      {
+                        "text": "todo item",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "taskItem"
+                  },
+                  {
+                    "attrs": {
+                      "localId": "t3",
+                      "state": "DONE"
+                    },
+                    "content": [
+                      {
+                        "text": "done item",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "taskItem"
+                  }
+                ],
+                "type": "taskList"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "a quote with ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "em"
+                          }
+                        ],
+                        "text": "italic",
+                        "type": "text"
+                      },
+                      {
+                        "type": "hardBreak"
+                      },
+                      {
+                        "text": "second line",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "blockquote"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "item with quote",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      },
+                      {
+                        "content": [
+                          {
+                            "text": "inside item",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "listItem"
+                  }
+                ],
+                "type": "bulletList"
+              },
+              {
+                "attrs": {
+                  "level": 2
+                },
+                "content": [
+                  {
+                    "text": "Heading",
+                    "type": "text"
+                  }
+                ],
+                "type": "heading"
+              },
+              {
+                "attrs": {
+                  "language": "csharp"
+                },
+                "content": [
+                  {
+                    "text": "var x = 1;",
+                    "type": "text"
+                  }
+                ],
+                "type": "codeBlock"
+              },
+              {
+                "type": "rule"
+              },
+              {
+                "content": [
+                  {
+                    "attrs": {
+                      "url": "https://example.com/x"
+                    },
+                    "type": "inlineCard"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "doc",
+            "version": 1
+          }
+        }
+      ]
+    }
+  }
+}

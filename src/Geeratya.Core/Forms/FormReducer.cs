@@ -183,7 +183,7 @@ public static partial class FormReducer
         var requestId = state.Sequence + 1;
         var field = AssigneeField(target);
         var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
-        var form = opened with { Fields = [field], IsLoading = false };
+        var form = WithQuickRows(state, opened with { Fields = [field], IsLoading = false });
         var next = ViewReducer.Replace(state, tab with { Form = form }) with
         {
             Mode = InputMode.Insert,

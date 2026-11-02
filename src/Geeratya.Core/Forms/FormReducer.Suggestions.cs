@@ -15,8 +15,8 @@ public static partial class FormReducer
 {
     private const int KnownLabelLimit = 500;
 
-    // The keys of an open popup: Esc closes it alone, Up and Down move, Tab and Enter take the highlighted row. Any
-    // other key is not the popup's (null) and goes on to the field.
+    // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and
+    // Down move, Tab and Enter take the highlighted row. Any other key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,
@@ -26,6 +26,7 @@ public static partial class FormReducer
     {
         return action switch
         {
+            ActionIds.Cancel when popup.Query.Length == 0 => null,
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
             ActionIds.PickerPrevious => Moved(state, tab, form, popup, -1),
@@ -64,7 +65,10 @@ public static partial class FormReducer
 
         var closed = Replace(result.State, tab, tab.Form with { Suggest = null });
 
-        return new ReduceResult(closed, [.. result.Effects, new CancelSuggestionsEffect(tabId)]);
+        // The quick rows (request 0) have no lookup to cancel.
+        return tab.Form.Suggest.RequestId == 0
+            ? new ReduceResult(closed, result.Effects)
+            : new ReduceResult(closed, [.. result.Effects, new CancelSuggestionsEffect(tabId)]);
     }
 
     // After an edit the popup follows the focused field's typing buffer: a new query matches at once against what is
@@ -80,6 +84,12 @@ public static partial class FormReducer
 
         var field = form.Fields[form.Focus];
         var query = field.Entry.Trim();
+
+        if (query.Length == 0 && QuickPopup(state, form) is { } quick)
+        {
+            return QuickShown(state, tab, form, quick);
+        }
+
         var source = query.Length == 0 ? null : SourceOf(tab, form, field);
 
         if (source is null)
@@ -98,6 +108,59 @@ public static partial class FormReducer
         var effect = new SearchSuggestionsEffect(tabId, requestId, source, query, SuggestionPopup.Debounce);
 
         return new ReduceResult(next, [effect]);
+    }
+
+    // The assign picker offers "Me" and "Unassigned" while its buffer is empty: no lookup, nothing highlighted, so
+    // Enter still saves the form as it stands. Typing replaces them with the single search path. Returns null for any
+    // other field, or when neither row applies (already assigned to me and no one to clear).
+    private static SuggestionState? QuickPopup(AppState state, FormState form)
+    {
+        if (form.Target is not AssignFormTarget || form.Focus >= form.Fields.Count
+            || form.Fields[form.Focus].Id != FormFieldIds.Assignee)
+        {
+            return null;
+        }
+
+        var chosen = form.Fields[form.Focus].Value.Chosen;
+        var rows = new List<Suggestion>();
+
+        if (state.Session.Connection is Connected { AccountId: { } accountId } connected && !chosen.Contains(accountId))
+        {
+            rows.Add(AssigneeQuickRows.Me(accountId, connected.DisplayName));
+        }
+
+        if (chosen.Count > 0)
+        {
+            rows.Add(AssigneeQuickRows.Unassigned);
+        }
+
+        if (rows.Count == 0)
+        {
+            return null;
+        }
+
+        var source = new SuggestionSource(SuggestionKind.AssignableUsers, form.Target.IssueKey, []);
+
+        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
+    }
+
+    internal static FormState WithQuickRows(AppState state, FormState form)
+    {
+        return QuickPopup(state, form) is { } quick ? form with { Suggest = quick } : form;
+    }
+
+    private static ReduceResult QuickShown(AppState state, TabState tab, FormState form, SuggestionState quick)
+    {
+        if (form.Suggest is { Query.Length: 0 } open && open.FieldIndex == form.Focus
+            && open.Items.Select(item => item.Id).SequenceEqual(quick.Items.Select(item => item.Id)))
+        {
+            return Result(state);
+        }
+
+        var next = Replace(state, tab, form with { Suggest = quick });
+        var effects = form.Suggest is null or { RequestId: 0 } ? _noEffects : new Effect[] { new CancelSuggestionsEffect(tab.Id) };
+
+        return new ReduceResult(next, effects);
     }
 
     private static SuggestionSource? SourceOf(TabState tab, FormState form, FormField field)

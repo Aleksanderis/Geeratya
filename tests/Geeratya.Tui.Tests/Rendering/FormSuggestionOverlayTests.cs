@@ -61,6 +61,24 @@ public class FormSuggestionOverlayTests
     }
 
     [Fact]
+    public void GivenQuickRowsWithNothingHighlighted_WhenBuildingTheFrame_ThenNoRowCarriesThePointer()
+    {
+        var form = PersonForm();
+        var rows = new[] { AssigneeQuickRows.Me("acc-me", "Mia Quick"), AssigneeQuickRows.Unassigned };
+        var person = form.Fields[^1] with { Entry = string.Empty };
+        var quick = form.Suggest! with { Query = string.Empty, Items = rows, Cursor = -1, RequestId = 0 };
+
+        var fields = form.Fields.Take(form.Fields.Count - 1).Append(person).ToList();
+        var shown = form with { Fields = fields, Suggest = quick };
+
+        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Me (Mia Quick)", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Unassigned", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("> Me (", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenALoadingLookup_WhenBuildingTheFrame_ThenItSaysSearching()
     {
         var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loading)), 80, 24, _helpLines, _keymap);
