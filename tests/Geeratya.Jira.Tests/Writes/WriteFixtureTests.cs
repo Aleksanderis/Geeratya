@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Geeratya.Jira.Tests.Fakes;
 using Geeratya.Jira.Transport;
+using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Tests.Writes;
