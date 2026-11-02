@@ -50,6 +50,17 @@ public static class FrameOptions
         };
     }
 
+    /// <summary>Parses the first visible help line; null input gives 0, a negative or invalid number gives null.</summary>
+    public static int? ParseScroll(string? text)
+    {
+        if (text is null)
+        {
+            return 0;
+        }
+
+        return int.TryParse(text, out var value) && value >= 0 ? value : null;
+    }
+
     public static AppState SampleState(InputMode mode)
     {
         return mode switch
