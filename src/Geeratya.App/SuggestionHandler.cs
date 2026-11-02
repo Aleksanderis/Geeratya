@@ -36,7 +36,7 @@ public sealed class SuggestionHandler
 
         return _runner.StartReporting(
             effect.Tab.Value,
-            (services, report, token) => RunAsync(services, effect, report, current.Token, token),
+            (services, report, token) => RunAsync(services, effect, report, current, token),
             () => new SuggestionsFailed(effect.Tab, effect.RequestId, NoConnectionMessage));
     }
 
@@ -67,9 +67,11 @@ public sealed class SuggestionHandler
         JiraServices services,
         SearchSuggestionsEffect effect,
         Action<Command> report,
-        CancellationToken replaced,
+        CancellationTokenSource current,
         CancellationToken scope)
     {
+        var replaced = current.Token;
+
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(scope, replaced);
 
         try
@@ -81,6 +83,22 @@ public sealed class SuggestionHandler
         catch (OperationCanceledException) when (replaced.IsCancellationRequested)
         {
             return null;
+        }
+        finally
+        {
+            Forget(effect.Tab, current);
+        }
+    }
+
+    // A finished lookup leaves nothing behind unless a newer one has already taken the tab's place.
+    private void Forget(TabId tab, CancellationTokenSource finished)
+    {
+        lock (_lock)
+        {
+            if (_pending.TryGetValue(tab.Value, out var latest) && ReferenceEquals(latest, finished))
+            {
+                _pending.Remove(tab.Value);
+            }
         }
     }
 

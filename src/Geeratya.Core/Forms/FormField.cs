@@ -30,14 +30,14 @@ public sealed record FormField(
 {
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
-    /// <summary>True when the user changed the field, counting a label that is typed and not yet added.</summary>
+    /// <summary>True when the user changed the field, counting a label that is typed and not yet added, or text typed into a person or parent field and not picked.</summary>
     public bool IsChanged
     {
         get
         {
-            var typedLabel = Kind == FormFieldKind.Labels && Entry.Length > 0;
+            var typed = Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent && Entry.Length > 0;
 
-            return IsEditable && (!Value.Equals(Initial) || typedLabel);
+            return IsEditable && (!Value.Equals(Initial) || typed);
         }
     }
 

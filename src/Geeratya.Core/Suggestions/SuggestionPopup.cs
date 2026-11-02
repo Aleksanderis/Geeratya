@@ -64,7 +64,9 @@ public static class SuggestionPopup
         var kept = pool.Take(PoolLimit).ToList();
         var items = state.Source.AllowsFreeText ? Ranked(state, kept, excluded) : Replied(reply, excluded);
 
-        return state with { Pool = kept, Items = items, Cursor = 0, Status = SuggestionStatus.Loaded, Error = null };
+        var cursor = KeptCursor(state, items);
+
+        return state with { Pool = kept, Items = items, Cursor = cursor, Status = SuggestionStatus.Loaded, Error = null };
     }
 
     /// <summary>The popup marked as searching; null when the notice is not for its current request or too late.</summary>
@@ -95,6 +97,17 @@ public static class SuggestionPopup
         var last = Math.Max(0, state.Items.Count - 1);
 
         return state with { Cursor = Math.Clamp(state.Cursor + delta, 0, last) };
+    }
+
+    // A highlight the user moved stays on its row when the reply reorders the list; an untouched one stays on top.
+    private static int KeptCursor(SuggestionState state, IReadOnlyList<Suggestion> items)
+    {
+        if (state.Cursor <= 0 || state.Selected is not { } current)
+        {
+            return 0;
+        }
+
+        return Math.Max(0, items.ToList().FindIndex(item => item.Id == current.Id));
     }
 
     private static List<Suggestion> Ranked(

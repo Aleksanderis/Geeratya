@@ -253,6 +253,42 @@ public class FormSuggestionTests
     }
 
     [Fact]
+    public void GivenTheFullLabelTyped_WhenEnterIsPressed_ThenThatLabelIsAddedNotALongerOne()
+    {
+        var typed = Press(Press(Press(Loaded(), "b").State, "u").State, "g");
+        var id = Assert.IsType<SearchSuggestionsEffect>(typed.Effects[0]).RequestId;
+        var replied = Reply(typed.State, id, Label("bugfix"), Label("bug"));
+
+        var accepted = Press(replied.State, "Enter");
+
+        Assert.Equal(["bug"], accepted.State.Session.Tabs[0].Form!.Fields[0].Value.Chosen);
+    }
+
+    [Fact]
+    public void GivenTextTypedInAPersonFieldButNobodyPicked_WhenSaving_ThenTheFieldSaysToPickAndNothingIsSent()
+    {
+        var typed = Press(Focused("assignee"), "a");
+        var left = Press(typed.State, "Tab").State;
+
+        var saved = Press(left, "Ctrl-s", _start);
+
+        var field = saved.State.Session.Tabs[0].Form!.Fields[1];
+        Assert.Equal(FormValidation.PickText, field.Error);
+        Assert.Empty(saved.Effects.OfType<ExecuteWriteEffect>());
+    }
+
+    [Fact]
+    public void GivenOnlyTextTypedInAPersonField_WhenEscIsPressedTwice_ThenTheFormAsksBeforeDiscarding()
+    {
+        var typed = Press(Focused("assignee"), "a");
+        var dismissed = Press(typed.State, "Esc").State;
+
+        var asked = Press(dismissed, "Esc").State;
+
+        Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
+    }
+
+    [Fact]
     public void GivenAParentField_WhenTyping_ThenIssuesAreSearched()
     {
         var typed = Press(Focused("parent", FormFieldKind.Parent), "A");

@@ -64,6 +64,17 @@ public class SuggestionPopupTests
     }
 
     [Fact]
+    public void GivenTheCursorOnARow_WhenTheReplyArrives_ThenTheHighlightStaysOnTheSameRow()
+    {
+        var popup = SuggestionPopup.Queried(null, 0, _labels, "end", _none, 3);
+        var moved = SuggestionPopup.Moved(popup, 1);
+
+        var loaded = SuggestionPopup.Loaded(moved, 3, [new Suggestion("aaa-end", "aaa-end", null, false)], _none)!;
+
+        Assert.Equal(moved.Selected!.Id, loaded.Selected!.Id);
+    }
+
+    [Fact]
     public void GivenALookupThatIsStillWaiting_WhenItIsSlow_ThenThePopupSaysLoadingOnce()
     {
         var popup = SuggestionPopup.Queried(null, 0, _users, "jo", _none, 8);

@@ -5,7 +5,7 @@ namespace Geeratya.Core.Suggestions;
 
 /// <summary>
 /// Local fuzzy ranking of the candidates loaded so far (fzf style): the query's characters must appear in order, in
-/// the label or the detail. Prefix matches rank first, then contiguous ones, then scattered ones (the tighter the
+/// the label or the detail. An exact match ranks first, then prefix matches, then contiguous ones, then scattered ones (the tighter the
 /// better); equal scores keep the given order. Pure. An empty query matches nothing.
 /// </summary>
 public static class SuggestionRanker
@@ -13,7 +13,8 @@ public static class SuggestionRanker
     /// <summary>The detail of the row that offers the typed text itself as a new value.</summary>
     public const string NewValueDetail = "new";
 
-    private const int PrefixScore = 0;
+    private const int ExactScore = 0;
+    private const int PrefixScore = 1;
     private const int SubstringScore = 1000;
     private const int ScatteredScore = 100000;
 
@@ -72,6 +73,11 @@ public static class SuggestionRanker
 
     private static int ScoreOf(string text, string query)
     {
+        if (string.Equals(text, query, StringComparison.OrdinalIgnoreCase))
+        {
+            return ExactScore;
+        }
+
         if (text.StartsWith(query, StringComparison.OrdinalIgnoreCase))
         {
             return PrefixScore;

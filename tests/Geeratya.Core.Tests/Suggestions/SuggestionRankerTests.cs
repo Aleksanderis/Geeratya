@@ -19,6 +19,14 @@ public class SuggestionRankerTests
     }
 
     [Fact]
+    public void GivenAnExactLabelAfterALongerOne_WhenRanking_ThenTheExactOneIsFirst()
+    {
+        var ranked = SuggestionRanker.Rank([Label("bugfix"), Label("Bug")], "bug", _none, true);
+
+        Assert.Equal(["Bug", "bugfix"], ranked.Select(item => item.Label));
+    }
+
+    [Fact]
     public void GivenAnEmptyQuery_WhenRanking_ThenNothingMatches()
     {
         Assert.Empty(SuggestionRanker.Rank([Label("a")], "  ", _none, true));
