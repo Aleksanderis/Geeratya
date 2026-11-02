@@ -7,4 +7,8 @@ var capabilities = ConsoleCapabilities.Detect(
     Console.IsInputRedirected,
     Console.IsOutputRedirected);
 
-return new ApplicationRunner(Console.Out, capabilities.IsInteractive, capabilities.Colors).Run(args);
+return new ApplicationRunner(
+    Console.Out,
+    capabilities.IsInteractive,
+    capabilities.Colors,
+    glyphs: capabilities.Glyphs).Run(args);

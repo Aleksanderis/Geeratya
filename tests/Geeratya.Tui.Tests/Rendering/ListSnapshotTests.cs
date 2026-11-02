@@ -4,6 +4,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -28,6 +29,18 @@ public class ListSnapshotTests
         var name = $"list-{width}x{height}.txt";
 
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
+
+        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+    }
+
+    [Fact]
+    public void GivenTheAsciiGlyphSet_WhenBuildingTheFrame_ThenTheBodyMatchesTheAsciiSnapshot()
+    {
+        var lines = FrameBuilder.Build(Sample(), 40, 10, _helpLines, _keymap, null, GlyphSet.Ascii)
+            .Skip(FrameBuilder.HeaderRows);
+        var actual = string.Join('\n', lines) + "\n";
+
+        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", "list-ascii-40x10.txt"));
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
     }

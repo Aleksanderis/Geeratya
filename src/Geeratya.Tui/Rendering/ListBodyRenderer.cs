@@ -14,9 +14,8 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public sealed class ListBodyRenderer : IBodyRenderer
 {
-    private const string Separator = " · ";
-    private const string LoadingMoreText = "Loading more…";
-    private const string LoadingText = "Loading…";
+    private const string LoadingMoreWords = "Loading more";
+    private const string LoadingWords = "Loading";
     private const string NoIssuesText = "No issues match.";
     private const string NoBoardIssuesText = "The board has no issues.";
     private const string RetryText = "<space>r to retry";
@@ -29,9 +28,6 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string StatusGlyphTitle = "S";
     private const string AssigneeTitle = "Assignee";
     private const string Unassigned = "-";
-    private const string ToDoGlyph = "○";
-    private const string InProgressGlyph = "◐";
-    private const string DoneGlyph = "●";
     private const string UnknownGlyph = "?";
 
     public bool AppliesTo(AppState state)
@@ -42,20 +38,21 @@ public sealed class ListBodyRenderer : IBodyRenderer
     public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)
     {
         var tab = ActiveTab(state)!;
+        var glyphs = Glyphs.For(context.Glyphs);
         var area = Math.Max(0, height - ListLayout.HeaderRows);
         var columns = ListColumns.For(width, tab.KeyWidth);
-        var footer = FooterLine(tab);
+        var footer = FooterLine(tab, glyphs);
         var shown = tab.Rows.Count == 0 ? 0 : Math.Min(area, tab.Rows.Count - FirstRow(tab));
         var footerFits = footer is not null && tab.Rows.Count > 0 && shown < area && LastRowShown(tab, shown);
         var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area))
         {
-            HeaderLine(tab, footerFits ? null : footer),
+            HeaderLine(tab, footerFits ? null : footer, glyphs),
             TitlesLine(columns),
         };
 
         if (tab.Rows.Count == 0)
         {
-            AddBodyMessage(lines, tab, width);
+            AddBodyMessage(lines, tab, width, glyphs);
 
             return lines;
         }
@@ -64,7 +61,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(RowLine(tab.Rows[index], columns, index == tab.Selected, width));
+            lines.Add(RowLine(tab.Rows[index], columns, index == tab.Selected, width, glyphs));
         }
 
         if (footerFits)
@@ -90,16 +87,16 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return FirstRow(tab) + shown >= tab.Rows.Count;
     }
 
-    private static StyledLine HeaderLine(TabState tab, StyledLine? note)
+    private static StyledLine HeaderLine(TabState tab, StyledLine? note, Glyphs glyphs)
     {
         var spans = new List<StyledSpan>
         {
-            new($"{tab.Definition.Title}{Separator}{CountText(tab)}", TextRole.Heading),
+            new($"{tab.Definition.Title}{glyphs.Separator}{CountText(tab)}", TextRole.Heading),
         };
 
         if (note is not null)
         {
-            spans.Add(new StyledSpan(Separator, TextRole.Muted));
+            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
             spans.AddRange(note.Spans);
         }
 
@@ -136,7 +133,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
     }
 
     /// <summary>The note under the last row: loading, a failed page or the row cap. Null when there is none.</summary>
-    private static StyledLine? FooterLine(TabState tab)
+    private static StyledLine? FooterLine(TabState tab, Glyphs glyphs)
     {
         if (tab.Rows.Count == 0)
         {
@@ -145,7 +142,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         return tab.Load switch
         {
-            Loading { Reason: LoadReason.NextPage } => StyledLine.Of(LoadingMoreText, TextRole.Loading),
+            Loading { Reason: LoadReason.NextPage } => StyledLine.Of(LoadingMoreWords + glyphs.Ellipsis, TextRole.Loading),
             // Other failures keep the rows and are told by the banner above the list.
             Failed { Reason: LoadReason.NextPage } failed =>
                 StyledLine.Of($"{CouldNotLoadMore}{failed.Message}", TextRole.Error),
@@ -154,11 +151,11 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
-    private static void AddBodyMessage(List<StyledLine> lines, TabState tab, int width)
+    private static void AddBodyMessage(List<StyledLine> lines, TabState tab, int width, Glyphs glyphs)
     {
         if (tab.Load is Loading)
         {
-            lines.Add(StyledLine.Of(LoadingText, TextRole.Loading));
+            lines.Add(StyledLine.Of(LoadingWords + glyphs.Ellipsis, TextRole.Loading));
 
             return;
         }
@@ -193,12 +190,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return StyledLine.Of($"{new string(' ', padding)}{text}");
     }
 
-    private static StyledLine RowLine(IssueSummary row, ListColumns columns, bool selected, int width)
+    private static StyledLine RowLine(IssueSummary row, ListColumns columns, bool selected, int width, Glyphs glyphs)
     {
         var key = TextWidth.Pad(row.Key, columns.Key);
         var marker = IssueTypeMarker.For(row.IssueType);
         var summary = TextWidth.Pad(row.Summary, columns.Summary);
-        var status = StatusText(row.Status, columns.Status);
+        var status = StatusText(row.Status, columns.Status, glyphs);
         var assignee = TextWidth.Pad(row.Assignee?.DisplayName ?? Unassigned, columns.Assignee);
 
         if (selected)
@@ -223,18 +220,18 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return new StyledLine(spans);
     }
 
-    private static string StatusText(IssueStatus status, int width)
+    private static string StatusText(IssueStatus status, int width, Glyphs glyphs)
     {
-        return width == ListColumns.FullStatus ? TextWidth.Pad(status.Name, width) : StatusGlyph(status);
+        return width == ListColumns.FullStatus ? TextWidth.Pad(status.Name, width) : StatusGlyph(status, glyphs);
     }
 
-    private static string StatusGlyph(IssueStatus status)
+    private static string StatusGlyph(IssueStatus status, Glyphs glyphs)
     {
         return status.CategoryKey switch
         {
-            StatusCategoryKeys.New => ToDoGlyph,
-            StatusCategoryKeys.Indeterminate => InProgressGlyph,
-            StatusCategoryKeys.Done => DoneGlyph,
+            StatusCategoryKeys.New => glyphs.ToDo,
+            StatusCategoryKeys.Indeterminate => glyphs.InProgress,
+            StatusCategoryKeys.Done => glyphs.Done,
             _ => UnknownGlyph,
         };
     }
