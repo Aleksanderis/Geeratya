@@ -43,17 +43,21 @@ public static class UserKeymap
 
         foreach (var row in file.Unbind ?? [])
         {
-            if (row is null || remaining.RemoveAll(binding => binding.Mode == row.Mode && binding.Keys == row.Keys) == 0)
+            if (row is not { Mode: not null, Keys: not null })
             {
-                problems.Add($"unbind {Label(row?.Mode, row?.Keys)}: no default binding with these keys");
+                problems.Add($"unbind {Label(row?.Mode, row?.Keys)}: a row needs mode and keys");
+            }
+            else if (remaining.RemoveAll(binding => binding.Mode == row.Mode && binding.Keys == row.Keys) == 0)
+            {
+                problems.Add($"unbind {Label(row.Mode, row.Keys)}: no default binding with these keys");
             }
         }
 
         var added = new List<KeyBinding>();
 
-        foreach (var row in file.Bindings ?? [])
+        foreach (var userRow in file.Bindings ?? [])
         {
-            var problem = row is null ? "empty row" : FindRowProblem(row);
+            var problem = FindRowProblem(userRow);
 
             if (problem is not null)
             {
@@ -62,9 +66,11 @@ public static class UserKeymap
                 continue;
             }
 
-            remaining.RemoveAll(binding => binding.Mode == row!.Mode && binding.Keys == row.Keys);
+            var row = new KeyBinding(userRow!.Mode!.Value, userRow.Keys!, userRow.Action!);
 
-            var conflict = FindConflict(row!, added.Concat(remaining));
+            remaining.RemoveAll(binding => binding.Mode == row.Mode && binding.Keys == row.Keys);
+
+            var conflict = FindConflict(row, added.Concat(remaining));
 
             if (conflict is not null)
             {
@@ -73,18 +79,18 @@ public static class UserKeymap
                 continue;
             }
 
-            added.Add(row!);
+            added.Add(row);
         }
 
         // The user's rows come first, so a hint or help line shows the key the user chose for an action.
         return new KeymapLoadResult(added.Concat(remaining).ToList(), problems);
     }
 
-    private static string? FindRowProblem(KeyBinding row)
+    private static string? FindRowProblem(UserKeymapRow? row)
     {
-        var label = Label(row.Mode, row.Keys);
+        var label = Label(row?.Mode, row?.Keys);
 
-        if (row.Keys is null || row.Action is null)
+        if (row is not { Mode: not null, Keys: not null, Action: not null })
         {
             return $"{label}: a row needs mode, keys and action";
         }

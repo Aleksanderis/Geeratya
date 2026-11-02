@@ -176,6 +176,38 @@ public sealed class UserKeymapTests : IDisposable
     }
 
     [Fact]
+    public void GivenRowsWithoutMode_WhenMerging_ThenBothAreReportedAndNothingChanges()
+    {
+        var table = Merge(
+            """
+            { "bindings": [ { "keys": "x", "action": "app.quit" } ],
+              "unbind": [ { "keys": "q" } ] }
+            """,
+            out var problems);
+
+        Assert.Equal(2, problems.Count);
+        Assert.All(problems, problem => Assert.Contains("needs", problem));
+        Assert.Equal(ActionIds.Quit, table.Resolve(InputMode.Normal, string.Empty, "q").Action);
+        Assert.Equal(KeyResolutionKind.None, table.Resolve(InputMode.Normal, string.Empty, "x").Kind);
+    }
+
+    [Fact]
+    public void GivenCtrlKeyInInsertMode_WhenMerging_ThenItIsAccepted()
+    {
+        Merge("""{ "bindings": [ { "mode": "insert", "keys": "Ctrl-g", "action": "form.submit" } ] }""", out var problems);
+
+        Assert.Empty(problems);
+    }
+
+    [Fact]
+    public void GivenSpaceInCommandMode_WhenMerging_ThenItIsRejected()
+    {
+        Merge("""{ "bindings": [ { "mode": "command", "keys": "Space", "action": "palette.submit" } ] }""", out var problems);
+
+        Assert.Contains("printable keys are text", Assert.Single(problems));
+    }
+
+    [Fact]
     public void GivenSeveralProblems_WhenBuildingNotice_ThenItNamesTheFirstAndCountsTheRest()
     {
         var result = new KeymapLoadResult([], ["first", "second", "third"]);

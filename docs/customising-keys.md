@@ -53,6 +53,12 @@ A file that is not valid JSON (or has an unknown `mode`) is ignored as a whole a
 
 Keep the vim rule in mind ([ux-keymap.md](ux-keymap.md), "Key rule"): the defaults leave bare letters alone for vim's sake, but your file may bind whatever you like. The terminal decides which `Ctrl-` and `Alt-` combinations arrive at all (`Ctrl-i` is `Tab`, `Ctrl-m` is `Enter`, and a terminal without "Option as Meta" sends no `Alt-` keys).
 
+A row with no `mode` (or no `keys` or `action`) is reported and skipped; it never falls back to Normal mode.
+
+## If you lock yourself out
+
+If you unbind every way to quit or to open the palette, Ctrl-c still quits unless you removed it too. Edit or delete `keymap.json` from outside the app and start again.
+
 ## Applying changes
 
 Geeratya reads the file at start. After editing it, run `:keys reload` in the command palette to apply it without a restart; the status line says `Keymap reloaded` or names the first problem.

@@ -104,7 +104,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
-        _state = _state with { Message = _state.Message ?? _keymapNotice };
+        _state = _state with { Message = JoinNotices(_state.Message, _keymapNotice) };
         _application = application;
         application.Init();
         application.Keyboard.KeyBindings.Clear();
@@ -377,6 +377,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         return await _profileEffects.RunAsync(effect, _shutdownToken)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
+    }
+
+    private static string? JoinNotices(string? first, string? second)
+    {
+        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
     }
 
     private AppState LoadProfiles()
