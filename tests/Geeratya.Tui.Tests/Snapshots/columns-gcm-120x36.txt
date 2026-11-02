@@ -1,36 +1,36 @@
  [1 Board: GCM board]                                                                                                   
                                                                                                                         
 GCM board · 24 issues                                                                                                   
-[Backlog 12]                   To Do 5                       In Progress 4                 Done 3                       
->T GCM-1                       E GCM-8                       E GCM-9                       s GCM-18                     
- Survey task one               Seed: Onboarding flow         Seed: Reporting               Build the form               
-                                                                                                                        
-                                                                                                                        
- s GCM-6                       s GCM-19                      S GCM-10                      S GCM-12                     
- Survey4 subtask               Validate the email            Sign up with email            Export report as CSV         
-                                                                                                                        
-                                                                                                                        
- T GCM-4                       S GCM-11                      T GCM-14                      T GCM-15                     
- Survey task four              Welcome screen                Pick a chart library          Write the setup guide        
-                                                                                                                        
-                                                                                                                        
- S GCM-3                       T GCM-13                      B GCM-16                                                   
- Survey story three with       Review onboarding copy        App crashes on empty profile                               
- unicode café 🚀                                                                                                        
-                                                                                                                        
- E GCM-5                       B GCM-17                                                                                 
- Survey4 epic                  Wrong date format in report                                                              
-                                                                                                                        
-                                                                                                                        
- s GCM-7                                                                                                                
- Survey4 subtask no valid                                                                                               
- parent                                                                                                                 
-                                                                                                                        
- B GCM-2                                                                                                                
- Survey bug two                                                                                                         
-                                                                                                                        
-                                                                                                                        
- T GCM-20                                                                                                               
- Backlog: dark mode                                                                                                     
-                                                                                                                        
+┌─ Backlog 12 ────────────────┬─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Done 3 ───────────────────┐
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
+│ ┃ T GCM-1                 ┃ │ │ E GCM-8                 │ │ │ E GCM-9                 │ │ │ s GCM-18               │ │
+│ ┃ Survey task one         ┃ │ │ Seed: Onboarding flow   │ │ │ Seed: Reporting         │ │ │ Build the form         │ │
+│ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
+│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━┛ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
+│ │ s GCM-6                 │ │ │ s GCM-19                │ │ │ S GCM-10                │ │ │ S GCM-12               │ │
+│ │ Survey4 subtask         │ │ │ Validate the email      │ │ │ Sign up with email      │ │ │ Export report as CSV   │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
+│ │ T GCM-4                 │ │ │ S GCM-11                │ │ │ T GCM-14                │ │ │ T GCM-15               │ │
+│ │ Survey task four        │ │ │ Welcome screen          │ │ │ Pick a chart library    │ │ │ Write the setup guide  │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │                            │
+│ │ S GCM-3                 │ │ │ T GCM-13                │ │ │ B GCM-16                │ │                            │
+│ │ Survey story three      │ │ │ Review onboarding copy  │ │ │ App crashes on empty    │ │                            │
+│ │ with unicode café 🚀    │ │ │                         │ │ │ profile                 │ │                            │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │                            │
+│ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │                             │                            │
+│ │ E GCM-5                 │ │ │ B GCM-17                │ │                             │                            │
+│ │ Survey4 epic            │ │ │ Wrong date format in    │ │                             │                            │
+│ │                         │ │ │ report                  │ │                             │                            │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │                             │                            │
+│ ┌─────────────────────────┐ │                             │                             │                            │
+│ │ s GCM-7                 │ │                             │                             │                            │
+│ │ Survey4 subtask no      │ │                             │                             │                            │
+│ │ valid parent            │ │                             │                             │                            │
+│ └─────────────────────────┘ │                             │                             │                            │
+└─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────┘
  NORMAL                                                                                        ? help  : command  q quit

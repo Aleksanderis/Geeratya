@@ -10,6 +10,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 
 - Kanban board with the board's own columns
 - Backlog, with ranking
+- Scrum: sprint board, backlog as sprints, move issues between sprints, create, start and complete sprints
 - JQL search and saved filters as issue lists
 - Issue view: description and comments as formatted text, sub-tasks, an epic's children, linked issues and remote links (Confluence and others)
 - Change status, also by moving a card to another column
@@ -22,7 +23,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 
 Attachments and images are shown as links that open in the browser, never rendered in the terminal.
 
-Not included: Jira Service Management, Jira Data Center or Server, several sites open at once, rendering images or files, Jira administration (projects, workflows, schemes, users, permissions), plugins.
+Not included: Scrum reports and charts (burndown, velocity), Jira Service Management, Jira Data Center or Server, several sites open at once, rendering images or files, Jira administration (projects, workflows, schemes, users, permissions), plugins.
 
 ## Status
 

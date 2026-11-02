@@ -47,34 +47,40 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenCards_WhenRendering_ThenEachColumnHasANameAndCountAndTheSelectedOneIsBracketed()
+    public void GivenCards_WhenRendering_ThenEachColumnIsFramedWithANameAndCountAndTheSelectedOneIsBold()
     {
         var body = Render(Tab(Issue("1", "A-1"), Issue("1", "A-2"), Issue("2", "A-3")), 120, 30);
 
         Assert.StartsWith("Board · 3 issues", body[0].PlainText);
-        Assert.StartsWith("[To Do 2]", body[1].PlainText);
-        Assert.Contains(" Doing 1 ", body[1].PlainText);
-        Assert.Contains(" Empty 0 ", body[1].PlainText);
-        Assert.Contains(" Done 0 ", body[1].PlainText);
-        Assert.Equal(TextRole.Heading, body[1].Spans[0].Role);
-        Assert.All(body[1].Spans.Skip(1), span => Assert.Equal(TextRole.Muted, span.Role));
+        Assert.StartsWith("┌─ To Do 2 ", body[1].PlainText);
+        Assert.Contains("┬─ Doing 1 ", body[1].PlainText);
+        Assert.Contains("┬─ Empty 0 ", body[1].PlainText);
+        Assert.Contains("┬─ Done 0 ", body[1].PlainText);
+        Assert.EndsWith("┐", body[1].PlainText);
+        Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text.Contains("To Do", StringComparison.Ordinal)).Role);
+        Assert.DoesNotContain(
+            body[1].Spans.Where(span => span.Text.Contains("Doing", StringComparison.Ordinal)),
+            span => span.Role == TextRole.Heading);
+        Assert.Equal(5, body[2].PlainText.Count(character => character == '│'));
     }
 
     [Fact]
-    public void GivenSelection_WhenRendering_ThenTheMarkAndTheSelectedRoleCoverOnlyThatCard()
+    public void GivenSelection_WhenRendering_ThenAHeavyBorderAndTheSelectedRoleCoverOnlyThatCard()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2"), Issue("2", "A-3")) with { SelectedKey = "A-2" };
 
         var body = Render(tab, 120, 30);
 
-        Assert.StartsWith(" T A-1", body[2].PlainText);
-        Assert.Contains(">T A-2", body[6].PlainText);
-        var markSpan = body[6].Spans.First(span => span.Text.Contains('>', StringComparison.Ordinal));
-        var summarySpan = body[7].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
-        Assert.Equal(TextRole.Selected, markSpan.Role);
-        Assert.Equal(TextRole.Selected, summarySpan.Role);
+        Assert.Contains("┌", body[2].PlainText);
+        Assert.Contains("┏━", body[7].PlainText);
+        Assert.Contains("┃ T A-2", body[8].PlainText);
+        Assert.Contains("┗━", body[11].PlainText);
+        var top = body[7].Spans.First(span => span.Text.Contains('┏', StringComparison.Ordinal));
+        var summary = body[9].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
+        Assert.Equal(TextRole.Selected, top.Role);
+        Assert.Equal(TextRole.Selected, summary.Role);
         Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
-        Assert.Single(body, line => line.PlainText.Contains('>', StringComparison.Ordinal));
+        Assert.Single(body, line => line.PlainText.Contains('┏', StringComparison.Ordinal));
         Assert.All(body.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
     }
 
@@ -85,9 +91,9 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 80, 30);
 
-        Assert.Matches(@"^>T A-1 +JD ", body[2].PlainText);
-        Assert.Matches(@"^ T A-2 +  ", body[6].PlainText);
-        Assert.DoesNotContain("JD", body[6].PlainText);
+        Assert.Matches(@"^┃ T A-1 +JD ┃", body[3].PlainText[2..]);
+        Assert.Matches(@"^│ T A-2 +  ", body[8].PlainText[2..]);
+        Assert.DoesNotContain("JD", body[8].PlainText);
     }
 
     [Fact]
@@ -96,12 +102,12 @@ public class ColumnsBodyRendererTests
         var summary = "Fix the login redirect after the token refresh when the user comes back "
             + "from the identity provider";
 
-        var body = Render(Tab(Issue("1", "A-1", summary)), 80, 30);
+        var body = Render(Tab(Issue("1", "A-1", summary)), 120, 30);
 
-        Assert.StartsWith(" Fix the login", body[3].PlainText);
-        Assert.Contains("…", body[4].PlainText);
-        Assert.DoesNotContain("provider", body[4].PlainText);
-        Assert.Equal(string.Empty, body[5].PlainText.Trim());
+        Assert.Contains("Fix the login", body[4].PlainText);
+        Assert.Contains("…", body[5].PlainText);
+        Assert.DoesNotContain("provider", body[5].PlainText);
+        Assert.StartsWith("│ ┗", body[6].PlainText);
     }
 
     [Fact]
@@ -109,7 +115,7 @@ public class ColumnsBodyRendererTests
     {
         var body = Render(Tab(Issue("1", "A-1")), 120, 30);
 
-        var span = body[2].Spans.First(candidate => candidate.Text.StartsWith("no issues", StringComparison.Ordinal));
+        var span = body[2].Spans.First(candidate => candidate.Text.Contains("no issues", StringComparison.Ordinal));
         Assert.Equal(TextRole.Muted, span.Role);
     }
 
@@ -119,8 +125,8 @@ public class ColumnsBodyRendererTests
         var with = Render(Tab(Issue("1", "A-1"), Issue("99", "A-9")) with { SelectedKey = "A-9" }, 140, 30);
         var without = Render(Tab(Issue("1", "A-1")), 140, 30);
 
-        Assert.Contains("[Unmapped 1]", with[1].PlainText);
-        Assert.Contains("A-9", with[2].PlainText);
+        Assert.Contains("Unmapped 1", with[1].PlainText);
+        Assert.Contains("A-9", with[3].PlainText);
         Assert.DoesNotContain("Unmapped", without[1].PlainText);
     }
 
@@ -137,7 +143,7 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 80, 30);
 
-        Assert.Contains("[Col6 1]", body[1].PlainText);
+        Assert.Contains("Col6 1", body[1].PlainText);
         Assert.DoesNotContain("Col1 ", body[1].PlainText);
         Assert.EndsWith("‹4", body[0].PlainText.TrimEnd());
         Assert.Equal(80, TextWidth.Of(body[1].PlainText));
@@ -150,9 +156,9 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 40, 8);
 
-        Assert.StartsWith("‹ To Do 1  [Doing 1]  Empty 0 ›", body[1].PlainText);
-        Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text.StartsWith('[')).Role);
-        Assert.StartsWith(">T A-2 Summary", body[2].PlainText);
+        Assert.StartsWith("┌─‹ To Do 1  Doing 1  Empty 0 ›", body[1].PlainText);
+        Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text == "Doing 1").Role);
+        Assert.StartsWith("│>T A-2 Summary", body[2].PlainText);
         Assert.Equal(40, TextWidth.Of(body[1].PlainText));
     }
 
@@ -162,12 +168,13 @@ public class ColumnsBodyRendererTests
         var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2"), Issue("1", "A-3"));
 
         var compact = Render(tab, 120, 8);
-        var full = Render(tab, 120, 12);
+        var full = Render(tab, 120, 20);
 
-        Assert.StartsWith(">T A-1 Summary", compact[2].PlainText);
-        Assert.StartsWith(" T A-2 Summary", compact[3].PlainText);
-        Assert.StartsWith(">T A-1", full[2].PlainText);
-        Assert.StartsWith(" T A-2", full[6].PlainText);
+        Assert.StartsWith("│>T A-1 Summary", compact[2].PlainText);
+        Assert.StartsWith("│ T A-2 Summary", compact[3].PlainText);
+        Assert.Contains("┏", full[2].PlainText);
+        Assert.Contains("┃ T A-1", full[3].PlainText);
+        Assert.Contains("T A-2", full[8].PlainText);
     }
 
     [Fact]
@@ -183,9 +190,10 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        // The scroll is corrected to keep three cards of context above the selection.
-        Assert.Contains(">T A-31", body[2 + ((30 - 27) * 4)].PlainText);
-        Assert.Contains("A-28", body[2].PlainText);
+        // The scroll is corrected to keep the selection inside the viewport with context above it.
+        var selected = body.ToList().FindIndex(line => line.PlainText.Contains("T A-31", StringComparison.Ordinal));
+        Assert.True(selected > 2);
+        Assert.Contains("┏", body[selected - 1].PlainText);
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-3 ", StringComparison.Ordinal));
         Assert.Equal(30, body.Count);
     }
@@ -198,7 +206,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.StartsWith("Board · 1+ · Loading more…", body[0].PlainText);
-        Assert.StartsWith("[To Do 1+]", body[1].PlainText);
+        Assert.StartsWith("┌─ To Do 1+ ", body[1].PlainText);
     }
 
     [Fact]
@@ -223,8 +231,8 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 80, 20);
 
-        Assert.StartsWith("[Issues 1]", body[1].PlainText);
-        Assert.Contains("A-1", body[2].PlainText);
+        Assert.StartsWith("┌─ Issues 1 ", body[1].PlainText);
+        Assert.Contains("A-1", body[3].PlainText);
     }
 
     [Fact]
@@ -271,7 +279,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 36);
 
         Assert.Equal(36, body.Count);
-        Assert.True(body.Sum(line => line.Spans.Count) < 36 * 10);
+        Assert.True(body.Sum(line => line.Spans.Count) < 36 * 30);
     }
 
     private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height)

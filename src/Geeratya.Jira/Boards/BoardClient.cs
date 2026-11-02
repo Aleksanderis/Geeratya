@@ -51,9 +51,12 @@ public sealed class BoardClient(JiraTransport transport)
             : JiraResults.Failure<OffsetPage<BoardSummary>>(result.Error);
     }
 
-    public async Task<JiraResult<BoardSummary>> GetBoardAsync(long boardId, CancellationToken cancellationToken)
+    public async Task<JiraResult<BoardSummary>> GetBoardAsync(
+        long boardId,
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
     {
-        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}");
+        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}") with { Priority = priority };
         var result = await transport.SendAsync(request, BoardJsonContext.Default.Board, cancellationToken);
 
         return result.IsSuccess
@@ -63,9 +66,13 @@ public sealed class BoardClient(JiraTransport transport)
 
     public async Task<JiraResult<BoardConfiguration>> GetConfigurationAsync(
         long boardId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
     {
-        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}/{ConfigurationSuffix}");
+        var request = JiraRequest.Get($"{BoardPath}/{Number(boardId)}/{ConfigurationSuffix}") with
+        {
+            Priority = priority,
+        };
         var result = await transport.SendAsync(request, BoardJsonContext.Default.Configuration, cancellationToken);
 
         return result.IsSuccess

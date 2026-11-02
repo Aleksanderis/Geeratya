@@ -70,7 +70,7 @@ My open issues · 10 of about 340
  NORMAL  j/k move  Enter open  <space>r refresh  ? help
 ```
 
-- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
+- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. Only the list draws them so far (tab bar, banner, status bar and overlays still use `·`/`…`/box lines). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
 - **Header.** Column titles in the `Muted` role, then the view title and the count: `N issues` when every page is loaded, `N of about M` when the approximate count is known (`/search/approximate-count`, JQL sources only; "about" is never dropped), `N+` while the total is unknown. A board or backlog list knows its total (offset paged) and shows `N of M`.
 - **Selection and scroll.** `j`/`k`/`Up`/`Down` move by one row, `Ctrl-d`/`Ctrl-u`/`PageDown`/`PageUp` by half the viewport (at least one row), `g g`/`G`/`Home`/`End` jump. The selection keeps three rows of context (`scrolloff=3`, fewer in a very short viewport) and the scroll never leaves blank rows above the last. Selection survives a refresh or a page append by issue key; when the issue is gone the nearest row is selected. The motion is `Core/Lists/ListMotion` (pure and clamped; it takes a repeat count, but the keymap has no count prefix yet); the keys send `SelectionMoved`. The viewport height the reducer works with excludes the list's two header rows (title with count, column titles). Only the rows in the viewport are rendered, never the loaded 10 000.
 - **Loading more.** Pages are fetched when the selection comes within one screen of the last loaded row. The note `Loading more…` (role `Loading`) shows in a row under the last row while the page is in flight; when the rows fill the screen it shows at the end of the header line instead. If the page fails the note becomes `Could not load more: <reason>` and the loaded rows stay; moving does not retry (a held key never hammers a failing Jira), an explicit retry does: `<space>r` retries the failed page (the loaded rows and the position stay). `Enter` is the open key, so it does not retry. The count is `N+` while more pages exist and `N issues` once all are loaded (`N of about M` arrives with the approximate count).
@@ -117,65 +117,55 @@ My open issues · 10+
 One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). The Backlog column is shown like any other column.
 
 ```text
- [1 Board: GCM board]  2 Backlog: GCM board  3 JQL: assignee = currentUser() AND resolution = Unresolved  4 Filter: Mine
-GCM board · 11 issues
- To Do 3                [In Progress 3]          Backlog 2               Done 2                  Unmapped 1
- B GCM-14               >T GCM-12                T GCM-21                s GCM-18                T GCM-30
- Crash when the board    Fix login redirect      Upgrade the build       Write the CSV exporter  Status removed from
- has no columns          after token refresh     image                                           the workflow
+ [1 Board: GTM board]
 
- S GCM-15                E GCM-17                T GCM-26                T GCM-23
- As a user I can filter  Reporting overhaul      Remove the legacy       Document the release
- by label 日本語ラベル                           export flag             checklist
-
- B GCM-22                S GCM-25
- Tooltip overlaps the    As an admin I can see
- header on small…        who changed a setting
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- NORMAL  h/l column  j/k card  Enter open  <space>l list  ? help
+GTM board · 16 issues
+┌─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done 3 ─────────┐
+│ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ ┃ E GTM-9       ┃ │ │ E GTM-10      │ │ │ T GTM-21      │ │ │ S GTM-13     │ │
+│ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
+│ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
+│ ┗━━━━━━━━━━━━━━━┛ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│ ┌───────────────┐ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │ S GTM-12      │ │ │ S GTM-11      │ │ │ S GTM-22      │ │ │ T GTM-16     │ │
+│ │ Welcome       │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Write the    │ │
+│ │ screen        │ │ │ email         │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│ ┌───────────────┐ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │ T GTM-14      │ │ │ T GTM-15      │ │ │ B GTM-23      │ │ │ s GTM-19     │ │
+│ │ Review        │ │ │ Pick a chart  │ │ │ Backlog:      │ │ │ Build the    │ │
+│ │ onboarding c… │ │ │ library       │ │ │ tooltip clip… │ │ │ form         │ │
+│ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│                   │                   │                   │                  │
+│                   │                   │                   │                  │
+│                   │                   │                   │                  │
+└───────────────────┴───────────────────┴───────────────────┴──────────────────┘
+ NORMAL                                                ? help  : command  q quit
 ```
 
-- **Header.** `Name count`; the selected column is in brackets (and bold). The count is the number of loaded cards; while pages are still loading it reads `Name n+`. The view title line shows `N issues` once all pages are loaded.
-- **Cards.** Four rows: type marker and key with the assignee's initials (first letters of the first and last name) at the right edge, then the summary wrapped to two lines (ellipsis on the second), then one blank row. When the card area is shorter than 10 rows (a body under 12 rows) cards collapse to one line `marker key summary` (second sketch below). The selected card carries `>` and the `Selected` role on its lines; only the selected column shows a selected card. Cards are drawn only for the rows in the viewport, never for all loaded issues (`Core/Boards/BoardCards` holds the measures).
+The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third); the cursor is on the first card.
+
+- **Frames.** Every column is a framed box: the board is drawn as one grid with box-drawing lines (`┌ ┬ ┐ │ └ ┴ ┘ ─`, `Muted`), so the columns read as columns even when empty. The name and count sit in the top border (` Name n `); the last row of the body closes the frames. The selected column's title is in `Heading` (bold), the others in `Muted`. The count is the number of loaded cards; while pages are still loading it reads `Name n+`. The view title line shows `N issues` once all pages are loaded. The frame uses the same box lines as the tab bar and overlays (not part of the ASCII glyph set).
+- **Cards.** Each card is a bordered box with a one-cell margin inside its column, five rows: top border, type marker and key with the assignee's initials (first letters of the first and last name) at the right edge, the summary wrapped to two lines (ellipsis on the second), bottom border. Cards touch (no blank row). The selected card has a heavy border (`┏ ━ ┓ ┃ ┗ ┛`) and the `Selected` role on all its lines, so it stands out without colour; only the selected column shows a selected card. When the card area is shorter than 10 rows (a body under 12 rows) cards collapse to one line `marker key summary`, without a box, the selected one prefixed with `>` (second sketch below). A column too narrow for a box (under 8 cells inside the margin) shows no card text. Cards are drawn only for the rows in the viewport, never for all loaded issues (`Core/Boards/BoardCards` holds the measures); rows under the last whole card stay empty rather than showing half a card.
 - **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column; the index aimed at is the one last chosen with `j`/`k`, so passing a short or empty column does not lose the row (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own and keeps three cards of context (`scrolloff`). `Enter` opens the selected card in the issue detail (#84) and does nothing on an empty column. After a refresh the selection stays on its issue key inside its column. The motion is `Core/Boards/BoardMotion` (pure).
 - **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
-- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (shown in the sketch; the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
+- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
 - **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. No swimlanes in M1.
 - **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or 500 issues are loaded; past the cap the banner says `Showing the first 500 of N issues. Narrow the board filter or use :jql.`
 
-At 40x10 (body of six rows, one-line cards, one column at a time):
+At 40x10 (body of six rows, one-line cards, one column at a time, the neighbours named in the frame):
 
 ```text
- [1 Board: GCM board] 2 Backlog 3 JQL… ›
-GCM board · 11 issues                 2›
-[In Progress 3]  Backlog 2 ›
->T GCM-12 Fix login redirect after tok…
- E GCM-17 Reporting overhaul
- S GCM-25 As an admin I can see who ch…
+ [1 Board: GCM board]
 
-
-
- NORMAL  h/l Enter <space>l ?
+GCM board · 24 issues                 3›
+┌─Backlog 12  To Do 5 ›────────────────┐
+│>T GCM-1 Survey task one              │
+│ s GCM-6 Survey4 subtask              │
+│ T GCM-4 Survey task four             │
+│ S GCM-3 Survey story three with unic…│
+└──────────────────────────────────────┘
+ NORMAL        ? help  : command  q quit
 ```
 
 ## Issue detail

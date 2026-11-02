@@ -264,6 +264,90 @@ public sealed class BoardClientTests
         Assert.Contains("quoted string has not been completed", result.Error.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(JiraPriority.User, 0)]
+    [InlineData(JiraPriority.Background, 1)]
+    public async Task GivenFewRequestsLeft_WhenGettingBoardAndConfiguration_ThenOnlyBackgroundLaneWaits(
+        JiraPriority priority,
+        int expectedWaits)
+    {
+        using var fixture = Throttled();
+        var client = new BoardClient(fixture.Transport);
+
+        // The first call (user lane) only primes the rate-limit state from the reply headers.
+        await client.GetBoardAsync(3, CancellationToken.None);
+
+        await client.GetBoardAsync(3, CancellationToken.None, priority);
+
+        Assert.Equal(expectedWaits, fixture.Waits.Count);
+
+        await client.GetConfigurationAsync(3, CancellationToken.None, priority);
+
+        Assert.Equal(expectedWaits * 2, fixture.Waits.Count);
+    }
+
+    [Fact]
+    public async Task GivenCursorPastTheEnd_WhenLoadingBacklog_ThenAnEmptyLastPageHasNoNext()
+    {
+        const string json = """{"startAt": 40, "maxResults": 20, "total": 40, "issues": []}""";
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/agile/1.0/board/4/backlog", FakeResponse.Ok(json));
+
+        var result = await new BoardClient(fixture.Transport)
+            .GetBacklogAsync(4, new BoardIssueQuery(20), PageCursor.Offset(40), CancellationToken.None);
+
+        Assert.True(result.Value.IsLast);
+        Assert.Null(result.Value.Next);
+        Assert.Equal("40", QueryOf(Assert.Single(fixture.Handler.Requests))["startAt"]);
+    }
+
+    [Fact]
+    public async Task GivenShortPageBelowTotal_WhenLoadingIssues_ThenNextAdvancesByReturnedCount()
+    {
+        using var fixture = Serving(GcmIssuesPath, "boards/rows-gcm-issues-page1.json");
+
+        var result = await Issues(fixture, 4, null, 10);
+
+        var page = result.Value;
+        Assert.False(page.IsLast);
+        Assert.True(page.Next!.TryGetOffset(out var next));
+        Assert.Equal(page.Items.Count, next);
+    }
+
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("1.5")]
+    [InlineData("")]
+    public async Task GivenMalformedOffsetCursor_WhenLoadingBacklog_ThenItFailsWithoutCallingJira(string token)
+    {
+        using var fixture = new TransportFixture();
+
+        var result = await new BoardClient(fixture.Transport)
+            .GetBacklogAsync(4, new BoardIssueQuery(), new PageCursor(token), CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.BadRequest, result.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    private static TransportFixture Throttled()
+    {
+        var fixture = new TransportFixture(options => options with
+        {
+            Clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default)),
+        });
+        var headers = new Dictionary<string, string> { ["x-ratelimit-remaining"] = "4" };
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            "/rest/agile/1.0/board/3",
+            FakeResponse.Ok(FixtureFiles.Read("boards/board-gtm.json")) with { Headers = headers });
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            "/rest/agile/1.0/board/3/configuration",
+            FakeResponse.Ok(FixtureFiles.Read("boards/board-gtm-config.json")) with { Headers = headers });
+
+        return fixture;
+    }
+
     private static Task<JiraResult<IssuePage>> Issues(
         TransportFixture fixture,
         long boardId,

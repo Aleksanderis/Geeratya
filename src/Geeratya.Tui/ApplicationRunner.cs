@@ -13,24 +13,31 @@ public sealed class ApplicationRunner
     private const string PrintFrameFlag = "--print-frame";
     private const string SizeFlag = "--size";
     private const string ModeFlag = "--mode";
+    private const string HelpScrollFlag = "--help-scroll";
+
+    private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
+        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>] (scroll needs --mode help)";
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
     private readonly bool _isInteractive;
     private readonly Func<ProfileServices> _createProfiles;
     private readonly ColorSupport _colors;
+    private readonly GlyphSet _glyphs;
 
     public ApplicationRunner(
         TextWriter output,
         bool isInteractive,
         ColorSupport colors = ColorSupport.TrueColor,
         TextWriter? error = null,
-        Func<ProfileServices>? createProfiles = null)
+        Func<ProfileServices>? createProfiles = null,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         _output = output;
         _error = error ?? Console.Error;
         _isInteractive = isInteractive;
         _colors = colors;
+        _glyphs = glyphs;
         _createProfiles = createProfiles ?? ProfileServices.CreateForProcess;
     }
 
@@ -82,7 +89,7 @@ public sealed class ApplicationRunner
             return 1;
         }
 
-        using var host = new ShellHost(keymap, _colors, profiles);
+        using var host = new ShellHost(keymap, _colors, profiles, _glyphs);
 
         return host.Run();
     }
@@ -94,14 +101,23 @@ public sealed class ApplicationRunner
 
         if (size is null || mode is null)
         {
-            _output.WriteLine(
-                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm|insert]");
+            _output.WriteLine(Usage);
 
             return 2;
         }
 
-        var state = FrameOptions.SampleState(mode.Value);
-        var lines = FrameBuilder.Build(state, size.Width, size.Height, KeymapDocument.RenderHelpLines(keymap), keymap);
+        var scroll = FrameOptions.ParseScroll(ValueOf(arguments, HelpScrollFlag));
+
+        if (scroll is null)
+        {
+            _output.WriteLine(Usage);
+
+            return 2;
+        }
+
+        var state = FrameOptions.SampleState(mode.Value) with { HelpScroll = scroll.Value };
+        var helpLines = KeymapDocument.RenderHelpLines(keymap);
+        var lines = FrameBuilder.Build(state, size.Width, size.Height, helpLines, keymap, null, _glyphs);
 
         foreach (var line in lines)
         {

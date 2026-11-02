@@ -6,8 +6,11 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class BoardCards
 {
-    /// <summary>Rows of a card in full form: key line, two summary lines and a blank separator.</summary>
-    public const int FullRows = 4;
+    /// <summary>Rows of a card in full form: top border, key line, two summary lines and bottom border.</summary>
+    public const int FullRows = 5;
+
+    /// <summary>Rows under the cards that close the column frames.</summary>
+    public const int FrameRows = 1;
 
     /// <summary>The body height (header rows included) below which cards collapse to one line.</summary>
     public const int CompactBelowBodyRows = 12;
@@ -25,15 +28,17 @@ public static class BoardCards
     }
 
     /// <summary>
-    /// How many cards a column shows at once; the last full card needs no separator row. Zero while there is no room.
+    /// How many cards a column shows at once. Zero while there is no room.
     /// </summary>
     public static int Visible(int visibleRows, int headerRows)
     {
-        if (visibleRows <= 0)
+        var rows = visibleRows - FrameRows;
+
+        if (rows <= 0)
         {
             return 0;
         }
 
-        return IsCompact(visibleRows, headerRows) ? visibleRows : Math.Max(1, (visibleRows + 1) / FullRows);
+        return IsCompact(visibleRows, headerRows) ? rows : Math.Max(1, rows / FullRows);
     }
 }

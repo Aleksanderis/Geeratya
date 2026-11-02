@@ -57,7 +57,7 @@ public class ColumnsSnapshotTests
             .ToArray();
         Assert.All(positions, position => Assert.True(position >= 0));
         Assert.Equal(positions.Order(), positions);
-        Assert.Single(lines.Skip(4), line => line.Contains('>', StringComparison.Ordinal));
+        Assert.Single(lines.Skip(4), line => line.Contains('┏', StringComparison.Ordinal));
     }
 
     [Theory]

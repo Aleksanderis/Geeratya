@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -31,9 +32,10 @@ public static class FrameBuilder
         int height,
         IReadOnlyList<string> helpLines,
         KeymapTable keymap,
-        DateTimeOffset? now = null)
+        DateTimeOffset? now = null,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
-        return BuildStyled(state, width, height, helpLines, keymap, null, now)?.PlainLines() ?? [];
+        return BuildStyled(state, width, height, helpLines, keymap, null, now, glyphs)?.PlainLines() ?? [];
     }
 
     /// <summary>
@@ -49,7 +51,8 @@ public static class FrameBuilder
         IReadOnlyList<string> helpLines,
         KeymapTable keymap,
         IReadOnlyList<IBodyRenderer>? screens = null,
-        DateTimeOffset? now = null)
+        DateTimeOffset? now = null,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         if (width <= 0 || height <= 0)
         {
@@ -59,7 +62,7 @@ public static class FrameBuilder
         var header = Math.Min(HeaderRows, height - 1);
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var bodyHeight = height - 1 - header;
-        var context = new BodyContext(helpLines, keymap);
+        var context = new BodyContext(helpLines, keymap, glyphs);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
         var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);

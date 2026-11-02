@@ -1,10 +1,10 @@
  [1 Board: GTM board]                   
                                         
 GTM board · 16 issues                 3›
-[To Do 5]  In Progress 4 ›              
->E GTM-9 Seed: Onboarding flow          
- S GTM-12 Welcome screen                
- T GTM-14 Review onboarding copy        
- B GTM-18 Wrong date format in report   
- s GTM-20 Validate the email            
+┌─To Do 5  In Progress 4 ›─────────────┐
+│>E GTM-9 Seed: Onboarding flow        │
+│ S GTM-12 Welcome screen              │
+│ T GTM-14 Review onboarding copy      │
+│ B GTM-18 Wrong date format in report │
+└──────────────────────────────────────┘
  NORMAL        ? help  : command  q quit

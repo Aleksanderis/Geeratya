@@ -44,6 +44,21 @@ public class ConsoleCapabilitiesTests
         Assert.False(Detect(inputRedirected, outputRedirected, "TERM=xterm").IsInteractive);
     }
 
+    [Theory]
+    [InlineData("TERM=xterm,LANG=en_US.UTF-8", GlyphSet.Unicode)]
+    [InlineData("TERM=xterm,LANG=en_US.utf8", GlyphSet.Unicode)]
+    [InlineData("TERM=xterm,LANG=C", GlyphSet.Ascii)]
+    [InlineData("TERM=xterm,LANG=en_US.ISO-8859-1", GlyphSet.Ascii)]
+    [InlineData("TERM=xterm", GlyphSet.Unicode)]
+    [InlineData("TERM=xterm,LC_ALL=C,LANG=en_US.UTF-8", GlyphSet.Ascii)]
+    [InlineData("TERM=xterm,LC_ALL=en_US.UTF-8,LANG=C", GlyphSet.Unicode)]
+    [InlineData("TERM=xterm,LC_CTYPE=C.UTF-8,LANG=C", GlyphSet.Unicode)]
+    [InlineData("TERM=dumb,LANG=en_US.UTF-8", GlyphSet.Ascii)]
+    public void GivenLocaleAndTerm_WhenDetecting_ThenChoosesTheGlyphSet(string variables, GlyphSet expected)
+    {
+        Assert.Equal(expected, Detect(false, false, variables.Split(',')).Glyphs);
+    }
+
     private static ConsoleCapabilities Detect(bool inputRedirected, bool outputRedirected, params string[] variables)
     {
         var dictionary = variables

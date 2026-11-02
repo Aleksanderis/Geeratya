@@ -30,6 +30,7 @@ public sealed class ShellHost : IDisposable
 
     private readonly KeymapTable _keymap;
     private readonly ColorSupport _colors;
+    private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
@@ -45,10 +46,15 @@ public sealed class ShellHost : IDisposable
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
 
-    public ShellHost(KeymapTable keymap, ColorSupport colors, ProfileServices profiles)
+    public ShellHost(
+        KeymapTable keymap,
+        ColorSupport colors,
+        ProfileServices profiles,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         _keymap = keymap;
         _colors = colors;
+        _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
         _browserEffects = new BrowserEffectHandler(
@@ -94,7 +100,7 @@ public sealed class ShellHost : IDisposable
         application.Keyboard.KeyDown += OnKeyDown;
         application.Paste += OnPaste;
 
-        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
+        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
 
         _screen = screen;
         screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
