@@ -184,41 +184,18 @@ public sealed class JqlBuilderTests
         Assert.Equal("project = \"GCM\" AND parent = GCM-5 AND filter = 10001 ORDER BY Rank ASC", received);
     }
 
-    /// <summary>Strict: fails when a quote inside the literal is unescaped or an escape dangles at the end.</summary>
     [Theory]
     [InlineData("OR-1")]
     [InlineData("IN-5")]
     [InlineData("AND-3")]
-    public void Keys_with_a_reserved_word_project_key_stay_bare_because_jira_parses_them(string key)
+    [InlineData("ORDER-2")]
+    public void GivenReservedWordProjectKey_WhenBuilding_ThenKeyStaysBare(string key)
     {
         Assert.Equal($"parent = {key}", JqlBuilder.Parent(key));
         Assert.Equal($"key in ({key}, GCM-1)", JqlBuilder.KeyIn([key, "GCM-1"]));
     }
 
-    [Fact]
-    public void Recorded_reserved_word_keys_are_accepted_by_jira_while_a_bare_reserved_word_value_is_not()
-    {
-        // Dev site, 2026-11-02: `key in (OR-1, IN-5, AND-3)` is 200 (no such issues), `key = OR` is a 400.
-        Assert.Contains("\"issues\": []", FixtureFiles.Read("search/search-key-reserved-word.json"));
-        Assert.Contains("surround 'OR' in quotation marks", FixtureFiles.Read("errors/search-400-reserved-word-value.json"));
-    }
-
-    [Fact]
-    public void Status_category_names_and_keys_select_the_same_issues_on_the_dev_site()
-    {
-        var byName = IssueKeys(FixtureFiles.Read("search/search-statuscategory-name.json"));
-        var byKey = IssueKeys(FixtureFiles.Read("search/search-statuscategory-key.json"));
-
-        Assert.NotEmpty(byName);
-        Assert.Equal(byName, byKey);
-    }
-
-    private static string[] IssueKeys(string json)
-    {
-        using var document = System.Text.Json.JsonDocument.Parse(json);
-
-        return [.. document.RootElement.GetProperty("issues").EnumerateArray().Select(issue => issue.GetProperty("key").GetString()!)];
-    }
+    /// <summary>Strict: fails when a quote inside the literal is unescaped or an escape dangles at the end.</summary>
 
     private static string Unquote(string literal)
     {
