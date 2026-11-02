@@ -74,6 +74,11 @@ public static class FrameBuilder
             body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
         }
 
+        if (state.Jump is not null)
+        {
+            body = Fit(JumpOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+        }
+
         if (state.Editor is not null)
         {
             body = Fit(CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);

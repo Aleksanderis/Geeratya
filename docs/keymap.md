@@ -63,6 +63,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space k b` | Rank the issue to the bottom of the list or column |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space g` | Jump to an issue by key |
 
 ## Help mode
 
@@ -102,10 +103,10 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Backspace` | Delete the last character |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Cancel or close |
-| `Up` | Previous source in the picker |
-| `Ctrl-p` | Previous source in the picker |
-| `Down` | Next source in the picker |
-| `Ctrl-n` | Next source in the picker |
+| `Up` | Previous row in the picker |
+| `Ctrl-p` | Previous row in the picker |
+| `Down` | Next row in the picker |
+| `Ctrl-n` | Next row in the picker |
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
