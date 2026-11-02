@@ -14,6 +14,8 @@ Strategy and layers. The procedure for writing, recording and running tests is t
 
 xUnit throughout, one test project per source project, same folder layout as the code. `[Trait("Os", "Independent")]` marks pure classes the Windows leg runs (`testing` skill). `tools/FakeJira` has its own test project, `tests/Geeratya.FakeJira.Tests`, which starts the server on a free loopback port and talks to it with a real `HttpClient`, so those tests are not marked OS independent.
 
+To regenerate the `help-scroll*.txt` and which-key popup (`popup-*.txt`) snapshots after adding key rows or palette commands, run `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests`. Those tests then write the current output into `tests/Geeratya.Tui.Tests/Snapshots/` instead of asserting; review the diff and commit it. Unset, they assert as usual. Other snapshots are not covered by the switch.
+
 ## Fixtures
 
 Real responses recorded from the dev site, scrubbed and stored under `tests/Geeratya.Jira.Tests/Fixtures/<area>/<name>.json`. What each one shows, and how Jira behaves, is the survey in `docs/jira-layer.md`. Recording (`scripts/record-fixture.sh`) refuses hosts outside `GEERATYA_LIVE_HOSTS`; scrubbing (`scripts/scrub-fixture.py`) rewrites host, account ids, emails and display names. Never hand-write a response shape you have not recorded. Generated datasets (below) are the one exception, and only for size: their shape is the recorded search shape reduced to the fields the app asks for.
