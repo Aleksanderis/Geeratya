@@ -36,6 +36,10 @@ public sealed class FakeJiraServerTests : IDisposable
     [InlineData("/rest/api/3/issue/GCM-2/comment", "\"total\": 0")]
     [InlineData("/rest/api/3/issue/GCM-6/remotelink", "Design notes")]
     [InlineData("/rest/api/3/issue/GTM-5/remotelink", "Remote page")]
+    [InlineData("/rest/api/3/label", "geeratya-seed")]
+    [InlineData("/rest/api/3/user/assignable/search?issueKey=GCM-2&query=a", "accountId")]
+    [InlineData("/rest/api/3/user/viewissue/search?issueKey=GCM-2&query=a", "accountId")]
+    [InlineData("/rest/api/3/issue/picker?query=a", "sections")]
     public async Task GivenBoardAndFilterRoutes_WhenRequested_ThenRecordedFixtureIsServed(string path, string expected)
     {
         var baseUrl = StartServer(0, 0, 0);

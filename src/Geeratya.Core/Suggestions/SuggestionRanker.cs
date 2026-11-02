@@ -38,7 +38,7 @@ public static class SuggestionRanker
         var ranked = pool
             .DistinctBy(candidate => candidate.Id, StringComparer.Ordinal)
             .Where(candidate => !excluded.Contains(candidate.Id))
-            .Select((candidate, index) => new Scored(candidate, Score(candidate, text), index))
+            .Select((candidate, index) => new Scored(candidate, ScoreOf(candidate, text), index))
             .Where(scored => scored.Score >= 0)
             .OrderBy(scored => scored.Score)
             .ThenBy(scored => scored.Index)
@@ -56,13 +56,13 @@ public static class SuggestionRanker
         return ranked;
     }
 
-    private static int Score(Suggestion candidate, string query)
+    private static int ScoreOf(Suggestion candidate, string query)
     {
-        var best = Score(candidate.Label, query);
+        var best = ScoreOf(candidate.Label, query);
 
         if (candidate.Detail is { Length: > 0 } detail)
         {
-            var other = Score(detail, query);
+            var other = ScoreOf(detail, query);
 
             best = best < 0 || (other >= 0 && other < best) ? other : best;
         }
@@ -70,7 +70,7 @@ public static class SuggestionRanker
         return best;
     }
 
-    private static int Score(string text, string query)
+    private static int ScoreOf(string text, string query)
     {
         if (text.StartsWith(query, StringComparison.OrdinalIgnoreCase))
         {
