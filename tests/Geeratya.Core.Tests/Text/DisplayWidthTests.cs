@@ -27,6 +27,16 @@ public class DisplayWidthTests
     }
 
     [Theory]
+    [InlineData("a b~", 4)]
+    [InlineData("\t", 0)]
+    [InlineData("a\u0007b", 2)]
+    [InlineData("é ", 2)]
+    public void GivenAsciiOrControlText_WhenMeasuring_ThenOnlyPrintableCharactersCount(string text, int expected)
+    {
+        Assert.Equal(expected, DisplayWidth.Of(text));
+    }
+
+    [Theory]
     [InlineData(0x1100, 0x115F)]
     [InlineData(0x3041, 0x3096)]
     [InlineData(0x4E00, 0x9FFF)]

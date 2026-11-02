@@ -2,4 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Geeratya.Core\Geeratya.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Geeratya.Jira.Tests\Fixtures\adf\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures\adf" />
+    <None Include="Golden\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

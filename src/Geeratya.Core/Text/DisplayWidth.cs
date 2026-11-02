@@ -16,6 +16,11 @@ public static class DisplayWidth
     /// <summary>Width of a string, measured per grapheme cluster.</summary>
     public static int Of(string text)
     {
+        if (text.AsSpan().IndexOfAnyExceptInRange(' ', '~') < 0)
+        {
+            return text.Length;
+        }
+
         var width = 0;
         var elements = StringInfo.GetTextElementEnumerator(text);
 
