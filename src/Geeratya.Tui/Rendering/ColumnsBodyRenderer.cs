@@ -414,9 +414,10 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             };
             var fill = heavy ? '━' : HorizontalChar;
 
-            spans.Add(new StyledSpan(
-                $"{left}{new string(fill, width - 2)}{right}",
-                heavy ? TextRole.Selected : TextRole.Muted));
+            var label = first && within == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
+            var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
+
+            spans.Add(new StyledSpan($"{left}{bar}{right}", heavy ? TextRole.Selected : TextRole.Muted));
 
             return;
         }

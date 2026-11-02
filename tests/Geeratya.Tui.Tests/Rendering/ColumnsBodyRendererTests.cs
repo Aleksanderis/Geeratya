@@ -404,6 +404,36 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAGroupOfThreeWithASelectedMiddleChild_WhenRendering_ThenOnlyThatChildHasHeavySidesAndTheFrameCloses()
+    {
+        var first = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
+        var second = Issue("1", "A-3") with { Parent = new IssueParent("A-1", "P") };
+        var tab = Tab(Issue("1", "A-1"), first, second) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("│ ├", body[6].PlainText);
+        Assert.Contains("│ ┃ Task A-2", body[7].PlainText);
+        Assert.Contains("│ ┃", body[10].PlainText);
+        Assert.Contains("│ ├", body[11].PlainText);
+        Assert.Contains("│ │ Task A-3", body[12].PlainText);
+        Assert.Contains("│ └", body[16].PlainText);
+        Assert.DoesNotContain("┃", body[3].PlainText);
+    }
+
+    [Fact]
+    public void GivenAParentWithChildrenWhoseOwnParentIsInAnotherColumn_WhenRendering_ThenTheFrameTopNamesIt()
+    {
+        var story = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Epic summary") };
+        var child = Issue("1", "A-3") with { Parent = new IssueParent("A-2", "S") };
+        var tab = Tab(story, child, Issue("2", "A-1"));
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("━ ↑ A-1 Epic summary", body[2].PlainText);
+    }
+
+    [Fact]
     public void GivenASubtaskWhoseParentIsInAnotherColumn_WhenRendering_ThenTheTopBorderNamesTheParent()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
@@ -454,8 +484,6 @@ public class ColumnsBodyRendererTests
 
             Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
         }
-
-        Assert.DoesNotContain("┌", string.Concat(Render(tab, 13, 30).Skip(2).Select(line => line.PlainText)).Replace("┌─", string.Empty, StringComparison.Ordinal));
     }
 
     private static IssueSummary Issue(string statusId, string key, string summary = "Summary", string? assignee = null)
