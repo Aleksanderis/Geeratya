@@ -85,7 +85,7 @@ internal static class BoardMapper
             _ => string.Empty,
         };
 
-    private static bool IsLast(int startAt, int count, int? total, bool? isLast)
+    internal static bool IsLast(int startAt, int count, int? total, bool? isLast)
     {
         if (count == 0 || isLast == true)
         {
