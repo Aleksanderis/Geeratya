@@ -1,0 +1,50 @@
+[
+  {
+    "accountId": "fake-account-1",
+    "accountType": "app",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "emailAddress": "user1@example.com",
+    "guest": false,
+    "locale": "en_US",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+    "timeZone": "UTC"
+  },
+  {
+    "accountId": "fake-account-2",
+    "accountType": "atlassian",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 2",
+    "emailAddress": "user2@example.com",
+    "guest": false,
+    "locale": "en_US",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-2",
+    "timeZone": "UTC"
+  },
+  {
+    "accountId": "fake-account-3",
+    "accountType": "app",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 3",
+    "emailAddress": "user1@example.com",
+    "guest": false,
+    "locale": "en_US",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-3",
+    "timeZone": "UTC"
+  },
+  {
+    "accountId": "fake-account-4",
+    "accountType": "app",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 4",
+    "emailAddress": "user1@example.com",
+    "guest": false,
+    "locale": "en_US",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-4",
+    "timeZone": "UTC"
+  }
+]
