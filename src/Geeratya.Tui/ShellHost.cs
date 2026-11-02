@@ -217,6 +217,10 @@ public sealed class ShellHost : IDisposable
             {
                 ActiveCache()?.Put(write.Key, write.View);
             }
+            else if (effect is RemoveIssueCacheEffect removeIssue)
+            {
+                ActiveCache()?.RemoveIssue(removeIssue.Key);
+            }
             else if (effect is WriteIssueCacheEffect writeIssue)
             {
                 ActiveCache()?.PutIssue(writeIssue.Issue);
