@@ -116,18 +116,19 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 
 **Failures.** A failed load keeps the existing rows, sets `Load = Failed(kind, message)` and marks a tab with rows stale. The message comes from one pure table in Core keyed by `JiraErrorKind` (`LoadErrorText`, #77), so the reducer builds it and it is shared by refresh and the banners (#90); which kinds mean what is in jira-layer.md, "Errors to UI states".
 
-**Network states** (drawn by #90 with the existing `PaletteRole`s; never colour alone, every state also has a text marker). One status per tab, highest first, from the pure `TabStatus.Of(tab, session.Link, now)`:
+**Network states** (#90, drawn with the existing `PaletteRole`s; never colour alone, every state also has a text marker). One status per tab, highest first, from the pure `TabStatus.Of(tab, session.Link, now)`:
 
 | Status | When |
 |---|---|
+| Error (rejected token) | `Link` is `Rejected`, or the tab failed with `Unauthorized`: the whole site, every tab |
 | Rate limited | `Link` is `RateLimited(until)` with `until > now`; shows the wait end |
 | Offline | `Link` is `Offline`, or the tab failed with `Network`, `Timeout` or `HostRefused`; last data kept |
-| Error | `Failed` with another kind (`Unexpected`, `ServerError`, ...): banner with the message and a hint (401 token rejected, see `:profile`; 403/404 not found or no access; 400 Jira's own text) |
-| Loading | `Load` is `Loading` |
-| Stale | `IsStale`, with the age from `LoadedAt` |
+| Error | `Failed` with another kind (`Unexpected`, `ServerError`, ...): banner with the message and a hint (403/404 not found or no access; 400 Jira's own text) |
+| Stale | `IsStale`, with the age from `LoadedAt` (also while its refresh runs: the banner says `Refreshing…`) |
+| Loading | `Load` is `Loading` on the user lane (a background refresh is `Fresh`) |
 | Fresh | none of the above |
 
-The roles exist from the start (`docs/ux.md`, "Colour tiers"); #76 adds only what a screen body needs.
+`TabStatus.Of` and `NetworkBanner` (Core, `Views/`) are pure; the frame builder takes the `now` of the host, so the banner (blank row under the tab bar, `FrameBuilder.HeaderRows`) and the status word count down without any state change. `TabStatus.ShowsTime` tells the host to redraw on a tick. The rate-limit wait reaches the reducer as `LinkChanged(SiteLink.FromRateLimit(until))`, posted from the transport's event through `ShellHost.Post` (never a UI call from that thread).
 
 **Cold start.** The first frame comes from a state with no tabs. Opening a view issues the load; the handler answers from the cache first (memory, then disk, off the UI thread) with `ViewCacheLoaded`, then asks Jira ("Cache and refresh").
 

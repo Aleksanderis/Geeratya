@@ -146,7 +146,9 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return tab.Load switch
         {
             Loading { Reason: LoadReason.NextPage } => StyledLine.Of(LoadingMoreText, TextRole.Loading),
-            Failed failed => StyledLine.Of($"{CouldNotLoadMore}{failed.Message}", TextRole.Error),
+            // Other failures keep the rows and are told by the banner above the list.
+            Failed { Reason: LoadReason.NextPage } failed =>
+                StyledLine.Of($"{CouldNotLoadMore}{failed.Message}", TextRole.Error),
             _ when tab.Truncated => StyledLine.Of(TruncatedText, TextRole.Muted),
             _ => null,
         };

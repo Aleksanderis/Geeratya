@@ -7,7 +7,7 @@ Every screen shares the shell frame:
 | Row | Content |
 |---|---|
 | 0 | Tab bar (one line) |
-| 1 (optional) | Network banner, present only while a state needs one |
+| 1 | Network banner of the active tab: blank while no state needs one (the row is always reserved, so the body never changes height when a state starts or ends) |
 | next | View header: title and count |
 | body | The view's layout |
 | last | Status bar (mode badge, text, right-aligned hints), see `ux.md` |
@@ -270,30 +270,32 @@ Implemented (#83): the check line is shown on the start screen under the profile
 States, as a one-line banner under the tab bar (highest priority wins: error, offline, rate limited, stale):
 
 ```text
- OFFLINE  Cannot reach example.atlassian.net. Showing data from 12:03. Retrying in 8 s, <space>r retries now.
- RATE LIMITED  Jira asked us to wait. Retrying in 25 s.
- STALE  Showing data from 11:40 (23 min old). Refreshing…
- ERROR  Jira rejected the token for me@example.com (401). Replace it: :profile remove NAME, then :profile add.
+ OFFLINE  Cannot reach example.atlassian.net. Retrying in 8 s, <space>r retries now. Data is 23 min old.
+ RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.
+ STALE  Data is 23 min old. Refreshing…
+ ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :profile add.
 ```
+
+Ages are relative (`45 s`, `23 min`, `5 h`, `3 d`), not clock times, so the text does not depend on the time zone. The part to act on comes before the age, so a line that is cut loses the age first. A 401 is a site-wide state: every tab shows it. Other errors show Jira's own message (`ERROR  Not found, or you have no access to it.`, `ERROR  Jira returned an error (503). <space>r tries again.`).
 
 At 40 columns:
 
 ```text
- OFFLINE  Showing data from 12:03
+ OFFLINE  Data 23 min old
  RATE LIMITED  Retrying in 25 s
  STALE  23 min old, refreshing…
- ERROR  Token rejected (401). See…
+ ERROR  Token rejected. See :profile
 ```
 
 | State | When | Banner and indicator | Role |
 |---|---|---|---|
-| Loading | a request is in flight | no banner; the tab shows `…`, the status bar `loading` | `Loading` |
-| Offline | transport failure or timeout | `OFFLINE`, cached data kept, last good time, next automatic retry | `Offline` |
+| Loading | a request of the user lane is in flight (a refresh by the clock is not announced) | no banner; the status bar `loading` | `Loading` |
+| Offline | transport failure or timeout | `OFFLINE`, cached data kept, age of the data, next automatic retry | `Offline` |
 | Rate limited | `429` with `Retry-After` | `RATE LIMITED`, wait in seconds counting down (honours the header, `RateLimitWait`) | `RateLimited` |
-| Stale | cached data older than the refresh interval, refresh pending or failed | `STALE`, age of the data | `Stale` |
+| Stale | cached rows shown while the refresh runs (or has not started) | `STALE`, age of the data, `Refreshing…` while a load runs | `Stale` |
 | Error | the request got an error reply | `ERROR`, the message below | `Error` |
 
-The status bar mirrors the state in its text (`offline`, `rate limited 25s`, `stale`, `error`) so it stays visible when the banner is cut. The no-colour tier relies on the words and the bold or underline of the roles.
+The status bar mirrors the state in its text (`offline`, `rate limited 25s`, `stale`, `error`, `loading`) before the connection line, so it stays visible when the banner is cut; a notice or pending keys still win over it. Wide terminals (60 columns and up) get the full wording, narrower ones the short one. The no-colour tier relies on the words and the bold or underline of the roles. Precedence when several apply: error (rejected token), rate limited, offline, other errors, stale, loading. The banner counts down from the clock the host passes in (the host redraws on the one-second tick only while a banner counts time), so a state needs no command of its own to tick. The tab bar marks a failed tab with `!`. Retry is `<space>r` (user lane); the clock retries by itself with the backoff of `architecture.md` ("Cache and refresh"); the first reply after a failure clears offline and rejected-token states.
 
 ### Errors
 
@@ -306,7 +308,7 @@ Wording by status (jira-layer.md "Errors"); the body of an HTML or plain-text re
 | 400 on a JQL source | `Query error: <Jira's message>` with the line and character; the JQL stays in the tab so it can be fixed with `:jql` |
 | 429 | rate-limited state, not an error |
 | 5xx | `Jira returned an error (<status>). <space>r tries again.` |
-| network | `Cannot reach <host>.` (offline state) |
+| network, timeout | `Cannot reach <host>.` / `<host> did not answer in time.` (offline state) |
 
 ## Source picker overlay
 

@@ -161,7 +161,7 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenAFailedNextPage_WhenBuilding_ThenTheRowsStayAndTheFooterNamesTheReason()
     {
-        var lines = Frame(Tab(new Failed(JiraErrorKind.RateLimited, "Jira is rate limiting requests."), 2));
+        var lines = Frame(Tab(new Failed(JiraErrorKind.RateLimited, "Jira is rate limiting requests.", LoadReason.NextPage), 2));
 
         Assert.Contains("A-1", lines[2]);
         Assert.StartsWith("Could not load more: Jira is rate limiting requests.", lines[4]);
@@ -287,9 +287,10 @@ public class ListBodyRendererTests
             "A");
     }
 
-    /// <summary>The frame without its tab bar line, so the rows below it keep their meaning.</summary>
+    /// <summary>The frame without its header lines, so the rows below them keep their meaning.</summary>
     private static List<string> Body(AppState state, int width, int height)
     {
-        return [.. FrameBuilder.Build(state, width, height + 1, _helpLines, _keymap).Skip(1)];
+        return [.. FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _helpLines, _keymap)
+            .Skip(FrameBuilder.HeaderRows)];
     }
 }
