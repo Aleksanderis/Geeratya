@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+Help                                                                                                                    
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Confirm mode                                                                                                            
+  y          Confirm                                                                                                    
+  n          Decline                                                                                                    
+  Esc        Decline                                                                                                    
+                                                                                                                        
+Insert mode                                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous source in the picker                                                                              
+  Ctrl-p     Previous source in the picker                                                                              
+  Down       Next source in the picker                                                                                  
+  Ctrl-n     Next source in the picker                                                                                  
+  Tab        Next field of the form                                                                                     
+  Shift-Tab  Previous field of the form                                                                                 
+  Ctrl-s     Save the form                                                                                              
+  Ctrl-o     Open the issue page in the browser from the form                                                           
+                                                                                                                        
+Palette commands                                                                                                        
+  :jql <query>                                                                                                          
+      Open a JQL query in a new tab                                                                                     
+  :filter [name]                                                                                                        
+      Open a saved filter in a new tab                                                                                  
+  :board [name]                                                                                                         
+      Open a board as columns in a new tab                                                                              
+  :backlog [name]                                                                                                       
+      Open a board's backlog in a new tab                                                                               
+ HELP                                                                                            j down  k up  Esc close

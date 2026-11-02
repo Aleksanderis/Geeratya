@@ -4,15 +4,13 @@ using Geeratya.Core.State;
 
 namespace Geeratya.Core.Tests.State;
 
-public sealed class SettingsReducerTests : IDisposable
+public sealed class SettingsReducerTests : IDisposable // Dispose removes the temporary settings folder
 {
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
     private readonly string _directory = Path.Combine(Path.GetTempPath(), $"geeratya-settings-{Guid.NewGuid():N}");
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         if (Directory.Exists(_directory))
         {
             Directory.Delete(_directory, recursive: true);
@@ -54,9 +52,9 @@ public sealed class SettingsReducerTests : IDisposable
 
         Assert.Equal(AppSettings.Default, store.Load());
 
-        store.Save(new AppSettings(false, true));
+        store.Save(new AppSettings(StatusHints: false));
 
-        Assert.Equal(new AppSettings(false, true), store.Load());
+        Assert.Equal(new AppSettings(StatusHints: false), store.Load());
 
         File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ not json");
 

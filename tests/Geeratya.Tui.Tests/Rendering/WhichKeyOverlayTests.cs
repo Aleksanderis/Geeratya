@@ -18,8 +18,9 @@ public class WhichKeyOverlayTests
 
         foreach (var next in _keymap.NextKeys(InputMode.Normal, "Space").Where(next => next.Action is not null))
         {
-            Assert.Contains($"{next.Key} ", text);
-            Assert.Contains(ActionCatalog.FindTitle(next.Action!)![..Math.Min(20, ActionCatalog.FindTitle(next.Action!)!.Length)], text);
+            var title = ActionCatalog.FindTitle(next.Action!)!;
+
+            Assert.Contains($"{next.Key,-10}{title[..Math.Min(20, title.Length)]}", text);
         }
 
         Assert.Contains("+issue (1)", text);
@@ -28,7 +29,7 @@ public class WhichKeyOverlayTests
     [Fact]
     public void GivenWhichKeyOff_WhenBuilding_ThenNoPopupShows()
     {
-        var state = Pending("Space") with { Settings = new AppSettings(WhichKey: false) };
+        var state = Pending("Space") with { Settings = new AppSettings(true, false) };
 
         Assert.DoesNotContain("┌", string.Join('\n', Build(state, 80, 24)));
     }

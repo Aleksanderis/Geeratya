@@ -33,4 +33,4 @@ My open issues · 3 issues
                                                                                                                         
                                                                                                                         
                                                                                                                         
- NORMAL stale                         j/k move  Enter open  Space o browser  Space i d delete  ? help  : command  q quit
+ NORMAL stale                                           j/k move  Enter open  Space o browser  ? help  : command  q quit

@@ -372,6 +372,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private AppState LoadProfiles()
     {
+        var settings = LoadSettings();
+
         try
         {
             var loaded = _profiles.Store.Load();
@@ -379,7 +381,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
             return AppState.Initial with
             {
-                Settings = LoadSettings(),
+                Settings = settings,
                 Profiles = loaded.Catalog,
                 Session = SiteSession.Empty(loaded.Catalog.Active),
                 Message = notice,
@@ -387,7 +389,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppState.Initial with { Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)" };
+            return AppState.Initial with
+            {
+                Settings = settings,
+                Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
+            };
         }
     }
 }

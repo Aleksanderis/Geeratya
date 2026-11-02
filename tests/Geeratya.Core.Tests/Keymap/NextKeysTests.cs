@@ -30,7 +30,8 @@ public class NextKeysTests
     {
         var next = _keymap.NextKeys(InputMode.Normal, "Space");
         var issue = Assert.Single(next, entry => entry.Key == "i");
-        var issueRows = _keymap.Bindings.Count(binding => binding.Keys.StartsWith("Space i ", StringComparison.Ordinal));
+        var issueRows = _keymap.Bindings.Count(
+            binding => binding.Keys.StartsWith("Space i ", StringComparison.Ordinal));
 
         Assert.Null(issue.Action);
         Assert.Equal(issueRows, issue.Count);

@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                        Geeratya                                                        
+                                              No profile yet: :profile add                                              
+                                              ? help   : command   q quit                                               
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+┌─ Space i ──────────────────────────────────────┐                                                                      
+│ d         Delete the issue (asks first; Jira c │                                                                      
+└────────────────────────────────────────────────┘                                                                      
+ NORMAL Space i                                                                                ? help  : command  q quit

@@ -40,20 +40,17 @@ public static class StatusBar
         new(InputMode.Normal, ActionIds.NavigateDown, "move", HintScope.List, ActionIds.NavigateUp),
         new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.List),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.List),
-        new(InputMode.Normal, ActionIds.IssueDelete, "delete", HintScope.List),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
         new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
         new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
         new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.Columns),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "list", HintScope.Columns),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Columns),
-        new(InputMode.Normal, ActionIds.IssueDelete, "delete", HintScope.Columns),
         new(InputMode.Normal, ActionIds.NavigateDown, "scroll", HintScope.Detail, ActionIds.NavigateUp),
         new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.Detail),
         new(InputMode.Normal, ActionIds.Cancel, "back", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
-        new(InputMode.Normal, ActionIds.IssueDelete, "delete", HintScope.Detail),
     ];
 
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>

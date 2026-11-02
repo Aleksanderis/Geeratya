@@ -5,9 +5,9 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body lists
-/// the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from text of
-/// its own. Pure. Switched off by <c>:set whichkey off</c>.
+/// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body
+/// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
+/// text of its own. Rows beyond the box height are cut. Pure. Switched off by <c>:set whichkey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
@@ -17,7 +17,7 @@ public static class WhichKeyOverlay
     private const int KeyColumn = 10;
     private const string GroupMarker = "+";
 
-    /// <summary>True when the popup shows for <paramref name="state"/> (Normal mode, keys pending, switch on).</summary>
+    /// <summary>True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, switch on.</summary>
     public static bool Applies(AppState state)
     {
         return state is { Mode: InputMode.Normal, Settings.WhichKey: true } && state.PendingKeys.Length > 0;
@@ -50,7 +50,7 @@ public static class WhichKeyOverlay
         var contentWidth = boxWidth - 2;
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, state.PendingKeys) };
 
-        lines.AddRange(shown.Select(row => OverlayBox.Wall(StyledLine.Of(row, TextRole.Body), contentWidth)));
+        lines.AddRange(shown.Select(row => OverlayBox.Wall(StyledLine.Of(row), contentWidth)));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var result = body.ToList();
@@ -74,7 +74,9 @@ public static class WhichKeyOverlay
         return $"{GroupMarker}{GroupName(keymap, $"{pending} {next.Key}")} ({next.Count})";
     }
 
-    /// <summary>The namespace of the first action below <paramref name="pending"/> (<c>issue</c> of <c>issue.delete</c>).</summary>
+    /// <summary>
+    /// The namespace of the first action below <paramref name="pending"/> (<c>issue</c> of <c>issue.delete</c>).
+    /// </summary>
     private static string GroupName(KeymapTable keymap, string pending)
     {
         var next = keymap.NextKeys(InputMode.Normal, pending);
