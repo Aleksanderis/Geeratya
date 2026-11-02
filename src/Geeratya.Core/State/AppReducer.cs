@@ -155,6 +155,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => ViewReducer.DuplicateActiveTab(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
             _ => Result(state),
         };

@@ -62,7 +62,6 @@ public static class ActionCatalog
         ActionIds.NavigateLastColumn,
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,
-        ActionIds.ViewRefresh,
         ActionIds.ViewLayoutToggle,
         ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
