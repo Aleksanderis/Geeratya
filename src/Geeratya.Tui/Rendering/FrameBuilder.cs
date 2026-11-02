@@ -17,6 +17,7 @@ public static class FrameBuilder
         new HelpBodyRenderer(),
         new IssueDetailRenderer(),
         new ListBodyRenderer(),
+        new ColumnsBodyRenderer(),
         new StartBodyRenderer(),
     ];
 

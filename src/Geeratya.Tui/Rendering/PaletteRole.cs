@@ -23,6 +23,11 @@ public enum PaletteRole
     StatusToDo,
     StatusInProgress,
     StatusDone,
+    TypeEpic,
+    TypeStory,
+    TypeBug,
+    TypeTask,
+    TypeSubtask,
     FieldLabel,
     Editable,
 }

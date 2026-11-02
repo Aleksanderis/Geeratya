@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.Detail;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
@@ -29,6 +30,8 @@ namespace Geeratya.Core.Views;
 /// <param name="Failures">Failed loads in a row that count towards the backoff (a failed next page does not).</param>
 /// <param name="NextRefreshAt">When the next automatic refresh is due, null while unknown (never loaded).</param>
 /// <param name="KeyWidth">The widest issue key among the loaded rows, kept so the list needs no scan per frame.</param>
+/// <param name="Cursor">The selected column and the selected and first visible card of each column in the columns
+/// layout; null until the layout is first used, and dropped when the tab goes cold or changes layout.</param>
 public sealed record TabState(
     TabId Id,
     ViewDefinition Definition,
@@ -49,7 +52,8 @@ public sealed record TabState(
     int KeyWidth,
     BoardConfiguration? Board = null,
     int Failures = 0,
-    DateTimeOffset? NextRefreshAt = null)
+    DateTimeOffset? NextRefreshAt = null,
+    BoardCursor? Cursor = null)
 {
     /// <summary>
     /// The issue stack of the tab, last is the one shown; empty while the view itself is shown. Closing the tab or

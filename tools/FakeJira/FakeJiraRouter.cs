@@ -9,6 +9,9 @@ namespace Geeratya.FakeJira;
 public sealed partial class FakeJiraRouter
 {
     private const string SearchPath = "/rest/api/3/search/jql";
+    private const string BoardIssuesPath = "/rest/agile/1.0/board/4/issue";
+    private const string StartAtName = "startAt";
+    private const int BoardPageSize = 10;
     private const string CountPath = "/rest/api/3/search/approximate-count";
     private const string NotFoundFixture = "errors/issue-404.json";
     private const string FilterPrefix = "/rest/api/3/filter/";
@@ -17,7 +20,6 @@ public sealed partial class FakeJiraRouter
     private const string PageTokenName = "nextPageToken";
     private const string JqlName = "jql";
     private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
-    private const string StartAtName = "startAt";
     private const string Get = "GET";
     private const string Post = "POST";
     private const int DefaultPageSize = 50;
@@ -38,7 +40,6 @@ public sealed partial class FakeJiraRouter
         ["/rest/agile/1.0/board/3/configuration"] = "boards/board-gtm-config.json",
         ["/rest/agile/1.0/board/4/configuration"] = "boards/board-gcm-config.json",
         ["/rest/agile/1.0/board/4/backlog"] = "boards/board-gcm-backlog.json",
-        ["/rest/agile/1.0/board/4/issue"] = "boards/board-gcm-issues.json",
         ["/rest/agile/1.0/board/3/issue"] = "hierarchy/agile-board-gtm-issues.json",
         ["/rest/agile/1.0/board/3/backlog"] = "hierarchy/agile-board-gtm-backlog.json",
         ["/rest/agile/1.0/board/3/epic"] = "hierarchy/agile-board-epics-gtm.json",
@@ -75,6 +76,14 @@ public sealed partial class FakeJiraRouter
         ["GCM-8"] = "hierarchy/search-epic-children-gcm.json",
     };
 
+    /// <summary>The recorded pages of the company-managed board's issues, 10 per page, by <c>startAt</c>.</summary>
+    private static readonly string[] _boardIssuePages =
+    [
+        "boards/rows-gcm-issues-page1.json",
+        "boards/rows-gcm-issues-page2.json",
+        "boards/rows-gcm-issues-page3-last.json",
+    ];
+
     private static readonly string[] _searchPages =
     [
         "search/search-page1.json",
@@ -101,6 +110,11 @@ public sealed partial class FakeJiraRouter
         if (path == CountPath && _options.GeneratedIssues > 0)
         {
             return new FakeReply(200, GeneratedIssues.Count(_options.GeneratedIssues));
+        }
+
+        if (method == Get && path == BoardIssuesPath)
+        {
+            return BoardIssues(query);
         }
 
         if (method == Get && _options.GeneratedIssues > 0 && TryGeneratedIssue(path, query) is { } generated)
@@ -206,6 +220,23 @@ public sealed partial class FakeJiraRouter
         var page = token is null ? 0 : FixturePageOf(token);
 
         return new FakeReply(200, ReadFixture(_searchPages[page]));
+    }
+
+    /// <summary>
+    /// The board's issues by offset: the recorded page that starts at <c>startAt</c>, the last one past the end.
+    /// </summary>
+    private FakeReply BoardIssues(IReadOnlyDictionary<string, string> query)
+    {
+        var start = 0;
+
+        if (query.TryGetValue(StartAtName, out var text) && (!int.TryParse(text, out start) || start < 0))
+        {
+            start = 0;
+        }
+
+        var page = Math.Min(start / BoardPageSize, _boardIssuePages.Length - 1);
+
+        return new FakeReply(200, ReadFixture(_boardIssuePages[page]));
     }
 
     private FakeReply GeneratedPage(IReadOnlyDictionary<string, string> parameters, string? token)

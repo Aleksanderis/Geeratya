@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
@@ -189,6 +190,11 @@ public sealed class AppReducer
             ActionIds.NavigateBottom => Navigate(state, ListMove.Bottom, 0),
             ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
             ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
+            ActionIds.NavigateLeft => NavigateColumn(state, BoardColumnMove.Left),
+            ActionIds.NavigateRight => NavigateColumn(state, BoardColumnMove.Right),
+            ActionIds.NavigateFirstColumn => NavigateColumn(state, BoardColumnMove.First),
+            ActionIds.NavigateLastColumn => NavigateColumn(state, BoardColumnMove.Last),
+            ActionIds.ViewLayoutToggle => ToggleLayout(state),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
             ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
             ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
@@ -249,6 +255,16 @@ public sealed class AppReducer
         return state.Mode == InputMode.Normal ? ViewReducer.Navigate(state, move) : Result(state);
     }
 
+    private static ReduceResult ToggleLayout(AppState state)
+    {
+        return state.Mode == InputMode.Normal ? ViewReducer.ToggleLayout(state) : Result(state);
+    }
+
+    private static ReduceResult NavigateColumn(AppState state, BoardColumnMove move)
+    {
+        return state.Mode == InputMode.Normal ? ViewReducer.NavigateColumn(state, move) : Result(state);
+    }
+
     private static AppState ToggleHelp(AppState state)
     {
         if (state.Mode == InputMode.Help)
@@ -289,6 +305,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
@@ -322,6 +339,22 @@ public sealed class AppReducer
         var key = text["browse".Length..].Trim().ToUpperInvariant();
 
         return key.Length == 0 ? null : key;
+    }
+
+    private static bool IsLayoutCommand(string text)
+    {
+        return text == "layout" || text.StartsWith("layout ", StringComparison.Ordinal);
+    }
+
+    /// <summary><c>:layout list|columns</c>: the same handler as <c>view.layout-toggle</c>.</summary>
+    private static ReduceResult LayoutCommand(AppState state, string argument)
+    {
+        return argument switch
+        {
+            "list" => ViewReducer.SetLayout(state, ViewLayout.List),
+            "columns" => ViewReducer.SetLayout(state, ViewLayout.Columns),
+            _ => Result(state with { Message = "Usage: :layout list|columns" }),
+        };
     }
 
     private static bool IsTabCommand(string text)

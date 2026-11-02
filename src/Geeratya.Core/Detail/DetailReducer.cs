@@ -39,7 +39,14 @@ internal static class DetailReducer
             return state;
         }
 
-        var row = tab.Rows[Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)];
+        var row = tab.Definition.Layout == ViewLayout.Columns
+            ? ColumnsNavigation.SelectedIssue(tab)
+            : tab.Rows[Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)];
+
+        if (row is null)
+        {
+            return state;
+        }
 
         return Open(state, tab.Id, row.Key, row, effects);
     }

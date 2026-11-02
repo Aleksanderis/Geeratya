@@ -1,0 +1,36 @@
+ [1 Board: GCM board]                                                                                                   
+                                                                                                                        
+GCM board · 24 issues                                                                                                   
+┌─ Backlog 12 ────────────────┬─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Done 3 ───────────────────┐
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GCM-10 Sign up wi… ─┐ │
+│ ┃ Task GCM-1              ┃ │ │ Epic GCM-8              │ │ │ Epic GCM-9              │ │ │ Sub-task GCM-18        │ │
+│ ┃ Survey task one         ┃ │ │ Seed: Onboarding flow   │ │ │ Seed: Reporting         │ │ │ Build the form         │ │
+│ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
+│ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ ├─────────────────────────┤ │ └────────────────────────┘ │
+│ │   Sub-task GCM-6        │ │ │   Story GCM-11          │ │ │   Task GCM-14           │ │ ┌─ ↑ GCM-9 Seed: Repor… ─┐ │
+│ │   Survey4 subtask       │ │ │   Welcome screen        │ │ │   Pick a chart library  │ │ │ Story GCM-12           │ │
+│ │                         │ │ │                         │ │ │                         │ │ │ Export report as CSV   │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ │   Task GCM-13           │ │ ┌─ ↑ GCM-8 Seed: Onboar… ─┐ │ ┌────────────────────────┐ │
+│ │ Task GCM-4              │ │ │   Review onboarding     │ │ │ Story GCM-10            │ │ │ Task GCM-15            │ │
+│ │ Survey task four        │ │ │   copy                  │ │ │ Sign up with email      │ │ │ Write the setup guide  │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ ┌─ ↑ GCM-10 Sign up wit… ─┐ │ ┌─ ↑ GCM-8 Seed: Onboar… ─┐ │                            │
+│ │ Story GCM-3             │ │ │ Sub-task GCM-19         │ │ │ Bug GCM-16              │ │                            │
+│ │ Survey story three      │ │ │ Validate the email      │ │ │ App crashes on empty    │ │                            │
+│ │ with unicode café 🚀    │ │ │                         │ │ │ profile                 │ │                            │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │                            │
+│ ┌─────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Report… ─┐ │                             │                            │
+│ │ Epic GCM-5              │ │ │ Bug GCM-17              │ │                             │                            │
+│ │ Survey4 epic            │ │ │ Wrong date format in    │ │                             │                            │
+│ │                         │ │ │ report                  │ │                             │                            │
+│ ├─────────────────────────┤ │ └─────────────────────────┘ │                             │                            │
+│ │   Sub-task GCM-7        │ │                             │                             │                            │
+│ │   Survey4 subtask no    │ │                             │                             │                            │
+│ │   valid parent          │ │                             │                             │                            │
+│ │                         │ │                             │                             │                            │
+│ └─────────────────────────┘ │                             │                             │                            │
+└─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────┘
+ NORMAL                                                                                        ? help  : command  q quit

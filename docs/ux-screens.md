@@ -25,7 +25,7 @@ A view is a source plus a layout (`CLAUDE.md`). M1 sources and their default lay
 | JQL | List | List |
 | Saved filter | List | List |
 
-`<space>l` (`view.layout-toggle`, or `:layout list|columns`) switches the layout of the current tab; on a source with no Columns layout the status line says "This view has no columns layout". Selection and scroll are kept per layout. A new board kind is a new source or layout, not new loading code. The layout and the selection belong to the tab (nothing is global).
+`<space>l` (`view.layout-toggle`, or `:layout list|columns`) switches the layout of the current tab; on a source with no Columns layout the status line says "This view has no columns layout". The selected issue is kept when the layout changes; the scroll positions of the columns restart. A new board kind is a new source or layout, not new loading code. The layout and the selection belong to the tab (nothing is global).
 
 ## List layout
 
@@ -117,65 +117,57 @@ My open issues · 10+
 One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). The Backlog column is shown like any other column.
 
 ```text
- [1 Board: GCM board]  2 Backlog: GCM board  3 JQL: assignee = currentUser() AND resolution = Unresolved  4 Filter: Mine
-GCM board · 11 issues
- To Do 3                [In Progress 3]          Backlog 2               Done 2                  Unmapped 1
- B GCM-14               >T GCM-12                T GCM-21                s GCM-18                T GCM-30
- Crash when the board    Fix login redirect      Upgrade the build       Write the CSV exporter  Status removed from
- has no columns          after token refresh     image                                           the workflow
+ [1 Board: GTM board]
 
- S GCM-15                E GCM-17                T GCM-26                T GCM-23
- As a user I can filter  Reporting overhaul      Remove the legacy       Document the release
- by label 日本語ラベル                           export flag             checklist
-
- B GCM-22                S GCM-25
- Tooltip overlaps the    As an admin I can see
- header on small…        who changed a setting
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- NORMAL  h/l column  j/k card  Enter open  <space>l list  ? help
+GTM board · 16 issues
+┌─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done 3 ─────────┐
+│ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-10 … ─┐ │
+│ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
+│ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
+│ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
+│ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
+│ │   Sto… GTM-12 │ │ │   Task GTM-15 │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │   Welcome     │ │ │   Pick a      │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
+│ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
+│ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│ │   Task GTM-14 │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
+│ │   Review      │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
+│ │   onboarding… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
+│ │               │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
+│ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│                   │                   │                   │                  │
+│                   │                   │                   │                  │
+│                   │                   │                   │                  │
+└───────────────────┴───────────────────┴───────────────────┴──────────────────┘
+ NORMAL                                                ? help  : command  q quit
 ```
 
-- **Header.** `Name count`; the selected column is in brackets (and bold). The count is the number of loaded cards; while pages are still loading it reads `Name n+`. The view title line shows `N issues` once all pages are loaded.
-- **Cards.** Three lines: type marker and key, then the summary wrapped to two lines (ellipsis on the second), then one blank line. When the body is shorter than 12 rows cards collapse to one line `key summary` (second sketch below). The selected card carries `>`.
-- **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own, remembering its selection.
-- **More columns than width.** Each column is at least 20 cells wide. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the header shows `‹` or `›` with the number of columns hidden on that side. At 40 columns exactly one column is drawn at full width, with the neighbouring names in the header (below).
-- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (shown in the sketch; the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
-- **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. No swimlanes in M1.
-- **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or 500 issues are loaded; past the cap the banner says `Showing the first 500 of N issues. Narrow the board filter or use :jql.`
+The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third); the cursor is on the first card.
 
-At 40x10 (body of five rows, one-line cards, one column at a time):
+- **Frames.** Every column is a framed box: the board is drawn as one grid with box-drawing lines (`┌ ┬ ┐ │ └ ┴ ┘ ─`, `Muted`), so the columns read as columns even when empty. The name and count sit in the top border (` Name n `); the last row of the body closes the frames. The selected column's title is in `Heading` (bold), the others in `Muted`. The count is the number of loaded cards; while pages are still loading it reads `Name n+`. The view title line shows `N issues` once all pages are loaded. The frame uses the same box lines as the tab bar and overlays (not part of the ASCII glyph set).
+- **Cards.** Each card is a bordered box with a one-cell margin inside its column, five rows: top border, the issue type's name and the key (`Story GTM-9`) with the assignee's initials (first letters of the first and last name) at the right edge, the name cut with `…` when the line is too narrow; the name wins over the initials, which go first, and when 4 cells of name do not fit the one-cell marker (as in the list layout) replaces it, the summary wrapped to two lines (ellipsis on the second), bottom border. Cards touch (no blank row). The selected card has a heavy border (`┏ ━ ┓ ┃ ┗ ┛`) and the `Selected` role on all its lines, so it stands out without colour; only the selected column shows a selected card. When the card area is shorter than 10 rows (a body under 12 rows) cards collapse to one line `marker key summary`, without a box, the selected one prefixed with `>` (second sketch below). A column too narrow for a box (under 8 cells inside the margin) shows no card text. Cards are drawn only for the rows in the viewport, never for all loaded issues (`Core/Boards/BoardCards` holds the measures); rows under the last whole card stay empty rather than showing half a card.
+- **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column; the index aimed at is the one last chosen with `j`/`k`, so passing a short or empty column does not lose the row (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own and keeps three cards of context (`scrolloff`). `Enter` opens the selected card in the issue detail (#84) and does nothing on an empty column. After a refresh the selection stays on its issue key inside its column. The motion is `Core/Boards/BoardMotion` (pure).
+- **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
+- **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
+- **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column); the type tells them apart. Hiding epics follows the board configuration (#192).
+- **Grouping under the parent.** Any issue with a `parent` is a child (sub-tasks, and stories under an epic). Within a column a child whose parent card is in the same column is moved to just after the parent (after the children already there), and the parent and its children share one outer frame and the children are indented by two cells inside it: the parent is the top of the frame (top border, key line, two summary lines, then a divider `├───┤`), each child follows with its key line, two summary lines, a blank row and a divider, and the last child's divider is the bottom of the frame (`└───┘`). The cards keep the five-row pitch, so scrolling and navigation are unchanged. The parent's summary text is `Strong` (bold; the type name keeps its type colour) so it stands out from its children. A selected member has heavy sides (`┃`), a heavy divider or bottom edge under it (`┣━┫`, `┗━┛`) and the `Selected` role on its text; the selected parent also has a heavy top border, and when a child is selected the divider above it is heavy too, so the selected card is closed on all four sides. The rest of the frame stays `Muted`. The other cards keep the rank order. A child whose parent is in another column (or not loaded) stays in its place as a box of its own and carries the parent in its top border: `┌─ ↑ GTM-9 Onboarding flow ─┐` (key and summary cut with `…`; heavy border when selected). Compact one-line cards cannot hold a frame: a grouped child starts with `├` (`└` for the last) after the cursor cell and an ungrouped one shows `↑GTM-9` after the key. The frame uses box lines like the rest of the board (not part of the ASCII glyph set); a column too narrow for a box shows no card text. A parent that has children but itself has a parent in another column carries that parent in the frame's top border. When the column is scrolled so that a child is the first visible card, the frame's top edge is off screen. Navigation follows the displayed order. `Core/Boards/BoardColumns.Arrange` does the ordering (pure).
+- **Type colours.** The type name (or marker) on the key line is coloured by type, as Jira does: epic purple, story green, bug red, task blue, sub-task teal (grey in the 16-colour tier). The colours are Geeratya's own: the Jira API gives no colour for an issue type (only an icon image, which is never drawn; the status category has a colour name, used for statuses) (roles `TypeEpic`, `TypeStory`, `TypeBug`, `TypeTask`, `TypeSubtask`; any other type stays `Body`). The no-colour tier relies on the name itself. The selected card keeps the single `Selected` role (reversed), so its type is not coloured. One-line cards colour the marker the same way. The list layout is unchanged.
+- **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or the per-tab row cap (`ViewPaging.MaxRowsPerTab`, 10 000; `architecture.md`) is hit.
+
+At 40x10 (body of six rows, one-line cards, one column at a time, the neighbours named in the frame):
 
 ```text
- [1 Board: GCM board] 2 Backlog 3 JQL… ›
-GCM board · 11 issues
-‹ To Do 3   [In Progress 3]  Backlog ›
->GCM-12 Fix login redirect after token …
- GCM-17 Reporting overhaul
- GCM-25 As an admin I can see who chang…
+ [1 Board: GCM board]
 
-
-
- NORMAL  h/l Enter <space>l ?
+GCM board · 24 issues                 3›
+┌─Backlog 12  To Do 5 ›────────────────┐
+│>T GCM-1 Survey task one              │
+│ └s GCM-6 Survey4 subtask             │
+│ T GCM-4 Survey task four             │
+│ S GCM-3 Survey story three with unic…│
+└──────────────────────────────────────┘
+ NORMAL        ? help  : command  q quit
 ```
 
 ## Issue detail
@@ -411,4 +403,4 @@ Without a board name and exactly one board on the site, `:board` and `:backlog` 
 - The board opens in Columns; backlog, JQL and filters open in List; the layout can be switched per tab (boards only in M1).
 - Unmapped statuses get a trailing `Unmapped` column rather than being hidden.
 - Palette view commands and the picker open a new tab; they never replace the current tab's view.
-- Sub-tasks and epics on a board are cards like any issue.
+- Sub-tasks and epics on a board are cards like any issue; the columns layout groups children under their parent (see "Columns layout").

@@ -85,6 +85,54 @@ public class BoardColumnsTests
         Assert.Empty(groups.Unmapped);
     }
 
+    [Fact]
+    public void GivenSubtasksOfAParentInTheSameColumn_WhenArranging_ThenTheyFollowTheParentAndAreNested()
+    {
+        var rows = new[]
+        {
+            Row("A-1", "1"),
+            Row("A-2", "1") with { Parent = new IssueParent("A-3", "Parent") },
+            Row("A-3", "1"),
+            Row("A-4", "1") with { Parent = new IssueParent("A-3", "Parent") },
+            Row("A-5", "1"),
+        };
+
+        var group = BoardColumns.Arrange("Col", rows);
+
+        Assert.Equal(["A-1", "A-3", "A-2", "A-4", "A-5"], group.Rows.Select(row => row.Key));
+        Assert.Equal([false, false, true, true, false], Enumerable.Range(0, 5).Select(group.IsNested));
+    }
+
+    [Fact]
+    public void GivenAParentInAnotherColumn_WhenGrouping_ThenTheChildStaysInPlaceAndIsNotNested()
+    {
+        var configuration = Configuration(BoardType.Kanban, Column("To Do", "1"), Column("Done", "2"));
+        var child = Row("A-2", "1") with { Parent = new IssueParent("A-1", "Parent") };
+
+        var groups = BoardColumns.Group(configuration, [Row("A-1", "2"), child, Row("A-3", "1")]);
+
+        Assert.Equal(["A-2", "A-3"], groups.Columns[0].Rows.Select(row => row.Key));
+        Assert.False(groups.Columns[0].IsNested(0));
+    }
+
+    [Fact]
+    public void GivenAParentLoopOrGrandchildren_WhenArranging_ThenNoRowIsLost()
+    {
+        var rows = new[]
+        {
+            Row("A-1", "1") with { Parent = new IssueParent("A-2", null) },
+            Row("A-2", "1") with { Parent = new IssueParent("A-1", null) },
+            Row("A-3", "1") with { Parent = new IssueParent("A-4", null) },
+            Row("A-4", "1") with { Parent = new IssueParent("A-5", null) },
+            Row("A-5", "1"),
+        };
+
+        var group = BoardColumns.Arrange("Col", rows);
+
+        Assert.Equal(["A-5", "A-4", "A-3", "A-1", "A-2"], group.Rows.Select(row => row.Key));
+        Assert.Equal([false, true, true, false, true], Enumerable.Range(0, 5).Select(group.IsNested));
+    }
+
     private static BoardConfiguration Configuration(BoardType type, params BoardColumn[] columns)
     {
         return new BoardConfiguration(1, "Board", type, columns, "10001", null, null, null);

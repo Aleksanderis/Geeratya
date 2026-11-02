@@ -1,0 +1,36 @@
+ [1 Board: GTM board]                                                                                                   
+                                                                                                                        
+GTM board · 16 issues                                                                                                   
+┌─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done 3 ───────────────────┐
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
+│ ┃ Epic GTM-9              ┃ │ │ Epic GTM-10             │ │ │ Task GTM-21             │ │ │ Story GTM-13           │ │
+│ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
+│ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
+│ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ │   Story GTM-12          │ │ │   Task GTM-15           │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
+│ │   Welcome screen        │ │ │   Pick a chart library  │ │ │ Story GTM-22            │ │ │ Task GTM-16            │ │
+│ │                         │ │ │                         │ │ │ Backlog: keyboard       │ │ │ Write the setup guide  │ │
+│ │                         │ │ │                         │ │ │ shortcuts help          │ │ │                        │ │
+│ ├─────────────────────────┤ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ │   Task GTM-14           │ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-11 Sign up wi… ─┐ │
+│ │   Review onboarding     │ │ │ Story GTM-11            │ │ │ Bug GTM-23              │ │ │ Subtask GTM-19         │ │
+│ │   copy                  │ │ │ Sign up with email      │ │ │ Backlog: tooltip        │ │ │ Build the form         │ │
+│ │                         │ │ │                         │ │ │ clipped                 │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─ ↑ GTM-10 Seed: Repor… ─┐ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ ┌─────────────────────────┐ │                            │
+│ │ Bug GTM-18              │ │ │ Bug GTM-17              │ │ │ Task GTM-24             │ │                            │
+│ │ Wrong date format in    │ │ │ App crashes on empty    │ │ │ Backlog: update         │ │                            │
+│ │ report                  │ │ │ profile                 │ │ │ dependencies            │ │                            │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │                            │
+│ ┌─ ↑ GTM-11 Sign up wit… ─┐ │                             │                             │                            │
+│ │ Subtask GTM-20          │ │                             │                             │                            │
+│ │ Validate the email      │ │                             │                             │                            │
+│ │                         │ │                             │                             │                            │
+│ └─────────────────────────┘ │                             │                             │                            │
+│                             │                             │                             │                            │
+│                             │                             │                             │                            │
+│                             │                             │                             │                            │
+│                             │                             │                             │                            │
+│                             │                             │                             │                            │
+└─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────┘
+ NORMAL                                                                                        ? help  : command  q quit
