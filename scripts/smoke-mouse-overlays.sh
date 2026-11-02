@@ -126,8 +126,8 @@ wait_for "In Progress"
 wait_gone "Open a view"
 
 # Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
-# motion events a terminal sends (they carry the Pressed flag too) and without them; the click that follows a release is
-# swallowed, so the drop does not also select the card under the release cell.
+# motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
+# swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
 drag "Story GCM-11" 30 motion
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
