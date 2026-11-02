@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Paging;
@@ -23,7 +24,7 @@ public class ViewPagingTests
         var result = Submit("jql project = GCM AND text ~ \"a: b\" ORDER BY created");
 
         var tab = Assert.Single(result.State.Session.Tabs);
-        var effect = Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadViewPageEffect>());
         Assert.Equal(ViewSourceKind.Jql, tab.Definition.Source);
         Assert.Equal("project = GCM AND text ~ \"a: b\" ORDER BY created", tab.Definition.SourceValue);
         Assert.Equal(ViewLayout.List, tab.Definition.Layout);
@@ -34,13 +35,13 @@ public class ViewPagingTests
     [Theory]
     [InlineData("jql")]
     [InlineData("jql   ")]
-    public void GivenJqlCommandWithoutQuery_WhenSubmitted_ThenUsageIsShownAndNothingOpens(string text)
+    public void GivenJqlCommandWithoutQuery_WhenSubmitted_ThenTheJqlPickerOpensAndNothingLoads(string text)
     {
         var result = Submit(text);
 
         Assert.Empty(result.State.Session.Tabs);
-        Assert.Empty(result.Effects);
-        Assert.Equal("Usage: :jql <query>", result.State.Message);
+        Assert.DoesNotContain(result.Effects, effect => effect is LoadViewPageEffect);
+        Assert.Equal(PickerScope.Jql, result.State.Picker!.Scope);
     }
 
     [Fact]

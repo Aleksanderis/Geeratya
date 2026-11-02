@@ -7,14 +7,16 @@ Help
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
+  :jql [query]                                                                                                          
+      Open a JQL query in a new tab (no query: pick from recent ones)                                                   
   :filter [name]                                                                                                        
       Open a saved filter in a new tab                                                                                  
   :board [name]                                                                                                         
       Open a board as columns in a new tab                                                                              
   :backlog [name]                                                                                                       
       Open a board's backlog in a new tab                                                                               
+  :history clear                                                                                                        
+      Forget the recent JQL queries and issues of this profile                                                          
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
   :status [next|prev]                                                                                                   
@@ -29,8 +31,6 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

@@ -1,4 +1,5 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Platform;
@@ -17,6 +18,7 @@ public sealed record ProfileServices(
     ProfileStore Store,
     TokenProvider Tokens,
     SiteCaches Caches,
+    HistoryStore Histories,
     UserKeymapStore? Keymap = null)
 {
     /// <summary>
@@ -46,6 +48,7 @@ public sealed record ProfileServices(
             new ProfileStore(directories.ConfigDirectory),
             new TokenProvider(secretStore, environment),
             new SiteCaches(directories.CacheDirectory, permissions),
+            new HistoryStore(directories.StateDirectory, permissions),
             new UserKeymapStore(directories.ConfigDirectory));
     }
 }

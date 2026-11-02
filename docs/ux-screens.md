@@ -426,7 +426,8 @@ project = GEN · 40 issues
 
 | Command | Effect |
 |---|---|
-| `:jql <query>` | JQL list; the query is everything after the first space |
+| `:jql [query]` | JQL list; the query is everything after the first space. Without a query the picker opens in its JQL scope: the recent queries of this profile (filtered by the typed text) and the typed text as a query row |
+| `:history clear` | forgets the recent JQL queries and issue keys of the active profile (local file only; nothing in Jira changes); `:history` with anything else is an unknown command |
 | `:browse [KEY]` | open the issue in the browser (`<space>o` handler): `KEY` is upper-cased and must be a valid issue key; without it, the selected row. Status line: `Opened KEY in the browser` or the launcher failure |
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |

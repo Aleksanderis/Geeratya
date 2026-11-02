@@ -124,7 +124,7 @@ public static class SourcePickerOverlay
         var lines = new List<StyledLine>();
         var selectedLine = 0;
 
-        if (picker.Scope != PickerScope.Filters)
+        if (picker.Scope is not (PickerScope.Filters or PickerScope.Jql))
         {
             AddGroup(lines, "Boards", BoardGroup(picker.Scope), choices, selected, width, ref selectedLine, lists);
         }
@@ -134,6 +134,7 @@ public static class SourcePickerOverlay
             AddGroup(lines, "Filters", [SourceChoiceKind.Filter], choices, selected, width, ref selectedLine, lists);
         }
 
+        AddGroup(lines, "Recent", [SourceChoiceKind.Recent], choices, selected, width, ref selectedLine, lists);
         AddGroup(lines, "Query", [SourceChoiceKind.Query], choices, selected, width, ref selectedLine, lists);
 
         if (lines.Count == 0)
@@ -190,7 +191,7 @@ public static class SourcePickerOverlay
     {
         var kind = heading == "Filters" ? SourceListKind.Filters : SourceListKind.Boards;
 
-        if (heading == "Query" || memberCount > 0 || lists.IsLoaded(kind))
+        if (heading is "Query" or "Recent" || memberCount > 0 || lists.IsLoaded(kind))
         {
             return [];
         }
@@ -232,6 +233,7 @@ public static class SourcePickerOverlay
             SourceChoiceKind.Board => "Board",
             SourceChoiceKind.Backlog => "Backlog",
             SourceChoiceKind.Filter => "Filter",
+            SourceChoiceKind.Recent => "Recent",
             _ => "JQL",
         };
     }
