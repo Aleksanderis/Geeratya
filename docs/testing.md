@@ -38,7 +38,7 @@ dotnet run --project tools/FakeJira -- --issues 10000 --latency-ms 50 --rate-lim
 | `--latency-ms <n>` | Delay added to every reply |
 | `--rate-limit-every <n>` | Every nth request is answered `429` with `Retry-After: 1` |
 
-Without `--issues`, search serves the recorded three-page fixtures (`search-page1..3-last`). Routes are a fixed table in `FakeJiraRouter` over recorded fixtures: `myself`, `project/search`, `field`, `issuetype`, `filter/my`, `filter/search`, `search/jql` (GET and POST), the agile board list, boards 3 (GTM) and 4 (GCM) with configuration, and board 4 backlog and issues. Anything else is the recorded 404. It ignores credentials and never writes. Add a route when a feature needs one: map the path to a recorded fixture in `FakeJiraRouter`. Point the app at it with a profile whose site URL is the printed address and any token.
+Without `--issues`, search serves the recorded three-page fixtures (`search-page1..3-last`). Routes are a fixed table in `FakeJiraRouter` over recorded fixtures: `myself`, `project/search`, `field`, `issuetype`, `filter/my`, `filter/search`, `search/jql` (GET and POST), the agile board list, boards 3 (GTM) and 4 (GCM) with configuration and `epic`, board 3 and 4 `issue` and `backlog` (board 3 from the `hierarchy/` fixtures), and `filter/10001` (any other numeric filter id answers the recorded 404 "not available"). Anything else is the recorded 404. It ignores credentials and never writes. Add a route when a feature needs one: map the path to a recorded fixture in `FakeJiraRouter`. Point the app at it with a profile whose site URL is the printed address and any token.
 
 `fakejira` is Native AOT compatible (`PublishAot`, `HttpListener`, `Utf8JsonWriter`, no reflection) and follows the same style rules as `src/`.
 
@@ -50,9 +50,9 @@ Only on the owner's dev site, opt-in, never part of the review or CI gate; rules
 
 `scripts/measure.sh <binary> <fake url> [runs]` drives the Native AOT binary in a private tmux server with private `XDG_*` directories, so no real profile, token or cache is read. Contract:
 
-- Input: the binary, the base URL of a running FakeJira (exported to the binary as `GEERATYA_FAKE_URL`), the number of sessions (default 20; `KEYS` presses per session, default 5; `TIMEOUT_MS`, default 5000).
+- Input: the binary, the base URL of a running FakeJira (written as the site of one active `fake` profile into the private `geeratya/profiles.json`; `GEERATYA_TOKEN=fake` is the token, so the binary talks to the fake and must be a loopback address), the number of sessions (default 20; `KEYS` presses per session, default 5; `TIMEOUT_MS`, default 5000).
 - Output: median and p95 in milliseconds for the tmux floor (a trivial command), cold start to first frame and key to frame. Exit 2 for bad arguments, 1 when a frame never appears.
-- Needs tmux and GNU `date`: Linux first (macOS needs GNU coreutils; Windows has no equivalent yet). It does not contact the fake URL itself; until the Jira-backed views exist the shell does not either.
+- Needs tmux and GNU `date`: Linux first (macOS needs GNU coreutils; Windows has no equivalent yet).
 - It waits for the frame to appear or change; it never sleeps a fixed time.
 - Numbers go in `docs/performance.md` with environment, dataset and latency; an optimisation PR quotes before and after.
 
@@ -62,7 +62,7 @@ For screenshots and manual tmux runs use the same pattern (`testing` skill, "Dri
 
 `scripts/screenshot.sh render|publish|clean` (skill `screenshots`) captures the real binary against `tools/FakeJira` (generated issues, `--issues 40`; never a real site) in a private tmux server with private `XDG_*` directories. `tools/AnsiToSvg` (tests in `tests/Geeratya.AnsiToSvg.Tests`) turns the `capture-pane -p -e` text (SGR colours: 16, 256 and 24-bit; bold, dim, italic, underline, reverse; wide characters) into an SVG, `rsvg-convert` into a PNG.
 
-- Scenarios are rows of one table in the script (`name:columns:rows:theme:keys`): `default` and `help` 120x36, `narrow` 64x30, `light` (the SVG's default colours are light; the app has no light palette yet, so only unstyled cells change). Add a row per new screen.
+- Scenarios are rows of one table in the script (`name:columns:rows:theme:keys:wait-for`; `wait-for` is text that must be on screen after the keys, because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart): `default` and `help` 120x36, `narrow` 64x30, `light` (the SVG's default colours are light; the app has no light palette yet, so only unstyled cells change). Add a row per new screen.
 - Needs bash, tmux, rsvg-convert, dotnet (and `gh`, `git` for publish and clean); a missing tool exits 3 naming it, an uncloneable screenshots repository exits 4. Linux only (other systems exit 3).
-- Known limit: the binary does not read `GEERATYA_FAKE_URL` yet (as in `measure.sh`), so today the images show the shell and help screens with no issue data; once the Jira-backed views exist, scenarios must wait for expected text, because the settle check only compares two captures 0.15 s apart.
+- The script seeds the private config directory with a `profiles.json` holding one active profile (`fake`, `fake@example.com`, site URL = the fake's loopback address) and exports `GEERATYA_TOKEN=fake` (the single-profile fallback), so the binary reads the fake without a hidden hook; before any key the script waits for the profile line `fake: fake@example.com on ...`, which is also the smoke check that the binary started against the fake profile (`scripts/screenshot.sh render --binary <geeratya> --scenarios default`).
 - It waits until two consecutive captures are equal (never a fixed sleep for the frame); the key delay between scripted key presses is 0.2 s.

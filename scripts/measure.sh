@@ -2,8 +2,8 @@
 # Measure cold start to first frame and key-to-frame of the real binary in tmux.
 # Usage: scripts/measure.sh <binary> <fake url> [runs]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
-#   <fake url>  base URL printed by tools/FakeJira (exported as GEERATYA_FAKE_URL; the binary does not read it
-#               until the Jira-backed views exist, see docs/performance.md)
+#   <fake url>  base URL printed by tools/FakeJira; written as the site of one active fake profile into the
+#               private configuration directory (token: GEERATYA_TOKEN=fake), so the binary talks to the fake
 #   [runs]      sessions to start (default 20); key-to-frame takes KEYS toggles per session (default 5)
 # Needs tmux and GNU date (Linux first; macOS BSD date lacks %N, Windows has no equivalent yet).
 # Prints median and p95 in milliseconds. A private tmux server and private XDG directories are used, so the
@@ -34,8 +34,11 @@ cleanup() {
 trap cleanup EXIT
 
 export XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache
-export GEERATYA_FAKE_URL=$fake_url
-mkdir -p "$XDG_CONFIG_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+export GEERATYA_TOKEN=fake
+mkdir -p "$XDG_CONFIG_HOME/geeratya" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "the fake url must be a loopback address" >&2; exit 2 ;; esac
+printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"fake@example.com"}]}\n' "$fake_url" \
+  > "$XDG_CONFIG_HOME/geeratya/profiles.json"
 
 # Load average (1 minute) so a noisy run can be recognised; "n/a" where /proc/loadavg does not exist.
 load_now() { if [ -r /proc/loadavg ]; then cut -d' ' -f1 /proc/loadavg; else echo n/a; fi; }

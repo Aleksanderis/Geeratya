@@ -16,12 +16,17 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
-# Scenario table: name:columns:rows:theme:keys. Keys are sent to tmux one by one; add a row per new screen.
+# Scenario table: name:columns:rows:theme:keys:wait-for. Keys are sent to tmux one by one; wait-for is text that
+# must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
+# because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
+# Add a row per new screen.
+profile_ready="fake: fake@example.com"
+profile_line="$profile_ready on"
 all_scenarios=(
-  "default:120:36:dark:"
-  "help:120:36:dark:?"
-  "narrow:64:30:dark:"
-  "light:120:36:light:"
+  "default:120:36:dark::$profile_line"
+  "help:120:36:dark:?:Help"
+  "narrow:64:30:dark::$profile_ready"
+  "light:120:36:light::$profile_line"
 )
 
 usage() {
@@ -64,22 +69,47 @@ settled_capture() {
   done
 }
 
+# Waits until the pane shows the text (empty text: no wait); fails after the timeout.
+wait_for_text() {
+  local socket=$1 text=$2 start
+  [ -n "$text" ] || return 0
+  start=$(now_ms)
+  while ! tmux -L "$socket" capture-pane -t s -p 2> /dev/null | grep -qF -- "$text"; do
+    if [ $(($(now_ms) - start)) -gt "$timeout_ms" ]; then
+      echo "screenshot.sh: '$text' did not appear within ${timeout_ms} ms" >&2
+      return 1
+    fi
+    sleep 0.15
+  done
+}
+
+# Writes the profiles file of the one active fake profile (site = the fake's loopback address) into the private
+# configuration directory, so the binary connects to the fake and no real profile is read.
+seed_fake_profile() {
+  local config=$1 url=$2
+  mkdir -p "$config/geeratya"
+  printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"fake@example.com"}]}\n' "$url" \
+    > "$config/geeratya/profiles.json"
+}
+
 capture_scenario() {
   local spec=$1 binary=$2 out=$3 work=$4 ansitosvg=$5
-  local name columns rows theme keys socket key
-  IFS=: read -r name columns rows theme keys <<< "$spec"
+  local name columns rows theme keys waitfor socket key
+  IFS=: read -r name columns rows theme keys waitfor <<< "$spec"
   socket=geeratya-shot-$$-$name
   tmux -L "$socket" -f /dev/null new-session -d -s s -x "$columns" -y "$rows" \
-    "env -u GEERATYA_TOKEN -u GEERATYA_LIVE_HOSTS COLORTERM=truecolor TERM=tmux-256color \
-      GEERATYA_FAKE_URL=$fake_url XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state \
+    "env -u GEERATYA_LIVE_HOSTS COLORTERM=truecolor TERM=tmux-256color \
+      GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state \
       XDG_CACHE_HOME=$work/cache '$binary'"
   sockets+=("$socket")
+  wait_for_text "$socket" "$profile_ready"
   settled_capture "$socket" > /dev/null
   for ((index = 0; index < ${#keys}; index++)); do
     key=${keys:index:1}
     tmux -L "$socket" send-keys -t s -l "$key"
     sleep 0.2
   done
+  wait_for_text "$socket" "$waitfor"
   settled_capture "$socket" > "$work/$name.ansi"
   tmux -L "$socket" kill-server 2> /dev/null || true
   rm -f "$out/$name.png"
@@ -120,6 +150,8 @@ render() {
   for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
   fake_url=$(head -n 1 "$work/fake.url")
   case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+
+  seed_fake_profile "$work/config" "$fake_url"
 
   local rendered=0
   for spec in "${all_scenarios[@]}"; do
