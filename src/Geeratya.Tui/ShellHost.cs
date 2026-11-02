@@ -251,6 +251,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 _ = _formMetadata.StartAsync(formMetadata);
             }
+            else if (effect is SearchFieldOptionsEffect search)
+            {
+                _ = _formMetadata.StartAsync(search);
+            }
             else if (effect is InvalidateCacheEffect invalidate)
             {
                 InvalidateCaches(invalidate);

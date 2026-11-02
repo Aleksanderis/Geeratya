@@ -48,7 +48,7 @@ public sealed class AppReducer
                 Confirm = requested.Request,
                 PendingKeys = string.Empty,
             }),
-            TextPasted pasted => Result(Paste(state, pasted.Text)),
+            TextPasted pasted => Pasted(state, pasted.Text),
             ViewCommand view => ViewReducer.Reduce(state, view),
             FormCommand form => FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
@@ -64,6 +64,18 @@ public sealed class AppReducer
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
             _ => Result(state),
         };
+    }
+
+    private static ReduceResult Pasted(AppState state, string pasted)
+    {
+        var text = PasteText.FirstLine(pasted);
+
+        if (text.Length > 0 && FormReducer.IsOpen(state))
+        {
+            return FormReducer.Paste(state, text);
+        }
+
+        return Result(Paste(state, pasted));
     }
 
     private static ReduceResult Result(AppState state)
@@ -129,7 +141,7 @@ public sealed class AppReducer
             return Result(TypeText(cleared, key));
         }
 
-        return Apply(cleared with { Message = null }, resolution.Action!);
+        return Apply(cleared with { Message = null }, resolution.Action!, at);
     }
 
     /// <summary>
@@ -157,11 +169,6 @@ public sealed class AppReducer
         if (text.Length == 0)
         {
             return state;
-        }
-
-        if (FormReducer.IsOpen(state))
-        {
-            return FormReducer.Paste(state, text);
         }
 
         if (state.Mode == InputMode.Insert)
@@ -194,7 +201,7 @@ public sealed class AppReducer
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
-    private ReduceResult Apply(AppState state, string action)
+    private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
         return action switch
         {
@@ -203,10 +210,10 @@ public sealed class AppReducer
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
-            ActionIds.PaletteSubmit => SubmitPalette(state),
+            ActionIds.PaletteSubmit => SubmitPalette(state, at),
             ActionIds.Cancel => Result(ToNormal(state)),
             ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
-            ActionIds.ConfirmYes => Confirmed(state),
+            ActionIds.ConfirmYes => Confirmed(state, at),
             ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
             ActionIds.FormBackspace => Result(Erase(state)),
             ActionIds.PickerNext => Result(SourceReducer.Move(state, 1)),
@@ -231,6 +238,9 @@ public sealed class AppReducer
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
+            ActionIds.IssueEdit => InNormal(state, () => FormOpener.Edit(state)),
+            ActionIds.IssueAssign => InNormal(state, () => FormOpener.Assign(state)),
+            ActionIds.IssueAssignMe => InNormal(state, () => FormOpener.AssignMe(state, at)),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
@@ -323,7 +333,7 @@ public sealed class AppReducer
         return state with { PaletteText = RemoveLastTextElement(state.PaletteText) };
     }
 
-    private static ReduceResult SubmitPalette(AppState state)
+    private static ReduceResult SubmitPalette(AppState state, DateTimeOffset at)
     {
         var text = state.PaletteText.Trim();
         var normal = ToNormal(state);
@@ -334,6 +344,10 @@ public sealed class AppReducer
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
+            PaletteCommands.Edit => FormOpener.Edit(normal),
+            PaletteCommands.Priority => FormOpener.Priority(normal),
+            PaletteCommands.Assign => FormOpener.Assign(normal),
+            PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
@@ -429,7 +443,7 @@ public sealed class AppReducer
         return text[..starts[^1]];
     }
 
-    private ReduceResult Confirmed(AppState state)
+    private ReduceResult Confirmed(AppState state, DateTimeOffset at)
     {
         var request = state.Confirm;
         var normal = ToNormal(state);
@@ -457,6 +471,6 @@ public sealed class AppReducer
         // The quit that was asked for while writes ran: the answer was yes, so no second question.
         return request.ActionOnConfirm == ActionIds.Quit
             ? new ReduceResult(normal, _quitEffects)
-            : Apply(normal, request.ActionOnConfirm);
+            : Apply(normal, request.ActionOnConfirm, at);
     }
 }

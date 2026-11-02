@@ -64,7 +64,20 @@ public sealed class FakeJiraWriteStore
     private const string GcmTransitionsFixture = "transitions/transitions-gcm-1.json";
     private const string GcmPrefix = "GCM-";
 
-    private static readonly string[] _editableFields = [SummaryName, LabelsName, DescriptionName, DueDateName];
+    private const string PriorityName = "priority";
+
+    private static readonly string[] _editableFields =
+        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName];
+
+    // The priorities of both recorded edit metadata, by id.
+    private static readonly Dictionary<string, string> _priorityNames = new()
+    {
+        ["1"] = "Highest",
+        ["2"] = "High",
+        ["3"] = "Medium",
+        ["4"] = "Low",
+        ["5"] = "Lowest",
+    };
 
     private readonly Func<string, byte[]> _readFixture;
     private readonly Func<string, bool> _isRecordedIssue;
@@ -189,7 +202,9 @@ public sealed class FakeJiraWriteStore
 
             foreach (var field in fields)
             {
-                stored.Fields[field.Key] = field.Value?.DeepClone();
+                var value = field.Key == PriorityName ? PriorityNode(field.Value) : field.Value?.DeepClone();
+
+                stored.Fields[field.Key] = value;
 
                 if (field.Key == LabelsName)
                 {
@@ -524,6 +539,19 @@ public sealed class FakeJiraWriteStore
         var displayName = isMe ? StringOf(recorded[DisplayNameName]) : accountId;
 
         return new JsonObject { [AccountIdName] = accountId, [DisplayNameName] = displayName };
+    }
+
+    // A priority is written by id; the issue then shows its name, as Jira's reply does.
+    private static JsonNode? PriorityNode(JsonNode? value)
+    {
+        var id = StringOf((value as JsonObject)?[IdName]);
+
+        if (id is null || !_priorityNames.TryGetValue(id, out var name))
+        {
+            return value?.DeepClone();
+        }
+
+        return new JsonObject { [IdName] = id, [NameName] = name };
     }
 
     private static void ApplyEdits(JsonNode node, StoredIssue stored)

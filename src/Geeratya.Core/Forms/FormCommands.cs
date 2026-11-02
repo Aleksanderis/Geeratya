@@ -1,5 +1,6 @@
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
 
@@ -17,3 +18,12 @@ public sealed record FormMetadataLoaded(TabId Tab, long RequestId, IReadOnlyList
 
 /// <summary>The metadata could not be fetched; the form shows the message and can only be closed.</summary>
 public sealed record FormMetadataFailed(TabId Tab, long RequestId, string Message) : FormCommand;
+
+/// <summary>
+/// The people (or other options) found for the text typed in a searchable field; applied only while the form waits
+/// for that search.
+/// </summary>
+public sealed record FieldOptionsLoaded(TabId Tab, long RequestId, IReadOnlyList<FieldOption> Options) : FormCommand;
+
+/// <summary>The search failed; the message goes to the form's top line and the old options stay.</summary>
+public sealed record FieldOptionsFailed(TabId Tab, long RequestId, string Message) : FormCommand;

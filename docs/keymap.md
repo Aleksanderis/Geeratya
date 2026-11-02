@@ -52,6 +52,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
+| `Space i a` | Assign the issue: search people, or unassign |
+| `Space i m` | Assign the issue to me |
 
 ## Help mode
 
@@ -108,7 +111,11 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
+| `:priority` | Change the priority of the selected or shown issue (field form) |
+| `:assign` | Assign the selected or shown issue: search people, or unassign |
+| `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

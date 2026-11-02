@@ -42,6 +42,7 @@ all_scenarios=(
   "picker;120;36;dark; t;Open a view"
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
+  "assign;120;36;dark;:jql project = GEN| iatest;Test User 1"
   "board;120;36;dark;:board GCM|;In Progress 4"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"

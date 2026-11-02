@@ -101,6 +101,27 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END_", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void GivenThePeoplePicker_WhenBuildingTheFrame_ThenUnassignedLeadsTheListAndTheTitleNamesTheIssue()
+    {
+        var people = new[] { new FieldOption("acc-me", "Me Myself"), new FieldOption("acc-eve", "Eve Example") };
+        var field = FormField.Create("assignee", "Assignee", FormFieldKind.Select, false, people) with
+        {
+            NoneLabel = "Unassigned",
+            Searchable = true,
+            Suggested = people,
+        };
+        var opened = FormState.Opened(new AssignFormTarget("A-1", null), 3, null);
+        var form = opened with { Fields = [field], IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+
+        var unassigned = Array.FindIndex(lines.ToArray(), line => line.Contains("Unassigned", StringComparison.Ordinal));
+        var eve = Array.FindIndex(lines.ToArray(), line => line.Contains("Eve Example", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Assign A-1", StringComparison.Ordinal));
+        Assert.InRange(unassigned, 0, eve - 1);
+    }
+
     private static EditFormTarget Target()
     {
         return new EditFormTarget("A-1", new Dictionary<string, FormValue>(), false, null);

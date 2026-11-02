@@ -28,9 +28,9 @@ Help
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
+  Space i a  Assign the issue: search people, or unassign                                                               
+  Space i m  Assign the issue to me                                                                                     
                                                                                                                         
 Help mode                                                                                                               
-  j          Move down                                                                                                  
-  Down       Move down                                                                                                  
-  k          Move up                                                                                                    
  HELP                                                                                            j down  k up  Esc close

@@ -6,6 +6,8 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 ## 2026-11-02
 
+**UI:** The assignee picker (`<space>ia`) is the field form with one searchable Select field, not a separate overlay, and it searches with its own debounced effect ahead of the suggestion popup (#214). The edit form offers only fields whose current value the view holds (summary, labels, priority, an opened issue's description); a description that does not round-trip through the Markdown-like text is listed read-only with the browser link. Why: one overlay and one state machine for every edit; editmeta has no values, and writing a blind value over an unseen one loses data. The rest comes with #283.
+
 **UI:** Write keys: one `<space>` group per noun (`i` issue, `m` comment, `s` sprint, `k` rank, `v` view options), never a prefix of an M1 leaf, plus `Alt-h/j/k/l` to move a card or row (status, rank), `v` Visual and `Alt-m` marks; no bare letters; only sprint moves and rank steps take a set, every other write is single-issue; a count never selects. Why: Gitunia redesigned its keymap late for the same reasons (one noun one prefix, command levels). Plan in `ux-keymap.md` (issue #152); each issue binds its rows.
 
 **Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate for every open path; the UI and ADF link callers must go through `OpenUrlRequested` (only the issue-key path is wired so far). Issue #118.
