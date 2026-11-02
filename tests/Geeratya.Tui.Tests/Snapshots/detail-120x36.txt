@@ -1,3 +1,4 @@
+ [1 JQL: My open issues]                                                                                                
 My open issues › GCM-12 · Top                                                                                           
 GCM-12  Task                                                                                                            
 Fix login redirect after token refresh                                                                                  
@@ -32,5 +33,4 @@ Description
   | quoted                                                                                                              
                                                                                                                         
   | [warning]                                                                                                           
-  | panel text                                                                                                          
  NORMAL                                                                                        ? help  : command  q quit

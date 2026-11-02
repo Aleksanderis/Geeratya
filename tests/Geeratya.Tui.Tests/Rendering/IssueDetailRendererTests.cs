@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -52,7 +53,7 @@ public class IssueDetailRendererTests
     {
         var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _helpLines, _keymap);
 
-        Assert.StartsWith("My open issues › GCM-12", lines[0]);
+        Assert.StartsWith("My open issues › GCM-12", lines[1]);
     }
 
     [Fact]
@@ -62,7 +63,7 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 100, 30, _helpLines, _keymap);
 
-        Assert.Contains("Loading…", lines[0]);
+        Assert.Contains("Loading…", lines[1]);
         Assert.Contains(lines, line => line.StartsWith("GCM-12  Task"));
         Assert.Contains(lines, line => line.StartsWith("Row summary"));
     }
@@ -78,11 +79,11 @@ public class IssueDetailRendererTests
         var end = FrameBuilder.Build(bottom, 80, 12, _helpLines, _keymap);
         var half = FrameBuilder.Build(middle, 80, 12, _helpLines, _keymap);
 
-        Assert.EndsWith("Top", top[0].TrimEnd());
-        Assert.EndsWith("Bot", end[0].TrimEnd());
-        Assert.Matches(@"\d+%$", half[0].TrimEnd());
-        Assert.NotEqual(top[1], end[1]);
-        Assert.Contains("Comment", string.Join('\n', end));
+        Assert.EndsWith("Top", top[1].TrimEnd());
+        Assert.EndsWith("Bot", end[1].TrimEnd());
+        Assert.Matches(@"\d+%$", half[1].TrimEnd());
+        Assert.NotEqual(top[2], end[2]);
+        Assert.Contains("second paragraph", string.Join('\n', end));
     }
 
     [Theory]
@@ -137,7 +138,7 @@ public class IssueDetailRendererTests
             Session = SiteSession.Empty(_profile),
         };
 
-        state = _reducer.Reduce(state, new ViewportChanged(height - 3, width)).State;
+        state = _reducer.Reduce(state, new ViewportChanged(height - 1 - TabBar.Rows - ListLayout.HeaderRows, width)).State;
 
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));
