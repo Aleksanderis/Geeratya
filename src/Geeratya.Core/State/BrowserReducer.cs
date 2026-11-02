@@ -1,4 +1,6 @@
 using Geeratya.Core.Browser;
+using Geeratya.Jira;
+using Geeratya.Jira.Issues;
 
 namespace Geeratya.Core.State;
 
@@ -23,12 +25,48 @@ public static class BrowserReducer
             return Say(state, $"Cannot open the link: {check.Reason}");
         }
 
-        return new ReduceResult(state with { Message = "Opening in the browser..." }, [new OpenUrlEffect(check.Url)]);
+        return new ReduceResult(state with { Message = "Opening in the browser..." }, [new OpenUrlEffect(check.Url, request.Label)]);
+    }
+
+    /// <summary>
+    /// Opens the issue page of <paramref name="key"/> on the active site (<c>issue.open-in-browser</c> and
+    /// <c>:browse KEY</c>). A null key means "the selected row of the active tab"; with no row there is only a hint.
+    /// Views other than the list (columns, detail) reuse this by passing their own selected key.
+    /// </summary>
+    public static ReduceResult OpenIssue(AppState state, string? key)
+    {
+        key ??= SelectedKey(state);
+
+        if (key is null)
+        {
+            return Say(state, "No issue selected: select a row or use :browse KEY");
+        }
+
+        if (state.Profiles.Active is not { } profile || !Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
+        {
+            return Say(state, "Cannot open the link: no active site");
+        }
+
+        var url = IssueUrls.Browse(new JiraConnection(site, profile.Email), key);
+
+        if (url is null)
+        {
+            return Say(state, "Cannot open the link: not an issue key");
+        }
+
+        return Request(state, new OpenUrlRequested(url.AbsoluteUri, false, key));
+    }
+
+    private static string? SelectedKey(AppState state)
+    {
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
+
+        return tab is not null && tab.Selected >= 0 && tab.Selected < tab.Rows.Count ? tab.Rows[tab.Selected].Key : null;
     }
 
     public static ReduceResult Finished(AppState state, UrlOpenFinished finished)
     {
-        var message = finished.Error is null ? "Opened in the browser" : $"Cannot open the link: {finished.Error}";
+        var message = finished.Error is null ? finished.Label is null ? "Opened in the browser" : $"Opened {finished.Label} in the browser" : $"Cannot open the link: {finished.Error}";
 
         return Say(state, message);
     }

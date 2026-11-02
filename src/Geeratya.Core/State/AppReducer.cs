@@ -173,6 +173,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.IssueOpenInBrowser => BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
             _ => Result(state),
@@ -252,6 +253,7 @@ public sealed class AppReducer
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
+            _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
@@ -270,6 +272,19 @@ public sealed class AppReducer
         }
 
         return null;
+    }
+
+    private static bool IsBrowseCommand(string text)
+    {
+        return text == "browse" || text.StartsWith("browse ", StringComparison.Ordinal);
+    }
+
+    /// <summary>The typed key of <c>:browse KEY</c>, upper-cased; null when none was typed.</summary>
+    private static string? BrowseKey(string text)
+    {
+        var key = text["browse".Length..].Trim().ToUpperInvariant();
+
+        return key.Length == 0 ? null : key;
     }
 
     private static bool IsTabCommand(string text)

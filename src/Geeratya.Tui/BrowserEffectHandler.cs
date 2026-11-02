@@ -25,7 +25,7 @@ public sealed class BrowserEffectHandler
         {
             var result = await _launcher.OpenAsync(open.Url, cancellationToken);
 
-            return new UrlOpenFinished(result.Opened ? null : result.Message);
+            return new UrlOpenFinished(result.Opened ? null : result.Message, open.Label);
         }
         catch (OperationCanceledException)
         {
@@ -33,7 +33,7 @@ public sealed class BrowserEffectHandler
         }
         catch (Exception exception)
         {
-            return new UrlOpenFinished($"the browser could not be started ({exception.GetType().Name})");
+            return new UrlOpenFinished($"the browser could not be started ({exception.GetType().Name})", open.Label);
         }
     }
 }

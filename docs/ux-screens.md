@@ -375,6 +375,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 | Command | Effect |
 |---|---|
 | `:jql <query>` | JQL list; the query is everything after the first space |
+| `:browse [KEY]` | open the issue in the browser (`<space>o` handler): `KEY` is upper-cased and must be a valid issue key; without it, the selected row. Status line: `Opened KEY in the browser` or the launcher failure |
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
