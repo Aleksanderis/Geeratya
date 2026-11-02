@@ -208,11 +208,13 @@ public class FormReducerTests
     {
         var typed = Type(Loaded([]), "x");
 
-        var asked = Press(typed, "Esc").State;
+        var dismissed = Press(typed, "Esc").State;
+        var asked = Press(dismissed, "Esc").State;
         var kept = Press(asked, "n").State;
         var askedAgain = Press(kept, "Esc").State;
         var discarded = Press(askedAgain, "y");
 
+        Assert.False(dismissed.Session.Tabs[0].Form!.DiscardPending);
         Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
         Assert.False(kept.Session.Tabs[0].Form!.DiscardPending);
         Assert.Equal("x", kept.Session.Tabs[0].Form!.Fields[0].Entry);

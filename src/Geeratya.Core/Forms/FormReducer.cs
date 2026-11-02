@@ -1,5 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira;
@@ -13,7 +14,7 @@ namespace Geeratya.Core.Forms;
 /// it from the metadata reply, edits the focused field, checks the form locally on submit and hands the changed
 /// fields to the write pipeline. The form is open while the mode is Insert and the active tab holds one. Pure.
 /// </summary>
-public static class FormReducer
+public static partial class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
     private const string NoFieldsText = "Nothing here can be edited";
@@ -47,6 +48,9 @@ public static class FormReducer
             OpenLabelsFormRequested => OpenLabels(state),
             FormMetadataLoaded loaded => Loaded(state, loaded),
             FormMetadataFailed failed => Failed(state, failed),
+            SuggestionsLoaded loaded => Suggested(state, loaded.Tab, SuggestionLoaded(loaded)),
+            SuggestionsSlow slow => Suggested(state, slow.Tab, SuggestionSlow(slow)),
+            SuggestionsFailed failed => Suggested(state, failed.Tab, SuggestionFailed(failed)),
             _ => new ReduceResult(state, _noEffects),
         };
     }
@@ -68,28 +72,37 @@ public static class FormReducer
             return Discarding(state, tab, keymap.Resolve(InputMode.Confirm, string.Empty, key).Action, action);
         }
 
-        return action switch
+        if (form.Suggest is { } popup && Suggesting(state, tab, form, popup, action) is { } handled)
+        {
+            return handled;
+        }
+
+        var result = action switch
         {
             ActionIds.Cancel => Cancel(state, tab, form),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
-            ActionIds.FormBackspace => Result(Edit(state, tab, form, FormEditor.Backspace)),
+            ActionIds.FormBackspace => Edited(Edit(state, tab, form, FormEditor.Backspace), tab.Id),
             ActionIds.PickerNext => Result(Edit(state, tab, form, field => FormEditor.Move(field, 1))),
             ActionIds.PickerPrevious => Result(Edit(state, tab, form, field => FormEditor.Move(field, -1))),
-            null => Result(Typed(state, tab, form, KeyNotation.ToText(key))),
+            null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
             _ => Result(state),
         };
+
+        return LeavesField(action) ? Unsuggested(result, tab.Id) : result;
     }
 
     /// <summary>Pasted text goes to the focused field (first line only).</summary>
-    public static AppState Paste(AppState state, string text)
+    public static ReduceResult Paste(AppState state, string text)
     {
         var tab = ActiveTab(state)!;
         var form = tab.Form!;
 
-        return form.IsSaving || form.DiscardPending ? state : Typed(state, tab, form, text);
+        return form.IsSaving || form.DiscardPending || text.Length == 0
+            ? Result(state)
+            : Edited(Typed(state, tab, form, text), tab.Id);
     }
 
     /// <summary>
@@ -468,5 +481,11 @@ public static class FormReducer
     private static ReduceResult Result(AppState state)
     {
         return new ReduceResult(state, _noEffects);
+    }
+
+    // A result that also stops the lookup of the popup that was just closed.
+    private static ReduceResult Result(AppState state, TabId cancelled)
+    {
+        return new ReduceResult(state, [new CancelSuggestionsEffect(cancelled)]);
     }
 }

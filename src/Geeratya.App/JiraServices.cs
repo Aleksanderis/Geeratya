@@ -5,6 +5,7 @@ using Geeratya.Jira.Issues;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
 
@@ -29,7 +30,11 @@ public sealed class JiraServices
         Boards = new BoardClient(transport);
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
+        Suggestions = new SuggestionClient(transport);
     }
+
+    /// <summary>Candidate lookups behind the suggestion popup (reads only).</summary>
+    public SuggestionClient Suggestions { get; }
 
     /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
     public EditClient Edits { get; }

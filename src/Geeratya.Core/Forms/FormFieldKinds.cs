@@ -6,7 +6,13 @@ public static class FormFieldKinds
     /// <summary>True when the user can type or choose a value; the other kinds are listed read-only.</summary>
     public static bool IsEditable(FormFieldKind kind)
     {
-        return kind is not (FormFieldKind.Unsupported or FormFieldKind.User or FormFieldKind.Parent);
+        return kind != FormFieldKind.Unsupported;
+    }
+
+    /// <summary>True for the kinds that pick one person or issue found by a search (the suggestion popup).</summary>
+    public static bool IsPicked(FormFieldKind kind)
+    {
+        return kind is FormFieldKind.User or FormFieldKind.Parent;
     }
 
     /// <summary>True for the kinds that choose from the allowed values.</summary>

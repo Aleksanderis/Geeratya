@@ -1,3 +1,5 @@
+using Geeratya.Core.Suggestions;
+
 namespace Geeratya.Core.Forms;
 
 /// <summary>
@@ -13,6 +15,7 @@ namespace Geeratya.Core.Forms;
 /// <param name="OperationId">The write of the submit while it runs; the form shows Saving and ignores edits.</param>
 /// <param name="DiscardPending">Esc was pressed on a form with changes; waiting for y or n.</param>
 /// <param name="BrowserUrl">The issue page, shown with the fields the form cannot edit; null when unknown.</param>
+/// <param name="Suggest">The suggestion popup of the focused field while one is open, else null.</param>
 public sealed record FormState(
     FormTarget Target,
     IReadOnlyList<FormField> Fields,
@@ -22,7 +25,8 @@ public sealed record FormState(
     string? TopError,
     long? OperationId,
     bool DiscardPending,
-    string? BrowserUrl)
+    string? BrowserUrl,
+    SuggestionState? Suggest = null)
 {
     /// <summary>The form waits for the reply of a write.</summary>
     public bool IsSaving => OperationId is not null;

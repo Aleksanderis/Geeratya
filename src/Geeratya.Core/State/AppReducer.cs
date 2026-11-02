@@ -48,6 +48,7 @@ public sealed class AppReducer
                 Confirm = requested.Request,
                 PendingKeys = string.Empty,
             }),
+            TextPasted pasted when FormReducer.IsOpen(state) => FormReducer.Paste(state, PasteText.FirstLine(pasted.Text)),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
             FormCommand form => FormReducer.Reduce(state, form),
@@ -157,11 +158,6 @@ public sealed class AppReducer
         if (text.Length == 0)
         {
             return state;
-        }
-
-        if (FormReducer.IsOpen(state))
-        {
-            return FormReducer.Paste(state, text);
         }
 
         if (state.Mode == InputMode.Insert)

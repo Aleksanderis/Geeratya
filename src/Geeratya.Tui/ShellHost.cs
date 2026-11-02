@@ -6,6 +6,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;
@@ -50,6 +51,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly SourceLoadHandler _sourceLoads;
     private readonly WriteHandler _writes;
     private readonly FormMetadataHandler _formMetadata;
+    private readonly SuggestionHandler _suggestions;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -79,6 +81,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _sourceLoads = new SourceLoadHandler(_network);
         _writes = new WriteHandler(_network);
         _formMetadata = new FormMetadataHandler(_network);
+        _suggestions = new SuggestionHandler(_network, TimeProvider.System);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
@@ -250,6 +253,14 @@ public sealed class ShellHost : ICommandSink, IDisposable
             else if (effect is LoadFormMetadataEffect formMetadata)
             {
                 _ = _formMetadata.StartAsync(formMetadata);
+            }
+            else if (effect is SearchSuggestionsEffect search)
+            {
+                _ = _suggestions.StartAsync(search);
+            }
+            else if (effect is CancelSuggestionsEffect stop)
+            {
+                _suggestions.Cancel(stop.Tab);
             }
             else if (effect is InvalidateCacheEffect invalidate)
             {
