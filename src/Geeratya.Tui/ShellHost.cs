@@ -22,6 +22,8 @@ namespace Geeratya.Tui;
 /// </summary>
 public sealed class ShellHost : IDisposable
 {
+    private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
+
     private const string CorruptNotice =
         "profiles.json could not be read and was ignored; a copy was kept as profiles.json.corrupt.";
 
@@ -39,6 +41,7 @@ public sealed class ShellHost : IDisposable
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
     private AppState _state = AppState.Initial;
+    private ITimer? _tickTimer;
 
     public ShellHost(KeymapTable keymap, ColorSupport colors, ProfileServices profiles)
     {
@@ -51,11 +54,14 @@ public sealed class ShellHost : IDisposable
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
+        _connections.RateLimitChanged += OnRateLimitChanged;
     }
 
     public void Dispose()
     {
         _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+        _connections.RateLimitChanged -= OnRateLimitChanged;
+        _tickTimer?.Dispose();
         _profiles.Caches.Dispose();
         _network?.Dispose();
         _connections.Dispose();
@@ -92,6 +98,7 @@ public sealed class ShellHost : IDisposable
         screen.Render(_state);
         Dispatch(new ViewportChanged(screen.BodyRows));
         Dispatch(new ConnectionCheckRequested());
+        _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
         shutdown.Cancel();
         _profiles.Caches.FlushAll();
@@ -108,6 +115,18 @@ public sealed class ShellHost : IDisposable
         }
 
         _application!.Invoke(() => Dispatch(command));
+    }
+
+    /// <summary>Timer callback (not the UI thread): hands the clock to the reducer, which decides about refreshes.</summary>
+    private void PostTick(object? timerState)
+    {
+        Post(new Tick(TimeProvider.System.GetUtcNow()));
+    }
+
+    /// <summary>The transport's rate-limit wait started or ended (not the UI thread).</summary>
+    private void OnRateLimitChanged(DateTimeOffset? until)
+    {
+        Post(new LinkChanged(until is { } end ? new RateLimited(end) : new Online()));
     }
 
     private void OnKeyDown(object? sender, Key key)
@@ -135,6 +154,12 @@ public sealed class ShellHost : IDisposable
     private void Dispatch(AppCommand command)
     {
         var result = _reducer.Reduce(_state, command);
+
+        // An idle tick changes nothing: no redraw (nothing on screen shows the time yet).
+        if (command is Tick && ReferenceEquals(result.State, _state) && result.Effects.Count == 0)
+        {
+            return;
+        }
 
         _state = result.State;
         _screen!.Render(_state);

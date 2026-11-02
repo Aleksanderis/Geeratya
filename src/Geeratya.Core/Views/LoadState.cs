@@ -19,8 +19,10 @@ public abstract record LoadState
 /// <summary>No request in flight.</summary>
 public sealed record IdleState : LoadState;
 
-/// <summary>A request is in flight.</summary>
-public sealed record Loading(LoadReason Reason) : LoadState;
+/// <summary>
+/// A request is in flight; <paramref name="Background"/> says it runs in the background lane (a refresh by the clock).
+/// </summary>
+public sealed record Loading(LoadReason Reason, bool Background = false) : LoadState;
 
-/// <summary>The last request failed.</summary>
-public sealed record Failed(JiraErrorKind Kind, string Message) : LoadState;
+/// <summary>The last request failed; <paramref name="Reason"/> is what it was loading (a failed next page is retried as one).</summary>
+public sealed record Failed(JiraErrorKind Kind, string Message, LoadReason Reason = LoadReason.Open) : LoadState;
