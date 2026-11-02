@@ -78,32 +78,26 @@
     },
     {
       "fields": {
-        "assignee": {
-          "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/assignable/search?issueKey=GCM-4&query=",
-          "key": "assignee",
-          "name": "Assignee",
-          "operations": [
-            "set"
+        "components": {
+          "allowedValues": [
+            {
+              "description": "Geeratya sandbox component",
+              "id": "10000",
+              "name": "Sandbox core",
+              "self": "https://example.atlassian.net/rest/api/3/component/10000"
+            }
           ],
-          "required": false,
-          "schema": {
-            "system": "assignee",
-            "type": "user"
-          }
-        },
-        "fixVersions": {
-          "allowedValues": [],
-          "key": "fixVersions",
-          "name": "Fix versions",
+          "key": "components",
+          "name": "Components",
           "operations": [
-            "set",
             "add",
+            "set",
             "remove"
           ],
           "required": false,
           "schema": {
-            "items": "version",
-            "system": "fixVersions",
+            "items": "component",
+            "system": "components",
             "type": "array"
           }
         },
@@ -139,19 +133,6 @@
           "schema": {
             "system": "resolution",
             "type": "resolution"
-          }
-        },
-        "worklog": {
-          "key": "worklog",
-          "name": "Log Work",
-          "operations": [
-            "add"
-          ],
-          "required": false,
-          "schema": {
-            "items": "worklog",
-            "system": "worklog",
-            "type": "array"
           }
         }
       },
