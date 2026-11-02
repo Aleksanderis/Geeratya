@@ -46,7 +46,7 @@ Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(start
 The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys what a client returned, never raw HTTP:
 
 - Views: `(ViewSourceKind, SourceValue)` inside the profile's folder. Source value is the JQL text, the filter id or the board id. The profile (site plus account) is the folder, so the same JQL on two sites never collides. A board key caches the board's configuration with its first page.
-- Issue details: the issue key inside the profile's folder.
+- Issue details: the issue key inside the profile's folder. An entry is removed when the issue load answers 404 or 403 (the issue is gone or hidden).
 - Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile).
 - Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
 

@@ -181,8 +181,16 @@ internal static class DetailReducer
                 : null);
     }
 
-    public static AppState LoadFailed(AppState state, IssueDetailFailed failed)
+    public static AppState LoadFailed(AppState state, IssueDetailFailed failed, List<Effect> effects)
     {
+        if (failed.Error.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden
+            && ViewReducer.Find(state.Session.Tabs, failed.Tab) is { } tab
+            && tab.Detail.LastOrDefault(detail => detail.IssueRequest == failed.RequestId) is { } loading)
+        {
+            // The issue is gone or hidden: its cached copy must not come back on the next open.
+            effects.Add(new RemoveIssueCacheEffect(loading.Key));
+        }
+
         var failure = new Failed(failed.Error.Kind, LoadErrorText.For(failed.Error));
 
         return Update(state, failed.Tab, detail => Fail(detail, failed.RequestId, failure));

@@ -153,6 +153,56 @@ public sealed class IssueCacheTests : IDisposable
     }
 
     [Fact]
+    public void GivenFlushedIssue_WhenRemoved_ThenMemoryMissesAtOnceAndTheFileIsDeletedByTheNextFlush()
+    {
+        var folder = Path.Combine(_root, "p");
+        using var cache = new SiteCache(folder);
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+        cache.Flush();
+        var file = Path.Combine(folder, SiteCache.IssueFileName("A-1"));
+
+        cache.RemoveIssue("a-1");
+
+        Assert.Null(cache.GetIssue("A-1"));
+        Assert.True(File.Exists(file));
+
+        cache.Flush();
+
+        Assert.False(File.Exists(file));
+        using var reader = new SiteCache(folder);
+        Assert.Null(reader.GetIssue("A-1"));
+    }
+
+    [Fact]
+    public void GivenPendingIssue_WhenRemoved_ThenItIsNeverWritten()
+    {
+        var folder = Path.Combine(_root, "p");
+        using var cache = new SiteCache(folder);
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+
+        cache.RemoveIssue("A-1");
+        cache.Flush();
+
+        Assert.False(File.Exists(Path.Combine(folder, SiteCache.IssueFileName("A-1"))));
+    }
+
+    [Fact]
+    public void GivenRemovedIssue_WhenPutAgainBeforeTheFlush_ThenItIsKept()
+    {
+        var folder = Path.Combine(_root, "p");
+        using var cache = new SiteCache(folder);
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+        cache.Flush();
+
+        cache.RemoveIssue("A-1");
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+        cache.Flush();
+
+        using var reader = new SiteCache(folder);
+        Assert.NotNull(reader.GetIssue("A-1"));
+    }
+
+    [Fact]
     public void GivenLowerCaseKey_WhenGettingIssue_ThenItIsFound()
     {
         var folder = Path.Combine(_root, "p");
