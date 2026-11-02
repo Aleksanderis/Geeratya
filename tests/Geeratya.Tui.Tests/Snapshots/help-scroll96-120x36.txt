@@ -1,6 +1,19 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
+  Ctrl-o     Open the issue page in the browser from the form                                                           
+                                                                                                                        
+Palette commands                                                                                                        
+  :jql <query>                                                                                                          
+      Open a JQL query in a new tab                                                                                     
+  :filter [name]                                                                                                        
+      Open a saved filter in a new tab                                                                                  
+  :board [name]                                                                                                         
+      Open a board as columns in a new tab                                                                              
+  :backlog [name]                                                                                                       
+      Open a board's backlog in a new tab                                                                               
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
   :status [next|prev]                                                                                                   
@@ -15,19 +28,6 @@ Help
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

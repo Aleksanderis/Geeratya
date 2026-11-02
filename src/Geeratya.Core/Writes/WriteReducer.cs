@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -23,6 +24,11 @@ public static class WriteReducer
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
     public static ReduceResult Reduce(AppState state, WriteCommand command)
+    {
+        return CommentEditing.Settled(state, ReduceCore(state, command), command);
+    }
+
+    private static ReduceResult ReduceCore(AppState state, WriteCommand command)
     {
         return command switch
         {
@@ -236,7 +242,7 @@ public static class WriteReducer
     {
         var keys = string.Join(", ", operation.Keys);
         var text = $"{keys}: could not check the result; reload to see the current state";
-        var marked = MarkStale(state, operation.Keys);
+        var marked = operation.Request.ChangesRows ? MarkStale(state, operation.Keys) : state;
 
         return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)], true);
     }
@@ -249,12 +255,18 @@ public static class WriteReducer
             return CompleteRemoval(state, operation);
         }
 
-        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        var effects = new List<Effect>();
+
+        if (operation.Request.ChangesRows)
+        {
+            effects.Add(new InvalidateCacheEffect(operation.Keys));
+        }
+
         var replaced = ReplaceRows(state, rows);
-        var stale = MarkStale(replaced, operation.Keys);
+        var stale = operation.Request.ChangesRows ? MarkStale(replaced, operation.Keys) : replaced;
         var queued = QueueRankReload(stale, operation);
         var finished = Finish(queued, operation, true, effects, rows);
-        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+        var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }
@@ -325,7 +337,7 @@ public static class WriteReducer
         var finished = Finish(queued, operation, false, effects);
 
         // A detail reply that landed during the write may hold the optimistic value: read the issue again.
-        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+        var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
         return new ReduceResult(reloaded with { Message = text }, effects);
     }

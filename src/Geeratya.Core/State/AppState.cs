@@ -1,3 +1,4 @@
+using Geeratya.Core.Comments;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -36,6 +37,8 @@ public sealed record AppState(
     /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
     public int ViewportColumns { get; init; }
 
+    /// <summary>The open comment editor (Insert mode, or Confirm while it asks to discard), otherwise null.</summary>
+    public CommentEditor? Editor { get; init; }
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 

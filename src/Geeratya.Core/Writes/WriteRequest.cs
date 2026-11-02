@@ -14,6 +14,12 @@ public abstract record WriteRequest
     public abstract IReadOnlyList<string> Keys { get; }
 
     /// <summary>
+    /// Whether the write changes what the list rows and the issue header show. False for a write that only touches
+    /// the issue's comments: no row is marked stale, no search is read and the issue is not reloaded.
+    /// </summary>
+    public virtual bool ChangesRows => true;
+
+    /// <summary>
     /// True for a write that deletes its issues: no optimistic change, the rows and open details of the issues go
     /// when Jira confirmed, and the read after the write is not made (the issues are gone).
     /// </summary>

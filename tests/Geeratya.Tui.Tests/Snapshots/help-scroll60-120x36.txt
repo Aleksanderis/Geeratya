@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
+  k          Move up                                                                                                    
   Up         Move up                                                                                                    
   ?          Show or hide help                                                                                          
   Esc        Close help                                                                                                 
@@ -30,7 +33,4 @@ Insert mode
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
-  Ctrl-o     Open the issue page in the browser from the form                                                           
-                                                                                                                        
-Palette commands                                                                                                        
  HELP                                                                                            j down  k up  Esc close
