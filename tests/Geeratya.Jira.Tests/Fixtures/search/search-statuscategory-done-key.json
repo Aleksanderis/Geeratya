@@ -1,0 +1,24 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Export report as CSV"
+      },
+      "id": "10019",
+      "key": "GCM-12",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10019"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Write the setup guide"
+      },
+      "id": "10022",
+      "key": "GCM-15",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10022"
+    }
+  ],
+  "nextPageToken": "EAIYgd6K3Zk0Ijhwcm9qZWN0ID0gR0NNIEFORCBzdGF0dXNDYXRlZ29yeSA9IGRvbmUgT1JERVIgQlkga2V5IEFTQyoCW10yIFRFTkFOVF9OT1RfRk9VTkRfSU5fVEVOQU5UX1NUT1JF"
+}
