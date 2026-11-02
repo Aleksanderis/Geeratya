@@ -100,6 +100,37 @@ public sealed class FormHandlerTests
         Assert.Empty(fixture.Http.Requests);
     }
 
+    [Fact]
+    public async Task GivenAnAssignment_WhenExecuted_ThenOnePutNamesTheAccountAndUnassigningSendsNull()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}""")
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new AssignRequest("A-1", new("acc-eve", "Eve"))));
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(6, new AssignRequest("A-1", null)));
+
+        Assert.Equal("PUT", fixture.Http.Methods.ElementAt(0));
+        Assert.EndsWith("/rest/api/3/issue/A-1/assignee", fixture.Http.Requests.First().AbsolutePath);
+        Assert.Contains("\"accountId\":\"acc-eve\"", fixture.Http.Bodies.ElementAt(0).Replace(" ", string.Empty));
+        Assert.Contains("\"accountId\":null", fixture.Http.Bodies.ElementAt(2).Replace(" ", string.Empty));
+    }
+
+    [Fact]
+    public async Task GivenAPriorityChoice_WhenExecuted_ThenOnePutSetsThePriorityById()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+        var change = new FieldChange("priority", FormFieldKind.Select, FormValue.OfChosen(["2"]), null, ["High"]);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [change])));
+
+        Assert.Contains("\"priority\":{\"id\":\"2\"}", fixture.Http.Bodies.ElementAt(0).Replace(" ", string.Empty));
+    }
+
     private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script)
     {
         var http = new ScriptedJiraHandler();

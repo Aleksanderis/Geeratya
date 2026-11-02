@@ -64,20 +64,39 @@ public sealed class FakeJiraWriteStore
     private const string GcmTransitionsFixture = "transitions/transitions-gcm-1.json";
     private const string GcmPrefix = "GCM-";
 
-    private static readonly string[] _editableFields = [SummaryName, LabelsName, DescriptionName, DueDateName];
+    private const string PriorityName = "priority";
+
+    private static readonly string[] _editableFields =
+        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName];
+
+    // The priorities of both recorded edit metadata, by id.
+    private static readonly Dictionary<string, string> _priorityNames = new()
+    {
+        ["1"] = "Highest",
+        ["2"] = "High",
+        ["3"] = "Medium",
+        ["4"] = "Low",
+        ["5"] = "Lowest",
+    };
 
     private readonly Func<string, byte[]> _readFixture;
     private readonly Func<string, bool> _isRecordedIssue;
+    private readonly Func<string, bool> _isListedIssue;
     private readonly Dictionary<string, StoredIssue> _issues = [];
     private readonly Dictionary<string, int> _nextNumber = new() { ["GCM"] = FirstCreatedNumber, ["GTM"] = FirstCreatedNumber };
     private readonly Lock _lock = new();
+    private readonly FakeRankOrder _order = new();
     private int _nextId = FirstCreatedId;
     private int _nextCommentId = FirstCommentId;
 
-    public FakeJiraWriteStore(Func<string, byte[]> readFixture, Func<string, bool> isRecordedIssue)
+    public FakeJiraWriteStore(
+        Func<string, byte[]> readFixture,
+        Func<string, bool> isRecordedIssue,
+        Func<string, bool> isListedIssue)
     {
         _readFixture = readFixture;
         _isRecordedIssue = isRecordedIssue;
+        _isListedIssue = isListedIssue;
     }
 
     /// <summary>True when the issue was created through the fake or has edits to lay over its recorded reply.</summary>
@@ -189,7 +208,9 @@ public sealed class FakeJiraWriteStore
 
             foreach (var field in fields)
             {
-                stored.Fields[field.Key] = field.Value?.DeepClone();
+                var value = field.Key == PriorityName ? PriorityNode(field.Value) : field.Value?.DeepClone();
+
+                stored.Fields[field.Key] = value;
 
                 if (field.Key == LabelsName)
                 {
@@ -372,16 +393,24 @@ public sealed class FakeJiraWriteStore
         }
     }
 
+    /// <summary>The reply of a board or backlog list with the rank calls laid over its order.</summary>
+    public FakeReply Ranked(FakeReply reply)
+    {
+        return _order.Apply(reply);
+    }
+
     public FakeReply Rank(string body)
     {
         var keys = ReadRankKeys(body);
 
         lock (_lock)
         {
-            if (keys.Count == 0 || keys.Any(key => Find(key) is null))
+            if (keys.Count == 0 || keys.Any(key => Find(key) is null && !_isListedIssue(key)))
             {
                 return Reply(BadRequest, MissingRankIssueFixture);
             }
+
+            _order.Record(body);
 
             return Empty(NoContent);
         }
@@ -524,6 +553,19 @@ public sealed class FakeJiraWriteStore
         var displayName = isMe ? StringOf(recorded[DisplayNameName]) : accountId;
 
         return new JsonObject { [AccountIdName] = accountId, [DisplayNameName] = displayName };
+    }
+
+    // A priority is written by id; the issue then shows its name, as Jira's reply does.
+    private static JsonNode? PriorityNode(JsonNode? value)
+    {
+        var id = StringOf((value as JsonObject)?[IdName]);
+
+        if (id is null || !_priorityNames.TryGetValue(id, out var name))
+        {
+            return value?.DeepClone();
+        }
+
+        return new JsonObject { [IdName] = id, [NameName] = name };
     }
 
     private static void ApplyEdits(JsonNode node, StoredIssue stored)

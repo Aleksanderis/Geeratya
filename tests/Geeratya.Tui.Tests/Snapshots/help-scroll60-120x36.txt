@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+Help                                                                                                                    
+  Space i m  Assign the issue to me                                                                                     
+  Space g    Jump to an issue by key                                                                                    
+                                                                                                                        
+Help mode                                                                                                               
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
+  k          Move up                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Command mode                                                                                                            
+  Enter      Run the typed command                                                                                      
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Confirm mode                                                                                                            
+  y          Confirm                                                                                                    
+  n          Decline                                                                                                    
+  Esc        Decline                                                                                                    
+                                                                                                                        
+Insert mode                                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous row in the picker                                                                                 
+  Ctrl-p     Previous row in the picker                                                                                 
+  Down       Next row in the picker                                                                                     
+ HELP                                                                                            j down  k up  Esc close

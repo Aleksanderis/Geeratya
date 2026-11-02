@@ -14,4 +14,7 @@ public enum PickerScope
 
     /// <summary>Saved filters only (<c>:filter</c>).</summary>
     Filters,
+
+    /// <summary>Recent JQL strings and the typed query (<c>:jql</c> without a query).</summary>
+    Jql,
 }

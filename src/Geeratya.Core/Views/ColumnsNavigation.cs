@@ -39,6 +39,21 @@ public static class ColumnsNavigation
         return BoardMotion.SelectedIssue(columns, cursor);
     }
 
+    /// <summary>The cards of the selected column and the selected one, null when the tab has no columns.</summary>
+    public static ColumnSelection? SelectedColumn(TabState tab)
+    {
+        var columns = ColumnsOf(tab);
+
+        if (columns.Count == 0)
+        {
+            return null;
+        }
+
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+
+        return new ColumnSelection(columns[cursor.Column].Rows, cursor.Card, columns[cursor.Column].Nested);
+    }
+
     /// <summary>The columns the layout draws for the tab's rows.</summary>
     public static IReadOnlyList<BoardColumnGroup> ColumnsOf(TabState tab)
     {

@@ -8,5 +8,7 @@ public static class FormFieldIds
 {
     public const string Summary = "summary";
     public const string Labels = "labels";
+    public const string Description = "description";
+    public const string Priority = "priority";
     public const string Assignee = "assignee";
 }

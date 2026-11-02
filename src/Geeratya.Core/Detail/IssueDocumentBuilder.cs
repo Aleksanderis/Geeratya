@@ -243,7 +243,7 @@ public static class IssueDocumentBuilder
 
     private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)
     {
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         for (var index = 0; index < detail.Comments.Count; index++)
         {
@@ -255,8 +255,11 @@ public static class IssueDocumentBuilder
             AddComment(content, detail.Comments[index], detail.LoadedAt, inner);
         }
 
-        AddCommentsFooter(content, detail);
-        sink.AddPanel([new StyledSpan(CommentsHeading(detail), TextRole.Heading)], Wrap(content), width);
+        var footer = new List<StyledLine>();
+
+        AddCommentsFooter(footer, detail);
+        content.AddRange(footer);
+        sink.AddPanel([new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
     }
 
     private static PanelContent Wrap(List<StyledLine> lines)
@@ -282,8 +285,10 @@ public static class IssueDocumentBuilder
             : $"{CommentsTitle} ({loaded})";
     }
 
-    private static void AddComment(List<StyledLine> lines, IssueComment comment, DateTimeOffset? reference, int inner)
+    /// <summary>One comment; every line of it opens the comment, so the edit and delete keys find it.</summary>
+    private static void AddComment(PanelContent content, IssueComment comment, DateTimeOffset? reference, int inner)
     {
+        var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
         var byline = new WrappedText(inner, false);
 
         byline.Append(Clean(comment.Author?.DisplayName ?? UnknownAuthor), TextRole.Strong);
@@ -298,16 +303,19 @@ public static class IssueDocumentBuilder
             byline.Append(EditedText, TextRole.Muted);
         }
 
-        byline.Finish(lines);
+        content.Finish(byline, target);
 
         if (comment.Body.Content.Count == 0)
         {
-            lines.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted));
+            content.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted), target);
 
             return;
         }
 
-        lines.AddRange(AdfRenderer.Render(comment.Body, inner).Lines);
+        foreach (var line in AdfRenderer.Render(comment.Body, inner).Lines)
+        {
+            content.Add(line, target);
+        }
     }
 
     private static void AddCommentsFooter(List<StyledLine> lines, DetailState detail)

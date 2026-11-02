@@ -5,6 +5,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira;
 using Geeratya.Jira.Issues;
+using Geeratya.Jira.Transitions.Models;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Core.Forms;
@@ -17,7 +18,6 @@ namespace Geeratya.Core.Forms;
 public static partial class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
-    private const string NoFieldsText = "Nothing here can be edited";
     private const string NoPageText = "No issue page to open";
     private const string NothingChangedText = "Nothing changed";
     private const string DetachedText = "Closed the form; the save continues";
@@ -45,6 +45,7 @@ public static partial class FormReducer
     {
         return command switch
         {
+            OpenFormRequested { Target: AssignFormTarget assign } open => OpenAssign(state, open.Tab, assign),
             OpenFormRequested open => Open(state, open.Tab, open.Target),
             OpenLabelsFormRequested => OpenLabels(state),
             FormMetadataLoaded loaded => Loaded(state, loaded),
@@ -133,7 +134,7 @@ public static partial class FormReducer
         return result with { State = settled };
     }
 
-    private static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
+    internal static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
     {
         var tab = ViewReducer.Find(state.Session.Tabs, tabId);
 
@@ -154,6 +155,64 @@ public static partial class FormReducer
         };
 
         return new ReduceResult(next, [new LoadFormMetadataEffect(tabId, requestId, target)]);
+    }
+
+    /// <summary>
+    /// Opens the people picker at once: there is no metadata to fetch, the people come from a search of the typed
+    /// text (the suggestion popup). It starts on the current assignee.
+    /// </summary>
+    internal static ReduceResult OpenAssign(AppState state, TabId tabId, AssignFormTarget target)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, tabId);
+
+        if (tab is null)
+        {
+            return Result(state);
+        }
+
+        var requestId = state.Sequence + 1;
+        var field = AssigneeField(target);
+        var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
+        var form = opened with { Fields = [field], IsLoading = false };
+        var next = ViewReducer.Replace(state, tab with { Form = form }) with
+        {
+            Mode = InputMode.Insert,
+            Sequence = requestId,
+            Message = null,
+            PendingKeys = string.Empty,
+        };
+
+        return Result(next);
+    }
+
+    // The assignee is a person field like any other: typing opens the suggestion popup, which searches the people who
+    // can be assigned. Backspace on an empty buffer clears it (unassigned).
+    private static FormField AssigneeField(AssignFormTarget target)
+    {
+        List<FieldOption> known = [];
+
+        if (target.Current is { } assignee)
+        {
+            known.Add(new FieldOption(assignee.AccountId, assignee.DisplayName));
+        }
+
+        var field = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.User, false, known);
+
+        return target.Current is { } current ? field.WithInitial(FormValue.OfChosen([current.AccountId])) : field;
+    }
+
+    private static FieldChange ChangeOf(FormField field)
+    {
+        var display = FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind)
+            ? field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray()
+            : null;
+
+        return new FieldChange(field.Id, field.Kind, field.Value, field.Initial, display);
+    }
+
+    private static string LabelOf(FormField field, string id)
+    {
+        return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
     }
 
     private static ReduceResult OpenLabels(AppState state)
@@ -179,7 +238,7 @@ public static partial class FormReducer
         return Open(state, tab.Id, target);
     }
 
-    private static string? TargetKey(AppState state, TabState tab)
+    internal static string? TargetKey(AppState state, TabState tab)
     {
         return tab.Detail.Count > 0 ? tab.Detail[^1].Key : BrowserReducer.SelectedKey(state);
     }
@@ -232,10 +291,17 @@ public static partial class FormReducer
             return Result(state);
         }
 
-        var top = loaded.Fields.Any(field => field.IsEditable) ? null : NoFieldsText;
-        var filled = form with { Fields = loaded.Fields, IsLoading = false, TopError = top };
+        var target = loaded.Target ?? form.Target;
+        var top = loaded.Fields.Any(field => field.IsEditable) ? null : target.EmptyText;
+        var filled = form with { Target = target, Fields = loaded.Fields, IsLoading = false, TopError = top };
+        var shown = filled with { Focus = Step(filled, 0) };
 
-        return Result(Replace(state, tab, filled with { Focus = Step(filled, 0) }));
+        if (target.Automatic is { } changes)
+        {
+            return Send(Replace(state, tab, shown), tab, shown, changes, loaded.At);
+        }
+
+        return Result(Replace(state, tab, shown));
     }
 
     private static ReduceResult Failed(AppState state, FormMetadataFailed failed)
@@ -332,10 +398,10 @@ public static partial class FormReducer
 
         var changes = checkedFields
             .Where(field => field.IsChanged)
-            .Select(field => new FieldChange(field.Id, field.Kind, field.Value, field.Initial))
+            .Select(ChangeOf)
             .ToArray();
 
-        if (changes.Length == 0)
+        if (changes.Length == 0 && !form.Target.AllowsNoChanges)
         {
             return Result(Replace(state, tab, form with { Fields = checkedFields, TopError = NothingChangedText }));
         }
@@ -350,8 +416,19 @@ public static partial class FormReducer
         IReadOnlyList<FieldChange> changes,
         DateTimeOffset at)
     {
+        if (form.Target.Following(changes) is { } following)
+        {
+            return Open(state, tab.Id, following);
+        }
+
         var request = form.Target.Request(changes);
         var started = WriteReducer.Reduce(state, new WriteRequested(tab.Id, request, at));
+
+        if (state.Confirm is null && started.State.Confirm is not null)
+        {
+            // The write asks first: the form is done, the answer decides.
+            return started with { State = Closed(started.State, tab) };
+        }
 
         if (started.State.Session.Operations.Count <= state.Session.Operations.Count)
         {
@@ -359,6 +436,11 @@ public static partial class FormReducer
             var refused = form with { TopError = started.State.Message };
 
             return Result(Replace(state, tab, refused));
+        }
+
+        if (form.Target.ClosesOnSend)
+        {
+            return started with { State = Closed(started.State, tab) };
         }
 
         var locked = form with { OperationId = started.State.Sequence };
