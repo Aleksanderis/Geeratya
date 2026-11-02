@@ -68,7 +68,7 @@ public static class FormOpener
             [FormFieldIds.Labels] = FormValue.OfChosen(subject.Labels),
         };
 
-        if (subject.Priority is { } priority)
+        if (subject.PriorityName is { } priority)
         {
             known[FormFieldIds.Priority] = FormValue.OfText(priority);
         }
@@ -118,7 +118,7 @@ public static class FormOpener
         string Key,
         string Summary,
         IReadOnlyList<string> Labels,
-        string? Priority,
+        string? PriorityName,
         IssueAssignee? Assignee,
         bool DescriptionKnown,
         AdfDocument? Description)

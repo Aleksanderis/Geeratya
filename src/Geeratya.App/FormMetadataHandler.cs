@@ -7,15 +7,15 @@ namespace Geeratya.App;
 
 /// <summary>
 /// Turns <see cref="LoadFormMetadataEffect"/> and <see cref="SearchFieldOptionsEffect"/> into the command that
-/// reports them. The fetch is a read and runs under the
-/// scope of the tab, so closing the tab cancels it; the request id makes the reducer apply only the current reply.
+/// reports them. Both are reads that run under the scope of the tab, so closing the tab cancels them; the request id
+/// makes the reducer apply only the current reply.
 /// </summary>
 public sealed class FormMetadataHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
-    private static readonly TimeSpan _defaultDebounce = TimeSpan.FromMilliseconds(250);
-
     private const string UnsupportedMessage = "This form cannot be opened yet.";
+
+    private static readonly TimeSpan _defaultDebounce = TimeSpan.FromMilliseconds(250);
 
     private readonly NetworkRunner _runner;
     private readonly TimeSpan _debounce;
@@ -56,7 +56,7 @@ public sealed class FormMetadataHandler
 
         return _runner.Start(
             effect.Tab.Value,
-            (services, token) => SearchAsync(services, effect, newer.Token, token),
+            (services, token) => SearchThenForgetAsync(services, effect, newer, token),
             () => new FieldOptionsFailed(effect.Tab, effect.RequestId, NoConnectionMessage));
     }
 
@@ -87,6 +87,30 @@ public sealed class FormMetadataHandler
         }
 
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, edit));
+    }
+
+    // The entry of the tab is removed when its own search ends and no newer one replaced it.
+    private async Task<Command?> SearchThenForgetAsync(
+        JiraServices services,
+        SearchFieldOptionsEffect effect,
+        CancellationTokenSource source,
+        CancellationToken token)
+    {
+        try
+        {
+            return await SearchAsync(services, effect, source.Token, token);
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                if (_searches.TryGetValue(effect.Tab.Value, out var current) && current == source)
+                {
+                    _searches.Remove(effect.Tab.Value);
+                    source.Dispose();
+                }
+            }
+        }
     }
 
     private async Task<Command?> SearchAsync(

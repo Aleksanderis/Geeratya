@@ -37,6 +37,12 @@ public sealed record FormField(
     /// </summary>
     public bool Searchable { get; init; }
 
+    /// <summary>
+    /// The typed text of a searchable field has been sent to the search and the answer is not in yet, so the options
+    /// shown belong to older text and Enter must not choose from them.
+    /// </summary>
+    public bool Searching { get; init; }
+
     /// <summary>What a searchable field lists while nothing is typed.</summary>
     public IReadOnlyList<FieldOption> Suggested { get; init; } = [];
 

@@ -123,7 +123,6 @@ public class FormOpenerTests
 
         var firstSearch = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(first.Effects));
         var secondSearch = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(second.Effects));
-        var tab = second.State.Session.Tabs[0];
         Assert.Equal("e", firstSearch.Query);
         Assert.Equal("ev", secondSearch.Query);
         Assert.Equal("A-1", secondSearch.Key);
@@ -139,7 +138,6 @@ public class FormOpenerTests
     public void GivenTypedText_WhenItIsErasedCompletely_ThenNoSearchIsMadeAndTheSuggestionsReturn()
     {
         var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "e");
-        var tab = typed.State.Session.Tabs[0];
         var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
         var found = Found(typed.State, search, "acc-eve", "Eve");
 
@@ -194,11 +192,48 @@ public class FormOpenerTests
     {
         var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
 
-        var saved = Press(opened, "Enter", _start);
+        var chosen = Press(Press(opened, "Up").State, "Up").State;
+        var saved = Press(chosen, "Enter", _start);
 
         var request = Assert.IsType<AssignRequest>(WrittenBy(saved));
         Assert.Null(request.Assignee);
         Assert.Null(saved.State.Session.Tabs[0].Rows[0].Assignee);
+    }
+
+    [Fact]
+    public void GivenTheCurrentAssignee_WhenEnterIsPressedAtOnce_ThenNothingIsWrittenAndTheyStayAssigned()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var saved = Press(opened, "Enter");
+
+        Assert.Empty(saved.Effects);
+        Assert.Equal(_eve, saved.State.Session.Tabs[0].Rows[0].Assignee);
+    }
+
+    [Fact]
+    public void GivenTextTypedBeforeTheAnswerArrives_WhenEnterIsPressed_ThenNothingIsChosenFromTheOldList()
+    {
+        var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");
+
+        var early = Press(typed.State, "Enter", _start);
+
+        Assert.Empty(early.Effects);
+        Assert.Empty(early.State.Session.Operations);
+        Assert.Null(early.State.Session.Tabs[0].Rows[0].Assignee);
+        Assert.True(early.State.Session.Tabs[0].Form!.Fields[0].Searching);
+    }
+
+    [Fact]
+    public void GivenAnAnswerArrived_WhenEnterIsPressed_ThenThePersonIsChosen()
+    {
+        var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");
+        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
+        var found = Found(typed.State, search, "acc-eve", "Eve Example");
+
+        var saved = Press(found.State, "Enter", _start);
+
+        Assert.Equal("acc-eve", Assert.IsType<AssignRequest>(WrittenBy(saved)).Assignee!.AccountId);
     }
 
     [Fact]
@@ -277,7 +312,6 @@ public class FormOpenerTests
     {
         var opened = WithDetail(Tabbed(), null);
         var picked = Press(Keys(opened, "Space", "i", "a").State, "e");
-        var tab = picked.State.Session.Tabs[0];
         var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(picked.Effects));
         var found = Found(picked.State, search, "acc-eve", "Eve Example");
         var saved = Press(found.State, "Enter", _start);

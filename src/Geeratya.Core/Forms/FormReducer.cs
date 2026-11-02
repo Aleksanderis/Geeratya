@@ -199,7 +199,15 @@ public static class FormReducer
             Suggested = suggested,
         };
 
-        return target.Current is { } assignee ? field.WithInitial(FormValue.OfChosen([assignee.AccountId])) : field;
+        if (target.Current is not { } assignee)
+        {
+            return field;
+        }
+
+        // The cursor starts on the current assignee (Unassigned is the row above), so a bare Enter keeps them.
+        var row = suggested.FindIndex(option => option.Id == assignee.AccountId) + 1;
+
+        return field.WithInitial(FormValue.OfChosen([assignee.AccountId])) with { Cursor = row };
     }
 
     private static FieldChange ChangeOf(FormField field)
@@ -217,8 +225,9 @@ public static class FormReducer
     }
 
     /// <summary>
-    /// After an edit of the focused field: a searchable field whose typed text changed asks for new options (an
-    /// empty text asks for none and drops any search still running). The request id makes older answers stale.
+    /// After an edit of the focused field: a searchable field whose typed text changed asks for new options and
+    /// waits for them (<see cref="FormField.Searching"/>). An empty text asks for none; a search still running is
+    /// not cancelled, but its answer is ignored because only the newest request id counts.
     /// </summary>
     private static ReduceResult Searched(AppState before, AppState after)
     {
@@ -243,8 +252,11 @@ public static class FormReducer
         }
 
         var requestId = after.Sequence + 1;
-        var next = Replace(after with { Sequence = requestId }, tab, form with { SearchRequestId = requestId });
         var query = field.Entry.Trim();
+        var waiting = field with { Searching = query.Length > 0 };
+        var fields = WithField(form.Fields, form.Focus, waiting);
+        var changed = form with { Fields = fields, SearchRequestId = requestId };
+        var next = Replace(after with { Sequence = requestId }, tab, changed);
 
         if (query.Length == 0)
         {
@@ -284,7 +296,9 @@ public static class FormReducer
             return Result(state);
         }
 
-        return Result(Replace(state, tab, form with { TopError = failed.Message }));
+        var fields = form.Fields.Select(field => field with { Searching = false }).ToArray();
+
+        return Result(Replace(state, tab, form with { Fields = fields, TopError = failed.Message }));
     }
 
     private static ReduceResult OpenLabels(AppState state)

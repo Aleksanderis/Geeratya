@@ -115,7 +115,7 @@ public static class FormEditor
         var kept = field.Options
             .Where(option => field.Value.Chosen.Contains(option.Id) && options.All(other => other.Id != option.Id));
 
-        return field with { Options = [.. options, .. kept], Cursor = 0 };
+        return field with { Options = [.. options, .. kept], Cursor = 0, Searching = false };
     }
 
     /// <summary>The field with a label that is typed and not yet added made part of its value.</summary>
@@ -141,6 +141,11 @@ public static class FormEditor
 
     private static FormEdit AcceptSelect(FormField field)
     {
+        if (field.Searching)
+        {
+            return new FormEdit(field, false);
+        }
+
         var visible = VisibleOptions(field);
 
         if (visible.Count == 0)

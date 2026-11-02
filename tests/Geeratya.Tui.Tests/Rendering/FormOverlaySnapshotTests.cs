@@ -116,8 +116,9 @@ public class FormOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
 
-        var unassigned = Array.FindIndex(lines.ToArray(), line => line.Contains("Unassigned", StringComparison.Ordinal));
-        var eve = Array.FindIndex(lines.ToArray(), line => line.Contains("Eve Example", StringComparison.Ordinal));
+        var rows = lines.ToArray();
+        var unassigned = Array.FindIndex(rows, line => line.Contains("Unassigned", StringComparison.Ordinal));
+        var eve = Array.FindIndex(rows, line => line.Contains("Eve Example", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Assign A-1", StringComparison.Ordinal));
         Assert.InRange(unassigned, 0, eve - 1);
     }

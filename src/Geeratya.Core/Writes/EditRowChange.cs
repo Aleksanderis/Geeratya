@@ -5,8 +5,7 @@ namespace Geeratya.Core.Writes;
 
 /// <summary>
 /// The summary, labels and priority of a row changed by an edit. A null "after" leaves that field alone; the undo
-/// restores
-/// only the fields that still hold the patched value.
+/// restores only the fields that still hold the patched value.
 /// </summary>
 public sealed record EditRowChange(
     string Key,
