@@ -17,6 +17,12 @@ public static class IssueFields
     public const string Parent = "parent";
     public const string Updated = "updated";
     public const string Project = "project";
+    public const string Reporter = "reporter";
+    public const string Created = "created";
+    public const string Description = "description";
+    public const string Subtasks = "subtasks";
+    public const string IssueLinks = "issuelinks";
+    public const string Attachment = "attachment";
 
     /// <summary>The fields every list row needs, in the order they are sent.</summary>
     public static readonly IReadOnlyList<string> ListRow =
@@ -31,6 +37,21 @@ public static class IssueFields
         Updated,
         Project,
     ];
+
+    /// <summary>The fields of the issue detail: the list row plus reporter, created, description and relations.</summary>
+    public static readonly IReadOnlyList<string> Detail =
+    [
+        .. ListRow,
+        Reporter,
+        Created,
+        Description,
+        Subtasks,
+        IssueLinks,
+        Attachment,
+    ];
+
+    /// <summary>The detail list as one comma-separated query value.</summary>
+    public static readonly string DetailQueryValue = string.Join(',', Detail);
 
     /// <summary>The same list as one comma-separated query value.</summary>
     public static readonly string ListRowQueryValue = string.Join(',', ListRow);

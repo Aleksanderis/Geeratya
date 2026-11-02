@@ -25,6 +25,9 @@ public sealed class FakeJiraServerTests : IDisposable
     [InlineData("/rest/agile/1.0/board/3/epic", "GTM-4")]
     [InlineData("/rest/agile/1.0/board/4/epic", "GCM-")]
     [InlineData("/rest/api/3/filter/10001", "Filter for GCM board")]
+    [InlineData("/rest/api/3/issue/GTM-11", "Validate the email")]
+    [InlineData("/rest/api/3/issue/GCM-10", "Sign up with email")]
+    [InlineData("/rest/api/3/issue/GCM-24", "media probe 27")]
     public async Task GivenBoardAndFilterRoutes_WhenRequested_ThenRecordedFixtureIsServed(string path, string expected)
     {
         var baseUrl = StartServer(0, 0, 0);
@@ -45,6 +48,19 @@ public sealed class FakeJiraServerTests : IDisposable
         var body = await response.Content.ReadAsStringAsync();
 
         Assert.Contains("filter is not available", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenUnknownIssueKey_WhenRequested_ThenRecordedIssue404IsServed()
+    {
+        var baseUrl = StartServer(0, 0, 0);
+
+        var response = await _client.GetAsync($"{baseUrl}/rest/api/3/issue/GTM-9999?fields=summary");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("Issue does not exist", body, StringComparison.Ordinal);
     }
 
     [Fact]
