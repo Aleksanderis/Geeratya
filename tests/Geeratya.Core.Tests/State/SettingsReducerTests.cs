@@ -46,6 +46,74 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
+    public void GivenThemeName_WhenSubmittingThePalette_ThenTheHostIsAskedAndNothingIsSavedYet()
+    {
+        var result = Run("theme light");
+
+        Assert.Equal("light", Assert.IsType<ApplyThemeEffect>(Assert.Single(result.Effects)).Name);
+        Assert.Equal(AppSettings.Default, result.State.Settings);
+    }
+
+    [Fact]
+    public void GivenNoName_WhenSubmittingTheThemeCommand_ThenTheHostIsAskedToList()
+    {
+        var result = Run("theme");
+
+        Assert.Equal(string.Empty, Assert.IsType<ApplyThemeEffect>(Assert.Single(result.Effects)).Name);
+    }
+
+    [Fact]
+    public void GivenTwoNames_WhenSubmittingTheThemeCommand_ThenUsageShows()
+    {
+        var result = Run("theme light dark");
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(SettingsReducer.ThemeUsage, result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAppliedTheme_WhenTheHostAnswers_ThenItIsSavedAsTheChoice()
+    {
+        var result = _reducer.Reduce(AppState.Initial, new ThemeApplied("light", true, "Theme light."));
+
+        Assert.Equal("light", result.State.Settings.Theme);
+        Assert.Equal("light", Assert.IsType<SaveSettingsEffect>(Assert.Single(result.Effects)).Settings.Theme);
+        Assert.Equal("Theme light.", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenRefusedTheme_WhenTheHostAnswers_ThenTheChoiceStaysAndTheReasonShows()
+    {
+        var result = _reducer.Reduce(AppState.Initial, new ThemeApplied("bad", false, "Theme bad not used: x."));
+
+        Assert.Equal(AppSettings.DefaultTheme, result.State.Settings.Theme);
+        Assert.Empty(result.Effects);
+        Assert.Equal("Theme bad not used: x.", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAThemeInTheFile_WhenLoading_ThenItComesBack()
+    {
+        var store = new SettingsStore(_directory);
+
+        store.Save(new AppSettings(Theme: "light"));
+
+        Assert.Equal("light", store.Load().Theme);
+    }
+
+    [Fact]
+    public void GivenAnOldFileWithoutATheme_WhenLoading_ThenTheThemeIsDark()
+    {
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), """{ "statusHints": false }""");
+
+        var settings = new SettingsStore(_directory).Load();
+
+        Assert.Equal("dark", settings.Theme);
+        Assert.False(settings.StatusHints);
+    }
+
+    [Fact]
     public void GivenSavedSettings_WhenLoading_ThenTheyComeBack_AndABadFileGivesTheDefaults()
     {
         var store = new SettingsStore(_directory);

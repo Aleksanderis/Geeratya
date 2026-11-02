@@ -7,22 +7,84 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class PaletteTests
 {
-    public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
+    public static TheoryData<string, ColorSupport> ThemesAndTiers
+    {
+        get
+        {
+            var data = new TheoryData<string, ColorSupport>();
+
+            foreach (var theme in Themes.All)
+            {
+                data.Add(theme.Name, ColorSupport.TrueColor);
+                data.Add(theme.Name, ColorSupport.Basic16);
+            }
+
+            return data;
+        }
+    }
 
     [Theory]
-    [MemberData(nameof(ColorTiers))]
-    public void GivenColourTier_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(ColorSupport tier)
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenTheme_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(string name, ColorSupport tier)
     {
+        var theme = Themes.Find(name)!;
+
         foreach (var role in PaletteTable.Roles)
         {
-            var style = Palette.Resolve(tier, role);
+            var style = Palette.Resolve(theme, tier, role);
 
             var ratio = Contrast.Ratio(style.Foreground!.Value, style.Background!.Value);
 
             Assert.True(
                 ratio >= PaletteTable.RequiredContrast(role),
-                $"{role} in {tier} has contrast {ratio:F2}");
+                $"{role} in {name}/{tier} has contrast {ratio:F2}");
         }
+    }
+
+    [Fact]
+    public void GivenEveryBuiltInTheme_WhenListingRoles_ThenEveryRoleIsDefined()
+    {
+        foreach (var theme in Themes.All)
+        {
+            foreach (var role in PaletteTable.Roles)
+            {
+                Assert.True(theme.Entries.ContainsKey(role), $"{role} missing in {theme.Name}");
+            }
+
+            Assert.Equal(PaletteTable.Roles.Count, theme.Entries.Count);
+        }
+    }
+
+    [Fact]
+    public void GivenHighContrastTheme_WhenResolvingTextRoles_ThenContrastIsAtLeastSevenInTrueColour()
+    {
+        foreach (var role in PaletteTable.Roles.Where(role => role != PaletteRole.Divider))
+        {
+            var style = Palette.Resolve(Themes.HighContrast, ColorSupport.TrueColor, role);
+
+            Assert.True(Contrast.Ratio(style.Foreground!.Value, style.Background!.Value) >= 7.0, $"{role}");
+        }
+    }
+
+    [Fact]
+    public void GivenBuiltInThemes_WhenComparingBodyAndSelectedWithoutColour_ThenSelectionIsReversed()
+    {
+        foreach (var theme in Themes.All)
+        {
+            var body = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Body).Style;
+            var selected = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Selected).Style;
+
+            Assert.NotEqual(body, selected);
+            Assert.True(selected.HasFlag(RoleStyle.Reverse), theme.Name);
+        }
+    }
+
+    [Fact]
+    public void GivenDarkAndLightThemes_WhenResolvingBody_ThenBackgroundsDiffer()
+    {
+        Assert.NotEqual(
+            Palette.Resolve(Themes.Dark, ColorSupport.TrueColor, PaletteRole.Body).Background,
+            Palette.Resolve(Themes.Light, ColorSupport.TrueColor, PaletteRole.Body).Background);
     }
 
     [Fact]
