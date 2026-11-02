@@ -18,7 +18,16 @@ public static class JiraErrorMapper
 
         return code switch
         {
-            400 => new JiraError(JiraErrorKind.BadRequest, code, Or(message, "Jira rejected the request.")),
+            400 => new JiraError(JiraErrorKind.BadRequest, code, Or(message, "Jira rejected the request."))
+            {
+                FieldErrors = ExtractFieldErrors(body),
+                Messages = ExtractMessages(body),
+            },
+            409 => new JiraError(JiraErrorKind.Conflict, code, Or(message, "Jira refused the change."))
+            {
+                FieldErrors = ExtractFieldErrors(body),
+                Messages = ExtractMessages(body),
+            },
             401 => new JiraError(JiraErrorKind.Unauthorized, code, "Bad or expired credentials (email or API token)."),
             403 => new JiraError(JiraErrorKind.Forbidden, code, Or(message, "No permission.")),
             404 or 410 => new JiraError(JiraErrorKind.NotFound, code, "Not found or no access."),
@@ -26,6 +35,38 @@ public static class JiraErrorMapper
             >= 500 => new JiraError(JiraErrorKind.ServerError, code, Or(message, "Jira server error."), retryAfter),
             _ => new JiraError(JiraErrorKind.Unexpected, code, Or(message, $"Unexpected status {code}.")),
         };
+    }
+
+    /// <summary>The v3 <c>errors</c> object as field id to message; empty when the body has none.</summary>
+    public static IReadOnlyDictionary<string, string> ExtractFieldErrors(string body)
+    {
+        var result = new Dictionary<string, string>();
+
+        if (TryParseRoot(body, out var document))
+        {
+            using (document)
+            {
+                ReadFieldErrors(document.RootElement, result);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>Every non-empty <c>errorMessages</c> entry; empty when the body has none.</summary>
+    public static IReadOnlyList<string> ExtractMessages(string body)
+    {
+        var result = new List<string>();
+
+        if (TryParseRoot(body, out var document))
+        {
+            using (document)
+            {
+                ReadMessages(document.RootElement, result);
+            }
+        }
+
+        return result;
     }
 
     /// <summary>Tries the two JSON error shapes, then a short plain-text snippet. HTML is never shown.</summary>
@@ -49,6 +90,60 @@ public static class JiraErrorMapper
         }
 
         return TryExtractJsonMessage(trimmed) ?? string.Empty;
+    }
+
+    private static bool TryParseRoot(string body, out JsonDocument document)
+    {
+        document = null!;
+        var trimmed = body.Trim();
+
+        if (trimmed.Length == 0 || trimmed[0] != '{')
+        {
+            return false;
+        }
+
+        try
+        {
+            document = JsonDocument.Parse(trimmed);
+
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static void ReadFieldErrors(JsonElement root, Dictionary<string, string> result)
+    {
+        if (!root.TryGetProperty("errors", out var errors) || errors.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        foreach (var field in errors.EnumerateObject())
+        {
+            if (field.Value.ValueKind == JsonValueKind.String && field.Value.GetString() is { Length: > 0 } text)
+            {
+                result[field.Name] = Truncate(text);
+            }
+        }
+    }
+
+    private static void ReadMessages(JsonElement root, List<string> result)
+    {
+        if (!root.TryGetProperty("errorMessages", out var messages) || messages.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        foreach (var message in messages.EnumerateArray())
+        {
+            if (message.ValueKind == JsonValueKind.String && message.GetString() is { Length: > 0 } text)
+            {
+                result.Add(Truncate(text));
+            }
+        }
     }
 
     private static string? TryExtractJsonMessage(string json)

@@ -15,8 +15,8 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 
 - `JiraTransport` is created per connection (`JiraConnection`: site URL plus account email) with a `JiraApiToken` and owns one `HttpClient`, the auth header, `Accept`, the user agent, the per-attempt timeout (30 s default) and a per-site concurrency cap (4). Clients such as `JiraUserClient` take the transport; all view state stays in the tab, so one transport serves every tab of the active site.
 - The site URL must be https (http only for loopback, used by the fake Jira) and the transport never follows redirects, so a 3xx surfaces as an error and the credential cannot reach another host.
-- Calls return `JiraResult<T>` (value or `JiraError` with `JiraErrorKind`): 400 `BadRequest`, 401 `Unauthorized`, 403 `Forbidden`, 404/410 `NotFound`, 429 `RateLimited`, 5xx `ServerError`, `PageExpired` (a search continued with a bad or expired token), plus `Timeout`, `Network`, `HostRefused`, `InvalidResponse`. Caller cancellation is the one exception that surfaces as `OperationCanceledException`.
-- Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`. The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s. The 429 path is backed by a recorded real 429 (`errors/search-429-rate-limited.*`, #18).
+- Calls return `JiraResult<T>` (value or `JiraError` with `JiraErrorKind`): 400 `BadRequest`, 401 `Unauthorized`, 403 `Forbidden`, 404/410 `NotFound`, 409 `Conflict`, 429 `RateLimited`, 5xx `ServerError`, `PageExpired` (a search continued with a bad or expired token), plus `Timeout`, `Network`, `HostRefused`, `InvalidResponse`. Caller cancellation is the one exception that surfaces as `OperationCanceledException`.
+- Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`, except a write that gets a 429 with `Retry-After` (not processed, see Writes). The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s. The 429 path is backed by a recorded real 429 (`errors/search-429-rate-limited.*`, #18).
 - The token is held only in the transport. `JiraApiToken.ToString()` is `[redacted]`, error messages are scrubbed of the token and the Basic credential, and a network failure message carries only the `HttpRequestError` code.
 - `GEERATYA_LIVE_HOSTS` is parsed by `JiraHostAllowList`; a transport given `AllowedHosts` refuses any other host before sending (`HostRefused`).
 - Scheduling (#22): `JiraRequest.Priority` is `User` (default) or `Background` (`request.AsBackground()`). The per-site cap (4) has two lanes: user requests may use every slot and are granted first; background requests use at most `cap - ReservedForUser` slots (1 reserved, never below one slot), so a key press never queues behind a refresh. Cancelling a queued call removes it from its lane.
@@ -49,6 +49,28 @@ The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys wha
 - Issue details: the issue key inside the profile's folder.
 - Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile).
 - Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
+
+## Writes (`src/Geeratya.Jira/Writes`, #155)
+
+Shared base of every write client. A write is built with `JiraRequest.Write` and sent with `JiraTransport.SendWriteAsync` (typed reply, or no reply body for 204); the result is `WriteResult<T>` (value or `WriteError`). `SendWriteAsync` refuses a read request. Each write is its own client method named for what it does and is only called from a confirmed command.
+
+| Status / failure | `WriteErrorKind` | Outcome |
+|---|---|---|
+| 400 | `Validation`: `FieldErrors` (field id and message, from `errors`) plus `Messages` (`errorMessages`); a transition refused by a workflow validator also lands here | not applied |
+| 401 | `Unauthorized` | not applied |
+| 403 | `Permission` | not applied |
+| 404, 410 | `NotFound` (hidden and missing look the same) | not applied |
+| 409 | `Conflict` (changed meanwhile, workflow rule) | not applied |
+| 429 | `RateLimited`, `RetryAfter` set when sent | not applied |
+| Timeout | `Timeout` | unknown |
+| Network failure, 5xx, unreadable 2xx body, unexpected status (3xx) | `UnknownOutcome` | unknown |
+| Host not allowed | `NotSent` | nothing sent |
+
+- Never retried automatically, with one exception: a 429 that carries `Retry-After` is waited out and sent again (up to `MaxRetries`), because Jira did not process it. A 429 without `Retry-After`, and every timeout, network failure or 5xx, is returned as is: repeating a create or comment could duplicate it. The wait shows in `RateLimitedUntil` like a read's.
+- `WriteError.IsOutcomeUnknown` is true for `Timeout` and `UnknownOutcome`. The UI says "may or may not have been applied" and offers a reload; it never re-sends silently. Caller cancellation throws `OperationCanceledException` and is likewise unknown.
+- `ReadAfterWrite.ReloadIfUnknownAsync(write, reload, ct)` runs the caller's read only after an unknown outcome and returns null otherwise; the caller compares the reloaded issue with the intended change.
+- Error bodies: the three shapes under Errors; `errors` values and `errorMessages` entries are kept as Jira wrote them (truncated at 200 characters), HTML never reaches the message, the token is redacted. Fixtures: `errors/create-400-*.json`, `errors/issue-delete-403-no-permission.json`, `errors/issue-404.json`, `errors/search-429-rate-limited.json`; `errors/transition-409-conflict.json` is synthetic (a 409 was not recorded live).
+- Cache: a successful write invalidates as described under Cache keys; failures with an unknown outcome invalidate too, since the issue may have changed.
 
 ## Refresh rules (Jira side)
 
