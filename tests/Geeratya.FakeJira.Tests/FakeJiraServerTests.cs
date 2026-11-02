@@ -65,7 +65,7 @@ public sealed class FakeJiraServerTests : IDisposable
 
         var response = await _client.PostAsync(
             $"{baseUrl}/rest/api/3/myself",
-            new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
+            new StringContent("{}"));
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
