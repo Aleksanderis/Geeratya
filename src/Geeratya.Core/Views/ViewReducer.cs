@@ -294,21 +294,6 @@ public static class ViewReducer
     }
 
     /// <summary>
-    /// Opens a new tab with the active tab's view definition; without an active tab the status line says so.
-    /// </summary>
-    public static ReduceResult DuplicateActiveTab(AppState state)
-    {
-        var active = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
-
-        if (active is null)
-        {
-            return new ReduceResult(state with { Message = "No view to copy: open one with :jql <query>." }, _noEffects);
-        }
-
-        return Reduce(state, new ViewOpenRequested(active.Definition));
-    }
-
-    /// <summary>
     /// A continued load came back with a rejected page token: start again at the first page, keeping the rows on
     /// screen and the selection by issue key, instead of showing an error.
     /// </summary>

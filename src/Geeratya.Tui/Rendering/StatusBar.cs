@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 
 namespace Geeratya.Tui.Rendering;
@@ -9,6 +10,7 @@ public static class StatusBar
 {
     private const string HintGap = "  ";
     private const int FieldCount = 4;
+    private const string PickerPrompt = "open a view";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -26,6 +28,14 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>
+    public static IReadOnlyList<StatusHint> PickerHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.PickerNext, "choose"),
+        new(InputMode.Insert, ActionIds.FormNext, "open"),
+        new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
     /// <summary>The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.</summary>
     public static string Render(AppState state, int width, KeymapTable keymap)
     {
@@ -35,7 +45,7 @@ public static class StatusBar
         }
 
         var left = $" {Badge(state.Mode)} {Text(state, width, keymap)}".TrimEnd();
-        var hints = string.Join(HintGap, HintsFor(state.Mode, keymap));
+        var hints = string.Join(HintGap, HintTexts(state, keymap));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -46,15 +56,25 @@ public static class StatusBar
         return $"{left}{new string(' ', gap)}{hints}";
     }
 
+    private static IReadOnlyList<string> HintTexts(AppState state, KeymapTable keymap)
+    {
+        return state.Picker is null ? HintsFor(state.Mode, keymap) : TextsOf(PickerHints, state.Mode, keymap);
+    }
+
     /// <summary>
     /// The hints of <paramref name="mode"/> as <c>key label</c>, the key taken from the keymap; a hint whose action
     /// the keymap does not bind in that mode is left out.
     /// </summary>
     public static IReadOnlyList<string> HintsFor(InputMode mode, KeymapTable keymap)
     {
+        return TextsOf(Hints, mode, keymap);
+    }
+
+    private static List<string> TextsOf(IReadOnlyList<StatusHint> hints, InputMode mode, KeymapTable keymap)
+    {
         var texts = new List<string>();
 
-        foreach (var hint in Hints.Where(hint => hint.Mode == mode))
+        foreach (var hint in hints.Where(hint => hint.Mode == mode))
         {
             var keys = keymap.FindKeys(mode, hint.ActionId);
 
@@ -86,9 +106,14 @@ public static class StatusBar
             InputMode.Command => $":{state.PaletteText}",
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
-            InputMode.Insert => FormText(state.Form, width),
+            InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state),
         };
+    }
+
+    private static string PickerText(SourcePickerState picker)
+    {
+        return picker.Notice ?? PickerPrompt;
     }
 
     /// <summary>A notice or pending keys win; otherwise the result of the connection check shows.</summary>

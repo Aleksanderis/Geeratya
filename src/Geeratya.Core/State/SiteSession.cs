@@ -1,4 +1,5 @@
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -14,6 +15,7 @@ namespace Geeratya.Core.State;
 /// <param name="Active">The active tab, null when there is none (start screen).</param>
 /// <param name="Link">Whether the site can be reached.</param>
 /// <param name="Connection">The result of the last credential check of this profile.</param>
+/// <param name="Sources">The boards and saved filters the source picker offers, loaded on demand.</param>
 public sealed record SiteSession(
     string? ProfileName,
     string? SiteUrl,
@@ -21,9 +23,10 @@ public sealed record SiteSession(
     TabId? Active,
     // ReSharper disable once NotAccessedPositionalProperty.Global (read by the status and refresh issues, #89, #90)
     SiteLink Link,
-    ConnectionState Connection)
+    ConnectionState Connection,
+    SourceLists Sources)
 {
-    public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked());
+    public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked(), SourceLists.Empty);
 
     /// <summary>A session with no tabs for <paramref name="profile"/>.</summary>
     public static SiteSession Empty(Profile? profile)
