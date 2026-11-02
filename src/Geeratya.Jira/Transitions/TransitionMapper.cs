@@ -62,7 +62,7 @@ internal static class TransitionMapper
         return result;
     }
 
-    private static List<FieldOption> MapOptions(List<JsonElement>? values)
+    internal static List<FieldOption> MapOptions(List<JsonElement>? values)
     {
         var result = new List<FieldOption>(values?.Count ?? 0);
 
