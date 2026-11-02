@@ -304,6 +304,50 @@ public sealed class IssueClientTests
     }
 
     [Fact]
+    public async Task GivenRecordedCompanyManagedIssue_WhenReadingValues_ThenDatesComponentsAndVersionsAreMapped()
+    {
+        using var fixture = Serving("GCM-26", "issues/field-values-gcm-26.json");
+        var fields = new[]
+        {
+            Field("duedate", EditFieldKind.Date),
+            Field("customfield_10015", EditFieldKind.Date),
+            Field("components", EditFieldKind.MultiOption),
+            Field("fixVersions", EditFieldKind.MultiOption),
+            Field("customfield_10021", EditFieldKind.MultiOption),
+        };
+
+        var result = await new IssueClient(fixture.Transport)
+            .GetFieldValuesAsync("GCM-26", fields, CancellationToken.None);
+
+        var values = result.Value;
+        Assert.Equal("2026-12-31", values["duedate"].Text);
+        Assert.Equal("2026-11-15", values["customfield_10015"].Text);
+        Assert.Equal(["10000"], values["components"].Ids);
+        Assert.Equal(["10000"], values["fixVersions"].Ids);
+        Assert.Empty(values["customfield_10021"].Ids);
+    }
+
+    [Fact]
+    public async Task GivenRecordedTeamManagedIssue_WhenReadingValues_ThenOnlyTheAskedFieldsAreMapped()
+    {
+        using var fixture = Serving("GTM-40", "issues/field-values-gtm-40.json");
+        var fields = new[]
+        {
+            Field("duedate", EditFieldKind.Date),
+            Field("customfield_10015", EditFieldKind.Date),
+            Field("components", EditFieldKind.MultiOption),
+        };
+
+        var result = await new IssueClient(fixture.Transport)
+            .GetFieldValuesAsync("GTM-40", fields, CancellationToken.None);
+
+        var values = result.Value;
+        Assert.Equal("2026-12-31", values["duedate"].Text);
+        Assert.Equal("2026-11-15", values["customfield_10015"].Text);
+        Assert.False(values.ContainsKey("components"));
+    }
+
+    [Fact]
     public async Task GivenValuesOfAnUnexpectedShape_WhenReadingValues_ThenTheFieldsAreLeftOutNotReadAsEmpty()
     {
         const string body = """

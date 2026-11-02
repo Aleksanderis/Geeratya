@@ -1,0 +1,16 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "customfield_10015": "2026-11-15",
+    "customfield_10021": null,
+    "description": null,
+    "duedate": "2026-12-31",
+    "environment": null,
+    "labels": [
+      "fixture"
+    ]
+  },
+  "id": "10132",
+  "key": "GTM-40",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10132"
+}
