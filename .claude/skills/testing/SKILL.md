@@ -20,7 +20,7 @@ The Windows CI leg runs `--filter "Os!=Independent"`; Linux runs everything. Put
 | JQL building | Pure test | Quoting and escaping of quotes, backslashes, reserved words, unicode |
 | Paging, refresh, caches | Store test on the fake with scripted pages | Last page, empty page, results changing between pages, stale reply after the query changed |
 | State, commands, keymap | Pure test, no terminal | Includes the "no binding conflicts" and "generated `docs/keymap.md` is current" tests |
-| Rendering | Snapshot of the frame as text | Several terminal sizes, wide chars, long summaries, resize. Refresh `help-scroll*` and `popup-*` snapshots with `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests` (writes instead of asserting; review the diff) |
+| Rendering | Snapshot of the frame as text | Several terminal sizes, wide chars, long summaries, resize. Refresh snapshots (`help-scroll*`, `popup-*`, `network-*`, issue detail) with `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests` (writes instead of asserting; review the diff) |
 | Dependencies or serialization | AOT publish + smoke run | No `IL*` warnings |
 | Behaviour the fake might get wrong | Live test on the dev site | Opt-in only (below) |
 

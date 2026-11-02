@@ -14,7 +14,7 @@ Strategy and layers. The procedure for writing, recording and running tests is t
 
 xUnit throughout, one test project per source project, same folder layout as the code. `[Trait("Os", "Independent")]` marks pure classes the Windows leg runs (`testing` skill). `tools/FakeJira` has its own test project, `tests/Geeratya.FakeJira.Tests`, which starts the server on a free loopback port and talks to it with a real `HttpClient`, so those tests are not marked OS independent.
 
-To regenerate the `help-scroll*.txt` and which-key popup (`popup-*.txt`) snapshots after adding key rows or palette commands, run `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests`. Those tests then write the current output into `tests/Geeratya.Tui.Tests/Snapshots/` instead of asserting; review the diff and commit it. Unset, they assert as usual. Other snapshots are not covered by the switch.
+To regenerate snapshots after adding key rows or palette commands, run `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests`. The switch is project-wide for the families that honour it: `help-scroll*`, `popup-*`, `network-*` and the issue detail snapshots. Those tests then write the current output into `tests/Geeratya.Tui.Tests/Snapshots/` instead of asserting; review the diff and commit it. Unset, they assert as usual.
 
 ## Fixtures
 
