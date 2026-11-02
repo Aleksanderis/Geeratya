@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 # Measure cold start to first frame and key-to-frame of the real binary in tmux.
-# Usage: scripts/measure.sh <binary> <fake url> [runs]
+# Usage: [SCENARIO=list|views] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  base URL printed by tools/FakeJira; written as the site of one active fake profile into the
 #               private configuration directory (token: GEERATYA_TOKEN=fake), so the binary talks to the fake
 #   [runs]      sessions to start (default 20); key-to-frame takes KEYS toggles per session (default 5)
+# SCENARIO=views measures, per session: opening an issue detail from the list (Enter to the header without
+#   "Loading…"), the second start of a view from the disk cache (a new session on the same private cache: time
+#   from `:jql` to the first rows, compare it with the first open; start the fake with a latency well above
+#   the floor, for example 300 ms, so a cache hit shows), and 10 tabs (`:jql` x10): RSS after them and the
+#   time of KEYS `Tab` presses.
+# SCENARIO=list also measures a loaded view (no fixed sleeps, every wait polls the frame): per session it types
+#   `:jql $JQL` (default `project = GCM`), times the wait for the list header (open list: includes the fake's
+#   latency), then times KEYS presses of `j` (key to frame in a loaded list), then loads pages with `G` until
+#   the header shows "$ROWS issues" (default 10000, needs a fake started with --issues $ROWS) and prints the RSS of
+#   the process, and the time of KEYS `j` presses at the end of the full list.
 # Needs tmux and GNU date (Linux first; macOS BSD date lacks %N, Windows has no equivalent yet).
 # Prints median and p95 in milliseconds. A private tmux server and private XDG directories are used, so the
 # owner's profiles, tokens and cache are never read. The numbers include the cost of each tmux capture call
@@ -78,9 +88,12 @@ start_session() {
   wait_frame ""
 }
 
+case ${SCENARIO:-} in '' | list | views) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list or views)" >&2; exit 2 ;; esac
+base_runs=$runs
+if [ -n "${SCENARIO:-}" ]; then base_runs=0; fi
 # The floor: a shell that prints one character, so the numbers can be read net of tmux and polling cost.
 floor=()
-for ((run = 1; run <= runs; run++)); do
+for ((run = 1; run <= base_runs; run++)); do
   tmux -L "$socket" kill-server 2> /dev/null || true
   socket=$socket_base-f$run
   floor+=("$(start_session "printf x; sleep 30")")
@@ -88,7 +101,7 @@ done
 
 cold=()
 keyed=()
-for ((run = 1; run <= runs; run++)); do
+for ((run = 1; run <= base_runs; run++)); do
   tmux -L "$socket" kill-server 2> /dev/null || true
   socket=$socket_base-$run
   cold+=("$(start_session "$binary")")
@@ -98,6 +111,144 @@ for ((run = 1; run <= runs; run++)); do
     keyed+=("$(wait_frame "$before")")
   done
 done
+
+# Polls until the frame matches the extended regex $1; prints the elapsed ms.
+wait_match() {
+  local start current
+  start=$(now_ms)
+  while true; do
+    current=$(frame)
+    if printf '%s\n' "$current" | grep -Eq -- "$1"; then
+      echo $(($(now_ms) - start))
+      return 0
+    fi
+    if [ $((($(now_ms) - start))) -gt "$timeout_ms" ]; then
+      echo "timed out waiting for /$1/; frame:" >&2; printf "%s\n" "$current" | head -6 >&2
+      return 1
+    fi
+  done
+}
+
+# RSS in MB of the process under the pane (the pane process or its child), Linux only.
+pane_rss_mb() {
+  local pid
+  pid=$(tmux -L "$socket" display -p -t m '#{pane_pid}')
+  if [ ! -r "/proc/$pid/status" ]; then echo n/a; return; fi
+  if ! grep -q geeratya "/proc/$pid/comm"; then pid=$(pgrep -P "$pid" | head -1); fi
+  awk '/VmRSS/ { printf "%d", $2 / 1024 }' "/proc/$pid/status"
+}
+
+if [ "${SCENARIO:-}" = views ]; then
+  jql=${JQL:-project = GCM}
+  first=()
+  detail=()
+  second=()
+  start2=()
+  tabkey=()
+  rss=()
+  for ((run = 1; run <= runs; run++)); do
+    export XDG_CACHE_HOME=$work/cache-$run XDG_STATE_HOME=$work/state-$run
+    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    tmux -L "$socket" kill-server 2> /dev/null || true
+    socket=$socket_base-v$run
+    start_session "$binary" > /dev/null
+    tmux -L "$socket" send-keys -t m ":jql $jql" Enter
+    first+=("$(wait_match 'Generated issue 1  ')")
+    sleep 0.5
+    tmux -L "$socket" send-keys -t m Enter
+    detail+=("$(wait_match '› GEN-1 *$')")
+    sleep 2 # the cache write is debounced; leave time for it before the first session is killed
+    tmux -L "$socket" kill-server 2> /dev/null || true
+    socket=$socket_base-w$run
+    start2+=("$(start_session "$binary")")
+    tmux -L "$socket" send-keys -t m ":jql $jql" Enter
+    second+=("$(wait_match 'Generated issue 1  ')")
+    for ((tab = 2; tab <= 10; tab++)); do
+      tmux -L "$socket" send-keys -t m ":jql $jql" Enter
+      wait_match "\\[$tab " > /dev/null
+    done
+    sleep 1
+    rss+=("$(pane_rss_mb)")
+    for ((press = 1; press <= keys; press++)); do
+      before=$(frame)
+      tmux -L "$socket" send-keys -t m Tab
+      tabkey+=("$(wait_frame "$before")")
+    done
+  done
+  read -r a1 a2 <<< "$(printf '%s\n' "${first[@]}" | summarise)"
+  read -r b1 b2 <<< "$(printf '%s\n' "${detail[@]}" | summarise)"
+  read -r c1 c2 <<< "$(printf '%s\n' "${second[@]}" | summarise)"
+  read -r d1 d2 <<< "$(printf '%s\n' "${start2[@]}" | summarise)"
+  read -r e1 e2 <<< "$(printf '%s\n' "${tabkey[@]}" | summarise)"
+  read -r f1 f2 <<< "$(printf '%s\n' "${rss[@]}" | summarise)"
+  echo "scenario views, JQL: $jql"
+  echo "load average:  $load_before before, $(load_now) after ($(nproc 2> /dev/null || echo '?') cores)"
+  echo "first open of the list, no cache (ms):             median $a1, p95 $a2"
+  echo "Enter to issue detail loaded (ms):                 median $b1, p95 $b2"
+  echo "second start, cold start to first frame (ms):      median $d1, p95 $d2"
+  echo "second start, :jql to list header, cache present:  median $c1, p95 $c2"
+  echo "Tab key to frame with 10 tabs open (ms):           median $e1, p95 $e2"
+  echo "RSS with 10 tabs of one page each (MB):            median $f1, p95 $f2"
+  exit 0
+fi
+
+if [ "${SCENARIO:-}" = list ]; then
+  jql=${JQL:-project = GCM}
+  rows=${ROWS:-10000}
+  open=()
+  lkey=()
+  endkey=()
+  rss=()
+  for ((run = 1; run <= runs; run++)); do
+    tmux -L "$socket" kill-server 2> /dev/null || true
+    socket=$socket_base-l$run
+    export XDG_CACHE_HOME=$work/cache-l$run XDG_STATE_HOME=$work/state-l$run
+    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    start_session "$binary" > /dev/null
+    tmux -L "$socket" send-keys -t m ":jql $jql" Enter
+    open+=("$(wait_match 'Generated issue 1  ')")
+    for ((press = 1; press <= keys; press++)); do
+      before=$(frame)
+      tmux -L "$socket" send-keys -t m j
+      lkey+=("$(wait_frame "$before")")
+    done
+    # Page in with G (the next page loads when the selection reaches the end); the header changes with each page.
+    for ((page = 1; page <= rows / 100 + 5; page++)); do
+      header=$(frame | sed -n 3p)
+      case $header in *"· $rows issues"*) break ;; esac
+      tmux -L "$socket" send-keys -t m G
+      page_start=$(now_ms)
+      while [ "$(frame | sed -n 3p)" = "$header" ] && [ $(($(now_ms) - page_start)) -lt "$timeout_ms" ]; do
+        tmux -L "$socket" send-keys -t m G
+      done
+    done
+    wait_match "· $rows issues" > /dev/null
+    last=$(frame)
+    for ((settle = 0; settle < 20; settle++)); do # queued G presses may still redraw; wait for a stable frame
+      sleep 0.1
+      now=$(frame)
+      if [ "$now" = "$last" ]; then break; fi
+      last=$now
+    done
+    rss+=("$(pane_rss_mb)")
+    for ((press = 1; press <= keys; press++)); do
+      before=$(frame)
+      tmux -L "$socket" send-keys -t m k
+      endkey+=("$(wait_frame "$before")")
+    done
+  done
+  read -r o_median o_p95 <<< "$(printf '%s\n' "${open[@]}" | summarise)"
+  read -r l_median l_p95 <<< "$(printf '%s\n' "${lkey[@]}" | summarise)"
+  read -r e_median e_p95 <<< "$(printf '%s\n' "${endkey[@]}" | summarise)"
+  read -r r_median r_p95 <<< "$(printf '%s\n' "${rss[@]}" | summarise)"
+  echo "scenario list: $rows rows, JQL: $jql"
+  echo "load average:  $load_before before, $(load_now) after ($(nproc 2> /dev/null || echo '?') cores)"
+  echo "open list, command to first page (ms):             median $o_median, p95 $o_p95"
+  echo "j key to frame in a 100-row list (ms):             median $l_median, p95 $l_p95"
+  echo "k key to frame at the end of the full list (ms):   median $e_median, p95 $e_p95"
+  echo "RSS with the full list loaded (MB):                median $r_median, p95 $r_p95"
+  exit 0
+fi
 
 read -r floor_median floor_p95 <<< "$(printf '%s\n' "${floor[@]}" | summarise)"
 read -r cold_median cold_p95 <<< "$(printf '%s\n' "${cold[@]}" | summarise)"
