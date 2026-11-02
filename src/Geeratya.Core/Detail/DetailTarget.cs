@@ -9,7 +9,7 @@ public enum DetailTargetKind
     /// <summary>A remote link: opens its URL in the browser.</summary>
     RemoteLink,
 
-    /// <summary>An attachment: opens the issue page in the browser; the file itself is never fetched or drawn.</summary>
+    /// <summary>An attachment: opens the issue page in the browser; the file is never fetched or drawn.</summary>
     Attachment,
 }
 

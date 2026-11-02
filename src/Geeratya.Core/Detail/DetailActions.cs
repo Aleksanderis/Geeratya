@@ -5,14 +5,18 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// The keys of the issue detail that act on the cursor row or the shown issue: open the row, open it in the browser,
-/// open the parent, jump between sections. Each returns null when no issue is open on the active tab, so the caller
-/// falls back to the list behaviour of the same key.
+/// open the parent, jump between sections. <see cref="EnterBrowserRow"/> and <see cref="OpenInBrowser"/> return null
+/// when no issue is open on the active tab, so the caller falls back to the list behaviour of the same key.
 /// </summary>
 internal static class DetailActions
 {
+    private const string StackFullText = "Too many issues open: press Esc to go back.";
+
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary>Enter on a remote link or attachment row opens it in the browser; other rows are left to the caller.</summary>
+    /// <summary>
+    /// Enter on a remote link or attachment row opens it in the browser; other rows are left to the caller.
+    /// </summary>
     public static ReduceResult? EnterBrowserRow(AppState state)
     {
         if (TopOf(state) is not { } top || DetailReducer.TargetOf(top.Detail) is not { } target)
@@ -57,7 +61,7 @@ internal static class DetailActions
         var effects = new List<Effect>();
         var next = DetailReducer.Open(state, top.Tab.Id, parent, null, effects);
 
-        return new ReduceResult(next, effects);
+        return next == state ? Say(state, StackFullText) : new ReduceResult(next, effects);
     }
 
     /// <summary>

@@ -24,9 +24,14 @@ internal static class DetailReducer
 
         if (tab.Detail.Count > 0)
         {
-            return TargetOf(tab.Detail[^1]) is { Kind: DetailTargetKind.Issue } target
-                ? Open(state, tab.Id, target.Value, null, effects)
-                : MoreComments(state, tab, effects);
+            if (TargetOf(tab.Detail[^1]) is { Kind: DetailTargetKind.Issue } target)
+            {
+                var pushed = Open(state, tab.Id, target.Value, null, effects);
+
+                return pushed == state ? state with { Message = "Too many issues open: press Esc to go back." } : pushed;
+            }
+
+            return MoreComments(state, tab, effects);
         }
 
         if (tab.Rows.Count == 0)
@@ -249,9 +254,12 @@ internal static class DetailReducer
     {
         var targets = detail.Document?.Targets;
 
-        return targets is not null && detail.Cursor >= 0 && detail.Cursor < targets.Count
-            ? targets[detail.Cursor]
-            : null;
+        if (targets is null || detail.Cursor < 0 || detail.Cursor >= targets.Count)
+        {
+            return null;
+        }
+
+        return targets[detail.Cursor];
     }
 
     private static AppState MoreComments(AppState state, TabState tab, List<Effect> effects)

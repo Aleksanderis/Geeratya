@@ -9,7 +9,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
 
-/// <summary>The cursor rows, section jumps and open keys of the issue detail, through the real keymap and reducer.</summary>
+/// <summary>Cursor rows, section jumps and open keys of the issue detail, through the keymap and reducer.</summary>
 [Trait("Os", "Independent")]
 public class IssueDetailNavigationTests
 {
@@ -262,7 +262,10 @@ public class IssueDetailNavigationTests
         var state = Opened(longSummary: true);
         var document = Document(state);
 
-        var lines = document.Targets.Select((target, line) => (target, line)).Where(pair => IsKey(pair.target, "A-18")).ToList();
+        var lines = document.Targets
+            .Select((target, line) => (target, line))
+            .Where(pair => IsKey(pair.target, "A-18"))
+            .ToList();
 
         Assert.True(lines.Count > 1);
         Assert.Equal(lines.Count, lines[^1].line - lines[0].line + 1);
@@ -283,7 +286,29 @@ public class IssueDetailNavigationTests
 
         var document = Document(Opened(issue: issue));
 
-        Assert.DoesNotContain(document.Targets, target => target?.Kind == DetailTargetKind.Issue && target.Value == "not a key");
+        Assert.DoesNotContain(document.Targets, target => IsKey(target, "not a key"));
+    }
+
+    [Fact]
+    public void GivenAFullStack_WhenOpeningTheParent_ThenTheStatusSaysSoInsteadOfNothing()
+    {
+        var state = Opened(parent: new IssueStub("A-5", "Parent epic", _todo, _epic));
+        var tab = Active(state);
+
+        for (var index = 0; index < DetailPaging.MaxStack; index++)
+        {
+            state = Deliver(state, new IssueDetailOpenRequested(tab.Id, $"A-{index + 100}", null));
+        }
+
+        var loaded = Detailed("A-149", _epic) with { Parent = new IssueStub("A-5", "P", _todo, _epic) };
+
+        state = Deliver(state, new IssueDetailLoaded(tab.Id, Top(state).IssueRequest, loaded, _now));
+
+        var parent = Press(state, "Space", "p");
+
+        Assert.Equal(DetailPaging.MaxStack, Active(parent.State).Detail.Count);
+        Assert.Contains("Too many issues open", parent.State.Message);
+        Assert.Empty(parent.Effects);
     }
 
     private static bool IsKey(DetailTarget? target, string key)
@@ -361,7 +386,8 @@ public class IssueDetailNavigationTests
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));
         var tab = Active(opened.State);
-        var row = new IssueSummary("1", "A-1", "Issue 1", _todo, _story, null, null, [], new IssueParent("A-5", "Parent epic"), null, "A");
+        var parent = new IssueParent("A-5", "Parent epic");
+        var row = new IssueSummary("1", "A-1", "Issue 1", _todo, _story, null, null, [], parent, null, "A");
         var page = new IssuePage([row], null, null);
 
         return _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
@@ -390,17 +416,25 @@ public class IssueDetailNavigationTests
             ],
             Links =
             [
-                new IssueLink("1", "Blocks", IssueLinkDirection.Outward, "blocks", new IssueStub("A-30", "Launch", _todo, _story)),
-                new IssueLink("2", "Blocks", IssueLinkDirection.Inward, "is blocked by", new IssueStub("A-9", "Legal", _todo, _story)),
+                Link("1", IssueLinkDirection.Outward, "blocks", new IssueStub("A-30", "Launch", _todo, _story)),
+                Link("2", IssueLinkDirection.Inward, "is blocked by", new IssueStub("A-9", "Legal", _todo, _story)),
             ],
             Attachments = [new IssueAttachment("1", "notes.txt", "text/plain", 47, _now, null, "https://x/content/1")],
         };
 
         state = Deliver(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, loaded, _now));
-        state = Deliver(state, new IssueChildrenLoaded(tab.Id, Top(state).ChildrenRequest, new IssuePage([ChildRow()], null, null), _now));
-        state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [new RemoteLink("1", remoteUrl, "Design spec", "Confluence")], _now));
+        var children = new IssuePage([ChildRow()], null, null);
+        var links = new[] { new RemoteLink("1", remoteUrl, "Design spec", "Confluence") };
+
+        state = Deliver(state, new IssueChildrenLoaded(tab.Id, Top(state).ChildrenRequest, children, _now));
+        state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, links, _now));
 
         return state;
+    }
+
+    private static IssueLink Link(string id, IssueLinkDirection direction, string text, IssueStub issue)
+    {
+        return new IssueLink(id, "Blocks", direction, text, issue);
     }
 
     private static IssueSummary ChildRow()
@@ -411,6 +445,22 @@ public class IssueDetailNavigationTests
     private static IssueDetail Detailed(string key, IssueTypeSummary type)
     {
         return new IssueDetail(
-            "1", key, "Issue 1", _todo, type, "High", null, null, [], _now.AddDays(-3), _now.AddHours(-1), "A", null, null, [], [], []);
+            "1",
+            key,
+            "Issue 1",
+            _todo,
+            type,
+            "High",
+            null,
+            null,
+            [],
+            _now.AddDays(-3),
+            _now.AddHours(-1),
+            "A",
+            null,
+            null,
+            [],
+            [],
+            []);
     }
 }
