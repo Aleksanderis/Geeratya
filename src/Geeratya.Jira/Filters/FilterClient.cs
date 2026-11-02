@@ -12,7 +12,7 @@ namespace Geeratya.Jira.Filters;
 /// </summary>
 public sealed class FilterClient(JiraTransport transport)
 {
-    public const string FilterPath = "/rest/api/3/filter";
+    private const string FilterPath = "/rest/api/3/filter";
 
     /// <summary>Largest page size requested from <c>filter/search</c>.</summary>
     public const int MaxPageSize = 100;
@@ -41,16 +41,31 @@ public sealed class FilterClient(JiraTransport transport)
     }
 
     /// <summary>The caller's own filters (a bare array, not paged).</summary>
-    public Task<JiraResult<IReadOnlyList<SavedFilter>>> GetMyAsync(CancellationToken cancellationToken) =>
-        GetListAsync($"{FilterPath}/my?expand={Expand}", cancellationToken);
+    public Task<JiraResult<IReadOnlyList<SavedFilter>>> GetMyAsync(
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User) =>
+        GetListAsync($"{FilterPath}/my?expand={Expand}", false, priority, cancellationToken);
 
     /// <summary>The caller's starred filters (a bare array, not paged; often empty).</summary>
-    public Task<JiraResult<IReadOnlyList<SavedFilter>>> GetFavouritesAsync(CancellationToken cancellationToken) =>
-        GetListAsync($"{FilterPath}/favourite?expand={Expand}", cancellationToken);
+    /// <remarks>Every entry is marked as favourite, whether or not Jira sends the flag on this endpoint.</remarks>
+    public Task<JiraResult<IReadOnlyList<SavedFilter>>> GetFavouritesAsync(
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User) =>
+        GetListAsync($"{FilterPath}/favourite?expand={Expand}", true, priority, cancellationToken);
 
-    public async Task<JiraResult<SavedFilter>> GetAsync(string filterId, CancellationToken cancellationToken)
+    /// <summary>Loads one filter. An id that is not all digits cannot exist and is answered as NotFound locally.</summary>
+    public async Task<JiraResult<SavedFilter>> GetAsync(
+        string filterId,
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
     {
-        var request = JiraRequest.Get($"{FilterPath}/{Uri.EscapeDataString(filterId)}?expand={Expand}");
+        if (filterId.Length == 0 || !filterId.All(char.IsAsciiDigit))
+        {
+            return JiraResults.Failure<SavedFilter>(
+                new JiraError(JiraErrorKind.NotFound, null, "Not found or no access."));
+        }
+
+        var request = JiraRequest.Get($"{FilterPath}/{filterId}?expand={Expand}") with { Priority = priority };
         var result = await transport.SendAsync(request, FilterJsonContext.Default.Filter, cancellationToken);
 
         return result.IsSuccess
@@ -60,15 +75,17 @@ public sealed class FilterClient(JiraTransport transport)
 
     private async Task<JiraResult<IReadOnlyList<SavedFilter>>> GetListAsync(
         string url,
+        bool markFavourite,
+        JiraPriority priority,
         CancellationToken cancellationToken)
     {
         var result = await transport.SendAsync(
-            JiraRequest.Get(url),
+            JiraRequest.Get(url) with { Priority = priority },
             FilterJsonContext.Default.ListFilter,
             cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(FilterMapper.MapList(result.Value))
+            ? JiraResults.Success(FilterMapper.MapList(result.Value, markFavourite))
             : JiraResults.Failure<IReadOnlyList<SavedFilter>>(result.Error);
     }
 

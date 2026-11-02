@@ -160,6 +160,60 @@ public sealed class FilterClientTests
         Assert.Contains(TimeSpan.FromSeconds(2), fixture.Waits);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("..")]
+    [InlineData("12/3")]
+    public async Task GivenNonNumericId_WhenGetting_ThenNotFoundWithoutARequest(string id)
+    {
+        using var fixture = new TransportFixture();
+
+        var result = await new FilterClient(fixture.Transport).GetAsync(id, CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.NotFound, result.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenFavouritesWithoutFlag_WhenLoading_ThenEntriesAreMarkedFavourite()
+    {
+        const string json = """[{"id": "1", "name": "A"}]""";
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/filter/favourite", FakeResponse.Ok(json));
+
+        var result = await new FilterClient(fixture.Transport).GetFavouritesAsync(CancellationToken.None);
+
+        Assert.True(Assert.Single(result.Value).IsFavourite);
+    }
+
+    [Theory]
+    [InlineData("""{"startAt": 0, "isLast": false, "values": []}""", true)]
+    [InlineData("""{"startAt": 2, "total": 3, "values": [{"id": "1"}]}""", true)]
+    [InlineData("""{"startAt": 0, "total": 3, "values": [{"id": "1"}]}""", false)]
+    [InlineData("""{"startAt": 0, "values": [{"id": "1"}]}""", false)]
+    public async Task GivenPagingFields_WhenSearching_ThenIsLastIsDerived(string json, bool expected)
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.Ok(json));
+
+        var result = await new FilterClient(fixture.Transport)
+            .SearchAsync(new FilterSearchQuery(), 0, CancellationToken.None);
+
+        Assert.Equal(expected, result.Value.IsLast);
+    }
+
+    [Fact]
+    public async Task GivenUnauthorizedReply_WhenGetting_ThenUnauthorizedIsReturned()
+    {
+        using var fixture = new TransportFixture();
+        var reply = FakeResponse.WithStatus(HttpStatusCode.Unauthorized);
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/filter/5", reply);
+
+        var result = await new FilterClient(fixture.Transport).GetAsync("5", CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.Unauthorized, result.Error.Kind);
+    }
+
     private static NameValueCollection QueryOf(RecordedRequest request) =>
         HttpUtility.ParseQueryString(new Uri($"https://x{request.PathAndQuery}").Query);
 

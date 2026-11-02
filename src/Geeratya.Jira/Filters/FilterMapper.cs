@@ -18,13 +18,13 @@ internal static class FilterMapper
         return new OffsetPage<SavedFilter>(items, startAt, wire.MaxResults ?? values.Count, wire.Total, isLast);
     }
 
-    public static IReadOnlyList<SavedFilter> MapList(IReadOnlyList<FilterWire.Filter> wire)
+    public static IReadOnlyList<SavedFilter> MapList(IReadOnlyList<FilterWire.Filter> wire, bool markFavourite = false)
     {
         var items = new List<SavedFilter>(wire.Count);
 
         foreach (var filter in wire)
         {
-            items.Add(Map(filter));
+            items.Add(markFavourite ? Map(filter) with { IsFavourite = true } : Map(filter));
         }
 
         return items;
