@@ -14,6 +14,7 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
     private readonly ConcurrentQueue<Uri> _requests = new();
     private readonly ConcurrentQueue<string> _methods = new();
     private readonly ConcurrentQueue<string> _bodies = new();
+    private readonly TaskCompletionSource _gateReached = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public IReadOnlyCollection<Uri> Requests => _requests;
 
@@ -22,6 +23,9 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
 
     /// <summary>The body text of each request, in order (empty when it had none).</summary>
     public IReadOnlyCollection<string> Bodies => _bodies;
+
+    /// <summary>Completes when a request has arrived at a gated reply, so a test can act while it is in flight.</summary>
+    public Task GateReached => _gateReached.Task;
 
     public ScriptedJiraHandler Reply(HttpStatusCode status, string body, Task? gate = null)
     {
@@ -60,6 +64,7 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
 
         if (reply.Gate is not null)
         {
+            _gateReached.TrySetResult();
             await reply.Gate.WaitAsync(cancellationToken);
         }
 
