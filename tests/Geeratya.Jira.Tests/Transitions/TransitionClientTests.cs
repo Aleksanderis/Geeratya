@@ -68,6 +68,29 @@ public sealed class TransitionClientTests
     }
 
     [Fact]
+    public async Task GivenRecordedDoneScreenWithResolutionAndComponents_WhenListing_ThenResolutionIsRequiredAndComponentsIsMultiSelect()
+    {
+        using var fixture = Serving(GcmPath, "transitions/transitions-gcm-5-resolution-components.json");
+
+        var result = await new TransitionClient(fixture.Transport).GetTransitionsAsync("GCM-1", Cancel());
+
+        var done = Assert.Single(result.Value, transition => transition.Id == "41");
+        Assert.True(done.HasScreen);
+        Assert.True(done.NeedsConfirmation);
+        Assert.Equal(["components", "resolution"], done.Fields.Select(meta => meta.FieldId).Order());
+        var resolution = Assert.Single(done.RequiredFields);
+        Assert.Equal("resolution", resolution.FieldId);
+        Assert.Equal(["10000", "10001", "10002", "10003"], resolution.AllowedValues.Select(option => option.Id));
+        var components = Assert.Single(done.Fields, meta => meta.FieldId == "components");
+        Assert.False(components.Required);
+        Assert.Equal("array", components.SchemaType);
+        var choice = Assert.Single(components.AllowedValues);
+        Assert.Equal("10000", choice.Id);
+        Assert.Equal("Sandbox core", choice.Label);
+        Assert.All(result.Value.Where(transition => transition.Id != "41"), transition => Assert.False(transition.HasScreen));
+    }
+
+    [Fact]
     public async Task GivenUnknownFieldTypeOptionalAndDefaultedFields_WhenListing_ThenTheyAreKeptButNotRequired()
     {
         const string body = """
