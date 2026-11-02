@@ -252,6 +252,38 @@ public class FormOpenerTests
     }
 
     [Fact]
+    public void GivenTheQuickRows_WhenBackspaceClearsTheAssignee_ThenTheRowsFollowTheNewValue()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var cleared = Press(opened, "Backspace").State;
+
+        var popup = cleared.Session.Tabs[0].Form!.Suggest!;
+        Assert.Equal(["acc-me"], popup.Items.Select(item => item.Id));
+    }
+
+    [Fact]
+    public void GivenTheQuickRows_WhenEscIsPressed_ThenTheFormClosesAtOnce()
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var closed = Press(opened, "Esc");
+
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+    }
+
+    [Fact]
+    public void GivenAnEmptyId_WhenChosenOnAPickedField_ThenTheValueIsCleared()
+    {
+        var field = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.User, false, [])
+            .WithInitial(FormValue.OfChosen(["acc-eve"]));
+
+        var chosen = FormEditor.Choose(field, AssigneeQuickRows.Unassigned);
+
+        Assert.Empty(chosen.Value.Chosen);
+    }
+
+    [Fact]
     public void GivenAnAnswerArrived_WhenEnterIsPressed_ThenThePersonIsChosen()
     {
         var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");

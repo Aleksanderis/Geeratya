@@ -24,7 +24,7 @@ public static class SuggestionText
         return suggestion.Detail switch
         {
             SuggestionRanker.NewValueDetail => $"{suggestion.Label}{NewValue}",
-            AssigneeQuickRows.MeDetail => $"Me ({suggestion.Label})",
+            AssigneeQuickRows.MeDetail => suggestion.Label.Length == 0 ? "Me" : $"Me ({suggestion.Label})",
             _ => Of(suggestion),
         };
     }

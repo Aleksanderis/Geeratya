@@ -15,8 +15,8 @@ public static partial class FormReducer
 {
     private const int KnownLabelLimit = 500;
 
-    // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and Down move, Tab and Enter take the highlighted row. Any
-    // other key is not the popup's (null) and goes on to the field.
+    // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and
+    // Down move, Tab and Enter take the highlighted row. Any other key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,
@@ -151,7 +151,8 @@ public static partial class FormReducer
 
     private static ReduceResult QuickShown(AppState state, TabState tab, FormState form, SuggestionState quick)
     {
-        if (form.Suggest is { Query.Length: 0 } open && open.FieldIndex == form.Focus)
+        if (form.Suggest is { Query.Length: 0 } open && open.FieldIndex == form.Focus
+            && open.Items.Select(item => item.Id).SequenceEqual(quick.Items.Select(item => item.Id)))
         {
             return Result(state);
         }
