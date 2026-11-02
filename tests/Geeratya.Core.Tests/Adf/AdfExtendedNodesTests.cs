@@ -65,6 +65,21 @@ public sealed class AdfExtendedNodesTests
         Assert.Equal(["[undecided] one two", "            three", "[decision] no state"], Lines(json, 19));
     }
 
+    [Theory]
+    [InlineData("DECIDED\\u001b[31m")]
+    [InlineData("A\\nB")]
+    [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZ")]
+    [InlineData("")]
+    public void GivenUnreadableDecisionState_WhenRendering_ThenTheDefaultLabelIsShown(string state)
+    {
+        var json = $$"""
+            {"type":"decisionList","content":[
+              {"type":"decisionItem","attrs":{"state":"{{state}}"},"content":[{"type":"text","text":"text"}]}]}
+            """;
+
+        Assert.Equal(["[decision] text"], Lines(json, 40));
+    }
+
     [Fact]
     public void GivenNestedExpandWithoutTitle_WhenRendering_ThenTheDefaultTitleIsUsed()
     {

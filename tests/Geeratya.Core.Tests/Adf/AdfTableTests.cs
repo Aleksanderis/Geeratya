@@ -199,6 +199,21 @@ public sealed class AdfTableTests
     }
 
     [Fact]
+    public void GivenHeaderCellWithRowSpan_WhenRendering_ThenNoRuleIsDrawnThroughIt()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableHeader","attrs":{"rowspan":2},"content":[{{Paragraph("H")}}]},
+                {"type":"tableHeader","content":[{{Paragraph("I")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{{Paragraph("x")}}]}]}]}
+            """;
+
+        Assert.Equal(["| H | I |", "|   | x |"], Lines(json, 80));
+    }
+
+    [Fact]
     public void GivenShortRow_WhenRendering_ThenMissingCellsArePadded()
     {
         const string json = """

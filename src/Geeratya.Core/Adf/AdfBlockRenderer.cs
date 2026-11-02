@@ -252,10 +252,17 @@ internal static class AdfBlockRenderer
         {
             var item = list.Children[index];
             var state = item is AdfDecisionItem { State: { } itemState } ? itemState : string.Empty;
-            var label = string.IsNullOrWhiteSpace(state) ? AdfMarkers.DefaultDecisionLabel : state.ToLowerInvariant();
+            var label = IsPlainLabel(state) ? state.ToLowerInvariant() : AdfMarkers.DefaultDecisionLabel;
 
             RenderItem(item, context, new LinePrefix($"[{label}] ", TextRole.Muted), output);
         }
+    }
+
+    /// <summary>A state from the API is shown only when it is a short word; anything else becomes the default.</summary>
+    private static bool IsPlainLabel(string state)
+    {
+        return state.Length is > 0 and <= AdfMarkers.MaxStateLength
+            && state.All(static character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-');
     }
 
     private static void RenderItem(AdfNode item, RenderContext context, LinePrefix marker, List<StyledLine> output)

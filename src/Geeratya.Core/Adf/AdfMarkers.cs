@@ -18,6 +18,7 @@ internal static class AdfMarkers
     public const string Truncated = "[unsupported: nesting too deep]";
     public const char RuleCharacter = '-';
     public const int MaxRuleLength = 40;
+    public const int MaxStateLength = 20;
 
     public static string Unsupported(string typeName)
     {
