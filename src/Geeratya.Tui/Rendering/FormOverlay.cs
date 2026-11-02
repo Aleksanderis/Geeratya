@@ -272,7 +272,7 @@ public static class FormOverlay
     {
         if (!field.IsEditable)
         {
-            var shown = field.Value.Chosen.Count > 0 ? string.Join(", ", field.Value.Chosen) : browserUrl;
+            var shown = IsSelectedParent(field) ? string.Join(", ", field.Value.Chosen) : browserUrl;
 
             return [Indented(shown ?? ReadOnlyText, TextRole.Muted)];
         }
@@ -286,9 +286,14 @@ public static class FormOverlay
         };
     }
 
+    private static bool IsSelectedParent(FormField field)
+    {
+        return field.Kind == FormFieldKind.Parent && field.Value.Chosen.Count > 0;
+    }
+
     private static string ReadOnlyNote(FormField field)
     {
-        return field.Value.Chosen.Count > 0 ? FromSelectionText : ReadOnlyText;
+        return IsSelectedParent(field) ? FromSelectionText : ReadOnlyText;
     }
 
     private static StyledLine TextLine(FormField field, bool focused, int valueWidth)

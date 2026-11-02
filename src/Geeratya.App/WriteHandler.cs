@@ -21,7 +21,6 @@ public sealed class WriteHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
     private const string UnexpectedMessage = "The write failed unexpectedly";
-    private const string RecentOwnIssues = "reporter = currentUser() AND created >= -10m";
 
     private readonly NetworkRunner _runner;
     private readonly TimeProvider _clock;
@@ -249,7 +248,7 @@ public sealed class WriteHandler
         try
         {
             var jql = JqlBuilder.WithOrder(
-                JqlBuilder.And(JqlBuilder.Project(create.ProjectKey), RecentOwnIssues),
+                JqlBuilder.And(JqlBuilder.Project(create.ProjectKey), JqlBuilder.RecentOwnIssues()),
                 JqlOrder.CreatedDescending);
             var result = await services.Search.SearchAsync(new IssueSearchQuery(jql), null, token);
             var found = result.IsSuccess ? result.Value.Items.Where(create.IsShownBy).Take(1).ToArray() : [];

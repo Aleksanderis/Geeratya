@@ -48,6 +48,7 @@ public sealed record CreateRequest(
     public override string UnreachableText =>
         $"The {IssueTypeName} may or may not have been created: reload to check, do not create it twice";
 
+
     /// <summary>The status line after Jira created the issue.</summary>
     public static string CreatedText(string key)
     {

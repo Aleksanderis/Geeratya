@@ -41,7 +41,7 @@ public static class NewIssues
             description,
             request.ParentKey,
             fields,
-            true);
+            DescriptionIsMarkdown: true);
     }
 
     private static CreateFieldValue ValueOf(FieldChange change)
