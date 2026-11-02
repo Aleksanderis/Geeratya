@@ -1,5 +1,6 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.State;
+using Geeratya.Jira.Suggestions;
 
 namespace Geeratya.App;
 
@@ -12,9 +13,6 @@ namespace Geeratya.App;
 /// </summary>
 public sealed class MentionCheckHandler
 {
-    /// <summary>Jira's answer is capped at 20 users; a full page proves nothing about the 21st.</summary>
-    private const int FullPage = 20;
-
     private readonly NetworkRunner _runner;
 
     public MentionCheckHandler(NetworkRunner runner)
@@ -40,7 +38,7 @@ public sealed class MentionCheckHandler
                 return null;
             }
 
-            if (found.Value.Count < FullPage && found.Value.All(user => user.Id != person.Id))
+            if (found.Value.Count < SuggestionFilter.MaxResults && found.Value.All(user => user.Id != person.Id))
             {
                 unseen.Add(person);
             }

@@ -407,6 +407,36 @@ public class CommentEditingTests
     }
 
     [Fact]
+    public void GivenMentionsWithNoNameOrControlCharacters_WhenEditing_ThenNamelessOnesAreSkippedAndTheNameIsClean()
+    {
+        var body = AdfParser.Parse(
+            """{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"acc-a","text":"@"}},{"type":"mention","attrs":{"id":"acc-b"}},{"type":"mention","attrs":{"id":"acc-c","text":"@Ev\u0007il"}}]}]}""");
+        var comment = new IssueComment("1", _me, body, _now, _now);
+
+        var edit = Press(OnComment(OpenIssue(), "1", comment), "Space", "m", "e");
+
+        var check = Assert.IsType<CheckMentionsEffect>(Assert.Single(edit.Effects));
+        var person = Assert.Single(check.People);
+        Assert.Equal("acc-c", person.Id);
+        Assert.DoesNotContain(person.Name, char.IsControl);
+    }
+
+    [Fact]
+    public void GivenTheEditorClosed_WhenTheMentionCheckArrives_ThenItIsDropped()
+    {
+        var text = "@[Olga Other](mention:acc-other)";
+        var opened = Press(OnComment(OpenIssue(), "1", Comment(1, _me, text)), "Space", "m", "e");
+        var editor = opened.State.Editor!;
+        var closed = opened.State with { Editor = null };
+
+        var result = _reducer.Reduce(
+            closed,
+            new MentionsChecked(editor.Tab, editor.Key, "1", [new MentionedPerson("acc-other", "Olga Other")]));
+
+        Assert.Null(result.State.Editor);
+    }
+
+    [Fact]
     public void GivenAForeignCommentWithControlCharacters_WhenEditing_ThenTheEditorTextHasNoneOfThem()
     {
         var hostile = string.Concat("a", (char)27, "[31m", (char)9, "b", (char)13, (char)10, "c", (char)7);

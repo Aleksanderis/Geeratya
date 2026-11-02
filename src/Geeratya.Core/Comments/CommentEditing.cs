@@ -354,7 +354,13 @@ internal static class CommentEditing
         {
             if (node is AdfMention { Id: { Length: > 0 } id } mention && people.TrueForAll(known => known.Id != id))
             {
-                people.Add(new MentionedPerson(id, (mention.Text ?? string.Empty).TrimStart('@')));
+                // Another author wrote the name: no control characters, and without a name there is nothing to look up.
+                var name = Clean(mention.Text ?? string.Empty).TrimStart('@').Trim();
+
+                if (name.Length > 0)
+                {
+                    people.Add(new MentionedPerson(id, name));
+                }
             }
         }
 
