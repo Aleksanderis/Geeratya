@@ -102,7 +102,7 @@ public class ListNavigationTests
         state = Press(state, "G").State;
         var before = Tab(state);
 
-        state = _reducer.Reduce(state, new ViewPageLoaded(before.Id, before.RequestId, Page(100, 101, null), _now)).State;
+        state = _reducer.Reduce(state, new ViewPageLoaded(before.Id, before.RequestId, Page(100, 101), _now)).State;
 
         Assert.Equal(99, Tab(state).Selected);
         Assert.Equal("A-100", Tab(state).SelectedKey);
@@ -120,7 +120,7 @@ public class ListNavigationTests
             Session = state.Session with { Tabs = [loaded with { Load = new Loading(LoadReason.Retry), RequestId = 77 }] },
         };
 
-        var refreshed = _reducer.Reduce(opened, new ViewPageLoaded(loaded.Id, 77, Page(100, 11, null), _now)).State;
+        var refreshed = _reducer.Reduce(opened, new ViewPageLoaded(loaded.Id, 77, Page(100, 11), _now)).State;
 
         var tab = Tab(refreshed);
         Assert.Equal("A-100", tab.SelectedKey);
@@ -138,6 +138,18 @@ public class ListNavigationTests
 
         Assert.Equal(0, Tab(state).Scroll);
         Assert.Equal(29, Tab(state).Selected);
+    }
+
+    [Fact]
+    public void GivenSelectionOutsideReach_WhenTheViewportGrowsPastIt_ThenTheNextPageIsRequested()
+    {
+        var state = Loaded(100, 10, "n2");
+        state = _reducer.Reduce(state, new SelectionMoved(Tab(state).Id, 85)).State;
+
+        var result = _reducer.Reduce(state, new ViewportChanged(20));
+
+        var effect = Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects));
+        Assert.Equal(LoadReason.NextPage, effect.Reason);
     }
 
     [Fact]

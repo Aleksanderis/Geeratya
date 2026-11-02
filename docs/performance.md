@@ -40,6 +40,14 @@ Reading the key-to-frame figure (ad hoc checks, not committed and not reproducib
 
 Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed loop, command in the PR), list scrolling, ADF rendering of the longest recorded description, memory (RSS) after opening a 10k list. Record binary type, dataset size, injected latency, median and p95.
 
+### List scrolling (#79)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| Nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows loaded in one tab, 2000 timed keys | 0.20 ms | 1.0 ms |
+
+Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the terminal draw and tmux. The renderer produces only the viewport rows (a test builds a frame over 10 000 rows and checks it holds the window and nothing else); the work per key is the reducer's list copy of one tab and the visible rows. Real-binary check: `fakejira --issues 10000` with the Native AOT binary under tmux, `:jql`, then `j`, `G` and `Ctrl-d` moved the selection, the next page loaded when `G` came within one screen of the end, and `gg` returned to the top. Not measured: Native AOT in-process figures and RSS of a fully loaded 10k tab (#91).
+
 ### JSON mapping of a search result (#66)
 
 | Path | Binary | Dataset | Median | p95 |

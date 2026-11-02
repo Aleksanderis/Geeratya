@@ -16,8 +16,8 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
-# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter); wait-for is text that
-# must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
+# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter);
+# wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"

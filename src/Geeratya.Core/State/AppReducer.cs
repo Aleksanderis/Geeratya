@@ -150,7 +150,9 @@ public sealed class AppReducer
         };
     }
 
-    /// <summary>Help scrolls by one line (<paramref name="helpDelta"/>); in Normal mode the list selection moves.</summary>
+    /// <summary>
+    /// Help scrolls by <paramref name="helpDelta"/> lines; in Normal mode the list selection moves.
+    /// </summary>
     private ReduceResult Navigate(AppState state, ListMove move, int helpDelta)
     {
         if (state.Mode == InputMode.Help)

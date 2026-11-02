@@ -25,7 +25,7 @@ public static class ViewReducer
             TabActivated activated => Activate(state, activated.Tab, effects),
             TabClosed closed => Close(state, closed.Tab, effects),
             ViewLayoutChanged changed => ChangeLayout(state, changed),
-            ViewportChanged viewport => ChangeViewport(state, viewport.Rows),
+            ViewportChanged viewport => ChangeViewport(state, viewport.Rows, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
@@ -107,7 +107,7 @@ public static class ViewReducer
         return Replace(state, tab with { Definition = tab.Definition with { Layout = changed.Layout } });
     }
 
-    private static AppState ChangeViewport(AppState state, int rows)
+    private static AppState ChangeViewport(AppState state, int rows, List<Effect> effects)
     {
         var height = Math.Max(0, rows);
 
@@ -118,7 +118,12 @@ public static class ViewReducer
 
         var tabs = state.Session.Tabs.Select(tab => Resized(tab, height)).ToArray();
 
-        return WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
+        var resized = WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
+
+        // A taller viewport can bring the end of the loaded rows within reach without any key press.
+        var active = resized.Session.Active is { } id ? Find(resized.Session.Tabs, id) : null;
+
+        return active is not null && WantsNextPage(resized, active) ? RequestNext(resized, active, effects) : resized;
     }
 
     private static TabState Resized(TabState tab, int height)

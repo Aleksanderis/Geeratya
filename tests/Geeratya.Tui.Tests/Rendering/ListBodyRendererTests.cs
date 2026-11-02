@@ -86,7 +86,7 @@ public class ListBodyRendererTests
     {
         var tab = Tab(LoadState.Idle, 2) with { Rows = [Issue(1, assignee: "Jane Doe")] };
 
-        Assert.Contains("Jane Doe", Frame(tab, 100)[2]);
+        Assert.Contains("Jane Doe", Frame(tab)[2]);
         Assert.DoesNotContain("Jane Doe", Frame(tab, 99)[2]);
         Assert.Contains("To Do", Frame(tab, 56)[2]);
         Assert.DoesNotContain("To Do", Frame(tab, 55)[2]);
