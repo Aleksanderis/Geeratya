@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Rank.Models;
 using Geeratya.Jira.Transport;
@@ -86,7 +87,11 @@ public sealed class RankClient(JiraTransport transport)
         if (rankFieldId is not null)
         {
             if (!rankFieldId.StartsWith(FieldPrefix, StringComparison.Ordinal)
-                || !long.TryParse(rankFieldId.AsSpan(FieldPrefix.Length), out var parsed)
+                || !long.TryParse(
+                    rankFieldId.AsSpan(FieldPrefix.Length),
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var parsed)
                 || parsed <= 0)
             {
                 return Task.FromResult(Refused("The rank field id is not valid."));
