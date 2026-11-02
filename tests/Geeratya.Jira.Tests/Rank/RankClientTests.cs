@@ -132,11 +132,12 @@ public sealed class RankClientTests
             (await client.MoveToBacklogAsync(["x"], Cancel()), "Every issue key"),
         };
 
-        Assert.All(results, entry =>
+        foreach (var (result, expectedText) in results)
         {
-            Assert.Equal(WriteErrorKind.Validation, entry.Item1.Error.Kind);
-            Assert.Contains(entry.Item2, entry.Item1.Error.Message);
-        });
+            Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
+            Assert.Contains(expectedText, result.Error.Message);
+        }
+
         Assert.Empty(fixture.Handler.Requests);
     }
 
