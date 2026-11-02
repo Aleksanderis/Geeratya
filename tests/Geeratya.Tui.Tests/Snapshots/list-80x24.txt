@@ -1,3 +1,4 @@
+ [1 JQL: My open issues …]                                                      
 My open issues · 10+                                                            
   Key    T Summary                                                Status        
   GCM-12 T Fix login redirect after token refresh                 In Progress   
@@ -11,7 +12,6 @@ My open issues · 10+
   GCM-25 S As an admin I can see who changed a setting            In Progress   
   GCM-26 T Remove the legacy export flag                          To Do         
 Loading more…                                                                   
-                                                                                
                                                                                 
                                                                                 
                                                                                 

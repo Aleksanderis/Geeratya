@@ -1,3 +1,4 @@
+                                                                                                                        
 Help                                                                                                                    
 Normal mode                                                                                                             
   j          Move down                                                                                                  
@@ -32,5 +33,4 @@ Normal mode
   g T        Previous tab                                                                                               
   Alt-1      Go to tab 1                                                                                                
   Alt-2      Go to tab 2                                                                                                
-  Alt-3      Go to tab 3                                                                                                
  HELP                                                                                            j down  k up  Esc close
