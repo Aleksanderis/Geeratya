@@ -70,9 +70,9 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
-| `<space>ma` | `comment.add` | Add a comment (multi-line editor) | E | `+` in the comments section | M2 #167 |
-| `<space>me` | `comment.edit` | Edit the comment under the cursor (your own; others are refused with the reason) | E | click the comment | M2 #167 |
-| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo) | A | context menu on the comment | M2 #167 |
+| `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
+| `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part not built) | M2 #167 |
+| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part not built) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
 | `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M3 #182 |
@@ -103,7 +103,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 
 ### Text input
 
-- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves, `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts.
+- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves (`Alt-Enter` too, for a terminal that swallows `Ctrl-s`), `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts. Built for comments in #167 (`Left`/`Right`/`Up`/`Down`/`Home`/`End`/`Delete` move and edit; `Ctrl-s` is the form's `form.submit`, the cursor actions are `editor.*`, Insert mode only); `docs/ux-screens.md`, "Comment editor".
 - **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`. `Ctrl-o` (`form.open-browser`, #279) opens the issue page in the browser, for fields the form cannot edit; the form stays as it is. The key shows in the form footer only when a field is read-only. In vim `Ctrl-o` jumps back in the jump list; Geeratya has no jump list, so the key is free here. Its mouse path (click the address) comes with #200.
 - **Suggestions** (owner's decision, #213 to #215): `@` (people) and `#` plus a project key (issues) open the popup inside text editors; picker fields (labels, components, assignee, selects) suggest by context as you type. No extra key opens a picker field's list. `Up`/`Down` and `Ctrl-p`/`Ctrl-n` choose, `Enter` or `Tab` accepts, `Esc` closes the popup only.
 - **Pickers** reuse the source picker's keys (`ux.md`, Insert mode).

@@ -37,4 +37,32 @@ public static class PasteText
 
         return string.Empty;
     }
+
+    /// <summary>
+    /// All lines of <paramref name="pasted"/> for a multi-line editor: line breaks become <c>\n</c>, a tab becomes
+    /// four spaces and other control characters are dropped.
+    /// </summary>
+    public static string Lines(string pasted)
+    {
+        var builder = new StringBuilder(pasted.Length);
+        var normalized = pasted.Replace("\r\n", "\n").Replace('\r', '\n');
+
+        foreach (var character in normalized)
+        {
+            if (character == '\n')
+            {
+                builder.Append(character);
+            }
+            else if (character == '\t')
+            {
+                builder.Append("    ");
+            }
+            else if (!char.IsControl(character))
+            {
+                builder.Append(character);
+            }
+        }
+
+        return builder.ToString();
+    }
 }

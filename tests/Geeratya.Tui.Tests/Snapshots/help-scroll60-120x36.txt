@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+Help mode                                                                                                               
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
   k          Move up                                                                                                    
   Up         Move up                                                                                                    
   ?          Show or hide help                                                                                          
@@ -30,7 +33,4 @@ Insert mode
   Ctrl-n     Next row in the picker                                                                                     
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
-  Ctrl-s     Save the form                                                                                              
-  Ctrl-o     Open the issue page in the browser from the form                                                           
-                                                                                                                        
  HELP                                                                                            j down  k up  Esc close

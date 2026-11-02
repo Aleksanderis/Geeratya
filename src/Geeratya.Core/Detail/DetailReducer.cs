@@ -181,6 +181,70 @@ internal static class DetailReducer
         return ViewReducer.Replace(state, ReplaceTop(tab, loading)) with { Sequence = requestId };
     }
 
+    /// <summary>
+    /// Applies <paramref name="change"/> to every stacked issue with <paramref name="key"/> in every tab and lays it
+    /// out again (a comment was added, edited or deleted: the same issue may be open in several tabs).
+    /// </summary>
+    public static AppState ChangeIssues(AppState state, string key, Func<DetailState, DetailState> change)
+    {
+        var next = state;
+
+        foreach (var tab in state.Session.Tabs)
+        {
+            if (!tab.Detail.Any(detail => IsKey(detail, key)))
+            {
+                continue;
+            }
+
+            var stack = tab.Detail.Select(detail => ChangedIssue(state, tab, detail, key, change)).ToArray();
+
+            next = ViewReducer.Replace(next, tab with { Detail = stack });
+        }
+
+        return next;
+    }
+
+    /// <summary>
+    /// Loads the first comment page of the top-most stacked issue <paramref name="key"/> of a tab again, replacing the
+    /// list when it arrives (the reply of a write did not carry the comment).
+    /// </summary>
+    public static AppState ReloadComments(AppState state, TabId id, string key, List<Effect> effects)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, id);
+        var index = tab is null ? -1 : tab.Detail.ToList().FindLastIndex(detail => IsKey(detail, key));
+
+        if (tab is null || index < 0)
+        {
+            return state;
+        }
+
+        var requestId = state.Sequence + 1;
+        var stack = tab.Detail.ToArray();
+
+        stack[index] = Layout(
+            stack[index] with { CommentsLoad = new Loading(LoadReason.Refresh), CommentsRequest = requestId },
+            state.ViewportColumns,
+            tab.VisibleRows);
+        effects.Add(new LoadIssueCommentsEffect(id, key, 0, requestId));
+
+        return ViewReducer.Replace(state, tab with { Detail = stack }) with { Sequence = requestId };
+    }
+
+    private static DetailState ChangedIssue(
+        AppState state,
+        TabState tab,
+        DetailState detail,
+        string key,
+        Func<DetailState, DetailState> change)
+    {
+        return IsKey(detail, key) ? Layout(change(detail), state.ViewportColumns, tab.VisibleRows) : detail;
+    }
+
+    private static bool IsKey(DetailState detail, string key)
+    {
+        return string.Equals(detail.Key, key, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Whether the shown issue was marked stale by a write and has no reload in flight.</summary>
     public static bool NeedsReload(TabState tab)
     {

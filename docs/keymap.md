@@ -51,6 +51,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Space m a` | Add a comment to the issue |
+| `Space m e` | Edit the comment under the cursor |
+| `Space m d` | Delete the comment under the cursor |
 | `Space i s` | Change the status of the issue |
 | `Alt-l` | Move the card to the next column |
 | `Alt-h` | Move the card to the previous column |
@@ -107,6 +110,12 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Alt-Enter` | Save the form |
+| `Left` | Move the cursor left |
+| `Right` | Move the cursor right |
+| `Home` | Move the cursor to the start of the row |
+| `End` | Move the cursor to the end of the row |
+| `Delete` | Delete the character under the cursor |
 | `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands

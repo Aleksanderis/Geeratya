@@ -1,0 +1,171 @@
+using Geeratya.Core.Comments;
+using Geeratya.Core.Editing;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.State;
+using Geeratya.Core.Text;
+using Geeratya.Core.Views;
+using Geeratya.Tui.Rendering;
+
+namespace Geeratya.Tui.Tests.Rendering;
+
+[Trait("Os", "Independent")]
+public class CommentEditorOverlayTests
+{
+    private static readonly KeymapTable _keymap = DefaultKeymap.Load();
+
+    [Fact]
+    public void GivenANewComment_WhenRendering_ThenTheBoxShowsTitleTextPlaceholderAndKeys()
+    {
+        var frame = Frame(Editor(string.Empty), 80, 24);
+        var text = string.Join('\n', frame.PlainLines());
+
+        Assert.Contains("Comment on A-1", text);
+        Assert.Contains("Type the comment here", text);
+        Assert.Contains("Ctrl-s send", text);
+        Assert.Contains("Enter new line", text);
+        Assert.Contains("Esc cancel", text);
+        Assert.Contains("INSERT Commenting on A-1", frame.StatusLine);
+        Assert.EndsWith("Ctrl-s save  Esc cancel", frame.StatusLine);
+    }
+
+    [Fact]
+    public void GivenAnEdit_WhenRendering_ThenTheTitleSaysEditAndTheFooterSaysSave()
+    {
+        var editor = Editor("old") with { CommentId = "5", Original = "old" };
+
+        var text = string.Join('\n', Frame(editor, 80, 24).PlainLines());
+
+        Assert.Contains("Edit comment on A-1", text);
+        Assert.Contains("Ctrl-s save", text);
+    }
+
+    [Fact]
+    public void GivenText_WhenRendering_ThenTheCursorIsASelectedCellAtItsPosition()
+    {
+        var editor = Editor("hello") with { Buffer = new TextBuffer("hello", 2) };
+
+        var line = Assert.Single(Frame(editor, 80, 24).Body, row => row.Spans.Any(span => span.Role == TextRole.Selected));
+
+        var selected = Assert.Single(line.Spans, span => span.Role == TextRole.Selected);
+        Assert.Equal("l", selected.Text);
+        Assert.Contains("he", line.PlainText);
+    }
+
+    [Fact]
+    public void GivenTheCursorAtTheEnd_WhenRendering_ThenTheCursorIsASelectedSpace()
+    {
+        var line = Assert.Single(
+            Frame(Editor("hello"), 80, 24).Body,
+            row => row.Spans.Any(span => span.Role == TextRole.Selected));
+
+        Assert.Equal(" ", Assert.Single(line.Spans, span => span.Role == TextRole.Selected).Text);
+    }
+
+    [Theory]
+    [InlineData(80, 24)]
+    [InlineData(120, 36)]
+    [InlineData(40, 10)]
+    [InlineData(24, 8)]
+    [InlineData(20, 6)]
+    [InlineData(12, 3)]
+    [InlineData(5, 2)]
+    [InlineData(1, 1)]
+    public void GivenAnySize_WhenRenderingLongWideText_ThenEveryLineFitsAndNothingThrows(int width, int height)
+    {
+        var text = string.Concat(Enumerable.Repeat("日本語の長い文章 and a 😀 long line\n", 30));
+        var editor = Editor(text) with { Warning = "Careful with the formatting", Error = "Jira said no" };
+
+        var lines = Frame(editor, width, height).PlainLines();
+
+        Assert.Equal(height, lines.Count);
+        Assert.All(lines, line => Assert.True(TextWidth.Of(line) <= width, line));
+    }
+
+    [Fact]
+    public void GivenMoreRowsThanTheBoxHolds_WhenTheCursorIsAtTheEnd_ThenTheLastRowsShowAndTheFirstDoNot()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 60).Select(number => $"line {number:D2}"));
+
+        var plain = string.Join('\n', Frame(Editor(text), 80, 24).PlainLines());
+
+        Assert.Contains("line 60", plain);
+        Assert.DoesNotContain("line 01", plain);
+    }
+
+    [Fact]
+    public void GivenTheCursorMovedToTheTop_WhenRendering_ThenTheFirstRowsShow()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 60).Select(number => $"line {number:D2}"));
+        var editor = Editor(text) with { Buffer = new TextBuffer(text, 0) };
+
+        var plain = string.Join('\n', Frame(editor, 80, 24).PlainLines());
+
+        Assert.Contains("line 01", plain);
+        Assert.DoesNotContain("line 60", plain);
+    }
+
+    [Fact]
+    public void GivenAWideCharacterAtTheWrapPoint_WhenRendering_ThenItIsNeverSplit()
+    {
+        var text = string.Concat(Enumerable.Repeat("日", 80));
+
+        var lines = Frame(Editor(text), 40, 24).PlainLines();
+
+        Assert.Equal(80, lines.Sum(line => line.Count(character => character == '日')));
+    }
+
+    [Fact]
+    public void GivenSavingAnErrorAndAWarning_WhenRendering_ThenEachHasItsLine()
+    {
+        var editor = Editor("x") with { OperationId = 9, Error = "No permission to edit", Warning = "Not your comment" };
+
+        var frame = Frame(editor, 80, 24);
+        var plain = string.Join('\n', frame.PlainLines());
+
+        Assert.Contains("Saving…", plain);
+        Assert.Contains("No permission to edit", plain);
+        Assert.Contains("Not your comment", plain);
+        Assert.Contains("saving…", frame.StatusLine);
+        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Error));
+        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Loading));
+    }
+
+    [Fact]
+    public void GivenTheEditorHints_WhenCheckingTheDefaultKeymap_ThenEachBindsItsActionInInsertMode()
+    {
+        foreach (var hint in StatusBar.EditorHints)
+        {
+            Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.ActionId));
+        }
+    }
+
+    [Fact]
+    public void GivenTheDiscardQuestion_WhenRendering_ThenTheEditorStaysUnderTheConfirmLine()
+    {
+        var state = StateWith(Editor("draft")) with
+        {
+            Mode = InputMode.Confirm,
+            Confirm = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", "comment.discard"),
+        };
+
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, [], _keymap)!;
+
+        Assert.Contains("CONFIRM Discard the unsent comment text?", frame.StatusLine);
+        Assert.Contains("draft", string.Join('\n', frame.PlainLines()));
+    }
+
+    private static StyledFrame Frame(CommentEditor editor, int width, int height)
+    {
+        return FrameBuilder.BuildStyled(StateWith(editor), width, height, [], _keymap)!;
+    }
+
+    private static AppState StateWith(CommentEditor editor)
+    {
+        return AppState.Initial with { Mode = InputMode.Insert, Editor = editor };
+    }
+
+    private static CommentEditor Editor(string text)
+    {
+        return new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of(text), string.Empty);
+    }
+}

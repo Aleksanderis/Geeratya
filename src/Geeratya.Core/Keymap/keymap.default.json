@@ -45,6 +45,9 @@
     { "mode": "normal", "keys": "Space l", "action": "view.layout-toggle" },
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },
+    { "mode": "normal", "keys": "Space m a", "action": "comment.add" },
+    { "mode": "normal", "keys": "Space m e", "action": "comment.edit" },
+    { "mode": "normal", "keys": "Space m d", "action": "comment.delete" },
     { "mode": "normal", "keys": "Space i s", "action": "issue.transition" },
     { "mode": "normal", "keys": "Alt-l", "action": "issue.transition-next" },
     { "mode": "normal", "keys": "Alt-h", "action": "issue.transition-previous" },
@@ -85,6 +88,12 @@
     { "mode": "insert", "keys": "Tab", "action": "form.field-next" },
     { "mode": "insert", "keys": "Shift-Tab", "action": "form.field-previous" },
     { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" },
+    { "mode": "insert", "keys": "Alt-Enter", "action": "form.submit" },
+    { "mode": "insert", "keys": "Left", "action": "editor.left" },
+    { "mode": "insert", "keys": "Right", "action": "editor.right" },
+    { "mode": "insert", "keys": "Home", "action": "editor.row-start" },
+    { "mode": "insert", "keys": "End", "action": "editor.row-end" },
+    { "mode": "insert", "keys": "Delete", "action": "editor.delete" },
     { "mode": "insert", "keys": "Ctrl-o", "action": "form.open-browser" }
   ]
 }
