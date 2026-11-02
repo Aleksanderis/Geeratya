@@ -8,6 +8,9 @@
 #   env RECORD_RAW=1        skip scrubbing (inspection only, never commit the output)
 # Writes also allowed: agile rank/backlog moves and creating issue links, only between GCM/GTM keys (no link deletes).
 # Also allowed: PUT and DELETE of one comment by id on a GCM/GTM issue.
+# The Scrum sandboxes GCS/GTS (boards 6 and 5) count as sandbox projects too, and sprint writes are allowed
+# there only: create a sprint on board 5/6, update, delete or move issues into a sprint whose originBoardId
+# (read live before the write) is 5 or 6.
 # Refuses hosts outside GEERATYA_LIVE_HOSTS. Never prints the token; the credential
 # goes to curl through a private config file, not argv.
 # Scrubbing (scripts/scrub-fixture.py): host -> example.atlassian.net, account ids -> fake-account-N,
@@ -54,31 +57,33 @@ case "$method" in GET | POST | PUT | DELETE) ;; *) echo "unsupported method" >&2
 # Writes: only issues in the sandbox projects GCM and GTM (testing skill, "Live dev site").
 if [ "$method" != GET ]; then
   # Exact shapes only: no "/" beyond one sub-resource, no dot segments.
-  issue_re='^/rest/api/3/issue/G[CT]M-[0-9]+(/(comment(/[0-9]+)?|transitions|remotelink|attachments))?(\?[A-Za-z0-9=&,._-]*)?$'
+  issue_re='^/rest/api/3/issue/G[CT][MS]-[0-9]+(/(comment(/[0-9]+)?|transitions|remotelink|attachments))?(\?[A-Za-z0-9=&,._-]*)?$'
   case "$path" in
     /rest/api/3/issue | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
     # Ranking, moving to the backlog and issue links name issues in the body; checked below.
-    /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink) ;;
+    /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink | /rest/agile/1.0/sprint) ;;
+    # Sprint by id (update, delete) and its issues; the sprint's board is checked below.
     *)
-      if ! [[ $path =~ $issue_re ]]; then
-        echo "write refused: only issues in GCM/GTM (and search POST) may be written" >&2; exit 3
+      if [[ $path =~ ^/rest/agile/1\.0/sprint/[0-9]+(/issue)?$ ]]; then :
+      elif ! [[ $path =~ $issue_re ]]; then
+        echo "write refused: only issues in GCM/GTM/GCS/GTS (and search POST) may be written" >&2; exit 3
       fi ;;
   esac
   if [ "$method" = DELETE ] && [ "$path" = /rest/api/3/issueLink ]; then echo "write refused" >&2; exit 3; fi
   if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
-    && ! jq -e '((.fields | objects | .project.key) // "GCM") | IN("GCM","GTM")' "$body" > /dev/null 2>&1; then
-    echo "write refused: body names a project other than GCM/GTM" >&2; exit 3
+    && ! jq -e '((.fields | objects | .project.key) // "GCM") | IN("GCM","GTM","GCS","GTS")' "$body" > /dev/null 2>&1; then
+    echo "write refused: body names a project other than GCM/GTM/GCS/GTS" >&2; exit 3
   fi
 fi
 
 # Bodies that name issues: every key must be in GCM/GTM.
 case "$path" in
-  /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink)
+  /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink | /rest/agile/1.0/sprint/[0-9]*/issue)
     case "$path" in
       /rest/api/3/issueLink)
-        jq_check='(.inwardIssue.key | type == "string" and test("^G[CT]M-[0-9]+$")) and (.outwardIssue.key | type == "string" and test("^G[CT]M-[0-9]+$")) and (.inwardIssue.id == null) and (.outwardIssue.id == null)' ;;
+        jq_check='(.inwardIssue.key | type == "string" and test("^G[CT][MS]-[0-9]+$")) and (.outwardIssue.key | type == "string" and test("^G[CT][MS]-[0-9]+$")) and (.inwardIssue.id == null) and (.outwardIssue.id == null)' ;;
       *)
-        jq_check='(.issues | type == "array" and length > 0 and all(type == "string" and test("^G[CT]M-[0-9]+$"))) and ([.rankBeforeIssue, .rankAfterIssue] | all(. == null or (type == "string" and test("^G[CT]M-[0-9]+$"))))' ;;
+        jq_check='(.issues | type == "array" and length > 0 and all(type == "string" and test("^G[CT][MS]-[0-9]+$"))) and ([.rankBeforeIssue, .rankAfterIssue] | all(. == null or (type == "string" and test("^G[CT][MS]-[0-9]+$"))))' ;;
     esac
     if [ -z "$body" ] || ! jq -e "$jq_check" "$body" > /dev/null 2>&1; then
       echo "write refused: body must name only GCM/GTM issue keys" >&2; exit 3
@@ -89,6 +94,20 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 umask 077
 printf 'user = "%s:%s"\n' "$GEERATYA_LIVE_EMAIL" "$GEERATYA_LIVE_TOKEN" > "$tmp/auth"
+
+# Sprint writes: only on the Scrum sandbox boards 5 (GTS) and 6 (GCS). A new sprint names its board in the
+# body; an existing one is looked up (a read) and its originBoardId must be 5 or 6.
+if [ "$method" != GET ]; then
+  if [ "$path" = /rest/agile/1.0/sprint ]; then
+    if ! { [ -n "$body" ] && jq -e '.originBoardId | IN(5,6)' "$body" > /dev/null 2>&1; }; then
+      echo "write refused: a sprint may be created only on board 5 or 6" >&2; exit 3
+    fi
+  elif [[ $path =~ ^/rest/agile/1\.0/sprint/([0-9]+)(/issue)?$ ]]; then
+    sprint_board=$(curl -sS --config "$tmp/auth" -H 'Accept: application/json' \
+      "https://$site/rest/agile/1.0/sprint/${BASH_REMATCH[1]}" | jq -r '.originBoardId // empty' 2> /dev/null || true)
+    case "$sprint_board" in 5 | 6) ;; *) echo "write refused: sprint is not on board 5 or 6" >&2; exit 3 ;; esac
+  fi
+fi
 
 args=(-sS -X "$method" -D "$tmp/headers" -o "$tmp/body" -w '%{http_code}'
   -H 'Accept: application/json' --config "$tmp/auth")
