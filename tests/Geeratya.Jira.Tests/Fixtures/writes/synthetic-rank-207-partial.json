@@ -1,0 +1,6 @@
+{
+  "entries": [
+    {"issueId": 10001, "issueKey": "GCM-3", "status": 200, "errors": []},
+    {"issueId": 10002, "issueKey": "GCM-4", "status": 503, "errors": ["Could not rank the issue, try again."]}
+  ]
+}

@@ -6,6 +6,12 @@ public sealed record JiraRequest(HttpMethod Method, string Path, string? JsonBod
     /// <summary>Who is waiting for the answer. Defaults to <see cref="JiraPriority.User"/>.</summary>
     public JiraPriority Priority { get; init; } = JiraPriority.User;
 
+    /// <summary>
+    /// True when a 2xx with an empty body is a success with no value (a write that answers 204 or, on partial
+    /// failure, a body). Reads keep treating an empty body as an unreadable reply.
+    /// </summary>
+    public bool AllowsEmptyBody { get; init; }
+
     /// <summary>The same request as background work: yields to user requests and is throttled earlier.</summary>
     public JiraRequest AsBackground() => this with { Priority = JiraPriority.Background };
 
