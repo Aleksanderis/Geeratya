@@ -1,6 +1,8 @@
+using System.Globalization;
 using Geeratya.Core.Cache;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
@@ -18,6 +20,7 @@ public sealed class ViewLoadHandler
         "Not connected to Jira: check the profile and its API token (:profile), then reload.";
 
     private const string UnsupportedSourceMessage = "This kind of view cannot be loaded yet.";
+    private const string InvalidBoardMessage = "The board id is not a number.";
 
     private readonly NetworkRunner _runner;
     private readonly TimeProvider _clock;
@@ -47,6 +50,14 @@ public sealed class ViewLoadHandler
     private Task StartNetwork(LoadViewPageEffect effect)
     {
         var jql = ViewQuery.JqlFor(effect.Definition);
+
+        if (effect.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog)
+        {
+            return _runner.StartReporting(
+                effect.Tab.Value,
+                (services, report, token) => BoardAsync(services, effect, report, token),
+                () => Failure(effect, NoConnectionMessage));
+        }
 
         if (jql is null)
         {
@@ -99,6 +110,74 @@ public sealed class ViewLoadHandler
         {
             return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
         }
+    }
+
+    /// <summary>
+    /// A board or backlog page. The first page of an opening load fetches the board configuration first and reports
+    /// it ahead of the issues; when the configuration fails, the failure is the answer and no issues are requested.
+    /// </summary>
+    private async Task<Command?> BoardAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        Action<Command> report,
+        CancellationToken token)
+    {
+        if (!long.TryParse(effect.Definition.SourceValue, NumberStyles.None, CultureInfo.InvariantCulture, out var id))
+        {
+            return Failure(effect, InvalidBoardMessage);
+        }
+
+        try
+        {
+            if (NeedsConfiguration(effect))
+            {
+                var configuration = await services.Boards.GetConfigurationAsync(id, token);
+
+                if (!configuration.IsSuccess)
+                {
+                    return new ViewLoadFailed(effect.Tab, effect.RequestId, configuration.Error, _clock.GetUtcNow());
+                }
+
+                report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, configuration.Value));
+            }
+
+            return await BoardPageAsync(services, effect, id, token);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
+        }
+    }
+
+    private async Task<Command?> BoardPageAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        long id,
+        CancellationToken token)
+    {
+        var query = new BoardIssueQuery();
+
+        if (effect.Background)
+        {
+            query = query.AsBackground();
+        }
+
+        var result = effect.Definition.Source == ViewSourceKind.Backlog
+            ? await services.Boards.GetBacklogAsync(id, query, effect.Cursor, token)
+            : await services.Boards.GetIssuesAsync(id, query, effect.Cursor, token);
+
+        return result.IsSuccess
+            ? new ViewPageLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
+            : new ViewLoadFailed(effect.Tab, effect.RequestId, result.Error, _clock.GetUtcNow());
+    }
+
+    /// <summary>
+    /// Only an opening (or restarting) load fetches the configuration; a refresh keeps the one in the tab until the
+    /// user refreshes by hand (#89).
+    /// </summary>
+    private static bool NeedsConfiguration(LoadViewPageEffect effect)
+    {
+        return effect.Cursor is null && effect.Reason is LoadReason.Open or LoadReason.Retry;
     }
 
     private ViewLoadFailed Failure(LoadViewPageEffect effect, string message)

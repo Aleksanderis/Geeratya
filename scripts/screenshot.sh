@@ -31,6 +31,7 @@ all_scenarios=(
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter: Generated"
+  "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )
 
 usage() {

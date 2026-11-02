@@ -5,5 +5,6 @@
   <ItemGroup>
     <None Include="..\Geeratya.Jira.Tests\Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures" />
     <None Include="Snapshots\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="Snapshots" />
+    <None Include="..\Geeratya.Jira.Tests\Fixtures\boards\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures\boards" />
   </ItemGroup>
 </Project>

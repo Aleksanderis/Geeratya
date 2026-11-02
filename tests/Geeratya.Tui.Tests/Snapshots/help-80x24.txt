@@ -1,3 +1,4 @@
+                                                                                
 Help                                                                            
 Normal mode                                                                     
   j          Move down                                                          
@@ -20,5 +21,4 @@ Normal mode
   :          Open the command palette                                           
   q          Quit                                                               
   Esc        Cancel or close                                                    
-  Ctrl-c     Quit                                                               
  HELP                                                    j down  k up  Esc close

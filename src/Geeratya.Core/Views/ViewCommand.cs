@@ -1,4 +1,5 @@
 using Geeratya.Core.State;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
@@ -40,3 +41,10 @@ public sealed record ViewPageLoaded(TabId Tab, long RequestId, IssuePage Page, D
 /// <summary>A load failed; applied only while <paramref name="RequestId"/> is the tab's current request.</summary>
 // ReSharper disable once NotAccessedPositionalProperty.Global (read by the backoff schedule, #89)
 public sealed record ViewLoadFailed(TabId Tab, long RequestId, JiraError Error, DateTimeOffset At) : ViewCommand;
+
+/// <summary>
+/// The board configuration arrived, ahead of the first issue page of a board or backlog load; applied only while
+/// <paramref name="RequestId"/> is the tab's current request.
+/// </summary>
+public sealed record BoardConfigurationLoaded(TabId Tab, long RequestId, BoardConfiguration Configuration)
+    : ViewCommand;

@@ -1,6 +1,7 @@
 using Geeratya.Jira.Comments;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.RemoteLinks;
+using Geeratya.Jira.Boards;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
@@ -23,7 +24,11 @@ public sealed class JiraServices
         Issues = new IssueClient(transport);
         Comments = new CommentClient(transport);
         RemoteLinks = new RemoteLinkClient(transport);
+        Boards = new BoardClient(transport);
     }
+
+    /// <summary>Boards, board configuration, board issues and backlog (agile API).</summary>
+    public BoardClient Boards { get; }
 
     /// <summary>The current account (<c>/myself</c>), also the credential check.</summary>
     public JiraUserClient Users { get; }

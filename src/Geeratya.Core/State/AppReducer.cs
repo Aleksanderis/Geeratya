@@ -172,8 +172,27 @@ public sealed class AppReducer
             ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
             ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? ViewReducer.OpenSelected(state) : Result(state),
+            ActionIds.TabNext => ViewReducer.StepTab(state, 1),
+            ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
+            ActionIds.TabNew => ViewReducer.DuplicateActiveTab(state),
+            ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
             _ => Result(state),
         };
+    }
+
+    private static int? TabNumber(string action)
+    {
+        const string prefix = "tab.go-to.";
+
+        if (!action.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parsed = int.TryParse(action.AsSpan(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var number);
+
+        return parsed ? number : null;
     }
 
     /// <summary>
@@ -230,6 +249,7 @@ public sealed class AppReducer
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             _ when IsJqlCommand(text) => OpenJql(normal, text["jql".Length..].Trim()),
+            _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
@@ -256,6 +276,37 @@ public sealed class AppReducer
         var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, query);
 
         return ViewReducer.Reduce(state, new ViewOpenRequested(definition));
+    }
+
+    private static bool IsTabCommand(string text)
+    {
+        return text == "tab" || text.StartsWith("tab ", StringComparison.Ordinal);
+    }
+
+    /// <summary><c>:tab new|close|next|prev|&lt;n&gt;</c>: the same handlers as the tab keys.</summary>
+    private static ReduceResult TabCommand(AppState state, string argument)
+    {
+        if (argument == "new")
+        {
+            return ViewReducer.DuplicateActiveTab(state);
+        }
+
+        if (argument == "close")
+        {
+            return ViewReducer.CloseActiveTab(state);
+        }
+
+        if (argument is "next" or "prev" or "previous")
+        {
+            return ViewReducer.StepTab(state, argument == "next" ? 1 : -1);
+        }
+
+        if (int.TryParse(argument, NumberStyles.None, CultureInfo.InvariantCulture, out var number))
+        {
+            return ViewReducer.GoToTab(state, number);
+        }
+
+        return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
     }
 
     private static bool IsProfileCommand(string text)

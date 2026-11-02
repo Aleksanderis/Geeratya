@@ -1,4 +1,5 @@
 using Geeratya.Core.Detail;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 
@@ -24,6 +25,7 @@ namespace Geeratya.Core.Views;
 /// <param name="LoadedAt">When the rows last came from the network.</param>
 /// <param name="PendingRows">Rows gathered by a multi-page refresh, swapped in with the last page.</param>
 /// <param name="Cold">The tab gave its rows up; activation reloads it.</param>
+/// <param name="Board">The board configuration of a board or backlog tab; null for other sources.</param>
 /// <param name="KeyWidth">The widest issue key among the loaded rows, kept so the list needs no scan per frame.</param>
 public sealed record TabState(
     TabId Id,
@@ -42,7 +44,8 @@ public sealed record TabState(
     DateTimeOffset? LoadedAt,
     IReadOnlyList<IssueSummary>? PendingRows,
     bool Cold,
-    int KeyWidth)
+    int KeyWidth,
+    BoardConfiguration? Board = null)
 {
     /// <summary>
     /// The issue stack of the tab, last is the one shown; empty while the view itself is shown. Closing the tab or
