@@ -249,11 +249,16 @@ public sealed class SiteConnections : IDisposable
 
     private int Replace(Profile? profile)
     {
-        _transport?.Dispose();
+        var old = _transport;
+
         _transport = null;
         _profile = profile;
         _failedProfile = null;
         _generation++;
+
+        // Last: disposing cancels requests in flight, and their continuations may run right here (same thread, inside
+        // the lock). The generation has to be the new one by then, or such a reply would be posted as current.
+        old?.Dispose();
 
         return _generation;
     }

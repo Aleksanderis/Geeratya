@@ -48,12 +48,12 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly IssueDetailLoadHandler _detailLoads;
     private readonly SourceLoadHandler _sourceLoads;
     private readonly WriteHandler _writes;
-    private bool _quitting;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
+    private bool _quitting;
 
     public ShellHost(
         KeymapTable keymap,
@@ -136,6 +136,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         if (_writes.HasRunning)
         {
+            _state = _state with { Message = "Waiting for running writes to finish (up to 5 s) ..." };
+            _screen!.Render(_state, TimeProvider.System.GetUtcNow());
+
             await _writes.WaitForRunningAsync(_quitWait, CancellationToken.None);
         }
 

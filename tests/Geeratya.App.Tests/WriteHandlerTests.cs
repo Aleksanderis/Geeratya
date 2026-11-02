@@ -180,7 +180,7 @@ public sealed class WriteHandlerTests
                 return expire.Task;
             });
 
-        _ = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+        var run = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
         var waiting = handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
 
         Assert.False(waiting.IsCompleted);
@@ -192,6 +192,7 @@ public sealed class WriteHandlerTests
         Assert.True(handler.HasRunning);
 
         gate.SetResult();
+        await run;
     }
 
     [Fact]
