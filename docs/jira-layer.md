@@ -125,6 +125,7 @@ Fixtures: `filters/filter-search.json`, `filters/filter-my.json`, `filters/filte
 - `GET /rest/api/3/filter/search?expand=jql,description,owner` is offset-paged like projects (`startAt`, `maxResults`, `total`, `isLast`, `values`). `expand=jql` is needed to get the JQL; `owner` to get the owner.
 - `GET /rest/api/3/filter/my?expand=jql` returns a bare array of the caller's filters, with `favourite`, `isWritable`, `sharePermissions`, `sharedUsers`, `searchUrl`, `viewUrl`, `approximateLastUsed`. `GET /rest/api/3/filter/favourite` returns a bare array (empty here).
 - The two filters on the dev site are the ones Jira created for the boards ("Filter for GCM board" with JQL `project = "GCM" ORDER BY Rank ASC`); a board's filter is an ordinary filter and shows up in these lists.
+- `FilterClient` (`src/Geeratya.Jira/Filters/`): `SearchAsync` (offset paged, `expand=jql,owner`, `filterName`, page size 1..100), `GetMyAsync`, `GetFavouritesAsync` (bare arrays), `GetAsync(id)`. Owner, JQL and last-used are nullable in `SavedFilter`; the 404 is `NotFound` ("Not found or no access.").
 - Running a filter is plain JQL: `filter = 10001 ORDER BY created ASC` through `/search/jql` (`search/search-by-filter.json`).
 - A filter you cannot see or that does not exist is 404 with `The selected filter is not available to you, perhaps it has been deleted or had its permissions changed.` (`filters/filter-get-missing.json`).
 - The survey did not create filters (writing filters is outside the sandbox rule); creating, sharing and editing filters is out of scope for the app anyway.
@@ -215,6 +216,7 @@ Fixtures: `adf/issue-gtm5-rich-description.json` (description and two comments),
 - Descriptions are `null` when empty, an ADF object otherwise; `fields.description` came back as a full `{version: 1, type: "doc", content: [...]}`. Comments: `GET /rest/api/3/issue/{key}/comment` is offset-paged (`startAt`, `maxResults: 100`, `total`, `comments[]`; `adf/comments-gtm5.json`). A comment has `id`, `author`, `body` (ADF), `created`, `updated`, `updateAuthor`, `jsdPublic`. The issue's `comment` field (`fields=comment`) holds the same, first page only. Posting a comment returns the created comment (201).
 - Mention ids and the visible mention text are personal data; the scrubber rewrites both (`scripts/scrub-fixture.py`).
 - `renderedFields` HTML exists but is not used (the app renders ADF itself).
+- The model and parser (#68) live in `src/Geeratya.Jira/Adf/`: `AdfParser.Parse(JsonElement | string | utf8 bytes)` returns an `AdfDocument` of typed `AdfNode` records (one per node type above, plus `AdfUnknownNode` with type name, own text and children) and typed `AdfMark` records (plus `AdfUnknownMark`). It reads `JsonElement` by hand, so it needs no serializer context. It never throws: `null`, wrong types, missing `content` and malformed JSON give an empty document (malformed sets `IsTruncated`), and nodes nested deeper than `AdfParser.MaxDepth` (64) are dropped with `IsTruncated` set, so recursion is bounded. `media` nodes are kept as nodes with their attributes and never resolved. Rendering is #80.
 
 ### Issue links, remote links, attachments
 

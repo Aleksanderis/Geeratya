@@ -47,3 +47,12 @@ Add a row per measured path: JSON mapping of a 10k-issue search (ad hoc timed lo
 | `JiraSearchClient.SearchAsync` (body to string, deserialize, map) | .NET 10 Release JIT, not Native AOT | 10 000 issues, 18.3 MB, page size 5000, fake handler | 80 ms | 121 ms |
 
 Method: a temporary xUnit test (not committed) repeated the 24 issues of `search/search-rows-gcm.json` to 10 000, 5 warm-up and 20 timed runs on a noisy machine. Real pages are tens of issues, so this is far below a millisecond per page. Not measured: the Native AOT figure (no caller is wired into the app yet), the saving of sharing repeated names within a page (a dictionary lookup per string, simple and proportional to data size, kept unmeasured per the performance skill), and reading the body as a stream instead of a string (transport, unchanged). Re-measure on AOT when the first view loads search results.
+
+### ADF parsing (#68)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| `AdfParser.Parse(JsonElement)` | Native AOT, tiny console project referencing `Geeratya.Jira` | `fields.description` of `adf/issue-gtm5-rich-description.json` (longest recorded, 11.1 KB, 13.9 KB allocated) | 11 us | 23 us |
+| `AdfParser.Parse(ReadOnlySpan<byte>)` (includes `JsonDocument.Parse`) | same | same | 47 us | 82 us |
+
+Method: temporary console project outside the repo (2000 warm-up, 5000 timed iterations, `Stopwatch`), noisy machine. The parse happens once per opened issue or comment, never per frame.
