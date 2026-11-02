@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Views;
 
@@ -37,6 +38,7 @@ public sealed class AppReducer
             ViewCommand view => ViewReducer.Reduce(state, view),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
+            CacheWriteFailed failed => Result(state with { Message = failed.Message }),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),

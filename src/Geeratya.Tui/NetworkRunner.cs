@@ -47,22 +47,22 @@ public sealed class NetworkRunner : IDisposable
             return Unavailable(whenUnavailable);
         }
 
-        CancellationTokenSource source;
-
-        lock (_lock)
-        {
-            if (!_scopes.TryGetValue(scope, out var existing))
-            {
-                existing = CancellationTokenSource.CreateLinkedTokenSource(_all.Token);
-                _scopes[scope] = existing;
-            }
-
-            source = existing;
-        }
+        var source = ScopeSource(scope);
 
         var token = source.Token;
 
         return Task.Run(() => RunAsync(services, work, token), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Starts work that needs no connection (reading the local cache) under the scope of a tab: it is cancelled with
+    /// the tab or by a profile drop, and its command is posted unless that happened. Works with no transport.
+    /// </summary>
+    public Task StartLocal(long scope, Func<CancellationToken, Command?> work)
+    {
+        var token = ScopeSource(scope).Token;
+
+        return Task.Run(() => RunLocal(work, token), CancellationToken.None);
     }
 
     /// <summary>Cancels the in-flight work of one tab (<c>CancelTabEffect</c>).</summary>
@@ -100,6 +100,35 @@ public sealed class NetworkRunner : IDisposable
         lock (_lock)
         {
             _all.Dispose();
+        }
+    }
+
+    private CancellationTokenSource ScopeSource(long scope)
+    {
+        lock (_lock)
+        {
+            if (!_scopes.TryGetValue(scope, out var existing))
+            {
+                existing = CancellationTokenSource.CreateLinkedTokenSource(_all.Token);
+                _scopes[scope] = existing;
+            }
+
+            return existing;
+        }
+    }
+
+    private void RunLocal(Func<CancellationToken, Command?> work, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        var result = work(token);
+
+        if (result is not null && !token.IsCancellationRequested)
+        {
+            _post(result);
         }
     }
 

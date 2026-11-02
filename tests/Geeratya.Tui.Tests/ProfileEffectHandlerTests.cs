@@ -1,5 +1,7 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
 using Geeratya.Tui.Tests.Fakes;
@@ -133,7 +135,8 @@ public sealed class ProfileEffectHandlerTests : IDisposable
 
         var profiles = new ProfileServices(
             new ProfileStore(Path.Combine(blocked, "inner")),
-            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)),
+            new SiteCaches(Path.Combine(_directory, "cache")));
         var handler = new ProfileEffectHandler(profiles);
 
         var outcome = await handler.RunAsync(
@@ -154,6 +157,26 @@ public sealed class ProfileEffectHandlerTests : IDisposable
             CancellationToken.None);
 
         Assert.Contains("dev is now the active profile", Assert.IsType<ProfilesChanged>(outcome).Message);
+    }
+
+    [Fact]
+    public async Task GivenCachedViews_WhenRemovingOneProfile_ThenOnlyItsCacheFolderIsDeleted()
+    {
+        var fixture = Create(new FakeSecretStore());
+        var caches = fixture.Profiles.Caches;
+        var key = new CacheKey(ViewSourceKind.Jql, "project = A");
+
+        caches.For(_work).Put(key, new CachedView([], null, DateTimeOffset.UnixEpoch));
+        caches.For(_dev).Put(key, new CachedView([], null, DateTimeOffset.UnixEpoch));
+        caches.FlushAll();
+        Assert.True(Directory.Exists(caches.FolderOf(_work)));
+
+        await fixture.Handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, ProfileCatalog.Empty.With(_dev), WasActive: false),
+            CancellationToken.None);
+
+        Assert.False(Directory.Exists(caches.FolderOf(_work)));
+        Assert.True(Directory.Exists(caches.FolderOf(_dev)));
     }
 
     [Fact]
@@ -192,7 +215,8 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     {
         var profiles = new ProfileServices(
             new ProfileStore(_directory),
-            new TokenProvider(store, new EnvironmentReader(_ => null)));
+            new TokenProvider(store, new EnvironmentReader(_ => null)),
+            new SiteCaches(Path.Combine(_directory, "cache")));
 
         return new Fixture(new ProfileEffectHandler(profiles), profiles);
     }

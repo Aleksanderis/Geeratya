@@ -126,7 +126,7 @@ public class ViewPagingTests
 
         var result = _reducer.Reduce(second.State, reply);
 
-        Assert.Empty(result.Effects);
+        Assert.DoesNotContain(result.Effects, effect => effect is LoadViewPageEffect);
     }
 
     [Fact]
