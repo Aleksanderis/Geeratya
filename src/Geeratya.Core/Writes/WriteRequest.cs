@@ -13,6 +13,12 @@ public abstract record WriteRequest
     /// <summary>The issues the write changes; a second write on any of them is refused while this one runs.</summary>
     public abstract IReadOnlyList<string> Keys { get; }
 
+    /// <summary>
+    /// True for a write that deletes its issues: no optimistic change, the rows and open details of the issues go
+    /// when Jira confirmed, and the read after the write is not made (the issues are gone).
+    /// </summary>
+    public virtual bool RemovesIssues => false;
+
     /// <summary>The activity for the busy refusal: <c>GCM-3 is busy (assigning)</c>.</summary>
     public abstract string BusyText { get; }
 

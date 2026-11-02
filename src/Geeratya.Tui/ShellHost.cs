@@ -243,7 +243,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 _ = _sourceLoads.StartAsync(sources);
             }
-            else if (effect is ExecuteWriteEffect or VerifyWriteEffect)
+            else if (effect is ExecuteWriteEffect or VerifyWriteEffect or CountSubtasksEffect)
             {
                 _ = _writes.StartAsync(effect);
             }
