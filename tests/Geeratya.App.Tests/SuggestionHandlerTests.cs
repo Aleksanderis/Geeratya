@@ -14,6 +14,9 @@ namespace Geeratya.App.Tests;
 public sealed class SuggestionHandlerTests
 {
     private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
+    private const string SiteLabels = """{"values":["backend-site","frontend-site"],"isLast":true}""";
+
+    private static readonly Profile _other = new("b", "https://b.atlassian.net", "me@b.test");
     private static readonly TabId _tab = new(1);
     private static readonly SuggestionSource _assignee = new(SuggestionKind.AssignableUsers, "A-1", []);
 
@@ -138,6 +141,59 @@ public sealed class SuggestionHandlerTests
     }
 
     [Fact]
+    public async Task GivenALabelTypedCharacterByCharacter_WhenLookedUp_ThenTheSiteIsReadOnce()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, SiteLabels));
+
+        await LookUpLabelsAsync(fixture, 1, "b");
+        await LookUpLabelsAsync(fixture, 2, "ba");
+        await LookUpLabelsAsync(fixture, 3, "bac");
+
+        Assert.Single(fixture.Http.Requests);
+        Assert.Equal(3, fixture.Posted.Count);
+        Assert.All(fixture.Posted, command => Assert.IsType<SuggestionsLoaded>(command));
+        Assert.Equal("backend-site", Assert.Single(((SuggestionsLoaded)fixture.Posted[2]).Items).Label);
+    }
+
+    [Fact]
+    public async Task GivenACachedLabelList_WhenItsLifetimeEnds_ThenTheNextLookupReadsTheSiteAgain()
+    {
+        using var fixture = await ConnectedAsync(TwoSiteReads);
+
+        await LookUpLabelsAsync(fixture, 1, "b");
+        fixture.Time.Advance(SiteLabelCache.Lifetime + TimeSpan.FromSeconds(1));
+        await LookUpLabelsAsync(fixture, 2, "ba");
+
+        Assert.Equal(2, fixture.Http.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenACachedLabelList_WhenTheProfileIsSwitched_ThenTheNewConnectionReadsTheSiteAgain()
+    {
+        using var fixture = await ConnectedAsync(TwoSiteReads);
+
+        await LookUpLabelsAsync(fixture, 1, "b");
+        await fixture.Connections.ActivateAsync(_other, 2, CancellationToken.None);
+        await LookUpLabelsAsync(fixture, 2, "ba");
+
+        Assert.Equal(2, fixture.Http.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenAFailedLabelRead_WhenLookedUpAgain_ThenTheFailureIsNotCached()
+    {
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.InternalServerError, "{}").Reply(HttpStatusCode.OK, SiteLabels));
+
+        await LookUpLabelsAsync(fixture, 1, "b");
+        await LookUpLabelsAsync(fixture, 2, "ba");
+
+        Assert.IsType<SuggestionsFailed>(fixture.Posted[0]);
+        Assert.IsType<SuggestionsLoaded>(fixture.Posted[1]);
+        Assert.Equal(2, fixture.Http.Requests.Count);
+    }
+
+    [Fact]
     public async Task GivenAParentQuery_WhenLookedUp_ThenTheIssuePickerIsAsked()
     {
         var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
@@ -151,6 +207,22 @@ public sealed class SuggestionHandlerTests
 
         Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
         Assert.EndsWith("/rest/api/3/issue/picker", Assert.Single(fixture.Http.Requests).AbsolutePath);
+    }
+
+    private static void TwoSiteReads(ScriptedJiraHandler handler)
+    {
+        handler.Reply(HttpStatusCode.OK, SiteLabels).Reply(HttpStatusCode.OK, SiteLabels);
+    }
+
+    private static async Task LookUpLabelsAsync(Fixture fixture, long requestId, string query)
+    {
+        var source = new SuggestionSource(SuggestionKind.Labels, null, []);
+        var effect = new SearchSuggestionsEffect(_tab, requestId, source, query, TimeSpan.FromMilliseconds(250));
+
+        var task = fixture.Handler.StartAsync(effect);
+        await fixture.WaitForTimersAsync(1);
+        fixture.Time.Advance(TimeSpan.FromMilliseconds(250));
+        await task;
     }
 
     private static SearchSuggestionsEffect Effect(long requestId, string query)
@@ -170,6 +242,7 @@ public sealed class SuggestionHandlerTests
 
         script(http);
         await store.SetAsync(_profile.CredentialKey, "token-a", CancellationToken.None);
+        await store.SetAsync(_other.CredentialKey, "token-b", CancellationToken.None);
 
         var options = new JiraTransportOptions
         {

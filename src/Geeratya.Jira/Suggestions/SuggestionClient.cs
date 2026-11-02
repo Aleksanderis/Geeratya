@@ -11,7 +11,7 @@ namespace Geeratya.Jira.Suggestions;
 /// Read-only lookups behind pickers: text in, a short list out. Every call is cancellable (a cancelled call
 /// throws <see cref="OperationCanceledException"/>) and at most <see cref="SuggestionFilter.MaxResults"/> long.
 /// An empty query sends no request and returns nothing, except issues, where Jira's own recents answer.
-/// Nothing is cached here. A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. How team-managed
+/// Nothing is cached here (the app keeps a short-lived site label list, #292). A hidden project or issue is <see cref="JiraErrorKind.NotFound"/>. How team-managed
 /// projects answer for components and versions is not yet recorded (#260); the client treats them like any list.
 /// </summary>
 public sealed partial class SuggestionClient(JiraTransport transport)
@@ -78,9 +78,20 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     /// <see cref="MaxLabelPages"/> pages are read and filtered here). A failure of the site call is returned only
     /// when nothing local matches.
     /// </summary>
-    public async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchLabelsAsync(
+    public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchLabelsAsync(
         string? query,
         IEnumerable<string> knownLabels,
+        CancellationToken cancellationToken) =>
+        SearchLabelsFromAsync(query, knownLabels, GetSiteLabelsAsync, cancellationToken);
+
+    /// <summary>
+    /// Like <see cref="SearchLabelsAsync(string?, IEnumerable{string}, CancellationToken)"/>, but the site's label list comes from <paramref name="siteLabels"/> (a caller's
+    /// short-lived cache around <see cref="GetSiteLabelsAsync"/>); a blank query reads nothing.
+    /// </summary>
+    public static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchLabelsFromAsync(
+        string? query,
+        IEnumerable<string> knownLabels,
+        Func<CancellationToken, Task<JiraResult<IReadOnlyList<Suggestion>>>> siteLabels,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(query))
@@ -89,7 +100,23 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         }
 
         var local = knownLabels.Select(SuggestionFilter.FromLabel).ToList();
-        var candidates = new List<Suggestion>(local);
+        var site = await siteLabels(cancellationToken);
+
+        if (!site.IsSuccess)
+        {
+            return LocalOrError(local, query, site.Error);
+        }
+
+        return JiraResults.Success(SuggestionFilter.Filter([.. local, .. site.Value], query));
+    }
+
+    /// <summary>
+    /// The site's labels, unfiltered (<c>GET /label</c> has no query parameter): up to <see cref="MaxLabelPages"/>
+    /// pages are read in sequence. The client keeps nothing; callers cache the list for a short time.
+    /// </summary>
+    public async Task<JiraResult<IReadOnlyList<Suggestion>>> GetSiteLabelsAsync(CancellationToken cancellationToken)
+    {
+        var all = new List<Suggestion>();
         var startAt = 0;
 
         for (var page = 0; page < MaxLabelPages; page++)
@@ -101,11 +128,11 @@ public sealed partial class SuggestionClient(JiraTransport transport)
 
             if (!result.IsSuccess)
             {
-                return LocalOrError(local, query, result.Error);
+                return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
             }
 
             var rawCount = result.Value.Values?.Count ?? 0;
-            candidates.AddRange(SuggestionMapper.MapLabels(result.Value).Select(SuggestionFilter.FromLabel));
+            all.AddRange(SuggestionMapper.MapLabels(result.Value).Select(SuggestionFilter.FromLabel));
             startAt += rawCount;
 
             if (rawCount == 0 || result.Value.IsLast != false)
@@ -114,7 +141,7 @@ public sealed partial class SuggestionClient(JiraTransport transport)
             }
         }
 
-        return JiraResults.Success(SuggestionFilter.Filter(candidates, query));
+        return JiraResults.Success<IReadOnlyList<Suggestion>>(all);
     }
 
     /// <summary>
