@@ -71,7 +71,9 @@ public class EditorLayoutTests
     [Fact]
     public void GivenPastedWindowsText_WhenCleaning_ThenLinesAreKeptTabsBecomeSpacesAndControlsGo()
     {
-        var cleaned = PasteText.Lines("one\r\ntwo\rthree\tx\u001b[31m\u0007end\n");
+        var pasted = string.Concat("one", (char)13, (char)10, "two", (char)13, "three", (char)9, "x", (char)27, "[31m", (char)7, "end", (char)10);
+
+        var cleaned = PasteText.Lines(pasted);
 
         Assert.Equal("one\ntwo\nthree    x[31mend\n", cleaned);
     }

@@ -58,7 +58,7 @@ public class CommentEditingTests
     {
         var state = Press(Press(OpenIssue(), "Space", "m", "a").State, "h", "i", "Enter", "x", "Backspace", "!").State;
 
-        state = _reducer.Reduce(state, new TextPasted("one\r\ntwo\tend")).State;
+        state = _reducer.Reduce(state, new TextPasted(string.Concat("one", (char)13, (char)10, "two", (char)9, "end"))).State;
 
         Assert.Equal("hi\n!one\ntwo    end", state.Editor!.Buffer.Text);
         Assert.Equal(state.Editor.Buffer.Text.Length, state.Editor.Buffer.Cursor);
@@ -523,6 +523,21 @@ public class CommentEditingTests
         Assert.Equal(0, reload.StartAt);
         Assert.Equal(reload.RequestId, Active(done.State).Detail[0].CommentsRequest);
         Assert.Null(done.State.Editor);
+    }
+
+    [Fact]
+    public void GivenTwoComments_WhenLayingOutTheIssue_ThenEveryLineOfACommentOpensItAndTheGapBetweenOpensNothing()
+    {
+        var document = Active(OpenIssue()).Detail[0].Document!;
+        var lines = document.Lines.Select(line => string.Concat(line.Spans.Select(span => span.Text))).ToList();
+        var first = lines.FindIndex(line => line.Contains("First", StringComparison.Ordinal));
+        var second = lines.FindIndex(line => line.Contains("Second", StringComparison.Ordinal));
+
+        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "1"), document.Targets[first - 1]);
+        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "1"), document.Targets[first]);
+        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "2"), document.Targets[second - 1]);
+        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "2"), document.Targets[second]);
+        Assert.Null(document.Targets[second - 2]);
     }
 
     private ReduceResult Press(AppState state, params string[] keys)

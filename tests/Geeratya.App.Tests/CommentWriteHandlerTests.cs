@@ -1,10 +1,17 @@
 using System.Net;
 using Geeratya.App.Tests.Fakes;
+using Geeratya.Core.Comments;
+using Geeratya.Core.Detail;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Adf;
+using Geeratya.Jira.Comments.Models;
+using Geeratya.Jira.Paging;
+using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes.Models;
 using Geeratya.Platform;
@@ -205,6 +212,97 @@ public sealed class CommentWriteHandlerTests
 
         Assert.Equal(VerifyOutcome.Applied, Assert.IsType<WriteVerified>(Assert.Single(gone.Posted)).Outcome);
         Assert.Equal(VerifyOutcome.NotApplied, Assert.IsType<WriteVerified>(Assert.Single(there.Posted)).Outcome);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenSavingAComment_ThenTheEditorClosesAndTheStoredCommentShows()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Created, Stored));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = OpenIssue(reducer);
+
+        var editing = Press(reducer, state, "Space", "m", "a").State;
+        var typed = reducer.Reduce(editing, new TextPasted("Looks good")).State;
+        var saving = reducer.Reduce(typed, new KeyPressed("Ctrl-s"));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(saving.Effects)));
+        var done = reducer.Reduce(saving.State, Assert.Single(fixture.Posted));
+
+        Assert.Null(done.State.Editor);
+        Assert.Equal(InputMode.Normal, done.State.Mode);
+        Assert.Equal("Added a comment to A-1", done.State.Message);
+        var comment = Assert.Single(done.State.Session.Tabs[0].Detail[0].Comments);
+        Assert.Equal("500", comment.Id);
+        Assert.Contains("Looks good", AdfMarkdownWriter.ToText(comment.Body));
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenJiraRefusesTheComment_ThenTheEditorKeepsTheTextAndShowsTheReason()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Forbidden, Refused));
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var typed = reducer.Reduce(
+            Press(reducer, OpenIssue(reducer), "Space", "m", "a").State,
+            new TextPasted("Looks good")).State;
+
+        var saving = reducer.Reduce(typed, new KeyPressed("Ctrl-s"));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(saving.Effects)));
+        var failed = reducer.Reduce(saving.State, Assert.Single(fixture.Posted));
+
+        var editor = Assert.IsType<CommentEditor>(failed.State.Editor);
+        Assert.Equal("Looks good", editor.Buffer.Text);
+        Assert.Equal("No permission to add a comment to A-1: You can only edit your own comments", editor.Error);
+        Assert.False(editor.IsSaving);
+        Assert.Empty(failed.State.Session.Operations);
+    }
+
+    private static ReduceResult Press(AppReducer reducer, AppState state, params string[] keys)
+    {
+        var result = new ReduceResult(state, []);
+
+        foreach (var key in keys)
+        {
+            result = reducer.Reduce(result.State, new KeyPressed(key));
+        }
+
+        return result;
+    }
+
+    private static AppState OpenIssue(AppReducer reducer)
+    {
+        var profiles = ProfileCatalog.Empty.With(_profile);
+        var start = AppState.Initial with
+        {
+            Profiles = profiles,
+            Session = SiteSession.Empty(_profile) with { Connection = new Connected("Me", "acc-me") },
+        };
+        var sized = reducer.Reduce(start, new ViewportChanged(30, 80)).State;
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "A");
+        var opened = reducer.Reduce(sized, new ViewOpenRequested(definition)).State;
+        var tab = opened.Session.Tabs[0];
+        var row = new IssueSummary(
+            "1",
+            "A-1",
+            "One",
+            new IssueStatus("1", "To Do", "new"),
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            [],
+            null,
+            null,
+            "A");
+        var loaded = reducer.Reduce(
+            opened,
+            new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage([row], null, null), DateTimeOffset.UnixEpoch)).State;
+
+        var detail = reducer.Reduce(loaded, new KeyPressed("Enter")).State;
+        var shown = detail.Session.Tabs[0];
+        var empty = new OffsetPage<IssueComment>([], 0, DetailPaging.CommentPageSize, 0, true);
+
+        return reducer.Reduce(
+            detail,
+            new IssueCommentsLoaded(shown.Id, shown.Detail[0].CommentsRequest, empty, DateTimeOffset.UnixEpoch)).State;
     }
 
     private static string Page(string comment, int count, bool last, int total = 0, int startAt = 0)

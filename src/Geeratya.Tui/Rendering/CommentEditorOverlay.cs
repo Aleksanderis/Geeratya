@@ -104,7 +104,7 @@ public static class CommentEditorOverlay
 
     private static StyledLine Plain(string text, EditorRow row)
     {
-        return StyledLine.Of(text[row.Start..row.End], TextRole.Body);
+        return StyledLine.Of(text[row.Start..row.End]);
     }
 
     private static StyledLine CursorRow(CommentEditor editor, string text, EditorRow row)

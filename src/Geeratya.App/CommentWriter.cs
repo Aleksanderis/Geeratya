@@ -3,6 +3,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Adf;
+using Geeratya.Jira.Comments;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
@@ -17,9 +18,7 @@ namespace Geeratya.App;
 internal static class CommentWriter
 {
     /// <summary>The pages the check reads at most (the same cap as the detail screen).</summary>
-    private const int MaxPages = DetailPaging.MaxComments / 100;
-
-    private const int PageSize = 100;
+    private const int MaxPages = DetailPaging.MaxComments / CommentClient.MaxPageSize;
 
     public static async Task<CommentReply> SendAsync(
         JiraServices services,
@@ -121,7 +120,7 @@ internal static class CommentWriter
 
         for (var page = 0; page < MaxPages; page++)
         {
-            var result = await services.Comments.GetCommentsAsync(key, startAt, token, PageSize);
+            var result = await services.Comments.GetCommentsAsync(key, startAt, token);
 
             if (!result.IsSuccess)
             {

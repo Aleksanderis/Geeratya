@@ -52,7 +52,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 Design in `architecture.md`, "Write pipeline". What the user sees:
 
 - A change that a row shows (move a card, rank, assignee, a field) appears at once with a `…` marker and a status line saying what is being done; it settles when Jira answers. On failure the row goes back and the status line says why and what was not done (no permission, not found, rate limited with the wait, Jira's own text for a refused transition).
-- Creating, deleting and commenting wait for the reply; the form shows `Saving…` and stays open on an error, with each field's message at the field.
+- Creating, deleting and commenting wait for the reply; the form shows `Saving…` and stays open on an error, with each field's message at the field. Comments (built, #167): `<space>m a` opens the editor in the issue detail, `Ctrl-s` sends, `Esc` asks before throwing text away; `<space>m e` edits and `<space>m d` deletes (after a `y`/`n` that says Jira cannot undo it) the comment under the cursor; the comment list changes from the reply (`ux-screens.md`, "Comment editor").
 - A second write on an issue that is still being written is refused (`GCM-3 is busy`), not queued. Other issues are free. Refresh waits until the writes end; `<space>r` is remembered and runs after.
 - If the answer is lost (timeout, network), the app says it is checking, re-reads the issue and then shows the true state; it never repeats a write by itself.
 - Delete, bulk changes and assignee or sprint changes for several issues ask first (`y`/`n`/`Esc`): the text names what changes and says Jira cannot undo it.
