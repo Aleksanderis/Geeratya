@@ -369,6 +369,17 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAnAssigneeAndANarrowColumn_WhenRendering_ThenTheKeyLineKeepsItsWidthAndTheMarkerIsColoured()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("1", "ABCDEFGH-12345", assignee: "Jane Doe"));
+
+        var body = Render(tab, 20, 30);
+
+        var line = body.Single(l => l.Spans.Any(span => span.Role == TextRole.TypeTask));
+        Assert.Equal(20, TextWidth.Of(line.PlainText));
+    }
+
+    [Fact]
     public void GivenACompactCard_WhenRendering_ThenTheMarkerCarriesTheTypeRole()
     {
         var body = Render(Tab(Issue("1", "A-1"), Issue("1", "A-2")), 120, 8);

@@ -4,6 +4,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Lists;
 
+[Trait("Os", "Independent")]
 public sealed class IssueTypeRoleTests
 {
     [Theory]
