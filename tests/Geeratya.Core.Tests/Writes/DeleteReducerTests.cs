@@ -92,7 +92,7 @@ public class DeleteReducerTests
 
         var confirm = counted.State.Confirm!;
         Assert.Equal(InputMode.Confirm, counted.State.Mode);
-        Assert.Equal("Delete A-1? Jira cannot undo this; sub-tasks hidden from you go too. \"Issue 1\"", confirm.Message);
+        Assert.Equal("Delete A-1? Jira cannot undo this. \"Issue 1\"", confirm.Message);
         Assert.Empty(counted.Effects);
         Assert.Empty(counted.State.Session.Operations);
         Assert.Null(counted.State.Session.PendingDelete);
@@ -101,9 +101,9 @@ public class DeleteReducerTests
     }
 
     [Theory]
-    [InlineData(1, false, "Delete A-1 and its 1 sub-task? Jira cannot undo this; sub-tasks hidden from you go too. \"Issue 1\"")]
-    [InlineData(3, false, "Delete A-1 and its 3 sub-tasks? Jira cannot undo this; sub-tasks hidden from you go too. \"Issue 1\"")]
-    [InlineData(50, true, "Delete A-1 and its more than 50 sub-tasks? Jira cannot undo this; sub-tasks hidden from you go too. \"Issue 1\"")]
+    [InlineData(1, false, "Delete A-1 and its 1 sub-task (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
+    [InlineData(3, false, "Delete A-1 and its 3 sub-tasks (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
+    [InlineData(50, true, "Delete A-1 and its more than 50 sub-tasks (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
     public void GivenSubtasks_WhenTheCountArrives_ThenConfirmCountsThemAndTheDeleteTakesThemAlong(
         int count,
         bool more,
@@ -123,7 +123,7 @@ public class DeleteReducerTests
     {
         var request = new DeleteIssueRequest("A-1", $"First\nline {new string('x', 80)}", 0);
 
-        Assert.StartsWith("Delete A-1? Jira cannot undo this; sub-tasks hidden from you go too. \"First line xxx", request.ConfirmText);
+        Assert.StartsWith("Delete A-1? Jira cannot undo this. \"First line xxx", request.ConfirmText);
         Assert.EndsWith("…\"", request.ConfirmText);
         Assert.DoesNotContain('\n', request.ConfirmText);
     }
@@ -265,7 +265,7 @@ public class DeleteReducerTests
 
         Assert.IsType<VerifyWriteEffect>(unknown.Effects[0]);
         Assert.Equal(["A-2"], verified.State.Session.Tabs[0].Rows.Select(row => row.Key));
-        Assert.Equal("A-1: probably deleted, or no longer visible to you (Jira answers alike)", verified.State.Message);
+        Assert.Equal("A-1: probably deleted, or hidden from you", verified.State.Message);
     }
 
     [Fact]

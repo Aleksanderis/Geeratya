@@ -211,7 +211,7 @@ public sealed class WriteHandlerDeleteTests
     {
         using var fixture = await ConnectedAsync(
             h => h
-                .Reply(HttpStatusCode.OK, NoSubtasks)
+                .Reply(HttpStatusCode.OK, TwoSubtasks)
                 .Reply(HttpStatusCode.BadGateway, string.Empty)
                 .Reply(HttpStatusCode.NotFound, RecordedFixtures.Read("errors/issue-404.json")),
             3);
@@ -228,7 +228,7 @@ public sealed class WriteHandlerDeleteTests
 
         Assert.Contains("hidden from you", confirm.State.Confirm!.Message);
         Assert.Empty(settled.State.Session.Tabs[0].Rows);
-        Assert.Equal("A-1: probably deleted, or no longer visible to you (Jira answers alike)", settled.State.Message);
+        Assert.Equal("A-1: probably deleted, or hidden from you", settled.State.Message);
     }
 
     private static ReduceResult PressAll(AppReducer reducer, AppState state, params string[] keys)

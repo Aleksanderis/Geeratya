@@ -42,7 +42,7 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
     /// cannot tell them apart.
     /// </summary>
     public override string VerifiedDoneText =>
-        $"{Key}: probably deleted, or no longer visible to you (Jira answers alike)";
+        $"{Key}: probably deleted, or hidden from you";
 
     public override string CheckingText => $"{Key}: not sure the delete worked, checking";
 
@@ -61,7 +61,7 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
             var title = Shorten(Summary);
             var suffix = title.Length == 0 ? string.Empty : $" \"{title}\"";
 
-            return $"Delete {Key}{WithSubtasksText}? Jira cannot undo this; sub-tasks hidden from you go too.{suffix}";
+            return $"Delete {Key}{WithSubtasksText}{HiddenText}? Jira cannot undo this.{suffix}";
         }
     }
 
@@ -81,6 +81,9 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
             return $" and its {number} {noun}";
         }
     }
+
+    // Sent with deleteSubtasks=true, which also removes sub-tasks the user cannot see; the count cannot include them.
+    private string HiddenText => SubtaskCount == 0 ? string.Empty : " (and any hidden from you)";
 
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)
