@@ -192,7 +192,7 @@ public class StatusBarTests
     }
 
     [Fact]
-    public void GivenColumnsLayout_WhenRendering40Wide_ThenTheScreenHintsAreDroppedAndTheGlobalOnesStay()
+    public void GivenColumnsLayoutAndALongMessage_WhenRendering40Wide_ThenAllHintsAreDroppedBeforeTheText()
     {
         var line = StatusBar.Render(With(ViewLayout.Columns, "Switched to a long profile"), 40, _keymap);
 
@@ -201,6 +201,16 @@ public class StatusBarTests
         Assert.DoesNotContain("browser", line);
         Assert.Contains("Switched to a long profile", line);
         Assert.Equal(40, line.Length);
+    }
+
+    [Fact]
+    public void GivenColumnsLayout_WhenRendering50WideWithoutAMessage_ThenScreenHintsDropAndGlobalOnesStay()
+    {
+        var line = StatusBar.Render(With(ViewLayout.Columns), 50, _keymap);
+
+        Assert.DoesNotContain("column", line);
+        Assert.DoesNotContain("card", line);
+        Assert.EndsWith("? help  : command  q quit", line);
     }
 
     [Fact]

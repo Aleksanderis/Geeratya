@@ -132,7 +132,7 @@ public static class StatusBar
             : new HintList([], global);
     }
 
-    /// <summary>The screen of the active tab; <see cref="HintScope.Global"/> when no tab is open (start screen).</summary>
+    /// <summary>The screen of the active tab; <see cref="HintScope.Global"/> without a tab (start screen).</summary>
     private static HintScope ScopeOf(AppState state)
     {
         var tab = ListBodyRenderer.ActiveTab(state);
@@ -173,7 +173,11 @@ public static class StatusBar
         return TextsOf(ScreenHints, InputMode.Normal, scope, keymap);
     }
 
-    private static List<string> TextsOf(IReadOnlyList<StatusHint> hints, InputMode mode, HintScope scope, KeymapTable keymap)
+    private static List<string> TextsOf(
+        IReadOnlyList<StatusHint> hints,
+        InputMode mode,
+        HintScope scope,
+        KeymapTable keymap)
     {
         var texts = new List<string>();
 
@@ -195,7 +199,9 @@ public static class StatusBar
         return hint == current || (hint == HintScope.List && current == HintScope.ListOnBoard);
     }
 
-    /// <summary>The key text of a hint: the first key of its action, or <c>j/k</c> of two when it names a pair; null when unbound.</summary>
+    /// <summary>
+    /// The key text of a hint: the first key of its action, or <c>j/k</c> of two for a pair; null when unbound.
+    /// </summary>
     private static string? KeysOf(StatusHint hint, InputMode mode, KeymapTable keymap)
     {
         var keys = keymap.FindKeys(mode, hint.ActionId);
