@@ -68,7 +68,7 @@ public sealed partial class FakeJiraRouter
         ["/rest/api/3/issue/GCM-10/comment"] = "comments/comments-gcm6.json",
     };
 
-    /// <summary>Children of an epic (<c>parent = KEY</c>) by the epic's key: one team-managed, one company-managed.</summary>
+    /// <summary>Children of an epic (<c>parent = KEY</c>) by key: one team-managed, one company-managed.</summary>
     private static readonly Dictionary<string, string> _childrenSearches = new()
     {
         ["GTM-9"] = "hierarchy/search-epic-children-gtm.json",
@@ -231,14 +231,17 @@ public sealed partial class FakeJiraRouter
     /// <summary>The fixture for a <c>parent = KEY</c> search of a known epic; null for any other JQL.</summary>
     private static string? ChildrenFixtureOf(string? jql)
     {
-        var match = jql is null ? null : ParentJql().Match(jql);
+        if (jql is null || ParentJql().Match(jql) is not { Success: true } match)
+        {
+            return null;
+        }
 
-        return match is { Success: true } && _childrenSearches.TryGetValue(match.Groups[1].Value, out var fixture)
-            ? fixture
-            : null;
+        return _childrenSearches.GetValueOrDefault(match.Groups[1].Value);
     }
 
-    [GeneratedRegex(@"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*(?:order\s+by.*)?$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(
+        @"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*(?:order\s+by.*)?$",
+        RegexOptions.IgnoreCase)]
     private static partial Regex ParentJql();
 
     private int FixturePageOf(string token)

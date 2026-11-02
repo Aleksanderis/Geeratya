@@ -25,25 +25,27 @@ internal static class IssueRelationsBuilder
     private const string UnknownType = "unknown type";
     private const string FirstChildrenOnlyText = "Showing the first children only.";
 
-    public static void Add(List<StyledLine> lines, DetailState detail, DateTimeOffset? reference, int width, int inner)
+    public static void Add(List<StyledLine> lines, DetailState detail, int width, int inner)
     {
-        if (detail.Issue is { } issue)
+        var issue = detail.Issue;
+
+        if (issue is not null)
         {
             AddStubs(lines, SubtasksTitle, issue.Subtasks, width, inner);
         }
 
         AddChildren(lines, detail, width, inner);
 
-        if (detail.Issue is { } linked)
+        if (issue is not null)
         {
-            AddLinks(lines, linked.Links, width, inner);
+            AddLinks(lines, issue.Links, width, inner);
         }
 
         AddRemoteLinks(lines, detail, width, inner);
 
-        if (detail.Issue is { } attached)
+        if (issue is not null)
         {
-            AddAttachments(lines, attached.Attachments, reference, width, inner);
+            AddAttachments(lines, issue.Attachments, detail.LoadedAt, width, inner);
         }
     }
 
@@ -127,7 +129,7 @@ internal static class IssueRelationsBuilder
         {
             var text = new WrappedText(inner, false);
 
-            text.Append(link.DirectionText, TextRole.Emphasis);
+            text.Append(DirectionText(link), TextRole.Emphasis);
             text.Append(" ", TextRole.Body);
             AddIssue(text, link.Issue.Key, link.Issue.Summary, link.Issue.Status);
             text.Finish(content);
@@ -232,6 +234,12 @@ internal static class IssueRelationsBuilder
         {
             text.Append($"{Separator}{status.Name}", StatusRoles.Of(status));
         }
+    }
+
+    /// <summary>The link type's wording for this side, or the type name when Jira sent none.</summary>
+    private static string DirectionText(IssueLink link)
+    {
+        return string.IsNullOrWhiteSpace(link.DirectionText) ? link.TypeName : link.DirectionText;
     }
 
     private static StyledSpan[] Title(string name, int count)

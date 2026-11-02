@@ -444,7 +444,7 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
-    public void GivenChildrenRequested_WhenTheyArrive_ThenTheyShowInTheDocumentAndALaterOneReplacesThem()
+    public void GivenChildrenRequested_WhenTheyArrive_ThenTheyShowInTheDocumentWithAMoreMarker()
     {
         var state = OpenedEpic(out var tab, out var request);
         var page = new IssuePage([Row(21), Row(22)], new PageCursor("next"), null);
@@ -465,7 +465,9 @@ public class IssueDetailReducerTests
     {
         var state = OpenedEpic(out var tab, out var request);
 
-        var after = Deliver(state, new IssueChildrenLoaded(tab, request + 7, new IssuePage([Row(21)], null, null), _now));
+        var page = new IssuePage([Row(21)], null, null);
+
+        var after = Deliver(state, new IssueChildrenLoaded(tab, request + 7, page, _now));
 
         Assert.Equal(state, after);
     }

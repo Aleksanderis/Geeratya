@@ -66,6 +66,15 @@ public class IssueRelationsBuilderTests
     }
 
     [Fact]
+    public void GivenLinkTypeWithoutDirectionWording_WhenBuilding_ThenTheTypeNameStandsInForIt()
+    {
+        var link = new IssueLink("1", "Relates", IssueLinkDirection.Outward, string.Empty, Epic().Links[0].Issue);
+        var detail = Detail(Epic() with { Links = [link] });
+
+        Assert.Contains("Relates A-30 Launch", Text(Build(detail)));
+    }
+
+    [Fact]
     public void GivenSubtasks_WhenBuilding_ThenKeySummaryAndStatusShowWithTheStatusColourRole()
     {
         var document = Build(Detail(Epic()));
@@ -180,7 +189,14 @@ public class IssueRelationsBuilderTests
             Attachments =
             [
                 new IssueAttachment("1", "日本語の長いファイル名のノートです.txt", "text/plain", 47, _now, null, null),
-                new IssueAttachment("2", "émoji-😀-name-that-is-really-long-and-keeps-going.png", "image/png", 9, _now, null, null),
+                new IssueAttachment(
+                    "2",
+                    "émoji-😀-name-that-is-really-long-and-keeps-going.png",
+                    "image/png",
+                    9,
+                    _now,
+                    null,
+                    null),
             ],
             Subtasks = [new IssueStub("A-18", "日本語のとても長いサブタスクの題名がここに入ります", _todo, _subtask)],
         };
@@ -192,7 +208,9 @@ public class IssueRelationsBuilderTests
 
         var document = Build(detail, width);
 
-        Assert.All(document.Lines, line => Assert.True(DisplayWidth.Of(line.PlainText) <= width, $"{width}: {line.PlainText}"));
+        Assert.All(
+            document.Lines,
+            line => Assert.True(DisplayWidth.Of(line.PlainText) <= width, $"{width}: {line.PlainText}"));
     }
 
     [Theory]
@@ -267,8 +285,18 @@ public class IssueRelationsBuilderTests
             Subtasks = [new IssueStub("A-18", "Write the migration", _todo, _subtask)],
             Links =
             [
-                new IssueLink("1", "Blocks", IssueLinkDirection.Outward, "blocks", new IssueStub("A-30", "Launch", _todo, _story)),
-                new IssueLink("2", "Blocks", IssueLinkDirection.Inward, "is blocked by", new IssueStub("A-9", "Legal review", _done, _story)),
+                new IssueLink(
+                    "1",
+                    "Blocks",
+                    IssueLinkDirection.Outward,
+                    "blocks",
+                    new IssueStub("A-30", "Launch", _todo, _story)),
+                new IssueLink(
+                    "2",
+                    "Blocks",
+                    IssueLinkDirection.Inward,
+                    "is blocked by",
+                    new IssueStub("A-9", "Legal review", _done, _story)),
             ],
             Attachments = [new IssueAttachment("1", "notes.txt", "text/plain", 47, _now.AddDays(-2), null, null)],
         };

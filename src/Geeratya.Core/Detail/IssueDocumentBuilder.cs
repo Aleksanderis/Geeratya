@@ -67,7 +67,7 @@ public static class IssueDocumentBuilder
         }
 
         AddDescription(lines, detail, columns, inner);
-        IssueRelationsBuilder.Add(lines, detail, detail.LoadedAt, columns, inner);
+        IssueRelationsBuilder.Add(lines, detail, columns, inner);
         AddComments(lines, detail, columns, inner);
 
         return new DetailDocument(columns, lines);

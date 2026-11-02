@@ -214,8 +214,18 @@ public class IssueDetailRendererTests
             Subtasks = [new IssueStub("GCM-18", "Write the migration", todo, subtaskType)],
             Links =
             [
-                new IssueLink("1", "Blocks", IssueLinkDirection.Outward, "blocks", new IssueStub("GCM-30", "Launch", todo, _type)),
-                new IssueLink("2", "Blocks", IssueLinkDirection.Inward, "is blocked by", new IssueStub("GCM-9", "Legal review", done, _type)),
+                new IssueLink(
+                    "1",
+                    "Blocks",
+                    IssueLinkDirection.Outward,
+                    "blocks",
+                    new IssueStub("GCM-30", "Launch", todo, _type)),
+                new IssueLink(
+                    "2",
+                    "Blocks",
+                    IssueLinkDirection.Inward,
+                    "is blocked by",
+                    new IssueStub("GCM-9", "Legal review", done, _type)),
             ],
             Attachments =
             [
@@ -227,10 +237,10 @@ public class IssueDetailRendererTests
         var remote = new RemoteLink("9", "https://example.com/spec", "Design spec", "Confluence");
 
         state = _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, epic, _now)).State;
-        state = Active(state) is { ChildrenRequest: var childrenRequest }
-            ? _reducer.Reduce(state, new IssueChildrenLoaded(tab.Id, childrenRequest, children, _now)).State
-            : state;
-        state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, new OffsetPage<IssueComment>([], 0, 50, 0, true), _now)).State;
+        state = _reducer.Reduce(state, new IssueChildrenLoaded(tab.Id, Active(state).ChildrenRequest, children, _now)).State;
+        var noComments = new OffsetPage<IssueComment>([], 0, DetailPaging.CommentPageSize, 0, true);
+
+        state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, noComments, _now)).State;
 
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [remote], _now)).State;
     }

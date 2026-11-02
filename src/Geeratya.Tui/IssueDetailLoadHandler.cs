@@ -100,9 +100,12 @@ public sealed class IssueDetailLoadHandler
             var query = new IssueSearchQuery(jql);
             var result = await services.Search.SearchAsync(query, null, token);
 
-            return result.IsSuccess
-                ? new IssueChildrenLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
-                : Failure(effect.Tab, effect.RequestId, result.Error);
+            if (!result.IsSuccess)
+            {
+                return Failure(effect.Tab, effect.RequestId, result.Error);
+            }
+
+            return new IssueChildrenLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow());
         };
     }
 
