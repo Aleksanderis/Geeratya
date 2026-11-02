@@ -112,6 +112,43 @@ public class IssueDetailReducerTests
         Assert.IsType<Failed>(shown.IssueLoad);
     }
 
+    [Theory]
+    [InlineData(JiraErrorKind.NotFound, true)]
+    [InlineData(JiraErrorKind.Forbidden, true)]
+    [InlineData(JiraErrorKind.Unauthorized, false)]
+    [InlineData(JiraErrorKind.Unexpected, false)]
+    public void GivenIssueLoad_WhenItFails_ThenOnlyGoneOrForbiddenRemovesTheCacheEntry(JiraErrorKind kind, bool removes)
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+
+        var failed = _reducer.Reduce(
+            opened.State,
+            new IssueDetailFailed(tab.Id, detail.IssueRequest, new JiraError(kind, null, "x")));
+
+        var remove = failed.Effects.OfType<RemoveIssueCacheEffect>().SingleOrDefault();
+        Assert.Equal(removes, remove is not null);
+        if (removes)
+        {
+            Assert.Equal(detail.Key, remove!.Key);
+        }
+    }
+
+    [Fact]
+    public void GivenCommentsLoad_WhenItFailsWithNotFound_ThenTheIssueCacheEntryStays()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+
+        var failed = _reducer.Reduce(
+            opened.State,
+            new IssueDetailFailed(tab.Id, detail.CommentsRequest, new JiraError(JiraErrorKind.NotFound, null, "x")));
+
+        Assert.Empty(failed.Effects.OfType<RemoveIssueCacheEffect>());
+    }
+
     [Fact]
     public void GivenIssueAlreadyLoaded_WhenALateCacheReplyArrives_ThenItIsDropped()
     {
