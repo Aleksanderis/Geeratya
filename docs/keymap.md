@@ -52,6 +52,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i c` | Create an issue (type picker, then the form) |
+| `Space i C` | Create a sub-task of the selected issue |
 
 ## Help mode
 
@@ -98,6 +100,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Ctrl-o` | Open the new issue after it is created (on or off) |
 
 ## Palette commands
 
@@ -109,6 +112,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
+| `:create [subtask]` | Create an issue, or a sub-task of the selected issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

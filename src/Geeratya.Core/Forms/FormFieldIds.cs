@@ -8,4 +8,6 @@ public static class FormFieldIds
 {
     public const string Summary = "summary";
     public const string Labels = "labels";
+    public const string Description = "description";
+    public const string Parent = "parent";
 }

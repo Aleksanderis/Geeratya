@@ -1,3 +1,5 @@
+using Geeratya.Jira.Create.Models;
+
 namespace Geeratya.Core.Forms;
 
 /// <summary>
@@ -24,6 +26,18 @@ public sealed record FormState(
     bool DiscardPending,
     string? BrowserUrl)
 {
+    /// <summary>
+    /// The issue types the create form offers while the user has not chosen one (the form then shows the type picker
+    /// and no fields); null otherwise.
+    /// </summary>
+    public IReadOnlyList<CreateIssueType>? TypeChoices { get; init; }
+
+    /// <summary>The highlighted type of <see cref="TypeChoices"/>.</summary>
+    public int TypeCursor { get; init; }
+
+    /// <summary>True while the create form asks for the issue type.</summary>
+    public bool IsChoosingType => TypeChoices is not null;
+
     /// <summary>The form waits for the reply of a write.</summary>
     public bool IsSaving => OperationId is not null;
 

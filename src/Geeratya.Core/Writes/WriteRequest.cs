@@ -19,6 +19,16 @@ public abstract record WriteRequest
     /// </summary>
     public virtual bool RemovesIssues => false;
 
+    /// <summary>
+    /// True for a write that creates an issue: it has no key at the start, the key arrives with the reply, and the
+    /// origin tab reloads when Jira confirmed.
+    /// </summary>
+    public virtual bool CreatesIssue => false;
+
+    /// <summary>The status line when the check of a lost reply could not decide what happened.</summary>
+    public virtual string UnreachableText =>
+        $"{string.Join(", ", Keys)}: could not check the result; reload to see the current state";
+
     /// <summary>The activity for the busy refusal: <c>GCM-3 is busy (assigning)</c>.</summary>
     public abstract string BusyText { get; }
 

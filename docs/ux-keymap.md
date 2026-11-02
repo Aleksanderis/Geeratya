@@ -61,8 +61,8 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 |---|---|---|---|---|---|
 | `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159 |
 | `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159 |
-| `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 |
-| `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 |
+| `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 (bound) |
+| `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
@@ -103,7 +103,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 ### Text input
 
 - **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves, `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts.
-- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`.
+- **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`. In a create form `Ctrl-o` (`form.open-after`) switches "open the new issue after it is created" on and off; the footer shows the state.
 - **Suggestions** (owner's decision, #213 to #215): `@` (people) and `#` plus a project key (issues) open the popup inside text editors; picker fields (labels, components, assignee, selects) suggest by context as you type. No extra key opens a picker field's list. `Up`/`Down` and `Ctrl-p`/`Ctrl-n` choose, `Enter` or `Tab` accepts, `Esc` closes the popup only.
 - **Pickers** reuse the source picker's keys (`ux.md`, Insert mode).
 

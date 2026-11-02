@@ -47,11 +47,14 @@ public static class ActionCatalog
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
+        new(ActionIds.IssueCreate, "Create an issue (type picker, then the form)"),
+        new(ActionIds.IssueCreateSubtask, "Create a sub-task of the selected issue"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
         new(ActionIds.FormFieldNext, "Next field of the form"),
         new(ActionIds.FormFieldPrevious, "Previous field of the form"),
         new(ActionIds.FormSubmit, "Save the form"),
+        new(ActionIds.FormOpenAfter, "Open the new issue after it is created (on or off)"),
     ];
 
     /// <summary>
@@ -78,6 +81,7 @@ public static class ActionCatalog
         ActionIds.FormFieldNext,
         ActionIds.FormFieldPrevious,
         ActionIds.FormSubmit,
+        ActionIds.FormOpenAfter,
     ];
 
     public static bool IsModalOnly(string id)

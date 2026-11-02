@@ -45,6 +45,8 @@ public static class FormReducer
         {
             OpenFormRequested open => Open(state, open.Tab, open.Target),
             OpenLabelsFormRequested => OpenLabels(state),
+            OpenCreateFormRequested create => CreateFormReducer.Open(state, create.Subtask),
+            FormTypesLoaded types => CreateFormReducer.TypesLoaded(state, types),
             FormMetadataLoaded loaded => Loaded(state, loaded),
             FormMetadataFailed failed => Failed(state, failed),
             _ => new ReduceResult(state, _noEffects),
@@ -68,9 +70,15 @@ public static class FormReducer
             return Discarding(state, tab, keymap.Resolve(InputMode.Confirm, string.Empty, key).Action, action);
         }
 
+        if (form.IsChoosingType)
+        {
+            return CreateFormReducer.ChoosingType(state, tab, form, action);
+        }
+
         return action switch
         {
             ActionIds.Cancel => Cancel(state, tab, form),
+            ActionIds.FormOpenAfter => Result(CreateFormReducer.ToggleOpenAfter(state, tab, form)),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
@@ -118,7 +126,7 @@ public static class FormReducer
         return result with { State = settled };
     }
 
-    private static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
+    internal static ReduceResult Open(AppState state, TabId tabId, FormTarget target)
     {
         var tab = ViewReducer.Find(state.Session.Tabs, tabId);
 
@@ -185,17 +193,20 @@ public static class FormReducer
     {
         var profile = state.Profiles.Active;
 
-        if (target.IssueKey is not { } key || profile is null)
+        if (profile is null || !Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
         {
             return null;
         }
 
-        if (!Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
+        var connection = new JiraConnection(site, profile.Email);
+
+        // A create has no issue yet: the link goes to the project, where the browser form has every field.
+        if (target is CreateFormTarget create)
         {
-            return null;
+            return IssueUrls.BrowseProject(connection, create.ProjectKey)?.AbsoluteUri;
         }
 
-        return IssueUrls.Browse(new JiraConnection(site, profile.Email), key)?.AbsoluteUri;
+        return target.IssueKey is { } key ? IssueUrls.Browse(connection, key)?.AbsoluteUri : null;
     }
 
     private static ReduceResult Loaded(AppState state, FormMetadataLoaded loaded)
@@ -208,7 +219,15 @@ public static class FormReducer
         }
 
         var top = loaded.Fields.Any(field => field.IsEditable) ? null : NoFieldsText;
-        var filled = form with { Fields = loaded.Fields, IsLoading = false, TopError = top };
+        var target = form.Target.Loaded(loaded.Fields);
+        var blocked = target.Blocked(loaded.Fields);
+        var filled = form with
+        {
+            Target = target,
+            Fields = loaded.Fields,
+            IsLoading = false,
+            TopError = blocked ?? top,
+        };
 
         return Result(Replace(state, tab, filled with { Focus = Step(filled, 0) }));
     }
@@ -294,6 +313,11 @@ public static class FormReducer
             return Result(state);
         }
 
+        if (form.Target.Blocked(form.Fields) is { } blocked)
+        {
+            return Result(Replace(state, tab, form with { TopError = blocked }));
+        }
+
         var committed = form.Fields.Select(FormEditor.Committed).ToArray();
         var checkedFields = FormValidation.Check(committed);
         var firstError = IndexOfError(checkedFields);
@@ -341,7 +365,7 @@ public static class FormReducer
         return started with { State = Replace(started.State, tab, locked) };
     }
 
-    private static AppState Closed(AppState state, TabState tab)
+    internal static AppState Closed(AppState state, TabState tab)
     {
         var current = ViewReducer.Find(state.Session.Tabs, tab.Id) ?? tab;
         var closed = ViewReducer.Replace(state, current with { Form = null });
@@ -448,24 +472,24 @@ public static class FormReducer
     }
 
     // The tab is looked up again: the state may have changed since the caller read it (a write patched its rows).
-    private static AppState Replace(AppState state, TabState tab, FormState form)
+    internal static AppState Replace(AppState state, TabState tab, FormState form)
     {
         var current = ViewReducer.Find(state.Session.Tabs, tab.Id) ?? tab;
 
         return ViewReducer.Replace(state, current with { Form = form });
     }
 
-    private static TabState? ActiveTab(AppState state)
+    internal static TabState? ActiveTab(AppState state)
     {
         return state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
     }
 
-    private static ReduceResult Say(AppState state, string message)
+    internal static ReduceResult Say(AppState state, string message)
     {
         return new ReduceResult(state with { Message = message }, _noEffects);
     }
 
-    private static ReduceResult Result(AppState state)
+    internal static ReduceResult Result(AppState state)
     {
         return new ReduceResult(state, _noEffects);
     }

@@ -46,6 +46,8 @@
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },
     { "mode": "normal", "keys": "Space i d", "action": "issue.delete" },
+    { "mode": "normal", "keys": "Space i c", "action": "issue.create" },
+    { "mode": "normal", "keys": "Space i C", "action": "issue.create-subtask" },
 
     { "mode": "help", "keys": "j", "action": "nav.down" },
     { "mode": "help", "keys": "Down", "action": "nav.down" },
@@ -75,6 +77,7 @@
     { "mode": "insert", "keys": "Ctrl-n", "action": "picker.next" },
     { "mode": "insert", "keys": "Tab", "action": "form.field-next" },
     { "mode": "insert", "keys": "Shift-Tab", "action": "form.field-previous" },
-    { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" }
+    { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" },
+    { "mode": "insert", "keys": "Ctrl-o", "action": "form.open-after" }
   ]
 }

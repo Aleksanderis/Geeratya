@@ -21,8 +21,11 @@ public enum CreateFieldKind
     /// <summary>A user, written as an account id found by the user search.</summary>
     User,
 
-    /// <summary>A date or date-time, sent as a string.</summary>
+    /// <summary>A day, sent as <c>yyyy-MM-dd</c>.</summary>
     Date,
+
+    /// <summary>A moment, sent with its offset as Jira reads it.</summary>
+    DateTime,
 
     Number,
 

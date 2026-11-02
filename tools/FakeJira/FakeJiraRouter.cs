@@ -136,6 +136,11 @@ public sealed partial class FakeJiraRouter
             return written;
         }
 
+        if (method == Get && TryCreateMeta(path) is { } meta)
+        {
+            return meta;
+        }
+
         if (method == Get && TryStoredRead(path) is { } stored)
         {
             return stored;
@@ -232,6 +237,37 @@ public sealed partial class FakeJiraRouter
             (Delete, 3) when parts[1] == CommentPart => _writes.DeleteComment(key, parts[2]),
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// The create metadata of the two sample projects: the issue types of a project and the fields of one type
+    /// (<c>/issue/createmeta/KEY/issuetypes[/ID]</c>), from the recorded fixtures. Null for any other path; an
+    /// unknown project or type answers 404.
+    /// </summary>
+    private FakeReply? TryCreateMeta(string path)
+    {
+        if (CreateMetaPath().Match(path) is not { Success: true } match)
+        {
+            return null;
+        }
+
+        var project = match.Groups[1].Value;
+        var typeId = match.Groups[2].Value;
+
+        if (typeId.Length == 0)
+        {
+            var listed = FakeIssueTypes.All.Any(type => type.ProjectKey == project);
+
+            return listed
+                ? new FakeReply(200, ReadFixture($"metadata/createmeta-issuetypes-{project.ToLowerInvariant()}.json"))
+                : new FakeReply(404, ReadFixture(NotFoundFixture));
+        }
+
+        var known = FakeIssueTypes.Find(project, typeId, null);
+
+        return known is null
+            ? new FakeReply(404, ReadFixture(NotFoundFixture))
+            : new FakeReply(200, ReadFixture(known.FieldsFixture));
     }
 
     /// <summary>
@@ -431,7 +467,12 @@ public sealed partial class FakeJiraRouter
         return new FakeReply(200, Encoding.UTF8.GetBytes($"{{\"isLast\":true,\"issues\":[{issue}]}}"));
     }
 
-    [GeneratedRegex(@"^\s*(?:issue)?key\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^/rest/api/3/issue/createmeta/([A-Z][A-Z0-9_]*)/issuetypes(?:/(\d+))?$")]
+    private static partial Regex CreateMetaPath();
+
+    [GeneratedRegex(
+        @"^\s*(?:issue)?key\s*(?:=\s*|in\s*\(\s*)""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*\)?\s*$",
+        RegexOptions.IgnoreCase)]
     private static partial Regex KeyJql();
 
     [GeneratedRegex(

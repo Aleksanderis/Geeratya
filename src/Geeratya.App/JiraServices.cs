@@ -1,5 +1,6 @@
 using Geeratya.Jira.Boards;
 using Geeratya.Jira.Comments;
+using Geeratya.Jira.Create;
 using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.RemoteLinks;
@@ -29,7 +30,11 @@ public sealed class JiraServices
         Boards = new BoardClient(transport);
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
+        Creates = new IssueCreateClient(transport);
     }
+
+    /// <summary>Create metadata and the create call (the write is only called from the write handler).</summary>
+    public IssueCreateClient Creates { get; }
 
     /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
     public EditClient Edits { get; }

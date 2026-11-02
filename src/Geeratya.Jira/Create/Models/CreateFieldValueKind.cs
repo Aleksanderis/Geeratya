@@ -5,6 +5,7 @@ public enum CreateFieldValueKind
 {
     Text,
     RichText,
+    Markdown,
     ChoiceId,
     ChoiceIds,
     Strings,

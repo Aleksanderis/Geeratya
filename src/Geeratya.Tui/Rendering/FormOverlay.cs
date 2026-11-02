@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Text;
+using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Tui.Rendering;
@@ -15,6 +16,10 @@ public static class FormOverlay
 {
     private const string LoadingText = "Loading fields…";
     private const string SavingText = "Saving…";
+    private const string ChooseTypeText = "Choose the issue type";
+    private const string FromSelectionText = "set from the selection";
+    private const string OpenAfterOnText = "on";
+    private const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "edit in browser";
     private const string EmptyText = "-";
@@ -46,8 +51,9 @@ public static class FormOverlay
         }
 
         var content = Content(form, boxWidth - 4 - Indent);
-        var inner = Math.Min(height - TopGap, content.Lines.Count + FooterHeight + 2) - 2;
-        var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
+        var room = height - TopGap - 2;
+        var footer = room >= FooterMinimumInner ? FooterHeight : 0;
+        var inner = Math.Min(room, content.Lines.Count + footer);
         var box = BoxLines(form, content, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
@@ -82,6 +88,11 @@ public static class FormOverlay
         if (form.TopError is not null)
         {
             return $"! {form.TopError}";
+        }
+
+        if (form.IsChoosingType)
+        {
+            return ChooseTypeText;
         }
 
         var focused = form.Focus < form.Fields.Count ? form.Fields[form.Focus] : null;
@@ -152,7 +163,26 @@ public static class FormOverlay
             return $"{yes} discard   {no}/{cancel} keep editing";
         }
 
-        return $"{next}/{previous} field   {submit} save   {cancel} cancel";
+        if (form.IsChoosingType)
+        {
+            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
+            var choose = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+
+            return $"{down}/{up} type   {choose} choose   {cancel} cancel";
+        }
+
+        var text = $"{next}/{previous} field   {submit} save   {cancel} cancel";
+
+        if (form.Target is not CreateFormTarget create)
+        {
+            return text;
+        }
+
+        var open = keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter);
+        var state = create.OpenAfter ? OpenAfterOnText : OpenAfterOffText;
+
+        return $"{text}   {open} open after: {state}";
     }
 
     private static FormContent Content(FormState form, int valueWidth)
@@ -162,6 +192,11 @@ public static class FormOverlay
         var focusLength = 0;
 
         AddNotices(lines, form);
+
+        if (form.TypeChoices is { } types)
+        {
+            AddTypes(lines, form, types);
+        }
 
         for (var index = 0; index < form.Fields.Count; index++)
         {
@@ -177,6 +212,17 @@ public static class FormOverlay
         }
 
         return new FormContent(lines, focusStart, focusLength);
+    }
+
+    private static void AddTypes(List<StyledLine> lines, FormState form, IReadOnlyList<CreateIssueType> types)
+    {
+        for (var index = 0; index < types.Count; index++)
+        {
+            var highlighted = index == form.TypeCursor;
+            var pointer = highlighted ? ">" : " ";
+
+            lines.Add(StyledLine.Of($"{pointer} {types[index].Name}", highlighted ? TextRole.Selected : TextRole.Body));
+        }
     }
 
     private static void AddNotices(List<StyledLine> lines, FormState form)
@@ -208,7 +254,7 @@ public static class FormOverlay
         var focused = index == form.Focus && !form.IsSaving;
         var marker = focused ? ">" : " ";
         var required = field.Required ? " *" : string.Empty;
-        var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
+        var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyNote(field)})";
         var role = focused ? TextRole.Strong : TextRole.FieldLabel;
         var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}", role) };
 
@@ -226,7 +272,9 @@ public static class FormOverlay
     {
         if (!field.IsEditable)
         {
-            return [Indented(browserUrl ?? ReadOnlyText, TextRole.Muted)];
+            var shown = field.Value.Chosen.Count > 0 ? string.Join(", ", field.Value.Chosen) : browserUrl;
+
+            return [Indented(shown ?? ReadOnlyText, TextRole.Muted)];
         }
 
         return field.Kind switch
@@ -236,6 +284,11 @@ public static class FormOverlay
             FormFieldKind.Labels => LabelLines(field, focused, valueWidth),
             _ => [TextLine(field, focused, valueWidth)],
         };
+    }
+
+    private static string ReadOnlyNote(FormField field)
+    {
+        return field.Value.Chosen.Count > 0 ? FromSelectionText : ReadOnlyText;
     }
 
     private static StyledLine TextLine(FormField field, bool focused, int valueWidth)

@@ -1,12 +1,15 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous source in the picker                                                                              
   Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
+  Ctrl-o     Open the new issue after it is created (on or off)                                                         
                                                                                                                         
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
@@ -21,16 +24,13 @@ Palette commands
       Open the source picker, close or switch tabs                                                                      
   :labels                                                                                                               
       Edit the labels of the selected or shown issue (field form)                                                       
+  :create [subtask]                                                                                                     
+      Create an issue, or a sub-task of the selected issue (field form)                                                 
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
   :help                                                                                                                 
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

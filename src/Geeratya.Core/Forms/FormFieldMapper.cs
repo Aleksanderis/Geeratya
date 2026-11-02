@@ -59,8 +59,12 @@ public static class FormFieldMapper
         return Ordered(result);
     }
 
-    /// <summary>The fields of a create form. Project and issue type are set by the app and not listed.</summary>
-    public static IReadOnlyList<FormField> FromCreate(IReadOnlyList<CreateField> fields)
+    /// <summary>
+    /// The fields of a create form. Project and issue type are set by the app and not listed. The parent field, when
+    /// the type takes one, shows <paramref name="parentKey"/> (it is chosen by where the form was opened from, not
+    /// typed).
+    /// </summary>
+    public static IReadOnlyList<FormField> FromCreate(IReadOnlyList<CreateField> fields, string? parentKey = null)
     {
         var result = new List<FormField>();
 
@@ -68,7 +72,10 @@ public static class FormFieldMapper
         {
             var options = field.AllowedValues.Select(value => new FieldOption(value.Id, value.Label)).ToArray();
 
-            result.Add(FormField.Create(field.FieldId, field.Name, CreateKind(field.Kind), field.Required, options));
+            var mapped = FormField.Create(field.FieldId, field.Name, CreateKind(field.Kind), field.Required, options);
+            var isParent = field.Kind == CreateFieldKind.Parent && parentKey is not null;
+
+            result.Add(isParent ? mapped.WithInitial(FormValue.OfChosen([parentKey!])) : mapped);
         }
 
         return Ordered(result);
@@ -114,7 +121,6 @@ public static class FormFieldMapper
         };
     }
 
-    // The create metadata does not tell a date from a date-time, so both are a date here; #162 refines it.
     private static FormFieldKind CreateKind(CreateFieldKind kind)
     {
         return kind switch
@@ -126,6 +132,7 @@ public static class FormFieldMapper
             CreateFieldKind.Labels => FormFieldKind.Labels,
             CreateFieldKind.User => FormFieldKind.User,
             CreateFieldKind.Date => FormFieldKind.Date,
+            CreateFieldKind.DateTime => FormFieldKind.DateTime,
             CreateFieldKind.Number => FormFieldKind.Number,
             CreateFieldKind.Parent => FormFieldKind.Parent,
             _ => FormFieldKind.Unsupported,

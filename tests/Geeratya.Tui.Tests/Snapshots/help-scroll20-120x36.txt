@@ -28,9 +28,9 @@ Help
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space i c  Create an issue (type picker, then the form)                                                               
+  Space i C  Create a sub-task of the selected issue                                                                    
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
-  Down       Move down                                                                                                  
-  k          Move up                                                                                                    
  HELP                                                                                            j down  k up  Esc close

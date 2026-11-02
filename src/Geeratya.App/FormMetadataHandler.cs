@@ -34,6 +34,11 @@ public sealed class FormMetadataHandler
         LoadFormMetadataEffect effect,
         CancellationToken token)
     {
+        if (effect.Target is CreateFormTarget create)
+        {
+            return await LoadCreateAsync(services, effect, create, token);
+        }
+
         if (effect.Target is not EditFormTarget edit)
         {
             return new FormMetadataFailed(effect.Tab, effect.RequestId, UnsupportedMessage);
@@ -47,6 +52,34 @@ public sealed class FormMetadataHandler
         }
 
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, edit));
+    }
+
+    /// <summary>The issue types of the project while none is chosen, then the create fields of that type.</summary>
+    private static async Task<Command?> LoadCreateAsync(
+        JiraServices services,
+        LoadFormMetadataEffect effect,
+        CreateFormTarget create,
+        CancellationToken token)
+    {
+        if (create.IssueType is null)
+        {
+            var types = await services.Creates.GetIssueTypesAsync(create.ProjectKey, token);
+
+            return types.IsSuccess
+                ? new FormTypesLoaded(effect.Tab, effect.RequestId, types.Value)
+                : new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(types.Error, create.ProjectKey));
+        }
+
+        var fields = await services.Creates.GetFieldsAsync(create.ProjectKey, create.IssueType.Id, token);
+
+        if (!fields.IsSuccess)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(fields.Error, create.ProjectKey));
+        }
+
+        var mapped = FormFieldMapper.FromCreate(fields.Value, create.ParentKey);
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, mapped);
     }
 
     private static string MessageOf(JiraError error, string key)

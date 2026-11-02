@@ -31,7 +31,7 @@ public static class WriteFailureText
 
     private static string KeysOf(WriteRequest request)
     {
-        return string.Join(", ", request.Keys);
+        return request.Keys.Count == 0 ? request.ActionText : string.Join(", ", request.Keys);
     }
 
     private static string Wait(WriteError error)

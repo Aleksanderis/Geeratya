@@ -1,5 +1,6 @@
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Create.Models;
 
 namespace Geeratya.Core.Forms;
 
@@ -17,3 +18,12 @@ public sealed record FormMetadataLoaded(TabId Tab, long RequestId, IReadOnlyList
 
 /// <summary>The metadata could not be fetched; the form shows the message and can only be closed.</summary>
 public sealed record FormMetadataFailed(TabId Tab, long RequestId, string Message) : FormCommand;
+
+/// <summary>
+/// Open the create form (<c>:create</c>, <c>issue.create</c>): the project, and for a sub-task or an epic's child the
+/// parent, come from the issue shown in the detail or selected in the active tab.
+/// </summary>
+public sealed record OpenCreateFormRequested(bool Subtask) : FormCommand;
+
+/// <summary>The issue types of the project arrived for a create form that waits for them (unfiltered).</summary>
+public sealed record FormTypesLoaded(TabId Tab, long RequestId, IReadOnlyList<CreateIssueType> Types) : FormCommand;

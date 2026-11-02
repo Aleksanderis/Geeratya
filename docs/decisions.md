@@ -6,6 +6,8 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 ## 2026-11-02
 
+**UI:** Create (#162): project and parent come from the issue shown or selected, not from a project setting, because a view has no project of its own (a JQL or filter spans many); a selected epic is offered as the parent and dropped when the chosen type has no `parent` field. The type picker is part of the create form (types first, then the fields of the chosen type) instead of a separate overlay, so cancel, loading and errors are the form's own. "Open after" is `Ctrl-o` in the form (off by default) instead of an extra field. Why: least new state and keys; the create metadata decides what is allowed.
+
 **UI:** Write keys: one `<space>` group per noun (`i` issue, `m` comment, `s` sprint, `k` rank, `v` view options), never a prefix of an M1 leaf, plus `Alt-h/j/k/l` to move a card or row (status, rank), `v` Visual and `Alt-m` marks; no bare letters; only sprint moves and rank steps take a set, every other write is single-issue; a count never selects. Why: Gitunia redesigned its keymap late for the same reasons (one noun one prefix, command levels). Plan in `ux-keymap.md` (issue #152); each issue binds its rows.
 
 **Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate for every open path; the UI and ADF link callers must go through `OpenUrlRequested` (only the issue-key path is wired so far). Issue #118.

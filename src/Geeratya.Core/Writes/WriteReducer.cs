@@ -174,7 +174,9 @@ public static class WriteReducer
     {
         var operation = Find(state, succeeded.OperationId);
 
-        return operation is null ? new ReduceResult(state, _noEffects) : Complete(state, operation, succeeded.Rows);
+        return operation is null
+            ? new ReduceResult(state, _noEffects)
+            : Complete(state, operation, succeeded.Rows, succeeded.CreatedKey);
     }
 
     private static ReduceResult Verified(AppState state, WriteVerified verified)
@@ -188,7 +190,7 @@ public static class WriteReducer
 
         return verified.Outcome switch
         {
-            VerifyOutcome.Applied => Complete(state, operation, verified.Rows),
+            VerifyOutcome.Applied => Complete(state, operation, verified.Rows, FirstKey(verified.Rows)),
             VerifyOutcome.NotApplied => RolledBack(state, operation, operation.Request.NotAppliedText, []),
             _ => Unreachable(state, operation),
         };
@@ -197,19 +199,27 @@ public static class WriteReducer
     /// <summary>The check itself failed: nothing is known, so the rows go back and are marked stale.</summary>
     private static ReduceResult Unreachable(AppState state, Operation operation)
     {
-        var keys = string.Join(", ", operation.Keys);
-        var text = $"{keys}: could not check the result; reload to see the current state";
+        var text = operation.Request.UnreachableText;
         var marked = MarkStale(state, operation.Keys);
 
         return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)]);
     }
 
     /// <summary>Jira confirmed the write: the server rows replace the tabs' rows, the caches are dropped.</summary>
-    private static ReduceResult Complete(AppState state, Operation operation, IReadOnlyList<IssueSummary> rows)
+    private static ReduceResult Complete(
+        AppState state,
+        Operation operation,
+        IReadOnlyList<IssueSummary> rows,
+        string? createdKey)
     {
         if (operation.Request.RemovesIssues)
         {
             return CompleteRemoval(state, operation);
+        }
+
+        if (operation.Request is CreateRequest create)
+        {
+            return CompleteCreation(state, operation, create, createdKey, rows);
         }
 
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
@@ -236,6 +246,41 @@ public static class WriteReducer
             : finished;
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
+    /// <summary>
+    /// Jira created the issue: the caches are dropped and the origin tab reloads so the issue appears where it
+    /// belongs (membership changed; the server is the truth). A form opened on the parent's detail reloads that
+    /// detail (its sub-tasks or children changed). With <c>OpenAfter</c> the origin tab opens the new issue.
+    /// </summary>
+    private static ReduceResult CompleteCreation(
+        AppState state,
+        Operation operation,
+        CreateRequest create,
+        string? key,
+        IReadOnlyList<IssueSummary> rows)
+    {
+        var keys = key is null ? [] : new[] { key };
+        var effects = new List<Effect> { new InvalidateCacheEffect(keys) };
+        var finished = Finish(state, operation, false, effects);
+        var origin = ViewReducer.Find(finished.Session.Tabs, operation.Origin);
+        var reloaded = origin is { Cold: false, Load: not Loading }
+            ? ViewReducer.StartRefresh(finished, origin, false, effects)
+            : finished;
+        var parents = create.ParentKey is null ? [] : new[] { create.ParentKey };
+        var details = ReloadDetails(reloaded, parents, effects);
+        var opened = key is not null && create.OpenAfter && origin is not null
+            ? DetailReducer.Open(details, origin.Id, key, (rows.Count > 0 ? rows[0] : null), effects)
+            : details;
+
+        var message = key is null ? create.DoneText : CreateRequest.CreatedText(key);
+
+        return new ReduceResult(opened with { Message = message }, effects);
+    }
+
+    private static string? FirstKey(IReadOnlyList<IssueSummary> rows)
+    {
+        return rows.Count > 0 ? rows[0].Key : null;
     }
 
     private static ReduceResult Failed(AppState state, WriteFailed failed)
