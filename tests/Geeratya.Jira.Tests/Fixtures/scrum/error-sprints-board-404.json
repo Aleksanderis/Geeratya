@@ -1,0 +1,6 @@
+{
+  "errorMessages": [],
+  "errors": {
+    "rapidViewId": "The requested board cannot be viewed because it either does not exist or you do not have permission to view it."
+  }
+}

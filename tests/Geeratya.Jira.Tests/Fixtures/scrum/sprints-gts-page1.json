@@ -1,0 +1,29 @@
+{
+  "isLast": false,
+  "maxResults": 2,
+  "startAt": 0,
+  "total": 4,
+  "values": [
+    {
+      "completeDate": "2026-11-02T17:24:04.223Z",
+      "createdDate": "2026-11-02T17:24:00.142Z",
+      "endDate": "2026-11-01T17:24:03.000Z",
+      "id": 9,
+      "name": "Seed Sprint 1",
+      "originBoardId": 5,
+      "self": "https://example.atlassian.net/rest/agile/1.0/sprint/9",
+      "startDate": "2026-10-19T17:24:03.000Z",
+      "state": "closed"
+    },
+    {
+      "createdDate": "2026-11-02T17:24:05.086Z",
+      "endDate": "2026-11-13T17:24:07.000Z",
+      "id": 10,
+      "name": "Seed Sprint 2",
+      "originBoardId": 5,
+      "self": "https://example.atlassian.net/rest/agile/1.0/sprint/10",
+      "startDate": "2026-10-30T17:24:07.000Z",
+      "state": "active"
+    }
+  ]
+}

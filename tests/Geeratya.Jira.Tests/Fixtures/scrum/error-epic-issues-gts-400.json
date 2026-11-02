@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "The request contains a next-gen issue. This operation can't add next-gen issues to epics. To add a next-gen issue to an epic, use the Edit issue operation and set the parent property (i.e., '\"parent\":{\"key\":\"PROJ-123\"}' where \"PROJ-123\" has an issue type at level one of the issue type hierarchy). See <a href=\"https://developer.atlassian.com/cloud/jira/platform/rest/v2/\"> developer.atlassian.com </a> for more details."
+  ],
+  "errors": {}
+}

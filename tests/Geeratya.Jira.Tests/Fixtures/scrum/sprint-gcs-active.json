@@ -1,0 +1,10 @@
+{
+  "createdDate": "2026-11-02T17:21:01.107Z",
+  "endDate": "2026-11-13T17:21:03.000Z",
+  "id": 7,
+  "name": "Seed Sprint 2",
+  "originBoardId": 6,
+  "self": "https://example.atlassian.net/rest/agile/1.0/sprint/7",
+  "startDate": "2026-10-30T17:21:03.000Z",
+  "state": "active"
+}

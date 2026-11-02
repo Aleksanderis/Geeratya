@@ -1,0 +1,192 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Log in with SSO"
+      },
+      "id": "10077",
+      "key": "GCS-3",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10077"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Edit the profile page"
+      },
+      "id": "10078",
+      "key": "GCS-4",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10078"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Set up the CI pipeline"
+      },
+      "id": "10079",
+      "key": "GCS-5",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10079"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Session expires too early"
+      },
+      "id": "10080",
+      "key": "GCS-6",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10080"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Add end-to-end tests"
+      },
+      "id": "10083",
+      "key": "GCS-9",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10083"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Settings screen"
+      },
+      "id": "10085",
+      "key": "GCS-11",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10085"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Enable the linter"
+      },
+      "id": "10087",
+      "key": "GCS-13",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10087"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Write the release notes"
+      },
+      "id": "10090",
+      "key": "GCS-16",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10090"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 8
+}

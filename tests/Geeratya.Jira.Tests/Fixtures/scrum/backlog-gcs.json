@@ -1,0 +1,149 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10014": null,
+        "customfield_10020": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10010",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10010",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: dark mode"
+      },
+      "id": "10092",
+      "key": "GCS-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10092"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10014": null,
+        "customfield_10020": null,
+        "customfield_10047": 3.0,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10008",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10008",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: keyboard shortcuts help"
+      },
+      "id": "10093",
+      "key": "GCS-19",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10093"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10014": null,
+        "customfield_10020": null,
+        "issuetype": {
+          "avatarId": 10303,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10009",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10009",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: tooltip clipped"
+      },
+      "id": "10094",
+      "key": "GCS-20",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10094"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "customfield_10014": null,
+        "customfield_10020": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10010",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10010",
+          "subtask": false
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Backlog: update dependencies"
+      },
+      "id": "10095",
+      "key": "GCS-21",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10095"
+    }
+  ],
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 4
+}

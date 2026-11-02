@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "Transitioning from FUTURE state to CLOSED state is not supported"
+  ],
+  "errors": {}
+}

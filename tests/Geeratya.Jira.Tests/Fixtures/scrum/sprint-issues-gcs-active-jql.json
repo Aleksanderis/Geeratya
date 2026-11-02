@@ -1,0 +1,35 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "summary": "Search across projects"
+      },
+      "id": "10082",
+      "key": "GCS-8",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10082"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "summary": "Email notifications"
+      },
+      "id": "10084",
+      "key": "GCS-10",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10084"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "summary": "Settings screen"
+      },
+      "id": "10085",
+      "key": "GCS-11",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10085"
+    }
+  ],
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 3
+}

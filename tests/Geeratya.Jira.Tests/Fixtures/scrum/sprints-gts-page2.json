@@ -1,0 +1,24 @@
+{
+  "isLast": true,
+  "maxResults": 2,
+  "startAt": 2,
+  "total": 4,
+  "values": [
+    {
+      "createdDate": "2026-11-02T08:41:26.397Z",
+      "id": 1,
+      "name": "GTS Sprint 1",
+      "originBoardId": 5,
+      "self": "https://example.atlassian.net/rest/agile/1.0/sprint/1",
+      "state": "future"
+    },
+    {
+      "createdDate": "2026-11-02T17:24:09.003Z",
+      "id": 11,
+      "name": "Seed Sprint 3",
+      "originBoardId": 5,
+      "self": "https://example.atlassian.net/rest/agile/1.0/sprint/11",
+      "state": "future"
+    }
+  ]
+}

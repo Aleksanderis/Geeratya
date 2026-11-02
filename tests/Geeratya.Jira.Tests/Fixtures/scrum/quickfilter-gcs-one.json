@@ -1,0 +1,8 @@
+{
+  "boardId": 6,
+  "description": "Displays work items which have been updated in the last day",
+  "id": 5,
+  "jql": "updatedDate >= -1d",
+  "name": "Recently Updated",
+  "position": 0
+}

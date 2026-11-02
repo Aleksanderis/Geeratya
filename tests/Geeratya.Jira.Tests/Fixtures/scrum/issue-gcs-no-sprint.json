@@ -1,0 +1,34 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "customfield_10020": null,
+    "issuetype": {
+      "avatarId": 10318,
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+      "id": "10010",
+      "name": "Task",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+      "subtask": false
+    },
+    "status": {
+      "description": "",
+      "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+      "id": "10004",
+      "name": "To Do",
+      "self": "https://example.atlassian.net/rest/api/3/status/10004",
+      "statusCategory": {
+        "colorName": "yellow",
+        "id": 4,
+        "key": "indeterminate",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+      }
+    },
+    "summary": "Backlog: dark mode"
+  },
+  "id": "10092",
+  "key": "GCS-18",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10092"
+}

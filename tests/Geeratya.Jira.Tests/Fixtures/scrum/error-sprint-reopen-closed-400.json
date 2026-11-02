@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "Transitioning from CLOSED state to ACTIVE state is not supported"
+  ],
+  "errors": {}
+}

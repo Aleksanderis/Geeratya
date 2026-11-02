@@ -1,0 +1,35 @@
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "values": [
+    {
+      "color": {
+        "key": "color_14"
+      },
+      "done": false,
+      "id": 10075,
+      "issueColor": {
+        "key": "dark_orange"
+      },
+      "key": "GCS-1",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10075",
+      "summary": "Seed: Platform"
+    },
+    {
+      "color": {
+        "key": "color_3"
+      },
+      "done": false,
+      "id": 10076,
+      "issueColor": {
+        "key": "yellow"
+      },
+      "key": "GCS-2",
+      "name": "",
+      "self": "https://example.atlassian.net/rest/agile/1.0/epic/10076",
+      "summary": "Seed: Insights"
+    }
+  ]
+}

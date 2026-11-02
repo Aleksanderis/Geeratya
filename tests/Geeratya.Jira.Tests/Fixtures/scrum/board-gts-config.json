@@ -1,0 +1,59 @@
+{
+  "columnConfig": {
+    "columns": [
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10004",
+            "self": "https://example.atlassian.net/rest/api/2/status/10004"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "self": "https://example.atlassian.net/rest/api/2/status/3"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10005",
+            "self": "https://example.atlassian.net/rest/api/2/status/10005"
+          }
+        ]
+      }
+    ],
+    "constraintType": "none"
+  },
+  "estimation": {
+    "field": {
+      "displayName": "Story point estimate",
+      "fieldId": "customfield_10016"
+    },
+    "type": "field"
+  },
+  "filter": {
+    "id": "10004",
+    "self": "https://example.atlassian.net/rest/api/2/filter/10004"
+  },
+  "id": 5,
+  "location": {
+    "id": "10004",
+    "key": "GTS",
+    "name": "GTS",
+    "self": "https://example.atlassian.net/rest/api/2/project/10004",
+    "type": "project"
+  },
+  "name": "GTS board",
+  "ranking": {
+    "rankCustomFieldId": 10019
+  },
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/5/configuration",
+  "type": "simple"
+}

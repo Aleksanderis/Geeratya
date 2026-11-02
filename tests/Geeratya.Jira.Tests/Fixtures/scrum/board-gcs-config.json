@@ -1,0 +1,59 @@
+{
+  "columnConfig": {
+    "columns": [
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10004",
+            "self": "https://example.atlassian.net/rest/api/2/status/10004"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "self": "https://example.atlassian.net/rest/api/2/status/3"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10005",
+            "self": "https://example.atlassian.net/rest/api/2/status/10005"
+          }
+        ]
+      }
+    ],
+    "constraintType": "none"
+  },
+  "estimation": {
+    "field": {
+      "displayName": "Story Points",
+      "fieldId": "customfield_10047"
+    },
+    "type": "field"
+  },
+  "filter": {
+    "id": "10005",
+    "self": "https://example.atlassian.net/rest/api/2/filter/10005"
+  },
+  "id": 6,
+  "location": {
+    "id": "10005",
+    "key": "GCS",
+    "name": "GCS",
+    "self": "https://example.atlassian.net/rest/api/2/project/10005",
+    "type": "project"
+  },
+  "name": "GCS board",
+  "ranking": {
+    "rankCustomFieldId": 10019
+  },
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/6/configuration",
+  "type": "scrum"
+}

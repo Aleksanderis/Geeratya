@@ -1,0 +1,16 @@
+{
+  "id": 5,
+  "isPrivate": false,
+  "location": {
+    "avatarURI": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10414?size=small",
+    "displayName": "GTS (GTS)",
+    "name": "GTS (GTS)",
+    "projectId": 10004,
+    "projectKey": "GTS",
+    "projectName": "GTS",
+    "projectTypeKey": "software"
+  },
+  "name": "GTS board",
+  "self": "https://example.atlassian.net/rest/agile/1.0/board/5",
+  "type": "simple"
+}

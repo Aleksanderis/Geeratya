@@ -1,0 +1,59 @@
+{
+  "isLast": true,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Enable the linter"
+      },
+      "id": "10108",
+      "key": "GTS-34",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10108"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Table overflows on narrow screens"
+      },
+      "id": "10107",
+      "key": "GTS-33",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10107"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Settings screen"
+      },
+      "id": "10106",
+      "key": "GTS-32",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10106"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Email notifications"
+      },
+      "id": "10105",
+      "key": "GTS-31",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10105"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Add end-to-end tests"
+      },
+      "id": "10104",
+      "key": "GTS-30",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10104"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Search across projects"
+      },
+      "id": "10103",
+      "key": "GTS-29",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10103"
+    }
+  ]
+}

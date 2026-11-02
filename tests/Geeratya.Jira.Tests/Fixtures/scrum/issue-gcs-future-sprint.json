@@ -1,0 +1,42 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "customfield_10020": [
+      {
+        "boardId": 6,
+        "id": 8,
+        "name": "Seed Sprint 3",
+        "state": "future"
+      }
+    ],
+    "customfield_10047": 8.0,
+    "issuetype": {
+      "avatarId": 10315,
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+      "id": "10008",
+      "name": "Story",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10008",
+      "subtask": false
+    },
+    "status": {
+      "description": "",
+      "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+      "id": "10004",
+      "name": "To Do",
+      "self": "https://example.atlassian.net/rest/api/3/status/10004",
+      "statusCategory": {
+        "colorName": "yellow",
+        "id": 4,
+        "key": "indeterminate",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+      }
+    },
+    "summary": "Export a report as PDF"
+  },
+  "id": "10089",
+  "key": "GCS-15",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10089"
+}
