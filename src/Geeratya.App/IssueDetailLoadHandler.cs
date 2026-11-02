@@ -38,7 +38,7 @@ public sealed class IssueDetailLoadHandler
             await _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
         }
 
-        await StartNetwork(effect);
+        await StartNetwork(effect, cache);
     }
 
     private static IssueDetailCached? ReadCache(LoadIssueDetailEffect effect, SiteCache cache, CancellationToken token)
@@ -53,11 +53,11 @@ public sealed class IssueDetailLoadHandler
         return cached is null ? null : new IssueDetailCached(effect.Tab, effect.RequestId, cached);
     }
 
-    private Task StartNetwork(Effect effect)
+    private Task StartNetwork(Effect effect, SiteCache? cache)
     {
         return effect switch
         {
-            LoadIssueDetailEffect issue => Run(issue.Tab.Value, issue.Tab, issue.RequestId, IssueAsync(issue)),
+            LoadIssueDetailEffect issue => Run(issue.Tab.Value, issue.Tab, issue.RequestId, IssueAsync(issue, cache)),
             LoadIssueCommentsEffect comments =>
                 Run(comments.Tab.Value, comments.Tab, comments.RequestId, CommentsAsync(comments)),
             LoadRemoteLinksEffect links => Run(links.Tab.Value, links.Tab, links.RequestId, LinksAsync(links)),
@@ -76,11 +76,20 @@ public sealed class IssueDetailLoadHandler
         return _runner.Start(scope, work, () => Failure(tab, requestId, NoConnectionMessage));
     }
 
-    private Func<JiraServices, CancellationToken, Task<Command?>> IssueAsync(LoadIssueDetailEffect effect)
+    private Func<JiraServices, CancellationToken, Task<Command?>> IssueAsync(
+        LoadIssueDetailEffect effect,
+        SiteCache? cache)
     {
         return async (services, token) =>
         {
             var result = await services.Issues.GetIssueAsync(effect.Key, token);
+
+            if (!result.IsSuccess && result.Error.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden)
+            {
+                // Dropped here, not only by the reducer: the reply may arrive after the issue was popped or the tab
+                // closed, when no stacked issue is left to name the key.
+                cache?.RemoveIssue(effect.Key);
+            }
 
             return result.IsSuccess
                 ? new IssueDetailLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
