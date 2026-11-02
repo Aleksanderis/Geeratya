@@ -2,7 +2,6 @@ using System.Text;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
-using Geeratya.Core.Views;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Terminal.Gui.Drawing;
@@ -27,6 +26,7 @@ public sealed class ShellScreen : Window
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
+    private DateTimeOffset _now = DateTimeOffset.UtcNow;
 
     public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize)
     {
@@ -55,13 +55,14 @@ public sealed class ShellScreen : Window
     /// The issue rows a list can show: the window height without the tab bar, the status line and the list's own header rows
     /// (title with count, column titles).
     /// </summary>
-    public int BodyRows => Math.Max(0, _size.Height - 1 - TabBar.Rows - ListLayout.HeaderRows);
+    public int BodyRows => Math.Max(0, _size.Height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows);
 
-    public void Render(AppState state)
+    public void Render(AppState state, DateTimeOffset now)
     {
         _state = state;
+        _now = now;
 
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _helpLines, _keymap);
+        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _helpLines, _keymap, null, now);
 
         if (frame is null)
         {
@@ -83,7 +84,7 @@ public sealed class ShellScreen : Window
         }
 
         _size = size;
-        Render(_state);
+        Render(_state, _now);
         BodyRowsChanged?.Invoke(BodyRows);
     }
 

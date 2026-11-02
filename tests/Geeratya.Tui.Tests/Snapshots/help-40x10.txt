@@ -1,4 +1,5 @@
                                         
+                                        
 Help                                    
 Normal mode                             
   j          Move down                  
@@ -6,5 +7,4 @@ Normal mode
   k          Move up                    
   Up         Move up                    
   h          Move left                  
-  Left       Move left                  
  HELP            j down  k up  Esc close

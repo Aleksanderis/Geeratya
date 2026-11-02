@@ -1,4 +1,5 @@
  [1 JQL: My open issues …]                                                      
+                                                                                
 My open issues · 10+                                                            
   Key    T Summary                                                Status        
   GCM-12 T Fix login redirect after token refresh                 In Progress   
@@ -20,5 +21,4 @@ Loading more…
                                                                                 
                                                                                 
                                                                                 
-                                                                                
- NORMAL                                                ? help  : command  q quit
+ NORMAL loading                                        ? help  : command  q quit

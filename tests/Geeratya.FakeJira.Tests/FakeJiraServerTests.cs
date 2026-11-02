@@ -25,6 +25,9 @@ public sealed class FakeJiraServerTests : IDisposable
     [InlineData("/rest/agile/1.0/board/3/epic", "GTM-4")]
     [InlineData("/rest/agile/1.0/board/4/epic", "GCM-")]
     [InlineData("/rest/api/3/filter/10001", "Filter for GCM board")]
+    [InlineData("/rest/api/3/filter/my", "Filter for GCM board (1)")]
+    [InlineData("/rest/api/3/filter/search", "\"total\": 2")]
+    [InlineData("/rest/api/3/filter/favourite", "[]")]
     [InlineData("/rest/api/3/issue/GTM-11", "Validate the email")]
     [InlineData("/rest/api/3/issue/GCM-10", "Sign up with email")]
     [InlineData("/rest/api/3/issue/GCM-24", "media probe 27")]
@@ -69,6 +72,18 @@ public sealed class FakeJiraServerTests : IDisposable
         var body = await response.Content.ReadAsStringAsync();
 
         Assert.Contains("filter is not available", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenPostToNonSearchPath_WhenRequested_ThenRecorded404IsServed()
+    {
+        var baseUrl = StartServer(0, 0, 0);
+
+        var response = await _client.PostAsync(
+            $"{baseUrl}/rest/api/3/myself",
+            new StringContent("{}"));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

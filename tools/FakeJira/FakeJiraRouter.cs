@@ -83,7 +83,7 @@ public sealed class FakeJiraRouter
 
     public FakeReply Route(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
-        if (path == SearchPath && method is Get or Post)
+        if (path == SearchPath && (method == Get || method == Post))
         {
             return Search(method, query, body);
         }

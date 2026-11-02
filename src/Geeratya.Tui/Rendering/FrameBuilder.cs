@@ -19,6 +19,9 @@ public static class FrameBuilder
         new StartBodyRenderer(),
     ];
 
+    /// <summary>The rows above the body: the tab bar and the network banner (blank while there is none).</summary>
+    public const int HeaderRows = TabBar.Rows + 1;
+
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.
     /// </summary>
@@ -27,15 +30,17 @@ public static class FrameBuilder
         int width,
         int height,
         IReadOnlyList<string> helpLines,
-        KeymapTable keymap)
+        KeymapTable keymap,
+        DateTimeOffset? now = null)
     {
-        return BuildStyled(state, width, height, helpLines, keymap)?.PlainLines() ?? [];
+        return BuildStyled(state, width, height, helpLines, keymap, null, now)?.PlainLines() ?? [];
     }
 
     /// <summary>
     /// The styled frame; null for a size of zero. <paramref name="screens"/> are tried before the built-in help and
     /// start screens, in order. The first line is always the tab bar (blank without tabs), so the body height does not
-    /// change when the first tab opens or the last one closes.
+    /// change when the first tab opens or the last one closes. The second line is the network banner of the active tab
+    /// (blank when none), computed at <paramref name="now"/> (the epoch when null, which only the print frame uses).
     /// </summary>
     public static StyledFrame? BuildStyled(
         AppState state,
@@ -43,14 +48,16 @@ public static class FrameBuilder
         int height,
         IReadOnlyList<string> helpLines,
         KeymapTable keymap,
-        IReadOnlyList<IBodyRenderer>? screens = null)
+        IReadOnlyList<IBodyRenderer>? screens = null,
+        DateTimeOffset? now = null)
     {
         if (width <= 0 || height <= 0)
         {
             return null;
         }
 
-        var header = Math.Min(TabBar.Rows, height - 1);
+        var header = Math.Min(HeaderRows, height - 1);
+        var clock = now ?? DateTimeOffset.UnixEpoch;
         var bodyHeight = height - 1 - header;
         var context = new BodyContext(helpLines, keymap);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
@@ -63,9 +70,26 @@ public static class FrameBuilder
         }
 
         return new StyledFrame(
-            Fit(header == 0 ? [] : [TabBar.Build(state.Session.Tabs, state.Session.Active, width)], width, header),
+            Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),
-            StatusBar.Render(state, width, keymap));
+            StatusBar.Render(state, width, keymap, clock));
+    }
+
+    private static List<StyledLine> HeaderLines(AppState state, int width, DateTimeOffset now, int rows)
+    {
+        var lines = new List<StyledLine>(HeaderRows);
+
+        if (rows > 0)
+        {
+            lines.Add(TabBar.Build(state.Session.Tabs, state.Session.Active, width));
+        }
+
+        if (rows > 1)
+        {
+            lines.Add(NetworkBanner.Line(state, now, width) ?? StyledLine.Empty);
+        }
+
+        return lines;
     }
 
     private static List<StyledLine> Fit(IEnumerable<StyledLine> lines, int width, int height)

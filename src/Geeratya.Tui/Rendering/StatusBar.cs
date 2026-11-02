@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -9,6 +10,7 @@ namespace Geeratya.Tui.Rendering;
 public static class StatusBar
 {
     private const string HintGap = "  ";
+    private const string Separator = " · ";
     private const int FieldCount = 4;
     private const string PickerPrompt = "open a view";
 
@@ -36,15 +38,18 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
-    /// <summary>The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.</summary>
-    public static string Render(AppState state, int width, KeymapTable keymap)
+    /// <summary>
+    /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide. <paramref name="now"/>
+    /// is the clock the network word counts from (a rate-limit wait); without it the epoch is used.
+    /// </summary>
+    public static string Render(AppState state, int width, KeymapTable keymap, DateTimeOffset? now = null)
     {
         if (width <= 0)
         {
             return string.Empty;
         }
 
-        var left = $" {Badge(state.Mode)} {Text(state, width, keymap)}".TrimEnd();
+        var left = $" {Badge(state.Mode)} {Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch)}".TrimEnd();
         var hints = string.Join(HintGap, HintTexts(state, keymap));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
@@ -99,7 +104,7 @@ public static class StatusBar
         };
     }
 
-    private static string Text(AppState state, int width, KeymapTable keymap)
+    private static string Text(AppState state, int width, KeymapTable keymap, DateTimeOffset now)
     {
         return state.Mode switch
         {
@@ -107,7 +112,7 @@ public static class StatusBar
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
-            _ => NormalText(state),
+            _ => NormalText(state, now),
         };
     }
 
@@ -116,15 +121,31 @@ public static class StatusBar
         return picker.Notice ?? PickerPrompt;
     }
 
-    /// <summary>A notice or pending keys win; otherwise the result of the connection check shows.</summary>
-    private static string NormalText(AppState state)
+    /// <summary>
+    /// A notice or pending keys win; otherwise the network word of the active tab (first, so it survives a cut)
+    /// and the result of the connection check show.
+    /// </summary>
+    private static string NormalText(AppState state, DateTimeOffset now)
     {
         if (state.Message is not null)
         {
             return state.Message;
         }
 
-        return state.PendingKeys.Length > 0 ? state.PendingKeys : ConnectionText.Line(state.Session);
+        if (state.PendingKeys.Length > 0)
+        {
+            return state.PendingKeys;
+        }
+
+        var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
+        var line = ConnectionText.Line(state.Session);
+
+        if (word.Length == 0)
+        {
+            return line;
+        }
+
+        return line.Length == 0 ? word : $"{word}{Separator}{line}";
     }
 
     /// <summary>

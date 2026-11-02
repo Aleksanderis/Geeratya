@@ -1,10 +1,10 @@
                                         
                                         
                                         
+                                        
                 Geeratya                
       No profile yet: :profile add      
       ? help   : command   q quit       
-                                        
                                         
                                         
  COMMAND :search   Enter run  Esc cancel
