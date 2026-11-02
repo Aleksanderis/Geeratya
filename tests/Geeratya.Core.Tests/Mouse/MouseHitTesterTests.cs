@@ -35,7 +35,9 @@ public class MouseHitTesterTests
     {
         var hit = MouseHitTester.Locate(new MouseContext(80, 24, 2, false, true), 5, 10);
 
-        Assert.Equal(new MouseHit(MouseTarget.Detail, 8, 5), hit);
+        Assert.Equal(MouseTarget.Detail, hit!.Target);
+        Assert.Equal(8, hit.Row);
+        Assert.Equal(5, hit.Column);
     }
 
     [Fact]

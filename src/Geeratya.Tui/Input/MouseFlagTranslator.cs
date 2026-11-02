@@ -3,17 +3,17 @@ using Terminal.Gui.Input;
 
 namespace Geeratya.Tui.Input;
 
-/// <summary>Turns Terminal.Gui mouse flags into the toolkit-independent <see cref="MouseGesture"/> of the mouse table.</summary>
+/// <summary>Turns Terminal.Gui mouse flags into the <see cref="MouseGesture"/> of the mouse table.</summary>
 public static class MouseFlagTranslator
 {
-    /// <summary>False for events the table has no use for (moves, presses, releases, other buttons, a sideways wheel).</summary>
+    /// <summary>False for events the table ignores (moves, presses, releases, a sideways wheel).</summary>
     public static bool TryTranslate(MouseFlags flags, out MouseGesture gesture)
     {
         gesture = default;
 
-        var sideways = flags.HasFlag(MouseFlags.Shift) && (flags.HasFlag(MouseFlags.WheeledUp) || flags.HasFlag(MouseFlags.WheeledDown));
+        var wheel = flags.HasFlag(MouseFlags.WheeledUp) || flags.HasFlag(MouseFlags.WheeledDown);
 
-        if (sideways)
+        if (flags.HasFlag(MouseFlags.Shift) && wheel)
         {
             return false;
         }

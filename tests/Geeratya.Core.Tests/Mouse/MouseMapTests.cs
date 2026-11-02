@@ -64,7 +64,10 @@ public class MouseMapTests
     {
         var text = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "docs", "ux-mouse.md"));
 
-        foreach (var action in DefaultMouseMap.Exclusions.Keys.Where(key => !key.StartsWith("tab.go-to.", StringComparison.Ordinal)))
+        var named = DefaultMouseMap.Exclusions.Keys
+            .Where(key => !key.StartsWith("tab.go-to.", StringComparison.Ordinal));
+
+        foreach (var action in named)
         {
             Assert.Contains($"`{action}`", text);
         }

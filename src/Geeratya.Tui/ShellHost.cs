@@ -209,7 +209,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         Dispatch(new KeyPressed(spelled, TimeProvider.System.GetUtcNow()));
     }
 
-    /// <summary>A pointer event: hit test and mouse table decide, the reducer runs the action like a key would.</summary>
+    /// <summary>A pointer event: hit test and mouse table decide; the reducer runs the action like a key.</summary>
     private void OnMouse(object? sender, Mouse mouse)
     {
         if (!MouseFlagTranslator.TryTranslate(mouse.Flags, out var gesture))

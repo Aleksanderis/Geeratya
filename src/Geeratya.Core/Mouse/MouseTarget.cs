@@ -1,6 +1,8 @@
 namespace Geeratya.Core.Mouse;
 
-/// <summary>The screen areas a gesture is resolved against; the mouse table in <c>docs/ux-mouse.md</c> is keyed by these.</summary>
+/// <summary>
+/// The screen areas a gesture is resolved against; the mouse table in <c>docs/ux-mouse.md</c> is keyed by these.
+/// </summary>
 public enum MouseTarget
 {
     /// <summary>A tab in the tab bar row.</summary>
@@ -39,6 +41,6 @@ public enum MouseTarget
     /// <summary>Everything outside an open overlay or prompt.</summary>
     Backdrop,
 
-    /// <summary>A row of the context menu that a right-click opens (every other action of the row under the pointer).</summary>
+    /// <summary>A row of the context menu that a right-click opens (the other actions of the row).</summary>
     ContextMenu,
 }

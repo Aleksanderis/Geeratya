@@ -31,6 +31,8 @@ public sealed class AppReducer
         PaletteCommands.Backlog,
     ];
 
+    private const string EscapeKey = "Esc";
+
     private readonly KeymapTable _keymap;
 
     public AppReducer(KeymapTable keymap)
@@ -129,6 +131,12 @@ public sealed class AppReducer
 
     private ReduceResult ReduceRequested(AppState state, ActionRequested request)
     {
+        // Cancel is Esc: the guards (discard questions, saving forms, the suggestion popup) live in the key path.
+        if (request.Action == ActionIds.Cancel)
+        {
+            return ReduceKey(state, EscapeKey, request.At);
+        }
+
         var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
 
         if (request.Count > 1)

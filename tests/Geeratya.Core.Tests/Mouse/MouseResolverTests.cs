@@ -68,4 +68,38 @@ public class MouseResolverTests
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
     }
+
+    [Theory]
+    [InlineData(InputMode.Help)]
+    [InlineData(InputMode.Command)]
+    [InlineData(InputMode.Confirm)]
+    public void GivenModeWithOverlay_WhenBuildingContext_ThenOverlayIsOpen(InputMode mode)
+    {
+        var state = AppState.Initial with { Mode = mode };
+
+        Assert.True(MouseContext.From(state, 80, 24, 2).OverlayOpen);
+    }
+
+    [Fact]
+    public void GivenNormalModeWithoutTabs_WhenBuildingContext_ThenNoOverlayAndNoDetail()
+    {
+        var context = MouseContext.From(AppState.Initial, 80, 24, 2);
+
+        Assert.Equal(new MouseContext(80, 24, 2, false, false), context);
+    }
+
+    [Theory]
+    [InlineData(InputMode.Help)]
+    [InlineData(InputMode.Command)]
+    [InlineData(InputMode.Confirm)]
+    public void GivenOpenMode_WhenCancelRequested_ThenSameStateAsEsc(InputMode mode)
+    {
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var state = AppState.Initial with { Mode = mode };
+
+        var byMouse = reducer.Reduce(state, new ActionRequested(ActionIds.Cancel)).State;
+        var byKey = reducer.Reduce(state, new KeyPressed("Esc")).State;
+
+        Assert.Equal(byKey, byMouse);
+    }
 }

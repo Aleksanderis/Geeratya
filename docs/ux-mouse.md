@@ -27,8 +27,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 |---|---|---|---|---|
 | Lists | Wheel up | `nav.up` | A | Moves the selection up 3 rows (like `3k`) |
 | Lists | Wheel down | `nav.down` | A | Moves the selection down 3 rows (like `3j`) |
-| Detail | Wheel up | `nav.up` | A | Scrolls the opened issue up 3 lines (like `3k`) |
-| Detail | Wheel down | `nav.down` | A | Scrolls the opened issue down 3 lines (like `3j`) |
+| Detail | Wheel up | `nav.up` | A | Moves the cursor up 3 lines in the opened issue (like `3k`) |
+| Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the opened issue (like `3j`) |
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed) |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
@@ -68,6 +68,10 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 ## Without a path
 
 Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), and `tab.go-to.1` to `tab.go-to.9` (a click on tab N).
+
+## Checks and terminal selection
+
+The table test only checks that the table, the code and the keymap agree (every key action has a row or a reason); it does not prove that a row's path works, so a part that wires rows adds its own tests. Smoke check of part A (tmux, SGR sequences via `send-keys -l` against the real binary): a wheel event does nothing harmful on the start screen, a click on the status line opens the palette (status shows `COMMAND :`), a click on the tab row then closes it. With the mouse enabled the terminal no longer selects text by dragging: hold `Shift` (most terminals) to select and copy.
 
 ## Writes
 

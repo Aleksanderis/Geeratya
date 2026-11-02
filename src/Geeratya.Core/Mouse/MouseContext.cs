@@ -1,5 +1,5 @@
-using Geeratya.Core.Keymap;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 
 namespace Geeratya.Core.Mouse;
@@ -14,7 +14,7 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
 {
     public static MouseContext From(AppState state, int width, int height, int headerRows)
     {
-        var tab = state.Session.Active is { } id ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id) : null;
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
         var overlay = state.Mode != InputMode.Normal || state.Picker is not null || state.Jump is not null
             || state.Editor is not null || FormReducer.IsOpen(state);
 
