@@ -32,6 +32,16 @@ public class BrowserEffectHandlerTests
     }
 
     [Fact]
+    public async Task GivenLabelledEffect_WhenRunning_ThenTheOutcomeCarriesTheLabel()
+    {
+        var handler = new BrowserEffectHandler(new FakeBrowserLauncher(BrowserLaunchResult.Success));
+
+        var outcome = await handler.RunAsync(new OpenUrlEffect(_url, "ABC-1"), CancellationToken.None);
+
+        Assert.Equal("ABC-1", Assert.IsType<UrlOpenFinished>(outcome).Label);
+    }
+
+    [Fact]
     public async Task GivenOtherEffect_WhenRunning_ThenNothingHappens()
     {
         var launcher = new FakeBrowserLauncher(BrowserLaunchResult.Success);

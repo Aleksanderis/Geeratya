@@ -25,7 +25,9 @@ public static class BrowserReducer
             return Say(state, $"Cannot open the link: {check.Reason}");
         }
 
-        return new ReduceResult(state with { Message = "Opening in the browser..." }, [new OpenUrlEffect(check.Url, request.Label)]);
+        var opening = state with { Message = "Opening in the browser..." };
+
+        return new ReduceResult(opening, [new OpenUrlEffect(check.Url, request.Label)]);
     }
 
     /// <summary>
@@ -61,14 +63,22 @@ public static class BrowserReducer
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
 
-        return tab is not null && tab.Selected >= 0 && tab.Selected < tab.Rows.Count ? tab.Rows[tab.Selected].Key : null;
+        if (tab is null || tab.Selected < 0 || tab.Selected >= tab.Rows.Count)
+        {
+            return null;
+        }
+
+        return tab.Rows[tab.Selected].Key;
     }
 
     public static ReduceResult Finished(AppState state, UrlOpenFinished finished)
     {
-        var message = finished.Error is null ? finished.Label is null ? "Opened in the browser" : $"Opened {finished.Label} in the browser" : $"Cannot open the link: {finished.Error}";
+        if (finished.Error is not null)
+        {
+            return Say(state, $"Cannot open the link: {finished.Error}");
+        }
 
-        return Say(state, message);
+        return Say(state, finished.Label is null ? "Opened in the browser" : $"Opened {finished.Label} in the browser");
     }
 
     private static string RequiredHost(AppState state, OpenUrlRequested request)
