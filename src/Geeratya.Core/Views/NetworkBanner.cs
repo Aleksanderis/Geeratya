@@ -138,7 +138,7 @@ public static class NetworkBanner
     {
         var wait = Seconds(until - now);
 
-        return compact ? $"Retrying in {wait} s" : $"Jira asked us to wait. Retrying in {wait} s.";
+        return compact ? $"Retrying in {wait} s" : $"Waiting for the Jira rate limit. Retrying in {wait} s.";
     }
 
     private static string StaleText(TabState tab, DateTimeOffset now, bool compact)
@@ -167,7 +167,7 @@ public static class NetworkBanner
     {
         if (status.CredentialsRejected)
         {
-            return compact ? "Token rejected (401). See :profile" : RejectedText(session);
+            return compact ? "Token rejected. See :profile" : RejectedText(session);
         }
 
         return status.Failure is { } failure ? failure.Message : string.Empty;

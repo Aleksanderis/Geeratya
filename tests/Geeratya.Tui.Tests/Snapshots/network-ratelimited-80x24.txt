@@ -1,5 +1,5 @@
  [1 JQL: My open issues]                                                        
- RATE LIMITED  Jira asked us to wait. Retrying in 25 s.                         
+ RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.               
 My open issues · 3 issues                                                       
   Key    T Summary                                                Status        
 > GCM-12 T Fix login redirect after token refresh                 In Progress   

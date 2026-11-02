@@ -271,7 +271,7 @@ States, as a one-line banner under the tab bar (highest priority wins: error, of
 
 ```text
  OFFLINE  Cannot reach example.atlassian.net. Retrying in 8 s, <space>r retries now. Data is 23 min old.
- RATE LIMITED  Jira asked us to wait. Retrying in 25 s.
+ RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.
  STALE  Data is 23 min old. Refreshing…
  ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :profile add.
 ```
@@ -284,7 +284,7 @@ At 40 columns:
  OFFLINE  Data 23 min old
  RATE LIMITED  Retrying in 25 s
  STALE  23 min old, refreshing…
- ERROR  Token rejected (401). See :profile
+ ERROR  Token rejected. See :profile
 ```
 
 | State | When | Banner and indicator | Role |

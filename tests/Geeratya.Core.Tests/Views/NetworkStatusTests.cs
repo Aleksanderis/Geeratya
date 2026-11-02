@@ -266,7 +266,7 @@ public class NetworkStatusTests
         var wide = NetworkBanner.Line(limited, _start, 120)!;
         var compact = NetworkBanner.Line(limited, _start, 40)!;
 
-        Assert.Equal(" RATE LIMITED  Jira asked us to wait. Retrying in 25 s.", wide.PlainText);
+        Assert.Equal(" RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.", wide.PlainText);
         Assert.Equal(" RATE LIMITED  Retrying in 25 s", compact.PlainText);
         Assert.Equal(TextRole.RateLimited, wide.Spans[0].Role);
     }
@@ -278,7 +278,8 @@ public class NetworkStatusTests
 
         var compact = NetworkBanner.Line(failed, _start, 40)!;
 
-        Assert.Equal(" ERROR  Token rejected (401). See :profile", compact.PlainText);
+        Assert.Equal(" ERROR  Token rejected. See :profile", compact.PlainText);
+        Assert.True(compact.PlainText.Length <= 40);
     }
 
     [Fact]

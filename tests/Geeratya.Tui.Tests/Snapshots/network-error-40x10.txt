@@ -1,5 +1,5 @@
  [1 JQL: My open issues !]              
- ERROR  Token rejected (401). See :profi
+ ERROR  Token rejected. See :profile    
 My open issues · 3 issues               
   Key    T Summary                     S
 > GCM-12 T Fix login redirect after to ◐

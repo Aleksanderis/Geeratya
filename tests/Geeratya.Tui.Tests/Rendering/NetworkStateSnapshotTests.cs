@@ -194,8 +194,6 @@ public class NetworkStateSnapshotTests
                 tab = tab with { Load = new Loading(LoadReason.Refresh), RequestId = 2 };
 
                 break;
-            default:
-                break;
         }
 
         var session = SiteSession.Empty(_work) with { Tabs = [tab], Active = tab.Id, Link = link };
