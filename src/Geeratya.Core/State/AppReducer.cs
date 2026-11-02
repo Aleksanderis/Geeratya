@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
@@ -151,6 +152,11 @@ public sealed class AppReducer
             ActionIds.NavigateBottom => Navigate(state, ListMove.Bottom, 0),
             ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
             ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
+            ActionIds.NavigateLeft => NavigateColumn(state, BoardColumnMove.Left),
+            ActionIds.NavigateRight => NavigateColumn(state, BoardColumnMove.Right),
+            ActionIds.NavigateFirstColumn => NavigateColumn(state, BoardColumnMove.First),
+            ActionIds.NavigateLastColumn => NavigateColumn(state, BoardColumnMove.Last),
+            ActionIds.ViewLayoutToggle => ToggleLayout(state),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => ViewReducer.DuplicateActiveTab(state),
@@ -186,6 +192,16 @@ public sealed class AppReducer
         }
 
         return state.Mode == InputMode.Normal ? ViewReducer.Navigate(state, move) : Result(state);
+    }
+
+    private static ReduceResult ToggleLayout(AppState state)
+    {
+        return state.Mode == InputMode.Normal ? ViewReducer.ToggleLayout(state) : Result(state);
+    }
+
+    private static ReduceResult NavigateColumn(AppState state, BoardColumnMove move)
+    {
+        return state.Mode == InputMode.Normal ? ViewReducer.NavigateColumn(state, move) : Result(state);
     }
 
     private static AppState ToggleHelp(AppState state)
@@ -229,6 +245,7 @@ public sealed class AppReducer
             "q" or "quit" => new ReduceResult(normal, _quitEffects),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             _ when IsJqlCommand(text) => OpenJql(normal, text["jql".Length..].Trim()),
+            _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
@@ -256,6 +273,22 @@ public sealed class AppReducer
         var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, query);
 
         return ViewReducer.Reduce(state, new ViewOpenRequested(definition));
+    }
+
+    private static bool IsLayoutCommand(string text)
+    {
+        return text == "layout" || text.StartsWith("layout ", StringComparison.Ordinal);
+    }
+
+    /// <summary><c>:layout list|columns</c>: the same handler as <c>view.layout-toggle</c>.</summary>
+    private static ReduceResult LayoutCommand(AppState state, string argument)
+    {
+        return argument switch
+        {
+            "list" => ViewReducer.SetLayout(state, ViewLayout.List),
+            "columns" => ViewReducer.SetLayout(state, ViewLayout.Columns),
+            _ => Result(state with { Message = "Usage: :layout list|columns" }),
+        };
     }
 
     private static bool IsTabCommand(string text)

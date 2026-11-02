@@ -51,18 +51,13 @@ public static class ActionCatalog
     ];
 
     /// <summary>
-    /// Actions bound ahead of their feature: the keys resolve but nothing happens yet (no columns, tabs or detail).
+    /// Actions bound ahead of their feature: the keys resolve but nothing happens yet (no detail screen yet).
     /// </summary>
     public static IReadOnlyCollection<string> Unimplemented { get; } =
     [
-        ActionIds.NavigateLeft,
-        ActionIds.NavigateRight,
         ActionIds.ItemOpen,
-        ActionIds.NavigateFirstColumn,
-        ActionIds.NavigateLastColumn,
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,
-        ActionIds.ViewLayoutToggle,
         ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
     ];

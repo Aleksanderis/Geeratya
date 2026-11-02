@@ -75,7 +75,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return lines;
     }
 
-    private static TabState? ActiveTab(AppState state)
+    internal static TabState? ActiveTab(AppState state)
     {
         return state.Session.Active is { } id ? state.Session.Tabs.FirstOrDefault(tab => tab.Id == id) : null;
     }
@@ -106,7 +106,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return new StyledLine(spans);
     }
 
-    private static string CountText(TabState tab)
+    internal static string CountText(TabState tab)
     {
         var count = tab.Rows.Count;
 
@@ -136,7 +136,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
     }
 
     /// <summary>The note under the last row: loading, a failed page or the row cap. Null when there is none.</summary>
-    private static StyledLine? FooterLine(TabState tab)
+    internal static StyledLine? FooterLine(TabState tab)
     {
         if (tab.Rows.Count == 0)
         {
@@ -152,7 +152,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
-    private static void AddBodyMessage(List<StyledLine> lines, TabState tab, int width)
+    internal static void AddBodyMessage(List<StyledLine> lines, TabState tab, int width)
     {
         if (tab.Load is Loading)
         {

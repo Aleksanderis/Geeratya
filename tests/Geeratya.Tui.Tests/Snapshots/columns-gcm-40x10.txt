@@ -1,0 +1,10 @@
+ [1 Board: GCM board]                   
+GCM board · 24 issues                 3›
+[Backlog 12]  To Do 5 ›                 
+>T GCM-1 Survey task one                
+ s GCM-6 Survey4 subtask                
+ T GCM-4 Survey task four               
+ S GCM-3 Survey story three with unico… 
+ E GCM-5 Survey4 epic                   
+ s GCM-7 Survey4 subtask no valid pare… 
+ NORMAL        ? help  : command  q quit

@@ -9,6 +9,35 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class BoardColumns
 {
+    /// <summary>The name of the trailing column that holds issues whose status is in no board column.</summary>
+    public const string UnmappedName = "Unmapped";
+
+    private const string AllIssuesName = "Issues";
+
+    /// <summary>
+    /// The columns the columns layout draws: the board's own columns in board order, then <see cref="UnmappedName"/>
+    /// only when an issue needs it, so no loaded issue is hidden. Without a configuration (not loaded yet) every row
+    /// sits in one column.
+    /// </summary>
+    public static IReadOnlyList<BoardColumnGroup> Visible(
+        BoardConfiguration? configuration,
+        IReadOnlyList<IssueSummary> rows)
+    {
+        if (configuration is null)
+        {
+            return rows.Count == 0 ? [] : [new BoardColumnGroup(AllIssuesName, rows)];
+        }
+
+        var groups = Group(configuration, rows);
+
+        if (groups.Unmapped.Count == 0)
+        {
+            return groups.Columns;
+        }
+
+        return [.. groups.Columns, new BoardColumnGroup(UnmappedName, groups.Unmapped)];
+    }
+
     /// <summary>
     /// Groups <paramref name="rows"/> by status id into the columns of <paramref name="configuration"/>. The order
     /// of the rows is kept inside a column; a status listed in two columns belongs to the first.

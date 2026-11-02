@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
@@ -15,6 +16,8 @@ namespace Geeratya.Core.Views;
 /// </summary>
 public static class ViewReducer
 {
+    private const string NoColumnsText = "This view has no columns layout";
+
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
     public static ReduceResult Reduce(AppState state, ViewCommand command)
@@ -115,7 +118,17 @@ public static class ViewReducer
             return state;
         }
 
-        return Replace(state, tab with { Definition = tab.Definition with { Layout = changed.Layout } });
+        var layout = tab with { Definition = tab.Definition with { Layout = changed.Layout } };
+
+        return Replace(state, changed.Layout == ViewLayout.Columns ? layout with { Cursor = null } : Revealed(layout));
+    }
+
+    /// <summary>Scrolls the list so the selected row shows, after the columns layout moved the selection.</summary>
+    private static TabState Revealed(TabState tab)
+    {
+        var position = ListMotion.Reveal(new ListPosition(tab.Selected, tab.Scroll), tab.Rows.Count, tab.VisibleRows);
+
+        return tab with { Scroll = position.Scroll };
     }
 
     private static AppState ChangeViewport(AppState state, int rows, List<Effect> effects)
@@ -242,9 +255,14 @@ public static class ViewReducer
     {
         var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
 
-        if (tab is null || tab.Definition.Layout != ViewLayout.List || tab.Rows.Count == 0)
+        if (tab is null || tab.Rows.Count == 0)
         {
             return new ReduceResult(state, _noEffects);
+        }
+
+        if (tab.Definition.Layout == ViewLayout.Columns)
+        {
+            return MovedInColumns(state, ColumnsNavigation.Move(tab, move));
         }
 
         var position = ListMotion.Move(
@@ -255,6 +273,71 @@ public static class ViewReducer
             tab.VisibleRows);
 
         return Reduce(state, new SelectionMoved(tab.Id, position.Selected));
+    }
+
+    /// <summary>
+    /// Moves the selection of the active tab between the columns of its board (<c>h</c>, <c>l</c>, <c>0</c>,
+    /// <c>$</c>). The list layout has no columns and ignores it.
+    /// </summary>
+    public static ReduceResult NavigateColumn(AppState state, BoardColumnMove move)
+    {
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is null || tab.Definition.Layout != ViewLayout.Columns || tab.Rows.Count == 0)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        return MovedInColumns(state, ColumnsNavigation.MoveColumn(tab, move));
+    }
+
+    /// <summary>
+    /// Switches the active tab between its layouts (<c>view.layout-toggle</c>). Only a board has a columns layout;
+    /// any other source says so.
+    /// </summary>
+    public static ReduceResult ToggleLayout(AppState state)
+    {
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is null)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        var layout = tab.Definition.Layout == ViewLayout.Columns ? ViewLayout.List : ViewLayout.Columns;
+
+        return SetLayout(state, layout);
+    }
+
+    /// <summary>Switches the active tab to <paramref name="layout"/> (<c>:layout list|columns</c>).</summary>
+    public static ReduceResult SetLayout(AppState state, ViewLayout layout)
+    {
+        var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is null)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        if (layout == ViewLayout.Columns && tab.Definition.Source != ViewSourceKind.Board)
+        {
+            return new ReduceResult(state with { Message = NoColumnsText }, _noEffects);
+        }
+
+        return Reduce(state, new ViewLayoutChanged(tab.Id, layout));
+    }
+
+    private static ReduceResult MovedInColumns(AppState state, TabState moved)
+    {
+        var effects = new List<Effect>();
+        var next = Replace(state, moved);
+
+        if (WantsNextPage(next, moved))
+        {
+            next = RequestNext(next, moved, effects);
+        }
+
+        return new ReduceResult(next, effects.Count == 0 ? _noEffects : effects);
     }
 
     /// <summary>
@@ -757,6 +840,7 @@ public static class ViewReducer
             PendingRows = null,
             Truncated = false,
             Scroll = 0,
+            Cursor = null,
             KeyWidth = 0,
             RequestId = 0,
             Load = LoadState.Idle,

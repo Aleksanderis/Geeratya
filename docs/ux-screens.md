@@ -25,7 +25,7 @@ A view is a source plus a layout (`CLAUDE.md`). M1 sources and their default lay
 | JQL | List | List |
 | Saved filter | List | List |
 
-`<space>l` (`view.layout-toggle`, or `:layout list|columns`) switches the layout of the current tab; on a source with no Columns layout the status line says "This view has no columns layout". Selection and scroll are kept per layout. A new board kind is a new source or layout, not new loading code. The layout and the selection belong to the tab (nothing is global).
+`<space>l` (`view.layout-toggle`, or `:layout list|columns`) switches the layout of the current tab; on a source with no Columns layout the status line says "This view has no columns layout". The selected issue is kept when the layout changes; the scroll positions of the columns restart. A new board kind is a new source or layout, not new loading code. The layout and the selection belong to the tab (nothing is global).
 
 ## List layout
 
@@ -156,22 +156,22 @@ GCM board · 11 issues
 ```
 
 - **Header.** `Name count`; the selected column is in brackets (and bold). The count is the number of loaded cards; while pages are still loading it reads `Name n+`. The view title line shows `N issues` once all pages are loaded.
-- **Cards.** Three lines: type marker and key, then the summary wrapped to two lines (ellipsis on the second), then one blank line. When the body is shorter than 12 rows cards collapse to one line `key summary` (second sketch below). The selected card carries `>`.
-- **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own, remembering its selection.
-- **More columns than width.** Each column is at least 20 cells wide. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the header shows `‹` or `›` with the number of columns hidden on that side. At 40 columns exactly one column is drawn at full width, with the neighbouring names in the header (below).
+- **Cards.** Four rows: type marker and key with the assignee's initials (first letters of the first and last name) at the right edge, then the summary wrapped to two lines (ellipsis on the second), then one blank row. When the card area is shorter than 10 rows (a body under 12 rows) cards collapse to one line `marker key summary` (second sketch below). The selected card carries `>` and the `Selected` role on its lines; only the selected column shows a selected card. Cards are drawn only for the rows in the viewport, never for all loaded issues (`Core/Boards/BoardCards` holds the measures).
+- **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column; the index aimed at is the one last chosen with `j`/`k`, so passing a short or empty column does not lose the row (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own and keeps three cards of context (`scrolloff`). `Enter` opens the selected card in the issue detail (#84) and does nothing on an empty column. After a refresh the selection stays on its issue key inside its column. The motion is `Core/Boards/BoardMotion` (pure).
+- **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
 - **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (shown in the sketch; the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
 - **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. No swimlanes in M1.
 - **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or 500 issues are loaded; past the cap the banner says `Showing the first 500 of N issues. Narrow the board filter or use :jql.`
 
-At 40x10 (body of five rows, one-line cards, one column at a time):
+At 40x10 (body of six rows, one-line cards, one column at a time):
 
 ```text
  [1 Board: GCM board] 2 Backlog 3 JQL… ›
-GCM board · 11 issues
-‹ To Do 3   [In Progress 3]  Backlog ›
->GCM-12 Fix login redirect after token …
- GCM-17 Reporting overhaul
- GCM-25 As an admin I can see who chang…
+GCM board · 11 issues                 2›
+[In Progress 3]  Backlog 2 ›
+>T GCM-12 Fix login redirect after tok…
+ E GCM-17 Reporting overhaul
+ S GCM-25 As an admin I can see who ch…
 
 
 

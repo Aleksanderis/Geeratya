@@ -165,19 +165,6 @@ public class ListNavigationTests
     }
 
     [Fact]
-    public void GivenAColumnsTab_WhenPressingJ_ThenTheListSelectionIsNotMoved()
-    {
-        var state = Loaded(20, 10, null);
-        var tab = Tab(state);
-        var columns = state with
-        {
-            Session = state.Session with { Tabs = [tab with { Definition = tab.Definition with { Layout = ViewLayout.Columns } }] },
-        };
-
-        Assert.Equal(columns, Press(columns, "j").State);
-    }
-
-    [Fact]
     public void GivenHelpIsOpen_WhenPressingJ_ThenTheHelpScrollsAndTheListStays()
     {
         var state = Loaded(20, 10, null) with { Mode = InputMode.Help };

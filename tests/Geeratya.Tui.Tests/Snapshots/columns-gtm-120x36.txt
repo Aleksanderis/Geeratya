@@ -1,0 +1,36 @@
+ [1 Board: GTM board]                                                                                                   
+GTM board · 16 issues                                                                                                   
+[To Do 5]                      In Progress 4                 Backlog 4                     Done 3                       
+>E GTM-9                       E GTM-10                      T GTM-21                      S GTM-13                     
+ Seed: Onboarding flow         Seed: Reporting               Backlog: dark mode            Export report as CSV         
+                                                                                                                        
+                                                                                                                        
+ S GTM-12                      S GTM-11                      S GTM-22                      T GTM-16                     
+ Welcome screen                Sign up with email            Backlog: keyboard shortcuts   Write the setup guide        
+                                                             help                                                       
+                                                                                                                        
+ T GTM-14                      T GTM-15                      B GTM-23                      s GTM-19                     
+ Review onboarding copy        Pick a chart library          Backlog: tooltip clipped      Build the form               
+                                                                                                                        
+                                                                                                                        
+ B GTM-18                      B GTM-17                      T GTM-24                                                   
+ Wrong date format in report   App crashes on empty profile  Backlog: update dependencies                               
+                                                                                                                        
+                                                                                                                        
+ s GTM-20                                                                                                               
+ Validate the email                                                                                                     
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ NORMAL                                                                                        ? help  : command  q quit
