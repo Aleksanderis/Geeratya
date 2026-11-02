@@ -201,7 +201,7 @@ public static class WriteReducer
         var text = $"{keys}: could not check the result; reload to see the current state";
         var marked = MarkStale(state, operation.Keys);
 
-        return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)]);
+        return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)], true);
     }
 
     /// <summary>Jira confirmed the write: the server rows replace the tabs' rows, the caches are dropped.</summary>
@@ -215,7 +215,8 @@ public static class WriteReducer
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
         var replaced = ReplaceRows(state, rows);
         var stale = MarkStale(replaced, operation.Keys);
-        var finished = Finish(stale, operation, true, effects, rows);
+        var queued = QueueRankReload(stale, operation);
+        var finished = Finish(queued, operation, true, effects, rows);
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
@@ -264,7 +265,7 @@ public static class WriteReducer
         var linked = rejected ? state with { Session = state.Session with { Link = new Rejected() } } : state;
         var marked = failed.Error.Kind == WriteErrorKind.NotFound ? MarkStale(linked, operation.Keys) : linked;
 
-        return RolledBack(marked, operation, text, effects);
+        return RolledBack(marked, operation, text, effects, ReloadsAfter(failed.Error));
     }
 
     /// <summary>Undoes the optimistic rows where they still hold the patched value and ends the operation.</summary>
@@ -272,16 +273,19 @@ public static class WriteReducer
         AppState state,
         Operation operation,
         string text,
-        List<Effect> effects)
+        List<Effect> effects,
+        bool reload = false)
     {
         var reverted = state;
 
         foreach (var change in operation.Undo)
         {
             reverted = MapRows(reverted, [change.Key], change.Revert);
+            reverted = Reorder(reverted, change, true);
         }
 
-        var finished = Finish(reverted, operation, false, effects);
+        var queued = reload ? QueueRankReload(reverted, operation) : reverted;
+        var finished = Finish(queued, operation, false, effects);
 
         // A detail reply that landed during the write may hold the optimistic value: read the issue again.
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
@@ -427,6 +431,7 @@ public static class WriteReducer
         foreach (var change in changes)
         {
             patched = MapRows(patched, [change.Key], change.Patch);
+            patched = Reorder(patched, change, false);
         }
 
         return patched;
@@ -442,6 +447,60 @@ public static class WriteReducer
         var byKey = fresh.ToDictionary(row => row.Key, StringComparer.OrdinalIgnoreCase);
 
         return MapRows(state, [.. byKey.Keys], row => byKey.GetValueOrDefault(row.Key, row));
+    }
+
+    /// <summary>
+    /// A rank that Jira refused because the issues changed (a reference that is gone, a changed issue) leaves the
+    /// shown order doubtful, so the tabs reload; permission, rate limit and offline refusals do not.
+    /// </summary>
+    private static bool ReloadsAfter(WriteError error)
+    {
+        return error.Kind is WriteErrorKind.Validation or WriteErrorKind.NotFound or WriteErrorKind.Conflict;
+    }
+
+    /// <summary>
+    /// Rank changes the order, which a re-read of one issue cannot show: after the operation the tabs whose order is
+    /// the rank reload (queued, so it runs when the last write ends), and the server order is the truth.
+    /// </summary>
+    private static AppState QueueRankReload(AppState state, Operation operation)
+    {
+        if (operation.Kind != OperationKind.Rank)
+        {
+            return state;
+        }
+
+        var tabs = state.Session.Tabs
+            .Select(tab => IsRankOrdered(tab) && Holds(tab, operation.Keys) ? tab with { RefreshQueued = true } : tab)
+            .ToArray();
+
+        return state with { Session = state.Session with { Tabs = tabs } };
+    }
+
+    private static bool IsRankOrdered(TabState tab)
+    {
+        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+    }
+
+    /// <summary>Applies or undoes the order part of a change in every tab; the selection follows its issue.</summary>
+    private static AppState Reorder(AppState state, RowChange change, bool undo)
+    {
+        var tabs = state.Session.Tabs;
+        TabState[]? changed = null;
+
+        for (var index = 0; index < tabs.Count; index++)
+        {
+            var rows = undo ? change.RevertOrder(tabs[index]) : change.PatchOrder(tabs[index]);
+
+            if (ReferenceEquals(rows, tabs[index].Rows))
+            {
+                continue;
+            }
+
+            changed ??= [.. tabs];
+            changed[index] = ViewReducer.KeepSelection(tabs[index] with { Rows = rows });
+        }
+
+        return changed is null ? state : state with { Session = state.Session with { Tabs = changed } };
     }
 
     private static AppState MarkStale(AppState state, IReadOnlyList<string> keys)

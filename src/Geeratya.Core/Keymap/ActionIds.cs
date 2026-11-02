@@ -44,6 +44,11 @@ public static class ActionIds
     public const string ViewLayoutToggle = "view.layout-toggle";
     public const string IssueOpenInBrowser = "issue.open-in-browser";
     public const string IssueOpenParent = "issue.open-parent";
+    public const string RankUp = "rank.up";
+    public const string RankDown = "rank.down";
+    public const string RankTop = "rank.top";
+    public const string RankBottom = "rank.bottom";
+    public const string RankTo = "rank.to";
     public const string IssueDelete = "issue.delete";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";

@@ -51,6 +51,11 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Alt-k` | Rank the issue up (a count moves it that many places) |
+| `Alt-j` | Rank the issue down (a count moves it that many places) |
+| `Space k t` | Rank the issue to the top of the list or column |
+| `Space k b` | Rank the issue to the bottom of the list or column |
+| `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 
 ## Help mode
