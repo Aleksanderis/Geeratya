@@ -101,7 +101,7 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(Loaded(80, 24), 80, 24, _helpLines, _keymap, null, GlyphSet.Ascii);
 
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(9).ToList();
-        Assert.StartsWith("+- GCM-12 · Task ", body[1]);
+        Assert.StartsWith("+- GCM-12 - Task ", body[1]);
         Assert.StartsWith("> Fix login", body[2]);
         Assert.StartsWith("| ", body[3]);
         Assert.StartsWith("+--", body[8]);
