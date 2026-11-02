@@ -1,0 +1,24 @@
+{
+  "fields": {
+    "summary": {"key": "summary", "name": "Summary", "required": true, "operations": ["set"],
+      "schema": {"type": "string", "system": "summary"}},
+    "customfield_90001": {"key": "customfield_90001", "name": "Risk matrix", "required": false, "operations": ["set"],
+      "schema": {"type": "com.vendor:risk-matrix", "custom": "com.vendor:risk-matrix", "customId": 90001}},
+    "customfield_90002": {"key": "customfield_90002", "name": "Notes", "required": false, "operations": ["set"],
+      "schema": {"type": "string", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea", "customId": 90002}},
+    "customfield_90003": {"key": "customfield_90003", "name": "Story points", "required": false, "operations": ["set"],
+      "schema": {"type": "number", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float", "customId": 90003}},
+    "customfield_90004": {"key": "customfield_90004", "name": "Reviewers", "required": false, "operations": ["add", "remove"],
+      "schema": {"type": "array", "items": "user", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker", "customId": 90004}},
+    "customfield_90005": {"key": "customfield_90005", "name": "Locked", "required": false, "operations": [],
+      "schema": {"type": "string", "custom": "x:readonly", "customId": 90005}},
+    "customfield_90006": {"key": "customfield_90006", "name": "Go live", "required": false, "operations": ["set"],
+      "schema": {"type": "datetime", "custom": "x:datetime", "customId": 90006}},
+    "customfield_90007": null,
+    "customfield_90008": {"name": "No schema", "operations": ["set"]},
+    "priority": {"key": "priority", "name": "Priority", "required": false, "operations": ["set"], "hasDefaultValue": true,
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/priority",
+      "schema": {"type": "priority", "system": "priority"},
+      "allowedValues": [{"id": "1", "name": "Renamed Top"}, {"id": "3", "name": "Meh"}]}
+  }
+}

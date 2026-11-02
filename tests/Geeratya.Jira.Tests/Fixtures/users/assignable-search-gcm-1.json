@@ -1,0 +1,6 @@
+[
+  {"accountId": "712020:00000000-0000-0000-0000-000000000001", "accountType": "atlassian", "active": true,
+   "displayName": "Dev Owner", "emailAddress": "owner@example.com", "timeZone": "Europe/Vilnius", "locale": "en_US"},
+  {"accountId": "712020:00000000-0000-0000-0000-000000000002", "accountType": "atlassian", "active": true,
+   "displayName": "Żaneta Ōkami 🚀", "timeZone": "Europe/Vilnius"}
+]
