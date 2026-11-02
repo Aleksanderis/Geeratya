@@ -70,6 +70,14 @@ public sealed class MacOsSecretStore : ISecretStore
             throw new SecretStoreException($"security could not store the token (exit code {result.ExitCode}).");
         }
 
+        // The interactive mode may report a failed command on stderr and still exit 0, so read the value back.
+        var stored = await GetAsync(key, cancellationToken);
+
+        if (stored != secret)
+        {
+            throw new SecretStoreException("security did not store the token (locked or denied Keychain?).");
+        }
+
         return true;
     }
 

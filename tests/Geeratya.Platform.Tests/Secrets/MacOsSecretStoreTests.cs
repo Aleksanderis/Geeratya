@@ -9,14 +9,15 @@ public class MacOsSecretStoreTests
     [Fact]
     public async Task GivenToken_WhenSetting_ThenTokenGoesToStandardInputNotArguments()
     {
-        var runner = new FakeProcessRunner(new ProcessResult(0, string.Empty));
+        var runner = new FakeProcessRunner(new ProcessResult(0, "the-token\n"));
         var store = new MacOsSecretStore(runner);
 
         var saved = await store.SetAsync("site|me", "the-token", CancellationToken.None);
 
         Assert.True(saved);
-        Assert.Equal(["-i"], runner.Arguments.Single());
-        var input = runner.StandardInputs.Single()!;
+        Assert.Equal(["-i"], runner.Arguments[0]);
+        Assert.Null(runner.StandardInputs[1]);
+        var input = runner.StandardInputs[0]!;
         Assert.Contains("add-generic-password -U", input);
         Assert.Contains("-w \"the-token\"", input);
         Assert.Contains("-a \"site|me\"", input);
@@ -26,12 +27,12 @@ public class MacOsSecretStoreTests
     [Fact]
     public async Task GivenQuoteAndBackslash_WhenSetting_ThenTheyAreEscaped()
     {
-        var runner = new FakeProcessRunner(new ProcessResult(0, string.Empty));
+        var runner = new FakeProcessRunner(new ProcessResult(0, "a\"b\\c\n"));
         var store = new MacOsSecretStore(runner);
 
         await store.SetAsync("key", "a\"b\\c", CancellationToken.None);
 
-        Assert.Contains("-w \"a\\\"b\\\\c\"", runner.StandardInputs.Single());
+        Assert.Contains("-w \"a\\\"b\\\\c\"", runner.StandardInputs[0]);
     }
 
     [Fact]
@@ -44,6 +45,17 @@ public class MacOsSecretStoreTests
             () => store.SetAsync("key", "a\nadd-generic-password", CancellationToken.None));
 
         Assert.Empty(runner.Arguments);
+    }
+
+    [Fact]
+    public async Task GivenZeroExitButNothingStored_WhenSetting_ThenThrowsWithoutToken()
+    {
+        var store = new MacOsSecretStore(new FakeProcessRunner(new ProcessResult(0, string.Empty)));
+
+        var exception = await Assert.ThrowsAsync<SecretStoreException>(
+            () => store.SetAsync("key", "the-token", CancellationToken.None));
+
+        Assert.DoesNotContain("the-token", exception.Message);
     }
 
     [Fact]
