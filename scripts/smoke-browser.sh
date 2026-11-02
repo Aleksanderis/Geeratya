@@ -4,7 +4,9 @@
 # Runs the real binary in a private tmux server with private XDG directories and an empty PATH and no BROWSER,
 # opens a list row and its detail, presses `<space>o` and checks the status line for the failure message.
 # The fake serves http on loopback, which the https-only gate (BrowserUrlCheck) refuses before any opener runs, so the
-# message checked is the refusal "Cannot open the link: ..."; no browser can start. Exit 0 pass, 1 check failed,
+# first message checked is the refusal "Cannot open the link: only https ..."; no browser can start. Then it opens
+# GEN-2, whose remote link is https (any host passes the gate), presses Enter and <space>o on it and checks the real
+# launcher failure "no browser opener found" (no xdg-open on the empty PATH; #226). Exit 0 pass, 1 check failed,
 # 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 set -euo pipefail
 
@@ -12,7 +14,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-browser.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-browser.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -77,4 +79,14 @@ send ":jql project = GEN|jj|"
 wait_for "Generated comment"
 send " o"
 wait_for "Cannot open the link: only https links can be opened"
+
+# Remote link of GEN-2: past the https gate, so the launcher itself fails (no xdg-open on the empty PATH).
+send ":jql project = GEN|j|"
+wait_for "Generated design notes"
+# `] ]` twice: header -> Description -> Remote links, the cursor lands on the link row.
+send "gg]]]]"
+send "|"
+wait_for "Cannot open the link: no browser opener found: copy the URL"
+send "gg]]]] o"
+wait_for "Cannot open the link: no browser opener found: copy the URL"
 echo "PASS"
