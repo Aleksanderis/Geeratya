@@ -1,4 +1,5 @@
 using Geeratya.Core.History;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 
 namespace Geeratya.App;
@@ -10,6 +11,8 @@ namespace Geeratya.App;
 public sealed class HistoryEffectHandler
 {
     private readonly HistoryStore _store;
+    private readonly object _gate = new();
+    private long _version;
 
     public HistoryEffectHandler(HistoryStore store)
     {
@@ -21,18 +24,27 @@ public sealed class HistoryEffectHandler
     {
         try
         {
-            return effect switch
+            lock (_gate)
             {
-                LoadHistoryEffect load => new HistoryLoaded(load.Profile, _store.Load(load.Profile)),
-                RecordHistoryEffect record => Record(record),
-                ClearHistoryEffect clear => Clear(clear),
-                _ => null,
-            };
+                return effect switch
+                {
+                    LoadHistoryEffect load => Reply(load.Profile, _store.Load(load.Profile)),
+                    RecordHistoryEffect record => Record(record),
+                    ClearHistoryEffect clear => Clear(clear),
+                    _ => null,
+                };
+            }
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        catch (Exception)
         {
+            // History is a convenience: whatever goes wrong with the file, the application carries on.
             return null;
         }
+    }
+
+    private HistoryLoaded Reply(Profile profile, SiteHistory history)
+    {
+        return new HistoryLoaded(profile, history, ++_version);
     }
 
     private HistoryLoaded Record(RecordHistoryEffect record)
@@ -41,13 +53,13 @@ public sealed class HistoryEffectHandler
             record.Profile,
             current => record.Kind == HistoryKind.Query ? current.WithQuery(record.Text) : current.WithIssue(record.Text));
 
-        return new HistoryLoaded(record.Profile, history);
+        return Reply(record.Profile, history);
     }
 
-    private Command? Clear(ClearHistoryEffect clear)
+    private HistoryLoaded Clear(ClearHistoryEffect clear)
     {
         _store.Delete(clear.Profile);
 
-        return null;
+        return Reply(clear.Profile, SiteHistory.Empty);
     }
 }

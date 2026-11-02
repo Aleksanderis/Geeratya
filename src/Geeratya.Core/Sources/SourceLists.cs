@@ -26,6 +26,9 @@ public sealed record SourceLists(
     /// <summary>The recent JQL strings and issue keys of the profile, null until read from disk.</summary>
     public SiteHistory? History { get; init; }
 
+    /// <summary>The version of the history reply applied last; an older reply is stale.</summary>
+    public long HistoryVersion { get; init; }
+
     public static SourceLists Empty { get; } = new(null, null, false, false, null, null);
 
     public bool IsLoaded(SourceListKind kind)

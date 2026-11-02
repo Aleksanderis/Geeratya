@@ -30,7 +30,7 @@ public static class SourceReducer
             BoardsLoaded loaded => lists with { Boards = loaded.Boards, BoardsLoading = false, BoardsError = null },
             FiltersLoaded loaded => lists with { Filters = loaded.Filters, FiltersLoading = false, FiltersError = null },
             SourceListFailed failed => lists.Failed(failed.Kind, LoadErrorText.For(failed.Error)),
-            HistoryLoaded loaded when loaded.Profile == state.Profiles.Active => lists with { History = loaded.History },
+            HistoryLoaded loaded when IsFresh(loaded, state) => lists with { History = loaded.History, HistoryVersion = loaded.Version },
             _ => lists,
         };
 
@@ -187,6 +187,11 @@ public static class SourceReducer
             PendingKeys = string.Empty,
             PaletteText = string.Empty,
         };
+    }
+
+    private static bool IsFresh(HistoryLoaded loaded, AppState state)
+    {
+        return loaded.Profile == state.Profiles.Active && loaded.Version > state.Session.Sources.HistoryVersion;
     }
 
     private static ReduceResult Open(AppState state, PickerScope scope, string text, bool autoOpen)

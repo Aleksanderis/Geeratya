@@ -79,6 +79,7 @@ public sealed class ProfileEffectHandler
         var cacheDeleted = _services.Caches.Delete(remove.Profile);
 
         DeleteHistory(remove);
+
         var message = RemovedMessage(remove);
 
         return new ProfilesChanged(remove.Catalog, cacheDeleted ? message : $"{message} {CacheLeftMessage}");

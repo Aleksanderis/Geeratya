@@ -43,9 +43,9 @@ public sealed class HistoryEffectHandlerTests : IDisposable
 
         store.Update(_work, history => history.WithQuery("a = 1"));
 
-        var reply = new HistoryEffectHandler(store).Run(new ClearHistoryEffect(_work));
+        var reply = Assert.IsType<HistoryLoaded>(new HistoryEffectHandler(store).Run(new ClearHistoryEffect(_work)));
 
-        Assert.Null(reply);
+        Assert.Empty(reply.History.Queries);
         Assert.Empty(store.Load(_work).Queries);
     }
 

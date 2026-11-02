@@ -50,6 +50,8 @@ public sealed record SiteHistory(IReadOnlyList<string> Queries, IReadOnlyList<st
     /// <summary>A copy that obeys the rules above, for data read from a file someone may have edited.</summary>
     public SiteHistory Normalized()
     {
+        // The serializer ignores nullability: a hand-edited file can hold nulls.
+        // ReSharper disable NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         var result = Empty;
 
         foreach (var query in (Queries ?? []).Reverse())
@@ -61,6 +63,8 @@ public sealed record SiteHistory(IReadOnlyList<string> Queries, IReadOnlyList<st
         {
             result = result.WithIssue(key ?? string.Empty);
         }
+
+        // ReSharper restore NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 
         return result;
     }

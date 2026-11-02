@@ -151,7 +151,7 @@ public class JqlHistoryReducerTests
     [Fact]
     public void GivenHistoryOfAnotherProfile_WhenItArrives_ThenItIsIgnored()
     {
-        var reduced = _reducer.Reduce(Start(), new HistoryLoaded(_home, SiteHistory.Empty.WithQuery("home = 1")));
+        var reduced = _reducer.Reduce(Start(), new HistoryLoaded(_home, SiteHistory.Empty.WithQuery("home = 1"), 1));
 
         Assert.Null(reduced.State.Session.Sources.History);
     }
@@ -159,9 +159,19 @@ public class JqlHistoryReducerTests
     [Fact]
     public void GivenHistoryOfTheActiveProfile_WhenItArrives_ThenItIsKept()
     {
-        var reduced = _reducer.Reduce(Start(), new HistoryLoaded(_work, SiteHistory.Empty.WithQuery("work = 1")));
+        var reduced = _reducer.Reduce(Start(), new HistoryLoaded(_work, SiteHistory.Empty.WithQuery("work = 1"), 1));
 
         Assert.Equal(["work = 1"], reduced.State.Session.Sources.History!.Queries);
+    }
+
+    [Fact]
+    public void GivenAnOlderReply_WhenItArrivesAfterANewerOne_ThenItIsDropped()
+    {
+        var newer = _reducer.Reduce(Start(), new HistoryLoaded(_work, SiteHistory.Empty.WithIssue("A-2").WithIssue("A-1"), 2));
+
+        var stale = _reducer.Reduce(newer.State, new HistoryLoaded(_work, SiteHistory.Empty.WithIssue("A-1"), 1));
+
+        Assert.Equal(["A-1", "A-2"], stale.State.Session.Sources.History!.Issues);
     }
 
     [Fact]

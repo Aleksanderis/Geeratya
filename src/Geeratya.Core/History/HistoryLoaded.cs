@@ -3,5 +3,6 @@ using Geeratya.Core.Sources;
 
 namespace Geeratya.Core.History;
 
-/// <summary>The stored history of a profile (after a read or a write); ignored when the profile is not active.</summary>
-public sealed record HistoryLoaded(Profile Profile, SiteHistory History) : SourceCommand;
+/// <summary>The stored history of a profile (after a read or a write); ignored when the profile is not active.
+/// Version grows with every file operation of the host, so a reply that arrives late (older version) is dropped.</summary>
+public sealed record HistoryLoaded(Profile Profile, SiteHistory History, long Version) : SourceCommand;
