@@ -27,10 +27,10 @@ Help
   Space l    Switch between list and columns                                                                            
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
-  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
-                                                                                                                        
-Help mode                                                                                                               
-  j          Move down                                                                                                  
-  Down       Move down                                                                                                  
-  k          Move up                                                                                                    
+  Space i s  Change the status of the issue                                                                             
+  Alt-l      Move the card to the next column                                                                           
+  Alt-h      Move the card to the previous column                                                                       
+  Alt-k      Rank the issue up (a count moves it that many places)                                                      
+  Alt-j      Rank the issue down (a count moves it that many places)                                                    
+  Space k t  Rank the issue to the top of the list or column                                                            
  HELP                                                                                            j down  k up  Esc close

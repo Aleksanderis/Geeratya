@@ -63,8 +63,8 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 
 | Keys | Action id | What | Level | Mouse | Bound by |
 |---|---|---|---|---|---|
-| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159 |
-| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159 |
+| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159, built |
+| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 |
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
@@ -76,9 +76,9 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor) | E | `+` in the comments section | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (your own; others are refused with the reason) | E | click the comment | M2 #167 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo) | A | context menu on the comment | M2 #167 |
-| `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a marked set moves as a block once #181 adds marks) | E | drag the row or card | M2 #169 |
-| `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column | A | context menu | M2 #169 |
-| `<space>kk` | `rank.to` | Rank before or after an issue chosen in a picker, also across sprint sections | A | drag across sections | M2 #169, M3 #182 |
+| `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
+| `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
+| `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M3 #182 |
 | `<space>sv` | `sprint.switch` | Switch the sprint shown (active, future, closed) | E | click the sprint name | M3 #177 |
 | `<space>sm` | `sprint.move-issues` | Move the issue, the marked issues or the Visual range to a sprint (picker) | E | drag onto a sprint section | M3 #181 |
 | `<space>sb` | `sprint.move-to-backlog` | Move the same set to the backlog | E | drag onto the backlog section | M3 #181 |
@@ -101,7 +101,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 - **Target of a write.** One set, decided in this order: the marked rows (`Alt-m`), else the Visual range, else the selected row. Marks and the range belong to the tab, survive scrolling and refresh by issue key, and `Esc` clears them, but only at the view root: inside an issue the stack pops first (#181 updates the `ux.md` Esc paragraph). In Visual mode the first `Esc` leaves the range, the next clears the marks. The status bar shows `N selected` while a set is active.
 - **Which writes accept a set.** Only the sprint moves (`sm`, `sb`) and the rank steps (`Alt-j`, `Alt-k`, which move the set as one block, order kept). Every other write is single-issue: with a set active it refuses (`5 issues selected; clear the selection first`) instead of acting on the cursor row or on all of them. A key never widens or narrows its target silently.
 - **Confirming a set.** A write on more than one issue always asks in Confirm mode, e.g. `Move 5 issues to sprint "Sprint 12"? Jira has no undo. (y/n)`; the text names the count, the target and the first keys. Failures are reported per issue after the run (`4 of 5 moved; GCS-7 failed: <reason>`) and the failed ones stay marked, so a retry is one key.
-- **Counts.** A count prefix (`5j`) repeats a motion or a step: `3 Alt-j` ranks three places. Any other write with a count is refused; a count never selects issues. The count prefix is added to the keymap with the first feature that uses it (#169), once for all; `0` is a count digit only after another digit (as in vim), so a lone `0` stays "first column".
+- **Counts.** A count prefix (`5j`) repeats a motion or a step: `3 Alt-j` ranks three places. Any other write with a count is refused; a count never selects issues. The count prefix is built (#169, `AppState.Count`, shown in the status line next to pending keys, up to 999): digits `1`-`9` in Normal mode start it, `0` is a count digit only after another digit (as in vim), so a lone `0` stays "first column". `5j` and `5k` repeat the motion, `3 Alt-j` ranks three places in one write, `Esc` or any other key drops it, and a write that takes no count (`<space>kt`, `<space>kb`, `<space>kk`) refuses it with the status line.
 - **Visual mode** joins the mode table in `ux.md` when #181 lands: `v` enters, the motions (`j k Ctrl-d Ctrl-u g g G`) extend the range, `Esc` leaves, the write keys above work in it. It exists in list and backlog layouts; in the columns layout marks are the selection.
 
 ### Text input

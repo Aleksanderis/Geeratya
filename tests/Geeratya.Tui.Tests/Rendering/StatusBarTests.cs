@@ -36,6 +36,32 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenATypedCount_WhenRendering_ThenTheCountAndPendingKeysAreShown()
+    {
+        var counted = AppState.Initial with { Count = 12 };
+        var pending = counted with { PendingKeys = "Space k" };
+
+        Assert.Contains("NORMAL 12", StatusBar.Render(counted, 60, _keymap));
+        Assert.Contains("NORMAL 12 Space k", StatusBar.Render(pending, 60, _keymap));
+    }
+
+    [Fact]
+    public void GivenAPickedUpIssue_WhenRendering_ThenTheStatusLineSaysSoUntilItIsDropped()
+    {
+        var tab = TabState.Opened(
+            new TabId(1),
+            new ViewDefinition(ViewSourceKind.Backlog, "4", ViewLayout.List, "B"),
+            1,
+            1,
+            10) with { RankPickup = "A-7" };
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var session = SiteSession.Empty(profile) with { Tabs = [tab], Active = tab.Id };
+        var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile), Session = session };
+
+        Assert.Contains("Picked up A-7", StatusBar.Render(state, 120, _keymap));
+    }
+
+    [Fact]
     public void GivenCommandMode_WhenRendering_ThenTypedTextIsShownAfterTheColon()
     {
         var state = AppState.Initial with { Mode = InputMode.Command, PaletteText = "quit" };
