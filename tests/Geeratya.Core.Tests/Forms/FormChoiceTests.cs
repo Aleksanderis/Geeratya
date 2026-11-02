@@ -65,6 +65,16 @@ public class FormChoiceTests
     }
 
     [Fact]
+    public void GivenARequiredEmptyChoice_WhenTabIsPressed_ThenTheFocusMovesOnWithoutPickingTheFirstValue()
+    {
+        var moved = Press(Focused(FormFieldKind.Select, true), "Tab");
+
+        var form = moved.State.Session.Tabs[0].Form!;
+        Assert.Empty(form.Fields[0].Value.Chosen);
+        Assert.Equal(1, form.Focus);
+    }
+
+    [Fact]
     public void GivenAChoiceWithAValue_WhenTheFormOpens_ThenNothingIsHighlightedAndEnterKeepsTheValue()
     {
         var state = Focused(FormFieldKind.Select, true, "2");

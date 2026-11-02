@@ -5,8 +5,9 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// The suggestion popup of a select or multiple-choice field: the field's allowed values are the pool, ranked
-/// locally by the typed filter (no Jira call, request 0). An empty filter lists every value with nothing highlighted
-/// (so Enter moves on), except a required single choice without a value, which starts on its first value; a single choice that is not required offers "(none)" first. Pure.
+/// locally by the typed filter (no Jira call, request 0). An empty filter lists every value with nothing
+/// highlighted (so Enter moves on), except a required single choice without a value, which starts on its first
+/// value; a single choice that is not required offers "(none)" first. Pure.
 /// </summary>
 public static class ChoicePopup
 {

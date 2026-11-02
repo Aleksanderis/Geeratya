@@ -28,10 +28,12 @@ public static partial class FormReducer
         return action switch
         {
             ActionIds.Cancel when popup.Query.Length == 0 => null,
-            ActionIds.Cancel when popup.Source.Kind == SuggestionKind.Options => Result(ClearedFilter(state, tab, form)),
+            ActionIds.Cancel when popup.Source.Kind == SuggestionKind.Options
+                => Result(ClearedFilter(state, tab, form)),
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
             ActionIds.PickerPrevious => Moved(state, tab, form, popup, -1),
+            ActionIds.FormFieldNext when popup.Source.Kind == SuggestionKind.Options && popup.Query.Length == 0 => null,
             ActionIds.FormNext or ActionIds.FormFieldNext when popup.Selected is { } picked
                 => Accepting(state, tab, form, picked, action == ActionIds.FormNext, at),
             _ => null,

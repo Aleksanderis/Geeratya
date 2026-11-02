@@ -137,9 +137,13 @@ public static partial class FormReducer
             return result;
         }
 
-        var settled = applied ? Closed(state, tab) : Unlocked(state, tab, error);
+        if (applied)
+        {
+            return result with { State = Closed(state, tab) };
+        }
 
-        return result with { State = settled };
+        // Unlocked: the focused choice field shows its list again.
+        return Choosing(result with { State = Unlocked(state, tab, error) }, tab.Id);
     }
 
     internal static ReduceResult Open(AppState state, TabId tabId, FormTarget target)

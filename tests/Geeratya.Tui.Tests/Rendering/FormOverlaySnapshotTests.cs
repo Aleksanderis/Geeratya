@@ -191,6 +191,7 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains("[Backend] oc_", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("> Docs", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));
     }
 
     [Fact]

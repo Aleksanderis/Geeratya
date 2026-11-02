@@ -37,6 +37,7 @@ public static class FormOverlay
     private const string SearchingText = "searching…";
     private const string LookupFailedText = "lookup failed, showing what is loaded";
     private const string NoMatchText = "No match";
+    private const string NoMoreText = "No more values";
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -178,6 +179,16 @@ public static class FormOverlay
             var choose = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
 
             return $"{down}/{up} type   {choose} choose   {cancel} cancel";
+        }
+
+        if (form.Suggest is { Source.Kind: SuggestionKind.Options, Items.Count: > 0 } choice)
+        {
+            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
+            var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+            var escape = choice.Query.Length == 0 ? "cancel" : "clear filter";
+
+            return $"{down}/{up} choose   {accept} accept   {next}/{previous} field   {cancel} {escape}";
         }
 
         if (form.Suggest is { Items.Count: > 0 })
@@ -446,6 +457,8 @@ public static class FormOverlay
         {
             SuggestionStatus.Loading => new PopupNotice(SearchingText, TextRole.Loading),
             SuggestionStatus.Failed => new PopupNotice($"{LookupFailedText}: {popup.Error}", TextRole.Error),
+            SuggestionStatus.Loaded when popup.Items.Count == 0 && popup.Query.Length == 0
+                => new PopupNotice(NoMoreText, TextRole.Muted),
             SuggestionStatus.Loaded when popup.Items.Count == 0 => new PopupNotice(NoMatchText, TextRole.Muted),
             _ => null,
         };
