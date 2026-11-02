@@ -84,6 +84,12 @@ public sealed record TabState(
     public IReadOnlyList<IssueSummary> ProtectedRows { get; init; } = [];
 
     /// <summary>
+    /// Issues deleted while this tab's load was in flight: the reply may still hold them (it started before the
+    /// delete, or the search index lags), so it drops these keys. Cleared when the load ends.
+    /// </summary>
+    public IReadOnlyList<string> RemovedKeys { get; init; } = [];
+
+    /// <summary>
     /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the
     /// approximate-count call of a JQL source. Null while unknown (the header then reads <c>N+</c>).
     /// </summary>

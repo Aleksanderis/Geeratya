@@ -184,7 +184,8 @@ public class TransitionFlowTests
     [Fact]
     public void GivenExactlyOneTransitionIntoTheColumn_WhenTheMetadataLoads_ThenTheCardMovesAndSelectionFollowsIt()
     {
-        var state = LoadedPick(Tabbed(ViewLayout.Columns), "Alt-l", Transition("21", _progress), Transition("41", _done));
+        var tabbed = Tabbed(ViewLayout.Columns);
+        var state = LoadedPick(tabbed, "Alt-l", Transition("21", _progress), Transition("41", _done));
 
         var write = Assert.IsType<ExecuteWriteEffect>(Assert.Single(state.Effects));
         var tab = state.State.Session.Tabs[0];

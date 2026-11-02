@@ -233,6 +233,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
@@ -442,11 +443,6 @@ public sealed class AppReducer
             return Result(normal);
         }
 
-        if (request.OnConfirm is { } command)
-        {
-            return Reduce(normal, command);
-        }
-
         if (request.ActionOnConfirm == ProfileReducer.RemoveAction)
         {
             return ProfileReducer.Remove(normal, request.Target);
@@ -455,6 +451,11 @@ public sealed class AppReducer
         if (request.ActionOnConfirm == ProfileReducer.SwitchAction)
         {
             return ProfileReducer.ConfirmedSwitch(normal, request.Target);
+        }
+
+        if (request.OnConfirm is { } command)
+        {
+            return Reduce(normal, command);
         }
 
         // The quit that was asked for while writes ran: the answer was yes, so no second question.

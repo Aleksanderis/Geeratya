@@ -33,6 +33,9 @@ public sealed record SiteSession(
     /// </summary>
     public IReadOnlyList<Operation> Operations { get; init; } = [];
 
+    /// <summary>The delete whose sub-tasks are being counted before the confirm opens; null when none.</summary>
+    public PendingDelete? PendingDelete { get; init; }
+
     public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked(), SourceLists.Empty);
 
     /// <summary>A session with no tabs for <paramref name="profile"/>.</summary>

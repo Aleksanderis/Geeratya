@@ -54,6 +54,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space i s` | Change the status of the issue |
 | `Alt-l` | Move the card to the next column |
 | `Alt-h` | Move the card to the previous column |
+| `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 
 ## Help mode
 

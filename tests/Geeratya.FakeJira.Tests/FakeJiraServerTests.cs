@@ -181,6 +181,21 @@ public sealed class FakeJiraServerTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 
+    [Theory]
+    [InlineData("GTM-9", true)]
+    [InlineData("GCM-1", false)]
+    public async Task GivenSubtaskJql_WhenSearched_ThenRecordedChildrenOrAnEmptyPageAnswer(string key, bool hasChildren)
+    {
+        var baseUrl = StartServer(0, 0, 0);
+        var jql = $"parent = {key} AND issuetype in subTaskIssueTypes() ORDER BY Rank ASC";
+
+        var body = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?jql={Uri.EscapeDataString(jql)}");
+        using var document = JsonDocument.Parse(body);
+
+        Assert.Equal(hasChildren, document.RootElement.GetProperty("issues").GetArrayLength() > 0);
+        Assert.True(document.RootElement.GetProperty("isLast").GetBoolean());
+    }
+
     [Fact]
     public async Task GivenNegativePageToken_WhenSearching_ThenBadRequestInsteadOfHang()
     {

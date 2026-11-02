@@ -49,6 +49,7 @@ public static class ActionCatalog
         new(ActionIds.IssueTransition, "Change the status of the issue"),
         new(ActionIds.IssueTransitionNext, "Move the card to the next column"),
         new(ActionIds.IssueTransitionPrevious, "Move the card to the previous column"),
+        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
         new(ActionIds.FormFieldNext, "Next field of the form"),

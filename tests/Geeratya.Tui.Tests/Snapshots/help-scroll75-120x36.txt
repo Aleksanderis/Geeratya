@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Esc        Cancel or close                                                                                            
   Ctrl-c     Cancel or close                                                                                            
   Up         Previous source in the picker                                                                              
   Ctrl-p     Previous source in the picker                                                                              
@@ -31,6 +32,5 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

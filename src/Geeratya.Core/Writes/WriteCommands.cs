@@ -11,7 +11,7 @@ public abstract record WriteCommand : Command;
 /// <summary>
 /// The user asked for a write. Refused with a status line when it touches an issue that is being written; else it
 /// starts an operation. <paramref name="At"/> is the time of the command (the reducer reads no clock). A request
-/// with a <see cref="WriteRequest.ConfirmText"/> asks first unless <paramref name="Confirmed"/> is set (the command
+/// with a <see cref="WriteRequest.AskText"/> asks first unless <paramref name="Confirmed"/> is set (the command
 /// that Confirm mode runs on <c>y</c>).
 /// </summary>
 public sealed record WriteRequested(TabId Tab, WriteRequest Request, DateTimeOffset At, bool Confirmed = false)

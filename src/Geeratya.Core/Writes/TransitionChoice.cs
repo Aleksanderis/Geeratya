@@ -10,7 +10,7 @@ namespace Geeratya.Core.Writes;
 /// <param name="Id">The transition id to post.</param>
 /// <param name="Name">The transition name.</param>
 /// <param name="Target">The status the issue ends in.</param>
-/// <param name="NeedsForm">The transition asks for fields: a required one without default, or a screen with fields.</param>
+/// <param name="NeedsForm">The transition asks for fields: a required one without default, or a screen with some.</param>
 /// <param name="AsksFirst">
 /// The move is confirmed before it is sent: the target is in the done category, or the workflow shows a screen that
 /// has nothing to fill in. Jira does not expose post functions, so these are the only hints of a side effect.

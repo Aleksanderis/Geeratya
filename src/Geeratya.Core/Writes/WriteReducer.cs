@@ -28,6 +28,8 @@ public static class WriteReducer
         {
             AssignToMeRequested me => AssignToMe(state, me),
             WriteRequested requested => Request(state, requested),
+            SubtasksCounted counted => DeleteReducer.Counted(state, counted),
+            SubtasksCountFailed failed => DeleteReducer.CountFailed(state, failed),
             OperationPhaseChanged changed => PhaseChanged(state, changed),
             WriteSucceeded succeeded => FormReducer.Settled(
                 Succeeded(state, succeeded),
@@ -95,7 +97,7 @@ public static class WriteReducer
             return Say(state, busy);
         }
 
-        if (!requested.Confirmed && write.ConfirmText is { } question)
+        if (!requested.Confirmed && write.AskText is { } question)
         {
             return Ask(state, requested, question);
         }
@@ -242,11 +244,33 @@ public static class WriteReducer
     /// <summary>Jira confirmed the write: the server rows replace the tabs' rows, the caches are dropped.</summary>
     private static ReduceResult Complete(AppState state, Operation operation, IReadOnlyList<IssueSummary> rows)
     {
+        if (operation.Request.RemovesIssues)
+        {
+            return CompleteRemoval(state, operation);
+        }
+
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
         var replaced = ReplaceRows(state, rows);
         var stale = MarkStale(replaced, operation.Keys);
         var finished = Finish(stale, operation, true, effects, rows);
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
+
+        return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
+    /// <summary>
+    /// Jira deleted the issues: their rows and open details go from every tab, the caches are dropped, and the
+    /// origin tab reloads (membership changed; the server is the truth, <c>docs/architecture.md</c>).
+    /// </summary>
+    private static ReduceResult CompleteRemoval(AppState state, Operation operation)
+    {
+        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        var removed = WriteRemoval.Apply(state, operation.Keys);
+        var finished = Finish(removed, operation, false, effects);
+        var origin = ViewReducer.Find(finished.Session.Tabs, operation.Origin);
+        var reloaded = origin is { Cold: false, Load: not Loading }
+            ? ViewReducer.StartRefresh(finished, origin, false, effects)
+            : finished;
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }

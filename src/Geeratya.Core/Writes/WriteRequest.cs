@@ -13,6 +13,12 @@ public abstract record WriteRequest
     /// <summary>The issues the write changes; a second write on any of them is refused while this one runs.</summary>
     public abstract IReadOnlyList<string> Keys { get; }
 
+    /// <summary>
+    /// True for a write that deletes its issues: no optimistic change, the rows and open details of the issues go
+    /// when Jira confirmed, and the read after the write is not made (the issues are gone).
+    /// </summary>
+    public virtual bool RemovesIssues => false;
+
     /// <summary>The activity for the busy refusal: <c>GCM-3 is busy (assigning)</c>.</summary>
     public abstract string BusyText { get; }
 
@@ -35,7 +41,7 @@ public abstract record WriteRequest
     /// The question to ask before the write starts (what changes, and that Jira cannot undo it), or null when the
     /// write starts at once. The answer <c>y</c> runs the request again with <c>Confirmed</c> set.
     /// </summary>
-    public virtual string? ConfirmText => null;
+    public virtual string? AskText => null;
 
     /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or

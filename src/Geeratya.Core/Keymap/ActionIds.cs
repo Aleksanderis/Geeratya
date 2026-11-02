@@ -47,6 +47,7 @@ public static class ActionIds
     public const string IssueTransition = "issue.transition";
     public const string IssueTransitionNext = "issue.transition-next";
     public const string IssueTransitionPrevious = "issue.transition-previous";
+    public const string IssueDelete = "issue.delete";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string FormFieldNext = "form.field-next";

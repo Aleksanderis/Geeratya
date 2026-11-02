@@ -15,6 +15,8 @@ public sealed record TransitionRequest(
     IReadOnlyList<FieldChange> Changes,
     bool AskFirst) : WriteRequest
 {
+    private const string SideEffectWarning = "The workflow may do more than change the status, and Jira cannot undo it";
+
     public override OperationKind Kind => OperationKind.Transition;
 
     public override IReadOnlyList<string> Keys => [Key];
@@ -31,9 +33,8 @@ public sealed record TransitionRequest(
 
     public override string ActionText => $"transition {Key}";
 
-    public override string? ConfirmText => AskFirst
-        ? $"Move {Key} to {Choice.Target.Name}? The workflow may do more than change the status, and Jira cannot undo it"
-        : null;
+    public override string? AskText =>
+        AskFirst ? $"Move {Key} to {Choice.Target.Name}? {SideEffectWarning}" : null;
 
     public override RowChange? Plan(IssueSummary row)
     {

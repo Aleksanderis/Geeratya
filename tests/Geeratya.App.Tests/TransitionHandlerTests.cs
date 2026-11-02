@@ -16,7 +16,9 @@ namespace Geeratya.App.Tests;
 public sealed class TransitionHandlerTests
 {
     private const string Moved =
-        """{"issues":[{"id":"1","key":"A-1","fields":{"summary":"One","status":{"id":"3","name":"In Progress","statusCategory":{"key":"indeterminate"}}}}],"isLast":true}""";
+        """
+        {"issues":[{"id":"1","key":"A-1","fields":{"summary":"One","status":{"id":"3","name":"In Progress","statusCategory":{"key":"indeterminate"}}}}],"isLast":true}
+        """;
 
     private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
     private static readonly TabId _tab = new(1);

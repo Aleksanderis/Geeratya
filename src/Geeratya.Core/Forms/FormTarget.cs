@@ -18,13 +18,13 @@ public abstract record FormTarget
     /// <summary>The message when the metadata holds nothing to fill in.</summary>
     public virtual string EmptyText => "Nothing here can be edited";
 
-    /// <summary>True when a submit with no changed field is a valid write (a transition with optional fields).</summary>
+    /// <summary>A submit with no changed field is a valid write (a transition with optional fields).</summary>
     public virtual bool AllowsNoChanges => false;
 
-    /// <summary>True when the form closes as soon as its write starts (a picker: the result goes to the status line).</summary>
+    /// <summary>The form closes as soon as its write starts (a picker); the result goes to the status line.</summary>
     public virtual bool ClosesOnSend => false;
 
-    /// <summary>False when the form stays invisible while its metadata loads (a card move that may send at once).</summary>
+    /// <summary>False when the form stays invisible while it loads (a card move that may send at once).</summary>
     public virtual bool ShowsWhileLoading => true;
 
     /// <summary>
