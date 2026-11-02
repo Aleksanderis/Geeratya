@@ -6,17 +6,17 @@ GCM board · 24 issues
 │ ┃ Task GCM-1              ┃ │ │ Epic GCM-8              │ │ │ Epic GCM-9              │ │ │ Sub-task GCM-18        │ │
 │ ┃ Survey task one         ┃ │ │ Seed: Onboarding flow   │ │ │ Seed: Reporting         │ │ │ Build the form         │ │
 │ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
-│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━┛ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
-│   ┌───────────────────────┐ │   ┌───────────────────────┐ │   ┌───────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Repor… ─┐ │
-│   │ Sub-task GCM-6        │ │   │ Story GCM-11          │ │   │ Task GCM-14           │ │ │ Story GCM-12           │ │
-│   │ Survey4 subtask       │ │   │ Welcome screen        │ │   │ Pick a chart library  │ │ │ Export report as CSV   │ │
-│   │                       │ │   │                       │ │   │                       │ │ │                        │ │
-│   └───────────────────────┘ │   └───────────────────────┘ │   └───────────────────────┘ │ └────────────────────────┘ │
-│ ┌─────────────────────────┐ │   ┌───────────────────────┐ │ ┌─ ↑ GCM-8 Seed: Onboar… ─┐ │ ┌────────────────────────┐ │
-│ │ Task GCM-4              │ │   │ Task GCM-13           │ │ │ Story GCM-10            │ │ │ Task GCM-15            │ │
-│ │ Survey task four        │ │   │ Review onboarding     │ │ │ Sign up with email      │ │ │ Write the setup guide  │ │
-│ │                         │ │   │ copy                  │ │ │                         │ │ │                        │ │
-│ └─────────────────────────┘ │   └───────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ├─────────────────────────┤ │ ├─────────────────────────┤ │ ├─────────────────────────┤ │ └────────────────────────┘ │
+│ │ Sub-task GCM-6          │ │ │ Story GCM-11            │ │ │ Task GCM-14             │ │ ┌─ ↑ GCM-9 Seed: Repor… ─┐ │
+│ │ Survey4 subtask         │ │ │ Welcome screen          │ │ │ Pick a chart library    │ │ │ Story GCM-12           │ │
+│ │                         │ │ │                         │ │ │                         │ │ │ Export report as CSV   │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
+│ ┌─────────────────────────┐ │ │ Task GCM-13             │ │ ┌─ ↑ GCM-8 Seed: Onboar… ─┐ │ ┌────────────────────────┐ │
+│ │ Task GCM-4              │ │ │ Review onboarding copy  │ │ │ Story GCM-10            │ │ │ Task GCM-15            │ │
+│ │ Survey task four        │ │ │                         │ │ │ Sign up with email      │ │ │ Write the setup guide  │ │
+│ │                         │ │ │                         │ │ │                         │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
 │ ┌─────────────────────────┐ │ ┌─ ↑ GCM-10 Sign up wit… ─┐ │ ┌─ ↑ GCM-8 Seed: Onboar… ─┐ │                            │
 │ │ Story GCM-3             │ │ │ Sub-task GCM-19         │ │ │ Bug GCM-16              │ │                            │
 │ │ Survey story three      │ │ │ Validate the email      │ │ │ App crashes on empty    │ │                            │
@@ -26,11 +26,11 @@ GCM board · 24 issues
 │ │ Epic GCM-5              │ │ │ Bug GCM-17              │ │                             │                            │
 │ │ Survey4 epic            │ │ │ Wrong date format in    │ │                             │                            │
 │ │                         │ │ │ report                  │ │                             │                            │
-│ └─────────────────────────┘ │ └─────────────────────────┘ │                             │                            │
-│   ┌───────────────────────┐ │                             │                             │                            │
-│   │ Sub-task GCM-7        │ │                             │                             │                            │
-│   │ Survey4 subtask no    │ │                             │                             │                            │
-│   │ valid parent          │ │                             │                             │                            │
-│   └───────────────────────┘ │                             │                             │                            │
+│ ├─────────────────────────┤ │ └─────────────────────────┘ │                             │                            │
+│ │ Sub-task GCM-7          │ │                             │                             │                            │
+│ │ Survey4 subtask no      │ │                             │                             │                            │
+│ │ valid parent            │ │                             │                             │                            │
+│ │                         │ │                             │                             │                            │
+│ └─────────────────────────┘ │                             │                             │                            │
 └─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────┘
  NORMAL                                                                                        ? help  : command  q quit

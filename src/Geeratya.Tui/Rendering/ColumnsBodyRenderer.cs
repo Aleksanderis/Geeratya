@@ -26,7 +26,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int BlankRow = int.MaxValue;
     private const int Margin = 1;
     private const int MinimumBoxWidth = 8;
-    private const int NestIndent = 2;
     private const string ParentMark = "↑";
     private const string Vertical = "│";
     private const char HorizontalChar = '─';
@@ -291,8 +290,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var role = selected ? TextRole.Selected : TextRole.Body;
 
             var nested = group.IsNested(card);
-            var line = TextWidth.Pad(CompactLine(issue, selected, nested, inner), inner);
-            var at = nested ? 1 + NestIndent : 1;
+            var line = TextWidth.Pad(CompactLine(issue, selected, nested, group.IsNested(card + 1), inner), inner);
+            var at = nested ? 2 : 1;
 
             if (selected || line.Length < at + 1)
             {
@@ -308,7 +307,27 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             return;
         }
 
-        AddBoxRow(spans, issue, within, selected, group.IsNested(card), inner);
+        var part = group.IsNested(card)
+            ? (group.IsNested(card + 1) ? GroupPart.Middle : GroupPart.Last)
+            : (group.IsNested(card + 1) ? GroupPart.First : GroupPart.None);
+
+        AddBoxRow(spans, issue, within, selected, part, inner);
+    }
+
+    /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
+    private enum GroupPart
+    {
+        /// <summary>A card of its own, with its own box.</summary>
+        None,
+
+        /// <summary>The parent: it opens the shared frame.</summary>
+        First,
+
+        /// <summary>A child with more children after it in the frame.</summary>
+        Middle,
+
+        /// <summary>The last child: it closes the shared frame.</summary>
+        Last,
     }
 
     /// <summary>One row of the bordered card, in a margin of one cell on each side of the column.</summary>
@@ -317,11 +336,10 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         IssueSummary issue,
         int within,
         bool selected,
-        bool nested,
+        GroupPart part,
         int inner)
     {
-        var indent = nested && inner - (2 * Margin) - NestIndent >= MinimumBoxWidth ? NestIndent : 0;
-        var width = inner - (2 * Margin) - indent;
+        var width = inner - (2 * Margin);
 
         if (width < MinimumBoxWidth)
         {
@@ -332,12 +350,16 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var frame = selected ? TextRole.Selected : TextRole.Muted;
         var text = selected ? TextRole.Selected : TextRole.Body;
-        var heavy = selected;
 
-        spans.Add(new StyledSpan(new string(' ', Margin + indent), TextRole.Body));
+        spans.Add(new StyledSpan(new string(' ', Margin), TextRole.Body));
 
-        if (within == 0 || within == BoardCards.FullRows - 1)
+        if (part != GroupPart.None)
         {
+            AddGroupedRow(spans, issue, within, selected, part, width);
+        }
+        else if (within == 0 || within == BoardCards.FullRows - 1)
+        {
+            var heavy = selected;
             var (left, right) = (within == 0, heavy) switch
             {
                 (true, true) => ("┏", "┓"),
@@ -346,14 +368,14 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
                 _ => ("└", "┘"),
             };
             var fill = heavy ? '━' : HorizontalChar;
-            var label = within == 0 && indent == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
+            var label = within == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
             var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
 
             spans.Add(new StyledSpan($"{left}{bar}{right}", frame));
         }
         else
         {
-            var side = heavy ? "┃" : Vertical;
+            var side = selected ? "┃" : Vertical;
 
             spans.Add(new StyledSpan(side, frame));
             AddBoxText(spans, issue, within, selected, width - 2, text);
@@ -361,6 +383,60 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         }
 
         spans.Add(new StyledSpan(Blank, TextRole.Body));
+    }
+
+    /// <summary>
+    /// One row of a card inside the shared frame of a parent and its children. The parent is the top of the frame
+    /// (top border, three text rows, divider); a child is three text rows, a blank row and a divider, the last
+    /// child's divider being the bottom of the frame. The rows keep the five-row pitch of a card. A selected card
+    /// has heavy sides and the <c>Selected</c> role on its text.
+    /// </summary>
+    private static void AddGroupedRow(
+        List<StyledSpan> spans,
+        IssueSummary issue,
+        int within,
+        bool selected,
+        GroupPart part,
+        int width)
+    {
+        var first = part == GroupPart.First;
+        var textRows = first ? within is >= 1 and <= 3 : within <= 2;
+        var blank = !first && within == 3;
+
+        if (!textRows && !blank)
+        {
+            var heavy = selected && first && within == 0;
+            var (left, right) = (first && within == 0, part == GroupPart.Last) switch
+            {
+                (true, _) => heavy ? ("┏", "┓") : ("┌", "┐"),
+                (_, true) => ("└", "┘"),
+                _ => ("├", "┤"),
+            };
+            var fill = heavy ? '━' : HorizontalChar;
+
+            spans.Add(new StyledSpan(
+                $"{left}{new string(fill, width - 2)}{right}",
+                heavy ? TextRole.Selected : TextRole.Muted));
+
+            return;
+        }
+
+        var side = selected ? "┃" : Vertical;
+        var frame = selected ? TextRole.Selected : TextRole.Muted;
+        var text = selected ? TextRole.Selected : TextRole.Body;
+
+        spans.Add(new StyledSpan(side, frame));
+
+        if (blank)
+        {
+            spans.Add(new StyledSpan(new string(' ', width - 2), text));
+        }
+        else
+        {
+            AddBoxText(spans, issue, first ? within : within + 1, selected, width - 2, text);
+        }
+
+        spans.Add(new StyledSpan(side, frame));
     }
 
     /// <summary>The text between the side borders; the type name on the key line is coloured by type.</summary>
@@ -408,14 +484,14 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return $"{text}{Blank}";
     }
 
-    private static string CompactLine(IssueSummary issue, bool selected, bool nested, int width)
+    private static string CompactLine(IssueSummary issue, bool selected, bool nested, bool more, int width)
     {
         var mark = selected ? SelectedMark : Blank;
         var marker = IssueTypeMarker.For(issue.IssueType);
-        var indent = nested ? new string(' ', NestIndent) : string.Empty;
+        var branch = nested ? (more ? "├" : "└") : string.Empty;
         var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
 
-        return CardText.Shorten($"{mark}{indent}{marker} {issue.Key}{parent} {issue.Summary}", width);
+        return CardText.Shorten($"{mark}{branch}{marker} {issue.Key}{parent} {issue.Summary}", width);
     }
 
     /// <summary>

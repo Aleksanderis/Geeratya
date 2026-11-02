@@ -388,17 +388,19 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenASubtaskUnderItsParent_WhenRendering_ThenItIsIndentedAndHasNoParentHeader()
+    public void GivenASubtaskUnderItsParent_WhenRendering_ThenBothShareOneOuterFrameWithoutIndentOrParentHeader()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
         var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
 
         var body = Render(tab, 120, 30);
 
-        Assert.Contains("│ ┏", body[2].PlainText);
-        Assert.Contains("│   ┌", body[7].PlainText);
-        Assert.DoesNotContain("↑", body[7].PlainText);
-        Assert.Contains("A-2", body[8].PlainText);
+        Assert.Contains("│ ┏━", body[2].PlainText);
+        Assert.Contains("│ ├", body[6].PlainText);
+        Assert.Contains("│ └", body[11].PlainText);
+        Assert.DoesNotContain("↑", string.Concat(body.Select(line => line.PlainText)));
+        Assert.Contains("│ │ Task A-2", body[7].PlainText);
+        Assert.Contains("┃", body[3].PlainText);
     }
 
     [Fact]
@@ -429,26 +431,31 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenANestedCompactCard_WhenRendering_ThenItIsIndentedWithTheTypeColourOnTheMarker()
+    public void GivenANestedCompactCard_WhenRendering_ThenItHasABranchGlyphWithTheTypeColourOnTheMarker()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
         var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
 
         var body = Render(tab, 120, 8);
 
-        Assert.Contains("   T A-2", body[3].PlainText);
+        Assert.Contains(" └T A-2", body[3].PlainText);
         Assert.Contains(body[3].Spans, span => span.Text == "T" && span.Role == TextRole.TypeTask);
     }
 
     [Fact]
-    public void GivenANestedCardInANarrowColumn_WhenRendering_ThenItKeepsItsParentHeaderWithoutIndent()
+    public void GivenAGroupInNarrowColumns_WhenRenderingAtEveryWidth_ThenLinesKeepTheWidth()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent") };
-        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
+        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-2" };
 
-        var body = Render(tab, 13, 30);
+        for (var width = 1; width <= 60; width++)
+        {
+            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _helpLines, _keymap);
 
-        Assert.Single(body, line => line.PlainText.Contains('↑', StringComparison.Ordinal));
+            Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
+        }
+
+        Assert.DoesNotContain("┌", string.Concat(Render(tab, 13, 30).Skip(2).Select(line => line.PlainText)).Replace("┌─", string.Empty, StringComparison.Ordinal));
     }
 
     private static IssueSummary Issue(string statusId, string key, string summary = "Summary", string? assignee = null)

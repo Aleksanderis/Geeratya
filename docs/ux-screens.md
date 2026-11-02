@@ -125,17 +125,17 @@ GTM board · 16 issues
 │ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
 │ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
 │ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
-│ ┗━━━━━━━━━━━━━━━┛ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│   ┌─────────────┐ │   ┌─────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
-│   │ Sto… GTM-12 │ │   │ Task GTM-15 │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
-│   │ Welcome     │ │   │ Pick a      │ │ │ Backlog:      │ │ │ Write the    │ │
-│   │ screen      │ │   │ chart libr… │ │ │ keyboard sho… │ │ │ setup guide  │ │
-│   └─────────────┘ │   └─────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│   ┌─────────────┐ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
-│   │ Task GTM-14 │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
-│   │ Review      │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
-│   │ onboarding… │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
-│   └─────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│ ├───────────────┤ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
+│ │ Story GTM-12  │ │ │ Task GTM-15   │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │ Welcome       │ │ │ Pick a chart  │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
+│ │ screen        │ │ │ library       │ │ │ Backlog:      │ │ │ Write the    │ │
+│ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
+│ │ Task GTM-14   │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
+│ │ Review        │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
+│ │ onboarding c… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
+│ │               │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
+│ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
@@ -151,7 +151,7 @@ The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third)
 - **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
 - **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
 - **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column); the type tells them apart. Hiding epics follows the board configuration (#192).
-- **Grouping under the parent.** Any issue with a `parent` is a child (sub-tasks, and stories under an epic). Within a column a child (an issue with a `parent`) whose parent card is in the same column is moved to just after the parent (after the children already there) and drawn indented by two cells, so it reads as part of the parent; the other cards keep the rank order. A child whose parent is in another column (or not loaded) stays in its place and carries the parent in its top border: `┌─ ↑ GTM-9 Onboarding flow ─┐` (key and summary cut with `…`; heavy border when selected). A grouped child in a column too narrow for the indent is drawn without it, with the parent header. Compact one-line cards indent a grouped child and show `↑GTM-9` after the key of an ungrouped one. Navigation follows the displayed order. `Core/Boards/BoardColumns.Arrange` does the ordering (pure).
+- **Grouping under the parent.** Any issue with a `parent` is a child (sub-tasks, and stories under an epic). Within a column a child whose parent card is in the same column is moved to just after the parent (after the children already there), and the parent and its children share one outer frame instead of being indented: the parent is the top of the frame (top border, key line, two summary lines, then a divider `├───┤`), each child follows with its key line, two summary lines, a blank row and a divider, and the last child's divider is the bottom of the frame (`└───┘`). The cards keep the five-row pitch, so scrolling and navigation are unchanged. A selected member has heavy sides (`┃`) and the `Selected` role on its text (the selected parent also has a heavy top border); the rest of the frame stays `Muted`. The other cards keep the rank order. A child whose parent is in another column (or not loaded) stays in its place as a box of its own and carries the parent in its top border: `┌─ ↑ GTM-9 Onboarding flow ─┐` (key and summary cut with `…`; heavy border when selected). Compact one-line cards cannot hold a frame: a grouped child starts with `├` (`└` for the last) after the cursor cell and an ungrouped one shows `↑GTM-9` after the key. The frame uses box lines like the rest of the board (not part of the ASCII glyph set); a column too narrow for a box shows no card text. Navigation follows the displayed order. `Core/Boards/BoardColumns.Arrange` does the ordering (pure).
 - **Type colours.** The type name (or marker) on the key line is coloured by type, as Jira does: epic purple, story green, bug red, task blue, sub-task teal (grey in the 16-colour tier). The colours are Geeratya's own: the Jira API gives no colour for an issue type (only an icon image, which is never drawn; the status category has a colour name, used for statuses) (roles `TypeEpic`, `TypeStory`, `TypeBug`, `TypeTask`, `TypeSubtask`; any other type stays `Body`). The no-colour tier relies on the name itself. The selected card keeps the single `Selected` role (reversed), so its type is not coloured. One-line cards colour the marker the same way. The list layout is unchanged.
 - **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or the per-tab row cap (`ViewPaging.MaxRowsPerTab`, 10 000; `architecture.md`) is hit.
 

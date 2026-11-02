@@ -33,6 +33,21 @@ public class ColumnsSnapshotTests
         var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var name = $"columns-{kind}-{width}x{height}.txt";
+
+        if (Environment.GetEnvironmentVariable("GEERATYA_UPDATE_SNAPSHOTS") == "1")
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Geeratya.slnx")))
+            {
+                directory = directory.Parent;
+            }
+
+            File.WriteAllText(
+                Path.Combine(directory!.FullName, "tests", "Geeratya.Tui.Tests", "Snapshots", name),
+                actual);
+        }
+
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
@@ -57,7 +72,7 @@ public class ColumnsSnapshotTests
             .ToArray();
         Assert.All(positions, position => Assert.True(position >= 0));
         Assert.Equal(positions.Order(), positions);
-        Assert.Single(lines.Skip(4), line => line.Contains('┏', StringComparison.Ordinal));
+        Assert.Contains(lines.Skip(4), line => line.Contains('┃', StringComparison.Ordinal));
     }
 
     [Theory]

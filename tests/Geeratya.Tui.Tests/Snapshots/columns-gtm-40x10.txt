@@ -3,8 +3,8 @@
 GTM board · 16 issues                 3›
 ┌─To Do 5  In Progress 4 ›─────────────┐
 │>E GTM-9 Seed: Onboarding flow        │
-│   S GTM-12 Welcome screen            │
-│   T GTM-14 Review onboarding copy    │
+│ ├S GTM-12 Welcome screen             │
+│ └T GTM-14 Review onboarding copy     │
 │ B GTM-18 ↑GTM-10 Wrong date format i…│
 └──────────────────────────────────────┘
  NORMAL        ? help  : command  q quit
