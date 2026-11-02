@@ -13,6 +13,10 @@ public sealed class ApplicationRunner
     private const string PrintFrameFlag = "--print-frame";
     private const string SizeFlag = "--size";
     private const string ModeFlag = "--mode";
+    private const string HelpScrollFlag = "--help-scroll";
+
+    private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
+        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>] (scroll needs --mode help)";
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
@@ -97,13 +101,21 @@ public sealed class ApplicationRunner
 
         if (size is null || mode is null)
         {
-            _output.WriteLine(
-                $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] [{ModeFlag} normal|help|command|confirm|insert]");
+            _output.WriteLine(Usage);
 
             return 2;
         }
 
-        var state = FrameOptions.SampleState(mode.Value);
+        var scroll = FrameOptions.ParseScroll(ValueOf(arguments, HelpScrollFlag));
+
+        if (scroll is null)
+        {
+            _output.WriteLine(Usage);
+
+            return 2;
+        }
+
+        var state = FrameOptions.SampleState(mode.Value) with { HelpScroll = scroll.Value };
         var helpLines = KeymapDocument.RenderHelpLines(keymap);
         var lines = FrameBuilder.Build(state, size.Width, size.Height, helpLines, keymap, null, _glyphs);
 

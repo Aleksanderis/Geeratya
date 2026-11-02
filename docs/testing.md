@@ -8,7 +8,7 @@ Strategy and layers. The procedure for writing, recording and running tests is t
 |---|---|---|
 | Pure tests | State, commands, keymap, JQL building, mappers over recorded JSON, layout | `tests/Geeratya.<Project>.Tests`, no terminal, no socket |
 | Transport and store tests | Jira calls, paging, refresh, caches against the in-process fake | `FakeJiraHandler` in `tests/Geeratya.Jira.Tests/Fakes` |
-| Frame snapshots | Rendering as text at several sizes | Tui tests |
+| Frame snapshots | Rendering as text at several sizes (help also scrolled, `--help-scroll`) | Tui tests |
 | Fake Jira server | The real binary against recorded data (tmux, screenshots, measurements) | `tools/FakeJira` |
 | Live tests | Behaviour the fake might get wrong, on the dev site only | Opt-in, `Live=true` |
 
