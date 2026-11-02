@@ -1,6 +1,8 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -9,6 +11,9 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class StatusBarTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
+
+    private static readonly string[] _columnsHints =
+        ["h/l column", "j/k card", "Enter open", "Space l list", "Space o browser"];
 
     [Fact]
     public void GivenEveryHint_WhenCheckingTheDefaultKeymap_ThenItBindsTheNamedActionInTheHintMode()
@@ -159,5 +164,129 @@ public class StatusBarTests
 
         Assert.Contains("atlassian.net_", line);
         Assert.DoesNotContain("https://", line);
+    }
+
+    [Fact]
+    public void GivenEveryScreenHint_WhenCheckingTheDefaultKeymap_ThenItBindsBothNamedActions()
+    {
+        foreach (var hint in StatusBar.ScreenHints)
+        {
+            Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.ActionId));
+            Assert.NotNull(ActionCatalog.FindTitle(hint.ActionId));
+
+            if (hint.SecondActionId is not null)
+            {
+                Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.SecondActionId));
+            }
+        }
+    }
+
+    [Fact]
+    public void GivenColumnsLayout_WhenRendering120Wide_ThenTheColumnsHintsShowBeforeTheGlobalOnes()
+    {
+        var line = StatusBar.Render(With(ViewLayout.Columns), 120, _keymap);
+
+        Assert.Contains("h/l column  j/k card  Enter open  Space l list  Space o browser", line);
+        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.Equal(120, line.Length);
+    }
+
+    [Fact]
+    public void GivenColumnsLayout_WhenRendering40Wide_ThenTheScreenHintsAreDroppedAndTheGlobalOnesStay()
+    {
+        var line = StatusBar.Render(With(ViewLayout.Columns, "Switched to a long profile"), 40, _keymap);
+
+        Assert.DoesNotContain("column", line);
+        Assert.DoesNotContain("card", line);
+        Assert.DoesNotContain("browser", line);
+        Assert.Contains("Switched to a long profile", line);
+        Assert.Equal(40, line.Length);
+    }
+
+    [Fact]
+    public void GivenColumnsLayout_WhenWidthShrinks_ThenScreenHintsDropFromTheEndOneByOne()
+    {
+        var counts = new List<int>();
+
+        for (var width = 120; width >= 60; width -= 4)
+        {
+            var line = StatusBar.Render(With(ViewLayout.Columns), width, _keymap);
+
+            counts.Add(_columnsHints.Count(line.Contains));
+            Assert.Contains("q quit", line);
+        }
+
+        Assert.Equal(counts.OrderByDescending(count => count), counts);
+        Assert.Equal(5, counts[0]);
+        Assert.Contains(counts, count => count is > 0 and < 5);
+    }
+
+    [Fact]
+    public void GivenListLayoutOnAJqlSource_WhenRendering_ThenNoLayoutSwitchIsOffered()
+    {
+        var line = StatusBar.Render(With(ViewLayout.List, source: ViewSourceKind.Jql), 120, _keymap);
+
+        Assert.Contains("j/k move  Enter open  Space o browser", line);
+        Assert.DoesNotContain("columns", line);
+    }
+
+    [Fact]
+    public void GivenListLayoutOnABoard_WhenRendering_ThenTheColumnsSwitchIsOffered()
+    {
+        var line = StatusBar.Render(With(ViewLayout.List, source: ViewSourceKind.Board), 120, _keymap);
+
+        Assert.Contains("Space l columns", line);
+    }
+
+    [Fact]
+    public void GivenAnIssueOpen_WhenRendering_ThenTheDetailHintsReplaceTheViewOnes()
+    {
+        var state = With(ViewLayout.Columns, detail: true);
+
+        var line = StatusBar.Render(state, 120, _keymap);
+
+        Assert.Contains("j/k scroll  Enter open  Esc back  Space o browser  Space p parent", line);
+        Assert.DoesNotContain("card", line);
+    }
+
+    [Fact]
+    public void GivenARemappedBrowserKey_WhenRendering_ThenTheHintShowsTheNewKey()
+    {
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Space b", ActionIds.IssueOpenInBrowser)]);
+
+        Assert.Equal(["Space b browser"], StatusBar.ScreenHintsFor(HintScope.List, keymap));
+    }
+
+    [Fact]
+    public void GivenNoTab_WhenRendering_ThenOnlyTheGlobalHintsShow()
+    {
+        var line = StatusBar.Render(AppState.Initial, 120, _keymap);
+
+        Assert.DoesNotContain("browser", line);
+        Assert.EndsWith("? help  : command  q quit", line);
+    }
+
+    private static AppState With(
+        ViewLayout layout,
+        string? message = null,
+        ViewSourceKind source = ViewSourceKind.Board,
+        bool detail = false)
+    {
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var tab = TabState.Opened(new TabId(1), new ViewDefinition(source, "4", layout, "Board"), 1, 1, 10);
+
+        if (detail)
+        {
+            tab = tab with { Detail = [DetailState.Opened("A-1", null, 1, 2, 3)] };
+        }
+
+        var session = SiteSession.Empty(profile) with { Tabs = [tab], Active = tab.Id };
+
+        return AppState.Initial with
+        {
+            Profiles = ProfileCatalog.Empty.With(profile),
+            Session = session,
+            Message = message,
+        };
     }
 }

@@ -30,6 +30,28 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>
+    /// The main keys of the active tab's screen (list, columns, issue detail), most important first: when the line is
+    /// too narrow the last ones are dropped, and the global hints (<see cref="Hints"/>) are kept before any of them.
+    /// </summary>
+    public static IReadOnlyList<StatusHint> ScreenHints { get; } =
+    [
+        new(InputMode.Normal, ActionIds.NavigateDown, "move", HintScope.List, ActionIds.NavigateUp),
+        new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.List),
+        new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.List),
+        new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
+        new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
+        new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
+        new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.Columns),
+        new(InputMode.Normal, ActionIds.ViewLayoutToggle, "list", HintScope.Columns),
+        new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Columns),
+        new(InputMode.Normal, ActionIds.NavigateDown, "scroll", HintScope.Detail, ActionIds.NavigateUp),
+        new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.Cancel, "back", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
+    ];
+
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>
     public static IReadOnlyList<StatusHint> PickerHints { get; } =
     [
@@ -50,7 +72,7 @@ public static class StatusBar
         }
 
         var left = $" {Badge(state.Mode)} {Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch)}".TrimEnd();
-        var hints = string.Join(HintGap, HintTexts(state, keymap));
+        var hints = Fit(HintTexts(state, keymap), width - TextWidth.Of(left));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -61,9 +83,76 @@ public static class StatusBar
         return $"{left}{new string(' ', gap)}{hints}";
     }
 
-    private static IReadOnlyList<string> HintTexts(AppState state, KeymapTable keymap)
+    /// <summary>
+    /// The hints as one string. The global ones are kept first; the
+    /// screen hints before them are added in order while they fit (a gap to the text is kept), so a narrow line loses
+    /// the screen hints from the end, one by one, and the global ones last.
+    /// </summary>
+    private static string Fit(HintList hints, int room)
     {
-        return state.Picker is null ? HintsFor(state.Mode, keymap) : TextsOf(PickerHints, state.Mode, keymap);
+        var global = string.Join(HintGap, hints.Global);
+        var used = TextWidth.Of(global);
+
+        if (used == 0 || used + HintGap.Length > room)
+        {
+            return string.Empty;
+        }
+
+        var screen = new List<string>();
+
+        foreach (var text in hints.Screen)
+        {
+            var next = used + TextWidth.Of(text) + HintGap.Length;
+
+            if (next + HintGap.Length > room)
+            {
+                break;
+            }
+
+            screen.Add(text);
+            used = next;
+        }
+
+        return string.Join(HintGap, screen.Append(global));
+    }
+
+    private readonly record struct HintList(IReadOnlyList<string> Screen, IReadOnlyList<string> Global);
+
+    private static HintList HintTexts(AppState state, KeymapTable keymap)
+    {
+        if (state.Picker is not null)
+        {
+            return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
+        }
+
+        var global = HintsFor(state.Mode, keymap);
+
+        return state.Mode == InputMode.Normal
+            ? new HintList(TextsOf(ScreenHints, InputMode.Normal, ScopeOf(state), keymap), global)
+            : new HintList([], global);
+    }
+
+    /// <summary>The screen of the active tab; <see cref="HintScope.Global"/> when no tab is open (start screen).</summary>
+    private static HintScope ScopeOf(AppState state)
+    {
+        var tab = ListBodyRenderer.ActiveTab(state);
+
+        if (tab is null)
+        {
+            return HintScope.Global;
+        }
+
+        if (tab.Detail.Count > 0)
+        {
+            return HintScope.Detail;
+        }
+
+        if (tab.Definition.Layout == ViewLayout.Columns)
+        {
+            return HintScope.Columns;
+        }
+
+        return tab.Definition.Source == ViewSourceKind.Board ? HintScope.ListOnBoard : HintScope.List;
     }
 
     /// <summary>
@@ -72,16 +161,25 @@ public static class StatusBar
     /// </summary>
     public static IReadOnlyList<string> HintsFor(InputMode mode, KeymapTable keymap)
     {
-        return TextsOf(Hints, mode, keymap);
+        return TextsOf(Hints, mode, HintScope.Global, keymap);
     }
 
-    private static List<string> TextsOf(IReadOnlyList<StatusHint> hints, InputMode mode, KeymapTable keymap)
+    /// <summary>
+    /// The screen hints of <paramref name="scope"/> as <c>key label</c> (the keys of a list tab also include those of
+    /// a board's list, which adds the layout switch).
+    /// </summary>
+    public static IReadOnlyList<string> ScreenHintsFor(HintScope scope, KeymapTable keymap)
+    {
+        return TextsOf(ScreenHints, InputMode.Normal, scope, keymap);
+    }
+
+    private static List<string> TextsOf(IReadOnlyList<StatusHint> hints, InputMode mode, HintScope scope, KeymapTable keymap)
     {
         var texts = new List<string>();
 
-        foreach (var hint in hints.Where(hint => hint.Mode == mode))
+        foreach (var hint in hints.Where(hint => hint.Mode == mode && Applies(hint.Scope, scope)))
         {
-            var keys = keymap.FindKeys(mode, hint.ActionId);
+            var keys = KeysOf(hint, mode, keymap);
 
             if (keys is not null)
             {
@@ -90,6 +188,26 @@ public static class StatusBar
         }
 
         return texts;
+    }
+
+    private static bool Applies(HintScope hint, HintScope current)
+    {
+        return hint == current || (hint == HintScope.List && current == HintScope.ListOnBoard);
+    }
+
+    /// <summary>The key text of a hint: the first key of its action, or <c>j/k</c> of two when it names a pair; null when unbound.</summary>
+    private static string? KeysOf(StatusHint hint, InputMode mode, KeymapTable keymap)
+    {
+        var keys = keymap.FindKeys(mode, hint.ActionId);
+
+        if (keys is null || hint.SecondActionId is null)
+        {
+            return keys;
+        }
+
+        var second = keymap.FindKeys(mode, hint.SecondActionId);
+
+        return second is null ? null : $"{keys}/{second}";
     }
 
     private static string Badge(InputMode mode)

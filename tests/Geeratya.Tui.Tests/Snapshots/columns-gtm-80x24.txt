@@ -21,4 +21,4 @@ GTM board · 16 issues
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
 └───────────────────┴───────────────────┴───────────────────┴──────────────────┘
- NORMAL                                                ? help  : command  q quit
+ NORMAL              h/l column  j/k card  Enter open  ? help  : command  q quit
