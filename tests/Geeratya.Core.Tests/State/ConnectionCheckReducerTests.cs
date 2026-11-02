@@ -65,6 +65,17 @@ public class ConnectionCheckReducerTests
         Assert.Equal("Connected as Test User 1 on work.atlassian.net", ConnectionText.Line(result.State.Session));
     }
 
+    [Fact]
+    public void GivenDisplayNameWithControlCharacters_WhenTheUserIsReported_ThenTheyAreReplacedBySpaces()
+    {
+        var checking = _reducer.Reduce(Active(_work), new ConnectionCheckRequested()).State;
+        var user = _user with { DisplayName = "Eve\u001b[2J\nX" };
+
+        var result = _reducer.Reduce(checking, new ConnectionChecked(_work, user));
+
+        Assert.Equal(new Connected("Eve [2J X"), result.State.Session.Connection);
+    }
+
     [Theory]
     [InlineData(JiraErrorKind.Unauthorized, ConnectionFailureKind.Unauthorized, "Token or email rejected")]
     [InlineData(JiraErrorKind.Forbidden, ConnectionFailureKind.Forbidden, "denied access (403)")]

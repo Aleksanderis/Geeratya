@@ -163,7 +163,7 @@ public static class ProfileReducer
             return Plain(state);
         }
 
-        return Plain(SetConnection(state, new Connected(connected.User.DisplayName)));
+        return Plain(SetConnection(state, new Connected(ConnectionText.Sanitize(connected.User.DisplayName))));
     }
 
     /// <summary>A failure for a profile that is no longer active is dropped.</summary>

@@ -43,6 +43,22 @@ public static class ConnectionText
         return new ConnectionCheckFailure(ConnectionFailureKind.Setup, message);
     }
 
+    /// <summary>Replaces control characters of a Jira-sourced name with spaces so they cannot reach the terminal.</summary>
+    public static string Sanitize(string text)
+    {
+        var characters = text.ToCharArray();
+
+        for (var index = 0; index < characters.Length; index++)
+        {
+            if (char.IsControl(characters[index]))
+            {
+                characters[index] = ' ';
+            }
+        }
+
+        return new string(characters);
+    }
+
     /// <summary>The one-line text for the status line and the start screen; empty when nothing was checked.</summary>
     public static string Line(SiteSession session)
     {

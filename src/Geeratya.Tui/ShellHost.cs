@@ -166,6 +166,12 @@ public sealed class ShellHost : IDisposable
             }
         }
 
+        if (checks.Count > 0)
+        {
+            // Only an explicit check retries a profile that failed to connect; the failure reply must not.
+            _connections.RetryFailed();
+        }
+
         _ = ConnectAsync();
 
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.

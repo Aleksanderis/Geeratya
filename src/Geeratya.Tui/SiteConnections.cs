@@ -26,6 +26,8 @@ public sealed class SiteConnections : IDisposable
     private readonly object _lock = new();
     private Profile? _profile;
     private JiraTransport? _transport;
+    private Profile? _failedProfile;
+    private int _failedProfileCount;
     private int _generation;
     private Task _connecting = Task.CompletedTask;
 
@@ -82,7 +84,8 @@ public sealed class SiteConnections : IDisposable
 
         lock (_lock)
         {
-            if (profile == _profile)
+            if (profile == _profile || (profile is not null && profile == _failedProfile
+                && profileCount == _failedProfileCount))
             {
                 return Task.FromResult<ConnectionFailed?>(null);
             }
@@ -95,7 +98,7 @@ public sealed class SiteConnections : IDisposable
             return Task.FromResult<ConnectionFailed?>(null);
         }
 
-        var connecting = ConnectAsync(profile, profileCount == 1, generation, cancellationToken);
+        var connecting = ConnectAsync(profile, profileCount, generation, cancellationToken);
 
         lock (_lock)
         {
@@ -117,6 +120,19 @@ public sealed class SiteConnections : IDisposable
         lock (_lock)
         {
             return _connecting;
+        }
+    }
+
+    /// <summary>
+    /// Forgets that the active profile failed to connect, so the next <see cref="ActivateAsync"/> tries again. Without
+    /// it a failed profile is retried only when the profile or the number of saved profiles changes, which stops the
+    /// failure reply from re-triggering the connect that produced it.
+    /// </summary>
+    public void RetryFailed()
+    {
+        lock (_lock)
+        {
+            _failedProfile = null;
         }
     }
 
@@ -147,10 +163,11 @@ public sealed class SiteConnections : IDisposable
 
     private async Task<ConnectionFailed?> ConnectAsync(
         Profile profile,
-        bool allowEnvironment,
+        int profileCount,
         int generation,
         CancellationToken cancellationToken)
     {
+        var allowEnvironment = profileCount == 1;
         TokenResolution resolution;
 
         try
@@ -165,14 +182,14 @@ public sealed class SiteConnections : IDisposable
         }
         catch (SecretStoreException exception)
         {
-            ForgetFailed(profile);
+            ForgetFailed(profile, profileCount);
 
             return new ConnectionFailed(profile, $"The secret store failed: {exception.Message}");
         }
 
         if (string.IsNullOrWhiteSpace(resolution.Token))
         {
-            ForgetFailed(profile);
+            ForgetFailed(profile, profileCount);
 
             return new ConnectionFailed(profile, allowEnvironment ? NoTokenSingleProfileMessage : NoTokenMessage);
         }
@@ -187,7 +204,7 @@ public sealed class SiteConnections : IDisposable
         }
         catch (Exception exception) when (exception is ArgumentException or UriFormatException)
         {
-            ForgetFailed(profile);
+            ForgetFailed(profile, profileCount);
 
             return new ConnectionFailed(profile, BadSiteMessage);
         }
@@ -209,13 +226,15 @@ public sealed class SiteConnections : IDisposable
 
     // A failed profile is not "connected", so activating it again (for example after another profile was removed and
     // the environment token became usable) tries once more.
-    private void ForgetFailed(Profile profile)
+    private void ForgetFailed(Profile profile, int profileCount)
     {
         lock (_lock)
         {
             if (profile == _profile && _transport is null)
             {
                 _profile = null;
+                _failedProfile = profile;
+                _failedProfileCount = profileCount;
             }
         }
     }
@@ -225,6 +244,7 @@ public sealed class SiteConnections : IDisposable
         _transport?.Dispose();
         _transport = null;
         _profile = profile;
+        _failedProfile = null;
         _generation++;
 
         return _generation;
