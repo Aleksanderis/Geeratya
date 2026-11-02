@@ -21,9 +21,38 @@ public static class AdfRoundTrip
         }
 
         var text = AdfMarkdownWriter.ToText(document);
+
+        if (HasLoneSurrogate(text))
+        {
+            return false;
+        }
+
         var parsed = AdfMarkdownParser.Parse(text);
 
         return AdfJsonWriter.ToJson(Normalize(document)) == AdfJsonWriter.ToJson(Normalize(parsed));
+    }
+
+    /// <summary>
+    /// A lone UTF-16 surrogate becomes U+FFFD in JSON on both sides of the comparison, so the comparison cannot see
+    /// the loss; such a document is reported as not round-tripping.
+    /// </summary>
+    private static bool HasLoneSurrogate(string text)
+    {
+        for (var index = 0; index < text.Length; index++)
+        {
+            var current = text[index];
+
+            if (char.IsHighSurrogate(current) && index + 1 < text.Length && char.IsLowSurrogate(text[index + 1]))
+            {
+                index++;
+            }
+            else if (char.IsSurrogate(current))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static AdfDocument Normalize(AdfDocument document)
