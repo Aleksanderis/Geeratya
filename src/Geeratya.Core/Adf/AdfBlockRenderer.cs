@@ -12,7 +12,7 @@ namespace Geeratya.Core.Adf;
 /// </summary>
 internal static class AdfBlockRenderer
 {
-    /// <summary>Nesting deeper than this is cut off; the parser stops at 64, so only hand-built trees reach it.</summary>
+    /// <summary>Nesting deeper than this is cut off; the parser stops at 64.</summary>
     public const int MaxDepth = 100;
 
     public static void RenderBlocks(

@@ -5,7 +5,7 @@ using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Tests.Adf;
 
-/// <summary>Helpers shared by the ADF renderer tests: documents from JSON, fixtures, plain text of the output.</summary>
+/// <summary>Helpers shared by the ADF renderer tests: documents from JSON, fixtures, plain output.</summary>
 internal static class AdfTestSupport
 {
     public const string RichDescription = "issue-gtm5-rich-description.json";

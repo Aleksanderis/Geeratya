@@ -249,7 +249,8 @@ public sealed class AdfRendererTests
             {"type":"paragraph","content":[
               {"type":"text","text":"see ","marks":[]},
               {"type":"text","text":"the ","marks":[{"type":"link","attrs":{"href":"https://x.test/a"}}]},
-              {"type":"text","text":"page","marks":[{"type":"link","attrs":{"href":"https://x.test/a"}},{"type":"strong"}]},
+              {"type":"text","text":"page","marks":[
+                {"type":"link","attrs":{"href":"https://x.test/a"}},{"type":"strong"}]},
               {"type":"text","text":" end"}]}
             """;
 
@@ -313,7 +314,9 @@ public sealed class AdfRendererTests
     [InlineData("neutral", TextRole.StatusToDo)]
     public void GivenStatusColour_WhenRendering_ThenTheChipTakesTheMatchingStatusRole(string color, TextRole role)
     {
-        var json = $$$"""{"type":"paragraph","content":[{"type":"status","attrs":{"text":"ok","color":"{{{color}}}"}}]}""";
+        var json = $$$"""
+            {"type":"paragraph","content":[{"type":"status","attrs":{"text":"ok","color":"{{{color}}}"}}]}
+            """;
 
         Assert.Equal(role, Assert.Single(Spans(json, 40)).Role);
     }

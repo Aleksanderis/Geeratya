@@ -37,7 +37,7 @@ internal sealed class WrappedText
         _preformatted = preformatted;
     }
 
-    /// <summary>Adds text with one role. Whitespace is a break opportunity in prose and kept in preformatted text.</summary>
+    /// <summary>Adds text with one role. Whitespace breaks lines in prose and is kept in preformatted text.</summary>
     public void Append(string text, TextRole role)
     {
         var index = 0;
@@ -79,7 +79,7 @@ internal sealed class WrappedText
         _pendingSpace = false;
     }
 
-    /// <summary>Writes the finished lines to <paramref name="output" />. A trailing line break adds no empty line.</summary>
+    /// <summary>Writes the finished lines to <paramref name="output" />; a trailing line break adds no line.</summary>
     public void Finish(List<StyledLine> output)
     {
         FlushWord();

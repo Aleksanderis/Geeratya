@@ -33,7 +33,9 @@ public sealed class AdfUnknownAndMalformedTests
     {
         const string json = """
             {"type":"paragraph","content":[
-              {"type":"text","text":"a "},{"type":"inlineExtension","attrs":{"text":"ext"}},{"type":"text","text":" b"}]}
+              {"type":"text","text":"a "},
+              {"type":"inlineExtension","attrs":{"text":"ext"}},
+              {"type":"text","text":" b"}]}
             """;
 
         Assert.Equal(["a [unsupported: inlineExtension] ext b"], Lines(json, 80));
@@ -65,9 +67,13 @@ public sealed class AdfUnknownAndMalformedTests
     [InlineData("""{"type":"doc","content":"nope"}""")]
     [InlineData("""{"type":"doc","content":[1,null,"x",{"type":5},{"content":[{}]}]}""")]
     [InlineData("""{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow"},{"type":"paragraph"}]}]}""")]
-    [InlineData("""{"type":"doc","content":[{"type":"bulletList","content":[{"type":"paragraph"},{"type":"text"}]}]}""")]
-    [InlineData("""{"type":"doc","content":[{"type":"emoji"},{"type":"date","attrs":{"timestamp":"x"}},{"type":"status"}]}""")]
-    [InlineData("""{"type":"doc","content":[{"type":"paragraph","content":[{"type":"date","attrs":{"timestamp":"99999999999999999"}}]}]}""")]
+    [InlineData("""{"type":"doc","content":[{"type":"bulletList","content":[{"type":"paragraph"}]}]}""")]
+    [InlineData("""{"type":"doc","content":[{"type":"emoji"},{"type":"date","attrs":{"timestamp":"x"}}]}""")]
+    [InlineData("""{"type":"doc","content":[{"type":"paragraph","content":[{"type":"status"}]}]}""")]
+    [InlineData("""
+        {"type":"doc","content":[{"type":"paragraph","content":[
+          {"type":"date","attrs":{"timestamp":"99999999999999999"}}]}]}
+        """)]
     public void GivenMalformedJson_WhenParsingAndRendering_ThenNothingThrows(string json)
     {
         var document = AdfParser.Parse(json);

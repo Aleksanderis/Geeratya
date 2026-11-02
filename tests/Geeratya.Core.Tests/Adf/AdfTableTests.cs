@@ -10,8 +10,10 @@ public sealed class AdfTableTests
     private const string SmallTable = """
         {"type":"table","content":[
           {"type":"tableRow","content":[
-            {"type":"tableHeader","attrs":{},"content":[{"type":"paragraph","content":[{"type":"text","text":"Name"}]}]},
-            {"type":"tableHeader","attrs":{},"content":[{"type":"paragraph","content":[{"type":"text","text":"Qty"}]}]}]},
+            {"type":"tableHeader","attrs":{},"content":[
+              {"type":"paragraph","content":[{"type":"text","text":"Name"}]}]},
+            {"type":"tableHeader","attrs":{},"content":[
+              {"type":"paragraph","content":[{"type":"text","text":"Qty"}]}]}]},
           {"type":"tableRow","content":[
             {"type":"tableCell","attrs":{},"content":[{"type":"paragraph","content":[{"type":"text","text":"apple"}]}]},
             {"type":"tableCell","attrs":{},"content":[{"type":"paragraph","content":[{"type":"text","text":"3"}]}]}]}]}
