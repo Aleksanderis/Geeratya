@@ -15,7 +15,7 @@ public sealed record TransitionRequest(
     IReadOnlyList<FieldChange> Changes,
     bool AskFirst) : WriteRequest
 {
-    private const string SideEffectWarning = "The workflow may do more than change the status, and Jira cannot undo it";
+    private const string SideEffectWarning = "Jira cannot undo this; the workflow may do more than change the status";
 
     public override OperationKind Kind => OperationKind.Transition;
 

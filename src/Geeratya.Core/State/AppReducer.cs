@@ -337,6 +337,8 @@ public sealed class AppReducer
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             PaletteCommands.Status => TransitionForms.OpenPicker(normal),
+            "status next" => TransitionForms.MoveCard(normal, 1),
+            "status prev" or "status previous" => TransitionForms.MoveCard(normal, -1),
             PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),

@@ -57,6 +57,40 @@ public sealed class TransitionHandlerTests
     }
 
     [Fact]
+    public async Task GivenTheTeamManagedTransitions_WhenThePickerLoads_ThenTheGlobalTransitionsAreChoices()
+    {
+        var recorded = RecordedFixtures.Read("transitions/transitions-gtm-5.json");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, recorded));
+        var target = new TransitionPickTarget("GTM-5", [], null, []);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, target));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var refined = Assert.IsType<TransitionPickTarget>(loaded.Target);
+        Assert.Equal(["11", "21", "31", "41"], refined.Choices.Select(choice => choice.Id).Order());
+        Assert.All(refined.Choices, choice => Assert.False(choice.NeedsForm));
+        Assert.EndsWith("/rest/api/3/issue/GTM-5/transitions", fixture.Http.Requests.Single().AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenAScreenWithOnlyAFieldTheFormCannotEdit_WhenItsFormLoads_ThenItSaysToUseTheBrowser()
+    {
+        const string screen = """
+            {"transitions":[{"id":"31","name":"Start","hasScreen":true,"isAvailable":true,"isGlobal":true,
+            "to":{"id":"3","name":"In Progress","statusCategory":{"key":"indeterminate"}},
+            "fields":{"customfield_1":{"required":true,"name":"Reviewer","fieldId":"customfield_1",
+            "schema":{"type":"user"},"hasDefaultValue":false}}}]}
+            """;
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, screen));
+        var choice = new TransitionChoice("31", "Start", new("3", "In Progress", "indeterminate"), true, false);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, new TransitionFormTarget("A-1", choice)));
+
+        var failed = Assert.IsType<FormMetadataFailed>(Assert.Single(fixture.Posted));
+        Assert.Contains("do it in the browser", failed.Message);
+    }
+
+    [Fact]
     public async Task GivenATransitionThatNoLongerExists_WhenItsFormLoads_ThenTheFormFailsWithTheReason()
     {
         var recorded = RecordedFixtures.Read("transitions/transitions-gcm-1.json");

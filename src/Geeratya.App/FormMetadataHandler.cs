@@ -11,6 +11,8 @@ namespace Geeratya.App;
 public sealed class FormMetadataHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
+    private const string NeedsBrowserMessage =
+        "This transition asks for a field Geeratya cannot edit yet; do it in the browser (<space>o).";
     private const string UnsupportedMessage = "This form cannot be opened yet.";
 
     private readonly NetworkRunner _runner;
@@ -104,7 +106,14 @@ public sealed class FormMetadataHandler
         // A field Jira fills in when it is left out is not required of the user.
         var metas = transition.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
 
-        return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromTransition([.. metas]));
+        var fields = FormFieldMapper.FromTransition([.. metas]);
+
+        if (!fields.Any(field => field.IsEditable))
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, NeedsBrowserMessage);
+        }
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, fields);
     }
 
     private static string MessageOf(JiraError error, string key)

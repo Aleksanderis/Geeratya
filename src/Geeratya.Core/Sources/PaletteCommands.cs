@@ -24,7 +24,7 @@ public static class PaletteCommands
         new(Board, "board [name]", "Open a board as columns in a new tab"),
         new(Backlog, "backlog [name]", "Open a board's backlog in a new tab"),
         new(Tab, "tab new|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
-        new(Status, "status", "Change the status of the selected or shown issue (transition picker)"),
+        new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
         new(Profile, "profile add|list|switch <name>|remove <name>|check", "Manage Jira profiles"),
         new(Help, "help", "Show or hide help"),

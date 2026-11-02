@@ -1,3 +1,4 @@
+using Geeratya.Core.Forms;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transitions.Models;
 
@@ -27,7 +28,7 @@ public sealed record TransitionChoice(string Id, string Name, IssueStatus Target
 
     public static TransitionChoice Of(Transition transition)
     {
-        var needsForm = transition.RequiredFields.Any() || (transition.HasScreen && transition.Fields.Count > 0);
+        var needsForm = transition.RequiredFields.Any() || (transition.HasScreen && HasEditableField(transition));
         var done = string.Equals(transition.Target.CategoryKey, DoneCategory, StringComparison.Ordinal);
 
         return new TransitionChoice(
@@ -36,5 +37,11 @@ public sealed record TransitionChoice(string Id, string Name, IssueStatus Target
             transition.Target,
             needsForm,
             !needsForm && (done || transition.HasScreen));
+    }
+
+    // A screen of fields the form cannot edit (the system comment, say) has nothing to ask the user.
+    private static bool HasEditableField(Transition transition)
+    {
+        return FormFieldMapper.FromTransition(transition.Fields).Any(field => field.IsEditable);
     }
 }

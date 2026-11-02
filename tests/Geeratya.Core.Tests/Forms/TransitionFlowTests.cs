@@ -157,6 +157,71 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenAColumnMoveThatJiraRefuses_WhenTheWriteFails_ThenTheCardAndTheSelectionGoBackToTheFirstColumn()
+    {
+        var moved = LoadedPick(Tabbed(ViewLayout.Columns), "Alt-l", Transition("21", _progress));
+        var operation = Assert.Single(moved.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Permission, 403, "You lack the permission", [], []);
+
+        var failed = _reducer.Reduce(moved.State, new WriteFailed(operation.Id, _start, error)).State;
+
+        var tab = failed.Session.Tabs[0];
+        var columns = ColumnsNavigation.ColumnsOf(tab);
+        Assert.Equal("To Do", tab.Rows[0].Status.Name);
+        Assert.Equal(0, BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, 10).Column);
+        Assert.Equal("A-1", ColumnsNavigation.SelectedIssue(tab)!.Key);
+    }
+
+    [Fact]
+    public void GivenAnUnknownOutcome_WhenTheIssueStillShowsTheOldStatus_ThenTheMoveIsRolledBackAsNotApplied()
+    {
+        var sent = Keys(Picker(Tabbed(ViewLayout.List), Transition("21", _progress)), "Enter").State;
+        var operation = Assert.Single(sent.Session.Operations);
+        var old = sent.Session.Tabs[0].Rows[0] with { Status = _todo };
+
+        var verified = _reducer.Reduce(sent, new WriteVerified(operation.Id, _start, VerifyOutcome.NotApplied, [old]));
+
+        Assert.Equal("To Do", verified.State.Session.Tabs[0].Rows[0].Status.Name);
+        Assert.Equal("A-1: the move was not applied", verified.State.Message);
+    }
+
+    [Fact]
+    public void GivenThePaletteCommands_WhenStatusNextAndPrevAreRun_ThenTheyMoveTheCardLikeTheAltKeys()
+    {
+        var tabbed = Tabbed(ViewLayout.Columns);
+
+        var next = Palette(tabbed, "status next");
+        var previous = Palette(tabbed, "status prev");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(next.Effects));
+        Assert.Equal("In Progress", Assert.IsType<TransitionPickTarget>(effect.Target).ColumnName);
+        Assert.Empty(previous.Effects);
+        Assert.Contains("already in the first column", previous.State.Message);
+    }
+
+    [Fact]
+    public void GivenAScreenOfFieldsTheFormCannotEdit_WhenTheChoiceIsMade_ThenItNeedsNoFormAndAsksFirst()
+    {
+        var comment = new FieldMeta("comment", "Comment", false, "comment", false, []);
+        var screen = new Transition("31", "Start", _progress, true, true, [comment]);
+
+        var choice = TransitionChoice.Of(screen);
+
+        Assert.False(choice.NeedsForm);
+        Assert.True(choice.AsksFirst);
+    }
+
+    [Fact]
+    public void GivenARequiredFieldTheFormCannotEdit_WhenTheChoiceIsMade_ThenItStillNeedsTheForm()
+    {
+        var user = new FieldMeta("customfield_1", "Reviewer", true, "user", false, []);
+
+        var choice = TransitionChoice.Of(new Transition("31", "Start", _progress, true, true, [user]));
+
+        Assert.True(choice.NeedsForm);
+    }
+
+    [Fact]
     public void GivenAnUnknownOutcome_WhenTheIssueShowsTheTarget_ThenTheMoveCountsAsDone()
     {
         var sent = Keys(Picker(Tabbed(ViewLayout.List), Transition("21", _progress)), "Enter").State;
@@ -291,6 +356,13 @@ public class TransitionFlowTests
         }
 
         return current;
+    }
+
+    private ReduceResult Palette(AppState state, string command)
+    {
+        var current = state with { Mode = InputMode.Command, PaletteText = command };
+
+        return _reducer.Reduce(current, new KeyPressed("Enter", _start));
     }
 
     private AppState Picker(AppState tabbed, params Transition[] transitions)

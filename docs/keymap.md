@@ -111,7 +111,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
-| `:status` | Change the status of the selected or shown issue (transition picker) |
+| `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:help` | Show or hide help |
