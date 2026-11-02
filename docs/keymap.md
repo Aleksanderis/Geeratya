@@ -51,6 +51,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Space m a` | Add a comment to the issue |
+| `Space m e` | Edit the comment under the cursor |
+| `Space m d` | Delete the comment under the cursor |
 
 ## Help mode
 
@@ -94,6 +97,13 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous source in the picker |
 | `Down` | Next source in the picker |
 | `Ctrl-n` | Next source in the picker |
+| `Ctrl-s` | Save the comment |
+| `Alt-Enter` | Save the comment |
+| `Left` | Move the cursor left |
+| `Right` | Move the cursor right |
+| `Home` | Move the cursor to the start of the row |
+| `End` | Move the cursor to the end of the row |
+| `Delete` | Delete the character under the cursor |
 
 ## Palette commands
 

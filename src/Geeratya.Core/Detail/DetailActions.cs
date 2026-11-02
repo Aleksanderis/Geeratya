@@ -24,7 +24,7 @@ internal static class DetailActions
             return null;
         }
 
-        return target.Kind == DetailTargetKind.Issue ? null : OpenTarget(state, target);
+        return target.Kind is DetailTargetKind.Issue or DetailTargetKind.Comment ? null : OpenTarget(state, target);
     }
 
     /// <summary>
@@ -40,7 +40,9 @@ internal static class DetailActions
 
         var target = DetailReducer.TargetOf(top.Detail);
 
-        return target is null ? BrowserReducer.OpenIssue(state, top.Detail.Key) : OpenTarget(state, target);
+        return target is null or { Kind: DetailTargetKind.Comment }
+            ? BrowserReducer.OpenIssue(state, top.Detail.Key)
+            : OpenTarget(state, target);
     }
 
     /// <summary><c>issue.open-parent</c>: pushes the parent of the shown issue.</summary>

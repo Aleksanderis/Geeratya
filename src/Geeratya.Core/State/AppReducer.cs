@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
@@ -98,6 +99,7 @@ public sealed class AppReducer
             Confirm = null,
             Form = null,
             Picker = null,
+            Editor = null,
         };
     }
 
@@ -145,6 +147,11 @@ public sealed class AppReducer
     /// </summary>
     private static AppState Paste(AppState state, string pasted)
     {
+        if (state.Mode == InputMode.Insert && state.Editor is not null)
+        {
+            return CommentEditing.Type(state, PasteText.Lines(pasted));
+        }
+
         var text = PasteText.FirstLine(pasted);
 
         if (text.Length == 0)
@@ -179,6 +186,11 @@ public sealed class AppReducer
 
     private static AppState TypeInInsert(AppState state, string text)
     {
+        if (state.Editor is not null)
+        {
+            return CommentEditing.Type(state, text);
+        }
+
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
@@ -192,13 +204,22 @@ public sealed class AppReducer
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state),
-            ActionIds.Cancel => Result(ToNormal(state)),
-            ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
+            ActionIds.Cancel => state.Editor is null ? Result(ToNormal(state)) : CommentEditing.Cancel(state),
+            ActionIds.ConfirmNo => DeclineConfirm(state),
             ActionIds.ConfirmYes => Confirmed(state),
-            ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
+            ActionIds.FormNext => Accept(state),
             ActionIds.FormBackspace => Result(Erase(state)),
-            ActionIds.PickerNext => Result(SourceReducer.Move(state, 1)),
-            ActionIds.PickerPrevious => Result(SourceReducer.Move(state, -1)),
+            ActionIds.PickerNext => Result(MovePicker(state, 1)),
+            ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.EditorSave => CommentEditing.Save(state),
+            ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
+            ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
+            ActionIds.EditorRowStart => Result(CommentEditing.Move(state, EditorMove.RowStart)),
+            ActionIds.EditorRowEnd => Result(CommentEditing.Move(state, EditorMove.RowEnd)),
+            ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
+            ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
+            ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
+            ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
@@ -238,8 +259,46 @@ public sealed class AppReducer
         return state.Mode == InputMode.Normal ? action() : Result(state);
     }
 
+    /// <summary>Enter in Insert mode: a new line in the editor, else accepts the form field or picker row.</summary>
+    private static ReduceResult Accept(AppState state)
+    {
+        if (state.Editor is not null)
+        {
+            return Result(CommentEditing.Type(state, "\n"));
+        }
+
+        return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
+    }
+
+    /// <summary>Up and down in Insert mode: a row up or down in the editor, else the picker selection.</summary>
+    private static AppState MovePicker(AppState state, int direction)
+    {
+        if (state.Editor is null)
+        {
+            return SourceReducer.Move(state, direction);
+        }
+
+        return CommentEditing.Move(state, direction > 0 ? EditorMove.Down : EditorMove.Up);
+    }
+
+    /// <summary>n or Esc in Confirm mode; the discard question goes back to the editor with its text.</summary>
+    private static ReduceResult DeclineConfirm(AppState state)
+    {
+        if (state.Editor is not null)
+        {
+            return Result(CommentEditing.KeepEditing(state));
+        }
+
+        return Result(ToNormal(state) with { Message = "Cancelled." });
+    }
+
     private static AppState Erase(AppState state)
     {
+        if (state.Editor is not null)
+        {
+            return CommentEditing.Backspace(state);
+        }
+
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
     }
 
@@ -433,6 +492,11 @@ public sealed class AppReducer
         if (request.ActionOnConfirm == ProfileReducer.SwitchAction)
         {
             return ProfileReducer.ConfirmedSwitch(normal, request.Target);
+        }
+
+        if (request.ActionOnConfirm == CommentEditing.DeleteAction)
+        {
+            return CommentEditing.ConfirmedDelete(normal, request.Target);
         }
 
         // The quit that was asked for while writes ran: the answer was yes, so no second question.

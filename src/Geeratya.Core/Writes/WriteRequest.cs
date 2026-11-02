@@ -13,6 +13,12 @@ public abstract record WriteRequest
     /// <summary>The issues the write changes; a second write on any of them is refused while this one runs.</summary>
     public abstract IReadOnlyList<string> Keys { get; }
 
+    /// <summary>
+    /// Whether the write changes what the list rows and the issue header show. False for a write that only touches
+    /// the issue's comments: no row is marked stale, no search is read and the issue is not reloaded.
+    /// </summary>
+    public virtual bool ChangesRows => true;
+
     /// <summary>The activity for the busy refusal: <c>GCM-3 is busy (assigning)</c>.</summary>
     public abstract string BusyText { get; }
 

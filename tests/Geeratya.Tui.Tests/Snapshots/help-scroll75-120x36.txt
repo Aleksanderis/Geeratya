@@ -1,8 +1,18 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous source in the picker                                                                              
+  Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
+  Ctrl-s     Save the comment                                                                                           
+  Alt-Enter  Save the comment                                                                                           
+  Left       Move the cursor left                                                                                       
+  Right      Move the cursor right                                                                                      
+  Home       Move the cursor to the start of the row                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
                                                                                                                         
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
@@ -21,16 +31,6 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

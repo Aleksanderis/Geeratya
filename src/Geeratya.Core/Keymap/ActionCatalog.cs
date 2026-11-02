@@ -48,6 +48,15 @@ public static class ActionCatalog
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.PickerPrevious, "Previous source in the picker"),
         new(ActionIds.PickerNext, "Next source in the picker"),
+        new(ActionIds.CommentAdd, "Add a comment to the issue"),
+        new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
+        new(ActionIds.CommentDelete, "Delete the comment under the cursor"),
+        new(ActionIds.EditorSave, "Save the comment"),
+        new(ActionIds.EditorLeft, "Move the cursor left"),
+        new(ActionIds.EditorRight, "Move the cursor right"),
+        new(ActionIds.EditorRowStart, "Move the cursor to the start of the row"),
+        new(ActionIds.EditorRowEnd, "Move the cursor to the end of the row"),
+        new(ActionIds.EditorDelete, "Delete the character under the cursor"),
     ];
 
     /// <summary>
@@ -71,6 +80,12 @@ public static class ActionCatalog
         ActionIds.FormBackspace,
         ActionIds.PickerPrevious,
         ActionIds.PickerNext,
+        ActionIds.EditorSave,
+        ActionIds.EditorLeft,
+        ActionIds.EditorRight,
+        ActionIds.EditorRowStart,
+        ActionIds.EditorRowEnd,
+        ActionIds.EditorDelete,
     ];
 
     public static bool IsModalOnly(string id)

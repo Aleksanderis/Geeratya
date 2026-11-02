@@ -45,6 +45,9 @@
     { "mode": "normal", "keys": "Space l", "action": "view.layout-toggle" },
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },
+    { "mode": "normal", "keys": "Space m a", "action": "comment.add" },
+    { "mode": "normal", "keys": "Space m e", "action": "comment.edit" },
+    { "mode": "normal", "keys": "Space m d", "action": "comment.delete" },
 
     { "mode": "help", "keys": "j", "action": "nav.down" },
     { "mode": "help", "keys": "Down", "action": "nav.down" },
@@ -71,6 +74,13 @@
     { "mode": "insert", "keys": "Up", "action": "picker.previous" },
     { "mode": "insert", "keys": "Ctrl-p", "action": "picker.previous" },
     { "mode": "insert", "keys": "Down", "action": "picker.next" },
-    { "mode": "insert", "keys": "Ctrl-n", "action": "picker.next" }
+    { "mode": "insert", "keys": "Ctrl-n", "action": "picker.next" },
+    { "mode": "insert", "keys": "Ctrl-s", "action": "editor.save" },
+    { "mode": "insert", "keys": "Alt-Enter", "action": "editor.save" },
+    { "mode": "insert", "keys": "Left", "action": "editor.left" },
+    { "mode": "insert", "keys": "Right", "action": "editor.right" },
+    { "mode": "insert", "keys": "Home", "action": "editor.row-start" },
+    { "mode": "insert", "keys": "End", "action": "editor.row-end" },
+    { "mode": "insert", "keys": "Delete", "action": "editor.delete" }
   ]
 }
