@@ -9,6 +9,16 @@ namespace Geeratya.Jira.Tests.Jql;
 [Trait("Os", "Independent")]
 public sealed class JqlBuilderTests
 {
+    [Theory]
+    [InlineData(JqlBuilder.StatusCategoryToDo, "new")]
+    [InlineData(JqlBuilder.StatusCategoryInProgress, "indeterminate")]
+    [InlineData(JqlBuilder.StatusCategoryDone, "done")]
+    public void GivenCategoryConstant_WhenBuildingStatusCategory_ThenKeyNotLocalizedName(string constant, string key)
+    {
+        Assert.Equal(key, constant);
+        Assert.Equal($"statusCategory = \"{key}\"", JqlBuilder.StatusCategory(constant));
+    }
+
     [Fact]
     public void GivenIssueKey_WhenBuildingParent_ThenVerbatim()
     {
@@ -52,7 +62,7 @@ public sealed class JqlBuilderTests
         Assert.Equal("issuetype = \"Epic\"", JqlBuilder.IssueTypeEpic());
         var category = JqlBuilder.StatusCategory(JqlBuilder.StatusCategoryInProgress);
 
-        Assert.Equal("statusCategory = \"In Progress\"", category);
+        Assert.Equal("statusCategory = \"indeterminate\"", category);
     }
 
     [Theory]

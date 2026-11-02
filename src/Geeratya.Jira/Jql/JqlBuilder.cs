@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Jira.Jql;
 
@@ -14,10 +15,10 @@ public static class JqlBuilder
     public const string UpdatedField = "updated";
     public const string EpicIssueType = "Epic";
 
-    /// <summary>Jira's status category names, as <c>statusCategory</c> accepts them.</summary>
-    public const string StatusCategoryToDo = "To Do";
-    public const string StatusCategoryInProgress = "In Progress";
-    public const string StatusCategoryDone = "Done";
+    /// <summary>Jira's status category keys, as <c>statusCategory</c> accepts them. Keys are language independent; the names ("To Do") are localized per site, so the builder never uses them.</summary>
+    public const string StatusCategoryToDo = StatusCategoryKeys.New;
+    public const string StatusCategoryInProgress = StatusCategoryKeys.Indeterminate;
+    public const string StatusCategoryDone = StatusCategoryKeys.Done;
 
     private const string AndOperator = " AND ";
     private const string OrOperator = " OR ";
@@ -65,7 +66,7 @@ public static class JqlBuilder
 
     public static string IssueType(string name) => $"issuetype = {Quote(name)}";
 
-    /// <summary><c>statusCategory = "In Progress"</c>.</summary>
+    /// <summary><c>statusCategory = "indeterminate"</c>.</summary>
     public static string StatusCategory(string category) => $"statusCategory = {Quote(category)}";
 
     /// <summary>Joins clauses with <c>AND</c>, skipping empty ones. Use <see cref="Or"/> for an OR clause.</summary>
