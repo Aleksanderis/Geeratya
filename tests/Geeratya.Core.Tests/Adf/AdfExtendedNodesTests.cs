@@ -25,6 +25,79 @@ public sealed class AdfExtendedNodesTests
     }
 
     [Fact]
+    public void GivenExtendedFixture_WhenRendering_ThenRowSpanNestedExpandDecisionInlineMediaAndCaptionHaveTheirLook()
+    {
+        var lines = PlainLines(AdfRenderer.Render(FixtureDescription(ExtendedDescription), 80));
+
+        var expected = new[]
+        {
+            "Table with spans",
+            "",
+            "| Wide header | C             |",
+            "|------|------|---------------|",
+            "| Tall | Wide                 |",
+            "|      | x    | v Inner       |",
+            "|      |      |   nested body |",
+            "",
+            "v Outer",
+            "  outer body",
+            "",
+            "[decided] Use ADF",
+            "",
+            "Inline media [file]",
+            "",
+            "[image]",
+            "A caption",
+        };
+
+        Assert.Equal(expected, lines);
+    }
+
+    [Fact]
+    public void GivenDecisionItemsWithOtherStates_WhenRendering_ThenTheStateIsShownLowercaseAndWraps()
+    {
+        const string json = """
+            {"type":"decisionList","attrs":{"localId":"a"},"content":[
+              {"type":"decisionItem","attrs":{"state":"UNDECIDED"},"content":[{"type":"text","text":"one two three"}]},
+              {"type":"decisionItem","content":[{"type":"text","text":"no state"}]}]}
+            """;
+
+        Assert.Equal(["[undecided] one two", "            three", "[decision] no state"], Lines(json, 19));
+    }
+
+    [Fact]
+    public void GivenNestedExpandWithoutTitle_WhenRendering_ThenTheDefaultTitleIsUsed()
+    {
+        const string json = """
+            {"type":"nestedExpand","content":[{"type":"paragraph","content":[{"type":"text","text":"body"}]}]}
+            """;
+
+        Assert.Equal(["v Expand", "  body"], Lines(json, 40));
+    }
+
+    [Fact]
+    public void GivenCaptionWithoutMedia_WhenRendering_ThenTheMarkerStillComesFirst()
+    {
+        const string json = """
+            {"type":"mediaSingle","content":[{"type":"caption","content":[{"type":"text","text":"only caption"}]}]}
+            """;
+
+        Assert.Equal(["[image]", "only caption"], Lines(json, 40));
+    }
+
+    [Fact]
+    public void GivenMediaInlineBetweenText_WhenRenderingInAListItem_ThenItStaysOnTheLine()
+    {
+        const string json = """
+            {"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[
+              {"type":"text","text":"see"},{"type":"mediaInline","attrs":{"id":"x","type":"file"}},
+              {"type":"text","text":"here"}]}]}]}
+            """;
+
+        Assert.Equal(["- see[file]here"], Lines(json, 40));
+    }
+
+    [Fact]
     public void GivenExtendedFixture_WhenCachedAndReadBack_ThenSpansWidthsAndNewNodesSurvive()
     {
         var read = AdfCacheMapper.FromDto(AdfCacheMapper.ToDto(FixtureDescription(ExtendedDescription)));

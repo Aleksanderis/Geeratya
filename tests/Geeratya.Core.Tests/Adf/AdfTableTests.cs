@@ -106,6 +106,99 @@ public sealed class AdfTableTests
     }
 
     [Fact]
+    public void GivenRowSpanCell_WhenRendering_ThenCellsBelowItShiftRightAndTheGridAligns()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableCell","attrs":{"rowspan":2},"content":[{{Paragraph("Tall")}}]},
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"Wide"}]}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}
+            """;
+
+        Assert.Equal(["| Tall | Wide |", "|      | x    |", "| a    | b    |"], Lines(json, 80));
+    }
+
+    [Fact]
+    public void GivenRowSpanCellAsTallAsItsRows_WhenRendering_ThenNoRowGrows()
+    {
+        Assert.Equal(["| p1 | a |", "| p2 | b |"], Lines(TallRowSpanTable(Paragraph("p1"), Paragraph("p2")), 80));
+    }
+
+    [Fact]
+    public void GivenRowSpanCellTallerThanItsRows_WhenRendering_ThenTheLastCoveredRowGrows()
+    {
+        var json = TallRowSpanTable(Paragraph("p1"), Paragraph("p2"), Paragraph("p3"));
+
+        Assert.Equal(["| p1 | a |", "| p2 | b |", "| p3 |   |"], Lines(json, 80));
+    }
+
+    [Fact]
+    public void GivenRowSpanBeyondTheLastRow_WhenRendering_ThenItIsClampedToTheRowsThatExist()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableCell","attrs":{"rowspan":5},"content":[{{Paragraph("only")}}]},
+                {"type":"tableCell","content":[{{Paragraph("b")}}]}]}]}
+            """;
+
+        Assert.Equal(["| only | b |"], Lines(json, 80));
+    }
+
+    [Fact]
+    public void GivenRowSpanAndColumnSpanTogether_WhenRendering_ThenTheCellsLandInTheRightColumns()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableHeader","attrs":{"colspan":2},"content":[{{Paragraph("Wide header")}}]},
+                {"type":"tableHeader","content":[{{Paragraph("C")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","attrs":{"rowspan":2},"content":[{{Paragraph("Tall")}}]},
+                {"type":"tableCell","attrs":{"colspan":2},"content":[{{Paragraph("Wide")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{{Paragraph("x")}}]},
+                {"type":"tableCell","content":[{{Paragraph("y")}}]}]}]}
+            """;
+
+        var expected = new[]
+        {
+            "| Wide header | C |",
+            "|------|------|---|",
+            "| Tall | Wide     |",
+            "|      | x    | y |",
+        };
+
+        Assert.Equal(expected, Lines(json, 80));
+    }
+
+    [Fact]
+    public void GivenRowSpanTableTooNarrowForTheGrid_WhenRendering_ThenTheSpanCellAppearsOnceInItsFirstRow()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableHeader","content":[{{Paragraph("Name")}}]},
+                {"type":"tableHeader","content":[{{Paragraph("Notes")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","attrs":{"rowspan":2},"content":[{{Paragraph("shared value for both")}}]},
+                {"type":"tableCell","content":[{{Paragraph("first note here")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{{Paragraph("second note here")}}]}]}]}
+            """;
+
+        var lines = Lines(json, 12);
+
+        Assert.Single(lines, static line => line.Contains("shared", StringComparison.Ordinal));
+        Assert.Contains(lines, static line => line.Contains("second", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenShortRow_WhenRendering_ThenMissingCellsArePadded()
     {
         const string json = """
@@ -178,5 +271,19 @@ public sealed class AdfTableTests
     public void GivenEmptyTable_WhenRendering_ThenThereAreNoLines()
     {
         Assert.Empty(Lines("""{"type":"table","content":[]}""", 40));
+    }
+
+    private static string TallRowSpanTable(params string[] spanParagraphs)
+    {
+        var content = string.Join(',', spanParagraphs);
+
+        return $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableCell","attrs":{"rowspan":2},"content":[{{content}}]},
+                {"type":"tableCell","content":[{{Paragraph("a")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{{Paragraph("b")}}]}]}]}
+            """;
     }
 }

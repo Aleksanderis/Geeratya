@@ -13,6 +13,7 @@ internal static class AdfMarkers
     public const string Image = "[image]";
     public const string File = "[file]";
     public const string Link = "[link]";
+    public const string DefaultDecisionLabel = "decision";
     public const string DefaultExpandTitle = "Expand";
     public const string Truncated = "[unsupported: nesting too deep]";
     public const char RuleCharacter = '-';
