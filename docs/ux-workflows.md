@@ -21,7 +21,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 
 ## 3. Browse a board
 
-`h`/`l` change column, `0`/`$` jump to the first and last, `j`/`k` move between cards. Columns that do not fit scroll horizontally with the selection. `Enter` opens the selected card. There is no card movement in M1 (transitions arrive with M2); `<space>l` shows the same issues as a list.
+`h`/`l` change column, `0`/`$` jump to the first and last, `j`/`k` move between cards. Columns that do not fit scroll horizontally with the selection. `Enter` opens the selected card. `Alt-l` / `Alt-h` move the selected card to the next or previous column (workflow 10); `<space>l` shows the same issues as a list.
 
 ## 4. Open an issue, follow links, go back
 
@@ -52,7 +52,8 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 Design in `architecture.md`, "Write pipeline". What the user sees:
 
 - A change that a row shows (move a card, rank, assignee, a field) appears at once with a `…` marker and a status line saying what is being done; it settles when Jira answers. On failure the row goes back and the status line says why and what was not done (no permission, not found, rate limited with the wait, Jira's own text for a refused transition).
-- Creating, deleting and commenting wait for the reply; the form shows `Saving…` and stays open on an error, with each field's message at the field.
+- Rank (#169, `Alt-j`/`Alt-k`, `<space>kt`/`kb`/`kk`): works in a board or backlog view (a JQL or filter list is ordered by its query, not by rank, and refuses). The issue under the cursor moves next to a neighbour the view shows: the next row, or in the columns layout the next card of its column (a card with sub-tasks shown under it moves with them). The row moves at once and carries the `…` marker until Jira answers; `Alt-j` on the last row says `already at the bottom`. In the columns layout, cards of other columns that lie between the two in the board order are named in the status line (`Ranking GCM-1 below GCM-4 (2 cards of other columns lie between)`). Rank cannot be read back from one issue, so a lost reply is not resolved to done or not done: the order goes back, the status line says to reload, and the view reloads. After a rank the view reloads (the server order is the truth). `<space>kk` picks up the issue, then drops it where the cursor stands.
+- Creating, deleting and commenting wait for the reply; the form shows `Saving…` and stays open on an error, with each field's message at the field. Comments (built, #167): `<space>m a` opens the editor in the issue detail, `Ctrl-s` sends, `Esc` asks before throwing text away; `<space>m e` edits and `<space>m d` deletes (after a `y`/`n` that says Jira cannot undo it) the comment under the cursor; the comment list changes from the reply (`ux-screens.md`, "Comment editor").
 - A second write on an issue that is still being written is refused (`GCM-3 is busy`), not queued. Other issues are free. Refresh waits until the writes end; `<space>r` is remembered and runs after.
 - If the answer is lost (timeout, network), the app says it is checking, re-reads the issue and then shows the true state; it never repeats a write by itself.
 - Delete, bulk changes and assignee or sprint changes for several issues ask first (`y`/`n`/`Esc`): the text names what changes and says Jira cannot undo it.
@@ -67,3 +68,13 @@ Built for the labels pilot; transition, create and the other edits open the same
 2. The labels field starts with the issue's current labels. Type a label and press `Space` or `Enter` to add it; `Backspace` on an empty buffer removes the last one. `Ctrl-s` saves (also from any field), and `Enter` on the empty buffer of the last field does too.
 3. The row shows the new labels at once. If Jira refuses, the row goes back and the form stays open with the message at the field. If the answer is lost, the form stays locked while the issue is checked, as in workflow 8.
 4. `Esc` with changes asks `y`/`n`; without changes it closes. Closing while the save runs leaves the write running and its result goes to the status line.
+
+## 10. Change status (M2)
+
+Built in #159. Works from the list, the columns layout and the issue detail on the selected or shown issue.
+
+1. `<space>is` (or `:status`) opens a picker with the transitions Jira offers for this issue now (`Loading fields…` while they are read; nothing is cached or stored, transition ids differ per project). Each entry is the target status, with the transition name when it differs (`Start progress → In Progress`). Typing filters, `Up`/`Down` choose, `Enter` picks, `Esc` closes.
+2. A transition without fields is sent at once: the picker closes, the card shows the new status with the `…` marker and the status line says `Moving GCM-3 to In Progress`. A transition that asks for fields (a required field without a default, or a screen with fields) opens a second form with those fields, required ones first; `Ctrl-s` (or `Enter` on the last field) sends the transition with them, and Jira's message for a refused field shows at the field.
+3. Columns layout: `Alt-l` / `Alt-h` (or `:status next` / `:status prev`, for terminals that send no Alt; plain `:status` is the picker) look up the transitions that end in the next or previous column. Exactly one: the card moves at once, no form shows, and the selection follows the card into its new column. Two or more: the picker lists only those. None: the picker lists every transition and its label says so. First or last column, a card in no board column, and the list layout answer with a status line note and send nothing. A column move is not offered from the issue detail.
+4. A move that may fire workflow side effects asks first (`y`/`n`/`Esc`, text `Move GCM-3 to Done? Jira cannot undo this; the workflow may do more than change the status`): a transition to a status in the done category, or a screen with nothing to fill in. A transition with fields is not asked again: submitting its form is the confirmation. Declining sends nothing.
+5. If Jira refuses (permission, a validator, a field) the card goes back and the status line says why; a lost reply is checked by reading the issue, as in workflow 8.

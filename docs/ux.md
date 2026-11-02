@@ -1,6 +1,6 @@
 # UX
 
-Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md). Mouse arrives with its own part. The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). Mouse arrives with its own part. The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
 
 ## Shell
 
@@ -16,11 +16,11 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
-| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the field form (`:labels` until `<space>ie` binds it; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
+| Insert | `:profile add` (the first editable form), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the field form (`:labels` until `<space>ie` binds it; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
-Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and the Command palette, in every form step. Terminal.Gui delivers a bracketed paste as one `Application.Paste` event (not as keys), which the shell turns into a `TextPasted` command; terminals without bracketed paste send plain key events and already work as typing. Only the first non-empty line is used and control characters are dropped, so a trailing newline never submits a step. The token stays masked and is never printed or logged.
+Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and the Command palette, in every form step. Terminal.Gui delivers a bracketed paste as one `Application.Paste` event (not as keys), which the shell turns into a `TextPasted` command; terminals without bracketed paste send plain key events and already work as typing. In a single-line field only the first non-empty line is used and control characters are dropped, so a trailing newline never submits a step; the comment editor keeps all lines. The token stays masked and is never printed or logged.
 
 ## Focus model and key style
 
@@ -35,7 +35,7 @@ Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and t
 
 ## Confirm mode
 
-Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transitions (a single transition does not ask; see `architecture.md`, "Write pipeline", Confirm flow), changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
+Destructive or hard-to-undo actions (delete, bulk edits, transitions that may fire workflow side effects (a move to a done status, or a screen with nothing to fill in; other single transitions do not ask; see `architecture.md`, "Write pipeline", Confirm flow), changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
 
 ## Profiles
 
@@ -54,7 +54,7 @@ The start screen shows the active profile, or `:profile add` when there is none.
 
 ## Command palette
 
-`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...` and `history clear`, the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
+`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...`, `history clear`, `keys reload` (read the user's `keymap.json` again) and the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
 
 ## Help
 
@@ -72,4 +72,4 @@ Screens produce styled text, not colours: Core's `TextRole` (body, muted, headin
 
 ## Print frame
 
-`geeratya --print-frame [--size WxH] [--mode normal|help|command|confirm|insert] [--help-scroll N]` prints the plain-text frame the shell would draw for that size (default 80x24, no colour, works without a terminal) and exits. It is the basis of the snapshot tests in `tests/Geeratya.Tui.Tests/Snapshots` at 120x36, 80x24 and 40x10; the frame builder is also tested at every size from 0x0 up so a resize never throws. The help overlay is longer than 36 rows, so besides `help-120x36` the snapshots `help-scroll20|40|75-120x36` (`--help-scroll N`, with `--mode help`; N is the first visible help line) together cover every mode section and the palette commands to the last line; a test checks that. When the help grows past the last of them, add a further scroll snapshot. To refresh a snapshot after an intended change, rerun the command into the matching file and review the diff.
+`geeratya --print-frame [--size WxH] [--mode normal|help|command|confirm|insert] [--help-scroll N]` prints the plain-text frame the shell would draw for that size (default 80x24, no colour, works without a terminal) and exits. It is the basis of the snapshot tests in `tests/Geeratya.Tui.Tests/Snapshots` at 120x36, 80x24 and 40x10; the frame builder is also tested at every size from 0x0 up so a resize never throws. The help overlay is longer than 36 rows, so besides `help-120x36` the snapshots `help-scroll20|40|60|80|88-120x36` (`--help-scroll N`, with `--mode help`; N is the first visible help line) together cover every mode section and the palette commands to the last line; a test checks that. When the help grows past the last of them, add a further scroll snapshot. To refresh a snapshot after an intended change, rerun the command into the matching file and review the diff.

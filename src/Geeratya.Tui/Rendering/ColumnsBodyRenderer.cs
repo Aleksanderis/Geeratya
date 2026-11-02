@@ -49,7 +49,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var tab = ListBodyRenderer.ActiveTab(state)!;
         var glyphs = Glyphs.For(context.Glyphs);
         var area = Math.Max(0, height - ListLayout.HeaderRows);
-        var columns = ColumnsNavigation.ColumnsOf(tab);
+        var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOf(tab), BusyMarks.Keys(state), glyphs);
         var cards = BoardCards.Visible(area, ListLayout.HeaderRows);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, cards);
         var window = BoardWindows.For(columns.Count, cursor.Column, width);

@@ -84,6 +84,12 @@ public sealed record TabState(
     public IReadOnlyList<IssueSummary> ProtectedRows { get; init; } = [];
 
     /// <summary>
+    /// The issue picked up by the rank-to key and waiting to be dropped at the issue under the cursor; null when
+    /// none. Scoped to the tab, like the selection.
+    /// </summary>
+    public string? RankPickup { get; init; }
+
+    /// <summary>
     /// Issues deleted while this tab's load was in flight: the reply may still hold them (it started before the
     /// delete, or the search index lags), so it drops these keys. Cleared when the load ends.
     /// </summary>

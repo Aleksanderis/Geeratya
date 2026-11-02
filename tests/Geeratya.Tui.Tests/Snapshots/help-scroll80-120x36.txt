@@ -1,12 +1,24 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+Insert mode                                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous source in the picker                                                                              
   Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
+  Alt-Enter  Save the form                                                                                              
+  Left       Move the cursor left                                                                                       
+  Right      Move the cursor right                                                                                      
+  Home       Move the cursor to the start of the row                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
@@ -21,16 +33,4 @@ Palette commands
   :history clear                                                                                                        
       Forget the recent JQL queries and issues of this profile                                                          
   :tab new|close|next|prev|<n>                                                                                          
-      Open the source picker, close or switch tabs                                                                      
-  :labels                                                                                                               
-      Edit the labels of the selected or shown issue (field form)                                                       
-  :profile add|list|switch <name>|remove <name>|check                                                                   
-      Manage Jira profiles                                                                                              
-  :help                                                                                                                 
-      Show or hide help                                                                                                 
-  :quit                                                                                                                 
-      Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
  HELP                                                                                            j down  k up  Esc close
