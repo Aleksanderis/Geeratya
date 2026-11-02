@@ -2,6 +2,7 @@ using Geeratya.Jira.Issues;
 
 namespace Geeratya.Jira.Tests.Issues;
 
+[Trait("Os", "Independent")]
 public sealed class IssueUrlsTests
 {
     private static readonly JiraConnection _connection =

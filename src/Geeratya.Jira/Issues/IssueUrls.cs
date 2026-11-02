@@ -23,7 +23,10 @@ public static partial class IssueUrls
         return new Uri($"{site.GetLeftPart(UriPartial.Authority)}{BrowsePath}{key}");
     }
 
-    /// <summary>True for <c>PROJ-123</c>: an upper-case project key, a hyphen and a number.</summary>
+    /// <summary>
+    /// True for <c>PROJ-123</c>: an upper-case project key, a hyphen and a number. Lower-case keys, which Jira would
+    /// resolve, are not accepted: a caller that takes typed input upper-cases it first.
+    /// </summary>
     public static bool IsValidKey(string? key) => key is { Length: > 0 and <= 255 } && KeyPattern().IsMatch(key);
 
     [GeneratedRegex(@"^[A-Z][A-Z0-9_]*-[0-9]+\z", RegexOptions.CultureInvariant)]

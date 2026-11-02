@@ -171,6 +171,22 @@ public sealed class IssueClientTests
     }
 
     [Fact]
+    public async Task GivenNullEntriesInRelationLists_WhenGetting_ThenTheyAreSkipped()
+    {
+        const string json = """
+            {"id": "1", "key": "A-1", "fields": {"attachment": [null], "subtasks": [null],
+             "issuelinks": [null]}}
+            """;
+        using var fixture = Serving("A-1", json, true);
+
+        var result = await new IssueClient(fixture.Transport).GetIssueAsync("A-1", CancellationToken.None);
+
+        Assert.Empty(result.Value.Attachments);
+        Assert.Empty(result.Value.Subtasks);
+        Assert.Empty(result.Value.Links);
+    }
+
+    [Fact]
     public async Task GivenKey_WhenGetting_ThenRequestAsksForTheDetailFieldsOnly()
     {
         using var fixture = Serving("GTM-9", "issues/issue-gtm9.json");

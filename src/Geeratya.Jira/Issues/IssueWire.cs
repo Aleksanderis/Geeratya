@@ -30,11 +30,11 @@ internal static class IssueWire
         Stub? Parent,
         List<Stub>? Subtasks,
         [property: JsonPropertyName(IssueFields.IssueLinks)] List<Link>? IssueLinks,
-        List<Attachment>? Attachment);
+        [property: JsonPropertyName(IssueFields.Attachment)] List<Attachment>? Attachments);
 
     internal sealed record Stub(
         string? Key,
-        [property: JsonPropertyName(IssueFields.FieldsProperty)] StubFields? Fields);
+        [property: JsonPropertyName(IssueFields.FieldsProperty)] StubFields? StubFields);
 
     internal sealed record StubFields(
         string? Summary,

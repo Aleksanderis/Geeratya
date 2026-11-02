@@ -33,7 +33,7 @@ internal static class IssueDetailMapper
             MapStub(fields?.Parent, pool),
             MapStubs(fields?.Subtasks, pool),
             MapLinks(fields?.IssueLinks, pool),
-            MapAttachments(fields?.Attachment, pool));
+            MapAttachments(fields?.Attachments, pool));
     }
 
     private static AdfDocument? MapDescription(JsonElement? description)
@@ -55,7 +55,7 @@ internal static class IssueDetailMapper
             return null;
         }
 
-        var fields = stub.Fields;
+        var fields = stub.StubFields;
 
         return new IssueStub(
             key,
@@ -140,6 +140,11 @@ internal static class IssueDetailMapper
 
         foreach (var attachment in wire ?? [])
         {
+            if (attachment is null)
+            {
+                continue;
+            }
+
             result.Add(new IssueAttachment(
                 attachment.Id ?? string.Empty,
                 attachment.Filename ?? string.Empty,
