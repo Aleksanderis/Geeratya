@@ -183,6 +183,31 @@ public sealed class NetworkRunnerTests
         Assert.Empty(posted);
     }
 
+    [Fact]
+    public async Task GivenNoTransport_WhenStartingLocalWork_ThenItRunsAndIsPosted()
+    {
+        using var connections = new SiteConnections(
+            new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
+
+        var posted = new List<Command>();
+
+        using var runner = new NetworkRunner(connections, posted.Add, CancellationToken.None);
+
+        await runner.StartLocal(1, _ => _reply);
+
+        Assert.Same(_reply, Assert.Single(posted));
+    }
+
+    [Fact]
+    public async Task GivenLocalWorkThatThrows_WhenStarting_ThenTheTaskDoesNotFaultAndNothingIsPosted()
+    {
+        using var fixture = await ConnectedAsync(_a);
+
+        await fixture.Runner.StartLocal(1, _ => throw new InvalidOperationException());
+
+        Assert.Empty(fixture.Posted);
+    }
+
     private static async Task<Fixture> ConnectedAsync(params Profile[] profiles)
     {
         var store = new FakeSecretStore();

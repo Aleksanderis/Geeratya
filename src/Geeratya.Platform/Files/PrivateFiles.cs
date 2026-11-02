@@ -10,7 +10,8 @@ namespace Geeratya.Platform.Files;
 /// </summary>
 public sealed class PrivateFiles
 {
-    private const UnixFileMode PrivateFolderMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+    private const UnixFileMode PrivateFolderMode =
+        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
     private const UnixFileMode PrivateFileMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
 
     private readonly OperatingSystemKind _operatingSystem;
@@ -49,9 +50,12 @@ public sealed class PrivateFiles
     {
         var missing = new Stack<string>();
 
-        for (var current = Path.GetFullPath(path); !Directory.Exists(current); current = Path.GetDirectoryName(current)!)
+        var current = Path.GetFullPath(path);
+
+        while (!Directory.Exists(current))
         {
             missing.Push(current);
+            current = Path.GetDirectoryName(current)!;
         }
 
         while (missing.TryPop(out var folder))

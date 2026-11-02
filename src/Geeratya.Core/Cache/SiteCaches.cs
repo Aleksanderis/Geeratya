@@ -67,7 +67,14 @@ public sealed class SiteCaches : IDisposable
     /// <summary>Drops the memory part and pending writes of a profile; its folder stays.</summary>
     public void Drop(Profile profile)
     {
-        Close(FolderOf(profile));
+        SiteCache? cache;
+
+        lock (_lock)
+        {
+            _open.Remove(FolderOf(profile), out cache);
+        }
+
+        cache?.Discard();
     }
 
     /// <summary>

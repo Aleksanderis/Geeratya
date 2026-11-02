@@ -121,41 +121,50 @@ public sealed class SiteCache : IDisposable
     /// <summary>Writes pending views now (the debounce timer, and the exit of the application, call it).</summary>
     public void Flush()
     {
-        Dictionary<CacheKey, CachedView> batch;
-
-        lock (_memoryLock)
-        {
-            if (_disposed || _pending.Count == 0)
-            {
-                return;
-            }
-
-            batch = new Dictionary<CacheKey, CachedView>(_pending);
-            _pending.Clear();
-        }
-
         lock (_diskLock)
         {
-            if (!IsDisposed())
+            Dictionary<CacheKey, CachedView> batch;
+
+            lock (_memoryLock)
             {
-                WriteAll(batch);
+                if (_disposed || _pending.Count == 0)
+                {
+                    return;
+                }
+
+                batch = new Dictionary<CacheKey, CachedView>(_pending);
+                _pending.Clear();
             }
+
+            WriteAll(batch);
         }
     }
 
-    /// <summary>Drops the memory part and any pending write; waits for a write in progress. The disk stays.</summary>
+    /// <summary>
+    /// Drops the memory part and any pending write at once, without waiting for file work in progress (the UI
+    /// thread calls it on a profile switch). A batch already being written may still finish; the disk stays.
+    /// </summary>
+    public void Discard()
+    {
+        lock (_memoryLock)
+        {
+            _disposed = true;
+            _views.Clear();
+            _pending.Clear();
+        }
+
+        _timer.Dispose();
+    }
+
+    /// <summary>
+    /// Like <see cref="Discard"/>, but waits for a write in progress, so nothing can touch the folder afterwards
+    /// (a folder that is about to be deleted).
+    /// </summary>
     public void Dispose()
     {
         lock (_diskLock)
         {
-            lock (_memoryLock)
-            {
-                _disposed = true;
-                _views.Clear();
-                _pending.Clear();
-            }
-
-            _timer.Dispose();
+            Discard();
         }
     }
 
@@ -251,7 +260,7 @@ public sealed class SiteCache : IDisposable
             {
                 return null;
             }
-            catch (Exception exception) when (exception is JsonException or NullReferenceException or ArgumentException)
+            catch (Exception exception) when (exception is JsonException or NotSupportedException or ArgumentException)
             {
                 // Corrupt or foreign content: fall through to the delete below.
             }

@@ -9,7 +9,7 @@ using Geeratya.Platform.Secrets;
 namespace Geeratya.Tui;
 
 /// <summary>
-/// The profile file, token lookup and per-profile caches, wired once in the composition root and used by the shell for the profile commands.
+/// The profile file, token lookup and per-profile caches, wired once in the composition root and used by the shell.
 /// </summary>
 // ReSharper disable NotAccessedPositionalProperty.Global
 public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens, SiteCaches Caches)

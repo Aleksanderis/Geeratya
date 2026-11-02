@@ -11,6 +11,8 @@ public sealed class SiteCacheTests : IDisposable
     private static readonly DateTimeOffset _saved = new(2026, 11, 1, 8, 0, 0, TimeSpan.Zero);
     private static readonly CacheKey _key = new(ViewSourceKind.Jql, "project = SECRET ORDER BY created");
 
+    private SiteCache? _shared;
+    private CacheKey[] _sharedKeys = [];
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"geeratya-cache-{Guid.NewGuid():N}");
 
     [Fact]
@@ -109,6 +111,9 @@ public sealed class SiteCacheTests : IDisposable
     [InlineData("")]
     [InlineData("null")]
     [InlineData("""{"schema":1}""")]
+    [InlineData("""{"schema":1,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
+    [InlineData("""{"schema":1,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
+    [InlineData("""{"schema":1,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
     public void GivenCorruptFile_WhenReading_ThenItIsIgnoredAndDeleted(string content)
     {
         var folder = Path.Combine(_root, "p");
@@ -143,19 +148,12 @@ public sealed class SiteCacheTests : IDisposable
     public void GivenManyThreadsPutting_WhenFlushed_ThenEveryFileIsCompleteAndReadable()
     {
         var folder = Path.Combine(_root, "p");
-        using var cache = new SiteCache(folder);
+        _shared = new SiteCache(folder);
         var keys = Enumerable.Range(0, 20).Select(number => new CacheKey(ViewSourceKind.Jql, $"q{number}")).ToArray();
+        _sharedKeys = keys;
 
-        Parallel.For(0, 200, step =>
-        {
-            cache.Put(keys[step % keys.Length], new CachedView([Issue(step)], null, _saved));
-
-            if (step % 7 == 0)
-            {
-                cache.Flush();
-            }
-        });
-        cache.Flush();
+        Parallel.For(0, 200, PutAndSometimesFlush);
+        _shared.Flush();
 
         using var fresh = new SiteCache(folder);
         Assert.All(keys, key => Assert.Single(fresh.Get(key)!.Rows));
@@ -351,9 +349,21 @@ public sealed class SiteCacheTests : IDisposable
 
     public void Dispose()
     {
+        _shared?.Dispose();
+
         if (Directory.Exists(_root))
         {
             Directory.Delete(_root, true);
+        }
+    }
+
+    private void PutAndSometimesFlush(int step)
+    {
+        _shared!.Put(_sharedKeys[step % _sharedKeys.Length], new CachedView([Issue(step)], null, _saved));
+
+        if (step % 7 == 0)
+        {
+            _shared.Flush();
         }
     }
 

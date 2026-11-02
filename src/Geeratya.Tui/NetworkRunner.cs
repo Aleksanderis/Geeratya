@@ -124,7 +124,17 @@ public sealed class NetworkRunner : IDisposable
             return;
         }
 
-        var result = work(token);
+        Command? result;
+
+        try
+        {
+            result = work(token);
+        }
+        catch (Exception)
+        {
+            // Local work (a cache read) is best effort: a failure is a miss, never a reason to skip the network.
+            return;
+        }
 
         if (result is not null && !token.IsCancellationRequested)
         {

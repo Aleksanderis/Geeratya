@@ -24,13 +24,15 @@ public static class CacheMapper
     /// <summary>The key and view in <paramref name="file"/>; null when the schema or content is not readable.</summary>
     public static KeyedView? FromFile(CachedViewFile file)
     {
-        if (file.Schema != Schema || !Enum.TryParse<ViewSourceKind>(file.Source, out var source))
+        if (file.Schema != Schema || !TryParse<ViewSourceKind>(file.Source, out var source) || !IsComplete(file))
         {
             return null;
         }
 
         var key = new CacheKey(source, file.SourceValue);
-        var view = new CachedView([.. file.Rows.Select(FromRow)], file.Board is null ? null : FromBoard(file.Board), file.SavedAt);
+        var rows = file.Rows.Select(FromRow).ToArray();
+        var board = file.Board is null ? null : FromBoard(file.Board);
+        var view = new CachedView(rows, board, file.SavedAt);
 
         return new KeyedView(key, view);
     }
@@ -42,7 +44,11 @@ public static class CacheMapper
             row.Key,
             row.Summary,
             new CachedStatus(row.Status.Id, row.Status.Name, row.Status.CategoryKey),
-            new CachedIssueType(row.IssueType.Id, row.IssueType.Name, row.IssueType.HierarchyLevel, row.IssueType.IsSubtask),
+            new CachedIssueType(
+                row.IssueType.Id,
+                row.IssueType.Name,
+                row.IssueType.HierarchyLevel,
+                row.IssueType.IsSubtask),
             row.Priority,
             row.Assignee is null ? null : new CachedPerson(row.Assignee.AccountId, row.Assignee.DisplayName),
             [.. row.Labels],
@@ -58,7 +64,11 @@ public static class CacheMapper
             row.Key,
             row.Summary,
             new IssueStatus(row.Status.Id, row.Status.Name, row.Status.CategoryKey),
-            new IssueTypeSummary(row.IssueType.Id, row.IssueType.Name, row.IssueType.HierarchyLevel, row.IssueType.IsSubtask),
+            new IssueTypeSummary(
+                row.IssueType.Id,
+                row.IssueType.Name,
+                row.IssueType.HierarchyLevel,
+                row.IssueType.IsSubtask),
             row.Priority,
             row.Assignee is null ? null : new IssueAssignee(row.Assignee.AccountId, row.Assignee.DisplayName),
             [.. row.Labels],
@@ -82,7 +92,7 @@ public static class CacheMapper
 
     private static BoardConfiguration FromBoard(CachedBoard board)
     {
-        var type = Enum.TryParse<BoardType>(board.Type, out var parsed) ? parsed : BoardType.Unknown;
+        var type = TryParse<BoardType>(board.Type, out var parsed) ? parsed : BoardType.Unknown;
 
         return new BoardConfiguration(
             board.BoardId,
@@ -93,5 +103,45 @@ public static class CacheMapper
             board.SubQuery,
             board.RankFieldId,
             board.ConstraintType);
+    }
+
+    // JSON can hold nulls where the DTOs promise values, so these checks are not redundant.
+    // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+    /// <summary>A file from disk can hold JSON nulls where the DTOs promise values; such a file is unusable.</summary>
+    private static bool IsComplete(CachedViewFile file)
+    {
+        if (file.SourceValue is null || file.Rows is null || !file.Rows.All(IsComplete))
+        {
+            return false;
+        }
+
+        return file.Board is null || (file.Board.Columns is not null && file.Board.Columns.All(IsComplete));
+    }
+
+    private static bool IsComplete(CachedIssueRow row)
+    {
+        return row is { Status: not null, IssueType: not null, Labels: not null }
+            && row.Id is not null
+            && row.Key is not null
+            && row.Summary is not null
+            && row.ProjectKey is not null;
+    }
+
+    private static bool IsComplete(CachedColumn column)
+    {
+        return column.Name is not null && column.StatusIds is not null;
+    }
+
+    // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+    /// <summary>Parses an enum member by name; numbers and unknown names are refused.</summary>
+    private static bool TryParse<TEnum>(string? text, out TEnum value)
+        where TEnum : struct, Enum
+    {
+        value = default;
+
+        return text is not null
+            && !char.IsDigit(text.FirstOrDefault())
+            && Enum.TryParse(text, out value)
+            && Enum.IsDefined(value);
     }
 }
