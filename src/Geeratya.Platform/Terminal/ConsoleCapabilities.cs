@@ -7,13 +7,12 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
     public static ConsoleCapabilities Detect(
         EnvironmentReader environment,
         bool isInputRedirected,
-        bool isOutputRedirected,
-        bool isWindows = false)
+        bool isOutputRedirected)
     {
         var term = environment.Get("TERM");
         var isDumb = term == "dumb";
         var isInteractive = !isInputRedirected && !isOutputRedirected && !isDumb;
-        var glyphs = isDumb || !IsUtf8(environment, isWindows) ? GlyphSet.Ascii : GlyphSet.Unicode;
+        var glyphs = isDumb || !IsUtf8(environment) ? GlyphSet.Ascii : GlyphSet.Unicode;
 
         if (environment.Get("NO_COLOR") is not null || isDumb || isOutputRedirected)
         {
@@ -27,16 +26,16 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
     }
 
     /// <summary>
-    /// The first of LC_ALL, LC_CTYPE and LANG that is set decides, as in the C library; an unset locale is the C locale
-    /// (ASCII). Windows has no such variables and draws Unicode unless they say otherwise.
+    /// The first of LC_ALL, LC_CTYPE and LANG that is set decides, as in the C library. An unset locale counts as
+    /// Unicode: the terminal is real (ssh, containers often have no locale) and the app writes UTF-8 either way.
     /// </summary>
-    private static bool IsUtf8(EnvironmentReader environment, bool isWindows)
+    private static bool IsUtf8(EnvironmentReader environment)
     {
         var locale = environment.Get("LC_ALL") ?? environment.Get("LC_CTYPE") ?? environment.Get("LANG");
 
         if (locale is null)
         {
-            return isWindows;
+            return true;
         }
 
         return locale.Contains("utf-8", StringComparison.OrdinalIgnoreCase)

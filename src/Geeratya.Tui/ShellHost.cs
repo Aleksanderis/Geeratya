@@ -46,7 +46,11 @@ public sealed class ShellHost : IDisposable
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
 
-    public ShellHost(KeymapTable keymap, ColorSupport colors, ProfileServices profiles, GlyphSet glyphs = GlyphSet.Unicode)
+    public ShellHost(
+        KeymapTable keymap,
+        ColorSupport colors,
+        ProfileServices profiles,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
         _keymap = keymap;
         _colors = colors;
