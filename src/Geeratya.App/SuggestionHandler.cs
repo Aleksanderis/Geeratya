@@ -162,9 +162,17 @@ public sealed class SuggestionHandler
                 source.KnownLabels,
                 cancel => LabelCacheFor(services).GetAsync(cancel),
                 token),
+            SuggestionKind.AssignableUsers when source.IssueKey is null && source.ProjectKey is { } project
+                => services.Suggestions.SearchAssignableUsersForProjectAsync(project, effect.Query, token),
             SuggestionKind.AssignableUsers => services.Suggestions.SearchAssignableUsersAsync(key, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
-            _ => services.Suggestions.SearchIssuesAsync(effect.Query, null, token),
+            _ => services.Suggestions.SearchIssuesAsync(effect.Query, ProjectScope(source.ProjectKey), token),
         };
+    }
+
+    // The parent of a new issue is searched inside its project (project keys hold no quote, but never trust one).
+    private static string? ProjectScope(string? projectKey)
+    {
+        return projectKey is null ? null : $"project = \"{projectKey.Replace("\"", string.Empty)}\"";
     }
 }

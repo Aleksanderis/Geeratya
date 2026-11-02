@@ -235,6 +235,11 @@ public static partial class FormReducer
             return new SuggestionSource(SuggestionKind.Labels, null, [.. known]);
         }
 
+        if (form.Target is CreateFormTarget create)
+        {
+            return CreateSourceOf(create, field);
+        }
+
         if (form.Target.IssueKey is not { } key)
         {
             return null;
@@ -244,6 +249,17 @@ public static partial class FormReducer
         {
             FormFieldKind.User => new SuggestionSource(UserKind(field), key, []),
             FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, key, []),
+            _ => null,
+        };
+    }
+
+    // A create form has no issue yet: people who can be assigned in the project, and issues of the project as parent.
+    private static SuggestionSource? CreateSourceOf(CreateFormTarget create, FormField field)
+    {
+        return field.Kind switch
+        {
+            FormFieldKind.User => new SuggestionSource(SuggestionKind.AssignableUsers, null, [], create.ProjectKey),
+            FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, null, [], create.ProjectKey),
             _ => null,
         };
     }

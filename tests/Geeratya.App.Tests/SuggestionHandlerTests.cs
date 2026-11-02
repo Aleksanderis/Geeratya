@@ -232,6 +232,42 @@ public sealed class SuggestionHandlerTests
         Assert.EndsWith("/rest/api/3/issue/picker", Assert.Single(fixture.Http.Requests).AbsolutePath);
     }
 
+    [Fact]
+    public async Task GivenACreateFormUserQuery_WhenLookedUp_ThenProjectAssignableUsersAreAsked()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Users()));
+        var source = new SuggestionSource(SuggestionKind.AssignableUsers, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 5, source, "jo", TimeSpan.FromMilliseconds(250)));
+
+        Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.EndsWith("/rest/api/3/user/assignable/search", request.AbsolutePath);
+        Assert.Contains("project=GCM", request.Query);
+        Assert.DoesNotContain("issueKey", request.Query);
+    }
+
+    [Fact]
+    public async Task GivenACreateFormParentQuery_WhenLookedUp_ThenThePickerIsScopedToTheProject()
+    {
+        var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, picker));
+        var source = new SuggestionSource(SuggestionKind.Issues, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 6, source, "login", TimeSpan.FromMilliseconds(250)));
+
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.Contains("currentJQL=project%20%3D%20%22GCM%22", request.Query);
+    }
+
+    private static async Task RunAsync(Fixture fixture, SearchSuggestionsEffect effect)
+    {
+        var task = fixture.Handler.StartAsync(effect);
+        await fixture.WaitForTimersAsync(1);
+        fixture.Time.Advance(TimeSpan.FromMilliseconds(250));
+        await task;
+    }
+
     private static void TwoSiteReads(ScriptedJiraHandler handler)
     {
         handler.Reply(HttpStatusCode.OK, SiteLabels).Reply(HttpStatusCode.OK, SiteLabels);

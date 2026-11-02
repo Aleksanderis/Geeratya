@@ -316,6 +316,38 @@ public class FormSuggestionTests
         Assert.All(form.Fields, field => Assert.True(field.IsEditable));
     }
 
+    [Theory]
+    [InlineData(FormFieldKind.User, SuggestionKind.AssignableUsers)]
+    [InlineData(FormFieldKind.Parent, SuggestionKind.Issues)]
+    public void GivenACreateForm_WhenTypingInAUserOrParentField_ThenTheLookupIsScopedToTheProject(
+        FormFieldKind kind,
+        SuggestionKind expected)
+    {
+        var result = Press(AsCreateForm(Focused(FormFieldIds.Assignee, kind)), "j");
+
+        var effect = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(result.Effects));
+        Assert.Equal(expected, effect.Source.Kind);
+        Assert.Equal("GCM", effect.Source.ProjectKey);
+        Assert.Null(effect.Source.IssueKey);
+        Assert.NotNull(Popup(result.State));
+    }
+
+    [Fact]
+    public void GivenACreateForm_WhenTypingInAnUnsupportedField_ThenNoLookupIsRequested()
+    {
+        var result = Press(AsCreateForm(Focused("customfield_1", FormFieldKind.Unsupported)), "j");
+
+        Assert.Empty(result.Effects);
+    }
+
+    private static AppState AsCreateForm(AppState state)
+    {
+        var tab = state.Session.Tabs[0];
+        var target = new CreateFormTarget("GCM", null, false, null);
+
+        return WithTab(state, tab with { Form = tab.Form! with { Target = target } });
+    }
+
     private AppState Loaded()
     {
         return Focused(null);
