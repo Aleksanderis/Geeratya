@@ -19,7 +19,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const string NoCardsText = "no issues";
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
-    private const string MoreMark = "+";
     private const string SelectedMark = ">";
     private const string Blank = " ";
     private const int FirstSummaryLine = 2;
@@ -170,14 +169,18 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (selected > 0)
         {
-            spans.Add(new StyledSpan($"{HiddenLeftMark} {ColumnTitle(tab, columns[selected - 1])}  ", TextRole.Muted));
+            var left = BoardHeaderText.LeftNeighbour(columns[selected - 1], tab.Next is not null);
+
+            spans.Add(new StyledSpan(left, TextRole.Muted));
         }
 
         spans.Add(new StyledSpan(ColumnTitle(tab, columns[selected]), TextRole.Heading));
 
         if (selected < columns.Count - 1)
         {
-            spans.Add(new StyledSpan($"  {ColumnTitle(tab, columns[selected + 1])} {HiddenRightMark}", TextRole.Muted));
+            var right = BoardHeaderText.RightNeighbour(columns[selected + 1], tab.Next is not null);
+
+            spans.Add(new StyledSpan(right, TextRole.Muted));
         }
 
         var fitted = Fitted(spans, window.Width - 1, HorizontalChar);
@@ -206,9 +209,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
     private static string ColumnTitle(TabState tab, BoardColumnGroup column)
     {
-        var more = tab.Next is not null ? MoreMark : string.Empty;
-
-        return $"{column.Name} {column.Rows.Count}{more}";
+        return BoardHeaderText.Title(column, tab.Next is not null);
     }
 
     private static StyledLine BottomLine(BoardWindow window)

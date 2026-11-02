@@ -1,5 +1,6 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Jump;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
@@ -50,6 +51,9 @@ public sealed record AppState(
 
     /// <summary>The open profile list (Insert mode), otherwise null.</summary>
     public ProfileListState? ProfileList { get; init; }
+
+    /// <summary>The open right-click menu (Insert mode), otherwise null.</summary>
+    public ContextMenuState? ContextMenu { get; init; }
 
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }

@@ -21,6 +21,7 @@ public static class TabBar
     /// <summary>The shortest title the bar shrinks to before it hides tabs.</summary>
     public const int MinimumTitleWidth = 8;
 
+    private const string NewTabText = "+";
     private const string Separator = "  ";
     private const string Lead = " ";
     private const string LoadingMark = " …";
@@ -37,21 +38,30 @@ public static class TabBar
 
     /// <summary>
     /// The cells each drawn tab occupies in the bar built for <paramref name="width"/>, in the order drawn. A mouse
-    /// click on a cell inside an area activates that tab; the separators and the hidden-tab marks are not areas.
+    /// click on a cell inside an area activates that tab (the hidden-tab marks <c>‹n</c> and <c>+n ›</c> are areas
+    /// too: they step to the neighbouring hidden tab); the separators are not.
     /// </summary>
     public static IReadOnlyList<TabArea> Areas(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
         return Layout(tabs, active, width).Areas;
     }
 
-    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Layout(
+    /// <summary>
+    /// The cells of the <c>+</c> button after the last tab, null when the bar has no room for it or hides tabs.
+    /// </summary>
+    public static TabButton? NewTabButton(IReadOnlyList<TabState> tabs, TabId? active, int width)
+    {
+        return Layout(tabs, active, width).NewTab;
+    }
+
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas, TabButton? NewTab) Layout(
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width)
     {
         if (tabs.Count == 0 || width <= 0)
         {
-            return (StyledLine.Empty, []);
+            return (StyledLine.Empty, [], null);
         }
 
         var activeIndex = Math.Max(0, IndexOf(tabs, active));
@@ -69,7 +79,7 @@ public static class TabBar
             texts[index] = ItemText(tabs[index], index, index == activeIndex ? ActiveTitleWidth : cap, index == activeIndex);
         }
 
-        return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1);
+        return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1, width);
     }
 
     /// <summary>
@@ -122,7 +132,7 @@ public static class TabBar
         return total;
     }
 
-    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Window(
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas, TabButton? NewTab) Window(
         IReadOnlyList<TabState> tabs,
         int activeIndex,
         int width)
@@ -161,7 +171,7 @@ public static class TabBar
             }
         }
 
-        return Assemble(tabs, texts, activeIndex, low, high);
+        return Assemble(tabs, texts, activeIndex, low, high, width);
     }
 
     private static int WindowWidth(string[] texts, int low, int high)
@@ -186,12 +196,13 @@ public static class TabBar
         return total;
     }
 
-    private static (StyledLine Line, IReadOnlyList<TabArea> Areas) Assemble(
+    private static (StyledLine Line, IReadOnlyList<TabArea> Areas, TabButton? NewTab) Assemble(
         IReadOnlyList<TabState> tabs,
         string[] texts,
         int activeIndex,
         int low,
-        int high)
+        int high,
+        int width)
     {
         var spans = new List<StyledSpan> { new(Lead, TextRole.Body) };
         var areas = new List<TabArea>(high - low + 1);
@@ -199,9 +210,12 @@ public static class TabBar
 
         if (low > 0)
         {
+            var markWidth = DisplayWidth.Of(HiddenLeft(low));
+
             spans.Add(new StyledSpan(HiddenLeft(low), TextRole.Muted));
             spans.Add(new StyledSpan(Separator, TextRole.Body));
-            column += DisplayWidth.Of(HiddenLeft(low)) + Separator.Length;
+            areas.Add(new TabArea(tabs[low - 1].Id, column, column + markWidth));
+            column += markWidth + Separator.Length;
         }
 
         for (var index = low; index <= high; index++)
@@ -221,11 +235,29 @@ public static class TabBar
 
         if (high < texts.Length - 1)
         {
+            var mark = HiddenRight(texts.Length - 1 - high);
+
             spans.Add(new StyledSpan(Separator, TextRole.Body));
-            spans.Add(new StyledSpan(HiddenRight(texts.Length - 1 - high), TextRole.Muted));
+            var markStart = column + Separator.Length;
+
+            areas.Add(new TabArea(tabs[high + 1].Id, markStart, markStart + DisplayWidth.Of(mark)));
+            spans.Add(new StyledSpan(mark, TextRole.Muted));
+
+            return (new StyledLine(spans), areas, null);
         }
 
-        return (new StyledLine(spans), areas);
+        // The button only shows when the bar has a spare cell for it: it never pushes a tab out or past the width.
+        if (column + Separator.Length + NewTabText.Length <= width)
+        {
+            spans.Add(new StyledSpan(Separator, TextRole.Body));
+            spans.Add(new StyledSpan(NewTabText, TextRole.Muted));
+
+            var buttonStart = column + Separator.Length;
+
+            return (new StyledLine(spans), areas, new TabButton(buttonStart, buttonStart + NewTabText.Length));
+        }
+
+        return (new StyledLine(spans), areas, null);
     }
 
     private static string HiddenLeft(int hidden)

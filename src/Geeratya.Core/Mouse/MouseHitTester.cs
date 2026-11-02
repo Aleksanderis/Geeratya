@@ -21,7 +21,7 @@ public static class MouseHitTester
 
         if (row < header)
         {
-            var target = context.OverlayOpen ? MouseTarget.Backdrop : HeaderTarget(row);
+            var target = context.OverlayOpen ? MouseTarget.Backdrop : HeaderTarget(context, row, column);
 
             return new MouseHit(target, row, column);
         }
@@ -57,8 +57,20 @@ public static class MouseHitTester
         return null;
     }
 
-    private static MouseTarget HeaderTarget(int row)
+    private static MouseTarget HeaderTarget(MouseContext context, int row, int column)
     {
-        return row == 0 ? MouseTarget.Tabs : MouseTarget.Banner;
+        if (row != 0)
+        {
+            return MouseTarget.Banner;
+        }
+
+        var button = context.NewTabButton;
+
+        if (button is { } cells && column >= cells.Start && column < cells.End)
+        {
+            return MouseTarget.NewTabButton;
+        }
+
+        return MouseTarget.Tabs;
     }
 }

@@ -26,7 +26,7 @@ public class TabBarTests
 
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
-        Assert.Equal(" [1 JQL: project = A]", line.PlainText);
+        Assert.Equal(" [1 JQL: project = A]  +", line.PlainText);
         Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text == "[1 JQL: project = A]");
     }
 
@@ -42,7 +42,7 @@ public class TabBarTests
 
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
-        Assert.Equal(" [1 Board: GCM board]  2 Backlog: GCM board  3 Filter: Mine", line.PlainText);
+        Assert.Equal(" [1 Board: GCM board]  2 Backlog: GCM board  3 Filter: Mine  +", line.PlainText);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class TabBarTests
 
         var line = TabBar.Build([loading, failed, idle], loading.Id, 120);
 
-        Assert.Equal(" [1 JQL: a …]  2 JQL: b !  3 JQL: c", line.PlainText);
+        Assert.Equal(" [1 JQL: a …]  2 JQL: b !  3 JQL: c  +", line.PlainText);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class TabBarTests
 
         var inactive = $"2 JQL: {new string('x', 18)}…";
         var active = $"[1 JQL: {new string('x', 34)}…]";
-        Assert.Equal($" {active}  {inactive}", line.PlainText);
+        Assert.Equal($" {active}  {inactive}  +", line.PlainText);
     }
 
     [Fact]

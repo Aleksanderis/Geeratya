@@ -153,7 +153,7 @@ public static class StatusBar
             return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
         }
 
-        if (state.Picker is not null || state.Jump is not null)
+        if (state.Picker is not null || state.Jump is not null || state.ContextMenu is not null)
         {
             return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
         }

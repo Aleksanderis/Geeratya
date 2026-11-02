@@ -271,7 +271,7 @@ Overflow: when the titles do not fit, the window of tabs slides so the active on
  ‹3  [4 JQL: project = GCM A…]  +2 ›
 ```
 
-The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
+A `+` button (clickable, `tab.new`) follows the last tab after two spaces when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
 Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
@@ -450,3 +450,7 @@ Without a board name and exactly one board on the site, `:board` and `:backlog` 
 - A loaded issue whose status is in no column gets a trailing `Unmapped` column rather than being hidden (the board endpoint itself never returns such issues, #138).
 - Palette view commands and the picker open a new tab; they never replace the current tab's view.
 - Sub-tasks and epics on a board are cards like any issue; the columns layout groups children under their parent (see "Columns layout").
+
+## Actions menu
+
+A right-click on a list row, card or line of an opened issue (or `<space>a`) opens the `Actions` box: a small centred box over the body in Insert mode with the actions of that one issue (open in browser, parent when it has one, edit, assign to me, previous column, sub-task, link, remove link on a link row, delete; rank on lists; delete comment on a comment), each with its key. `j`/`k` or `Down`/`Up` choose, `Enter` or a click runs it through the same handler as its key (delete and remove link still ask first), `Esc` closes. The command palette stays on `:` and the status line.

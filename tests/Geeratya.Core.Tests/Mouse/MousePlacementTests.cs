@@ -1,4 +1,7 @@
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
+using Geeratya.Core.Text;
+using Geeratya.Core.Writes;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
@@ -87,14 +90,269 @@ public class MousePlacementTests
     }
 
     [Fact]
-    public void GivenList_WhenRightClickingARow_ThenItIsSelectedAndThePaletteOpens()
+    public void GivenList_WhenRightClickingARow_ThenItIsSelectedAndItsMenuOpens()
     {
         var state = Loaded(ViewLayout.List, 80, 24, "1:A-1", "1:A-2", "1:A-3");
 
         var (result, _) = Resolve(state, 80, 24, 2, HeaderRows + ListHeader + 2, MouseGesture.RightClick);
 
+        var actions = result.ContextMenu!.Items.Select(item => item.Action).ToArray();
+
         Assert.Equal("A-3", Active(result).SelectedKey);
-        Assert.Equal(InputMode.Command, result.Mode);
+        Assert.Equal(InputMode.Insert, result.Mode);
+        Assert.Contains(ActionIds.IssueEdit, actions);
+        Assert.Contains(ActionIds.RankUp, actions);
+        Assert.DoesNotContain(ActionIds.TabClose, actions);
+        Assert.DoesNotContain(ActionIds.Quit, actions);
+        Assert.DoesNotContain(ActionIds.CommentDelete, actions);
+        Assert.DoesNotContain(ActionIds.IssueUnlink, actions);
+        Assert.DoesNotContain(ActionIds.IssueOpenParent, actions);
+    }
+
+    [Fact]
+    public void GivenNoIssue_WhenOpeningTheMenuByKey_ThenNoMenuOpensAndTheNoticeSaysSo()
+    {
+        var state = Start();
+
+        var keyed = _reducer.Reduce(_reducer.Reduce(state, new KeyPressed("Space")).State, new KeyPressed("a")).State;
+
+        Assert.Null(keyed.ContextMenu);
+        Assert.Equal(InputMode.Normal, keyed.Mode);
+    }
+
+    [Fact]
+    public void GivenOpenedIssueOnAPlainLine_WhenRightClicking_ThenTheMenuHasNeitherRankNorCommentActions()
+    {
+        var state = OpenedIssue();
+
+        var (result, _) = Resolve(state, 80, 24, 2, HeaderRows + 3, MouseGesture.RightClick);
+
+        var actions = result.ContextMenu!.Items.Select(item => item.Action).ToArray();
+
+        Assert.Contains(ActionIds.IssueTransitionPrevious, actions);
+        Assert.DoesNotContain(ActionIds.RankUp, actions);
+        Assert.DoesNotContain(ActionIds.CommentDelete, actions);
+    }
+
+    [Fact]
+    public void GivenContextMenu_WhenListingItems_ThenEachHasAContextMenuRowInTheMouseTable()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var rowMenu = Resolve(state, 80, 24, 2, HeaderRows + ListHeader, MouseGesture.RightClick).State.ContextMenu!;
+        var lineMenu = Resolve(OpenedIssue(), 80, 24, 2, HeaderRows + 3, MouseGesture.RightClick).State.ContextMenu!;
+
+        foreach (var item in rowMenu.Items.Concat(lineMenu.Items))
+        {
+            Assert.Contains(
+                DefaultMouseMap.Rows,
+                row => row.Target == MouseTarget.ContextMenu && row.Action == item.Action);
+        }
+    }
+
+    [Fact]
+    public void GivenOpenMenu_WhenClickingTheDeleteRow_ThenTheDeleteFlowStartsAndNothingIsSent()
+    {
+        var opened = Resolve(
+            Loaded(ViewLayout.List, 80, 24, "1:A-1", "1:A-2"),
+            80,
+            24,
+            2,
+            HeaderRows + ListHeader + 1,
+            MouseGesture.RightClick).State;
+        var index = opened.ContextMenu!.Items.ToList().FindIndex(item => item.Action == ActionIds.IssueDelete);
+        var regions = new[] { new OverlayRegion(MouseTarget.ContextMenu, 6, 10, 30, 1, index) };
+        var context = MouseContext.From(opened, 80, 24, HeaderRows, _now, regions);
+
+        var commands = MouseResolver.Resolve(context, 12, 6, MouseGesture.Click, _now);
+        var result = _reducer.Reduce(opened, Assert.Single(commands));
+
+        Assert.Null(result.State.ContextMenu);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Contains("Checking A-2", result.State.Message);
+        Assert.Single(result.Effects.OfType<CountSubtasksEffect>());
+        Assert.DoesNotContain(result.Effects, effect => effect is ExecuteWriteEffect);
+    }
+
+    [Fact]
+    public void GivenOpenMenu_WhenMovingAndPressingEnter_ThenTheHighlightedActionRunsLikeItsKey()
+    {
+        var opened = Resolve(
+            Loaded(ViewLayout.List, 80, 24, "1:A-1"),
+            80,
+            24,
+            2,
+            HeaderRows + ListHeader,
+            MouseGesture.RightClick).State;
+        var index = opened.ContextMenu!.Items.ToList().FindIndex(item => item.Action == ActionIds.IssueDelete);
+        var moved = opened;
+
+        for (var step = 0; step < index; step++)
+        {
+            moved = _reducer.Reduce(moved, new KeyPressed("j")).State;
+        }
+
+        var result = _reducer.Reduce(moved, new KeyPressed("Enter")).State;
+
+        Assert.Equal(index, moved.ContextMenu!.Selected);
+        Assert.Null(result.ContextMenu);
+        Assert.Contains("Checking A-1", result.Message);
+    }
+
+    [Fact]
+    public void GivenOpenMenu_WhenPressingEscape_ThenItClosesWithoutActing()
+    {
+        var opened = Resolve(
+            Loaded(ViewLayout.List, 80, 24, "1:A-1"),
+            80,
+            24,
+            2,
+            HeaderRows + ListHeader,
+            MouseGesture.RightClick).State;
+
+        var result = _reducer.Reduce(opened, new KeyPressed("Esc")).State;
+
+        Assert.Null(result.ContextMenu);
+        Assert.Equal(InputMode.Normal, result.Mode);
+    }
+
+    [Fact]
+    public void GivenSpaceA_WhenPressedOnARow_ThenTheSameMenuOpensAsForARightClick()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+
+        var keyed = _reducer.Reduce(_reducer.Reduce(state, new KeyPressed("Space")).State, new KeyPressed("a")).State;
+
+        Assert.NotNull(keyed.ContextMenu);
+        Assert.Equal(InputMode.Insert, keyed.Mode);
+    }
+
+    [Fact]
+    public void GivenBoardCard_WhenDraggingItToTheNextColumn_ThenTheMoveFormOpensWithoutWritingOnRelease()
+    {
+        var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "2:A-2");
+
+        var (result, effects) = Drag(state, 90, 30, 5, HeaderRows + 2, 45, HeaderRows + 3);
+
+        Assert.Equal("A-1", Active(result).SelectedKey);
+        Assert.True(FormReducer.IsOpen(result));
+        Assert.DoesNotContain(effects, effect => effect is ExecuteWriteEffect);
+    }
+
+    [Fact]
+    public void GivenBoardCard_WhenDraggingItBackToThePreviousColumn_ThenItMovesLikeAltH()
+    {
+        var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "2:A-2");
+
+        var (result, _) = Drag(state, 90, 30, 45, HeaderRows + 2, 5, HeaderRows + 2);
+
+        Assert.Equal("A-2", Active(result).SelectedKey);
+        Assert.True(FormReducer.IsOpen(result));
+    }
+
+    [Fact]
+    public void GivenBoardCard_WhenDroppingTwoColumnsAway_ThenNothingMovesAndTheNoticeSaysWhy()
+    {
+        var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1");
+
+        var (result, effects) = Drag(state, 90, 30, 5, HeaderRows + 2, 80, HeaderRows + 2);
+
+        Assert.False(FormReducer.IsOpen(result));
+        Assert.Empty(effects);
+        Assert.Contains("next or previous", result.Message);
+    }
+
+    [Fact]
+    public void GivenBoardCard_WhenDroppingInItsOwnColumnOrStartingOffACard_ThenNothingHappens()
+    {
+        var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "1:A-2");
+
+        var same = Drag(state, 90, 30, 5, HeaderRows + 2, 6, HeaderRows + 7);
+        var fromHeader = Drag(state, 90, 30, 5, HeaderRows + 1, 45, HeaderRows + 2);
+        var fromBlank = Drag(state, 90, 30, 5, HeaderRows + 20, 45, HeaderRows + 2);
+
+        foreach (var result in new[] { same, fromHeader, fromBlank })
+        {
+            Assert.False(FormReducer.IsOpen(result.State));
+            Assert.Empty(result.Effects);
+            Assert.Null(result.State.Message);
+        }
+    }
+
+    [Fact]
+    public void GivenListLayoutOrOverlay_WhenDragging_ThenNothingHappens()
+    {
+        var list = Loaded(ViewLayout.List, 90, 30, "1:A-1");
+        var board = Loaded(ViewLayout.Columns, 90, 30, "1:A-1");
+        var overlay = _reducer.Reduce(board, new ActionRequested(ActionIds.PaletteOpen)).State;
+
+        var onList = Drag(list, 90, 30, 5, HeaderRows + 2, 45, HeaderRows + 2);
+        var onOverlay = Drag(overlay, 90, 30, 5, HeaderRows + 2, 45, HeaderRows + 2);
+
+        Assert.False(FormReducer.IsOpen(onList.State));
+        Assert.False(FormReducer.IsOpen(onOverlay.State));
+        Assert.Empty(onList.Effects);
+        Assert.Empty(onOverlay.Effects);
+    }
+
+    [Fact]
+    public void GivenOneTab_WhenClickingThePlusAfterIt_ThenTheSourcePickerOpens()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var button = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, 80)!.Value;
+
+        var (result, _) = Resolve(state, 80, 24, button.Start, 0, MouseGesture.Click);
+
+        Assert.NotNull(result.Picker);
+    }
+
+    [Fact]
+    public void GivenTabBarWithoutRoomForThePlus_WhenBuilding_ThenThereIsNoButtonAndNoOverflow()
+    {
+        var state = TwoTabs(80);
+
+        Assert.Null(TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, 20));
+        Assert.True(DisplayWidth.Of(TabBar.Build(state.Session.Tabs, state.Session.Active, 20).PlainText) <= 20);
+    }
+
+    [Fact]
+    public void GivenScrolledTabBar_WhenClickingTheHiddenMarks_ThenTheNeighbouringHiddenTabActivates()
+    {
+        var state = Loaded(ViewLayout.List, 40, 24, "1:A-1");
+
+        for (var index = 2; index <= 12; index++)
+        {
+            var definition = new ViewDefinition(ViewSourceKind.Jql, $"project = P{index}", ViewLayout.List, $"P{index}");
+
+            state = _reducer.Reduce(state, new ViewOpenRequested(definition)).State;
+        }
+
+        var middle = _reducer.Reduce(state, new ActionRequested(ActionIds.TabGoTo6)).State;
+        var areas = TabBar.Areas(middle.Session.Tabs, middle.Session.Active, 40);
+        var tabs = middle.Session.Tabs;
+        var first = areas[0];
+        var last = areas[^1];
+        var left = Resolve(middle, 40, 24, first.Start, 0, MouseGesture.Click).State;
+        var right = Resolve(middle, 40, 24, last.Start, 0, MouseGesture.Click).State;
+
+        Assert.Equal(first.Tab, left.Session.Active);
+        Assert.Equal(last.Tab, right.Session.Active);
+        Assert.NotEqual(tabs[0].Id, first.Tab);
+        Assert.NotEqual(tabs[^1].Id, last.Tab);
+    }
+
+    [Fact]
+    public void GivenOneColumnBoard_WhenClickingTheNeighbourNamesInTheHeader_ThenThatColumnIsSelected()
+    {
+        var state = Loaded(ViewLayout.Columns, 30, 20, "1:A-1", "2:A-2", "4:A-3");
+        var centre = _reducer.Reduce(state, new ActionRequested(ActionIds.NavigateRight)).State;
+
+        var left = Click(centre, 30, 20, 4, HeaderRows + 1);
+        var right = Click(centre, 30, 20, 25, HeaderRows + 1);
+        var title = Click(centre, 30, 20, 14, HeaderRows + 1);
+
+        Assert.Equal(0, Active(left).Cursor!.Column);
+        Assert.Equal(2, Active(right).Cursor!.Column);
+        Assert.Equal(1, Active(title).Cursor!.Column);
     }
 
     [Fact]
@@ -365,6 +623,28 @@ public class MousePlacementTests
             null,
             null,
             "A");
+    }
+
+    private ReduceResult Drag(
+        AppState state,
+        int width,
+        int height,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow)
+    {
+        var context = MouseContext.From(state, width, height, HeaderRows, _now);
+        var current = new ReduceResult(state, []);
+
+        foreach (var command in MouseResolver.ResolveDrag(context, fromColumn, fromRow, toColumn, toRow))
+        {
+            var next = _reducer.Reduce(current.State, command);
+
+            current = new ReduceResult(next.State, [.. current.Effects, .. next.Effects]);
+        }
+
+        return current;
     }
 
     private AppState Click(AppState state, int width, int height, int column, int row)

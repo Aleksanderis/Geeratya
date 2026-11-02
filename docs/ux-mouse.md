@@ -17,11 +17,11 @@ While an overlay, prompt, picker, form, editor, help or confirm is open, only th
 
 ## Parts
 
-The table is delivered in parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **O** overlays (this slice of the issue #200 part C: the rows of the source picker, jump prompt, profile list, field forms and suggestion popups; the editor text itself takes no clicks), **C** writes and drags (status badge, assignee, `+` buttons, comments, drag between columns, rank). A row moves to the wired set when its part lands.
+The table is delivered in parts of issue #200: **A** the input layer and this table (wheel, status line, backdrop; the other rows exist in the table but are not wired yet: `MouseResolver.WiredParts`), **B** view interaction (select a row, card, column or line by click, double-click to open, right-click, tab and banner clicks), **O** overlays (this slice of the issue #200 part C: the rows of the source picker, jump prompt, profile list, field forms and suggestion popups; the editor text itself takes no clicks), **M** menu and drag (this slice of part C: the right-click menu of the issue under the pointer, `<space>a` as its key, drag of a card to a neighbouring column; the `+` tab button and the hidden-tab and neighbour-column marks belong to part B and are wired), **C** the rest of the writes (status badge, assignee, `+` buttons, comments, `Ctrl`-click rank, the menu rows for tab and view actions). A row moves to the wired set when its part lands.
 
 ## Placing the cursor
 
-A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column header (that column keeps its own card); in an opened issue the line (the breadcrumb row and rows past the end do nothing; the view does not scroll). Rows without an issue, the view title and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer; on empty space (nothing placed) the action does not run. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
+A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column header (that column keeps its own card; in a window of one column the neighbour names of the header, `‹ Name n` and `Name n ›`, select that neighbour); in an opened issue the line (the breadcrumb row and rows past the end do nothing; the view does not scroll). Rows without an issue, the view title and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer (a right-click opens the menu of that issue: `ContextMenu` rows listed in the table, one `Actions` box; `j`/`k`, `Enter` and `Esc` work in it like in the pickers, and every item runs the handler of its key, so delete and unlink still ask first); on empty space (nothing placed) the action does not run. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
 
 ## Table
 
@@ -44,38 +44,38 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
 | Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there) |
-| Lists | Right-click | `palette.open` | B | Selects the row under the pointer and opens the command palette; part C limits it to the actions of the row (context menu) |
-| Detail | Right-click | `palette.open` | B | Puts the cursor on the line under the pointer and opens the command palette; part C limits it to the actions of the line |
-| Tabs | Click | `tab.next` | B | Switches to the clicked tab (the same switch as `Alt-N`, also for tabs past nine; the separators and the `‹n` and `+n ›` marks do nothing) |
-| NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t` (not drawn yet: no cell to click, see the follow-up on the tab bar) |
+| Lists | Right-click | `menu.context` | M | Selects the row or card under the pointer and opens its menu (only the actions of that issue), same as `<space>a`; the command palette stays on `:` and the status line |
+| Detail | Right-click | `menu.context` | M | Puts the cursor on the line under the pointer and opens the menu of the opened issue (with `comment.delete` on a comment) |
+| Tabs | Click | `tab.next` | B | Switches to the clicked tab (the same switch as `Alt-N`, also for tabs past nine; the separators do nothing). The `‹n` and `+n ›` marks of a scrolled bar step to the neighbouring hidden tab |
+| NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
 | Assignee | Click | `issue.assign` | C | Opens the people picker |
 | NewIssueButton | Click | `issue.create` | C | Starts the create flow |
 | CommentsAdd | Click | `comment.add` | C | Opens the comment editor |
 | Comment | Click | `comment.edit` | C | Edits the comment under the pointer |
-| Lists | Drag | `issue.transition-next` | C | Columns layout: drag a card to another column to change its status (`Alt-l` / `Alt-h` per column; a form opens when fields are required) |
+| Lists | Drag | `issue.transition-next` | M | Columns layout: drag a card onto the next or previous column, same as `Alt-l` / `Alt-h` (a single matching transition is sent as the key does, otherwise the picker or form opens); further columns, the same column and a one-column window do nothing |
 | Lists | Ctrl-click | `rank.to` | C | Rank: pick up the row, then `Ctrl`-click the place to drop it (`<space>kk` twice) |
-| ContextMenu | Click | `view.layout-toggle` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.open-in-browser` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.open-parent` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.edit` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.assign-me` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.transition-previous` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.delete` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.create-subtask` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.link` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.unlink` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `issue.jump` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `rank.up` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `rank.down` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `rank.top` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `rank.bottom` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `comment.delete` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `tab.close` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `tab.previous` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `help.toggle` | C | Item of the context menu: same as its key |
-| ContextMenu | Click | `app.quit` | C | Item of the context menu: same as its key |
+| ContextMenu | Click | `view.layout-toggle` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.open-parent` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.edit` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.assign-me` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.transition-previous` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.create-subtask` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `issue.jump` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `rank.up` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `rank.down` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `rank.top` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `rank.bottom` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `comment.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `tab.close` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `tab.previous` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `help.toggle` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
+| ContextMenu | Click | `app.quit` | C | Not offered yet: the row menu holds only actions of the issue under the pointer; a menu for the tab bar and the view is a follow-up |
 
 ## Without a path
 
@@ -88,3 +88,7 @@ The table test only checks that the table, the code and the keymap agree (every 
 ## Writes
 
 Destructive actions reached by mouse (context menu `issue.delete`, `comment.delete`, `issue.unlink`, drags that change status or rank) go through the same Confirm mode as their keys and say what will change; a drag never writes on release without the same checks as its key.
+
+## Drag
+
+The terminal reports the press and the release of the left button; `MouseDragTracker` pairs them into a drag when the release is on another cell (the click event the toolkit may send afterwards is dropped, so a drop never also selects). `MouseResolver.ResolveDrag` accepts it only on the columns layout of the body (never while an overlay is open) and turns it into `CardDragged`, which the reducer treats as `Alt-l` or `Alt-h` for the card under the press: the card is selected, then the same transition rules run (one matching transition is sent at once, otherwise the picker or form opens and confirms). Only a drop on the next or previous column acts; two or more columns away says `Drop the card on the next or previous column.` and writes nothing, and a drop on the same column, outside the columns, or from a column header does nothing. A window of one column (narrow terminals) has no drop target: use `Alt-l` / `Alt-h`.
