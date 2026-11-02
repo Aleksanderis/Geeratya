@@ -88,9 +88,9 @@ public sealed class EditClientTests
     [Fact]
     public async Task GivenRecordedTeamManagedEditMeta_WhenListing_ThenKindsOperationsAndChoicesAreMapped()
     {
-        using var fixture = Serving("/rest/api/3/issue/GTM-9/editmeta", "metadata/editmeta-gtm-9.json");
+        using var fixture = Serving("/rest/api/3/issue/GTM-11/editmeta", "metadata/editmeta-gtm-11.json");
 
-        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GTM-9", Cancel());
+        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GTM-11", Cancel());
 
         var fields = result.Value.ToDictionary(field => field.FieldId);
         Assert.Equal(EditFieldKind.Text, fields["summary"].Kind);
@@ -104,6 +104,13 @@ public sealed class EditClientTests
         Assert.Empty(fields["labels"].AllowedValues);
         Assert.Equal(EditFieldKind.Unsupported, fields["attachment"].Kind);
         Assert.False(fields["issuetype"].IsEditable);
+        Assert.Equal(EditFieldKind.Parent, fields["parent"].Kind);
+        Assert.Equal(EditFieldKind.User, fields["reporter"].Kind);
+        Assert.True(fields["reporter"].Required);
+        Assert.Equal(EditFieldKind.Unsupported, fields["customfield_10001"].Kind);
+        Assert.Equal(EditFieldKind.Unsupported, fields["customfield_10000"].Kind);
+        Assert.Equal(EditFieldKind.Unsupported, fields["issuerestriction"].Kind);
+        Assert.Empty(fields["parent"].AllowedValues);
     }
 
     [Theory]

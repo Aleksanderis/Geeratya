@@ -1,7 +1,7 @@
 {
   "fields": {
     "assignee": {
-      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/assignable/search?issueKey=GTM-9&query=",
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/assignable/search?issueKey=GTM-11&query=",
       "key": "assignee",
       "name": "Assignee",
       "operations": [
@@ -84,19 +84,6 @@
         "type": "date"
       }
     },
-    "customfield_10017": {
-      "key": "customfield_10017",
-      "name": "Issue color",
-      "operations": [
-        "set"
-      ],
-      "required": false,
-      "schema": {
-        "custom": "com.pyxis.greenhopper.jira:jsw-issue-color",
-        "customId": 10017,
-        "type": "string"
-      }
-    },
     "customfield_10019": {
       "key": "customfield_10019",
       "name": "Rank",
@@ -170,7 +157,7 @@
       }
     },
     "issuelinks": {
-      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=GTM-9&query=",
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=GTM-11&query=",
       "key": "issuelinks",
       "name": "Linked Issues",
       "operations": [
@@ -243,7 +230,7 @@
       }
     },
     "labels": {
-      "autoCompleteUrl": "https://example.atlassian.net/rest/api/1.0/labels/10031/suggest?query=",
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/1.0/labels/10033/suggest?query=",
       "key": "labels",
       "name": "Labels",
       "operations": [
@@ -256,6 +243,19 @@
         "items": "string",
         "system": "labels",
         "type": "array"
+      }
+    },
+    "parent": {
+      "hasDefaultValue": false,
+      "key": "parent",
+      "name": "Parent",
+      "operations": [
+        "set"
+      ],
+      "required": false,
+      "schema": {
+        "system": "parent",
+        "type": "issuelink"
       }
     },
     "priority": {
@@ -303,7 +303,7 @@
       }
     },
     "reporter": {
-      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/recommend?context=Reporter&issueKey=GTM-9",
+      "autoCompleteUrl": "https://example.atlassian.net/rest/api/3/user/recommend?context=Reporter&issueKey=GTM-11",
       "key": "reporter",
       "name": "Reporter",
       "operations": [
