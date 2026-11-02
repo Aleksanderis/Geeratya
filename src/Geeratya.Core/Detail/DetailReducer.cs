@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -110,6 +111,8 @@ internal static class DetailReducer
         var wantsChildren = loaded.Issue.IssueType.HierarchyLevel >= DetailPaging.ParentLevel;
         var childrenRequest = wantsChildren ? state.Sequence + 1 : 0;
 
+        effects.Add(new WriteIssueCacheEffect(new CachedIssue(loaded.Issue, loaded.At)));
+
         var next = Update(
             state,
             loaded.Tab,
@@ -123,6 +126,20 @@ internal static class DetailReducer
         effects.Add(new LoadIssueChildrenEffect(loaded.Tab, loaded.Issue.Key, childrenRequest));
 
         return next with { Sequence = childrenRequest };
+    }
+
+    /// <summary>
+    /// The cached issue is shown (marked stale) while its request is still in flight; once an issue is shown, or the
+    /// request ended, the cache reply is dropped.
+    /// </summary>
+    public static AppState IssueCached(AppState state, IssueDetailCached cached)
+    {
+        return Update(
+            state,
+            cached.Tab,
+            detail => detail.IssueRequest == cached.RequestId && detail.Issue is null
+                ? detail with { Issue = cached.Cached.Detail, IssueStale = true, LoadedAt = cached.Cached.SavedAt }
+                : null);
     }
 
     public static AppState ChildrenLoaded(AppState state, IssueChildrenLoaded loaded)
@@ -336,6 +353,7 @@ internal static class DetailReducer
         return detail with
         {
             Issue = loaded.Issue,
+            IssueStale = false,
             IssueLoad = LoadState.Idle,
             IssueRequest = 0,
             LoadedAt = loaded.At,

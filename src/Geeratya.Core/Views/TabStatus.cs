@@ -49,7 +49,7 @@ public sealed record TabStatus(
             return new TabStatus(NetworkStatusKind.Error, null, failure);
         }
 
-        if (tab.IsStale)
+        if (tab.IsStale || tab.Detail is [.., { IssueStale: true }])
         {
             return new TabStatus(NetworkStatusKind.Stale);
         }

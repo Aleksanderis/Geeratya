@@ -207,7 +207,7 @@ public sealed class ShellHost : IDisposable
             else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect
                 or LoadIssueChildrenEffect)
             {
-                _ = _detailLoads!.StartAsync(effect);
+                _ = _detailLoads!.StartAsync(effect, ActiveCache());
             }
             else if (effect is LoadSourcesEffect sources)
             {
@@ -216,6 +216,10 @@ public sealed class ShellHost : IDisposable
             else if (effect is WriteCacheEffect write)
             {
                 ActiveCache()?.Put(write.Key, write.View);
+            }
+            else if (effect is WriteIssueCacheEffect writeIssue)
+            {
+                ActiveCache()?.PutIssue(writeIssue.Issue);
             }
             else if (effect is CheckConnectionEffect check)
             {

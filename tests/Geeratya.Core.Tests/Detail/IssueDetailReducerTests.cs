@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -46,6 +47,81 @@ public class IssueDetailReducerTests
         Assert.Equal(3, new[] { issue.RequestId, comments.RequestId, links.RequestId }.Distinct().Count());
         Assert.All(new[] { issue.Tab, comments.Tab, links.Tab }, id => Assert.Equal(tab.Id, id));
         Assert.Equal(1, tab.Selected);
+    }
+
+    [Fact]
+    public void GivenCachedIssue_WhenItArrivesWhileLoading_ThenItShowsAsStaleAndTheLoadResultReplacesIt()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var savedAt = _now.AddHours(-5);
+        var old = Detailed("A-1") with { Summary = "Old summary" };
+
+        var cached = Deliver(opened.State, new IssueDetailCached(tab.Id, detail.IssueRequest, new CachedIssue(old, savedAt)));
+
+        var shown = Active(cached).Detail[0];
+        Assert.True(shown.IssueStale);
+        Assert.IsType<Loading>(shown.IssueLoad);
+        Assert.Equal(detail.IssueRequest, shown.IssueRequest);
+        Assert.Equal(savedAt, shown.LoadedAt);
+        Assert.Contains("Old summary", Text(shown));
+        Assert.Equal(NetworkStatusKind.Stale, TabStatus.Of(Active(cached), cached.Session.Link, _now).Kind);
+
+        var fresh = Deliver(cached, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Detailed("A-1") with { Summary = "New summary" }, _now));
+
+        var replaced = Active(fresh).Detail[0];
+        Assert.False(replaced.IssueStale);
+        Assert.Equal(LoadState.Idle, replaced.IssueLoad);
+        Assert.Contains("New summary", Text(replaced));
+        Assert.DoesNotContain("Old summary", Text(replaced));
+        Assert.NotEqual(NetworkStatusKind.Stale, TabStatus.Of(Active(fresh), fresh.Session.Link, _now).Kind);
+    }
+
+    [Fact]
+    public void GivenIssueAlreadyLoaded_WhenALateCacheReplyArrives_ThenItIsDropped()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var loaded = Deliver(opened.State, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Detailed("A-1"), _now));
+
+        var late = Deliver(loaded, new IssueDetailCached(tab.Id, detail.IssueRequest, new CachedIssue(Detailed("A-1") with { Summary = "Old" }, _now.AddDays(-1))));
+        var wrongId = Deliver(opened.State, new IssueDetailCached(tab.Id, detail.IssueRequest + 100, new CachedIssue(Detailed("A-1"), _now)));
+
+        Assert.Equal(loaded, late);
+        Assert.Equal(opened.State, wrongId);
+    }
+
+    [Fact]
+    public void GivenCachedIssueShown_WhenTheLoadFails_ThenTheCachedIssueStaysWithTheErrorOnTheLoadState()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var cached = Deliver(opened.State, new IssueDetailCached(tab.Id, detail.IssueRequest, new CachedIssue(Detailed("A-1"), _now)));
+
+        var failed = Deliver(cached, new IssueDetailFailed(tab.Id, detail.IssueRequest, new JiraError(JiraErrorKind.Network, null, "down")));
+
+        var shown = Active(failed).Detail[0];
+        Assert.NotNull(shown.Issue);
+        Assert.IsType<Failed>(shown.IssueLoad);
+    }
+
+    [Fact]
+    public void GivenIssueLoaded_WhenApplied_ThenItIsWrittenToTheCacheOnce()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+
+        var result = _reducer.Reduce(opened.State, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Detailed("A-1"), _now));
+        var stale = _reducer.Reduce(opened.State, new IssueDetailLoaded(tab.Id, detail.IssueRequest + 100, Detailed("A-1"), _now));
+
+        var write = Assert.Single(result.Effects.OfType<WriteIssueCacheEffect>());
+        Assert.Equal("A-1", write.Issue.Detail.Key);
+        Assert.Equal(_now, write.Issue.SavedAt);
+        Assert.Empty(stale.Effects.OfType<WriteIssueCacheEffect>());
     }
 
     [Fact]
@@ -466,7 +542,7 @@ public class IssueDetailReducerTests
             opened.State,
             new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, Detailed("A-1"), _now));
 
-        Assert.Empty(result.Effects);
+        Assert.Empty(result.Effects.OfType<LoadIssueChildrenEffect>());
         Assert.Equal(LoadState.Idle, Active(result.State).Detail[0].ChildrenLoad);
         Assert.Null(Active(result.State).Detail[0].Children);
     }
