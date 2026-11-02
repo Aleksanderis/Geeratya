@@ -8,10 +8,11 @@ namespace Geeratya.Jira.Sprints;
 
 /// <summary>
 /// Creates, edits, starts and completes sprints (agile API). Every method is a write: call it only from a confirmed
-/// command, never retry silently, and reload the sprint after an unknown outcome (<see cref="WriteError.IsOutcomeUnknown"/>).
-/// The client keeps no cache. Updates, start and complete use <c>POST /sprint/{id}</c>, the partial update: <c>PUT</c>
-/// replaces the sprint and drops an omitted goal. <see cref="StartAsync"/> and <see cref="CompleteAsync"/> change the
-/// workflow of a team (the UI confirms them first, #186). Jira allows several active sprints at once, so there is no
+/// command, never retry silently, and reload the sprint after an unknown outcome
+/// (<see cref="WriteError.IsOutcomeUnknown"/>). The client keeps no cache. Updates, start and complete use
+/// <c>POST /sprint/{id}</c>, the partial update: <c>PUT</c> replaces the sprint and drops an omitted goal.
+/// <see cref="StartAsync"/> and <see cref="CompleteAsync"/> change the workflow of a team (the UI confirms them
+/// first, #186). Jira allows several active sprints at once, so there is no
 /// "another sprint is active" error. Completing does not move unfinished issues: <c>moveIssuesTo</c> is rejected with
 /// 400, so they stay in the closed sprint and show up in the backlog; moving them is a second call (open question 8
 /// in docs/roadmap.md). Only call these on a Scrum board's sprints (a Kanban board has none).
@@ -19,8 +20,6 @@ namespace Geeratya.Jira.Sprints;
 public sealed class SprintWriteClient(JiraTransport transport)
 {
     private const string SprintPath = "/rest/agile/1.0/sprint";
-    private const string EndDateField = "endDate";
-    private const string NameField = "name";
 
     /// <summary>Creates a future sprint on the board. Dates are optional here; starting needs both.</summary>
     public Task<WriteResult<WrittenSprint>> CreateAsync(
@@ -33,7 +32,7 @@ public sealed class SprintWriteClient(JiraTransport transport)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Refused(NameField, "A sprint needs a name.");
+            return Refused(SprintWriteFields.Name, SprintWriteErrors.NameMissingMessage);
         }
 
         if (originBoardId <= 0)
@@ -69,7 +68,7 @@ public sealed class SprintWriteClient(JiraTransport transport)
 
         if (edit.Name is not null && string.IsNullOrWhiteSpace(edit.Name))
         {
-            return Refused(NameField, "A sprint needs a name.");
+            return Refused(SprintWriteFields.Name, SprintWriteErrors.NameMissingMessage);
         }
 
         if (CheckDates(edit.StartDate, edit.EndDate) is { } refused)
@@ -83,8 +82,8 @@ public sealed class SprintWriteClient(JiraTransport transport)
     }
 
     /// <summary>
-    /// Starts a future sprint with the given dates (<c>future</c> to <c>active</c>). Starting an active sprint is a
-    /// no-op in Jira; starting a closed one is refused (<see cref="SprintWriteProblem.AlreadyClosed"/>).
+    /// Starts a future sprint with the given dates (<c>future</c> to <c>active</c>). Starting a closed one is
+    /// refused (<see cref="SprintWriteProblem.AlreadyClosed"/>).
     /// </summary>
     public Task<WriteResult<WrittenSprint>> StartAsync(
         long sprintId,
@@ -128,7 +127,7 @@ public sealed class SprintWriteClient(JiraTransport transport)
     {
         if (startDate is { } start && endDate is { } end && end <= start)
         {
-            return Failure(EndDateField, SprintWriteErrors.EndBeforeStartMessage);
+            return Failure(SprintWriteFields.EndDate, SprintWriteErrors.EndBeforeStartMessage);
         }
 
         return null;
@@ -141,7 +140,9 @@ public sealed class SprintWriteClient(JiraTransport transport)
     {
         IReadOnlyList<WriteFieldError> fields = fieldId is null ? [] : [new WriteFieldError(fieldId, message)];
 
-        return WriteResults.Failure<WrittenSprint>(new WriteError(WriteErrorKind.Validation, null, message, fields, []));
+        var error = new WriteError(WriteErrorKind.Validation, null, message, fields, []);
+
+        return WriteResults.Failure<WrittenSprint>(error);
     }
 
     private async Task<WriteResult<WrittenSprint>> SendAsync(
@@ -159,9 +160,12 @@ public sealed class SprintWriteClient(JiraTransport transport)
 
         var sprint = SprintWriteMapper.Map(result.Value);
 
-        return sprint is null
-            ? WriteResults.Failure<WrittenSprint>(UnreadableReply())
-            : WriteResults.Success(sprint);
+        if (sprint is null)
+        {
+            return WriteResults.Failure<WrittenSprint>(UnreadableReply());
+        }
+
+        return WriteResults.Success(sprint);
     }
 
     private static WriteError UnreadableReply() =>

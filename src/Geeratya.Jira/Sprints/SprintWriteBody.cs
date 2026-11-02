@@ -25,11 +25,11 @@ internal static class SprintWriteBody
         using (var writer = new Utf8JsonWriter(stream))
         {
             writer.WriteStartObject();
-            writer.WriteString("name", name);
-            writer.WriteNumber("originBoardId", originBoardId);
-            WriteOptional(writer, "goal", goal);
-            WriteDate(writer, "startDate", startDate);
-            WriteDate(writer, "endDate", endDate);
+            writer.WriteString(SprintWriteFields.Name, name);
+            writer.WriteNumber(SprintWriteFields.OriginBoardId, originBoardId);
+            WriteOptional(writer, SprintWriteFields.Goal, goal);
+            WriteDate(writer, SprintWriteFields.StartDate, startDate);
+            WriteDate(writer, SprintWriteFields.EndDate, endDate);
             writer.WriteEndObject();
         }
 
@@ -57,11 +57,11 @@ internal static class SprintWriteBody
         using (var writer = new Utf8JsonWriter(stream))
         {
             writer.WriteStartObject();
-            WriteOptional(writer, "state", state);
-            WriteOptional(writer, "name", name);
-            WriteOptional(writer, "goal", goal);
-            WriteDate(writer, "startDate", startDate);
-            WriteDate(writer, "endDate", endDate);
+            WriteOptional(writer, SprintWriteFields.State, state);
+            WriteOptional(writer, SprintWriteFields.Name, name);
+            WriteOptional(writer, SprintWriteFields.Goal, goal);
+            WriteDate(writer, SprintWriteFields.StartDate, startDate);
+            WriteDate(writer, SprintWriteFields.EndDate, endDate);
             writer.WriteEndObject();
         }
 

@@ -2,6 +2,7 @@ using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
+using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Tests.Live;
 
@@ -33,17 +34,21 @@ public class LiveSprintWriteTests
         Assert.True(created.IsSuccess, created.IsSuccess ? string.Empty : created.Error.Message);
         var sprintId = created.Value.Id;
 
+        WriteResult<WriteAccepted> deleted;
+
         try
         {
             await StepsAsync(client, sprintId, token);
         }
         finally
         {
-            var deleted = await transport.SendWriteAsync(
+            // Asserted after the try so a failed step is not hidden by a cleanup failure.
+            deleted = await transport.SendWriteAsync(
                 JiraRequest.Write(HttpMethod.Delete, $"{SprintPath}/{sprintId}", null),
                 token);
-            Assert.True(deleted.IsSuccess, deleted.IsSuccess ? string.Empty : deleted.Error.Message);
         }
+
+        Assert.True(deleted.IsSuccess, deleted.IsSuccess ? string.Empty : deleted.Error.Message);
     }
 
     private static async Task StepsAsync(SprintWriteClient client, long sprintId, CancellationToken token)
@@ -51,7 +56,8 @@ public class LiveSprintWriteTests
         var start = DateTimeOffset.UtcNow;
         var end = start.AddDays(7);
 
-        var renamed = await client.UpdateAsync(sprintId, new SprintEdit("geeratya-test-renamed", null, null, null), token);
+        var rename = new SprintEdit("geeratya-test-renamed", null, null, null);
+        var renamed = await client.UpdateAsync(sprintId, rename, token);
         Assert.True(renamed.IsSuccess);
         Assert.Equal("live goal", renamed.Value.Goal);
 

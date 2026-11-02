@@ -33,8 +33,13 @@ internal static class SprintWriteMapper
             _ => WrittenSprintState.Unknown,
         };
 
-    private static DateTimeOffset? ParseDate(string? text) =>
-        DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var date)
-            ? date
-            : null;
+    private static DateTimeOffset? ParseDate(string? text)
+    {
+        if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var date))
+        {
+            return date;
+        }
+
+        return null;
+    }
 }

@@ -8,11 +8,8 @@ public enum SprintWriteProblem
 {
     Other,
 
-    /// <summary>The sprint has no start date (starting needs one).</summary>
+    /// <summary>The sprint has no start date (starting or completing needs one).</summary>
     StartDateMissing,
-
-    /// <summary>The sprint has no end date (starting needs one).</summary>
-    EndDateMissing,
 
     /// <summary>The end is not after the start.</summary>
     EndBeforeStart,

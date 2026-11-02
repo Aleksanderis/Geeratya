@@ -44,7 +44,9 @@ public sealed class SprintWriteClientTests
 
         var body = Assert.Single(fixture.Handler.Requests).Body;
         Assert.Equal(
-            """{"name":"Next","originBoardId":5,"startDate":"2026-11-02T10:00:00.000Z","endDate":"2026-11-09T10:00:00.000Z"}""",
+            """
+            {"name":"Next","originBoardId":5,"startDate":"2026-11-02T10:00:00.000Z","endDate":"2026-11-09T10:00:00.000Z"}
+            """,
             body);
     }
 
@@ -120,7 +122,8 @@ public sealed class SprintWriteClientTests
     {
         using var fixture = new TransportFixture();
         var reply = FixtureFiles.Read(fixtureName);
-        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/14", FakeResponse.WithStatus(HttpStatusCode.BadRequest, reply));
+        var bad = FakeResponse.WithStatus(HttpStatusCode.BadRequest, reply);
+        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/14", bad);
 
         var result = await new SprintWriteClient(fixture.Transport).CompleteAsync(14, Cancel());
 
@@ -135,7 +138,8 @@ public sealed class SprintWriteClientTests
     {
         using var fixture = new TransportFixture();
         var reply = FixtureFiles.Read("scrum/error-sprint-reopen-closed-400.json");
-        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/6", FakeResponse.WithStatus(HttpStatusCode.BadRequest, reply));
+        var bad = FakeResponse.WithStatus(HttpStatusCode.BadRequest, reply);
+        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/6", bad);
 
         var result = await new SprintWriteClient(fixture.Transport).StartAsync(6, _start, _end, Cancel());
 
@@ -147,7 +151,8 @@ public sealed class SprintWriteClientTests
     {
         using var fixture = new TransportFixture();
         var reply = FixtureFiles.Read("scrum/error-sprint-404.json");
-        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/99", FakeResponse.WithStatus(HttpStatusCode.NotFound, reply));
+        var missing = FakeResponse.WithStatus(HttpStatusCode.NotFound, reply);
+        fixture.Handler.Serve(HttpMethod.Post, $"{SprintPath}/99", missing);
 
         var result = await new SprintWriteClient(fixture.Transport)
             .UpdateAsync(99, new SprintEdit("x", null, null, null), Cancel());
@@ -180,6 +185,21 @@ public sealed class SprintWriteClientTests
         Assert.Equal(WriteErrorKind.Validation, emptyEdit.Error.Kind);
         Assert.Equal(SprintWriteProblem.NameMissing, SprintWriteErrors.Classify(blankName.Error));
         Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenOtherStartDateError_WhenStarting_ThenNotReportedAsMissingDate()
+    {
+        using var fixture = new TransportFixture();
+        const string reply = """{"errorMessages":[],"errors":{"startDate":"Invalid date format."}}""";
+        fixture.Handler.Serve(
+            HttpMethod.Post,
+            $"{SprintPath}/5",
+            FakeResponse.WithStatus(HttpStatusCode.BadRequest, reply));
+
+        var result = await new SprintWriteClient(fixture.Transport).StartAsync(5, _start, _end, Cancel());
+
+        Assert.Equal(SprintWriteProblem.Other, SprintWriteErrors.Classify(result.Error));
     }
 
     [Fact]
