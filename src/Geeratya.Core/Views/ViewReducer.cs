@@ -269,7 +269,7 @@ public static class ViewReducer
 
         if (tab is { Detail.Count: > 0 })
         {
-            return new ReduceResult(DetailReducer.Scroll(state, tab, move), _noEffects);
+            return new ReduceResult(DetailReducer.MoveCursor(state, tab, move), _noEffects);
         }
 
         if (tab is null || tab.Rows.Count == 0)

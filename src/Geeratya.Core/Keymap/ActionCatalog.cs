@@ -55,9 +55,6 @@ public static class ActionCatalog
     /// </summary>
     public static IReadOnlyCollection<string> Unimplemented { get; } =
     [
-        ActionIds.SectionNext,
-        ActionIds.SectionPrevious,
-        ActionIds.IssueOpenParent,
     ];
 
     /// <summary>

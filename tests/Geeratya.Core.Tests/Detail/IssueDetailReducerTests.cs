@@ -264,11 +264,12 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
-    public void GivenLongIssue_WhenScrolling_ThenTheDocumentMovesByLineAndStaysInRange()
+    public void GivenLongIssue_WhenMovingTheCursor_ThenItMovesByLineAndTheWindowFollowsInRange()
     {
         var state = LoadedLongIssue(commentCount: 20, rows: 10);
-        var lines = Active(state).Detail[0].Document!.Lines.Count;
-        var last = lines - DetailLayout.ViewportRows(10);
+        var document = Active(state).Detail[0].Document!;
+        var lines = document.Lines.Count;
+        var viewport = DetailLayout.ViewportRows(10);
 
         var down = Press(state, "j").State;
         var page = Press(down, "Ctrl-d").State;
@@ -277,12 +278,52 @@ public class IssueDetailReducerTests
         var top = Press(Press(beyond, "g").State, "g").State;
         var above = Press(top, "k").State;
 
-        Assert.Equal(1, Active(down).Detail[0].Scroll);
-        Assert.Equal(1 + (DetailLayout.ViewportRows(10) / 2), Active(page).Detail[0].Scroll);
-        Assert.Equal(last, Active(bottom).Detail[0].Scroll);
-        Assert.Equal(last, Active(beyond).Detail[0].Scroll);
+        Assert.Equal(document.Stops[0], Active(state).Detail[0].Cursor);
+        Assert.Equal(document.Stops[1], Active(down).Detail[0].Cursor);
+        Assert.Equal(0, Active(down).Detail[0].Scroll);
+        Assert.InRange(Active(page).Detail[0].Cursor, document.Stops[1] + (viewport / 2), lines);
+        Assert.Equal(document.Stops[^1], Active(bottom).Detail[0].Cursor);
+        Assert.Equal(lines - viewport, Active(bottom).Detail[0].Scroll);
+        Assert.Equal(document.Stops[^1], Active(beyond).Detail[0].Cursor);
+        Assert.Equal(lines - viewport, Active(beyond).Detail[0].Scroll);
+        Assert.Equal(document.Stops[0], Active(top).Detail[0].Cursor);
         Assert.Equal(0, Active(top).Detail[0].Scroll);
-        Assert.Equal(0, Active(above).Detail[0].Scroll);
+        Assert.Equal(document.Stops[0], Active(above).Detail[0].Cursor);
+    }
+
+    [Fact]
+    public void GivenLongIssue_WhenMovingTheCursor_ThenItNeverRestsOnAPanelEdge()
+    {
+        var state = LoadedLongIssue(commentCount: 20, rows: 10);
+        var document = Active(state).Detail[0].Document!;
+
+        for (var step = 0; step < document.Lines.Count; step++)
+        {
+            state = Press(state, "j").State;
+
+            Assert.Contains(Active(state).Detail[0].Cursor, document.Stops);
+            Assert.DoesNotMatch("^[╭╰]", document.Lines[Active(state).Detail[0].Cursor].PlainText);
+        }
+    }
+
+    [Fact]
+    public void GivenCursorAtTheWindowEdge_WhenMovingBack_ThenTheWindowScrollsOnlyWhenTheCursorLeavesIt()
+    {
+        var state = LoadedLongIssue(commentCount: 20, rows: 10);
+        var viewport = DetailLayout.ViewportRows(10);
+        var edge = state;
+
+        while (Active(edge).Detail[0].Cursor < viewport + 2)
+        {
+            edge = Press(edge, "j").State;
+        }
+
+        var scrolled = Active(edge).Detail[0];
+        var inside = Active(Press(edge, "k").State).Detail[0];
+
+        Assert.True(scrolled.Scroll > 0);
+        Assert.Equal(scrolled.Scroll, inside.Scroll);
+        Assert.True(inside.Cursor < scrolled.Cursor);
     }
 
     [Fact]

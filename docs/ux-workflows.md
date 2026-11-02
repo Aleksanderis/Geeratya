@@ -26,9 +26,9 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 ## 4. Open an issue, follow links, go back
 
 1. `Enter` on a row or card pushes the issue onto the tab's stack. The cached copy shows at once, the fresh one replaces it.
-2. `j`/`k` move the cursor through the document; `] ]` and `[ [` jump between sections.
-3. `Enter` on a sub-task, epic child or linked issue pushes that issue (so a chain of issues is a deeper stack); on a remote link or attachment it opens the browser (the issue page for an attachment, the link's URL for a remote link; only `http` and `https` URLs, anything else is shown in the status line).
-4. `<space>p` pushes the parent; `<space>o` opens the current issue in the browser.
+2. `j`/`k` move the cursor (`>`) line by line through the document, skipping the panel edges, and the window follows it; `] ]` and `[ [` jump to the start of the next section, or of the current one and then the previous (nothing moves at either end).
+3. `Enter` on a sub-task, epic child or linked issue pushes that issue (so a chain of issues is a deeper stack); on a remote link or attachment it opens the browser (the issue page for an attachment, the link's URL for a remote link; only `https` URLs, anything else is refused with a note in the status line).
+4. `<space>p` pushes the parent (a status note when there is none); `<space>o` opens the cursor row in the browser (remote link, attachment or related issue) and the shown issue from any other line.
 5. `Esc` pops one level. After the last pop the view is back with its selection and scroll as they were. `Esc` at the view does nothing (`q` quits, as everywhere).
 6. Switching tab keeps each tab's stack; closing a tab drops its stack.
 

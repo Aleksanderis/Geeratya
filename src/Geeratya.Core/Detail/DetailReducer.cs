@@ -24,6 +24,13 @@ internal static class DetailReducer
 
         if (tab.Detail.Count > 0)
         {
+            if (TargetOf(tab.Detail[^1]) is { Kind: DetailTargetKind.Issue } target)
+            {
+                var pushed = Open(state, tab.Id, target.Value, null, effects);
+
+                return pushed == state ? state with { Message = "Too many issues open: press Esc to go back." } : pushed;
+            }
+
             return MoreComments(state, tab, effects);
         }
 
@@ -164,28 +171,71 @@ internal static class DetailReducer
     }
 
     /// <summary>
-    /// Scrolls the top issue of the active tab by line or page; the document, not the selection, moves.
+    /// Moves the cursor of the top issue of the active tab by line or page; the window follows it, scrolling only
+    /// when the cursor would leave it.
     /// </summary>
-    public static AppState Scroll(AppState state, TabState tab, ListMove move)
+    public static AppState MoveCursor(AppState state, TabState tab, ListMove move)
+    {
+        var top = tab.Detail[^1];
+        var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+
+        if (top.Document is not { } document)
+        {
+            return state;
+        }
+
+        var target = move switch
+        {
+            ListMove.Down => document.StopAfter(top.Cursor),
+            ListMove.Up => document.StopBefore(top.Cursor),
+            ListMove.PageDown => document.Snap(top.Cursor + Math.Max(1, viewport / 2)),
+            ListMove.PageUp => document.StopBefore(top.Cursor - Math.Max(1, viewport / 2) + 1),
+            ListMove.Top => document.Snap(0),
+            _ => document.Stops.Count == 0 ? 0 : document.Stops[^1],
+        };
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
+    }
+
+    /// <summary>
+    /// Puts the cursor on <paramref name="line"/> and scrolls so that the panel edge above it is the first visible
+    /// line when the document is long enough (a section jump shows the section from its top).
+    /// </summary>
+    public static AppState JumpTo(AppState state, TabState tab, int line)
     {
         var top = tab.Detail[^1];
         var lines = top.Document?.Lines.Count ?? 0;
         var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
-        var last = Math.Max(0, lines - viewport);
+        var cursor = top.Document?.Snap(Math.Clamp(line, 0, Math.Max(0, lines - 1))) ?? 0;
+        var scroll = Math.Clamp(cursor - 1, 0, Math.Max(0, lines - viewport));
 
-        var target = move switch
+        return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
+    }
+
+    private static DetailState WithCursor(DetailState detail, int target, int viewport)
+    {
+        var lines = detail.Document?.Lines.Count ?? 0;
+        var cursor = detail.Document?.Snap(Math.Clamp(target, 0, Math.Max(0, lines - 1))) ?? 0;
+        var scroll = detail.Scroll;
+
+        if (detail.Document is { Stops.Count: > 0 } stops && cursor == stops.Stops[^1])
         {
-            ListMove.Down => top.Scroll + 1,
-            ListMove.Up => top.Scroll - 1,
-            ListMove.PageDown => top.Scroll + Math.Max(1, viewport / 2),
-            ListMove.PageUp => top.Scroll - Math.Max(1, viewport / 2),
-            ListMove.Top => 0,
-            _ => last,
-        };
+            scroll = lines;
+        }
+        else if (detail.Document is { Stops.Count: > 0 } first && cursor == first.Stops[0])
+        {
+            scroll = 0;
+        }
+        else if (cursor < scroll)
+        {
+            scroll = cursor;
+        }
+        else if (cursor >= scroll + viewport)
+        {
+            scroll = cursor - viewport + 1;
+        }
 
-        var scrolled = top with { Scroll = Math.Clamp(target, 0, last) };
-
-        return ViewReducer.Replace(state, ReplaceTop(tab, scrolled));
+        return detail with { Cursor = cursor, Scroll = Math.Clamp(scroll, 0, Math.Max(0, lines - viewport)) };
     }
 
     /// <summary>
@@ -204,6 +254,19 @@ internal static class DetailReducer
         var resized = sameWidth ? Clamp(top, tab.VisibleRows) : Layout(top, columns, tab.VisibleRows);
 
         return ReplaceTop(tab, resized);
+    }
+
+    /// <summary>What Enter opens on the cursor line of <paramref name="detail"/>, null on a plain line.</summary>
+    public static DetailTarget? TargetOf(DetailState detail)
+    {
+        var targets = detail.Document?.Targets;
+
+        if (targets is null || detail.Cursor < 0 || detail.Cursor >= targets.Count)
+        {
+            return null;
+        }
+
+        return targets[detail.Cursor];
     }
 
     private static AppState MoreComments(AppState state, TabState tab, List<Effect> effects)
@@ -323,9 +386,10 @@ internal static class DetailReducer
     private static DetailState Clamp(DetailState detail, int listRows)
     {
         var lines = detail.Document?.Lines.Count ?? 0;
-        var last = Math.Max(0, lines - DetailLayout.ViewportRows(listRows));
+        var viewport = DetailLayout.ViewportRows(listRows);
+        var scrolled = detail with { Scroll = Math.Clamp(detail.Scroll, 0, Math.Max(0, lines - viewport)) };
 
-        return detail with { Scroll = Math.Clamp(detail.Scroll, 0, last) };
+        return WithCursor(scrolled, detail.Cursor, viewport);
     }
 
     private static TabState ReplaceTop(TabState tab, DetailState top)

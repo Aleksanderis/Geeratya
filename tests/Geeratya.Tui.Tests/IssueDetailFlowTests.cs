@@ -267,6 +267,66 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Empty(_posted);
     }
 
+    [Fact]
+    public async Task GivenStoryWithAParentEpic_WhenPressingOpenParent_ThenTheEpicLoadsOnTheStackAndEscComesBack()
+    {
+        ServeStory("GCM-10", "gcm10");
+        ServeEpic("GCM-8", "gcm8", "hierarchy/search-epic-children-gcm.json");
+        await ConnectAsync();
+        var story = await OpenAsync("GCM-10");
+
+        var parent = await PumpAsync(await PumpAsync(story, new KeyPressed("Space")), new KeyPressed("p"));
+
+        Assert.Equal(["GCM-10", "GCM-8"], Tab(parent).Detail.Select(detail => detail.Key));
+        Assert.Contains("Epic children (2)", Text(Top(parent)));
+
+        var back = await PumpAsync(parent, new KeyPressed("Esc"));
+
+        Assert.Equal(["GCM-10"], Tab(back).Detail.Select(detail => detail.Key));
+    }
+
+    [Fact]
+    public async Task GivenCursorOnASubtaskRow_WhenPressingEnter_ThenItIsRequestedByKeyAndAMissingOneShowsNotFound()
+    {
+        ServeStory("GCM-10", "gcm10");
+        _http.Fixture($"{Site}/GCM-18", "errors/issue-404.json", HttpStatusCode.NotFound)
+            .Fixture($"{Site}/GCM-18/comment", "errors/issue-404.json", HttpStatusCode.NotFound)
+            .Fixture($"{Site}/GCM-18/remotelink", "errors/issue-404.json", HttpStatusCode.NotFound);
+        await ConnectAsync();
+        var state = await OpenAsync("GCM-10");
+
+        while (Top(state).Document!.Targets[Top(state).Cursor] is not { Kind: DetailTargetKind.Issue, Value: "GCM-18" })
+        {
+            state = await PumpAsync(state, new KeyPressed("j"));
+        }
+
+        var opened = await PumpAsync(state, new KeyPressed("Enter"));
+
+        Assert.Equal(["GCM-10", "GCM-18"], Tab(opened).Detail.Select(detail => detail.Key));
+        Assert.Contains("Not found or no access: GCM-18", Text(Top(opened)));
+        Assert.Contains(_http.Requests, uri => uri.AbsolutePath == $"{Site}/GCM-18");
+
+        var back = await PumpAsync(opened, new KeyPressed("Esc"));
+
+        Assert.Equal("GCM-10", Top(back).Key);
+        Assert.Contains("Sub-tasks (2)", Text(Top(back)));
+    }
+
+    private void ServeStory(string key, string fixture)
+    {
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-gcm6.json");
+    }
+
+    private void ServeEpic(string key, string fixture, string childrenFixture)
+    {
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-empty.json")
+            .Fixture(SearchPath, childrenFixture);
+    }
+
     private static TabState Tab(AppState state)
     {
         return state.Session.Tabs.Single(tab => tab.Id == state.Session.Active);

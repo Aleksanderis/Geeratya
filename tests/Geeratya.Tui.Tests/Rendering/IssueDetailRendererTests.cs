@@ -66,6 +66,30 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenCursorMoves_WhenBuilding_ThenOnlyTheCursorRowCarriesTheMarkerAndEdgesAreSkipped()
+    {
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+
+        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+
+        var marked = lines.Where(line => line.StartsWith("> ")).ToList();
+        Assert.Single(marked);
+        Assert.StartsWith("> ", lines[FrameBuilder.HeaderRows + 3]);
+        Assert.Contains(lines, line => line.StartsWith("│ Fix login"));
+        Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12"));
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(11)]
+    public void GivenFramesDroppedOrTiny_WhenTheCursorIsShown_ThenTheRowStaysWithinTheWidth(int width)
+    {
+        var lines = FrameBuilder.Build(Loaded(80, 24), width, 12, _helpLines, _keymap);
+
+        Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+    }
+
+    [Fact]
     public void GivenAnOpenIssue_WhenBuilding_ThenTheBreadcrumbNamesTheViewAndTheKey()
     {
         var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _helpLines, _keymap);
@@ -80,7 +104,8 @@ public class IssueDetailRendererTests
 
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(9).ToList();
         Assert.StartsWith("+- GCM-12 · Task ", body[1]);
-        Assert.StartsWith("| Fix login", body[2]);
+        Assert.StartsWith("> Fix login", body[2]);
+        Assert.StartsWith("| ", body[3]);
         Assert.StartsWith("+--", body[8]);
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
         Assert.Contains(lines, line => line.Contains("In Progress v"));
@@ -97,7 +122,7 @@ public class IssueDetailRendererTests
 
         Assert.Contains("Loading…", lines[FrameBuilder.HeaderRows]);
         Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12 · Task "));
-        Assert.Contains(lines, line => line.StartsWith("│ Row summary"));
+        Assert.Contains(lines, line => line.StartsWith("> Row summary"));
     }
 
     [Fact]
@@ -105,7 +130,13 @@ public class IssueDetailRendererTests
     {
         var state = Loaded(80, 12);
         var bottom = _reducer.Reduce(state, new KeyPressed("G")).State;
-        var middle = _reducer.Reduce(state, new KeyPressed("Ctrl-d")).State;
+        var middle = state;
+
+        for (var page = 0; page < 3; page++)
+        {
+            middle = _reducer.Reduce(middle, new KeyPressed("Ctrl-d")).State;
+        }
+
 
         var top = FrameBuilder.Build(state, 80, 12, _helpLines, _keymap);
         var end = FrameBuilder.Build(bottom, 80, 12, _helpLines, _keymap);
