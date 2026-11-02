@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -198,9 +199,10 @@ public static class WriteReducer
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
         var replaced = ReplaceRows(state, rows);
         var stale = MarkStale(replaced, operation.Keys);
-        var finished = Finish(stale, operation, true, effects);
+        var finished = Finish(stale, operation, true, effects, rows);
+        var reloaded = ReloadDetails(finished, operation.Keys, effects);
 
-        return new ReduceResult(finished with { Message = operation.Request.DoneText }, effects);
+        return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }
 
     private static ReduceResult Failed(AppState state, WriteFailed failed)
@@ -248,7 +250,10 @@ public static class WriteReducer
 
         var finished = Finish(reverted, operation, false, effects);
 
-        return new ReduceResult(finished with { Message = text }, effects);
+        // A detail reply that landed during the write may hold the optimistic value: read the issue again.
+        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+
+        return new ReduceResult(reloaded with { Message = text }, effects);
     }
 
     /// <summary>The reply was lost: keep the optimistic rows and read the issue to find out what happened.</summary>
@@ -273,25 +278,93 @@ public static class WriteReducer
     /// Removes the operation. An applied write protects the rows of its keys in loads that are still in flight (they
     /// may have started before it ended); when the last operation ends, refreshes that were asked for meanwhile run.
     /// </summary>
-    private static AppState Finish(AppState state, Operation operation, bool applied, List<Effect> effects)
+    private static AppState Finish(
+        AppState state,
+        Operation operation,
+        bool applied,
+        List<Effect> effects,
+        IReadOnlyList<IssueSummary>? rows = null)
     {
         var remaining = state.Session.Operations.Where(other => other.Id != operation.Id).ToArray();
         var removed = state with { Session = state.Session with { Operations = remaining } };
-        var protectedState = applied ? Protect(removed, operation.Keys) : removed;
+        var protectedState = applied ? Protect(removed, operation, rows ?? []) : removed;
 
         return remaining.Length == 0 ? RunQueuedRefreshes(protectedState, effects) : protectedState;
     }
 
-    private static AppState Protect(AppState state, IReadOnlyList<string> keys)
+    private static AppState Protect(AppState state, Operation operation, IReadOnlyList<IssueSummary> rows)
     {
-        var tabs = state.Session.Tabs.Select(tab => tab.Load is Loading ? Protected(tab, keys) : tab).ToArray();
+        var tabs = state.Session.Tabs.Select(tab => ProtectedTab(tab, operation, rows)).ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
     }
 
-    private static TabState Protected(TabState tab, IReadOnlyList<string> keys)
+    /// <summary>
+    /// A tab that is loading keeps its rows for the written keys; an issue detail of those keys that is loading keeps
+    /// the fields the write changed (the reply may predate the write).
+    /// </summary>
+    private static TabState ProtectedTab(TabState tab, Operation operation, IReadOnlyList<IssueSummary> rows)
     {
-        return tab with { ProtectedKeys = [.. tab.ProtectedKeys.Union(keys, StringComparer.OrdinalIgnoreCase)] };
+        var details = tab.Detail.Select(detail => HeldDetail(detail, operation)).ToArray();
+        var held = tab with { Detail = details };
+
+        return tab.Load is Loading ? Protected(held, operation.Keys, rows) : held;
+    }
+
+    private static DetailState HeldDetail(DetailState detail, Operation operation)
+    {
+        if (detail.IssueRequest == 0 || !operation.Keys.Contains(detail.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            return detail;
+        }
+
+        var changes = operation.Undo.Where(
+            change => string.Equals(change.Key, detail.Key, StringComparison.OrdinalIgnoreCase));
+
+        return detail with { HeldChanges = [.. detail.HeldChanges ?? [], .. changes] };
+    }
+
+    private static TabState Protected(TabState tab, IReadOnlyList<string> keys, IReadOnlyList<IssueSummary> rows)
+    {
+        return tab with
+        {
+            ProtectedKeys = [.. tab.ProtectedKeys.Union(keys, StringComparer.OrdinalIgnoreCase)],
+            ProtectedRows = [.. tab.ProtectedRows.Where(row => !IsAmong(keys, row.Key)), .. rows],
+        };
+    }
+
+    /// <summary>
+    /// The shown issue of every tab that holds one of the keys is marked stale; the active tab reloads it now, the
+    /// others when they are activated.
+    /// </summary>
+    private static AppState ReloadDetails(AppState state, IReadOnlyList<string> keys, List<Effect> effects)
+    {
+        var next = state;
+
+        foreach (var tab in state.Session.Tabs)
+        {
+            if (tab.Detail is not [.., { Issue: not null } top] || !IsAmong(keys, top.Key))
+            {
+                continue;
+            }
+
+            var current = ViewReducer.Find(next.Session.Tabs, tab.Id)!;
+            var stack = current.Detail.ToArray();
+
+            stack[^1] = top with { IssueStale = true };
+
+            var marked = current with { Detail = stack };
+            var staleState = ViewReducer.Replace(next, marked);
+
+            next = tab.Id == state.Session.Active ? DetailReducer.Reload(staleState, tab.Id, effects) : staleState;
+        }
+
+        return next;
+    }
+
+    private static bool IsAmong(IReadOnlyList<string> keys, string key)
+    {
+        return keys.Contains(key, StringComparer.OrdinalIgnoreCase);
     }
 
     private static AppState RunQueuedRefreshes(AppState state, List<Effect> effects)

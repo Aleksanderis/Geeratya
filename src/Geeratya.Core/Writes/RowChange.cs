@@ -1,3 +1,4 @@
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Writes;
@@ -11,6 +12,9 @@ public abstract record RowChange(string Key)
 {
     /// <summary>The row with the change applied.</summary>
     public abstract IssueSummary Patch(IssueSummary row);
+
+    /// <summary>The issue detail with the change applied (a reload that must keep what the write changed).</summary>
+    public abstract IssueDetail Patch(IssueDetail detail);
 
     /// <summary>
     /// The row with the change undone, but only where the field still holds the patched value: a newer value (from

@@ -1,4 +1,5 @@
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.RemoteLinks.Models;
@@ -36,6 +37,9 @@ namespace Geeratya.Core.Detail;
 /// <param name="Scroll">The first visible document line; follows the cursor.</param>
 /// <param name="Document">The laid-out lines for the last known width, null before the first layout.</param>
 /// <param name="IssueStale">The shown issue came from the cache; the network reply replaces it.</param>
+/// <param name="HeldChanges">
+/// What writes that ended while this issue's request was in flight changed; the reply keeps these fields.
+/// </param>
 /// <param name="IssueSavedAt">When the cached issue was loaded from Jira; the age the STALE banner shows.</param>
 public sealed record DetailState(
     string Key,
@@ -60,7 +64,8 @@ public sealed record DetailState(
     int Scroll,
     DetailDocument? Document,
     bool IssueStale = false,
-    DateTimeOffset? IssueSavedAt = null)
+    DateTimeOffset? IssueSavedAt = null,
+    IReadOnlyList<RowChange>? HeldChanges = null)
 {
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(

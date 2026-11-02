@@ -74,6 +74,12 @@ public sealed record TabState(
     public IReadOnlyList<string> ProtectedKeys { get; init; } = [];
 
     /// <summary>
+    /// The rows Jira returned for <see cref="ProtectedKeys"/> when the write ended. A reply keeps these for a key the
+    /// tab does not hold yet (a next page that arrives after the write). Cleared with the keys.
+    /// </summary>
+    public IReadOnlyList<IssueSummary> ProtectedRows { get; init; } = [];
+
+    /// <summary>
     /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the
     /// approximate-count call of a JQL source. Null while unknown (the header then reads <c>N+</c>).
     /// </summary>

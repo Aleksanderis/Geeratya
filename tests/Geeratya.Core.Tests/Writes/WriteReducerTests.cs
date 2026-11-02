@@ -1,9 +1,12 @@
 using System.Globalization;
+using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Writes.Models;
 
@@ -610,6 +613,138 @@ public class WriteReducerTests
         Assert.Same(page.Items, merged);
     }
 
+    [Fact]
+    public void GivenANextPageInFlightDuringAWrite_WhenItAppends_ThenARowItBringsTakesTheWrittenValue()
+    {
+        var state = NextPageLoading(TwoTabs());
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+
+        var landed = LandAppend(started.State, new IssuePage([Issue(1), Issue(3)], null, null));
+
+        var rows = landed.State.Session.Tabs[1].Rows;
+        Assert.Equal(["A-2", "A-1", "A-3"], rows.Select(row => row.Key));
+        Assert.Equal(_eve, rows[1].Assignee);
+    }
+
+    [Fact]
+    public void GivenANextPageInFlightWhenAWriteEnds_WhenItAppends_ThenTheServerRowOfTheWriteIsKept()
+    {
+        var state = NextPageLoading(TwoTabs());
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+        var done = Settle(started.State, Issue(1) with { Assignee = _eve, Summary = "Server one" });
+
+        var landed = LandAppend(done.State, new IssuePage([Issue(1), Issue(3)], null, null));
+
+        var rows = landed.State.Session.Tabs[1].Rows;
+        Assert.Equal(_eve, rows[1].Assignee);
+        Assert.Equal("Server one", rows[1].Summary);
+        Assert.Empty(landed.State.Session.Tabs[1].ProtectedRows);
+    }
+
+    [Fact]
+    public void GivenANextPageInFlightWhenAWriteFails_WhenItAppends_ThenTheReplyRowIsTaken()
+    {
+        var state = NextPageLoading(TwoTabs());
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+        var failed = Fail(started.State, Error(WriteErrorKind.Permission));
+
+        var landed = LandAppend(failed.State, new IssuePage([Issue(1), Issue(3)], null, null));
+
+        Assert.Null(landed.State.Session.Tabs[1].Rows[1].Assignee);
+    }
+
+    [Fact]
+    public void GivenADetailLoadingDuringAWrite_WhenItsReplyArrives_ThenTheWrittenFieldIsKept()
+    {
+        var state = OpenDetail(TwoTabs(), 1);
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+
+        var landed = LandDetail(started.State, 1, Detailed("A-1") with { Summary = "Fresh summary" });
+
+        var issue = landed.State.Session.Tabs[1].Detail[0].Issue!;
+        Assert.Equal(_eve, issue.Assignee);
+        Assert.Equal("Fresh summary", issue.Summary);
+    }
+
+    [Fact]
+    public void GivenADetailLoadingWhenAWriteEnds_WhenTheOlderReplyArrives_ThenTheWrittenFieldIsKeptOnce()
+    {
+        var state = OpenDetail(TwoTabs(), 0);
+        var started = Request(state, state.Session.Tabs[1].Id, "A-1", _eve);
+        var done = Settle(started.State, Issue(1) with { Assignee = _eve });
+
+        var landed = LandDetail(done.State, 0, Detailed("A-1"));
+
+        var detail = landed.State.Session.Tabs[0].Detail[0];
+        Assert.Equal(_eve, detail.Issue!.Assignee);
+        Assert.Null(detail.HeldChanges);
+    }
+
+    [Fact]
+    public void GivenADetailLoadingWhenAWriteFails_WhenItsReplyArrives_ThenTheReplyIsTaken()
+    {
+        var state = OpenDetail(TwoTabs(), 1);
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+        var failed = Fail(started.State, Error(WriteErrorKind.Permission));
+
+        var landed = LandDetail(failed.State, 1, Detailed("A-1"));
+
+        Assert.Null(landed.State.Session.Tabs[1].Detail[0].Issue!.Assignee);
+    }
+
+    [Fact]
+    public void GivenADetailReplyDuringAWrite_WhenTheWriteFails_ThenTheIssueIsReloadedAndNotCachedWithTheGuess()
+    {
+        var state = OpenDetail(TwoTabs(), 1);
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+        var landed = LandDetail(started.State, 1, Detailed("A-1"));
+
+        var failed = Fail(landed.State, Error(WriteErrorKind.Permission));
+
+        var cache = Assert.Single(landed.Effects.OfType<WriteIssueCacheEffect>());
+        Assert.Null(cache.Issue.Detail.Assignee);
+        Assert.Single(failed.Effects.OfType<LoadIssueDetailEffect>());
+        Assert.True(failed.State.Session.Tabs[1].Detail[0].IssueStale);
+    }
+
+    [Fact]
+    public void GivenAShownDetail_WhenTheWriteSucceeds_ThenItIsMarkedStaleAndReloadedAndTheOlderReplyIsDropped()
+    {
+        var loaded = LandDetail(OpenDetail(TwoTabs(), 1), 1, Detailed("A-1"));
+        var oldRequest = loaded.State.Session.Tabs[1].Detail[0].IssueRequest;
+        var started = Request(loaded.State, loaded.State.Session.Tabs[1].Id, "A-1", _eve);
+
+        var done = Settle(started.State, Issue(1) with { Assignee = _eve });
+
+        var detail = done.State.Session.Tabs[1].Detail[0];
+        var reload = Assert.Single(done.Effects.OfType<LoadIssueDetailEffect>());
+        Assert.True(detail.IssueStale);
+        Assert.Equal("A-1", reload.Key);
+        Assert.Equal(detail.IssueRequest, reload.RequestId);
+        Assert.NotEqual(oldRequest, reload.RequestId);
+
+        var tabId = done.State.Session.Tabs[1].Id;
+        var late = _reducer.Reduce(done.State, new IssueDetailLoaded(tabId, oldRequest, Detailed("A-1"), _start));
+        Assert.True(late.State.Session.Tabs[1].Detail[0].IssueStale);
+        var fresh = LandDetail(done.State, 1, Detailed("A-1") with { Assignee = _eve });
+        Assert.False(fresh.State.Session.Tabs[1].Detail[0].IssueStale);
+    }
+
+    [Fact]
+    public void GivenAShownDetailInAHiddenTab_WhenTheWriteSucceeds_ThenItReloadsWhenTheTabIsActivated()
+    {
+        var hidden = LandDetail(OpenDetail(TwoTabs(), 0), 0, Detailed("A-1"));
+        var started = Request(hidden.State, hidden.State.Session.Tabs[1].Id, "A-1", _eve);
+
+        var done = Settle(started.State, Issue(1) with { Assignee = _eve });
+        var activated = ViewReducer.Reduce(done.State, new TabActivated(done.State.Session.Tabs[0].Id));
+
+        Assert.Empty(done.Effects.OfType<LoadIssueDetailEffect>());
+        Assert.True(done.State.Session.Tabs[0].Detail[0].IssueStale);
+        var reload = Assert.Single(activated.Effects.OfType<LoadIssueDetailEffect>());
+        Assert.Equal("A-1", reload.Key);
+    }
+
     private ReduceResult Request(AppState state, TabId tab, string key, IssueAssignee assignee)
     {
         return _reducer.Reduce(state, new WriteRequested(tab, new AssignRequest(key, assignee), _start));
@@ -651,6 +786,64 @@ public class WriteReducerTests
     private ReduceResult Lose(AppState state, long id)
     {
         return _reducer.Reduce(state, new WriteOutcomeUnknown(id, _start, Error(WriteErrorKind.Timeout)));
+    }
+
+    /// <summary>The second tab shows page two of its source: it holds A-2 only and its next page is in flight.</summary>
+    private static AppState NextPageLoading(AppState state)
+    {
+        var tab = state.Session.Tabs[1];
+        var loading = tab with { Rows = [Issue(2)], Load = new Loading(LoadReason.NextPage), RequestId = 900 };
+
+        var tabs = state.Session.Tabs.ToArray();
+
+        tabs[1] = loading;
+
+        return state with { Session = state.Session with { Tabs = tabs } };
+    }
+
+    private ReduceResult LandAppend(AppState state, IssuePage page)
+    {
+        var tab = state.Session.Tabs[1];
+
+        return _reducer.Reduce(state, new ViewPageLoaded(tab.Id, tab.RequestId, page, _start));
+    }
+
+    /// <summary>Enter on the first row of the tab at <paramref name="index"/>, which is made active first.</summary>
+    private AppState OpenDetail(AppState state, int index)
+    {
+        var active = ViewReducer.Reduce(state, new TabActivated(state.Session.Tabs[index].Id)).State;
+        var opened = _reducer.Reduce(active, new KeyPressed("Enter")).State;
+
+        return ViewReducer.Reduce(opened, new TabActivated(opened.Session.Tabs[1].Id)).State;
+    }
+
+    private ReduceResult LandDetail(AppState state, int index, IssueDetail issue)
+    {
+        var tab = state.Session.Tabs[index];
+
+        return _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, issue, _start));
+    }
+
+    private static IssueDetail Detailed(string key)
+    {
+        return new IssueDetail(
+            "1",
+            key,
+            "Issue 1",
+            new IssueStatus("1", "To Do", "new"),
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            null,
+            [],
+            null,
+            null,
+            "A",
+            null,
+            null,
+            [],
+            [],
+            []);
     }
 
     private static TabState Retab(TabState tab, IssueSummary first)
