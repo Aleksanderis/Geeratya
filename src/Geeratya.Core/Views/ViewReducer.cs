@@ -274,7 +274,7 @@ public static class ViewReducer
         }
 
         var appended = loading.Reason == LoadReason.NextPage;
-        var combined = appended ? [.. tab.Rows, .. loaded.Page.Items] : loaded.Page.Items;
+        var combined = appended ? Append(tab.Rows, loaded.Page.Items) : loaded.Page.Items;
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? combined.Take(ViewPaging.MaxRowsPerTab).ToArray() : combined;
         var cursor = truncated ? null : loaded.Page.Next;
@@ -304,6 +304,34 @@ public static class ViewReducer
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
         return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
+    }
+
+    /// <summary>
+    /// The rows plus a further page, without the issues already held: offset paging shifts when issues are created
+    /// or moved between two page requests, so a page can repeat a card of the previous one.
+    /// </summary>
+    private static List<IssueSummary> Append(IReadOnlyList<IssueSummary> rows, IReadOnlyList<IssueSummary> page)
+    {
+        var known = new HashSet<string>(rows.Count);
+
+        foreach (var row in rows)
+        {
+            known.Add(row.Key);
+        }
+
+        var combined = new List<IssueSummary>(rows.Count + page.Count);
+
+        combined.AddRange(rows);
+
+        foreach (var item in page)
+        {
+            if (known.Add(item.Key))
+            {
+                combined.Add(item);
+            }
+        }
+
+        return combined;
     }
 
     /// <summary>

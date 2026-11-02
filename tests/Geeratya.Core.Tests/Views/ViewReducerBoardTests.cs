@@ -105,6 +105,18 @@ public class ViewReducerBoardTests
     }
 
     [Fact]
+    public void GivenBoardChangedMidWalk_WhenANextPageRepeatsAHeldCard_ThenTheCardIsNotShownTwice()
+    {
+        var opened = Open(Start(), ViewSourceKind.Board);
+        var first = Reply(opened, Page(3, PageCursor.Offset(3)));
+
+        var second = Reply(first, Page(3, null, 3));
+
+        var tab = second.State.Session.Tabs[0];
+        Assert.Equal(["A-1", "A-2", "A-3", "A-4", "A-5"], tab.Rows.Select(row => row.Key));
+    }
+
+    [Fact]
     public void GivenBoardTabInTheBackground_WhenAPageArrives_ThenItKeepsLoadingTheRest()
     {
         var opened = Open(Start(), ViewSourceKind.Board);
