@@ -1,3 +1,4 @@
+using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -49,10 +50,13 @@ public sealed class ShellHost : IDisposable
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
+        profiles.Caches.WriteFailed += OnCacheWriteFailed;
     }
 
     public void Dispose()
     {
+        _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+        _profiles.Caches.Dispose();
         _network?.Dispose();
         _connections.Dispose();
     }
@@ -90,6 +94,7 @@ public sealed class ShellHost : IDisposable
         Dispatch(new ConnectionCheckRequested());
         application.Run(screen);
         shutdown.Cancel();
+        _profiles.Caches.FlushAll();
 
         return 0;
     }
@@ -144,8 +149,8 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is DropSiteCacheEffect drop)
             {
-                // The cache drop (#82) hooks in here too.
                 _network!.CancelAll();
+                _profiles.Caches.Drop(drop.Profile);
                 _connections.Drop(drop.Profile);
             }
             else if (effect is CancelTabEffect cancel)
@@ -154,7 +159,11 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is LoadViewPageEffect load)
             {
-                _ = _viewLoads!.StartAsync(load);
+                _ = _viewLoads!.StartAsync(load, ActiveCache());
+            }
+            else if (effect is WriteCacheEffect write)
+            {
+                ActiveCache()?.Put(write.Key, write.View);
             }
             else if (effect is CheckConnectionEffect check)
             {
@@ -179,6 +188,19 @@ public sealed class ShellHost : IDisposable
         {
             _ = _connectionChecks!.StartAsync(check);
         }
+    }
+
+    /// <summary>The cache of the active profile, or null while there is none.</summary>
+    private SiteCache? ActiveCache()
+    {
+        var profile = _state.Profiles.Active;
+
+        return profile is null ? null : _profiles.Caches.For(profile);
+    }
+
+    private void OnCacheWriteFailed(string notice)
+    {
+        Post(new CacheWriteFailed(notice));
     }
 
     /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
