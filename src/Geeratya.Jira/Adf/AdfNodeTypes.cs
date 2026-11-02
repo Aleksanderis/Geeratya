@@ -22,6 +22,10 @@ public static class AdfNodeTypes
     public const string TableHeader = "tableHeader";
     public const string TableCell = "tableCell";
     public const string Expand = "expand";
+    public const string NestedExpand = "nestedExpand";
+    public const string DecisionList = "decisionList";
+    public const string DecisionItem = "decisionItem";
+    public const string Caption = "caption";
     public const string InlineCard = "inlineCard";
     public const string Emoji = "emoji";
     public const string Date = "date";
@@ -30,4 +34,5 @@ public static class AdfNodeTypes
     public const string Media = "media";
     public const string MediaSingle = "mediaSingle";
     public const string MediaGroup = "mediaGroup";
+    public const string MediaInline = "mediaInline";
 }

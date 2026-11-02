@@ -1,0 +1,244 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "description": {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "Table with spans",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "attrs": {
+            "isNumberColumnEnabled": false,
+            "layout": "default"
+          },
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "colspan": 2,
+                    "colwidth": [
+                      100,
+                      150
+                    ]
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Wide header",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "tableHeader"
+                },
+                {
+                  "attrs": {
+                    "colwidth": [
+                      200
+                    ]
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "C",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "tableHeader"
+                }
+              ],
+              "type": "tableRow"
+            },
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "background": "#e6fcff",
+                    "rowspan": 2
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Tall",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "tableCell"
+                },
+                {
+                  "attrs": {
+                    "colspan": 2
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Wide",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "tableCell"
+                }
+              ],
+              "type": "tableRow"
+            },
+            {
+              "content": [
+                {
+                  "attrs": {},
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "x",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "tableCell"
+                },
+                {
+                  "attrs": {},
+                  "content": [
+                    {
+                      "attrs": {
+                        "title": "Inner"
+                      },
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "nested body",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        }
+                      ],
+                      "type": "nestedExpand"
+                    }
+                  ],
+                  "type": "tableCell"
+                }
+              ],
+              "type": "tableRow"
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "attrs": {
+            "title": "Outer"
+          },
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "outer body",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "expand"
+        },
+        {
+          "attrs": {
+            "localId": "d1"
+          },
+          "content": [
+            {
+              "attrs": {
+                "localId": "i1",
+                "state": "DECIDED"
+              },
+              "content": [
+                {
+                  "text": "Use ADF",
+                  "type": "text"
+                }
+              ],
+              "type": "decisionItem"
+            }
+          ],
+          "type": "decisionList"
+        },
+        {
+          "content": [
+            {
+              "text": "Inline media ",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "collection": "",
+                "id": "00000000-0000-0000-0000-000000000001",
+                "type": "file"
+              },
+              "type": "mediaInline"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "attrs": {
+            "layout": "center"
+          },
+          "content": [
+            {
+              "attrs": {
+                "collection": "",
+                "id": "00000000-0000-0000-0000-000000000001",
+                "type": "file"
+              },
+              "type": "media"
+            },
+            {
+              "content": [
+                {
+                  "text": "A caption",
+                  "type": "text"
+                }
+              ],
+              "type": "caption"
+            }
+          ],
+          "type": "mediaSingle"
+        }
+      ],
+      "type": "doc",
+      "version": 1
+    },
+    "labels": [
+      "geeratya-test-110"
+    ],
+    "summary": "ADF node survey 110"
+  },
+  "id": "10048",
+  "key": "GCM-25",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10048"
+}
