@@ -4,9 +4,9 @@ using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 
-namespace Geeratya.Jira.Tests.Writes;
+namespace Geeratya.Jira.Tests.Transport;
 
-public sealed class JiraWriteTests
+public sealed class JiraTransportWriteTests
 {
     private const string WritePath = "/rest/api/3/issue";
     private const string Body = "{\"fields\":{}}";
@@ -249,61 +249,34 @@ public sealed class JiraWriteTests
     }
 
     [Fact]
-    public async Task GivenUnknownOutcome_WhenReloading_ThenReadRunsOnce()
+    public async Task GivenRateLimitBeyondMaxWait_WhenWriting_ThenRateLimitedAtOnceWithoutWaiting()
     {
-        var write = WriteResults.Failure<WriteAccepted>(Error(WriteErrorKind.Timeout));
-        var counter = new ReadCounter();
+        using var fixture = new TransportFixture(options => options with { MaxWait = TimeSpan.FromSeconds(30) });
+        fixture.Handler.Serve(HttpMethod.Post, WritePath, FakeResponse.RateLimited("120"));
 
-        var reloaded = await ReadAfterWrite.ReloadIfUnknownAsync(write, counter.ReadAsync, Cancel());
+        var result = await fixture.Transport.SendWriteAsync(Request(), Cancel());
 
-        Assert.NotNull(reloaded);
-        Assert.Equal(1, counter.Reads);
-    }
-
-    [Theory]
-    [InlineData(WriteErrorKind.Validation)]
-    [InlineData(WriteErrorKind.Permission)]
-    [InlineData(WriteErrorKind.Conflict)]
-    [InlineData(WriteErrorKind.RateLimited)]
-    public async Task GivenCertainFailure_WhenReloading_ThenNoReadHappens(WriteErrorKind kind)
-    {
-        var write = WriteResults.Failure<WriteAccepted>(Error(kind));
-        var counter = new ReadCounter();
-
-        var reloaded = await ReadAfterWrite.ReloadIfUnknownAsync(write, counter.ReadAsync, Cancel());
-
-        Assert.Null(reloaded);
-        Assert.Equal(0, counter.Reads);
+        Assert.Equal(WriteErrorKind.RateLimited, result.Error.Kind);
+        Assert.Equal(TimeSpan.FromSeconds(120), result.Error.RetryAfter);
+        Assert.Single(fixture.Handler.Requests);
+        Assert.Empty(fixture.Waits);
     }
 
     [Fact]
-    public async Task GivenSuccess_WhenReloading_ThenNoReadHappens()
+    public async Task GivenRateLimitBeyondMaxWait_WhenReading_ThenRateLimitedAtOnceWithoutWaiting()
     {
-        var write = WriteResults.Success(new WriteAccepted());
-        var counter = new ReadCounter();
+        using var fixture = new TransportFixture(options => options with { MaxWait = TimeSpan.FromSeconds(30) });
+        fixture.Handler.Serve(HttpMethod.Get, WritePath, FakeResponse.RateLimited("120"));
 
-        var reloaded = await ReadAfterWrite.ReloadIfUnknownAsync(write, counter.ReadAsync, Cancel());
+        var result = await fixture.Transport.SendAsync(
+            JiraRequest.Get(WritePath), JiraJsonContext.Default.JiraUser, Cancel());
 
-        Assert.Null(reloaded);
-        Assert.Equal(0, counter.Reads);
+        Assert.Equal(JiraErrorKind.RateLimited, result.Error.Kind);
+        Assert.Single(fixture.Handler.Requests);
+        Assert.Empty(fixture.Waits);
     }
 
     private static JiraRequest Request() => JiraRequest.Write(HttpMethod.Post, WritePath, Body);
 
     private static CancellationToken Cancel() => CancellationToken.None;
-
-    private static WriteError Error(WriteErrorKind kind) => new(kind, null, "x", [], []);
-
-    private sealed class ReadCounter
-    {
-        public int Reads { get; private set; }
-
-        public Task<JiraResult<int>> ReadAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Reads++;
-
-            return Task.FromResult(JiraResults.Success(1));
-        }
-    }
 }

@@ -16,7 +16,7 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 - `JiraTransport` is created per connection (`JiraConnection`: site URL plus account email) with a `JiraApiToken` and owns one `HttpClient`, the auth header, `Accept`, the user agent, the per-attempt timeout (30 s default) and a per-site concurrency cap (4). Clients such as `JiraUserClient` take the transport; all view state stays in the tab, so one transport serves every tab of the active site.
 - The site URL must be https (http only for loopback, used by the fake Jira) and the transport never follows redirects, so a 3xx surfaces as an error and the credential cannot reach another host.
 - Calls return `JiraResult<T>` (value or `JiraError` with `JiraErrorKind`): 400 `BadRequest`, 401 `Unauthorized`, 403 `Forbidden`, 404/410 `NotFound`, 409 `Conflict`, 429 `RateLimited`, 5xx `ServerError`, `PageExpired` (a search continued with a bad or expired token), plus `Timeout`, `Network`, `HostRefused`, `InvalidResponse`. Caller cancellation is the one exception that surfaces as `OperationCanceledException`.
-- Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`, except a write that gets a 429 with `Retry-After` (not processed, see Writes). The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s. The 429 path is backed by a recorded real 429 (`errors/search-429-rate-limited.*`, #18).
+- Retries (up to 3) only for idempotent requests (`JiraRequest.Get`, `PostSearch`) on 429, 5xx except 501, and network failure; never on a timeout and never for `JiraRequest.Write`, except a write that gets a 429 with `Retry-After` (not processed, see Writes). The wait is `Retry-After` (seconds or HTTP date) or exponential backoff with jitter, capped at 60 s (a `Retry-After` beyond the cap is not waited for: the call returns `RateLimited` with `RetryAfter` at once). The 429 path is backed by a recorded real 429 (`errors/search-429-rate-limited.*`, #18).
 - The token is held only in the transport. `JiraApiToken.ToString()` is `[redacted]`, error messages are scrubbed of the token and the Basic credential, and a network failure message carries only the `HttpRequestError` code.
 - `GEERATYA_LIVE_HOSTS` is parsed by `JiraHostAllowList`; a transport given `AllowedHosts` refuses any other host before sending (`HostRefused`).
 - Scheduling (#22): `JiraRequest.Priority` is `User` (default) or `Background` (`request.AsBackground()`). The per-site cap (4) has two lanes: user requests may use every slot and are granted first; background requests use at most `cap - ReservedForUser` slots (1 reserved, never below one slot), so a key press never queues behind a refresh. Cancelling a queued call removes it from its lane.
@@ -52,7 +52,7 @@ The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys wha
 
 ## Writes (`src/Geeratya.Jira/Writes`, #155)
 
-Shared base of every write client. A write is built with `JiraRequest.Write` and sent with `JiraTransport.SendWriteAsync` (typed reply, or no reply body for 204); the result is `WriteResult<T>` (value or `WriteError`). `SendWriteAsync` refuses a read request. Each write is its own client method named for what it does and is only called from a confirmed command.
+Shared base of every write client. A write is built with `JiraRequest.Write` and sent with the `SendWriteAsync` extension on `JiraTransport` (namespace `Writes`; typed reply, or no reply body for 204); the result is `WriteResult<T>` (value or `WriteError`). `SendWriteAsync` refuses a read request. Each write is its own client method named for what it does and is only called from a confirmed command.
 
 | Status / failure | `WriteErrorKind` | Outcome |
 |---|---|---|
@@ -66,7 +66,7 @@ Shared base of every write client. A write is built with `JiraRequest.Write` and
 | Network failure, 5xx, unreadable 2xx body, unexpected status (3xx) | `UnknownOutcome` | unknown |
 | Host not allowed | `NotSent` | nothing sent |
 
-- Never retried automatically, with one exception: a 429 that carries `Retry-After` is waited out and sent again (up to `MaxRetries`), because Jira did not process it. A 429 without `Retry-After`, and every timeout, network failure or 5xx, is returned as is: repeating a create or comment could duplicate it. The wait shows in `RateLimitedUntil` like a read's.
+- Never retried automatically, with one exception: a 429 that carries `Retry-After` is waited out and sent again (up to `MaxRetries`; a `Retry-After` beyond `MaxWait` is returned as `RateLimited` at once), because Jira did not process it. A 429 without `Retry-After`, and every timeout, network failure or 5xx, is returned as is: repeating a create or comment could duplicate it. The wait shows in `RateLimitedUntil` like a read's.
 - `WriteError.IsOutcomeUnknown` is true for `Timeout` and `UnknownOutcome`. The UI says "may or may not have been applied" and offers a reload; it never re-sends silently. Caller cancellation throws `OperationCanceledException` and is likewise unknown.
 - `ReadAfterWrite.ReloadIfUnknownAsync(write, reload, ct)` runs the caller's read only after an unknown outcome and returns null otherwise; the caller compares the reloaded issue with the intended change.
 - Error bodies: the three shapes under Errors; `errors` values and `errorMessages` entries are kept as Jira wrote them (truncated at 200 characters), HTML never reaches the message, the token is redacted. Fixtures: `errors/create-400-*.json`, `errors/issue-delete-403-no-permission.json`, `errors/issue-404.json`, `errors/search-429-rate-limited.json`; `errors/transition-409-conflict.json` is synthetic (a 409 was not recorded live).
@@ -78,7 +78,7 @@ The schedule is in `docs/architecture.md`, "Cache and refresh"; what the Jira la
 
 - Automatic refresh uses `AsBackground()` on the same transport: at most `cap - ReservedForUser` slots, throttled earlier than user work when the budget is low, so a refresh never delays a key press. Manual refresh, open, next page and retry are user requests.
 - Refresh traffic is bounded: one tab at a time, one load in flight per tab, pages walked sequentially. A list tab costs one search call per refresh (one a minute at the default interval); a board or backlog tab costs one call per page of its issues (100 per call, so a 1 000-issue board is 10 background calls a minute, a full 10 000-row board 100, the worst case).
-- While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries.
+- While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries. A `Retry-After` beyond `MaxWait` is not slept, so it does not set `RateLimitedUntil`; the caller reads `RetryAfter` from the error.
 
 ## Errors to UI states
 

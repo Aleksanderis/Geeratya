@@ -3,8 +3,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Geeratya.Jira.Writes;
-using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Transport;
 
@@ -79,43 +77,18 @@ public sealed class JiraTransport : IDisposable
         SendCoreAsync(request, resultInfo, cancellationToken);
 
     /// <summary>
-    /// Sends a write and parses a JSON reply of <typeparamref name="T"/>. Never retried, except on a 429 that names
-    /// a <c>Retry-After</c> (the request was not processed). A timeout, network failure, 5xx or unreadable reply
-    /// is an unknown outcome; a cancelled call throws <see cref="OperationCanceledException"/>, also unknown.
+    /// Sends a request without the read/write check; the entry point for the write extensions in
+    /// <c>Geeratya.Jira.Writes</c>, which add the typed write result on top.
     /// </summary>
-    public async Task<WriteResult<T>> SendWriteAsync<T>(
+    internal Task<JiraResult<T>> SendUncheckedAsync<T>(
         JiraRequest request,
-        JsonTypeInfo<T> resultInfo,
-        CancellationToken cancellationToken)
-    {
-        RequireWrite(request);
-        var result = await SendCoreAsync(request, resultInfo, cancellationToken);
-
-        return WriteResults.From(result);
-    }
-
-    /// <summary>Sends a write whose reply body is not read (204 or an ignored body); same rules as above.</summary>
-    public async Task<WriteResult<WriteAccepted>> SendWriteAsync(
-        JiraRequest request,
-        CancellationToken cancellationToken)
-    {
-        RequireWrite(request);
-        var result = await SendCoreAsync<WriteAccepted>(request, null, cancellationToken);
-
-        return WriteResults.From(result);
-    }
+        JsonTypeInfo<T>? resultInfo,
+        CancellationToken cancellationToken) =>
+        SendCoreAsync(request, resultInfo, cancellationToken);
 
     public void Dispose()
     {
         _client.Dispose();
-    }
-
-    private static void RequireWrite(JiraRequest request)
-    {
-        if (request.IsIdempotent)
-        {
-            throw new ArgumentException("A write must be built with JiraRequest.Write.", nameof(request));
-        }
     }
 
     private async Task<JiraResult<T>> SendCoreAsync<T>(
@@ -184,6 +157,12 @@ public sealed class JiraTransport : IDisposable
             return false;
         }
 
+        // A wait beyond the cap would only end in another 429 or 503; return it at once, the caller reads RetryAfter.
+        if (error.RetryAfter > _options.MaxWait)
+        {
+            return false;
+        }
+
         if (!request.IsIdempotent)
         {
             // A 429 means Jira did not process the write; without a Retry-After the wait is a guess, so give up.
@@ -202,7 +181,7 @@ public sealed class JiraTransport : IDisposable
     {
         if (error.RetryAfter is { } retryAfter)
         {
-            return Min(retryAfter, _options.MaxWait);
+            return retryAfter;
         }
 
         var factor = Math.Pow(2, Math.Min(attempt, MaxBackoffExponent));
