@@ -53,6 +53,7 @@ public sealed class SiteCache : IDisposable
     private readonly Dictionary<CacheKey, CachedView> _pending = [];
     private readonly Dictionary<string, MemoryEntry<CachedIssue>> _issues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, CachedIssue> _pendingIssues = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _removedIssues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Timer _timer;
     private long _stamp;
     private bool _disposed;
@@ -164,16 +165,17 @@ public sealed class SiteCache : IDisposable
             {
                 return pending;
             }
+
+            if (_removedIssues.Contains(issueKey))
+            {
+                // Removed, the file is deleted by the next flush: not a hit.
+                return null;
+            }
         }
 
         var read = ReadIssueFromDisk(issueKey);
 
-        if (read is not null)
-        {
-            RememberIssueIfAbsent(read);
-        }
-
-        return read;
+        return read is not null && RememberIssueIfAbsent(read) ? read : null;
     }
 
     /// <summary>Remembers a successfully loaded issue detail and schedules the disk write.</summary>
@@ -188,6 +190,28 @@ public sealed class SiteCache : IDisposable
 
             RememberIssueLocked(issue);
             _pendingIssues[issue.Detail.Key] = issue;
+            _removedIssues.Remove(issue.Detail.Key);
+            _timer.Change(_debounce, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    /// <summary>
+    /// Forgets the detail of an issue that is gone or forbidden (404/403): at once in memory, and the file is deleted
+    /// with the next flush (so the UI thread never touches the disk). A later <see cref="PutIssue"/> of the same key
+    /// cancels the deletion.
+    /// </summary>
+    public void RemoveIssue(string issueKey)
+    {
+        lock (_memoryLock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _issues.Remove(issueKey);
+            _pendingIssues.Remove(issueKey);
+            _removedIssues.Add(issueKey);
             _timer.Change(_debounce, Timeout.InfiniteTimeSpan);
         }
     }
@@ -201,18 +225,26 @@ public sealed class SiteCache : IDisposable
         {
             Dictionary<CacheKey, CachedView> batch;
             List<CachedIssue> issues;
+            List<string> removed;
 
             lock (_memoryLock)
             {
-                if (_disposed || _pending.Count + _pendingIssues.Count == 0)
+                if (_disposed || _pending.Count + _pendingIssues.Count + _removedIssues.Count == 0)
                 {
                     return;
                 }
 
                 batch = new Dictionary<CacheKey, CachedView>(_pending);
                 issues = [.. _pendingIssues.Values];
+                removed = [.. _removedIssues];
                 _pending.Clear();
                 _pendingIssues.Clear();
+                _removedIssues.Clear();
+            }
+
+            foreach (var key in removed)
+            {
+                DeleteQuietly(Path.Combine(_folder, IssueFileName(key)));
             }
 
             WriteAll(batch, issues);
@@ -232,6 +264,7 @@ public sealed class SiteCache : IDisposable
             _pending.Clear();
             _issues.Clear();
             _pendingIssues.Clear();
+            _removedIssues.Clear();
         }
 
         _timer.Dispose();
@@ -296,14 +329,21 @@ public sealed class SiteCache : IDisposable
     }
 
     /// <summary>Remembers a detail read from disk unless a newer one was stored while the file was read.</summary>
-    private void RememberIssueIfAbsent(CachedIssue issue)
+    private bool RememberIssueIfAbsent(CachedIssue issue)
     {
         lock (_memoryLock)
         {
+            if (_removedIssues.Contains(issue.Detail.Key))
+            {
+                return false;
+            }
+
             if (!_disposed && !_issues.ContainsKey(issue.Detail.Key) && !_pendingIssues.ContainsKey(issue.Detail.Key))
             {
                 RememberIssueLocked(issue);
             }
+
+            return true;
         }
     }
 

@@ -1,0 +1,42 @@
+{
+  "author": {
+    "accountId": "fake-account-1",
+    "accountType": "atlassian",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "emailAddress": "user1@example.com",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+    "timeZone": "UTC"
+  },
+  "body": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "first comment",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc",
+    "version": 1
+  },
+  "created": "2026-11-02T15:48:25.114+0200",
+  "id": "10006",
+  "jsdPublic": true,
+  "self": "https://example.atlassian.net/rest/api/3/issue/10049/comment/10006",
+  "updateAuthor": {
+    "accountId": "fake-account-1",
+    "accountType": "atlassian",
+    "active": true,
+    "avatarUrls": {},
+    "displayName": "Test User 1",
+    "emailAddress": "user1@example.com",
+    "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+    "timeZone": "UTC"
+  },
+  "updated": "2026-11-02T15:48:25.114+0200"
+}

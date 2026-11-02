@@ -54,6 +54,6 @@ public class JiraErrorMapperTests
     [Fact]
     public void GivenUnexpectedStatus_WhenMapping_ThenUnexpectedKind()
     {
-        Assert.Equal(JiraErrorKind.Unexpected, JiraErrorMapper.Map(HttpStatusCode.Conflict, string.Empty, null).Kind);
+        Assert.Equal(JiraErrorKind.Unexpected, JiraErrorMapper.Map((HttpStatusCode)418, string.Empty, null).Kind);
     }
 }

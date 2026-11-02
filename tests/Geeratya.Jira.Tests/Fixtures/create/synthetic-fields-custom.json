@@ -1,0 +1,20 @@
+{
+  "startAt": 0,
+  "maxResults": 50,
+  "total": 12,
+  "fields": [
+    {"fieldId": "summary", "name": "Summary", "required": true, "hasDefaultValue": false, "schema": {"type": "string", "system": "summary"}},
+    {"fieldId": "issuetype", "name": "Issue Type", "required": true, "hasDefaultValue": false, "schema": {"type": "issuetype", "system": "issuetype"}},
+    {"fieldId": "project", "name": "Project", "required": true, "hasDefaultValue": false, "schema": {"type": "project", "system": "project"}},
+    {"fieldId": "reporter", "name": "Reporter", "required": true, "hasDefaultValue": true, "schema": {"type": "user", "system": "reporter"}},
+    {"fieldId": "description", "name": "Description", "required": false, "hasDefaultValue": false, "schema": {"type": "string", "system": "description"}},
+    {"fieldId": "parent", "name": "Parent", "required": true, "hasDefaultValue": false, "schema": {"type": "issuelink", "system": "parent"}},
+    {"fieldId": "customfield_20010", "name": "Risk", "required": true, "hasDefaultValue": false, "schema": {"type": "option", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select", "customId": 20010}, "allowedValues": [{"id": "30001", "value": "Low"}, {"id": 30002, "value": "High"}, {"self": "no id"}, "garbage"]},
+    {"fieldId": "customfield_20011", "name": "Notes", "required": false, "hasDefaultValue": false, "schema": {"type": "string", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea", "customId": 20011}},
+    {"fieldId": "customfield_20012", "name": "Squads", "required": false, "hasDefaultValue": false, "schema": {"type": "array", "items": "option", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiselect", "customId": 20012}, "allowedValues": [{"id": "30010", "value": "Red"}, {"id": "30011", "value": "Blue"}]},
+    {"fieldId": "customfield_20013", "name": "Hologram", "required": false, "hasDefaultValue": false, "schema": {"type": "hologram", "custom": "com.example:hologram", "customId": 20013}},
+    {"fieldId": "customfield_20014", "name": "No schema", "required": false, "hasDefaultValue": false},
+    {"fieldId": "customfield_20015", "name": "Required unknown", "required": true, "hasDefaultValue": false, "schema": {"type": "hologram", "custom": "com.example:hologram", "customId": 20015}},
+    {"name": "No id", "required": false}
+  ]
+}

@@ -133,15 +133,16 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
-    public async Task GivenHugeRetryAfter_WhenRateLimited_ThenWaitIsCapped()
+    public async Task GivenHugeRetryAfter_WhenRateLimited_ThenReturnedAtOnceWithoutWaiting()
     {
         using var fixture = new TransportFixture(options => options with { MaxWait = TimeSpan.FromSeconds(30) });
         fixture.Handler.Script(HttpMethod.Get, MyselfPath, FakeResponse.RateLimited("3600"));
         fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
 
-        await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
 
-        Assert.Equal([TimeSpan.FromSeconds(30)], fixture.Waits);
+        Assert.Equal(TimeSpan.FromSeconds(3600), result.Error.RetryAfter);
+        Assert.Empty(fixture.Waits);
     }
 
     [Fact]
@@ -171,10 +172,10 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
-    public async Task GivenWriteRateLimited_WhenSending_ThenItIsNotRetried()
+    public async Task GivenWriteRateLimitedWithoutRetryAfter_WhenSending_ThenItIsNotRetried()
     {
         using var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Post, "/rest/api/3/issue", FakeResponse.RateLimited("1"));
+        fixture.Handler.Serve(HttpMethod.Post, "/rest/api/3/issue", FakeResponse.WithStatus((HttpStatusCode)429));
         var request = JiraRequest.Write(HttpMethod.Post, "/rest/api/3/issue", "{}");
 
         var result = await SendAsync(fixture, request);

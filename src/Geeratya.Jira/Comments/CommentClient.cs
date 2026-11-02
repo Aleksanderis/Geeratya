@@ -1,14 +1,21 @@
 using System.Globalization;
+using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Transport;
+using Geeratya.Jira.Writes;
+using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Comments;
 
 /// <summary>
-/// Reads the comments of one issue, one offset page at a time, oldest first. Reads only; posting is a separate
-/// write. A missing or hidden issue is a <see cref="JiraErrorKind.NotFound"/> ("not found or no access").
+/// Reads the comments of one issue, one offset page at a time, oldest first, and adds, edits and deletes one.
+/// Reading is a read; <see cref="AddCommentAsync"/>, <see cref="EditCommentAsync"/> and
+/// <see cref="DeleteCommentAsync"/> are writes: call them only from a confirmed command, never retry them
+/// silently (a repeated add duplicates), and reload with <see cref="ReadAfterWrite"/> after an unknown outcome.
+/// The client keeps no cache. A missing or hidden issue is a <see cref="JiraErrorKind.NotFound"/> ("not found or
+/// no access"); editing or deleting someone else's comment is <see cref="WriteErrorKind.Permission"/> (403).
 /// </summary>
 public sealed class CommentClient(JiraTransport transport)
 {
@@ -47,6 +54,86 @@ public sealed class CommentClient(JiraTransport transport)
             ? JiraResults.Success(CommentMapper.MapPage(result.Value, start, size))
             : JiraResults.Failure<OffsetPage<IssueComment>>(result.Error);
     }
+
+    /// <summary>
+    /// Adds a comment with an ADF body (visibility stays at Jira's default) and returns the stored comment.
+    /// </summary>
+    public Task<WriteResult<IssueComment>> AddCommentAsync(
+        string key,
+        AdfDocument body,
+        CancellationToken cancellationToken) =>
+        SendBodyAsync(HttpMethod.Post, key, null, body, cancellationToken);
+
+    /// <summary>Replaces the body of a comment and returns the stored comment (author, created, updated).</summary>
+    public Task<WriteResult<IssueComment>> EditCommentAsync(
+        string key,
+        string commentId,
+        AdfDocument body,
+        CancellationToken cancellationToken) =>
+        SendBodyAsync(HttpMethod.Put, key, commentId, body, cancellationToken);
+
+    /// <summary>Deletes a comment. Jira has no undo; the reply carries no body (204).</summary>
+    public Task<WriteResult<WriteAccepted>> DeleteCommentAsync(
+        string key,
+        string commentId,
+        CancellationToken cancellationToken)
+    {
+        if (Refusal<WriteAccepted>(key, commentId) is { } refused)
+        {
+            return Task.FromResult(refused);
+        }
+
+        var request = JiraRequest.Write(HttpMethod.Delete, CommentPath(key, commentId), null);
+
+        return transport.SendWriteAsync(request, cancellationToken);
+    }
+
+    private async Task<WriteResult<IssueComment>> SendBodyAsync(
+        HttpMethod method,
+        string key,
+        string? commentId,
+        AdfDocument body,
+        CancellationToken cancellationToken)
+    {
+        if ((commentId is null ? Refusal<IssueComment>(key) : Refusal<IssueComment>(key, commentId)) is { } refused)
+        {
+            return refused;
+        }
+
+        if (body.Content.Count == 0)
+        {
+            return Refused<IssueComment>(WriteErrorKind.Validation, "A comment cannot be empty.");
+        }
+
+        var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}}""";
+        var result = await transport.SendWriteAsync(
+            JiraRequest.Write(method, CommentPath(key, commentId), json),
+            CommentJsonContext.Default.Comment,
+            cancellationToken);
+
+        return result.IsSuccess
+            ? WriteResults.Success(CommentMapper.Map(result.Value))
+            : WriteResults.Failure<IssueComment>(result.Error);
+    }
+
+    private static string CommentPath(string key, string? commentId) =>
+        commentId is null ? $"{IssuePath}/{key}/comment" : $"{IssuePath}/{key}/comment/{commentId}";
+
+    // Refused before sending: a bad key or id would otherwise address another resource.
+    private static WriteResult<T>? Refusal<T>(string key, string? commentId = null)
+    {
+        if (!IssueUrls.IsValidKey(key))
+        {
+            return Refused<T>(WriteErrorKind.NotFound, "Not found or no access.");
+        }
+
+        return commentId is not null && (commentId.Length is 0 or > 20 || !commentId.All(char.IsAsciiDigit))
+            ? Refused<T>(WriteErrorKind.NotFound, "Comment not found.")
+            : null;
+    }
+
+    private static WriteResult<T> Refused<T>(WriteErrorKind kind, string message) =>
+        WriteResults.Failure<T>(new WriteError(kind, null, message, [], []));
 
     private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 }

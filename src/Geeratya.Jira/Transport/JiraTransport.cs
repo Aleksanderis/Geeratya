@@ -70,9 +70,30 @@ public sealed class JiraTransport : IDisposable
         remove => _rateWaits.Changed -= value;
     }
 
-    public async Task<JiraResult<T>> SendAsync<T>(
+    public Task<JiraResult<T>> SendAsync<T>(
         JiraRequest request,
         JsonTypeInfo<T> resultInfo,
+        CancellationToken cancellationToken) =>
+        SendCoreAsync(request, resultInfo, cancellationToken);
+
+    /// <summary>
+    /// Sends a request without the read/write check; the entry point for the write extensions in
+    /// <c>Geeratya.Jira.Writes</c>, which add the typed write result on top.
+    /// </summary>
+    internal Task<JiraResult<T>> SendUncheckedAsync<T>(
+        JiraRequest request,
+        JsonTypeInfo<T>? resultInfo,
+        CancellationToken cancellationToken) =>
+        SendCoreAsync(request, resultInfo, cancellationToken);
+
+    public void Dispose()
+    {
+        _client.Dispose();
+    }
+
+    private async Task<JiraResult<T>> SendCoreAsync<T>(
+        JiraRequest request,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         if (!IsHostAllowed())
@@ -108,11 +129,6 @@ public sealed class JiraTransport : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _client.Dispose();
-    }
-
     private static SocketsHttpHandler CreateDefaultHandler() =>
         new()
         {
@@ -136,9 +152,21 @@ public sealed class JiraTransport : IDisposable
 
     private bool ShouldRetry(JiraRequest request, JiraError error, int attempt)
     {
-        if (!request.IsIdempotent || attempt >= _options.MaxRetries)
+        if (attempt >= _options.MaxRetries)
         {
             return false;
+        }
+
+        // A wait beyond the cap would only end in another 429 or 503; return it at once, the caller reads RetryAfter.
+        if (error.RetryAfter > _options.MaxWait)
+        {
+            return false;
+        }
+
+        if (!request.IsIdempotent)
+        {
+            // A 429 means Jira did not process the write; without a Retry-After the wait is a guess, so give up.
+            return error.Kind == JiraErrorKind.RateLimited && error.RetryAfter is not null;
         }
 
         return error.Kind switch
@@ -153,7 +181,7 @@ public sealed class JiraTransport : IDisposable
     {
         if (error.RetryAfter is { } retryAfter)
         {
-            return Min(retryAfter, _options.MaxWait);
+            return retryAfter;
         }
 
         var factor = Math.Pow(2, Math.Min(attempt, MaxBackoffExponent));
@@ -164,7 +192,7 @@ public sealed class JiraTransport : IDisposable
 
     private async Task<JiraResult<T>> AttemptAsync<T>(
         JiraRequest request,
-        JsonTypeInfo<T> resultInfo,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         await ThrottleAsync(request.Priority, cancellationToken);
@@ -182,7 +210,7 @@ public sealed class JiraTransport : IDisposable
 
     private async Task<JiraResult<T>> SendOnceAsync<T>(
         JiraRequest request,
-        JsonTypeInfo<T> resultInfo,
+        JsonTypeInfo<T>? resultInfo,
         CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -196,7 +224,7 @@ public sealed class JiraTransport : IDisposable
             var body = await response.Content.ReadAsStringAsync(timeout.Token);
 
             return response.IsSuccessStatusCode
-                ? ParseBody(body, resultInfo)
+                ? ParseBody(body, resultInfo, request.AllowsEmptyBody)
                 : JiraResults.Failure<T>(MapFailure(response, body));
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -288,8 +316,13 @@ public sealed class JiraTransport : IDisposable
         return message;
     }
 
-    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T> resultInfo)
+    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T>? resultInfo, bool allowsEmptyBody)
     {
+        if (resultInfo is null || (allowsEmptyBody && string.IsNullOrWhiteSpace(body)))
+        {
+            return JiraResults.Success<T>(default!);
+        }
+
         try
         {
             var value = JsonSerializer.Deserialize(body, resultInfo);
@@ -308,7 +341,12 @@ public sealed class JiraTransport : IDisposable
     {
         var error = JiraErrorMapper.Map(response.StatusCode, body, ReadRetryAfter(response));
 
-        return error with { Message = Redact(error.Message) };
+        return error with
+        {
+            Message = Redact(error.Message),
+            FieldErrors = error.FieldErrors?.ToDictionary(pair => pair.Key, pair => Redact(pair.Value)),
+            Messages = error.Messages?.Select(Redact).ToList(),
+        };
     }
 
     private TimeSpan? ReadRetryAfter(HttpResponseMessage response)

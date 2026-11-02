@@ -20,6 +20,7 @@ public sealed class FakeJiraServer : IDisposable
     private readonly CancellationTokenSource _stop = new();
     private HttpListener? _listener;
     private int _requestCount;
+    private int _writeCount;
 
     public FakeJiraServer(FakeJiraOptions options)
     {
@@ -103,6 +104,14 @@ public sealed class FakeJiraServer : IDisposable
 
             var reply = Reply(context.Request);
             var response = context.Response;
+
+            if (reply.DropConnection)
+            {
+                await DropAsync(response);
+
+                return;
+            }
+
             response.StatusCode = reply.Status;
             response.ContentType = "application/json;charset=UTF-8";
 
@@ -124,6 +133,17 @@ public sealed class FakeJiraServer : IDisposable
         {
             AnswerServerError(context, exception);
         }
+    }
+
+    /// <summary>
+    /// Promises a body, sends the headers and cuts the connection, so the client fails reading the reply:
+    /// HttpListener cannot close a connection before any reply bytes.
+    /// </summary>
+    private async Task DropAsync(HttpListenerResponse response)
+    {
+        response.ContentLength64 = 1;
+        await response.OutputStream.FlushAsync(_stop.Token);
+        response.Abort();
     }
 
     private static void AnswerServerError(HttpListenerContext context, Exception exception)
@@ -173,6 +193,14 @@ public sealed class FakeJiraServer : IDisposable
             text = reader.ReadToEnd();
         }
 
-        return _router.Route(request.HttpMethod, request.Url?.AbsolutePath ?? "/", query, text);
+        var routed = _router.Route(request.HttpMethod, request.Url?.AbsolutePath ?? "/", query, text);
+
+        if (_options.DropWriteEvery > 0 && FakeJiraRouter.IsWrite(request.HttpMethod)
+            && Interlocked.Increment(ref _writeCount) % _options.DropWriteEvery == 0)
+        {
+            return routed with { DropConnection = true };
+        }
+
+        return routed;
     }
 }
