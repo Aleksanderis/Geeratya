@@ -89,7 +89,7 @@ Goal: someone else can install it and trust it.
 
 Each with the recommended default and what changes if it is wrong.
 
-1. ADF editing in M2: edit as Markdown-like text and convert to ADF (default), or a structured editor. If wrong: round-tripping loses formatting on rich descriptions, so the app would warn before saving a description it cannot round-trip.
+1. ADF editing in M2: edit as Markdown-like text and convert to ADF (default), or a structured editor. If wrong: round-tripping loses formatting on rich descriptions, so the app would warn before saving a description it cannot round-trip. Taken in #161: the writer and `AdfRoundTrip.RoundTrips` exist (`docs/jira-layer.md`, ADF); the create and comment issues show the warning.
 2. Scrum reports (burndown, velocity, sprint report) in M3: not included (default; charts do not fit the terminal and the sprint header carries the numbers that matter). If wrong: a text-only sprint report layout follows as its own issue.
 3. Restore last session's tabs on start (M1 design, #64): default is no, a start has no tabs and opening a view hits the disk cache. If wrong: a small follow-up persists the tab definitions (not rows) per profile and reopens them after the first frame.
 4. Telling Scrum from Kanban on team-managed projects (both say `simple`): default is to probe `GET /board/{id}/sprint` once per board and remember the answer per profile. If wrong (the probe is slow or Jira changes the answer): read the project's feature flags instead.
