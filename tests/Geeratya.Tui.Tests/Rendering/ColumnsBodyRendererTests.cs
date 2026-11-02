@@ -74,7 +74,7 @@ public class ColumnsBodyRendererTests
 
         Assert.Contains("┌", body[2].PlainText);
         Assert.Contains("┏━", body[7].PlainText);
-        Assert.Contains("┃ T A-2", body[8].PlainText);
+        Assert.Contains("┃ Task A-2", body[8].PlainText);
         Assert.Contains("┗━", body[11].PlainText);
         var top = body[7].Spans.First(span => span.Text.Contains('┏', StringComparison.Ordinal));
         var summary = body[9].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
@@ -86,14 +86,27 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenANarrowColumn_WhenRendering_ThenTheTypeNameShrinksAndThenFallsBackToTheMarker()
+    {
+        var tab = Tab(Issue("1", "ABC-12345"));
+
+        var wide = Render(tab, 120, 30);
+        var narrow = Render(tab, 20, 30);
+
+        Assert.Contains("┃ Task ABC-12345", wide[3].PlainText);
+        Assert.DoesNotContain("Task", narrow[3].PlainText);
+        Assert.Contains("T ABC-12345", narrow[3].PlainText);
+    }
+
+    [Fact]
     public void GivenAnAssignee_WhenRendering_ThenInitialsSitAtTheColumnsRightEdgeAndUnassignedHasNone()
     {
         var tab = Tab(Issue("1", "A-1", assignee: "Jane Doe"), Issue("1", "A-2"));
 
         var body = Render(tab, 80, 30);
 
-        Assert.Matches(@"^┃ T A-1 +JD ┃", body[3].PlainText[2..]);
-        Assert.Matches(@"^│ T A-2 +  ", body[8].PlainText[2..]);
+        Assert.Matches(@"^┃ Task A-1 +JD ┃", body[3].PlainText[2..]);
+        Assert.Matches(@"^│ Task A-2 +  ", body[8].PlainText[2..]);
         Assert.DoesNotContain("JD", body[8].PlainText);
     }
 
@@ -174,8 +187,8 @@ public class ColumnsBodyRendererTests
         Assert.StartsWith("│>T A-1 Summary", compact[2].PlainText);
         Assert.StartsWith("│ T A-2 Summary", compact[3].PlainText);
         Assert.Contains("┏", full[2].PlainText);
-        Assert.Contains("┃ T A-1", full[3].PlainText);
-        Assert.Contains("T A-2", full[8].PlainText);
+        Assert.Contains("┃ Task A-1", full[3].PlainText);
+        Assert.Contains("Task A-2", full[8].PlainText);
     }
 
     [Fact]
@@ -194,7 +207,7 @@ public class ColumnsBodyRendererTests
         // Five cards fit, so the scroll is corrected to 28: two cards of context above the selection (the most the
         // viewport allows while keeping scrolloff below it), A-29 on the first card row.
         Assert.Contains("A-29", body[3].PlainText);
-        Assert.Contains("T A-31", body[3 + (2 * 5)].PlainText);
+        Assert.Contains("Task A-31", body[3 + (2 * 5)].PlainText);
         Assert.Contains("┏", body[2 + (2 * 5)].PlainText);
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-3 ", StringComparison.Ordinal));
         Assert.Equal(30, body.Count);

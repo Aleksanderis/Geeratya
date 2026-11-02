@@ -3,17 +3,17 @@
 GCM board · 24 issues                                                           
 ┌─ Backlog 12 ──────┬─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Done 3 ─────────┐
 │ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ ┃ T GCM-1       ┃ │ │ E GCM-8       │ │ │ E GCM-9       │ │ │ s GCM-18     │ │
+│ ┃ Task GCM-1    ┃ │ │ Epic GCM-8    │ │ │ Epic GCM-9    │ │ │ Sub-… GCM-18 │ │
 │ ┃ Survey task   ┃ │ │ Seed:         │ │ │ Seed:         │ │ │ Build the    │ │
 │ ┃ one           ┃ │ │ Onboarding f… │ │ │ Reporting     │ │ │ form         │ │
 │ ┗━━━━━━━━━━━━━━━┛ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │ ┌───────────────┐ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │ s GCM-6       │ │ │ s GCM-19      │ │ │ S GCM-10      │ │ │ S GCM-12     │ │
+│ │ Sub-ta… GCM-6 │ │ │ Sub-t… GCM-19 │ │ │ Story GCM-10  │ │ │ Story GCM-12 │ │
 │ │ Survey4       │ │ │ Validate the  │ │ │ Sign up with  │ │ │ Export       │ │
 │ │ subtask       │ │ │ email         │ │ │ email         │ │ │ report as C… │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │ ┌───────────────┐ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │ T GCM-4       │ │ │ S GCM-11      │ │ │ T GCM-14      │ │ │ T GCM-15     │ │
+│ │ Task GCM-4    │ │ │ Story GCM-11  │ │ │ Task GCM-14   │ │ │ Task GCM-15  │ │
 │ │ Survey task   │ │ │ Welcome       │ │ │ Pick a chart  │ │ │ Write the    │ │
 │ │ four          │ │ │ screen        │ │ │ library       │ │ │ setup guide  │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
