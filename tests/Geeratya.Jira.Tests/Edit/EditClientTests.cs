@@ -86,27 +86,31 @@ public sealed class EditClientTests
     }
 
     [Fact]
-    public async Task GivenTeamManagedEditMeta_WhenListing_ThenFieldsWithoutAllowedValuesOrItemsMapToo()
+    public async Task GivenRecordedTeamManagedEditMeta_WhenListing_ThenKindsOperationsAndChoicesAreMapped()
     {
-        const string body = """
-            {"fields":{
-              "summary":{"key":"summary","name":"Summary","required":true,"operations":["set"],
-                "schema":{"type":"string","system":"summary"}},
-              "parent":{"key":"parent","name":"Parent","operations":["set"],
-                "schema":{"type":"issuelink","system":"parent"}},
-              "labels":{"key":"labels","name":"Labels","operations":["add","set","remove"],
-                "schema":{"type":"array","items":"string","system":"labels"}}}}
-            """;
-        using var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/issue/GTM-5/editmeta", FakeResponse.Ok(body));
+        using var fixture = Serving("/rest/api/3/issue/GTM-11/editmeta", "metadata/editmeta-gtm-11.json");
 
-        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GTM-5", Cancel());
+        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GTM-11", Cancel());
 
-        Assert.Equal(
-            [EditFieldKind.Text, EditFieldKind.Parent, EditFieldKind.Labels],
-            result.Value.Select(field => field.Kind));
-        Assert.All(result.Value, field => Assert.Empty(field.AllowedValues));
-        Assert.True(result.Value[0].Required);
+        var fields = result.Value.ToDictionary(field => field.FieldId);
+        Assert.Equal(EditFieldKind.Text, fields["summary"].Kind);
+        Assert.True(fields["summary"].Required);
+        Assert.Equal(EditFieldKind.RichText, fields["description"].Kind);
+        Assert.Equal(EditFieldKind.User, fields["assignee"].Kind);
+        Assert.Equal(EditFieldKind.Labels, fields["labels"].Kind);
+        Assert.Equal(EditFieldKind.Option, fields["priority"].Kind);
+        Assert.Equal(5, fields["priority"].AllowedValues.Count);
+        Assert.Equal(["add", "set", "remove"], fields["labels"].Operations);
+        Assert.Empty(fields["labels"].AllowedValues);
+        Assert.Equal(EditFieldKind.Unsupported, fields["attachment"].Kind);
+        Assert.False(fields["issuetype"].IsEditable);
+        Assert.Equal(EditFieldKind.Parent, fields["parent"].Kind);
+        Assert.Equal(EditFieldKind.User, fields["reporter"].Kind);
+        Assert.True(fields["reporter"].Required);
+        Assert.Equal(EditFieldKind.Unsupported, fields["customfield_10001"].Kind);
+        Assert.Equal(EditFieldKind.Unsupported, fields["customfield_10000"].Kind);
+        Assert.Equal(EditFieldKind.Unsupported, fields["issuerestriction"].Kind);
+        Assert.Empty(fields["parent"].AllowedValues);
     }
 
     [Theory]
