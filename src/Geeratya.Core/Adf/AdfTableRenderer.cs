@@ -32,6 +32,7 @@ internal static class AdfTableRenderer
         }
 
         var columnCount = ColumnCount(rows);
+        var owners = Owners(rows, columnCount);
 
         for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
         {
@@ -48,12 +49,14 @@ internal static class AdfTableRenderer
         }
 
         ReRenderIfNarrowed(rows, widths, context);
-        RenderGrid(rows, widths, output);
+        RenderGrid(rows, owners, widths, output);
     }
 
     private static List<List<TableCell>> ReadRows(AdfTable table)
     {
         var rows = new List<List<TableCell>>();
+        var rowCount = table.Children.Count(static node => node is AdfTableRow);
+        var occupied = new List<int>();
 
         for (var index = 0; index < table.Children.Count; index++)
         {
@@ -67,26 +70,100 @@ internal static class AdfTableRenderer
 
             for (var cellIndex = 0; cellIndex < row.Children.Count; cellIndex++)
             {
-                var cell = ReadCell(row.Children[cellIndex], column);
+                column = NextFreeColumn(occupied, column);
+
+                var cell = ReadCell(row.Children[cellIndex], rows.Count, column, rowCount, occupied);
 
                 cells.Add(cell);
+                Occupy(occupied, cell);
                 column += cell.Span;
             }
 
             rows.Add(cells);
+            ReleaseRow(occupied);
         }
 
         return rows;
     }
 
-    private static TableCell ReadCell(AdfNode node, int column)
+    private static int NextFreeColumn(List<int> occupied, int column)
     {
-        return node switch
+        while (column < occupied.Count && occupied[column] > 0)
         {
-            AdfTableHeader header => new TableCell(header.Children, true, Math.Max(1, header.ColumnSpan), column),
-            AdfTableCell cell => new TableCell(cell.Children, false, Math.Max(1, cell.ColumnSpan), column),
-            _ => new TableCell([node], false, 1, column),
-        };
+            column++;
+        }
+
+        return column;
+    }
+
+    /// <summary>Marks the columns of a cell with a row span as taken for the rows below it.</summary>
+    private static void Occupy(List<int> occupied, TableCell cell)
+    {
+        if (cell.RowSpan <= 1)
+        {
+            return;
+        }
+
+        while (occupied.Count < cell.Column + cell.Span)
+        {
+            occupied.Add(0);
+        }
+
+        for (var column = cell.Column; column < cell.Column + cell.Span; column++)
+        {
+            occupied[column] = cell.RowSpan;
+        }
+    }
+
+    /// <summary>After a row, every taken column has one row less to go; the cell itself counted this row.</summary>
+    private static void ReleaseRow(List<int> occupied)
+    {
+        for (var column = 0; column < occupied.Count; column++)
+        {
+            if (occupied[column] > 0)
+            {
+                occupied[column]--;
+            }
+        }
+    }
+
+    private static TableCell ReadCell(AdfNode node, int row, int column, int rowCount, List<int> occupied)
+    {
+        IReadOnlyList<AdfNode> content = [node];
+        var isHeader = false;
+        var columnSpan = 1;
+        var rowSpan = 1;
+
+        if (node is AdfTableHeader header)
+        {
+            content = header.Children;
+            isHeader = true;
+            columnSpan = header.ColumnSpan;
+            rowSpan = header.RowSpan;
+        }
+        else if (node is AdfTableCell cell)
+        {
+            content = cell.Children;
+            columnSpan = cell.ColumnSpan;
+            rowSpan = cell.RowSpan;
+        }
+
+        var span = FreeRun(occupied, column, Math.Max(1, columnSpan));
+
+        return new TableCell(content, isHeader, span, column, row, Math.Clamp(rowSpan, 1, rowCount - row));
+    }
+
+    /// <summary>A column span stops at the first column that a row span from above already holds.</summary>
+    private static int FreeRun(List<int> occupied, int column, int wanted)
+    {
+        var run = 1;
+
+        while (run < wanted && (column + run >= occupied.Count || occupied[column + run] == 0))
+        {
+            run++;
+        }
+
+        return run;
     }
 
     private static int ColumnCount(List<List<TableCell>> rows)
@@ -95,15 +172,37 @@ internal static class AdfTableRenderer
 
         for (var index = 0; index < rows.Count; index++)
         {
-            var row = rows[index];
-
-            if (row.Count > 0)
+            foreach (var cell in rows[index])
             {
-                count = Math.Max(count, row[^1].Column + row[^1].Span);
+                count = Math.Max(count, cell.Column + cell.Span);
             }
         }
 
         return count;
+    }
+
+    /// <summary>For every row and column the cell that covers it, or null for a gap.</summary>
+    private static TableCell?[][] Owners(List<List<TableCell>> rows, int columnCount)
+    {
+        var owners = new TableCell?[rows.Count][];
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            owners[rowIndex] = new TableCell?[columnCount];
+        }
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            foreach (var cell in rows[rowIndex])
+            {
+                for (var covered = rowIndex; covered < rowIndex + cell.RowSpan; covered++)
+                {
+                    Array.Fill(owners[covered], cell, cell.Column, cell.Span);
+                }
+            }
+        }
+
+        return owners;
     }
 
     private static void RenderCells(List<TableCell> row, int width, RenderContext context)
@@ -234,11 +333,26 @@ internal static class AdfTableRenderer
         }
     }
 
-    private static void RenderGrid(List<List<TableCell>> rows, int[] widths, List<StyledLine> output)
+    private static void RenderGrid(
+        List<List<TableCell>> rows,
+        TableCell?[][] owners,
+        int[] widths,
+        List<StyledLine> output)
     {
+        var heights = RowHeights(rows);
+        var firstLines = new int[rows.Count];
+
+        for (var rowIndex = 1; rowIndex < rows.Count; rowIndex++)
+        {
+            firstLines[rowIndex] = firstLines[rowIndex - 1] + heights[rowIndex - 1];
+        }
+
         for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
         {
-            RenderRow(rows[rowIndex], widths, output);
+            for (var lineIndex = 0; lineIndex < heights[rowIndex]; lineIndex++)
+            {
+                output.Add(RowLine(owners[rowIndex], widths, firstLines, firstLines[rowIndex] + lineIndex));
+            }
 
             if (rowIndex == 0 && IsHeaderRow(rows[0]))
             {
@@ -247,9 +361,60 @@ internal static class AdfTableRenderer
         }
     }
 
+    /// <summary>
+    /// A row is as tall as its tallest cell; a cell with a row span that is taller than the rows it covers makes the
+    /// last of them taller.
+    /// </summary>
+    private static int[] RowHeights(List<List<TableCell>> rows)
+    {
+        var heights = new int[rows.Count];
+
+        Array.Fill(heights, 1);
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            foreach (var cell in rows[rowIndex])
+            {
+                if (cell.RowSpan == 1)
+                {
+                    heights[rowIndex] = Math.Max(heights[rowIndex], cell.Lines.Count);
+                }
+            }
+        }
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            foreach (var cell in rows[rowIndex])
+            {
+                if (cell.RowSpan > 1)
+                {
+                    GrowLastRow(heights, cell);
+                }
+            }
+        }
+
+        return heights;
+    }
+
+    private static void GrowLastRow(int[] heights, TableCell cell)
+    {
+        var last = cell.Row + cell.RowSpan - 1;
+        var covered = 0;
+
+        for (var rowIndex = cell.Row; rowIndex <= last; rowIndex++)
+        {
+            covered += heights[rowIndex];
+        }
+
+        if (cell.Lines.Count > covered)
+        {
+            heights[last] += cell.Lines.Count - covered;
+        }
+    }
+
     private static bool IsHeaderRow(List<TableCell> row)
     {
-        return row.Count > 0 && row.TrueForAll(static cell => cell.IsHeader);
+        return row.Count > 0 && row.TrueForAll(static cell => cell.IsHeader && cell.RowSpan == 1);
     }
 
     private static StyledLine HeaderRule(int[] widths)
@@ -265,40 +430,28 @@ internal static class AdfTableRenderer
         return StyledLine.Of(text.ToString(), TextRole.Muted);
     }
 
-    private static void RenderRow(List<TableCell> row, int[] widths, List<StyledLine> output)
-    {
-        var height = 1;
-
-        foreach (var cell in row)
-        {
-            height = Math.Max(height, cell.Lines.Count);
-        }
-
-        for (var lineIndex = 0; lineIndex < height; lineIndex++)
-        {
-            output.Add(RowLine(row, widths, lineIndex));
-        }
-    }
-
-    private static StyledLine RowLine(List<TableCell> row, int[] widths, int lineIndex)
+    /// <summary>One output line of a row; <paramref name="gridLine" /> counts from the table's first line.</summary>
+    private static StyledLine RowLine(TableCell?[] owners, int[] widths, int[] firstLines, int gridLine)
     {
         var spans = new List<StyledSpan> { new(RowStart, TextRole.Muted) };
         var column = 0;
 
-        for (var index = 0; index < row.Count; index++)
+        while (column < widths.Length)
         {
-            var cell = row[index];
-            var cellWidth = SpanWidth(widths, cell);
+            var cell = owners[column];
 
-            AppendCell(spans, cell, lineIndex, cellWidth);
-            column = cell.Column + cell.Span;
+            if (cell is null)
+            {
+                spans.Add(new StyledSpan(new string(' ', widths[column]), TextRole.Body));
+                column++;
+            }
+            else
+            {
+                AppendCell(spans, cell, gridLine - firstLines[cell.Row], SpanWidth(widths, cell));
+                column = cell.Column + cell.Span;
+            }
+
             AppendSeparator(spans, column >= widths.Length);
-        }
-
-        for (; column < widths.Length; column++)
-        {
-            spans.Add(new StyledSpan(new string(' ', widths[column]), TextRole.Body));
-            AppendSeparator(spans, column == widths.Length - 1);
         }
 
         return new StyledLine(spans);
@@ -433,7 +586,13 @@ internal static class AdfTableRenderer
         return width;
     }
 
-    private sealed class TableCell(IReadOnlyList<AdfNode> content, bool isHeader, int span, int column)
+    private sealed class TableCell(
+        IReadOnlyList<AdfNode> content,
+        bool isHeader,
+        int span,
+        int column,
+        int row,
+        int rowSpan)
     {
         public IReadOnlyList<AdfNode> Content { get; } = content;
 
@@ -442,6 +601,10 @@ internal static class AdfTableRenderer
         public int Span { get; } = span;
 
         public int Column { get; } = column;
+
+        public int Row { get; } = row;
+
+        public int RowSpan { get; } = rowSpan;
 
         public List<StyledLine> Lines { get; set; } = [];
     }

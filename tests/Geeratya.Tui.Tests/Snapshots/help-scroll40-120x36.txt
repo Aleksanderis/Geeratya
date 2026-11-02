@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+Help                                                                                                                    
+  Space t    Open the source picker for a new tab                                                                       
+  Space c    Close the tab                                                                                              
+  Space r    Refresh the view (also retries after an error)                                                             
+  Space l    Switch between list and columns                                                                            
+  Space o    Open the issue in the browser                                                                              
+  Space p    Open the parent issue                                                                                      
+                                                                                                                        
+Help mode                                                                                                               
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
+  k          Move up                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Command mode                                                                                                            
+  Enter      Run the typed command                                                                                      
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Confirm mode                                                                                                            
+  y          Confirm                                                                                                    
+  n          Decline                                                                                                    
+  Esc        Decline                                                                                                    
+                                                                                                                        
+Insert mode                                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Esc        Cancel or close                                                                                            
+ HELP                                                                                            j down  k up  Esc close

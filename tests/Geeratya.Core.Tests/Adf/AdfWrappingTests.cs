@@ -91,6 +91,36 @@ public sealed class AdfWrappingTests
     }
 
     [Fact]
+    public void GivenKeycapEmoji_WhenWrapping_ThenItIsOneCellOfTwoColumnsAndNeverSplit()
+    {
+        const string keycap = "1\uFE0F\u20E3";
+
+        Assert.Equal(["a" + keycap, "b"], Lines(Paragraph($"a{keycap}b"), 3));
+        Assert.Equal(["x", keycap], Lines(Paragraph($"x{keycap}"), 2));
+        Assert.Equal([keycap], Lines(Paragraph(keycap), 2));
+    }
+
+    [Fact]
+    public void GivenKeycapInTable_WhenRendering_ThenRowsAlignByTwoColumns()
+    {
+        var json = $$"""
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{{Paragraph("1\uFE0F\u20E3")}}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"abc"}]}]}]}]}
+            """;
+
+        Assert.Equal(["| 1\uFE0F\u20E3  |", "| abc |"], Lines(json, 80));
+    }
+
+    [Fact]
+    public void GivenAsciiBeforeJoiner_WhenWrapping_ThenAsciiJoinsItsCluster()
+    {
+        Assert.Equal(["a\u200D"], Lines(Paragraph("a\u200D"), 1));
+    }
+
+    [Fact]
     public void GivenCodeBlockWithTabAndWideText_WhenRendering_ThenTabsBecomeSpacesAndWidthHolds()
     {
         const string json = """{"type":"codeBlock","content":[{"type":"text","text":"\t日本語"}]}""";

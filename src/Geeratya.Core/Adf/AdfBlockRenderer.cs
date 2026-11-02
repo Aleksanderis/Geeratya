@@ -145,7 +145,8 @@ internal static class AdfBlockRenderer
 
     private static bool IsInline(AdfNode node)
     {
-        return node is AdfText or AdfHardBreak or AdfInlineCard or AdfEmoji or AdfDate or AdfStatus or AdfMention;
+        return node is AdfText or AdfHardBreak or AdfInlineCard or AdfEmoji or AdfDate or AdfStatus or AdfMention
+            or AdfMediaInline;
     }
 
     private static void RenderBlock(AdfNode node, RenderContext context, List<StyledLine> output)
@@ -180,7 +181,13 @@ internal static class AdfBlockRenderer
                 RenderRule(context, output);
                 break;
             case AdfExpand expand:
-                RenderExpand(expand, context, output);
+                RenderExpand(expand.Title, expand.Children, context, output);
+                break;
+            case AdfNestedExpand nested:
+                RenderExpand(nested.Title, nested.Children, context, output);
+                break;
+            case AdfDecisionList decisions:
+                RenderDecisionList(decisions, context, output);
                 break;
             case AdfTable table:
                 AdfTableRenderer.Render(table, context, output);
@@ -237,6 +244,25 @@ internal static class AdfBlockRenderer
 
             RenderItem(item, context, marker, output);
         }
+    }
+
+    private static void RenderDecisionList(AdfDecisionList list, RenderContext context, List<StyledLine> output)
+    {
+        for (var index = 0; index < list.Children.Count; index++)
+        {
+            var item = list.Children[index];
+            var state = item is AdfDecisionItem { State: { } itemState } ? itemState : string.Empty;
+            var label = IsPlainLabel(state) ? state.ToLowerInvariant() : AdfMarkers.DefaultDecisionLabel;
+
+            RenderItem(item, context, new LinePrefix($"[{label}] ", TextRole.Muted), output);
+        }
+    }
+
+    /// <summary>A state from the API is shown only when it is a short word; anything else becomes the default.</summary>
+    private static bool IsPlainLabel(string state)
+    {
+        return state.Length is > 0 and <= AdfMarkers.MaxStateLength
+            && state.All(static character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-');
     }
 
     private static void RenderItem(AdfNode item, RenderContext context, LinePrefix marker, List<StyledLine> output)
@@ -305,9 +331,13 @@ internal static class AdfBlockRenderer
         output.Add(StyledLine.Of(new string(AdfMarkers.RuleCharacter, length), TextRole.Muted));
     }
 
-    private static void RenderExpand(AdfExpand expand, RenderContext context, List<StyledLine> output)
+    private static void RenderExpand(
+        string? expandTitle,
+        IReadOnlyList<AdfNode> children,
+        RenderContext context,
+        List<StyledLine> output)
     {
-        var title = string.IsNullOrWhiteSpace(expand.Title) ? AdfMarkers.DefaultExpandTitle : expand.Title;
+        var title = string.IsNullOrWhiteSpace(expandTitle) ? AdfMarkers.DefaultExpandTitle : expandTitle;
         var heading = new WrappedText(context.Width, false);
 
         heading.Append($"{AdfMarkers.ExpandOpen}{title}", TextRole.Strong);
@@ -315,7 +345,7 @@ internal static class AdfBlockRenderer
 
         var indent = new LinePrefix(AdfMarkers.ExpandIndent, TextRole.Body);
 
-        RenderPrefixed(expand.Children, context, false, indent, indent, output);
+        RenderPrefixed(children, context, false, indent, indent, output);
     }
 
     private static void RenderMedia(
@@ -329,6 +359,11 @@ internal static class AdfBlockRenderer
 
         for (var index = 0; index < children.Count; index++)
         {
+            if (children[index] is AdfCaption)
+            {
+                continue;
+            }
+
             if (written)
             {
                 writer.LineBreak();
@@ -352,6 +387,18 @@ internal static class AdfBlockRenderer
         }
 
         writer.Finish(output);
+        RenderCaptions(children, context, output);
+    }
+
+    private static void RenderCaptions(IReadOnlyList<AdfNode> children, RenderContext context, List<StyledLine> output)
+    {
+        for (var index = 0; index < children.Count; index++)
+        {
+            if (children[index] is AdfCaption caption)
+            {
+                RenderInline(caption.Children, 0, caption.Children.Count, context, context.BaseRole, output);
+            }
+        }
     }
 
     private static void RenderUnknown(AdfUnknownNode unknown, RenderContext context, List<StyledLine> output)

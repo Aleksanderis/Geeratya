@@ -35,6 +35,30 @@ public sealed class CommentClientTests
     }
 
     [Fact]
+    public async Task GivenRecordedDevSiteComment_WhenGetting_ThenRichBodyAndMentionAreMapped()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GCM-10/comment", "comments/comments-gcm10.json");
+
+        var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-10", 0, CancellationToken.None);
+
+        var comment = Assert.Single(result.Value.Items);
+        Assert.True(result.Value.IsLast);
+        Assert.Equal(new DateTimeOffset(2026, 11, 1, 17, 48, 38, 502, TimeSpan.FromHours(2)), comment.Created);
+        Assert.Equal("Test User 1", comment.Author?.DisplayName);
+        Assert.Collection(
+            comment.Body.Content,
+            node => Assert.IsType<AdfHeading>(node),
+            node => Assert.IsType<AdfParagraph>(node),
+            node => Assert.IsType<AdfBulletList>(node),
+            node => Assert.IsType<AdfOrderedList>(node),
+            node => Assert.IsType<AdfCodeBlock>(node),
+            node => Assert.IsType<AdfTable>(node));
+        var mention = Assert.Single(comment.Body.Content.SelectMany(Flatten).OfType<AdfMention>());
+        Assert.Equal("fake-account-1", mention.Id);
+        Assert.Equal("@Test User 1", mention.Text);
+    }
+
+    [Fact]
     public async Task GivenInactiveAuthorAndEmptyBody_WhenGetting_ThenNameIsKeptAndBodyIsEmpty()
     {
         using var fixture = Serving(GcmPath, "comments/comments-gcm6.json");
@@ -194,6 +218,19 @@ public sealed class CommentClientTests
         Assert.Equal(
             $"{GcmPath}?orderBy=created&startAt=0&maxResults=100",
             Assert.Single(fixture.Handler.Requests).PathAndQuery);
+    }
+
+    private static IEnumerable<AdfNode> Flatten(AdfNode node)
+    {
+        yield return node;
+
+        if (node is AdfContainerNode container)
+        {
+            foreach (var inner in container.Children.SelectMany(Flatten))
+            {
+                yield return inner;
+            }
+        }
     }
 
     private static TransportFixture Serving(string path, string fixtureOrJson, bool isJson = false)

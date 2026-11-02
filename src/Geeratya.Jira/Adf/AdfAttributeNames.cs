@@ -17,6 +17,8 @@ public static class AdfAttributeNames
     public const string Language = "language";
     public const string PanelType = "panelType";
     public const string ColumnSpan = "colspan";
+    public const string RowSpan = "rowspan";
+    public const string ColumnWidth = "colwidth";
     public const string Title = "title";
     public const string Layout = "layout";
     public const string State = "state";

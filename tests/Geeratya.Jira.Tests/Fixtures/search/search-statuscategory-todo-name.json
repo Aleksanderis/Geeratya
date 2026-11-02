@@ -1,0 +1,24 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Survey task one"
+      },
+      "id": "10000",
+      "key": "GCM-1",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10000"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Survey bug two"
+      },
+      "id": "10001",
+      "key": "GCM-2",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10001"
+    }
+  ],
+  "nextPageToken": "EAIYl9WK3Zk0Ijtwcm9qZWN0ID0gR0NNIEFORCBzdGF0dXNDYXRlZ29yeSA9ICJUbyBEbyIgT1JERVIgQlkga2V5IEFTQyoCW10yIFRFTkFOVF9OT1RfRk9VTkRfSU5fVEVOQU5UX1NUT1JF"
+}
