@@ -40,26 +40,26 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `Enter` | next line | open the selected item |
 | `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
-| `v` (planned, M3) | Visual mode | Visual mode over rows |
+| `v` (planned, M4) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
 
 ## Layout for writes and Scrum (planned, M2 to M4)
 
-Decided in #152 so that M2 and M3 bind into a plan. Nothing here is in `keymap.default.json` yet: each issue adds its rows (and runs `scripts/gen-keymap-doc.sh`) when its feature lands. Source: Gitunia's keymap redesign (one noun one prefix, no unrelated case pairs, command levels), adapted to Jira.
+Decided in #152 so that M2 and M4 bind into a plan. Nothing here is in `keymap.default.json` yet: each issue adds its rows (and runs `scripts/gen-keymap-doc.sh`) when its feature lands. Source: Gitunia's keymap redesign (one noun one prefix, no unrelated case pairs, command levels), adapted to Jira.
 
 ### Layout rules
 
-1. **One noun, one `<space>` group.** `i` issue, `m` comment, `s` sprint, `k` rank, `v` view options (M4). A verb is the second key: `<space>is` changes the status of the issue. The M1 leaves `t c r l o p` stay leaves, and a leaf is never also a prefix (the conflict test enforces it), so no group may start with them. That is why comment is `m` (`c` closes a tab) and rank is `k` (`r` refreshes).
+1. **One noun, one `<space>` group.** `i` issue, `m` comment, `s` sprint, `k` rank, `v` view options (M5). A verb is the second key: `<space>is` changes the status of the issue. The M1 leaves `t c r l o p` stay leaves, and a leaf is never also a prefix (the conflict test enforces it), so no group may start with them. That is why comment is `m` (`c` closes a tab) and rank is `k` (`r` refreshes).
 2. **No bare letters.** Writes never take a bare vim key (see "Key rule"). Two families only: `<space>` chords and `Alt-` chords. `Alt-h/j/k/l` move the selected card or row (status or rank); they mirror the vim motions, so nothing is learned twice. Every `Alt-` action also has a palette command (rule 6), which covers terminals that send no Alt (macOS Terminal.app without "Option as Meta"); `Ctrl-s` in editors needs the same check in #167 (flow control) with a fallback.
 3. **No case pairs with unrelated meanings.** A capital is allowed only for the same verb with a narrower or wider target (`ic` create, `iC` create a sub-task of the selected issue).
-4. **Everyday and advanced.** Each action has a level; M5 implements the setting and the filtering (#196). Everyday is what a normal working day needs, advanced is rare or risky. The level never changes a key: an advanced action stays bound and runs from the palette, it is only left out of hints and which-key.
+4. **Everyday and advanced.** Each action has a level; M6 implements the setting and the filtering (#196). Everyday is what a normal working day needs, advanced is rare or risky. The level never changes a key: an advanced action stays bound and runs from the palette, it is only left out of hints and which-key.
 5. **Same keys in every view.** A write acts on the selected issue of the active tab in list, columns, backlog and issue detail alike (in detail: the shown issue, or the comment under the cursor for `m` actions). A key that does not apply (a sprint key on a Kanban board, `Alt-h` in a list) shows a status note naming the reason and does nothing else.
-6. **Every action has an id and a palette command** (`issue.create` is `:create`), so keys can be remapped later (M5) and the mouse path runs the same action.
+6. **Every action has an id and a palette command** (`issue.create` is `:create`), so keys can be remapped later (M6) and the mouse path runs the same action.
 7. **Stray keys never write.** Printable keys act in Normal mode only; text fields, pickers and forms are Insert mode. Destructive actions go through Confirm mode (`y`, `n`, `Esc`; `Enter` never confirms) and say what changes and that Jira cannot undo it.
 
 ### Planned bindings
 
-The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E everyday, A advanced. Mouse: the equivalent once the mouse part exists (right-click opens a context menu with the same actions; the other hit areas are named). Milestone: the issue that binds the key.
+The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E everyday, A advanced. Mouse: the equivalent once the mouse part exists (right-click opens a context menu with the same actions; the other hit areas are named). Milestone: the issue that binds the key.
 
 | Keys | Action id | What | Level | Mouse | Bound by |
 |---|---|---|---|---|---|
@@ -67,31 +67,31 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 (bound) |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
-| `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M3 #183 |
+| `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M4 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
-| `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
+| `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M6 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
-| `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M4 #190 (bound) |
-| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M4 #190 (bound) |
+| `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M5 #190 (bound) |
+| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M5 #190 (bound) |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part not built) | M2 #167 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part not built) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
-| `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M3 #182 |
-| `<space>sv` | `sprint.switch` | Switch the sprint shown (active, future, closed) | E | click the sprint name | M3 #177 |
-| `<space>sm` | `sprint.move-issues` | Move the issue, the marked issues or the Visual range to a sprint (picker) | E | drag onto a sprint section | M3 #181 |
-| `<space>sb` | `sprint.move-to-backlog` | Move the same set to the backlog | E | drag onto the backlog section | M3 #181 |
-| `<space>sn` | `sprint.create` | Create a sprint (name, goal, dates) | E | `+` in the backlog header | M3 #185 |
-| `<space>se` | `sprint.edit` | Edit the sprint shown (name, goal, dates) | A | click the sprint header | M3 #185 |
-| `<space>ss` | `sprint.start` | Start the sprint (Confirm: dates, issue count) | E | button in the sprint header | M3 #186 |
-| `<space>sc` | `sprint.complete` | Complete the sprint (Confirm: says where the N open issues go) | E | button in the sprint header | M3 #186 |
-| `<space>vf` | `view.quick-filter` | Toggle board quick filters | E | click a filter chip | M4 #192 |
-| `<space>vs` | `view.swimlane` | Choose the swimlane grouping | A | click the swimlane header | M4 #192 |
-| `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open or save a saved view | E | tab picker | M4 #191 |
-| `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M3 #181 |
-| `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M3 #181 |
+| `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M4 #182 |
+| `<space>sv` | `sprint.switch` | Switch the sprint shown (active, future, closed) | E | click the sprint name | M4 #177 |
+| `<space>sm` | `sprint.move-issues` | Move the issue, the marked issues or the Visual range to a sprint (picker) | E | drag onto a sprint section | M4 #181 |
+| `<space>sb` | `sprint.move-to-backlog` | Move the same set to the backlog | E | drag onto the backlog section | M4 #181 |
+| `<space>sn` | `sprint.create` | Create a sprint (name, goal, dates) | E | `+` in the backlog header | M4 #185 |
+| `<space>se` | `sprint.edit` | Edit the sprint shown (name, goal, dates) | A | click the sprint header | M4 #185 |
+| `<space>ss` | `sprint.start` | Start the sprint (Confirm: dates, issue count) | E | button in the sprint header | M4 #186 |
+| `<space>sc` | `sprint.complete` | Complete the sprint (Confirm: says where the N open issues go) | E | button in the sprint header | M4 #186 |
+| `<space>vf` | `view.quick-filter` | Toggle board quick filters | E | click a filter chip | M5 #192 |
+| `<space>vs` | `view.swimlane` | Choose the swimlane grouping | A | click the swimlane header | M5 #192 |
+| `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open or save a saved view | E | tab picker | M5 #191 |
+| `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M4 #181 |
+| `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M4 #181 |
 
 The estimate has no key of its own: the `<space>ie` field picker offers the board's estimation field (#183). Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
 

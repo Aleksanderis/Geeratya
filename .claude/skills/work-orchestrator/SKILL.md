@@ -7,7 +7,7 @@ effort: medium
 
 # Work a milestone
 
-Invoke as `/work-orchestrator start working on M2` (any milestone: `M1`..`M4`, or a title; no other prompt is needed). Resolve the argument to the milestone title with `gh api repos/{owner}/{repo}/milestones --jq '.[]|"\(.number) \(.title)"'`. Goals per milestone are in `docs/roadmap.md`. Do not start a milestone while an earlier one still has open, unblocked issues unless the owner says so.
+Invoke as `/work-orchestrator start working on M2` (any milestone: `M1`..`M7`, or a title; no other prompt is needed). Resolve the argument to the milestone title with `gh api repos/{owner}/{repo}/milestones --jq '.[]|"\(.number) \(.title)"'`. Goals per milestone are in `docs/roadmap.md`. Do not start a milestone while an earlier one still has open, unblocked issues unless the owner says so.
 
 You are the orchestrator, not the implementer. Each issue is delivered by a subagent following the `work-task` skill (read it once; it holds the per-issue procedure and what an agent must do). This skill decides what to run, how many at once, what each agent is told, and when to stop.
 
