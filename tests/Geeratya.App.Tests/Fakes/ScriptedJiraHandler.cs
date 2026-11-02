@@ -24,7 +24,10 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
     /// <summary>The body text of each request, in order (empty when it had none).</summary>
     public IReadOnlyCollection<string> Bodies => _bodies;
 
-    /// <summary>Completes when a request has arrived at a gated reply, so a test can act while it is in flight.</summary>
+    /// <summary>
+    /// Completes when a request first arrives at a gated reply (the first gated reply only), so a test can act while
+    /// it is in flight.
+    /// </summary>
     public Task GateReached => _gateReached.Task;
 
     public ScriptedJiraHandler Reply(HttpStatusCode status, string body, Task? gate = null)
