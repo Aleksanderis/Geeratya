@@ -53,6 +53,7 @@ public class CreateFormReducerTests
         var target = Assert.IsType<CreateFormTarget>(Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects)).Target);
         Assert.Equal("A-1", target.ParentKey);
         Assert.False(target.SubtasksOnly);
+        Assert.Equal("Create issue in A under A-1", target.Title);
     }
 
     [Fact]

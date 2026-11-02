@@ -26,7 +26,15 @@ public sealed record CreateFormTarget(
         {
             if (IssueType is null)
             {
-                return SubtasksOnly ? $"Create sub-task of {ParentKey}" : $"Create issue in {ProjectKey}";
+                if (SubtasksOnly)
+                {
+                    return $"Create sub-task of {ParentKey}";
+                }
+
+                // The picker says up front that the issue hangs under the selected epic (types without a parent drop it).
+                return ParentKey is null
+                    ? $"Create issue in {ProjectKey}"
+                    : $"Create issue in {ProjectKey} under {ParentKey}";
             }
 
             if (ParentKey is null)

@@ -174,6 +174,27 @@ public sealed class IssueCacheTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenPendingRemovalOfIssueAndViews_WhenDiscarded_ThenTheFilesAreDeleted()
+    {
+        var folder = Path.Combine(_root, "p");
+        var key = new CacheKey(ViewSourceKind.Jql, "project = A");
+        var cache = new SiteCache(folder);
+        cache.Put(key, new CachedView([], null, _saved));
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+        cache.Flush();
+        var file = Path.Combine(folder, SiteCache.IssueFileName("A-1"));
+        cache.RemoveIssue("A-1");
+        cache.RemoveViews();
+
+        await cache.Discard();
+
+        Assert.False(File.Exists(file));
+        using var reader = new SiteCache(folder);
+        Assert.Null(reader.GetIssue("A-1"));
+        Assert.Null(reader.Get(key));
+    }
+
+    [Fact]
     public void GivenPendingIssue_WhenRemoved_ThenItIsNeverWritten()
     {
         var folder = Path.Combine(_root, "p");
