@@ -4,6 +4,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
@@ -16,6 +17,16 @@ public class ViewRefreshTests
 {
     private static readonly DateTimeOffset _start = new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
+
+    private static readonly BoardConfiguration _configuration = new(
+        4,
+        "GCM board",
+        BoardType.Kanban,
+        [new BoardColumn("Backlog", ["1"]), new BoardColumn("Done", ["2"])],
+        "10001",
+        null,
+        "customfield_10019",
+        null);
 
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
@@ -459,6 +470,32 @@ public class ViewRefreshTests
     }
 
     [Fact]
+    public void GivenBoardOpenFailedBeforeItsConfiguration_WhenTheClockRefreshes_ThenItRunsOnTheUserLane()
+    {
+        var definition = new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
+        var opened = _reducer.Reduce(Start(), new ViewOpenRequested(definition)).State;
+        var failed = Fail(opened, JiraErrorKind.ServerError, _start);
+
+        var tick = _reducer.Reduce(failed, new Tick(_start + TimeSpan.FromSeconds(60)));
+
+        var effect = Assert.IsType<LoadViewPageEffect>(Assert.Single(tick.Effects));
+        Assert.False(effect.Background);
+        Assert.Equal(LoadReason.Refresh, effect.Reason);
+    }
+
+    [Fact]
+    public void GivenRejectedLink_WhenARateLimitWaitStartsAndEnds_ThenTheLinkStaysRejected()
+    {
+        var tick = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
+        var state = Fail(tick.State, JiraErrorKind.Unauthorized, _start + TimeSpan.FromSeconds(61));
+
+        var waiting = _reducer.Reduce(state, new LinkChanged(new RateLimited(_start + TimeSpan.FromSeconds(30))));
+        var ended = _reducer.Reduce(waiting.State, new LinkChanged(new Online()));
+
+        Assert.IsType<Rejected>(ended.State.Session.Link);
+    }
+
+    [Fact]
     public void GivenBoardTab_WhenRefreshedByHand_ThenTheEffectIsOnTheUserLane()
     {
         var state = LoadedBoard();
@@ -532,7 +569,8 @@ public class ViewRefreshTests
         var definition = new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
         var opened = _reducer.Reduce(Start(), new ViewOpenRequested(definition)).State;
         var tab = opened.Session.Tabs[0];
-        var first = _reducer.Reduce(opened, new ViewPageLoaded(tab.Id, tab.RequestId, Page(2, new PageCursor("n2")), _start));
+        var configured = _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, _configuration)).State;
+        var first = _reducer.Reduce(configured, new ViewPageLoaded(tab.Id, tab.RequestId, Page(2, new PageCursor("n2")), _start));
         var next = Assert.IsType<LoadViewPageEffect>(Assert.Single(first.Effects.OfType<LoadViewPageEffect>()));
 
         return _reducer.Reduce(first.State, new ViewPageLoaded(tab.Id, next.RequestId, Page(1, null, 3), _start)).State;

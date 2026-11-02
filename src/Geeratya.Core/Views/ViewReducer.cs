@@ -367,6 +367,12 @@ public static class ViewReducer
     private static AppState StartRefresh(AppState state, TabState tab, bool background, List<Effect> effects)
     {
         var requestId = state.Sequence + 1;
+
+        // A board tab whose configuration never arrived (the open failed on it) fetches it with this refresh, which
+        // only a user-lane refresh does, so the clock's refresh is promoted to that lane.
+        var needsConfiguration = tab.Board is null && LoadsAllPages(tab.Definition.Source);
+        background = background && !needsConfiguration;
+
         var loading = tab with
         {
             Load = new Loading(LoadReason.Refresh, background),
@@ -417,6 +423,12 @@ public static class ViewReducer
     private static AppState ChangeLink(AppState state, SiteLink link)
     {
         if (link is Online && state.Session.Link is not RateLimited)
+        {
+            return state;
+        }
+
+        // A rate-limit wait does not hide a rejected login: it would be forgotten when the wait ends.
+        if (link is RateLimited && state.Session.Link is Rejected)
         {
             return state;
         }
