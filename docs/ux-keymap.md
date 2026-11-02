@@ -16,7 +16,7 @@ Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequ
 
 - Standard vim and neovim keys keep their vim meaning (`h j k l`, `g g`, `G`, `Ctrl-d`, `Ctrl-u`, `/`, `n`, `N`, `:`, `q`).
 - A Geeratya-specific action never takes a bare vim normal-mode command. Vim's bare keys include `s u c a x r D M E` and every other letter that vim binds; Geeratya actions use a `<space>` leader chord or a `Ctrl-`/`Alt-` combination instead. Check a new key against vim before binding it.
-- Everything doable by keyboard is doable by mouse and the reverse (the mouse table comes with the mouse part of the shell).
+- Everything doable by keyboard is doable by mouse and the reverse (the mouse table is [ux-mouse.md](ux-mouse.md)).
 - Arrow keys, `Home`, `End`, `PageUp` and `PageDown` mirror the vim motions.
 - Printable keys are text in Command mode and in any text field; only `Esc`, `Enter`, `Backspace`, `Ctrl-` and `Alt-` combinations act there.
 
@@ -74,9 +74,9 @@ The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M5 #190 (bound) |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M5 #190 (bound) |
-| `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
-| `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part not built) | M2 #167 |
-| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part not built) | M2 #167 |
+| `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
+| `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
+| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
 | `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M4 #182 |

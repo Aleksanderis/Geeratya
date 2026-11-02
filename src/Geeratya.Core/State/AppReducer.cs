@@ -43,6 +43,7 @@ public sealed class AppReducer
         return command switch
         {
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
+            ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -124,6 +125,18 @@ public sealed class AppReducer
             Jump = null,
             Editor = null,
         };
+    }
+
+    private ReduceResult ReduceRequested(AppState state, ActionRequested request)
+    {
+        var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
+
+        if (request.Count > 1)
+        {
+            return ApplyCounted(cleared, request.Action, request.Count, request.At);
+        }
+
+        return Apply(cleared, request.Action, request.At);
     }
 
     private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)

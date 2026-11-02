@@ -1,0 +1,115 @@
+using System.Collections.ObjectModel;
+using Geeratya.Core.Keymap;
+
+namespace Geeratya.Core.Mouse;
+
+/// <summary>
+/// The mouse table (<c>docs/ux-mouse.md</c>): a gesture on an area becomes the action id a key would produce. A test
+/// compares this list with the table in the document and checks that every action a key can run has a path here or
+/// an entry in <see cref="Exclusions"/>.
+/// </summary>
+public static class DefaultMouseMap
+{
+    /// <summary>Rows moved by one wheel notch.</summary>
+    public const int WheelRows = 3;
+
+    public static IReadOnlyList<MouseRow> Rows { get; } =
+    [
+        new(MouseTarget.Lists, MouseGesture.WheelUp, ActionIds.NavigateUp, WheelRows, 'A'),
+        new(MouseTarget.Lists, MouseGesture.WheelDown, ActionIds.NavigateDown, WheelRows, 'A'),
+        new(MouseTarget.Detail, MouseGesture.WheelUp, ActionIds.NavigateUp, WheelRows, 'A'),
+        new(MouseTarget.Detail, MouseGesture.WheelDown, ActionIds.NavigateDown, WheelRows, 'A'),
+        new(MouseTarget.Status, MouseGesture.Click, ActionIds.PaletteOpen, 1, 'A'),
+        new(MouseTarget.Backdrop, MouseGesture.Click, ActionIds.Cancel, 1, 'A'),
+        new(MouseTarget.Lists, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
+        new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
+        new(MouseTarget.Detail, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
+        new(MouseTarget.Tabs, MouseGesture.Click, ActionIds.TabNext, 1, 'B'),
+        new(MouseTarget.NewTabButton, MouseGesture.Click, ActionIds.TabNew, 1, 'B'),
+        new(MouseTarget.Banner, MouseGesture.Click, ActionIds.ViewRefresh, 1, 'B'),
+        new(MouseTarget.StatusBadge, MouseGesture.Click, ActionIds.IssueTransition, 1, 'C'),
+        new(MouseTarget.Assignee, MouseGesture.Click, ActionIds.IssueAssign, 1, 'C'),
+        new(MouseTarget.NewIssueButton, MouseGesture.Click, ActionIds.IssueCreate, 1, 'C'),
+        new(MouseTarget.CommentsAdd, MouseGesture.Click, ActionIds.CommentAdd, 1, 'C'),
+        new(MouseTarget.Comment, MouseGesture.Click, ActionIds.CommentEdit, 1, 'C'),
+        new(MouseTarget.Lists, MouseGesture.Drag, ActionIds.IssueTransitionNext, 1, 'C'),
+        new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.RankTo, 1, 'C'),
+        ContextMenuRow(ActionIds.ViewLayoutToggle),
+        ContextMenuRow(ActionIds.IssueOpenInBrowser),
+        ContextMenuRow(ActionIds.IssueOpenParent),
+        ContextMenuRow(ActionIds.IssueEdit),
+        ContextMenuRow(ActionIds.IssueAssignMe),
+        ContextMenuRow(ActionIds.IssueTransitionPrevious),
+        ContextMenuRow(ActionIds.IssueDelete),
+        ContextMenuRow(ActionIds.IssueCreateSubtask),
+        ContextMenuRow(ActionIds.IssueLink),
+        ContextMenuRow(ActionIds.IssueUnlink),
+        ContextMenuRow(ActionIds.IssueJump),
+        ContextMenuRow(ActionIds.RankUp),
+        ContextMenuRow(ActionIds.RankDown),
+        ContextMenuRow(ActionIds.RankTop),
+        ContextMenuRow(ActionIds.RankBottom),
+        ContextMenuRow(ActionIds.CommentDelete),
+        ContextMenuRow(ActionIds.TabClose),
+        ContextMenuRow(ActionIds.TabPrevious),
+        ContextMenuRow(ActionIds.HelpToggle),
+        ContextMenuRow(ActionIds.Quit),
+    ];
+
+    /// <summary>
+    /// Actions that deliberately have no mouse path of their own, with the reason: motions that the pointer does by
+    /// pointing, and numbered tab jumps that a click on the tab does.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> Exclusions { get; } = BuildExclusions();
+
+    public static MouseRow? Find(MouseTarget target, MouseGesture gesture)
+    {
+        foreach (var row in Rows)
+        {
+            if (row.Target == target && row.Gesture == gesture)
+            {
+                return row;
+            }
+        }
+
+        return null;
+    }
+
+    private static MouseRow ContextMenuRow(string action)
+    {
+        return new MouseRow(MouseTarget.ContextMenu, MouseGesture.Click, action, 1, 'C');
+    }
+
+    private static ReadOnlyDictionary<string, string> BuildExclusions()
+    {
+        const string pointing = "motion: the pointer places the cursor and the wheel scrolls";
+        const string tabClick = "a click on tab N (Tabs row)";
+
+        var exclusions = new Dictionary<string, string>
+        {
+            [ActionIds.NavigateDown] = "wheel rows cover it",
+            [ActionIds.NavigateUp] = "wheel rows cover it",
+            [ActionIds.NavigateLeft] = pointing,
+            [ActionIds.NavigateRight] = pointing,
+            [ActionIds.NavigateTop] = pointing,
+            [ActionIds.NavigateBottom] = pointing,
+            [ActionIds.NavigatePageDown] = pointing,
+            [ActionIds.NavigatePageUp] = pointing,
+            [ActionIds.NavigateFirstColumn] = pointing,
+            [ActionIds.NavigateLastColumn] = pointing,
+            [ActionIds.SectionNext] = "a click on a section title of the issue places the cursor there",
+            [ActionIds.SectionPrevious] = "a click on a section title of the issue places the cursor there",
+            [ActionIds.TabGoTo1] = tabClick,
+            [ActionIds.TabGoTo2] = tabClick,
+            [ActionIds.TabGoTo3] = tabClick,
+            [ActionIds.TabGoTo4] = tabClick,
+            [ActionIds.TabGoTo5] = tabClick,
+            [ActionIds.TabGoTo6] = tabClick,
+            [ActionIds.TabGoTo7] = tabClick,
+            [ActionIds.TabGoTo8] = tabClick,
+            [ActionIds.TabGoTo9] = tabClick,
+        };
+
+        return new ReadOnlyDictionary<string, string>(exclusions);
+    }
+}
