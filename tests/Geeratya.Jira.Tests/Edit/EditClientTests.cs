@@ -15,7 +15,6 @@ public sealed class EditClientTests
     private const string GcmIssuePath = "/rest/api/3/issue/GCM-1";
     private const string GcmMetaPath = "/rest/api/3/issue/GCM-1/editmeta";
     private const string GcmAssigneePath = "/rest/api/3/issue/GCM-1/assignee";
-    private const string AssignablePath = "/rest/api/3/user/assignable/search";
     private const string AccountId = "712020:00000000-0000-0000-0000-000000000001";
 
     [Fact]
@@ -136,12 +135,10 @@ public sealed class EditClientTests
         var meta = await client.GetEditFieldsAsync(key, Cancel());
         var update = await client.UpdateAsync(key, [FieldUpdate.Text("summary", "x")], Cancel());
         var assign = await client.AssignAsync(key, AssigneeChange.Unassign, Cancel());
-        var users = await client.SearchAssignableUsersAsync(key, "a", Cancel());
 
         Assert.Equal(JiraErrorKind.NotFound, meta.Error.Kind);
         Assert.Equal(WriteErrorKind.NotFound, update.Error.Kind);
         Assert.Equal(WriteErrorKind.NotFound, assign.Error.Kind);
-        Assert.Equal(JiraErrorKind.NotFound, users.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);
     }
 
@@ -479,55 +476,6 @@ public sealed class EditClientTests
         var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.Unassign, Cancel());
 
         Assert.Equal(WriteErrorKind.Permission, result.Error.Kind);
-    }
-
-    [Fact]
-    public async Task GivenRecordedAssignableUsers_WhenSearching_ThenUsersAreMappedAndTheQueryIsEscaped()
-    {
-        using var fixture = Serving(AssignablePath, "users/assignable-search-gcm-1.json");
-
-        var result = await new EditClient(fixture.Transport).SearchAssignableUsersAsync("GCM-1", "ż a&b", Cancel());
-
-        Assert.Equal(2, result.Value.Count);
-        Assert.Equal(AccountId, result.Value[0].AccountId);
-        Assert.Equal("Dev Owner", result.Value[0].DisplayName);
-        Assert.Equal("owner@example.com", result.Value[0].EmailAddress);
-        Assert.Equal("Żaneta Ōkami 🚀", result.Value[1].DisplayName);
-        Assert.Null(result.Value[1].EmailAddress);
-        var request = Assert.Single(fixture.Handler.Requests);
-        Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.Equal($"{AssignablePath}?issueKey=GCM-1&query=%C5%BC%20a%26b&maxResults=50", request.PathAndQuery);
-    }
-
-    [Theory]
-    [InlineData(0, 1)]
-    [InlineData(500, 100)]
-    [InlineData(20, 20)]
-    public async Task GivenOutOfRangeSize_WhenSearching_ThenItIsClamped(int requested, int sent)
-    {
-        using var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Get, AssignablePath, FakeResponse.Ok("[]"));
-
-        var result = await new EditClient(fixture.Transport)
-            .SearchAssignableUsersAsync("GCM-1", "a", Cancel(), requested);
-
-        Assert.Empty(result.Value);
-        Assert.EndsWith($"maxResults={sent}", Assert.Single(fixture.Handler.Requests).PathAndQuery);
-    }
-
-    [Fact]
-    public async Task GivenEmptyReplyOrForbidden_WhenSearching_ThenEmptyListOrTypedError()
-    {
-        using var empty = new TransportFixture();
-        empty.Handler.Serve(HttpMethod.Get, AssignablePath, FakeResponse.Ok("[]"));
-        using var denied = new TransportFixture();
-        denied.Handler.Serve(HttpMethod.Get, AssignablePath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, "{}"));
-
-        var none = await new EditClient(empty.Transport).SearchAssignableUsersAsync("GCM-1", "", Cancel());
-        var refused = await new EditClient(denied.Transport).SearchAssignableUsersAsync("GCM-1", "a", Cancel());
-
-        Assert.Empty(none.Value);
-        Assert.Equal(JiraErrorKind.Forbidden, refused.Error.Kind);
     }
 
     private static TransportFixture Serving(string path, string fixtureName)

@@ -1,28 +1,24 @@
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Transport;
-using Geeratya.Jira.Users;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Edit;
 
 /// <summary>
-/// Edits the fields of one issue and assigns it. <see cref="GetEditFieldsAsync"/> and
-/// <see cref="SearchAssignableUsersAsync"/> are reads; <see cref="UpdateAsync"/> and <see cref="AssignAsync"/> are
-/// writes: call them only from a confirmed command, never retry them silently, and drop the cache of the issue and
-/// of the views that may show it after a success and after an unknown outcome (the client keeps no cache). Works
-/// the same for company-managed and team-managed projects.
+/// Edits the fields of one issue and assigns it. <see cref="GetEditFieldsAsync"/> is a read (the assignee
+/// picker's user search is <c>SuggestionClient.SearchAssignableUsersAsync</c>); <see cref="UpdateAsync"/> and
+/// <see cref="AssignAsync"/> are writes: call them only from a confirmed command, never retry them silently,
+/// and drop the cache of the issue and of the views that may show it after a success and after an unknown
+/// outcome (the client keeps no cache). Works the same for company-managed and team-managed projects.
 /// </summary>
 public sealed class EditClient(JiraTransport transport)
 {
     private const string IssuePath = "/rest/api/3/issue";
     private const string EditMetaPart = "editmeta";
     private const string AssigneePart = "assignee";
-    private const string AssignableSearchPath = "/rest/api/3/user/assignable/search";
     private const string AutomaticAccountId = "-1";
-    private const int DefaultUserLimit = 50;
-    private const int MaxUserLimit = 100;
     private const string NotFoundMessage = "Not found or no access.";
 
     /// <summary>
@@ -116,36 +112,6 @@ public sealed class EditClient(JiraTransport transport)
             EditRequestBody.BuildAssignee(change));
 
         return transport.SendWriteAsync(request, cancellationToken);
-    }
-
-    /// <summary>
-    /// Accounts that can be assigned this issue, matching <paramref name="query"/> (name or email part). Minimal
-    /// read for the assign picker; the shared suggestion sources are tracked in #213. The size is clamped to
-    /// 1..100. An inactive account is never returned by Jira here.
-    /// </summary>
-    public async Task<JiraResult<IReadOnlyList<JiraUser>>> SearchAssignableUsersAsync(
-        string key,
-        string query,
-        CancellationToken cancellationToken,
-        int maxResults = DefaultUserLimit)
-    {
-        if (!IssueUrls.IsValidKey(key))
-        {
-            return JiraResults.Failure<IReadOnlyList<JiraUser>>(
-                new JiraError(JiraErrorKind.NotFound, null, NotFoundMessage));
-        }
-
-        var limit = Math.Clamp(maxResults, 1, MaxUserLimit);
-        var path = $"{AssignableSearchPath}?issueKey={key}&query={Uri.EscapeDataString(query)}&maxResults={limit}";
-
-        var result = await transport.SendAsync(
-            JiraRequest.Get(path),
-            EditJsonContext.Default.ListJiraUser,
-            cancellationToken);
-
-        return result.IsSuccess
-            ? JiraResults.Success<IReadOnlyList<JiraUser>>(result.Value ?? [])
-            : JiraResults.Failure<IReadOnlyList<JiraUser>>(result.Error);
     }
 
     private static string? Validate(IReadOnlyList<FieldUpdate> updates)
