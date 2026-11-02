@@ -304,7 +304,7 @@ public sealed class IssueClientTests
     }
 
     [Fact]
-    public async Task GivenRecordedCompanyManagedIssue_WhenReadingValues_ThenDatesComponentsVersionsAndLabelsAreMapped()
+    public async Task GivenRecordedCompanyManagedIssue_WhenReadingValues_ThenDatesComponentsAndVersionsAreMapped()
     {
         using var fixture = Serving("GCM-26", "issues/field-values-gcm-26.json");
         var fields = new[]
