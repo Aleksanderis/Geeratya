@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -36,6 +37,28 @@ public class ListBodyRendererTests
         Assert.Matches(@"^  A-1 +T Summary +To Do +-", lines[2]);
         Assert.Matches(@"^> A-2 +T Summary +To Do +-", lines[3]);
         Assert.StartsWith("  A-3", lines[4]);
+    }
+
+    [Fact]
+    public void GivenCachedRowsShownWhileLoading_WhenBuilding_ThenTheFullIssueKeyIsDrawn()
+    {
+        var reducer = new AppReducer(_keymap);
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var start = AppState.Initial with
+        {
+            Profiles = ProfileCatalog.Empty.With(profile),
+            Session = SiteSession.Empty(profile),
+        };
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = GEN", ViewLayout.List, "GEN");
+        var opened = reducer.Reduce(start, new ViewOpenRequested(definition));
+        var tab = opened.State.Session.Tabs[0];
+        var row = Issue(1) with { Key = "GEN-1" };
+        var cached = new ViewCacheLoaded(tab.Id, tab.RequestId, new CachedView([row], null, DateTimeOffset.UnixEpoch));
+
+        var lines = Body(reducer.Reduce(opened.State, cached).State, 100, 10);
+
+        Assert.Contains(lines, line => line.Contains("GEN-1"));
+        Assert.Matches(@"^  Key  +T ", lines[1]);
     }
 
     [Fact]
