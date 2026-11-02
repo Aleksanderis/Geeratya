@@ -3,6 +3,7 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
@@ -100,6 +101,7 @@ public sealed class AppReducer
             Confirm = null,
             Form = null,
             Picker = null,
+            Jump = null,
         };
     }
 
@@ -191,6 +193,11 @@ public sealed class AppReducer
 
     private static AppState TypeInInsert(AppState state, string text)
     {
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Type(state, text);
+        }
+
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
@@ -207,10 +214,11 @@ public sealed class AppReducer
             ActionIds.Cancel => Result(ToNormal(state)),
             ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
             ActionIds.ConfirmYes => Confirmed(state),
-            ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
+            ActionIds.FormNext => Accept(state),
             ActionIds.FormBackspace => Result(Erase(state)),
-            ActionIds.PickerNext => Result(SourceReducer.Move(state, 1)),
-            ActionIds.PickerPrevious => Result(SourceReducer.Move(state, -1)),
+            ActionIds.PickerNext => Result(MovePicker(state, 1)),
+            ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
@@ -251,8 +259,28 @@ public sealed class AppReducer
         return state.Mode == InputMode.Normal ? action() : Result(state);
     }
 
+    private static ReduceResult Accept(AppState state)
+    {
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Accept(state);
+        }
+
+        return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
+    }
+
+    private static AppState MovePicker(AppState state, int delta)
+    {
+        return state.Jump is null ? SourceReducer.Move(state, delta) : JumpReducer.Move(state, delta);
+    }
+
     private static AppState Erase(AppState state)
     {
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Backspace(state);
+        }
+
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
     }
 

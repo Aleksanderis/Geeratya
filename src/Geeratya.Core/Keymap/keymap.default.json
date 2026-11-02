@@ -46,6 +46,7 @@
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },
     { "mode": "normal", "keys": "Space i d", "action": "issue.delete" },
+    { "mode": "normal", "keys": "Space g", "action": "issue.jump" },
 
     { "mode": "help", "keys": "j", "action": "nav.down" },
     { "mode": "help", "keys": "Down", "action": "nav.down" },

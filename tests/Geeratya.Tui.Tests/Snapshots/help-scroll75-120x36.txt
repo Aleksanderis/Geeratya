@@ -1,9 +1,10 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Ctrl-p     Previous source in the picker                                                                              
-  Down       Next source in the picker                                                                                  
-  Ctrl-n     Next source in the picker                                                                                  
+  Up         Previous row in the picker                                                                                 
+  Ctrl-p     Previous row in the picker                                                                                 
+  Down       Next row in the picker                                                                                     
+  Ctrl-n     Next row in the picker                                                                                     
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
@@ -28,7 +29,6 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

@@ -45,6 +45,7 @@ public static class ActionIds
     public const string IssueOpenInBrowser = "issue.open-in-browser";
     public const string IssueOpenParent = "issue.open-parent";
     public const string IssueDelete = "issue.delete";
+    public const string IssueJump = "issue.jump";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string FormFieldNext = "form.field-next";
