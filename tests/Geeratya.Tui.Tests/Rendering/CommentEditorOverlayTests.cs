@@ -2,7 +2,9 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
 
@@ -128,6 +130,41 @@ public class CommentEditorOverlayTests
         Assert.Contains("saving…", frame.StatusLine);
         Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Error));
         Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Loading));
+    }
+
+    [Fact]
+    public void GivenAPopupWithRows_WhenRendering_ThenTheRowsShowUnderTheTextWithTheChosenRowMarkedAndTheFooterChanges()
+    {
+        var rows = new[]
+        {
+            new Suggestion("acc-1", "Olga Other", null, false),
+            new Suggestion("acc-2", "Oleg Two", null, true),
+        };
+        var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+
+        var frame = Frame(Editor("hi @ol") with { Suggest = popup }, 80, 24);
+        var plain = string.Join('\n', frame.PlainLines());
+
+        Assert.Contains("  Olga Other", plain);
+        Assert.Contains("> Oleg Two (inactive)", plain);
+        Assert.Contains("Down/Up choose   Tab/Enter accept   Esc close list", plain);
+        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Selected && span.Text.StartsWith("> Oleg")));
+    }
+
+    [Theory]
+    [InlineData(SuggestionStatus.Loading, "searching…")]
+    [InlineData(SuggestionStatus.Failed, "lookup failed: boom")]
+    [InlineData(SuggestionStatus.Loaded, "No match")]
+    public void GivenAPopupWithoutRows_WhenRendering_ThenTheLookupStateShows(SuggestionStatus status, string expected)
+    {
+        var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
+        var popup = new SuggestionState(0, source, "GCM", [], [], 0, status, 3, "boom");
+
+        var plain = string.Join('\n', Frame(Editor("#GCM") with { Suggest = popup }, 80, 24).PlainLines());
+
+        Assert.Contains(expected, plain);
+        Assert.Contains("Ctrl-s send", plain);
     }
 
     [Fact]

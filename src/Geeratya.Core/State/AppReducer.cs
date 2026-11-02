@@ -42,7 +42,7 @@ public sealed class AppReducer
     {
         return command switch
         {
-            KeyPressed pressed => ReduceKey(state, pressed.Key, pressed.At),
+            KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -51,7 +51,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Pasted(state, pasted.Text),
             ViewCommand view => ViewReducer.Reduce(state, view),
-            FormCommand form => FormReducer.Reduce(state, form),
+            FormCommand form => EditorSuggestions.Reply(state, form) ?? FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
@@ -77,7 +77,13 @@ public sealed class AppReducer
             return FormReducer.Paste(state, text);
         }
 
-        return Result(Paste(state, pasted));
+        return Followed(state, Result(Paste(state, pasted)));
+    }
+
+    // The editor's suggestion popup follows every key and paste (it opens, narrows or closes with the typing).
+    private static ReduceResult Followed(AppState before, ReduceResult result)
+    {
+        return before.Editor is null ? result : EditorSuggestions.Follow(before, result);
     }
 
     private static ReduceResult Result(AppState state)
@@ -122,6 +128,12 @@ public sealed class AppReducer
 
     private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)
     {
+        if (state.Editor?.Suggest is not null && state.Mode == InputMode.Insert
+            && EditorSuggestions.Key(state, _keymap.Resolve(state.Mode, state.PendingKeys, key).Action) is { } popup)
+        {
+            return popup;
+        }
+
         if (FormReducer.IsOpen(state))
         {
             return FormReducer.Key(state, key, at, _keymap);

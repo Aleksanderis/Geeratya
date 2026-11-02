@@ -2,6 +2,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -17,6 +18,11 @@ public static class CommentEditorOverlay
     private const string EditTitle = "Edit comment on";
     private const string SavingText = "Saving…";
     private const string PlaceholderText = " Type the comment here";
+    private const string PopupFooter = "Down/Up choose   Tab/Enter accept   Esc close list";
+    private const string SearchingText = "searching…";
+    private const string LookupFailedText = "lookup failed";
+    private const string NoMatchText = "No match";
+    private const int PopupRows = 5;
     private const int MinimumBoxWidth = 12;
     private const int MinimumHeight = 6;
     private const int MinimumTextRows = 4;
@@ -42,7 +48,7 @@ public static class CommentEditorOverlay
         }
 
         var inner = boxWidth - WallColumns;
-        var notes = Notes(editor, inner);
+        var notes = new List<StyledLine>([.. PopupLines(editor, inner), .. Notes(editor, inner)]);
         var footer = FooterText(keymap, editor);
         var rows = EditorLayout.Rows(editor.Buffer.Text, EditorLayout.Capacity(inner));
         var area = Math.Clamp(height - 2 - notes.Count - FooterHeight, 1, Math.Max(MinimumTextRows, rows.Count));
@@ -149,6 +155,51 @@ public static class CommentEditorOverlay
         return lines.Count <= MaxNoteRows ? lines : [.. lines.Take(MaxNoteRows)];
     }
 
+    /// <summary>The suggestion rows under the text (the chosen row marked with <c>&gt;</c>) and a line for the lookup.</summary>
+    private static List<StyledLine> PopupLines(CommentEditor editor, int inner)
+    {
+        var lines = new List<StyledLine>();
+
+        if (editor.Suggest is not { } popup)
+        {
+            return lines;
+        }
+
+        var width = Math.Max(1, inner - 2);
+        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
+        var first = Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
+
+        foreach (var index in Enumerable.Range(first, shown))
+        {
+            var highlighted = index == cursor;
+            var pointer = highlighted ? ">" : " ";
+            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
+
+            lines.Add(StyledLine.Of($"{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
+        }
+
+        if (PopupNotice(popup, inner) is { } notice)
+        {
+            lines.Add(notice);
+        }
+
+        return lines;
+    }
+
+    private static StyledLine? PopupNotice(SuggestionState popup, int inner)
+    {
+        return popup.Status switch
+        {
+            SuggestionStatus.Loading => StyledLine.Of(SearchingText, TextRole.Loading),
+            SuggestionStatus.Failed => StyledLine.Of(
+                TextWidth.Fit($"{LookupFailedText}: {popup.Error}", inner),
+                TextRole.Error),
+            SuggestionStatus.Loaded when popup.Items.Count == 0 => StyledLine.Of(NoMatchText, TextRole.Muted),
+            _ => null,
+        };
+    }
+
     private static void AddWrapped(List<StyledLine> lines, string? text, TextRole role, int inner)
     {
         if (string.IsNullOrEmpty(text))
@@ -169,6 +220,11 @@ public static class CommentEditorOverlay
         var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
         var newLine = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
         var verb = editor.IsEdit ? "save" : "send";
+
+        if (editor.Suggest is { Items.Count: > 0 })
+        {
+            return PopupFooter;
+        }
 
         return $"{save} {verb}   {newLine} new line   {cancel} cancel";
     }
