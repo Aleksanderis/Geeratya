@@ -135,10 +135,10 @@ public sealed partial class IssueCreateClient(JiraTransport transport)
         return WriteResults.Success(new CreatedIssue(reply.Value.Id ?? string.Empty, key));
     }
 
-    [GeneratedRegex("^[A-Z][A-Z0-9_]*$")]
+    [GeneratedRegex(@"^[A-Z][A-Z0-9_]*\z")]
     private static partial Regex ProjectKeyPattern();
 
-    [GeneratedRegex("^[0-9]+$")]
+    [GeneratedRegex(@"^[0-9]+\z")]
     private static partial Regex IssueTypeIdPattern();
 
     private static bool IsProjectKey(string? key) =>

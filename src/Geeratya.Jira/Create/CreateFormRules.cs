@@ -32,7 +32,9 @@ public static class CreateFormRules
 
         foreach (var field in fields)
         {
-            if (field.Required && !field.HasDefaultValue && field.Kind != CreateFieldKind.Fixed && !IsProvided(field, issue))
+            var isFilledByJira = field.HasDefaultValue || field.Kind == CreateFieldKind.Fixed;
+
+            if (field.Required && !isFilledByJira && !IsProvided(field, issue))
             {
                 missing.Add(field);
             }
@@ -51,5 +53,7 @@ public static class CreateFormRules
         };
 
     private static bool HasValue(CreateField field, NewIssue issue) =>
-        issue.Fields is not null && issue.Fields.ContainsKey(field.FieldId);
+        issue.Fields is not null
+        && issue.Fields.TryGetValue(field.FieldId, out var value)
+        && value.Values.Any(text => !string.IsNullOrWhiteSpace(text));
 }

@@ -399,7 +399,9 @@ public sealed class IssueCreateClientTests
         fixture.Handler.Serve(
             HttpMethod.Post,
             IssuePath,
-            FakeResponse.WithStatus(HttpStatusCode.BadRequest, FixtureFiles.Read("errors/create-400-bad-issuetype.json")));
+            FakeResponse.WithStatus(
+                HttpStatusCode.BadRequest,
+                FixtureFiles.Read("errors/create-400-bad-issuetype.json")));
 
         var result = await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
             new NewIssue("GCM", "99999", "x"),

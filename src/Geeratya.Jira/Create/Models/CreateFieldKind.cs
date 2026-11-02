@@ -12,7 +12,7 @@ public enum CreateFieldKind
     /// <summary>One value out of <see cref="CreateField.AllowedValues"/> (priority, select).</summary>
     SingleChoice,
 
-    /// <summary>Several values out of <see cref="CreateField.AllowedValues"/> (components, versions, checkboxes).</summary>
+    /// <summary>Several values out of <see cref="CreateField.AllowedValues"/> (components, versions).</summary>
     MultiChoice,
 
     /// <summary>Free-form labels.</summary>
