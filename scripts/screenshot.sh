@@ -52,6 +52,7 @@ all_scenarios=(
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
+  "form-suggest;120;36;dark;:jql project = GEN|:labels|geer;geeratya-seed"
   "assign;120;36;dark;:jql project = GEN| iatest;Test User 1"
   "status-picker;120;36;dark;:board GCM|j is;Change status of"
   "status-confirm;120;36;dark;:board GCM|j isDon|;Move GCM-"

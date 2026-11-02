@@ -79,7 +79,7 @@ public sealed class TransitionHandlerTests
             {"transitions":[{"id":"31","name":"Start","hasScreen":true,"isAvailable":true,"isGlobal":true,
             "to":{"id":"3","name":"In Progress","statusCategory":{"key":"indeterminate"}},
             "fields":{"customfield_1":{"required":true,"name":"Reviewer","fieldId":"customfield_1",
-            "schema":{"type":"user"},"hasDefaultValue":false}}}]}
+            "schema":{"type":"any"},"hasDefaultValue":false}}}]}
             """;
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, screen));
         var choice = new TransitionChoice("31", "Start", new("3", "In Progress", "indeterminate"), true, false);

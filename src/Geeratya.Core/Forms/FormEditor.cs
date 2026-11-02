@@ -1,4 +1,6 @@
 using System.Globalization;
+using Geeratya.Core.Suggestions;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
@@ -12,18 +14,24 @@ public static class FormEditor
     /// <summary>The longest text of a field.</summary>
     public const int MaxTextLength = 32767;
 
+    private const string NoneLabel = "(none)";
+
+    private static readonly char[] _lineBreaks = ['\r', '\n'];
+    private static readonly FieldOption _none = new(string.Empty, NoneLabel);
+
     /// <summary>
     /// The options a choice field shows: those whose label contains the filter, and for a single choice that is not
     /// required a first row that clears it (only while no filter is typed).
     /// </summary>
     public static IReadOnlyList<FieldOption> VisibleOptions(FormField field)
     {
-        // The options of a searchable field are the answer of the search for the typed text, so no second filter.
-        var matching = field.Searchable ? field.Options : Filtered(field);
+        var matching = field.Options
+            .Where(option => option.Label.Contains(field.Entry, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
 
         var offersNone = field is { Kind: FormFieldKind.Select, Required: false, Entry.Length: 0 };
 
-        return offersNone ? [new FieldOption(string.Empty, field.NoneLabel), .. matching] : matching;
+        return offersNone ? [_none, .. matching] : matching;
     }
 
     /// <summary>Typed or pasted text goes to the value, the filter or the label buffer, as the kind says.</summary>
@@ -44,6 +52,11 @@ public static class FormEditor
             return field with { Entry = Bounded($"{field.Entry}{text}"), Cursor = 0 };
         }
 
+        if (FormFieldKinds.IsPicked(field.Kind))
+        {
+            return field with { Entry = Bounded($"{field.Entry}{FirstLine(text)}"), Error = null };
+        }
+
         return field with { Value = FormValue.OfText(Bounded($"{field.Value.Text}{text}")), Error = null };
     }
 
@@ -62,14 +75,12 @@ public static class FormEditor
 
         if (FormFieldKinds.IsChoice(field.Kind))
         {
-            var shortened = field with { Entry = RemoveLast(field.Entry), Cursor = 0 };
+            return field with { Entry = RemoveLast(field.Entry), Cursor = 0 };
+        }
 
-            if (shortened is { Searchable: true, Entry.Length: 0 })
-            {
-                return WithOptions(shortened, shortened.Suggested);
-            }
-
-            return shortened;
+        if (FormFieldKinds.IsPicked(field.Kind))
+        {
+            return BackspacePicked(field);
         }
 
         return field with { Value = FormValue.OfText(RemoveLast(field.Value.Text)), Error = null };
@@ -102,20 +113,9 @@ public static class FormEditor
             FormFieldKind.Select => AcceptSelect(field),
             FormFieldKind.MultiSelect => new FormEdit(Toggle(field), false),
             FormFieldKind.Labels => AcceptLabels(field),
+            FormFieldKind.User or FormFieldKind.Parent => new FormEdit(field, field.Entry.Length == 0),
             _ => new FormEdit(field, true),
         };
-    }
-
-    /// <summary>
-    /// A searchable field with the options of a search reply. The chosen options stay listed, so the value never
-    /// loses its label when the reply does not name it.
-    /// </summary>
-    public static FormField WithOptions(FormField field, IReadOnlyList<FieldOption> options)
-    {
-        var kept = field.Options
-            .Where(option => field.Value.Chosen.Contains(option.Id) && options.All(other => other.Id != option.Id));
-
-        return field with { Options = [.. options, .. kept], Cursor = 0, Searching = false };
     }
 
     /// <summary>The field with a label that is typed and not yet added made part of its value.</summary>
@@ -124,28 +124,57 @@ public static class FormEditor
         return field.Kind == FormFieldKind.Labels ? CommitLabel(field) : field;
     }
 
-    private static List<FieldOption> Filtered(FormField field)
+    /// <summary>
+    /// Takes the suggestion the user accepted: a label is added to the labels, a person or issue becomes the value
+    /// (its name is kept as an option so the form can show it). The typing buffer is emptied.
+    /// </summary>
+    public static FormField Choose(FormField field, Suggestion suggestion)
     {
-        var matching = field.Options
-            .Where(option => option.Label.Contains(field.Entry, StringComparison.OrdinalIgnoreCase));
+        if (!field.IsEditable)
+        {
+            return field;
+        }
 
-        return [.. matching];
+        if (field.Kind == FormFieldKind.Labels)
+        {
+            return CommitLabel(field with { Entry = suggestion.Id });
+        }
+
+        if (!FormFieldKinds.IsPicked(field.Kind))
+        {
+            return field;
+        }
+
+        var option = new FieldOption(suggestion.Id, SuggestionText.Of(suggestion));
+
+        return field with
+        {
+            Value = FormValue.OfChosen([suggestion.Id]),
+            Options = [.. field.Options.Where(other => other.Id != suggestion.Id), option],
+            Entry = string.Empty,
+            Error = null,
+        };
     }
 
-    private static List<FieldOption> Retained(FormField field, FieldOption option)
+    private static FormField BackspacePicked(FormField field)
     {
-        var rest = field.Suggested.Where(other => other.Id != option.Id);
+        if (field.Entry.Length > 0)
+        {
+            return field with { Entry = RemoveLast(field.Entry), Error = null };
+        }
 
-        return option.Id.Length == 0 ? [.. rest] : [option, .. rest];
+        return field with { Value = FormValue.Empty, Error = null };
+    }
+
+    private static string FirstLine(string text)
+    {
+        var end = text.IndexOfAny(_lineBreaks);
+
+        return end < 0 ? text : text[..end];
     }
 
     private static FormEdit AcceptSelect(FormField field)
     {
-        if (field.Searching)
-        {
-            return new FormEdit(field, false);
-        }
-
         var visible = VisibleOptions(field);
 
         if (visible.Count == 0)
@@ -156,10 +185,7 @@ public static class FormEditor
         var option = visible[Math.Clamp(field.Cursor, 0, visible.Count - 1)];
         var chosen = option.Id.Length == 0 ? FormValue.Empty : FormValue.OfChosen([option.Id]);
 
-        var picked = field with { Value = chosen, Entry = string.Empty, Cursor = 0, Error = null };
-
-        // The search results go away with the typed text; the chosen option stays, as the suggestions around it.
-        return new FormEdit(field.Searchable ? picked with { Options = Retained(field, option) } : picked, true);
+        return new FormEdit(field with { Value = chosen, Entry = string.Empty, Cursor = 0, Error = null }, true);
     }
 
     private static FormField Toggle(FormField field)

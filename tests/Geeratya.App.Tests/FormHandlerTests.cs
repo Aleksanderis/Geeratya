@@ -101,54 +101,6 @@ public sealed class FormHandlerTests
     }
 
     [Fact]
-    public async Task GivenTypedText_WhenThePeopleAreSearched_ThenAssignableUsersAreAskedAndInactiveOnesLeftOut()
-    {
-        var users = RecordedFixtures.Read("suggestions/users-assignable-gcm.json");
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, users));
-
-        await fixture.Metadata.StartAsync(new SearchFieldOptionsEffect(_tab, 9, "A-1", "user"));
-
-        var found = Assert.IsType<FieldOptionsLoaded>(Assert.Single(fixture.Posted));
-        var request = fixture.Http.Requests.Single();
-        Assert.Equal(9, found.RequestId);
-        Assert.Contains(found.Options, option => option.Label == "Test User 1" && option.Id == "fake-account-1");
-        Assert.DoesNotContain(found.Options, option => option.Label == "Former user");
-        Assert.EndsWith("/rest/api/3/user/assignable/search", request.AbsolutePath);
-        Assert.Contains("issueKey=A-1", request.Query, StringComparison.Ordinal);
-        Assert.Contains("query=user", request.Query, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task GivenNoPermission_WhenThePeopleAreSearched_ThenTheFailureIsReportedForThatSearch()
-    {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Forbidden, "{}"));
-
-        await fixture.Metadata.StartAsync(new SearchFieldOptionsEffect(_tab, 9, "A-1", "user"));
-
-        var failed = Assert.IsType<FieldOptionsFailed>(Assert.Single(fixture.Posted));
-        Assert.Equal(9, failed.RequestId);
-        Assert.StartsWith("Could not search people", failed.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task GivenASearchStillWaiting_WhenTheNextKeystrokeSearches_ThenOnlyTheLastOneAsksJira()
-    {
-        var users = RecordedFixtures.Read("suggestions/users-assignable-gcm.json");
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, users));
-        fixture.Hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        var first = fixture.Metadata.StartAsync(new SearchFieldOptionsEffect(_tab, 1, "A-1", "u"));
-        var second = fixture.Metadata.StartAsync(new SearchFieldOptionsEffect(_tab, 2, "A-1", "us"));
-        fixture.Hold.SetResult();
-        await Task.WhenAll(first, second);
-
-        var found = Assert.IsType<FieldOptionsLoaded>(Assert.Single(fixture.Posted));
-        Assert.Equal(2, found.RequestId);
-        Assert.Single(fixture.Http.Requests);
-        Assert.Contains("query=us", fixture.Http.Requests.First().Query, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public async Task GivenAnAssignment_WhenExecuted_ThenOnePutNamesTheAccountAndUnassigningSendsNull()
     {
         using var fixture = await ConnectedAsync(h => h
@@ -209,7 +161,7 @@ public sealed class FormHandlerTests
             Connections = connections;
             Http = http;
             Runner = new NetworkRunner(connections, new ListCommandSink(Posted), CancellationToken.None);
-            Metadata = new FormMetadataHandler(Runner, TimeSpan.Zero, Gate);
+            Metadata = new FormMetadataHandler(Runner);
             Writes = new WriteHandler(Runner);
         }
 
@@ -224,17 +176,6 @@ public sealed class FormHandlerTests
         public WriteHandler Writes { get; }
 
         public List<Command> Posted { get; } = [];
-
-        /// <summary>When set, the debounce wait ends only when the source is completed.</summary>
-        public TaskCompletionSource? Hold { get; set; }
-
-        private async Task Gate(TimeSpan wait, CancellationToken token)
-        {
-            if (Hold is { } hold)
-            {
-                await hold.Task.WaitAsync(token);
-            }
-        }
 
         public void Dispose()
         {

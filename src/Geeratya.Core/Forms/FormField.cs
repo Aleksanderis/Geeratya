@@ -28,34 +28,16 @@ public sealed record FormField(
     int Cursor,
     string? Error)
 {
-    /// <summary>The label of the first row of a single choice that is not required, which clears the value.</summary>
-    public string NoneLabel { get; init; } = "(none)";
-
-    /// <summary>
-    /// The options come from a search of the typed text (people), not from the metadata: typing asks for a new list
-    /// and the list is not filtered again here.
-    /// </summary>
-    public bool Searchable { get; init; }
-
-    /// <summary>
-    /// The typed text of a searchable field has been sent to the search and the answer is not in yet, so the options
-    /// shown belong to older text and Enter must not choose from them.
-    /// </summary>
-    public bool Searching { get; init; }
-
-    /// <summary>What a searchable field lists while nothing is typed.</summary>
-    public IReadOnlyList<FieldOption> Suggested { get; init; } = [];
-
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
-    /// <summary>True when the user changed the field, counting a label that is typed and not yet added.</summary>
+    /// <summary>True when the user changed the field, counting a label that is typed and not yet added, or text typed into a person or parent field and not picked.</summary>
     public bool IsChanged
     {
         get
         {
-            var typedLabel = Kind == FormFieldKind.Labels && Entry.Length > 0;
+            var typed = Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent && Entry.Length > 0;
 
-            return IsEditable && (!Value.Equals(Initial) || typedLabel);
+            return IsEditable && (!Value.Equals(Initial) || typed);
         }
     }
 

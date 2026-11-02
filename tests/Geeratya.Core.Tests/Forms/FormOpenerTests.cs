@@ -3,11 +3,13 @@ using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
 using Geeratya.Jira.Writes.Models;
 
@@ -90,7 +92,7 @@ public class FormOpenerTests
     }
 
     [Fact]
-    public void GivenARow_WhenSpaceIAIsPressed_ThenThePickerOpensAtOnceWithMeAndNoRequest()
+    public void GivenARow_WhenSpaceIAIsPressed_ThenThePickerOpensAtOnceWithNoRequest()
     {
         var result = Keys(Tabbed(), "Space", "i", "a");
 
@@ -99,64 +101,34 @@ public class FormOpenerTests
         Assert.Empty(result.Effects);
         Assert.False(form.IsLoading);
         Assert.Equal("Assign A-1", form.Target.Title);
-        Assert.True(field.Searchable);
-        Assert.Equal(["acc-me"], field.Options.Select(option => option.Id));
+        Assert.Equal(FormFieldKind.User, field.Kind);
+        Assert.Empty(field.Options);
     }
 
     [Fact]
-    public void GivenTheCurrentAssignee_WhenThePickerOpens_ThenTheyAreListedAndChosen()
+    public void GivenTheCurrentAssignee_WhenThePickerOpens_ThenTheyAreNamedAndChosen()
     {
         var result = Keys(Tabbed(_eve), "Space", "i", "a");
 
         var field = result.State.Session.Tabs[0].Form!.Fields[0];
-        Assert.Equal(["acc-me", "acc-eve"], field.Options.Select(option => option.Id));
+        Assert.Equal(["acc-eve"], field.Options.Select(option => option.Id));
         Assert.Equal(["acc-eve"], field.Value.Chosen);
     }
 
     [Fact]
-    public void GivenThePicker_WhenTyping_ThenEachKeystrokeAsksForThePeopleAndTheLastAnswerWins()
+    public void GivenThePicker_WhenTyping_ThenEachKeystrokeAsksTheSuggestionLookupForAssignableUsers()
     {
         var opened = Keys(Tabbed(), "Space", "i", "a").State;
 
         var first = Press(opened, "e");
         var second = Press(first.State, "v");
 
-        var firstSearch = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(first.Effects));
-        var secondSearch = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(second.Effects));
+        var firstSearch = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(first.Effects));
+        var secondSearch = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(second.Effects));
         Assert.Equal("e", firstSearch.Query);
         Assert.Equal("ev", secondSearch.Query);
-        Assert.Equal("A-1", secondSearch.Key);
-
-        var late = Found(second.State, firstSearch, "x", "Stale");
-        var answered = Found(second.State, secondSearch, "acc-eve", "Eve");
-
-        Assert.Same(second.State, late.State);
-        Assert.Equal(["acc-eve"], answered.State.Session.Tabs[0].Form!.Fields[0].Options.Select(option => option.Id));
-    }
-
-    [Fact]
-    public void GivenTypedText_WhenItIsErasedCompletely_ThenNoSearchIsMadeAndTheSuggestionsReturn()
-    {
-        var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "e");
-        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
-        var found = Found(typed.State, search, "acc-eve", "Eve");
-
-        var erased = Press(found.State, "Backspace");
-
-        Assert.Empty(erased.Effects);
-        Assert.Equal(["acc-me"], erased.State.Session.Tabs[0].Form!.Fields[0].Options.Select(option => option.Id));
-    }
-
-    [Fact]
-    public void GivenAFailedSearch_WhenItArrives_ThenTheTopLineSaysSoAndTheOldAnswersStay()
-    {
-        var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "e");
-        var tab = typed.State.Session.Tabs[0];
-        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
-
-        var failed = _reducer.Reduce(typed.State, new FieldOptionsFailed(tab.Id, search.RequestId, "offline"));
-
-        Assert.Equal("offline", failed.State.Session.Tabs[0].Form!.TopError);
+        Assert.Equal(SuggestionKind.AssignableUsers, secondSearch.Source.Kind);
+        Assert.Equal("A-1", secondSearch.Source.IssueKey);
     }
 
     [Fact]
@@ -192,8 +164,8 @@ public class FormOpenerTests
     {
         var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
 
-        var chosen = Press(Press(opened, "Up").State, "Up").State;
-        var saved = Press(chosen, "Enter", _start);
+        var cleared = Press(opened, "Backspace").State;
+        var saved = Press(cleared, "Enter", _start);
 
         var request = Assert.IsType<AssignRequest>(WrittenBy(saved));
         Assert.Null(request.Assignee);
@@ -212,26 +184,13 @@ public class FormOpenerTests
     }
 
     [Fact]
-    public void GivenTextTypedBeforeTheAnswerArrives_WhenEnterIsPressed_ThenNothingIsChosenFromTheOldList()
-    {
-        var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");
-
-        var early = Press(typed.State, "Enter", _start);
-
-        Assert.Empty(early.Effects);
-        Assert.Empty(early.State.Session.Operations);
-        Assert.Null(early.State.Session.Tabs[0].Rows[0].Assignee);
-        Assert.True(early.State.Session.Tabs[0].Form!.Fields[0].Searching);
-    }
-
-    [Fact]
     public void GivenAnAnswerArrived_WhenEnterIsPressed_ThenThePersonIsChosen()
     {
         var typed = Press(Keys(Tabbed(), "Space", "i", "a").State, "a");
-        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
+        var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
         var found = Found(typed.State, search, "acc-eve", "Eve Example");
 
-        var saved = Press(found.State, "Enter", _start);
+        var saved = Press(Press(found.State, "Enter").State, "Enter", _start);
 
         Assert.Equal("acc-eve", Assert.IsType<AssignRequest>(WrittenBy(saved)).Assignee!.AccountId);
     }
@@ -312,9 +271,9 @@ public class FormOpenerTests
     {
         var opened = WithDetail(Tabbed(), null);
         var picked = Press(Keys(opened, "Space", "i", "a").State, "e");
-        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(picked.Effects));
+        var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(picked.Effects));
         var found = Found(picked.State, search, "acc-eve", "Eve Example");
-        var saved = Press(found.State, "Enter", _start);
+        var saved = Press(Press(found.State, "Enter").State, "Enter", _start);
         var id = saved.State.Session.Operations[0].Id;
 
         var conflict = new WriteError(WriteErrorKind.Conflict, 409, "x", [], []);
@@ -329,10 +288,10 @@ public class FormOpenerTests
     {
         var opened = Keys(Tabbed(), "Space", "i", "a").State;
         var typed = Press(opened, "e");
-        var search = Assert.IsType<SearchFieldOptionsEffect>(Assert.Single(typed.Effects));
+        var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
         var found = Found(typed.State, search, "acc-eve", "Eve Example");
 
-        return Press(found.State, "Enter", _start);
+        return Press(Press(found.State, "Enter").State, "Enter", _start);
     }
 
     private AppState LoadedForm(ReduceResult opened, FormField field)
@@ -354,11 +313,12 @@ public class FormOpenerTests
         return Assert.IsType<ExecuteWriteEffect>(Assert.Single(result.Effects)).Request;
     }
 
-    private ReduceResult Found(AppState state, SearchFieldOptionsEffect search, string id, string label)
+    private ReduceResult Found(AppState state, SearchSuggestionsEffect search, string id, string label)
     {
         var tab = state.Session.Tabs[0];
+        var items = new[] { new Suggestion(id, label, null, false) };
 
-        return _reducer.Reduce(state, new FieldOptionsLoaded(tab.Id, search.RequestId, [new FieldOption(id, label)]));
+        return _reducer.Reduce(state, new SuggestionsLoaded(tab.Id, search.RequestId, items));
     }
 
     private ReduceResult Keys(AppState state, params string[] keys)

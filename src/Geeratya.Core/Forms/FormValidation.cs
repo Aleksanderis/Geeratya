@@ -10,6 +10,7 @@ public static class FormValidation
     public const string NumberText = "Not a number";
     public const string DateText = "Use yyyy-MM-dd";
     public const string DateTimeText = "Use yyyy-MM-dd HH:mm";
+    public const string PickText = "Pick one from the list";
 
     /// <summary>The fields with <see cref="FormField.Error"/> set where wrong and cleared where fine.</summary>
     public static IReadOnlyList<FormField> Check(IReadOnlyList<FormField> fields)
@@ -24,6 +25,11 @@ public static class FormValidation
 
     private static string? ErrorOf(FormField field)
     {
+        if (FormFieldKinds.IsPicked(field.Kind) && field.Entry.Trim().Length > 0)
+        {
+            return PickText;
+        }
+
         var empty = FormFieldKinds.IsText(field.Kind) ? field.Value.Text.Trim().Length == 0 : field.Value.IsEmpty;
 
         if (empty)

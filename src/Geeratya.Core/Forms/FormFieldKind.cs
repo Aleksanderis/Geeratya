@@ -32,9 +32,9 @@ public enum FormFieldKind
     /// <summary>Free-form labels.</summary>
     Labels,
 
-    /// <summary>A user; searching for one arrives with the suggestion popup, so it is read-only for now.</summary>
+    /// <summary>One person, found by the suggestion popup.</summary>
     User,
 
-    /// <summary>The parent or epic; searching arrives with the suggestion popup, so it is read-only for now.</summary>
+    /// <summary>The parent or epic, found by the suggestion popup.</summary>
     Parent,
 }
