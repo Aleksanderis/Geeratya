@@ -1,0 +1,121 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "assignee": null,
+    "attachment": [
+      {
+        "author": {
+          "accountId": "fake-account-1",
+          "accountType": "atlassian",
+          "active": true,
+          "avatarUrls": {},
+          "displayName": "Test User 1",
+          "emailAddress": "user1@example.com",
+          "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+          "timeZone": "UTC"
+        },
+        "content": "https://example.atlassian.net/rest/api/3/attachment/content/10004",
+        "created": "2026-11-01T22:04:05.976+0200",
+        "filename": "pixel.png",
+        "id": "10004",
+        "mimeType": "image/png",
+        "self": "https://example.atlassian.net/rest/api/3/attachment/10004",
+        "size": 70,
+        "thumbnail": "https://example.atlassian.net/rest/api/3/attachment/thumbnail/10004"
+      }
+    ],
+    "created": "2026-11-01T22:04:05.214+0200",
+    "description": {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "Inline: ",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "attrs": {
+            "layout": "center"
+          },
+          "content": [
+            {
+              "attrs": {
+                "collection": "",
+                "height": 183,
+                "id": "fb8b9f65-6166-40f9-acd2-cf9e9e188137",
+                "type": "file",
+                "width": 200
+              },
+              "type": "media"
+            }
+          ],
+          "type": "mediaSingle"
+        }
+      ],
+      "type": "doc",
+      "version": 1
+    },
+    "issuelinks": [],
+    "issuetype": {
+      "avatarId": 10318,
+      "description": "",
+      "hierarchyLevel": 0,
+      "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+      "id": "10010",
+      "name": "Task",
+      "self": "https://example.atlassian.net/rest/api/3/issuetype/10010",
+      "subtask": false
+    },
+    "labels": [
+      "geeratya-test-media27"
+    ],
+    "priority": {
+      "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+      "id": "3",
+      "name": "Medium",
+      "self": "https://example.atlassian.net/rest/api/3/priority/3"
+    },
+    "project": {
+      "avatarUrls": {},
+      "id": "10003",
+      "key": "GCM",
+      "name": "GCM",
+      "projectTypeKey": "software",
+      "self": "https://example.atlassian.net/rest/api/3/project/10003",
+      "simplified": false
+    },
+    "reporter": {
+      "accountId": "fake-account-1",
+      "accountType": "atlassian",
+      "active": true,
+      "avatarUrls": {},
+      "displayName": "Test User 1",
+      "emailAddress": "user1@example.com",
+      "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+      "timeZone": "UTC"
+    },
+    "status": {
+      "description": "",
+      "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+      "id": "10003",
+      "name": "Backlog",
+      "self": "https://example.atlassian.net/rest/api/3/status/10003",
+      "statusCategory": {
+        "colorName": "blue-gray",
+        "id": 2,
+        "key": "new",
+        "name": "To Do",
+        "self": "https://example.atlassian.net/rest/api/3/statuscategory/2"
+      }
+    },
+    "subtasks": [],
+    "summary": "media probe 27",
+    "updated": "2026-11-01T22:04:06.903+0200"
+  },
+  "id": "10047",
+  "key": "GCM-24",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10047"
+}

@@ -14,7 +14,7 @@ internal static class IssueSummaryMapper
     /// <summary>Jira's own category key for a status without a category.</summary>
     public const string UndefinedCategoryKey = "undefined";
 
-    private const string UpdatedFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
+    private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
     public static IssuePage MapPage(SearchWire.Response response)
@@ -57,24 +57,24 @@ internal static class IssueSummaryMapper
             MapAssignee(fields?.Assignee, pool),
             fields?.Labels is { Count: > 0 } labels ? labels : [],
             MapParent(fields?.Parent),
-            ParseUpdated(fields?.Updated),
+            ParseTimestamp(fields?.Updated),
             Share(fields?.Project?.Key, pool) ?? string.Empty);
     }
 
-    private static IssueStatus MapStatus(SearchWire.Status? status, Dictionary<string, string> pool) =>
+    internal static IssueStatus MapStatus(SearchWire.Status? status, Dictionary<string, string> pool) =>
         new(
             status?.Id ?? string.Empty,
             Share(status?.Name, pool) ?? string.Empty,
             Share(status?.StatusCategory?.Key, pool) ?? UndefinedCategoryKey);
 
-    private static IssueTypeSummary MapType(SearchWire.IssueType? type, Dictionary<string, string> pool) =>
+    internal static IssueTypeSummary MapType(SearchWire.IssueType? type, Dictionary<string, string> pool) =>
         new(
             type?.Id ?? string.Empty,
             Share(type?.Name, pool) ?? string.Empty,
             type?.HierarchyLevel ?? 0,
             type?.Subtask ?? false);
 
-    private static IssueAssignee? MapAssignee(SearchWire.Assignee? assignee, Dictionary<string, string> pool)
+    internal static IssueAssignee? MapAssignee(SearchWire.Assignee? assignee, Dictionary<string, string> pool)
     {
         if (assignee is null)
         {
@@ -89,7 +89,7 @@ internal static class IssueSummaryMapper
     private static IssueParent? MapParent(SearchWire.Parent? parent) =>
         parent?.Key is { Length: > 0 } key ? new IssueParent(key, parent.Stub?.Summary) : null;
 
-    private static string? Share(string? value, Dictionary<string, string> pool)
+    internal static string? Share(string? value, Dictionary<string, string> pool)
     {
         if (value is null)
         {
@@ -107,7 +107,7 @@ internal static class IssueSummaryMapper
     }
 
     /// <summary>Jira writes the offset without a colon (<c>+0200</c>); an unreadable value gives null.</summary>
-    private static DateTimeOffset? ParseUpdated(string? text)
+    internal static DateTimeOffset? ParseTimestamp(string? text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -118,7 +118,7 @@ internal static class IssueSummaryMapper
 
         var isParsed = DateTimeOffset.TryParseExact(
             normalized,
-            UpdatedFormat,
+            TimestampFormat,
             CultureInfo.InvariantCulture,
             DateTimeStyles.None,
             out var parsed);
