@@ -102,7 +102,10 @@ public static class GeneratedIssues
     public static byte[] RemoteLinks(int number)
     {
         return number == LinkedIssueNumber
-            ? """[{"id":1,"self":"https://example.invalid/rest/api/3/issue/GEN-2/remotelink/1","object":{"url":"https://example.invalid/design","title":"Generated design notes"}}]"""u8.ToArray()
+            ? """
+                [{"id":1,"self":"https://example.invalid/rest/api/3/issue/GEN-2/remotelink/1",
+                "object":{"url":"https://example.invalid/design","title":"Generated design notes"}}]
+                """u8.ToArray()
             : "[]"u8.ToArray();
     }
 

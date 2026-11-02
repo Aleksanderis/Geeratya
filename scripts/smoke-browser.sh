@@ -83,6 +83,7 @@ wait_for "Cannot open the link: only https links can be opened"
 # Remote link of GEN-2: past the https gate, so the launcher itself fails (no xdg-open on the empty PATH).
 send ":jql project = GEN|j|"
 wait_for "Generated design notes"
+# `] ]` twice: header -> Description -> Remote links, the cursor lands on the link row.
 send "gg]]]]"
 send "|"
 wait_for "Cannot open the link: no browser opener found: copy the URL"
