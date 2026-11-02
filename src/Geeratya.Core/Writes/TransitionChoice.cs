@@ -16,7 +16,14 @@ namespace Geeratya.Core.Writes;
 /// The move is confirmed before it is sent: the target is in the done category, or the workflow shows a screen that
 /// has nothing to fill in. Jira does not expose post functions, so these are the only hints of a side effect.
 /// </param>
-public sealed record TransitionChoice(string Id, string Name, IssueStatus Target, bool NeedsForm, bool AsksFirst)
+/// <param name="Fields">The screen fields of the transition, read with the list so the form needs no second read.</param>
+public sealed record TransitionChoice(
+    string Id,
+    string Name,
+    IssueStatus Target,
+    bool NeedsForm,
+    bool AsksFirst,
+    IReadOnlyList<FieldMeta> Fields)
 {
     private const string DoneCategory = "done";
 
@@ -36,7 +43,8 @@ public sealed record TransitionChoice(string Id, string Name, IssueStatus Target
             transition.Name,
             transition.Target,
             needsForm,
-            !needsForm && (done || transition.HasScreen));
+            !needsForm && (done || transition.HasScreen),
+            transition.Fields);
     }
 
     // A screen of fields the form cannot edit (the system comment, say) has nothing to ask the user.

@@ -15,6 +15,10 @@ internal static class IssueWire
         string? Key,
         [property: JsonPropertyName(IssueFields.FieldsProperty)] Fields? Fields);
 
+    /// <summary>An issue read with a caller-chosen field list: every field stays raw JSON, by id.</summary>
+    internal sealed record FieldBag(
+        [property: JsonPropertyName(IssueFields.FieldsProperty)] Dictionary<string, JsonElement>? Values);
+
     internal sealed record Fields(
         string? Summary,
         SearchWire.Status? Status,

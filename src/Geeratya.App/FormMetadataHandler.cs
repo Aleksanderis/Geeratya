@@ -1,6 +1,7 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Links;
 using Geeratya.Core.State;
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.App;
@@ -56,7 +57,7 @@ public sealed class FormMetadataHandler
 
         if (effect.Target is TransitionFormTarget transition)
         {
-            return await LoadTransitionAsync(services, effect, transition, token);
+            return LoadTransition(effect, transition);
         }
 
         if (effect.Target is LinkFormTarget link)
@@ -76,7 +77,29 @@ public sealed class FormMetadataHandler
             return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, edit.Key));
         }
 
-        return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, edit));
+        var completed = await WithIssueValuesAsync(services, edit, result.Value, token);
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, completed));
+    }
+
+    // The metadata carries no values: the fields the opener does not know are read from the issue, with only those
+    // ids. If that read fails the form keeps the fields it already knows; nothing is written blind.
+    private static async Task<EditFormTarget> WithIssueValuesAsync(
+        JiraServices services,
+        EditFormTarget edit,
+        IReadOnlyList<EditField> fields,
+        CancellationToken token)
+    {
+        var missing = EditKnownValues.Missing(fields, edit);
+
+        if (missing.Count == 0)
+        {
+            return edit;
+        }
+
+        var values = await services.Issues.GetFieldValuesAsync(edit.Key, missing, token);
+
+        return values.IsSuccess ? EditKnownValues.Merge(edit, values.Value) : edit;
     }
 
     /// <summary>The issue types of the project while none is chosen, then the create fields of that type.</summary>
@@ -147,28 +170,11 @@ public sealed class FormMetadataHandler
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, loaded.Fields(), loaded, at);
     }
 
-    private static async Task<Command?> LoadTransitionAsync(
-        JiraServices services,
-        LoadFormMetadataEffect effect,
-        TransitionFormTarget target,
-        CancellationToken token)
+    // The picker already read the screen fields (one transitions read per move), so no request goes out here.
+    private static Command LoadTransition(LoadFormMetadataEffect effect, TransitionFormTarget target)
     {
-        var result = await services.Transitions.GetTransitionsAsync(target.Key, token);
-
-        if (!result.IsSuccess)
-        {
-            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, target.Key));
-        }
-
-        var transition = result.Value.FirstOrDefault(candidate => candidate.Id == target.Choice.Id);
-
-        if (transition is null)
-        {
-            return new FormMetadataFailed(effect.Tab, effect.RequestId, target.EmptyText);
-        }
-
         // A field Jira fills in when it is left out is not required of the user.
-        var metas = transition.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
+        var metas = target.Choice.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
 
         var fields = FormFieldMapper.FromTransition([.. metas]);
 

@@ -118,7 +118,8 @@ public static class FormFieldMapper
         return [.. editable, .. fields.Where(field => !field.IsEditable)];
     }
 
-    private static FormFieldKind EditKind(EditFieldKind kind)
+    /// <summary>How the form edits a field of the edit metadata.</summary>
+    public static FormFieldKind EditKind(EditFieldKind kind)
     {
         return kind switch
         {

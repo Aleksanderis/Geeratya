@@ -17,6 +17,7 @@ public sealed class FormHandlerTests
 {
     private static readonly Profile _profile = new("a", "https://a.atlassian.net", "me@a.test");
     private static readonly TabId _tab = new(1);
+    private static readonly string[] _knownIds = ["summary", "labels", "priority"];
 
     [Fact]
     public async Task GivenSyntheticEditMetadata_WhenTheFormLoads_ThenEveryFieldIsListedAndTheUnknownTypeIsReadOnly()
@@ -129,6 +130,80 @@ public sealed class FormHandlerTests
         await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [change])));
 
         Assert.Contains("\"priority\":{\"id\":\"2\"}", fixture.Http.Bodies.ElementAt(0).Replace(" ", string.Empty));
+    }
+
+    [Theory]
+    [InlineData("metadata/editmeta-gcm-1.json", true)]
+    [InlineData("metadata/editmeta-gtm-11.json", false)]
+    public async Task GivenEditableFieldsWithNoKnownValue_WhenTheFormLoads_ThenTheIssueIsReadForExactlyThoseIds(
+        string metadataFixture,
+        bool hasComponents)
+    {
+        const string issue = """
+            {"fields":{"duedate":"2026-12-24","components":[{"id":"10000","name":"Core"}],"fixVersions":[],
+            "customfield_10015":null,"customfield_10021":[{"id":"10019","value":"Impediment"}]}}
+            """;
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture))
+            .Reply(HttpStatusCode.OK, issue));
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, KnownTarget()));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var byId = loaded.Fields.ToDictionary(field => field.Id);
+        var read = fixture.Http.Requests.ElementAt(1);
+        var asked = Uri.UnescapeDataString(read.Query).TrimStart('?').Replace("fields=", string.Empty).Split(',');
+        Assert.EndsWith("/rest/api/3/issue/A-1", read.AbsolutePath);
+        Assert.DoesNotContain("summary", asked);
+        Assert.DoesNotContain("labels", asked);
+        Assert.DoesNotContain("priority", asked);
+        Assert.DoesNotContain("assignee", asked);
+        Assert.Contains("duedate", asked);
+        Assert.Equal("2026-12-24", byId["duedate"].Value.Text);
+        Assert.Equal(FormValue.Empty, byId["customfield_10015"].Value);
+        Assert.Equal(["10019"], byId["customfield_10021"].Value.Chosen);
+        Assert.Equal(["10019"], byId["customfield_10021"].Initial.Chosen);
+        Assert.Equal(hasComponents, byId.ContainsKey("components"));
+        Assert.Equal(hasComponents, asked.Contains("components"));
+        Assert.DoesNotContain("customfield_10000", asked);
+    }
+
+    [Fact]
+    public async Task GivenTheIssueReadFails_WhenTheFormLoads_ThenOnlyTheKnownFieldsAreOffered()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/editmeta-gcm-1.json"))
+            .Reply(HttpStatusCode.InternalServerError, "{}"));
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, KnownTarget()));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var editable = loaded.Fields.Where(field => field.IsEditable).Select(field => field.Id);
+        Assert.Equivalent(_knownIds, editable);
+    }
+
+    [Fact]
+    public async Task GivenOnlyThePriorityIsRequested_WhenTheFormLoads_ThenNoIssueReadGoesOut()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/editmeta-gcm-1.json")));
+        var target = KnownTarget() with { OnlyId = "priority" };
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, target));
+
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    private static EditFormTarget KnownTarget()
+    {
+        var known = new Dictionary<string, FormValue>
+        {
+            ["summary"] = FormValue.OfText("Title"),
+            ["labels"] = FormValue.OfChosen(["a"]),
+            ["priority"] = FormValue.OfText("High"),
+        };
+
+        return new EditFormTarget("A-1", known, true, null);
     }
 
     private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script)

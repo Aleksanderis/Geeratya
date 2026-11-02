@@ -70,7 +70,11 @@ public static class JqlBuilder
     public static string Project(string projectKey) => $"project = {Quote(projectKey)}";
 
     /// <summary>Issues the current account reported in the last ten minutes (the check of a lost create).</summary>
-    public static string RecentOwnIssues() => "reporter = currentUser() AND created >= -10m";
+    public static string RecentOwnIssues() => OwnIssuesSince(10);
+
+    /// <summary>Issues the current account reported in the last <paramref name="minutes"/> minutes (at least one).</summary>
+    public static string OwnIssuesSince(int minutes) =>
+        $"reporter = currentUser() AND created >= -{Math.Max(1, minutes).ToString(CultureInfo.InvariantCulture)}m";
 
     public static string IssueTypeEpic() => IssueType(EpicIssueType);
 
