@@ -17,6 +17,12 @@ public sealed class MouseDragTracker
     /// <summary>The drag a button event completes, null for every other event.</summary>
     public MouseDrag? Track(MouseFlags flags, int column, int row)
     {
+        if (flags.HasFlag(MouseFlags.LeftButtonPressed) && flags.HasFlag(MouseFlags.PositionReport))
+        {
+            // Terminal.Gui reports the motion of a held button as Pressed plus PositionReport: not a new press.
+            return null;
+        }
+
         if (flags.HasFlag(MouseFlags.LeftButtonPressed))
         {
             _start = new MouseCell(column, row);

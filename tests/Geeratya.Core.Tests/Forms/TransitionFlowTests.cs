@@ -264,6 +264,25 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenExactlyOneTransitionIntoTheColumn_WhenTheCardIsDragged_ThenItIsSentAtOnceLikeAltL()
+    {
+        var tabbed = _reducer.Reduce(Tabbed(ViewLayout.Columns), new ViewportChanged(25, 90)).State;
+        var dragged = _reducer.Reduce(tabbed, new CardDragged(5, 4, 45, 90));
+        var keyed = Keys(tabbed, "Alt-l");
+
+        var state = Loaded(dragged.State, [Transition("21", _progress), Transition("41", _done)]);
+
+        var write = Assert.IsType<ExecuteWriteEffect>(Assert.Single(state.Effects));
+        var request = Assert.IsType<TransitionRequest>(write.Request);
+        Assert.Equal("21", request.Choice.Id);
+        Assert.Null(state.State.Session.Tabs[0].Form);
+        Assert.Equal("In Progress", state.State.Session.Tabs[0].Rows[0].Status.Name);
+        var keyedWrite = Loaded(keyed.State, [Transition("21", _progress)]);
+        var keyedRequest = Assert.IsType<ExecuteWriteEffect>(Assert.Single(keyedWrite.Effects)).Request;
+        Assert.Equal(keyedRequest, write.Request);
+    }
+
+    [Fact]
     public void GivenABoardCursor_WhenACardMoves_ThenTheCursorIsKeptAndFollowsTheCardToItsColumn()
     {
         var tabbed = Keys(Tabbed(ViewLayout.Columns), "j").State;
