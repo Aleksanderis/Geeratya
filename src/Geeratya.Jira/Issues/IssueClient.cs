@@ -1,3 +1,4 @@
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
@@ -32,5 +33,44 @@ public sealed class IssueClient(JiraTransport transport)
         return result.IsSuccess
             ? JiraResults.Success(IssueDetailMapper.Map(result.Value))
             : JiraResults.Failure<IssueDetail>(result.Error);
+    }
+
+    /// <summary>
+    /// Reads the current values of <paramref name="fields"/> (the editable fields of the edit metadata), asking Jira
+    /// for exactly those ids. A field the reply leaves out is absent from the result; one Jira holds no value for is
+    /// present and empty.
+    /// </summary>
+    public async Task<JiraResult<IReadOnlyDictionary<string, IssueFieldValue>>> GetFieldValuesAsync(
+        string key,
+        IReadOnlyList<EditField> fields,
+        CancellationToken cancellationToken)
+    {
+        if (!IssueUrls.IsValidKey(key))
+        {
+            return JiraResults.Failure<IReadOnlyDictionary<string, IssueFieldValue>>(
+                new JiraError(JiraErrorKind.NotFound, null, "Not found or no access."));
+        }
+
+        var ids = string.Join(',', fields.Select(field => Uri.EscapeDataString(field.FieldId)));
+        var request = JiraRequest.Get($"{IssuePath}/{key}?fields={ids}");
+
+        var result = await transport.SendAsync(request, IssueJsonContext.Default.FieldBag, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyDictionary<string, IssueFieldValue>>(result.Error);
+        }
+
+        var values = new Dictionary<string, IssueFieldValue>(StringComparer.Ordinal);
+
+        foreach (var field in fields)
+        {
+            if (result.Value.Values is { } bag && bag.TryGetValue(field.FieldId, out var raw))
+            {
+                values[field.FieldId] = IssueFieldValueMapper.Map(field.Kind, raw);
+            }
+        }
+
+        return JiraResults.Success<IReadOnlyDictionary<string, IssueFieldValue>>(values);
     }
 }

@@ -1,4 +1,5 @@
 using System.Net;
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Tests.Fakes;
@@ -257,6 +258,67 @@ public sealed class IssueClientTests
 
         Assert.Equal(JiraErrorKind.NotFound, result.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenFieldsOfEveryReadableKind_WhenReadingValues_ThenEachIsMappedAndAbsentOnesAreLeftOut()
+    {
+        const string body = """
+            {"fields":{"duedate":"2026-12-24","customfield_1":5.5,"customfield_2":"2026-03-01T10:15:00.000+0000",
+            "customfield_3":{"id":"7","value":"Red"},"components":[{"id":"1"},{"id":"2"}],"fixVersions":[],
+            "customfield_4":null,"customfield_5":{"type":"doc","version":1,"content":[
+            {"type":"paragraph","content":[{"type":"text","text":"hi"}]}]}}}
+            """;
+        using var fixture = Serving("GCM-1", body, true);
+        var fields = new[]
+        {
+            Field("duedate", EditFieldKind.Date),
+            Field("customfield_1", EditFieldKind.Number),
+            Field("customfield_2", EditFieldKind.DateTime),
+            Field("customfield_3", EditFieldKind.Option),
+            Field("components", EditFieldKind.MultiOption),
+            Field("fixVersions", EditFieldKind.MultiOption),
+            Field("customfield_4", EditFieldKind.Date),
+            Field("customfield_5", EditFieldKind.RichText),
+            Field("customfield_6", EditFieldKind.Text),
+        };
+
+        var result = await new IssueClient(fixture.Transport)
+            .GetFieldValuesAsync("GCM-1", fields, CancellationToken.None);
+
+        var values = result.Value;
+        Assert.Equal("2026-12-24", values["duedate"].Text);
+        Assert.Equal("5.5", values["customfield_1"].Text);
+        Assert.Equal(new DateTimeOffset(2026, 3, 1, 10, 15, 0, TimeSpan.Zero), values["customfield_2"].Moment);
+        Assert.Equal(["7"], values["customfield_3"].Ids);
+        Assert.Equal(["1", "2"], values["components"].Ids);
+        Assert.Empty(values["fixVersions"].Ids);
+        Assert.Equal(string.Empty, values["customfield_4"].Text);
+        Assert.NotNull(values["customfield_5"].Document);
+        Assert.False(values.ContainsKey("customfield_6"));
+        var request = Assert.Single(fixture.Handler.Requests);
+        Assert.EndsWith(
+            "?fields=duedate,customfield_1,customfield_2,customfield_3,components,fixVersions,customfield_4,"
+            + "customfield_5,customfield_6",
+            request.PathAndQuery);
+    }
+
+    [Fact]
+    public async Task GivenMissingIssue_WhenReadingValues_ThenNotFoundSaysNoAccess()
+    {
+        using var fixture = new TransportFixture();
+        var reply = FakeResponse.WithStatus(HttpStatusCode.NotFound, FixtureFiles.Read("errors/issue-404.json"));
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/issue/GTM-999", reply);
+
+        var result = await new IssueClient(fixture.Transport)
+            .GetFieldValuesAsync("GTM-999", [Field("duedate", EditFieldKind.Date)], CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.NotFound, result.Error.Kind);
+    }
+
+    private static EditField Field(string id, EditFieldKind kind)
+    {
+        return new EditField(id, id, false, "t", string.Empty, ["set"], [], false, null, kind);
     }
 
     private static TransportFixture Serving(string key, string fixtureOrJson, bool isJson = false)

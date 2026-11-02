@@ -1,6 +1,7 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Links;
 using Geeratya.Core.State;
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.App;
@@ -76,7 +77,29 @@ public sealed class FormMetadataHandler
             return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, edit.Key));
         }
 
-        return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, edit));
+        var completed = await WithIssueValuesAsync(services, edit, result.Value, token);
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, completed));
+    }
+
+    // The metadata carries no values: the fields the opener does not know are read from the issue, with only those
+    // ids. If that read fails the form keeps the fields it already knows; nothing is written blind.
+    private static async Task<EditFormTarget> WithIssueValuesAsync(
+        JiraServices services,
+        EditFormTarget edit,
+        IReadOnlyList<EditField> fields,
+        CancellationToken token)
+    {
+        var missing = EditKnownValues.Missing(fields, edit);
+
+        if (missing.Count == 0)
+        {
+            return edit;
+        }
+
+        var values = await services.Issues.GetFieldValuesAsync(edit.Key, missing, token);
+
+        return values.IsSuccess ? EditKnownValues.Merge(edit, values.Value) : edit;
     }
 
     /// <summary>The issue types of the project while none is chosen, then the create fields of that type.</summary>
