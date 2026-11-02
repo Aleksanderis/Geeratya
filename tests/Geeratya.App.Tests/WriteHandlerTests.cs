@@ -139,6 +139,70 @@ public sealed class WriteHandlerTests
     }
 
     [Fact]
+    public async Task GivenGatedWrite_WhenWaitingForRunning_ThenItWaitsForTheWriteAndReportsSettled()
+    {
+        var gate = new TaskCompletionSource();
+        var never = new TaskCompletionSource();
+
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, "", gate.Task)
+            .Reply(HttpStatusCode.OK, Assigned));
+
+        var handler = new WriteHandler(fixture.Runner, delay: (_, token) => never.Task.WaitAsync(token));
+        var run = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+        var waiting = handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+
+        Assert.True(handler.HasRunning);
+        Assert.False(waiting.IsCompleted);
+
+        gate.SetResult();
+        await run;
+
+        Assert.True(await waiting);
+        Assert.False(handler.HasRunning);
+    }
+
+    [Fact]
+    public async Task GivenGatedWrite_WhenTheTimeoutPasses_ThenWaitingGivesUpWhileTheWriteStaysRunning()
+    {
+        var gate = new TaskCompletionSource();
+        var expire = new TaskCompletionSource();
+        var asked = TimeSpan.Zero;
+
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, "", gate.Task));
+
+        var handler = new WriteHandler(
+            fixture.Runner,
+            delay: (span, _) =>
+            {
+                asked = span;
+
+                return expire.Task;
+            });
+
+        _ = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
+        var waiting = handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+
+        Assert.False(waiting.IsCompleted);
+
+        expire.SetResult();
+
+        Assert.False(await waiting);
+        Assert.Equal(TimeSpan.FromSeconds(5), asked);
+        Assert.True(handler.HasRunning);
+
+        gate.SetResult();
+    }
+
+    [Fact]
+    public async Task GivenNothingRunning_WhenWaitingForRunning_ThenItReturnsAtOnce()
+    {
+        using var fixture = await ConnectedAsync(_ => { });
+
+        Assert.True(await fixture.Handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task GivenWriteInFlight_WhenTheTabScopeIsCancelled_ThenTheWriteStillFinishes()
     {
         var gate = new TaskCompletionSource();

@@ -31,6 +31,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private const string CorruptNotice =
         "profiles.json could not be read and was ignored; a copy was kept as profiles.json.corrupt.";
 
+    private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
+
     private readonly KeymapTable _keymap;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
@@ -46,6 +48,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly IssueDetailLoadHandler _detailLoads;
     private readonly SourceLoadHandler _sourceLoads;
     private readonly WriteHandler _writes;
+    private bool _quitting;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -121,6 +124,24 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return 0;
     }
 
+    /// <summary>Stops the application, after waiting up to five seconds for running writes to settle.</summary>
+    private async Task QuitAsync()
+    {
+        if (_quitting)
+        {
+            return;
+        }
+
+        _quitting = true;
+
+        if (_writes.HasRunning)
+        {
+            await _writes.WaitForRunningAsync(_quitWait, CancellationToken.None);
+        }
+
+        _application!.Invoke(_application.RequestStop);
+    }
+
     /// <summary>Thread-safe entry for background work: runs the reducer on the UI thread.</summary>
     public void Post(AppCommand command)
     {
@@ -191,7 +212,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             if (effect is QuitEffect)
             {
-                _application!.RequestStop();
+                _ = QuitAsync();
             }
             else if (effect is DropSiteCacheEffect drop)
             {
