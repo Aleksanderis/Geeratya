@@ -304,6 +304,27 @@ public sealed class AdfRoundTripTests
         Assert.Equal("***abcd***", AdfMarkdownWriter.ToText(document));
     }
 
+    [Theory]
+    [InlineData("a{0}z")]
+    [InlineData("{0}")]
+    [InlineData("**{0}**")]
+    public void GivenLoneSurrogateTypedIntoText_WhenChecked_ThenItDoesNotRoundTrip(string template)
+    {
+        // Built here: xUnit would replace a lone surrogate in InlineData with U+FFFD before the test runs.
+        foreach (var surrogate in new[] { '\ud83d', '\ude04' })
+        {
+            var text = template.Replace("{0}", surrogate.ToString(), StringComparison.Ordinal);
+
+            Assert.False(AdfRoundTrip.RoundTrips(AdfMarkdownParser.Parse(text)), template);
+        }
+    }
+
+    [Fact]
+    public void GivenSurrogatePairTypedIntoText_WhenChecked_ThenItRoundTrips()
+    {
+        Assert.True(AdfRoundTrip.RoundTrips(AdfMarkdownParser.Parse("a\U0001F604z")));
+    }
+
     [Fact]
     public void GivenEmojiNodeWithGlyph_WhenChecked_ThenItRoundTripsAsThePlainCharacter()
     {
