@@ -73,7 +73,7 @@ public static partial class FormReducer
 
     private static ReduceResult FocusedField(AppState state, TabState tab, FormState form, int index)
     {
-        if (index < 0 || index >= form.Fields.Count || index == form.Focus)
+        if (index < 0 || index >= form.Fields.Count || index == form.Focus || !form.Fields[index].IsEditable)
         {
             return Result(state);
         }

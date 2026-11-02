@@ -170,9 +170,9 @@ public static class FormOverlay
         {
             if (content.Tags[first + index] is { } tag)
             {
-                var region = new OverlayRegion(tag.Target, top + 1 + index, left + 1, Math.Max(1, boxWidth - 2), 1, tag.Index);
+                var width = Math.Max(1, boxWidth - 2);
 
-                regions.Add(region);
+                regions.Add(new OverlayRegion(tag.Target, top + 1 + index, left + 1, width, 1, tag.Index));
             }
         }
     }

@@ -39,7 +39,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | JumpRow | Click | `form.next` | O | Jump prompt: opens the clicked issue, same as `Enter` on it |
 | ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
 | ProfileRow | Right-click | `profile.remove` | O | Profile list: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
-| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked field, same as `Tab` until there |
+| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
@@ -83,7 +83,7 @@ Actions with no row of their own, each with the reason (a test checks this list 
 
 ## Checks and terminal selection
 
-The table test only checks that the table, the code and the keymap agree (every key action has a row or a reason); it does not prove that a row's path works, so a part that wires rows adds its own tests. Smoke check of part A (tmux, SGR sequences via `send-keys -l` against the real binary): a wheel event does nothing harmful on the start screen, a click on the status line opens the palette (status shows `COMMAND :`), a click on the tab row then closes it. With the mouse enabled the terminal no longer selects text by dragging: hold `Shift` (most terminals) to select and copy.
+The table test only checks that the table, the code and the keymap agree (every key action has a row or a reason); it does not prove that a row's path works, so a part that wires rows adds its own tests (part O: the drawn frame of each overlay at three sizes gives the row rectangles, and a click on a rectangle runs the real resolver and reducer). Smoke check of part A (tmux, SGR sequences via `send-keys -l` against the real binary): a wheel event does nothing harmful on the start screen, a click on the status line opens the palette (status shows `COMMAND :`), a click on the tab row then closes it. With the mouse enabled the terminal no longer selects text by dragging: hold `Shift` (most terminals) to select and copy.
 
 ## Writes
 

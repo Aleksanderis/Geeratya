@@ -70,15 +70,25 @@ public static class ProfileReducer
         return state with { ProfileList = new ProfileListState(selected) };
     }
 
-    /// <summary>Enter in the profile list: switches to the highlighted profile (the same switch as the palette).</summary>
+    /// <summary>Enter in the profile list: switches to the highlighted profile (as the palette command does).</summary>
     public static ReduceResult SwitchHighlighted(AppState state, int? row = null)
     {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
         return Highlighted(state, row) is { } profile ? Switch(Closed(state), profile.Name) : Plain(state);
     }
 
-    /// <summary>Ctrl-x in the profile list: asks to remove the highlighted profile (the same question as the palette).</summary>
+    /// <summary>Ctrl-x in the profile list: asks to remove the highlighted profile (as the palette command does).</summary>
     public static ReduceResult RemoveHighlighted(AppState state, int? row = null)
     {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
         return Highlighted(state, row) is { } profile ? AskRemove(Closed(state), profile.Name) : Plain(state);
     }
 

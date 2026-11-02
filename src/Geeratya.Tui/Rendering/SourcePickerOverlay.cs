@@ -133,16 +133,52 @@ public static class SourcePickerOverlay
 
         if (picker.Scope is not (PickerScope.Filters or PickerScope.Jql))
         {
-            AddGroup(lines, "Boards", BoardGroup(picker.Scope), choices, selected, width, ref selectedLine, lists, choiceOfLine);
+            AddGroup(
+                lines,
+                "Boards",
+                BoardGroup(picker.Scope),
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
         }
 
         if (picker.Scope is PickerScope.All or PickerScope.Filters)
         {
-            AddGroup(lines, "Filters", [SourceChoiceKind.Filter], choices, selected, width, ref selectedLine, lists, choiceOfLine);
+            AddGroup(
+                lines,
+                "Filters",
+                [SourceChoiceKind.Filter],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
         }
 
-        AddGroup(lines, "Recent", [SourceChoiceKind.Recent], choices, selected, width, ref selectedLine, lists, choiceOfLine);
-        AddGroup(lines, "Query", [SourceChoiceKind.Query], choices, selected, width, ref selectedLine, lists, choiceOfLine);
+        AddGroup(
+                lines,
+                "Recent",
+                [SourceChoiceKind.Recent],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
+        AddGroup(
+                lines,
+                "Query",
+                [SourceChoiceKind.Query],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
 
         if (lines.Count == 0)
         {

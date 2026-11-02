@@ -7,5 +7,6 @@ namespace Geeratya.Core.Mouse;
 /// <param name="Gesture">What the pointer did.</param>
 /// <param name="Action">The action id a key would produce; the same handler runs it.</param>
 /// <param name="Count">How many times the action repeats (a wheel notch moves 3 rows, like <c>3j</c>).</param>
-/// <param name="Part">The part that wires the row: A (input layer), B (view interaction), C (writes, menus), O (overlays: pickers, forms, popups, profile list).</param>
+/// <param name="Part">The part that wires the row: A (input layer), B (view interaction), C (writes, menus),
+/// O (overlays: pickers, forms, popups, profile list).</param>
 public sealed record MouseRow(MouseTarget Target, MouseGesture Gesture, string Action, int Count, char Part);

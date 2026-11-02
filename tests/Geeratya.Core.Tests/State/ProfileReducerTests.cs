@@ -282,6 +282,26 @@ public class ProfileReducerTests
     }
 
     [Fact]
+    public void GivenSavePending_WhenEnterOrCtrlXOrAClickInTheOpenList_ThenItIsRefusedAndNothingRuns()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State with { ProfileBusy = true };
+        var click = new OverlayRowClicked(MouseTarget.ProfileRow, 1, ActionIds.FormNext);
+        var clickRemove = new OverlayRowClicked(MouseTarget.ProfileRow, 1, ActionIds.ProfileRemove);
+
+        ReduceResult[] results =
+        [
+            Press(opened, "Enter"),
+            Press(opened, "Ctrl-x"),
+            _reducer.Reduce(opened, click),
+            _reducer.Reduce(opened, clickRemove),
+        ];
+
+        Assert.All(results, result => Assert.Empty(result.Effects));
+        Assert.All(results, result => Assert.Contains("Still saving", result.State.Message));
+        Assert.All(results, result => Assert.NotEqual(InputMode.Confirm, result.State.Mode));
+    }
+
+    [Fact]
     public void GivenTheOpenList_WhenAClickNamesARowThatIsGone_ThenItIsClampedToTheLastProfile()
     {
         var opened = Palette(WithProfiles(_work, _dev), "profile list").State;

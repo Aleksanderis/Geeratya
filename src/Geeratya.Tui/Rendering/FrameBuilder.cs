@@ -1,6 +1,6 @@
 using Geeratya.Core.Forms;
-using Geeratya.Core.Mouse;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -89,7 +89,9 @@ public static class FrameBuilder
 
         if (state.Editor is not null)
         {
-            body = Fit(CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
+            var composed = CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight, regions);
+
+            body = Fit(composed, width, bodyHeight);
         }
 
         if (FormReducer.OpenForm(state) is { } form)

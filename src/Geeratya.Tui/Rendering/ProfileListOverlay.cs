@@ -46,7 +46,7 @@ public static class ProfileListOverlay
         var footer = room >= FooterMinimumInner ? FooterHeight : 0;
         var inner = Math.Min(room, profiles.Count + footer);
         var area = Math.Max(0, inner - footer);
-        var first = area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, profiles.Count - area));
+        var first = FirstVisible(selected, profiles.Count, area);
         var box = BoxLines(state, selected, first, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
@@ -61,6 +61,11 @@ public static class ProfileListOverlay
         }
 
         return result;
+    }
+
+    private static int FirstVisible(int selected, int count, int area)
+    {
+        return area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, count - area));
     }
 
     private static List<StyledLine> BoxLines(
