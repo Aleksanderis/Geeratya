@@ -26,11 +26,11 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
 ┌─ Space i ──────────────────────────────────────┐                                                                      
 │ s         Change the status of the issue       │                                                                      
 │ d         Delete the issue (asks first; Jira c │                                                                      
+│ e         Edit fields of the issue (summary, l │                                                                      
+│ a         Assign the issue: search people, or  │                                                                      
+│ m         Assign the issue to me               │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space i                                                                                ? help  : command  q quit
