@@ -34,7 +34,7 @@ Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and t
 
 ## Confirm mode
 
-Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transitions, changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
+Destructive or hard-to-undo actions (delete, bulk edits, workflow-firing transitions (a single transition does not ask; see `architecture.md`, "Write pipeline", Confirm flow), changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
 
 ## Profiles
 

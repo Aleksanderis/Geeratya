@@ -4,18 +4,19 @@ Solution layout, layering, composition, threading and cross-platform rules. Code
 
 ## Projects
 
-`Geeratya.slnx` holds four source projects and one test project per source project. Shared settings live in `Directory.Build.props` (net10.0, nullable, warnings as errors, `EnforceCodeStyleInBuild`, trim and AOT analyzers), versions in `Directory.Packages.props` (central package management), the SDK pin in `global.json`, formatting in `.editorconfig`. The product version is `Version` in `Directory.Build.props`; `ApplicationInfo.Version` reads it from the assembly.
+`Geeratya.slnx` holds four source projects (a fifth, `Geeratya.App`, arrives in M2) and one test project per source project. Shared settings live in `Directory.Build.props` (net10.0, nullable, warnings as errors, `EnforceCodeStyleInBuild`, trim and AOT analyzers), versions in `Directory.Packages.props` (central package management), the SDK pin in `global.json`, formatting in `.editorconfig`. The product version is `Version` in `Directory.Build.props`; `ApplicationInfo.Version` reads it from the assembly.
 
 | Project | Role | References |
 |---|---|---|
 | `src/Geeratya.Jira` | Jira Cloud REST client: connection, transport, typed models and errors. Knows nothing of Core or the UI. | none |
 | `src/Geeratya.Core` | State layer: views, commands, reducer and effects, the cache. Pure, runs without a terminal. | Jira |
 | `src/Geeratya.Platform` | Operating-system abstraction: config/state/cache directories, console capabilities, environment lookup. | none |
-| `src/Geeratya.Tui` | The `geeratya` executable: composition root, Terminal.Gui rendering, input. The only project that touches the console. | Core, Jira, Platform |
+| `src/Geeratya.App` (planned, M2, #151) | UI-free effect handlers: the write handlers first; the existing handlers of "Loading" (`ViewLoadHandler`, `IssueDetailLoadHandler`, ...) stay in Tui until the issue that moves them, named in the M2 plan. Cannot reference Terminal.Gui. | Core, Jira |
+| `src/Geeratya.Tui` | The `geeratya` executable: composition root, Terminal.Gui rendering, input. The only project that touches the console. | Core, Jira, Platform, App (once it exists) |
 | `tools/FakeJira` | Local fake Jira server over the recorded fixtures (Native AOT compatible); tests in `tests/Geeratya.FakeJira.Tests`. See `docs/testing.md`. | none |
 | `tests/Geeratya.<Name>.Tests` | xUnit, one per source project, same folder layout as the code under test. | its source project |
 
-Layering is `Jira -> Core -> Tui`, with `Platform` beside them: Jira never references Core, Core never references Tui, and only Tui touches Terminal.Gui. Core takes platform facts (paths, capabilities) as plain values from the composition root rather than referencing Platform, so the state layer stays testable with literals.
+Layering is `Jira -> Core -> App -> Tui` (App from M2), with `Platform` beside them: Jira never references Core, Core never references Tui, and only Tui touches Terminal.Gui. Core takes platform facts (paths, capabilities) as plain values from the composition root rather than referencing Platform, so the state layer stays testable with literals.
 
 ## View model
 
@@ -159,7 +160,131 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 - A failed refresh never destroys rows: they stay, `IsStale` is set and the error is shown.
 - A failed next page is not a refresh failure: it does not count towards the backoff, blocks automatic refresh of that tab (which would replace the rows under the reader) and is retried by the refresh key. Pages that shift between requests can repeat an issue; an appended page drops keys that are already loaded.
 
+**Writes.** Automatic and activation refresh wait while a write runs, and a load keeps the optimistic row of a key under an operation: "Write pipeline".
+
 **Bounds.** Every cache and list has a size bound and an owner that drops it (`docs/performance.md`): 10 000 rows per tab, 50 000 across tabs, 32 cached views, 200 cached details, 20 MB of disk per profile. #91 measured them (`docs/performance.md`, "M1 measurements").
+
+## Write pipeline
+
+Design for M2 (#151); no code yet. Every M2 feature (transition, rank, edit, assign, create, comment, delete) is a write and goes through the parts below, so they are settled once. It follows the Loading rules (reducer pure, effects are data, replies matched by id) and adds what writes need: Jira has no undo, a started write cannot be cancelled, and a lost reply leaves the outcome unknown. Gitunia retrofitted most of this in its M7; here it comes first.
+
+**Where it lives.** State and reducer in `Geeratya.Core` (`Core/Writes`, `WriteReducer` routed from `AppReducer` like `ViewReducer`). The effect handlers go in the UI-free `Geeratya.App` project (roadmap, M2), not in `Geeratya.Tui`: a handler there cannot draw. `Geeratya.Jira` gets the write clients and returns typed `JiraResult<T>`, never touching the UI.
+
+### Running operations
+
+An operation is one user action that writes. Operations are recorded in `SiteSession.Operations` (site level), each stamped with the tab that started it, not in `TabState`. Reason: the target is an issue, and the same issue can be on screen in several tabs, so exclusion must see all of them; a tab close must not forget a write that is already on the wire. Everything else stays tab scoped.
+
+| Type | Meaning |
+|---|---|
+| `Operation(long Id, OperationKind Kind, TabId Origin, IReadOnlyList<string> Keys, OperationPhase Phase, IReadOnlyList<RowChange> Undo)` | `Id` is drawn from `AppState.Sequence` (never reused, survives a session swap). `Keys` are the issues written (the moved issue for a rank, not its reference issue; empty for create until the reply). `Undo` is what an optimistic update changed (below). |
+| `OperationKind` | `Transition`, `Rank`, `Assign`, `EditFields`, `AddComment`, `EditComment`, `DeleteComment`, `CreateIssue`, `DeleteIssue`, `Bulk`. |
+| `OperationPhase` | `Resolving` (a transition id or form metadata is being fetched, read only), `Sending` (the write is on the wire), `Verifying` (outcome unknown, the issue is being re-read). Removed from the list when finished; there is no `Done` phase. |
+| `WriteRequest` (closed record hierarchy) | What to write, with ids already resolved: `TransitionRequest(Key, TargetStatusId, Fields)`, `RankRequest(Key, ReferenceKey, Before)`, `AssignRequest(Key, AccountId?)`, `EditRequest(Key, FieldValues)`, `AddCommentRequest(Key, Adf)`, `CreateRequest(Fields)`, `DeleteRequest(Key, DeleteSubtasks)`, ... Pure data, so a test can build one. |
+| `WriteRequested(TabId, WriteRequest)` | Command from a key or a submitted form. The reducer applies the rules below and returns `ExecuteWriteEffect(OperationId, WriteRequest)` or only a status line. |
+| `OperationPhaseChanged`, `WriteSucceeded(OperationId, At, WriteResult)`, `WriteFailed(OperationId, At, WriteFailure)`, `WriteVerified(OperationId, At, VerifyOutcome)` | Replies, applied only while an operation with that `Id` exists (the request-id rule of "Views and tabs", with the operation id as the request id). `At` is injected like everywhere. |
+| `ExecuteWriteEffect`, `VerifyWriteEffect`, `InvalidateCacheEffect` | Effects, run by `WriteHandler` (App). The read of the written issues after a success is part of the handler and comes back inside `WriteSucceeded` as the server rows. |
+
+**Mutual exclusion.**
+
+- A write whose `Keys` intersect the keys of a running operation is refused: no state change except the status line, `GCM-3 is busy (moving to In Progress)`. It is not queued: a queued write was composed against a state that is about to change, and the user can repeat the key in a second.
+- Writes on disjoint issues run in parallel (the transport cap of 4 and the user lane order them). A create has no key and never conflicts, except that one form submits once.
+- Deleting an issue also locks its known sub-tasks (the parent's `subtasks` field, as far as it is loaded; best effort, a sub-task that is not loaded is not locked and Jira decides); a rank locks only the moved issue, because the reference issue is only read.
+- Reads never wait for writes: opening an issue, comments and loads continue, with the merge rule below.
+
+**Refresh while a write runs.** Automatic refresh and activation refresh of every tab wait while `Session.Operations` is not empty: `Tick` skips them (`NextRefreshAt` stays in the past, so the first tick after the last operation ends refreshes; this is one list-empty check per tick). A manual refresh (`<space>r`) is not dropped: it sets the tab's `RefreshQueued` and runs when the last operation ends, with the status line `Refresh after the write`. A load already in flight when a write starts is not cancelled; its reply is applied with one extra rule: for a key under an operation the tab keeps its current (possibly optimistic) row and takes every other row from the reply. So the card does not flicker back, and the finish of the write (below) brings the truth for that key. The rule must also hold after the operation ends: when an operation finishes, every in-flight load of a tab holding its keys is marked as started before the write (its request id is older than the finish; request ids come from one sequence), and its reply keeps the tab's row for those keys as well. Board loads walk many pages, so a reply can arrive well after the write. Detail reloads (open, `<space>r`) follow the same rule for the shown issue: a reply older than the finish of a write on its key is applied except for the fields the write changed; the success also marks the detail `IssueStale`, which reloads it.
+
+**Tab close.** Closing a tab cancels its loads (`CancelTabEffect`) but not its operations: a write that was sent cannot be undone, and cancelling the `HttpClient` call only hides the answer. The operation stays in `Session.Operations` with `Origin` pointing to a tab that no longer exists; on finish the reducer updates every tab that holds the keys and puts the result on the status line of the active tab. Writes run on a `NetworkRunner` scope of their own, keyed by the `OperationId` (drawn from `Sequence`, so it cannot collide with a `TabId`), cancelled only by `CancelAll()` of a profile switch or exit. Switching profile or quitting with operations running asks first (`ConfirmRequested`: `1 write is still running; its result will not be shown`), because those results are dropped by the generation check. Quit waits up to 5 s after the answer. The quit and profile-switch confirms use the existing string `ActionOnConfirm` (no new mechanism needed); `docs/ux.md` (quit keys) gets the extra prompt in the M2 issue that wires it.
+
+### Optimistic update and rollback
+
+| Update the row at once | Wait for the reply |
+|---|---|
+| Transition (card to another column), rank (card to the new position), assignee, priority, labels, summary and other fields that a row shows | Create (no key, no row), delete (Jira may refuse because of sub-tasks or permission, and a row that comes back is worse than a wait), add/edit/delete comment (the comment id and body come from Jira), description edits (ADF conversion; the row does not show it) |
+
+Optimistic means: on `WriteRequested` the reducer changes the held `IssueSummary` of that key in every tab that has it, records `RowChange(Key, Field, Before, After)` in `Operation.Undo`, and emits the effect. Rows are immutable records, so a patch builds a new row and a new array of references (O(rows) per tab, 80 KB of references at the 10 000-row cap; to be measured in the first implementing issue per `docs/performance.md`). Selection stays on the key; the cursor follows the card in the columns layout (`BoardCursor` is recomputed from the rows).
+
+Success: the optimistic row stays only until the truth arrives. The handler re-reads the written issues with one search (`key in (...)`, the row field list, user lane) and the reducer replaces rows by key in every tab from `WriteSucceeded`. This is the whole refresh for transition, assign and edit: one call, not a reload, so a list tab that has paged past the first page (which automatic refresh skips) is still correct. Rank, create and delete change membership or order, so they mark every tab holding the view `IsStale` and reload the origin tab (board tabs reload all pages as in "Cache and refresh"); the server order is the truth after a rank, never re-sorted locally (`docs/jira-layer.md`, "Ranking").
+
+Failure with a definite result (the request was not applied): the reducer undoes each `RowChange` only where the field still equals `After` (a newer patch from a reload wins and is left alone), removes the operation, and shows the error (below). Failure with an unknown outcome: no rollback yet, see "Lost reply".
+
+The stale-reply rules of "Loading" hold with the operation id in place of the request id: a reply for an operation that is gone (a profile switch dropped the session) matches nothing and is ignored; the host also drops replies of an older `SiteConnections.Generation`.
+
+### Write errors as typed results
+
+The Jira layer returns `JiraResult<T>` with the existing `JiraError(Kind, Status, Message)`. For field errors it gains `IReadOnlyDictionary<string, string> FieldErrors` (the `errors` object of a 400, `docs/jira-layer.md`, "Errors"; empty otherwise). A pure Core table, `WriteFailure.Of(JiraError, OperationKind)`, maps it once (like `LoadErrorText`) so the reducer builds the text and the result is testable without Jira. It switches on the HTTP status first and on `JiraErrorKind` second: the mapper has no kind for 409, 405, 413, 415, 422 or 423 (they arrive as `Unexpected` with the status) and no kind is added, the status stays the source. Any other 4xx is a definite `Refused(message)`; only `Unexpected` without a 4xx status is unknown. When a 400 carries both `errors` and `errorMessages`, the fields go to their fields and the messages to the form's top line. `Definite` says whether the request is known not to have been applied.
+
+| Jira result | `WriteFailure` | Definite | Behaviour |
+|---|---|---|---|
+| 400 with `errors` | `FieldRejected(fields)` | yes | Roll back; if a form is open it stays open with each message at its field (form state, below); a field the form does not show goes to the form's top line. Without a form (inline move) the first message goes to the status line. |
+| 400 with only `errorMessages` | `Refused(message)` | yes | Roll back; show Jira's text. Workflow validators and conditions that refuse a transition are expected here (text from the workflow); the dev workflows have none (#31), so this rests on Atlassian's docs and is unverified. |
+| 401 | `Unauthorized` | yes | Roll back; `Link = Rejected` as for loads; the user fixes the token. |
+| 403 | `NoPermission` | yes | Roll back; names the action and the issue: `No permission to transition GCM-3`, then Jira's own text (it names the permission, `docs/jira-layer.md`, "Errors"). |
+| 404 | `Gone` | yes | Roll back; `GCM-3 not found or no access` (Jira cannot tell them apart); the tab is marked stale and refreshed, so a deleted issue disappears. |
+| 409 | `Conflict` | yes | Roll back and reload the issue: `GCM-3 changed meanwhile`. Jira's issue API sends no ETag and edits are last write wins, so a 409 is not expected on plain edits; it is mapped in case agile calls send one (unverified). |
+| 429 | `RateLimited(wait)` | yes | Roll back and say `Try again in N s`. Not retried automatically: the transport retries only idempotent reads, and a retry the user did not choose is wrong while the banner already counts the wait down. |
+| `HostRefused` | `Offline` | yes (nothing was sent) | Roll back. |
+| `Timeout`, `Network`, 5xx, `InvalidResponse`, `Unexpected` | `OutcomeUnknown` | no | See "Lost reply". `Unexpected` is included because a client bug after sending must not claim "not done". |
+
+**Lost reply (unknown outcome).** The transport never retries a write (`JiraRequest.Write`), and neither does the app: a transition may be idempotent, a create or an added comment is not. The reducer sets `Phase = Verifying`, keeps the optimistic row, shows `GCM-3: not sure the move worked, checking`, and emits `VerifyWriteEffect`, which reads the issue (user lane, a read, so the usual retries apply) and compares with what was meant:
+
+- transition: status equals the target; edit/assign: the fields equal the request; delete: 404 means done; rank: reload the board and see whether the order has changed (best effort);
+- create: cannot be told exactly; the handler searches `reporter = currentUser() AND created >= -10m ORDER BY created DESC` for the same summary and project and offers what it finds; if nothing is found it says `May or may not have been created` and reloads the tab. It never creates again by itself;
+- comment add: re-read the comments for the same author and body;
+- applied: `WriteVerified(Applied)` finishes as a success; not applied: it finishes as a definite failure (rollback, `It was not applied`); the verification itself fails (still offline): the optimistic change is rolled back, the rows are marked stale and reloaded when the link is back, and the status line says the outcome is unknown. The truth always arrives through a reload; the app never guesses `done`.
+
+### Confirm flow
+
+The existing `ConfirmRequested(ConfirmRequest)` is reused with its behaviour unchanged (`y`, `n`, `Esc`; `Enter` never confirms, `docs/ux.md`). `ConfirmRequest` today carries an action id string; for writes it gains an optional `Command? OnConfirm`, which the reducer returns on `y` (the string action stays for the profile removal). The confirmed command is a `WriteRequested`, so mutual exclusion is checked again at that moment, not when the dialog opened.
+
+| Write | Confirms | Text names |
+|---|---|---|
+| Delete issue | always | the key and summary, and the number of sub-tasks that go with it (`deleteSubtasks`, `docs/jira-layer.md`, "Hierarchy") |
+| Delete comment | always | the issue key and the first words of the comment |
+| Bulk edit, bulk transition, assignee or sprint change for several issues | always | the count and the first three keys, the field and the new value |
+| Single transition, rank, assign, edit, comment add, create | never | Reversible by another write, or invisible to others until saved. Roadmap open question 6: Jira does not expose workflow post functions, so the app cannot tell which transitions have side effects; the default is no confirm for a single transition, with a confirm for target category `done` as the fallback. |
+
+The rule for the text: it says what changes (key, field, old to new, or the count), that Jira cannot undo it, and for several issues what happens on partial failure. A bulk operation is one `Operation` with all keys, run one issue at a time; the failure text says how many were done and lists the keys that were not: `3 of 5 changed; not changed: GCM-4, GCM-7`. Plural forms are handled in the text builder.
+
+### Where form state lives
+
+All form state is in the state layer, in `TabState.Form` (null when none; one form per tab, so a draft survives switching tabs and a form never belongs to the renderer). Forms: create, edit field(s), transition fields, comment editor.
+
+- `FormState(FormKind Kind, string? Key, FormMetadataLoad Metadata, IReadOnlyList<FormField> Fields, int Focus, IReadOnlyDictionary<string, string> Errors, long? OperationId)`. `FormField` holds the field id, the Jira schema type, `Required`, `AllowedValues`, the typed value and the edit buffer (text, caret) as plain data. Metadata (createmeta, editmeta, transition `fields`) is loaded when the form opens, by a request id like a load (`FormMetadataLoaded` / `FormMetadataFailed`), never at startup (`docs/jira-layer.md`, "Create and edit metadata").
+- Submit validates `Required` locally (error at the field, no request), then emits `WriteRequested`; `OperationId` is set so the form shows `Saving…` and ignores further submits. `WriteSucceeded` closes it; `FieldRejected` keeps it open with `Errors` set per field; any other definite failure keeps it open with the message on its top line so the text is not lost; `OutcomeUnknown` keeps it open until verified.
+- Text buffers are bounded: 32 767 characters per field (Jira's own text limit), so no form holds unbounded text; the editor is a pure `(buffer, key) -> buffer` function, testable without a terminal. The ADF conversion of a description or comment runs in the handler, not the reducer.
+- Closing a tab drops its form (a draft); a form with changes asks first (new behaviour, `y`/`n`/`Esc`). If its write is in flight, the result goes to the status line of the active tab. A form whose issue is deleted elsewhere shows `GCM-3 no longer exists` on submit (the write answers `Gone`).
+
+### Other tabs showing the same issue
+
+A write on GCM-3 in tab A changes tab B (a JQL list holding GCM-3), tab C (a hidden board holding it) and any issue detail of GCM-3 on any stack:
+
+1. At start (optimistic kinds): every tab's row for the key is patched, hidden tabs too (a reference swap; hidden tabs do no network). No two tabs disagree.
+2. At success: the row is replaced by key in every tab from the server rows. A list or filter tab whose JQL no longer matches the issue (status changed out of `status = "To Do"`) keeps the row until its next reload, marked stale; it is not removed locally, because the app does not evaluate JQL. All tabs holding the key get `IsStale`, cleared by their next reload; the active tab is reloaded at once only for rank, create and delete.
+3. Detail: a `DetailState` for the key in any tab's stack is marked `IssueStale` and reloaded when it is the shown one (immediately if its tab is active, on activation otherwise); comments are reloaded after a comment write.
+4. Cache: `InvalidateCacheEffect` drops `GetIssue(key)` and, as `docs/jira-layer.md` ("Cache keys") says, every view entry of the profile (the app cannot tell which cached first pages contain the issue). The disk files go with the next debounced write.
+5. Failure: the rollback runs over the same set of tabs.
+6. Writes made by others (Jira's web, a colleague) arrive only through the normal refresh; nothing here polls for them.
+
+### Big data and the row bound
+
+The 10 000 rows per tab and 50 000 across tabs stay. The lesson of Gitunia is to keep large things (diffs) out of state; rows here are small immutable summaries (about 500 bytes) shared by reference, and the pipeline adds nothing large: operations hold keys, a `RowChange` list and a request; forms hold bounded text; ADF documents of comments and descriptions stay in `DetailState` as today. Writes never need the whole row list: they find rows by key (O(n) per tab; if the first implementing issue measures it as a problem, `TabState` gains a key-to-index map built lazily).
+
+Scrum's backlog (M3) changes nothing for M2. A backlog is a board source walked to the end, so it counts against the same cap; a backlog above 10 000 issues is `Truncated` like any tab. If M3 measures real backlogs beyond that, the answer is loading the backlog per sprint section on demand, outside `TabState` in a host-owned store like `SiteCache`, not raising the cap. Roadmap open question 5 records this.
+
+### Worked example: move a card to another column
+
+Board tab A (GCM, Kanban) is active; tab B is a JQL list `project = GCM` with GCM-3 in it; tab C is a hidden board of the same project. GCM-3 is `To Do`; the user moves it to `In Progress`.
+
+1. The move-card key (bound in the M2 issue) -> `KeyPressed` -> the reducer resolves the target column's status (`In Progress`, from `BoardConfiguration`) -> `WriteRequested(A, TransitionRequest("GCM-3", statusId, no fields))`.
+2. `WriteReducer`: no operation holds `GCM-3`, so it draws `OperationId` 41 from `Sequence`, appends `Operation(41, Transition, A, [GCM-3], Resolving, Undo: [Status To Do -> In Progress])` and patches the row in tabs A, B and C. Returns `ExecuteWriteEffect(41, request)`. First paint: the card is already in the new column with a `…` marker, status line `Moving GCM-3 to In Progress`. A second move of GCM-3 now is refused (`GCM-3 is busy`). A `Tick` at this moment starts no refresh anywhere.
+3. `WriteHandler` (App, site scope) calls `GET /issue/GCM-3/transitions?expand=transitions.fields`, picks the transition whose `to.id` is the target (ids are per project, never stored; `docs/jira-layer.md`, "Transitions"), and finds `hasScreen: false` and no required fields. It posts `OperationPhaseChanged(41, Sending)` and then `POST .../transitions {"transition":{"id":"31"}}` on the user lane. If the transition needs a screen, or none leads to that status, the operation fails definite: rollback, then the transition-fields form opens, or the status line says `No transition from To Do to Done`.
+4. 204. The handler reads `key in (GCM-3)` (one call) and posts `WriteSucceeded(41, At, rows)`. The reducer replaces GCM-3 in A, B and C with the server row (status, and anything a post function changed, such as the assignee), removes operation 41, marks B and C `IsStale`, drops the `…` marker, emits `InvalidateCacheEffect(GCM-3)` and sets `Moved GCM-3 to In Progress`. If `Operations` is now empty and a refresh was queued, A reloads now; B and C refresh on their schedule (C on activation).
+5. Failure instead. (a) 403 -> `WriteFailed(41, NoPermission)` -> the card returns to `To Do` in A, B and C (each `RowChange` undone because the field still equals `In Progress`), status line `No permission to transition GCM-3: <Jira text>`. (b) Timeout after the POST -> `Verifying`, `VerifyWriteEffect` re-reads GCM-3: `In Progress` -> the success path; `To Do` -> rollback with `It was not applied`; the read also fails -> rollback, rows stale, `Not sure the move worked; reload to check`.
+6. If the user closed tab A during step 4, nothing is lost: operation 41 finishes, B and C are updated, the active tab shows the status line.
+
+### Tests
+
+Reducer tests drive `WriteRequested`, `WriteSucceeded`, `WriteFailed` and `WriteVerified` with no terminal: busy refusal, refresh deferral and the merge rule, rollback only where the field still equals `After`, tab close with a running write, profile switch with a running write, every row of the error table, the unknown-outcome paths. Handler tests run against the fake Jira (`docs/testing.md`) with recorded 204, 400 `errors`, 403, 404, 429 and a dropped connection after the request was read. The fake Jira does not write today (`docs/testing.md`): the first implementing issue adds write routes and a drop-after-read option to it, and the fixtures are recorded from the dev sandbox projects, not hand-written. Each write feature adds its fixtures for both project kinds.
 
 ## Cross-platform
 

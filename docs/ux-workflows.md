@@ -46,3 +46,15 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 ## 7. Switch profile with views open
 
 `:profile switch <name>` replaces the connection; every tab, stack and cache of the old profile is dropped (`ux.md` "Profiles"). The new profile starts with no tabs, and the check line runs again. A reply that arrives for the old profile is ignored.
+
+## 8. Write something (M2)
+
+Design in `architecture.md`, "Write pipeline". What the user sees:
+
+- A change that a row shows (move a card, rank, assignee, a field) appears at once with a `…` marker and a status line saying what is being done; it settles when Jira answers. On failure the row goes back and the status line says why and what was not done (no permission, not found, rate limited with the wait, Jira's own text for a refused transition).
+- Creating, deleting and commenting wait for the reply; the form shows `Saving…` and stays open on an error, with each field's message at the field.
+- A second write on an issue that is still being written is refused (`GCM-3 is busy`), not queued. Other issues are free. Refresh waits until the writes end; `<space>r` is remembered and runs after.
+- If the answer is lost (timeout, network), the app says it is checking, re-reads the issue and then shows the true state; it never repeats a write by itself.
+- Delete, bulk changes and assignee or sprint changes for several issues ask first (`y`/`n`/`Esc`): the text names what changes and says Jira cannot undo it.
+- The same issue in other tabs changes too; a list tab whose query no longer matches keeps the row, marked stale, until its next reload.
+- Closing a tab does not stop a write that was sent; quitting or switching profile with writes running asks first.

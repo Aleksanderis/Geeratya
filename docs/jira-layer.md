@@ -47,7 +47,7 @@ The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys wha
 
 - Views: `(ViewSourceKind, SourceValue)` inside the profile's folder. Source value is the JQL text, the filter id or the board id. The profile (site plus account) is the folder, so the same JQL on two sites never collides. A board key caches the board's configuration with its first page.
 - Issue details: the issue key inside the profile's folder. An entry is removed when the issue load answers 404 or 403 (the issue is gone or hidden).
-- Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile).
+- Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile; `InvalidateCacheEffect`, `docs/architecture.md`, "Write pipeline").
 - Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
 
 ## Writes (`src/Geeratya.Jira/Writes`, #155)
@@ -92,6 +92,16 @@ Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer b
 | `Forbidden`, `NotFound` | error "not found or no access" (the two cannot be told apart, see Errors) | backoff |
 | `BadRequest` | Jira's own message (JQL syntax); on a request that carried a page token, "page expired": reload from the first page | none for JQL errors; reload once for an expired token |
 | `ServerError`, `InvalidResponse`, `Unexpected` | error with Jira's or the client's own message (the refresh key retries, see "Refresh rules") | backoff |
+
+### Writes (M2 design, #151)
+
+State-layer rules are in `docs/architecture.md`, "Write pipeline"; what the Jira layer owes it:
+
+- Write clients return `JiraResult<T>` with the mapped `JiraError`; `JiraError` gains `FieldErrors` (the `errors` object of a 400, empty otherwise), so a form can show a message at its field. The body shapes in "Errors" apply; 401 has no JSON.
+- Never retried: every write is `JiraRequest.Write` (no retry on 429, 5xx, network or timeout), because a create or an added comment is not idempotent and a retry the user did not choose may repeat a side effect. The reads that verify a write (re-reading the issue, `key in (...)`) retry as usual.
+- Definite or not: `HostRefused` (nothing sent), 4xx and 429 are definite; `Timeout`, `Network`, 5xx and `InvalidResponse` are not. The state layer's table (`WriteFailure.Of`) uses this and the status, nothing else.
+- Cancelling the caller's token after a write was sent does not undo it; it only drops the reply, which the app treats as an unknown outcome.
+- After a write that changes an issue the handler reads the changed issues by key (one search, row fields), so the UI gets the server's truth including post-function changes; rank and create reload the view instead.
 
 ## Current user: `GET /rest/api/3/myself`
 
