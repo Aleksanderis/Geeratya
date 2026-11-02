@@ -74,6 +74,11 @@ public static class FrameBuilder
             body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
         }
 
+        if (state.Editor is not null)
+        {
+            body = Fit(CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+        }
+
         if (FormReducer.OpenForm(state) is { } form)
         {
             body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight), width, bodyHeight);
