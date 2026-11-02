@@ -66,7 +66,6 @@ public static class StatusBar
     [
         new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
         new(InputMode.Insert, ActionIds.FormSubmit, "save"),
-        new(InputMode.Insert, ActionIds.FormOpenBrowser, "browser"),
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 

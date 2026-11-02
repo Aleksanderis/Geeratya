@@ -21,4 +21,4 @@ A · 1 issue
                                                                                 
                                                                                 
                                                                                 
- INSERT Edit A-1    Tab/Shift-Tab field  Ctrl-s save  Ctrl-o browser  Esc cancel
+ INSERT Edit A-1                    Tab/Shift-Tab field  Ctrl-s save  Esc cancel
