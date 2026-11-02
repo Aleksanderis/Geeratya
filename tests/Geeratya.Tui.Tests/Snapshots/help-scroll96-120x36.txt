@@ -1,6 +1,10 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Home       Move the cursor to the start of the row                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
+  Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
@@ -21,16 +25,12 @@ Palette commands
       Manage Jira profiles                                                                                              
   :set hints|whichkey on|off                                                                                            
       Show or hide the status bar hints or the which-key popup (saved)                                                  
+  :keys reload                                                                                                          
+      Read keymap.json again and apply it                                                                               
   :help                                                                                                                 
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

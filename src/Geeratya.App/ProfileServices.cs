@@ -1,4 +1,5 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Platform;
@@ -13,8 +14,11 @@ namespace Geeratya.App;
 /// The profile file, token lookup and per-profile caches, wired once in the composition root and used by the shell.
 /// </summary>
 // ReSharper disable NotAccessedPositionalProperty.Global
-public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens,
+public sealed record ProfileServices(
+    ProfileStore Store,
+    TokenProvider Tokens,
     SiteCaches Caches,
+    UserKeymapStore? Keymap = null,
     SettingsStore? Settings = null)
 {
     /// <summary>
@@ -44,6 +48,7 @@ public sealed record ProfileServices(ProfileStore Store, TokenProvider Tokens,
             new ProfileStore(directories.ConfigDirectory),
             new TokenProvider(secretStore, environment),
             new SiteCaches(directories.CacheDirectory, permissions),
+            new UserKeymapStore(directories.ConfigDirectory),
             new SettingsStore(directories.ConfigDirectory));
     }
 }

@@ -51,6 +51,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Space m a` | Add a comment to the issue |
+| `Space m e` | Edit the comment under the cursor |
+| `Space m d` | Delete the comment under the cursor |
 | `Space i s` | Change the status of the issue |
 | `Alt-l` | Move the card to the next column |
 | `Alt-h` | Move the card to the previous column |
@@ -60,6 +63,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space k b` | Rank the issue to the bottom of the list or column |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space g` | Jump to an issue by key |
 
 ## Help mode
 
@@ -99,13 +103,19 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Backspace` | Delete the last character |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Cancel or close |
-| `Up` | Previous source in the picker |
-| `Ctrl-p` | Previous source in the picker |
-| `Down` | Next source in the picker |
-| `Ctrl-n` | Next source in the picker |
+| `Up` | Previous row in the picker |
+| `Ctrl-p` | Previous row in the picker |
+| `Down` | Next row in the picker |
+| `Ctrl-n` | Next row in the picker |
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Alt-Enter` | Save the form |
+| `Left` | Move the cursor left |
+| `Right` | Move the cursor right |
+| `Home` | Move the cursor to the start of the row |
+| `End` | Move the cursor to the end of the row |
+| `Delete` | Delete the character under the cursor |
 | `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands
@@ -121,5 +131,6 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:set hints|whichkey on|off` | Show or hide the status bar hints or the which-key popup (saved) |
+| `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

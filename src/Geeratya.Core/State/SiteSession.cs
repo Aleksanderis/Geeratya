@@ -36,6 +36,11 @@ public sealed record SiteSession(
     /// <summary>The delete whose sub-tasks are being counted before the confirm opens; null when none.</summary>
     public PendingDelete? PendingDelete { get; init; }
 
+    /// <summary>
+    /// Issue keys opened on this site, newest first, for the jump prompt's completion. Dropped with the session.
+    /// </summary>
+    public IReadOnlyList<string> RecentKeys { get; init; } = [];
+
     public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked(), SourceLists.Empty);
 
     /// <summary>A session with no tabs for <paramref name="profile"/>.</summary>

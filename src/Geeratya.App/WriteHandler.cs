@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
+using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search.Models;
@@ -165,6 +166,11 @@ public sealed class WriteHandler
     {
         try
         {
+            if (effect.Request is CommentRequest comment)
+            {
+                return await ExecuteCommentAsync(services, effect, comment, token);
+            }
+
             var result = await SendAsync(services, effect.Request, token);
 
             if (result.IsSuccess)
@@ -188,6 +194,27 @@ public sealed class WriteHandler
 
             return new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), error);
         }
+    }
+
+    /// <summary>
+    /// A comment write: no row is read afterwards (it changes none); the reply carries the stored comment instead.
+    /// </summary>
+    private async Task<Command> ExecuteCommentAsync(
+        JiraServices services,
+        ExecuteWriteEffect effect,
+        CommentRequest request,
+        CancellationToken token)
+    {
+        var reply = await CommentWriter.SendAsync(services, request, token);
+
+        if (reply.Error is not { } error)
+        {
+            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], reply.Comment);
+        }
+
+        return error.IsOutcomeUnknown
+            ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), error)
+            : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), error);
     }
 
     private static async Task<WriteResult<WriteAccepted>> SendAsync(
@@ -326,6 +353,13 @@ public sealed class WriteHandler
         VerifyWriteEffect effect,
         CancellationToken token)
     {
+        if (effect.Request is CommentRequest comment)
+        {
+            var check = await CommentWriter.VerifyAsync(services, comment, token);
+
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), check.Outcome, [], check.Comment);
+        }
+
         if (effect.Request is DeleteIssueRequest delete)
         {
             return await VerifyDeleteAsync(services, effect, delete, token);

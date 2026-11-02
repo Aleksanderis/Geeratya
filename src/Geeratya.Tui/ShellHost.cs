@@ -36,6 +36,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
+    private readonly string? _keymapNotice;
+    private readonly KeymapTable _defaultBindings;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
@@ -65,7 +67,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         ProfileServices profiles,
         GlyphSet glyphs = GlyphSet.Unicode)
     {
+        _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
+        _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
         _glyphs = glyphs;
         _profiles = profiles;
@@ -103,6 +107,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
+        _state = _state with { Message = JoinNotices(_state.Message, _keymapNotice) };
         _application = application;
         application.Init();
         application.Keyboard.KeyBindings.Clear();
@@ -216,6 +221,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
         var checks = new List<CheckConnectionEffect>();
+        KeymapReloaded? reloaded = null;
 
         foreach (var effect in result.Effects)
         {
@@ -270,6 +276,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 ActiveCache()?.PutIssue(writeIssue.Issue);
             }
+            else if (effect is ReloadKeymapEffect)
+            {
+                reloaded = ReloadKeymap();
+            }
             else if (effect is CheckConnectionEffect check)
             {
                 checks.Add(check);
@@ -288,11 +298,26 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         _ = ConnectAsync();
 
+        if (reloaded is not null)
+        {
+            Dispatch(reloaded);
+        }
+
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
             _ = _connectionChecks.StartAsync(check);
         }
+    }
+
+    /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>
+    private KeymapReloaded ReloadKeymap()
+    {
+        var notice = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
+
+        _screen?.RefreshHelp();
+
+        return new KeymapReloaded(notice ?? "Keymap reloaded");
     }
 
     /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>
@@ -368,6 +393,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             return AppSettings.Default;
         }
+    }
+
+    private static string? JoinNotices(string? first, string? second)
+    {
+        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
     }
 
     private AppState LoadProfiles()

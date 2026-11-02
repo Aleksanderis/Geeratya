@@ -11,9 +11,14 @@ public enum DetailTargetKind
 
     /// <summary>An attachment: opens the issue page in the browser; the file is never fetched or drawn.</summary>
     Attachment,
+
+    /// <summary>A comment: Enter does nothing; the comment keys (edit, delete) act on it.</summary>
+    Comment,
 }
 
 /// <summary>An openable document row.</summary>
 /// <param name="Kind">What the row opens.</param>
-/// <param name="Value">The issue key (issue and attachment rows) or the URL (remote link rows).</param>
+/// <param name="Value">
+/// The issue key (issue and attachment rows), the URL (remote link rows) or the comment id (comment rows).
+/// </param>
 public sealed record DetailTarget(DetailTargetKind Kind, string Value);

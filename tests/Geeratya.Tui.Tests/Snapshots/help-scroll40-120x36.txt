@@ -7,6 +7,9 @@ Help
   Space l    Switch between list and columns                                                                            
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
+  Space m a  Add a comment to the issue                                                                                 
+  Space m e  Edit the comment under the cursor                                                                          
+  Space m d  Delete the comment under the cursor                                                                        
   Space i s  Change the status of the issue                                                                             
   Alt-l      Move the card to the next column                                                                           
   Alt-h      Move the card to the previous column                                                                       
@@ -16,6 +19,7 @@ Help
   Space k b  Rank the issue to the bottom of the list or column                                                         
   Space k k  Pick up the issue, then drop it at the issue under the cursor                                              
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space g    Jump to an issue by key                                                                                    
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -29,8 +33,4 @@ Help mode
                                                                                                                         
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
-  Backspace  Delete the last character                                                                                  
-  Esc        Cancel or close                                                                                            
-  Ctrl-c     Quit                                                                                                       
-                                                                                                                        
  HELP                                                                                            j down  k up  Esc close
