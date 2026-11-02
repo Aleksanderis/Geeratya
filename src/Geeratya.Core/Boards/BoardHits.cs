@@ -1,4 +1,5 @@
 using Geeratya.Core.Lists;
+using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Boards;
 
@@ -21,7 +22,8 @@ public static class BoardHits
         int visibleRows,
         int width,
         int column,
-        int row)
+        int row,
+        bool moreLoads = false)
     {
         if (columns.Count == 0 || row < HeaderRow || column < 0 || column >= width)
         {
@@ -32,7 +34,7 @@ public static class BoardHits
 
         if (window.Count == 1 && window.Total > 1 && row == HeaderRow)
         {
-            return null;
+            return NeighbourAt(columns, cursor.Column, window.Width, column, moreLoads);
         }
 
         var chosen = ColumnAt(window, column);
@@ -53,6 +55,56 @@ public static class BoardHits
         }
 
         return new BoardHit(chosen, card);
+    }
+
+    // The header of a one-column window names the neighbours ("‹ Name n  Title  Name n ›"): a click on a name steps to
+    // that column. The cells follow the text the renderer draws (BoardHeaderText), after the "┌─" corner.
+    private static BoardHit? NeighbourAt(
+        IReadOnlyList<BoardColumnGroup> columns,
+        int selected,
+        int windowWidth,
+        int cell,
+        bool moreLoads)
+    {
+        var edge = windowWidth - 1;
+        var start = BoardHeaderText.CornerWidth;
+
+        if (selected > 0)
+        {
+            var end = start + DisplayWidth.Of(BoardHeaderText.LeftNeighbour(columns[selected - 1], moreLoads));
+
+            if (cell >= start && cell < Math.Min(end, edge))
+            {
+                return new BoardHit(selected - 1, null);
+            }
+
+            start = end;
+        }
+
+        start += DisplayWidth.Of(BoardHeaderText.Title(columns[selected], moreLoads));
+
+        if (selected < columns.Count - 1)
+        {
+            var end = start + DisplayWidth.Of(BoardHeaderText.RightNeighbour(columns[selected + 1], moreLoads));
+
+            if (cell >= start && cell < Math.Min(end, edge))
+            {
+                return new BoardHit(selected + 1, null);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The column under a body cell, whatever the row; null outside the drawn columns.</summary>
+    public static int? ColumnAtCell(IReadOnlyList<BoardColumnGroup> columns, BoardCursor cursor, int width, int column)
+    {
+        if (columns.Count == 0 || column < 0 || column >= width)
+        {
+            return null;
+        }
+
+        return ColumnAt(BoardWindows.For(columns.Count, cursor.Column, width), column);
     }
 
     private static int ColumnAt(BoardWindow window, int cell)

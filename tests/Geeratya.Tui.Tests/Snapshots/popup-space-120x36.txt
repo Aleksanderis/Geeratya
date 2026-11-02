@@ -20,7 +20,6 @@
                                               ? help   : command   q quit                                               
                                                                                                                         
                                                                                                                         
-                                                                                                                        
 ┌─ Space ────────────────────────────────────────┐                                                                      
 │ t         Open the source picker for a new tab │                                                                      
 │ c         Close the tab                        │                                                                      
@@ -28,6 +27,7 @@
 │ l         Switch between list and columns      │                                                                      
 │ o         Open the issue in the browser        │                                                                      
 │ p         Open the parent issue                │                                                                      
+│ a         Open the actions of the row under th │                                                                      
 │ m         +comment (3)                         │                                                                      
 │ i         +issue (9)                           │                                                                      
 │ k         +rank (3)                            │                                                                      

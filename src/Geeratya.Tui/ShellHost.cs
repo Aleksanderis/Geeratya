@@ -40,6 +40,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
+    private readonly MouseDragTracker _dragTracker = new();
     private readonly string? _keymapNotice;
     private readonly KeymapTable _defaultBindings;
     private readonly ColorSupport _colors;
@@ -212,7 +213,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
     /// <summary>A pointer event: hit test and mouse table decide; the reducer runs the action like a key.</summary>
     private void OnMouse(object? sender, Mouse mouse)
     {
-        if (!MouseFlagTranslator.TryTranslate(mouse.Flags, out var gesture))
+        var position = mouse.ScreenPosition;
+        var drag = _dragTracker.Track(mouse.Flags, position.X, position.Y);
+
+        if (drag is null && (_dragTracker.SwallowsClick(mouse.Flags)
+            || !MouseFlagTranslator.TryTranslate(mouse.Flags, out _)))
         {
             return;
         }
@@ -221,8 +226,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         var now = TimeProvider.System.GetUtcNow();
         var regions = _screen!.OverlayRegions;
         var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions);
-        var position = mouse.ScreenPosition;
-        var commands = MouseResolver.Resolve(context, position.X, position.Y, gesture, now);
+        var commands = ResolvePointer(context, drag, mouse.Flags, new MouseCell(position.X, position.Y), now);
 
         if (commands.Count == 0)
         {
@@ -235,6 +239,23 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             Dispatch(command);
         }
+    }
+
+    private static IReadOnlyList<AppCommand> ResolvePointer(
+        MouseContext context,
+        MouseDrag? drag,
+        MouseFlags flags,
+        MouseCell position,
+        DateTimeOffset now)
+    {
+        if (drag is { } dropped)
+        {
+            return MouseResolver.ResolveDrag(context, dropped.FromColumn, dropped.FromRow, dropped.ToColumn, dropped.ToRow);
+        }
+
+        return MouseFlagTranslator.TryTranslate(flags, out var gesture)
+            ? MouseResolver.Resolve(context, position.Column, position.Row, gesture, now)
+            : [];
     }
 
     /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>

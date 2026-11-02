@@ -6,6 +6,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
@@ -48,6 +49,7 @@ public sealed class AppReducer
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
+            CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
             ConfirmRequested requested => Result(state with
@@ -131,6 +133,7 @@ public sealed class AppReducer
             Jump = null,
             Editor = null,
             ProfileList = null,
+            ContextMenu = null,
         };
     }
 
@@ -138,7 +141,7 @@ public sealed class AppReducer
     /// A click on an overlay row: the row is chosen, then the key's handler runs (Enter takes it, Tab focuses a field,
     /// Ctrl-x removes a profile), so a click and a key end in the same state.
     /// </summary>
-    private static ReduceResult ReduceOverlayRow(AppState state, OverlayRowClicked clicked)
+    private ReduceResult ReduceOverlayRow(AppState state, OverlayRowClicked clicked)
     {
         var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
 
@@ -152,6 +155,8 @@ public sealed class AppReducer
                 => ProfileReducer.RemoveHighlighted(cleared, clicked.Index),
             MouseTarget.ProfileRow => ProfileReducer.SwitchHighlighted(cleared, clicked.Index),
             MouseTarget.FormField or MouseTarget.FormChoice => FormReducer.Clicked(cleared, clicked),
+            MouseTarget.ContextMenu when cleared.ContextMenu is { } menu && clicked.Index < menu.Items.Count
+                => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
             MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),
             _ => Result(state),
         };
@@ -362,6 +367,17 @@ public sealed class AppReducer
 
     private static AppState TypeInInsert(AppState state, string text)
     {
+        if (state.ContextMenu is { } menu)
+        {
+            // The menu has no text field; j and k move like in the lists.
+            return text switch
+            {
+                "j" => state with { ContextMenu = ContextMenus.Move(menu, 1) },
+                "k" => state with { ContextMenu = ContextMenus.Move(menu, -1) },
+                _ => state,
+            };
+        }
+
         if (state.Editor is not null)
         {
             return CommentEditing.Type(state, text);
@@ -383,6 +399,7 @@ public sealed class AppReducer
             ActionIds.HelpToggle => Result(ToggleHelp(state)),
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
+            ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state, at),
             ActionIds.Cancel => state.Editor is null ? Result(ToNormal(RankActions.DropPickup(state))) : CommentEditing.Cancel(state),
@@ -393,7 +410,7 @@ public sealed class AppReducer
             ActionIds.RankTo => InNormal(state, () => RankActions.PickUpOrDrop(state, DropKeys(), at)),
             ActionIds.ConfirmNo => DeclineConfirm(state),
             ActionIds.ConfirmYes => Confirmed(state, at),
-            ActionIds.FormNext => Accept(state),
+            ActionIds.FormNext => Accept(state, at),
             ActionIds.FormBackspace => Result(Erase(state)),
             ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
@@ -439,6 +456,7 @@ public sealed class AppReducer
             ActionIds.IssueCreateSubtask => InNormal(
                 state,
                 () => FormReducer.Reduce(state, new OpenCreateFormRequested(true))),
+            ActionIds.IssueUnlink => InNormal(state, () => LinkReducer.Unlink(state, at)),
             ActionIds.IssueLink => InNormal(state, () => FormReducer.Reduce(state, new OpenLinkFormRequested())),
             ActionIds.IssueEdit => InNormal(state, () => FormOpener.Edit(state)),
             ActionIds.IssueAssign => InNormal(state, () => FormOpener.Assign(state)),
@@ -464,7 +482,7 @@ public sealed class AppReducer
     }
 
     /// <summary>Enter in Insert mode: a new line in the editor, else accepts the form field or picker row.</summary>
-    private static ReduceResult Accept(AppState state)
+    private ReduceResult Accept(AppState state, DateTimeOffset at)
     {
         if (state.Editor is not null)
         {
@@ -474,6 +492,11 @@ public sealed class AppReducer
         if (state.Jump is not null)
         {
             return JumpReducer.Accept(state);
+        }
+
+        if (state.ContextMenu is { } menu)
+        {
+            return RunMenuItem(state, menu.Items[Math.Clamp(menu.Selected, 0, menu.Items.Count - 1)], at);
         }
 
         if (state.ProfileList is not null)
@@ -490,6 +513,11 @@ public sealed class AppReducer
         if (state.Jump is not null)
         {
             return JumpReducer.Move(state, direction);
+        }
+
+        if (state.ContextMenu is { } menu)
+        {
+            return state with { ContextMenu = ContextMenus.Move(menu, direction) };
         }
 
         if (state.ProfileList is not null)
@@ -598,6 +626,23 @@ public sealed class AppReducer
         }
 
         return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, KeymapDocument.RenderHelpLines(_keymap).Count - 1)) };
+    }
+
+    /// <summary>Opens the right-click menu for the cursor; says so when there is no issue under it.</summary>
+    private static ReduceResult OpenContextMenu(AppState state)
+    {
+        if (ContextMenus.For(state) is not { } menu)
+        {
+            return Result(state with { Message = "No issue under the pointer." });
+        }
+
+        return Result(ToNormal(state) with { Mode = InputMode.Insert, ContextMenu = menu });
+    }
+
+    // Closes the menu, then runs the item like its key: the same handler, so delete and unlink still ask first.
+    private ReduceResult RunMenuItem(AppState state, ContextMenuItem item, DateTimeOffset at)
+    {
+        return ReduceRequested(ToNormal(state), new ActionRequested(item.Action, 1, at));
     }
 
     private static AppState Backspace(AppState state)

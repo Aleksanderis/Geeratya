@@ -30,8 +30,8 @@ public static class DefaultMouseMap
         new(MouseTarget.EditorChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.Lists, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
         new(MouseTarget.Detail, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
-        new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
-        new(MouseTarget.Detail, MouseGesture.RightClick, ActionIds.PaletteOpen, 1, 'B'),
+        new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.ContextMenuOpen, 1, 'M'),
+        new(MouseTarget.Detail, MouseGesture.RightClick, ActionIds.ContextMenuOpen, 1, 'M'),
         new(MouseTarget.Tabs, MouseGesture.Click, ActionIds.TabNext, 1, 'B'),
         new(MouseTarget.NewTabButton, MouseGesture.Click, ActionIds.TabNew, 1, 'B'),
         new(MouseTarget.Banner, MouseGesture.Click, ActionIds.ViewRefresh, 1, 'B'),
@@ -40,9 +40,9 @@ public static class DefaultMouseMap
         new(MouseTarget.NewIssueButton, MouseGesture.Click, ActionIds.IssueCreate, 1, 'C'),
         new(MouseTarget.CommentsAdd, MouseGesture.Click, ActionIds.CommentAdd, 1, 'C'),
         new(MouseTarget.Comment, MouseGesture.Click, ActionIds.CommentEdit, 1, 'C'),
-        new(MouseTarget.Lists, MouseGesture.Drag, ActionIds.IssueTransitionNext, 1, 'C'),
+        new(MouseTarget.Lists, MouseGesture.Drag, ActionIds.IssueTransitionNext, 1, 'M'),
         new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.RankTo, 1, 'C'),
-        ContextMenuRow(ActionIds.ViewLayoutToggle),
+        ContextMenuRow(ActionIds.ViewLayoutToggle, 'C'),
         ContextMenuRow(ActionIds.IssueOpenInBrowser),
         ContextMenuRow(ActionIds.IssueOpenParent),
         ContextMenuRow(ActionIds.IssueEdit),
@@ -52,16 +52,16 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.IssueCreateSubtask),
         ContextMenuRow(ActionIds.IssueLink),
         ContextMenuRow(ActionIds.IssueUnlink),
-        ContextMenuRow(ActionIds.IssueJump),
+        ContextMenuRow(ActionIds.IssueJump, 'C'),
         ContextMenuRow(ActionIds.RankUp),
         ContextMenuRow(ActionIds.RankDown),
         ContextMenuRow(ActionIds.RankTop),
         ContextMenuRow(ActionIds.RankBottom),
         ContextMenuRow(ActionIds.CommentDelete),
-        ContextMenuRow(ActionIds.TabClose),
-        ContextMenuRow(ActionIds.TabPrevious),
-        ContextMenuRow(ActionIds.HelpToggle),
-        ContextMenuRow(ActionIds.Quit),
+        ContextMenuRow(ActionIds.TabClose, 'C'),
+        ContextMenuRow(ActionIds.TabPrevious, 'C'),
+        ContextMenuRow(ActionIds.HelpToggle, 'C'),
+        ContextMenuRow(ActionIds.Quit, 'C'),
     ];
 
     /// <summary>
@@ -83,9 +83,9 @@ public static class DefaultMouseMap
         return null;
     }
 
-    private static MouseRow ContextMenuRow(string action)
+    private static MouseRow ContextMenuRow(string action, char part = 'M')
     {
-        return new MouseRow(MouseTarget.ContextMenu, MouseGesture.Click, action, 1, 'C');
+        return new MouseRow(MouseTarget.ContextMenu, MouseGesture.Click, action, 1, part);
     }
 
     private static ReadOnlyDictionary<string, string> BuildExclusions()

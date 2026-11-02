@@ -33,3 +33,16 @@ public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffse
 /// click landed on a row, card or line, so a click on empty space never acts on the old selection.
 /// </param>
 public sealed record PointerPlaced(int Column, int Row, int Width, ActionRequested? Then = null) : Command;
+
+/// <summary>
+/// A card dragged from one cell to another on the columns layout (press, move, release). It is the key
+/// <c>issue.transition-next</c> or <c>issue.transition-previous</c> for the card under the first cell, so the same
+/// rules apply (a single matching transition is sent, otherwise the picker or its form opens); only a drop on the
+/// neighbouring column acts, anything else does nothing and says so.
+/// </summary>
+/// <param name="FromColumn">The screen column where the button went down.</param>
+/// <param name="FromRow">The body row where the button went down.</param>
+/// <param name="ToColumn">The screen column where it was released.</param>
+/// <param name="Width">The screen width the body was drawn for.</param>
+public sealed record CardDragged(int FromColumn, int FromRow, int ToColumn, int Width)
+    : Command;

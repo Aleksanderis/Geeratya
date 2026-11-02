@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i C  Create a sub-task of the selected issue                                                                    
   Space i l  Link the issue to another issue                                                                            
   Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
   Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
@@ -32,5 +33,4 @@ Confirm mode
 Insert mode                                                                                                             
   Enter      Accept the field and go to the next                                                                        
   Backspace  Delete the last character                                                                                  
-  Esc        Cancel or close                                                                                            
  HELP                                                                                            j down  k up  Esc close

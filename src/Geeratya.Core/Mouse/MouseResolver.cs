@@ -1,3 +1,4 @@
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -7,7 +8,7 @@ namespace Geeratya.Core.Mouse;
 public static class MouseResolver
 {
     /// <summary>The parts of the mouse table that are wired today; rows of later parts have no effect yet.</summary>
-    public const string WiredParts = "ABO";
+    public const string WiredParts = "ABOM";
 
     private static readonly IReadOnlyList<Command> _none = [];
 
@@ -62,10 +63,42 @@ public static class MouseResolver
         return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
     }
 
+    /// <summary>
+    /// A drag from one cell to another: on the columns layout a card dropped on another column. Anything that did not
+    /// start on the body, did not move, or happens while an overlay is open does nothing; the reducer decides whether
+    /// the drop is a transition (the same rules as the key).
+    /// </summary>
+    public static IReadOnlyList<Command> ResolveDrag(
+        MouseContext context,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow)
+    {
+        if (context.OverlayOpen || (fromColumn == toColumn && fromRow == toRow)
+            || MouseHitTester.Locate(context, fromColumn, fromRow) is not { Target: MouseTarget.Lists } start
+            || MouseHitTester.Locate(context, toColumn, toRow) is not { Target: MouseTarget.Lists }
+            || DefaultMouseMap.Find(MouseTarget.Lists, MouseGesture.Drag) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return _none;
+        }
+
+        return [new CardDragged(fromColumn, start.Row, toColumn, context.Width)];
+    }
+
     // A row of an open overlay (picker, jump prompt, profile list, form field, suggestion popup): the row is chosen,
     // then the key's handler runs.
     private static IReadOnlyList<Command> OverlayClick(MouseHit hit, MouseGesture gesture, DateTimeOffset at)
     {
+        if (hit.Target == MouseTarget.ContextMenu)
+        {
+            // The rows of this target differ by action: the reducer takes the action of the clicked menu item.
+            return gesture == MouseGesture.Click
+                ? [new OverlayRowClicked(hit.Target, hit.Row, ActionIds.FormNext, at)]
+                : _none;
+        }
+
         if (DefaultMouseMap.Find(hit.Target, gesture) is not { } found || !WiredParts.Contains(found.Part))
         {
             return _none;
@@ -77,7 +110,7 @@ public static class MouseResolver
     private static bool IsOverlayRow(MouseTarget target)
     {
         return target is MouseTarget.PickerRow or MouseTarget.JumpRow or MouseTarget.ProfileRow
-            or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice;
+            or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice or MouseTarget.ContextMenu;
     }
 
     private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture)

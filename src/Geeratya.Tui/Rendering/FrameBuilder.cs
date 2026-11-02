@@ -77,6 +77,11 @@ public static class FrameBuilder
             body = Fit(ProfileListOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
+        if (state.ContextMenu is not null)
+        {
+            body = Fit(ContextMenuOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
+        }
+
         if (state.Picker is not null)
         {
             body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);

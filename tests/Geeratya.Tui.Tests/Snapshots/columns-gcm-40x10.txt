@@ -1,4 +1,4 @@
- [1 Board: GCM board]                   
+ [1 Board: GCM board]  +                
                                         
 GCM board · 24 issues                 3›
 ┌─Backlog 12  To Do 5 ›────────────────┐

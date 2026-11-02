@@ -16,6 +16,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The cells of each tab in the tab bar row.</summary>
     public IReadOnlyList<TabArea> TabAreas { get; init; } = [];
 
+    /// <summary>The cells of the <c>+</c> button after the last tab, null when the bar draws none.</summary>
+    public TabButton? NewTabButton { get; init; }
+
     /// <summary>The banner row shows a line (a click there refreshes).</summary>
     public bool BannerShown { get; init; }
 
@@ -37,6 +40,7 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {
             TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width),
+            NewTabButton = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, width),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],
         };

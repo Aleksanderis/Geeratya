@@ -1,4 +1,4 @@
- [1 JQL: My open issues]                                                                                                
+ [1 JQL: My open issues]  +                                                                                             
                                                                                                                         
 My open issues › GCM-12 · Bot                                                                                           
 │ Fix login redirect after token refresh                                                                               │

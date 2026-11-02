@@ -1,4 +1,4 @@
- [1 Board: GTM board]                   
+ [1 Board: GTM board]  +                
                                         
 GTM board · 16 issues                 3›
 ┌─To Do 5  In Progress 4 ›─────────────┐

@@ -51,6 +51,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space l` | Switch between list and columns |
 | `Space o` | Open the issue in the browser |
 | `Space p` | Open the parent issue |
+| `Space a` | Open the actions of the row under the pointer |
 | `Space m a` | Add a comment to the issue |
 | `Space m e` | Edit the comment under the cursor |
 | `Space m d` | Delete the comment under the cursor |
