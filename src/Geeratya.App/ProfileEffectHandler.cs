@@ -77,9 +77,24 @@ public sealed class ProfileEffectHandler
         _services.Store.Save(remove.Catalog);
 
         var cacheDeleted = _services.Caches.Delete(remove.Profile);
+
+        DeleteHistory(remove);
         var message = RemovedMessage(remove);
 
         return new ProfilesChanged(remove.Catalog, cacheDeleted ? message : $"{message} {CacheLeftMessage}");
+    }
+
+    /// <summary>The history is a convenience: a file that cannot be deleted is not reported.</summary>
+    private void DeleteHistory(RemoveProfileEffect remove)
+    {
+        try
+        {
+            _services.Histories.Delete(remove.Profile);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Left behind in a hashed folder of the state directory; nothing else depends on it.
+        }
     }
 
     private static string RemovedMessage(RemoveProfileEffect remove)

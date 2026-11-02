@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.History;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
@@ -11,6 +12,8 @@ namespace Geeratya.Core.Sources;
 /// </summary>
 public static class SourceChoices
 {
+    private const int MaxRecentInAll = 10;
+
     public static IReadOnlyList<SourceChoice> For(SourcePickerState picker, SourceLists lists)
     {
         var text = picker.Text.Trim();
@@ -26,19 +29,25 @@ public static class SourceChoices
             AddFilters(choices, text, lists.Filters ?? []);
         }
 
-        if (picker.Scope == PickerScope.All && text.Length > 0)
+        if (picker.Scope is PickerScope.All or PickerScope.Jql)
+        {
+            AddRecent(choices, picker.Scope, text, lists.History);
+        }
+
+        if (picker.Scope is PickerScope.All or PickerScope.Jql && text.Length > 0)
         {
             var jql = JqlText.FromTyped(text);
 
-            choices.Add(
-                new SourceChoice(
-                    SourceChoiceKind.Query,
-                    jql,
-                    string.Empty,
-                    new ViewDefinition(ViewSourceKind.Jql, jql, ViewLayout.List, jql)));
+            choices.Add(new SourceChoice(SourceChoiceKind.Query, jql, string.Empty, JqlView(jql)));
         }
 
         return choices;
+    }
+
+    /// <summary>The view that opens a JQL query as a list.</summary>
+    public static ViewDefinition JqlView(string jql)
+    {
+        return new ViewDefinition(ViewSourceKind.Jql, jql, ViewLayout.List, jql);
     }
 
     /// <summary>The view that opens a board (Columns) or its backlog (List).</summary>
@@ -100,6 +109,20 @@ public static class SourceChoices
         foreach (var filter in filters.Where(filter => Contains(filter.Name, text)))
         {
             choices.Add(new SourceChoice(SourceChoiceKind.Filter, filter.Name, FilterDetail(filter), FilterView(filter)));
+        }
+    }
+
+    private static void AddRecent(List<SourceChoice> choices, PickerScope scope, string text, SiteHistory? history)
+    {
+        var typed = text.Length == 0 ? string.Empty : JqlText.FromTyped(text);
+        var limit = scope == PickerScope.All ? MaxRecentInAll : SiteHistory.MaxQueries;
+        var recent = (history?.Queries ?? [])
+            .Where(query => Contains(query, text) && !string.Equals(query, typed, StringComparison.Ordinal))
+            .Take(limit);
+
+        foreach (var query in recent)
+        {
+            choices.Add(new SourceChoice(SourceChoiceKind.Recent, query, string.Empty, JqlView(query)));
         }
     }
 

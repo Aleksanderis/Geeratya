@@ -31,6 +31,7 @@ all_scenarios=(
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
+  "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"

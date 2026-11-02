@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -47,6 +48,17 @@ public class IssueDetailReducerTests
         Assert.Equal(3, new[] { issue.RequestId, comments.RequestId, links.RequestId }.Distinct().Count());
         Assert.All(new[] { issue.Tab, comments.Tab, links.Tab }, id => Assert.Equal(tab.Id, id));
         Assert.Equal(1, tab.Selected);
+    }
+
+    [Fact]
+    public void GivenListWithSelection_WhenOpeningAnIssue_ThenItsKeyIsRecordedInTheHistoryOfTheProfile()
+    {
+        var result = Press(Move(ListState(), 1), "Enter");
+
+        var record = Assert.Single(result.Effects.OfType<RecordHistoryEffect>());
+        Assert.Equal(HistoryKind.Issue, record.Kind);
+        Assert.Equal("A-2", record.Text);
+        Assert.Equal(_work, record.Profile);
     }
 
     [Fact]

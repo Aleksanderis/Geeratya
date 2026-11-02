@@ -54,7 +54,7 @@ The start screen shows the active profile, or `:profile add` when there is none.
 
 ## Command palette
 
-`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...` and the view commands `jql <query>`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
+`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...` and `history clear`, the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
 
 ## Help
 

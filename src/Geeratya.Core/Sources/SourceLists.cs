@@ -1,3 +1,4 @@
+using Geeratya.Core.History;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
 
@@ -22,6 +23,9 @@ public sealed record SourceLists(
     string? BoardsError,
     string? FiltersError)
 {
+    /// <summary>The recent JQL strings and issue keys of the profile, null until read from disk.</summary>
+    public SiteHistory? History { get; init; }
+
     public static SourceLists Empty { get; } = new(null, null, false, false, null, null);
 
     public bool IsLoaded(SourceListKind kind)

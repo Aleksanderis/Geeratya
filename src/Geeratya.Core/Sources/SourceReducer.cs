@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -29,6 +30,7 @@ public static class SourceReducer
             BoardsLoaded loaded => lists with { Boards = loaded.Boards, BoardsLoading = false, BoardsError = null },
             FiltersLoaded loaded => lists with { Filters = loaded.Filters, FiltersLoading = false, FiltersError = null },
             SourceListFailed failed => lists.Failed(failed.Kind, LoadErrorText.For(failed.Error)),
+            HistoryLoaded loaded when loaded.Profile == state.Profiles.Active => lists with { History = loaded.History },
             _ => lists,
         };
 
@@ -38,14 +40,14 @@ public static class SourceReducer
     /// <summary>Runs <c>jql</c>, <c>filter</c>, <c>board</c> or <c>backlog</c> with the text after the word.</summary>
     public static ReduceResult Palette(AppState state, string verb, string argument)
     {
-        if (verb == PaletteCommands.Jql && argument.Trim().Length == 0)
-        {
-            return Plain(state with { Message = $"Usage: :{PaletteCommands.UsageOf(PaletteCommands.Jql)}" });
-        }
-
         if (state.Profiles.Active is null)
         {
             return Plain(state with { Message = NoProfileMessage });
+        }
+
+        if (verb == PaletteCommands.Jql && argument.Trim().Length == 0)
+        {
+            return Open(state, PickerScope.Jql, string.Empty, autoOpen: false);
         }
 
         if (verb == PaletteCommands.Jql)
@@ -57,6 +59,45 @@ public static class SourceReducer
         var scope = ScopeOf(verb);
 
         return Open(state, scope, name, autoOpen: scope != PickerScope.Filters || name.Length > 0);
+    }
+
+    /// <summary><c>:history clear</c>: forgets the active profile's recent queries and issues (local data only).</summary>
+    public static ReduceResult ClearHistory(AppState state)
+    {
+        if (state.Profiles.Active is not { } profile)
+        {
+            return Plain(state with { Message = NoProfileMessage });
+        }
+
+        var lists = state.Session.Sources with { History = SiteHistory.Empty };
+        var cleared = WithLists(state, lists) with { Message = "History cleared." };
+
+        return new ReduceResult(cleared, [new ClearHistoryEffect(profile)]);
+    }
+
+    /// <summary>
+    /// Remembers an opened JQL string or issue key of the active profile: the loaded copy changes at once and the
+    /// host writes the file.
+    /// </summary>
+    public static ReduceResult Recorded(ReduceResult result, HistoryKind kind, string text)
+    {
+        var state = result.State;
+
+        if (state.Profiles.Active is not { } profile || text.Trim().Length == 0)
+        {
+            return result;
+        }
+
+        var lists = state.Session.Sources;
+
+        if (lists.History is { } history)
+        {
+            var updated = kind == HistoryKind.Query ? history.WithQuery(text) : history.WithIssue(text);
+
+            state = WithLists(state, lists with { History = updated });
+        }
+
+        return new ReduceResult(state, [.. result.Effects, new RecordHistoryEffect(profile, kind, text)]);
     }
 
     /// <summary>Opens the empty source picker (<c>&lt;space&gt;t</c>, <c>:tab new</c>).</summary>
@@ -156,6 +197,13 @@ public static class SourceReducer
         var lists = opened.Session.Sources;
         var boards = NeedsBoards(scope) && RequestIfNeeded(ref lists, SourceListKind.Boards);
         var filters = NeedsFilters(scope) && RequestIfNeeded(ref lists, SourceListKind.Filters);
+
+        var needsHistory = scope is PickerScope.All or PickerScope.Jql && lists.History is null;
+
+        if (needsHistory && state.Profiles.Active is { } profile)
+        {
+            effects.Add(new LoadHistoryEffect(profile));
+        }
 
         if (boards || filters)
         {
@@ -282,14 +330,21 @@ public static class SourceReducer
 
     private static ReduceResult OpenJql(AppState state, string query)
     {
-        var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, query);
+        var opened = ViewReducer.Reduce(state, new ViewOpenRequested(SourceChoices.JqlView(query)));
 
-        return ViewReducer.Reduce(state, new ViewOpenRequested(definition));
+        return Recorded(opened, HistoryKind.Query, query);
     }
 
     private static ReduceResult OpenView(AppState state, ViewDefinition definition)
     {
-        return ViewReducer.Reduce(Close(state), new ViewOpenRequested(definition));
+        var opened = ViewReducer.Reduce(Close(state), new ViewOpenRequested(definition));
+
+        if (definition.Source != ViewSourceKind.Jql)
+        {
+            return opened;
+        }
+
+        return Recorded(opened, HistoryKind.Query, definition.SourceValue);
     }
 
     private static PickerScope ScopeOf(string verb)
