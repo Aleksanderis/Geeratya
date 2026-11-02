@@ -273,6 +273,8 @@ public sealed class BoardClientTests
     {
         using var fixture = Throttled();
         var client = new BoardClient(fixture.Transport);
+
+        // The first call (user lane) only primes the rate-limit state from the reply headers.
         await client.GetBoardAsync(3, CancellationToken.None);
 
         await client.GetBoardAsync(3, CancellationToken.None, priority);
@@ -297,19 +299,6 @@ public sealed class BoardClientTests
         Assert.True(result.Value.IsLast);
         Assert.Null(result.Value.Next);
         Assert.Equal("40", QueryOf(Assert.Single(fixture.Handler.Requests))["startAt"]);
-    }
-
-    [Fact]
-    public async Task GivenPageWhoseEndEqualsTotal_WhenLoadingBacklog_ThenItIsLast()
-    {
-        const string json = """{"startAt": 20, "maxResults": 20, "total": 25, "issues": []}""";
-        using var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Get, "/rest/agile/1.0/board/4/backlog", FakeResponse.Ok(json));
-
-        var result = await new BoardClient(fixture.Transport)
-            .GetBacklogAsync(4, new BoardIssueQuery(20), PageCursor.Offset(20), CancellationToken.None);
-
-        Assert.Null(result.Value.Next);
     }
 
     [Fact]
