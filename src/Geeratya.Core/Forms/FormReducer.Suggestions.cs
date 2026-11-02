@@ -22,18 +22,79 @@ public static partial class FormReducer
         TabState tab,
         FormState form,
         SuggestionState popup,
-        string? action)
+        string? action,
+        DateTimeOffset at)
     {
         return action switch
         {
             ActionIds.Cancel when popup.Query.Length == 0 => null,
+            ActionIds.Cancel when popup.Source.Kind == SuggestionKind.Options => Result(ClearedFilter(state, tab, form)),
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
             ActionIds.PickerPrevious => Moved(state, tab, form, popup, -1),
             ActionIds.FormNext or ActionIds.FormFieldNext when popup.Selected is { } picked
-                => Result(Replace(state, tab, Accepted(form, picked)), tab.Id),
+                => Accepting(state, tab, form, picked, action == ActionIds.FormNext, at),
             _ => null,
         };
+    }
+
+    // A person, issue or label stays in its field after it is taken (Enter on the empty buffer then moves on); a
+    // single choice is done once taken, so Enter or Tab go on to the next field (Enter saves from the last one).
+    private static ReduceResult Accepting(
+        AppState state,
+        TabState tab,
+        FormState form,
+        Suggestion picked,
+        bool enter,
+        DateTimeOffset at)
+    {
+        var taken = Accepted(form, picked);
+
+        if (form.Fields[form.Focus].Kind != FormFieldKind.Select)
+        {
+            return Result(Replace(state, tab, taken), tab.Id);
+        }
+
+        if (enter)
+        {
+            return Enter(Replace(state, tab, taken), tab, taken, at);
+        }
+
+        return Result(Replace(state, tab, taken with { Focus = Step(taken, 1) }));
+    }
+
+    // Esc in a choice field drops the typed filter; the list of its values stays.
+    private static AppState ClearedFilter(AppState state, TabState tab, FormState form)
+    {
+        var field = form.Fields[form.Focus] with { Entry = string.Empty };
+
+        return Replace(state, tab, form with { Fields = WithField(form.Fields, form.Focus, field) });
+    }
+
+    // A choice field always shows its popup while it has the focus; any other field leaves a stale one to Edited.
+    private static ReduceResult Choosing(ReduceResult result, TabId tabId)
+    {
+        var tab = ViewReducer.Find(result.State.Session.Tabs, tabId);
+
+        if (tab?.Form is not { } form || form.Fields.Count == 0 || form.Focus >= form.Fields.Count)
+        {
+            return result;
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (!FormFieldKinds.IsChoice(field.Kind) || !field.IsEditable || form.IsSaving)
+        {
+            return form.Suggest is { Source.Kind: SuggestionKind.Options }
+                ? new ReduceResult(Replace(result.State, tab, form with { Suggest = null }), result.Effects)
+                : result;
+        }
+
+        var popup = ChoicePopup.For(field, form.Focus, form.Suggest);
+
+        return ReferenceEquals(popup, form.Suggest)
+            ? result
+            : new ReduceResult(Replace(result.State, tab, form with { Suggest = popup }), result.Effects);
     }
 
     private static ReduceResult Moved(AppState state, TabState tab, FormState form, SuggestionState popup, int delta)

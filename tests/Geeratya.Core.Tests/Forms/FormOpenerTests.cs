@@ -352,7 +352,7 @@ public class FormOpenerTests
             [new FieldOption("1", "Highest"), new FieldOption("2", "High")]).WithInitial(FormValue.OfChosen(["2"]));
         var loaded = LoadedForm(Palette(Tabbed(), "priority"), field);
 
-        var saved = Press(loaded, "Enter", _start);
+        var saved = Press(Press(loaded, "Down").State, "Enter", _start);
 
         var id = saved.State.Session.Operations[0].Id;
         var request = Assert.IsType<EditRequest>(WrittenBy(saved));
