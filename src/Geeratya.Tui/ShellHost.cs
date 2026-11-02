@@ -175,6 +175,12 @@ public sealed class ShellHost : IDisposable
             }
         }
 
+        if (checks.Count > 0 || command is ProfilesChanged)
+        {
+            // A check or a profile change (a token stored again) retries a failed profile; the failure reply must not.
+            _connections.RetryFailed();
+        }
+
         _ = ConnectAsync();
 
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
