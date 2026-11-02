@@ -5,7 +5,7 @@ using Geeratya.Jira.Edit.Models;
 
 namespace Geeratya.Jira.Edit;
 
-/// <summary>Builds the bodies of <c>PUT /issue/{key}</c> and <c>PUT /issue/{key}/assignee</c> (no reflection).</summary>
+/// <summary>Builds the bodies of <c>PUT /issue/{key}</c> and <c>PUT /issue/{key}/assignee</c> by hand.</summary>
 internal static class EditRequestBody
 {
     private const string AutomaticAccountId = "-1";

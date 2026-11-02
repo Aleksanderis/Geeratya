@@ -30,7 +30,7 @@ public sealed class FieldUpdate
     /// <summary>The field to change.</summary>
     public string FieldId { get; }
 
-    /// <summary>True for add/remove operations (sent under <c>update</c>), false for a replace (<c>fields</c>).</summary>
+    /// <summary>True for add/remove operations (under <c>update</c>), false for a replace (<c>fields</c>).</summary>
     public bool IsOperation { get; }
 
     internal string Json { get; }
@@ -61,28 +61,39 @@ public sealed class FieldUpdate
         }
     });
 
-    /// <summary>A number field (story points). Null clears it.</summary>
-    public static FieldUpdate Number(string fieldId, double? value) => Replace(fieldId, writer =>
+    /// <summary>
+    /// A number field (story points). Null clears it; NaN and infinity throw, so a bad parse can never turn into
+    /// a clearing write.
+    /// </summary>
+    public static FieldUpdate Number(string fieldId, double? value)
     {
-        if (value is { } number && double.IsFinite(number))
+        if (value is { } number && !double.IsFinite(number))
         {
-            writer.WriteNumberValue(number);
+            throw new ArgumentOutOfRangeException(nameof(value), "A number must be finite.");
         }
-        else
+
+        return Replace(fieldId, writer =>
         {
-            writer.WriteNullValue();
-        }
-    });
+            if (value is { } finite)
+            {
+                writer.WriteNumberValue(finite);
+            }
+            else
+            {
+                writer.WriteNullValue();
+            }
+        });
+    }
 
     /// <summary>A date field (due date), written as <c>yyyy-MM-dd</c>. Null clears it.</summary>
     public static FieldUpdate Date(string fieldId, DateOnly? value) =>
         Replace(fieldId, writer => WriteNullable(writer, value?.ToString(DateFormat, CultureInfo.InvariantCulture)));
 
-    /// <summary>A date-time field, written with its offset the way Jira reads it (<c>+0200</c>). Null clears it.</summary>
+    /// <summary>A date-time field, written with its offset as Jira reads it (<c>+0200</c>). Null clears it.</summary>
     public static FieldUpdate DateTime(string fieldId, DateTimeOffset? value) =>
         Replace(fieldId, writer => WriteNullable(writer, FormatDateTime(value)));
 
-    /// <summary>A single choice (priority, resolution, select list) by the id from its allowed values. Null clears.</summary>
+    /// <summary>A single choice (priority, select list) by the id of an allowed value. Null clears it.</summary>
     public static FieldUpdate Option(string fieldId, string? optionId) => Replace(fieldId, writer =>
     {
         if (string.IsNullOrEmpty(optionId))
@@ -95,7 +106,7 @@ public sealed class FieldUpdate
         }
     });
 
-    /// <summary>Replaces a multi-choice field (components, versions, checkboxes) with these ids; empty clears it.</summary>
+    /// <summary>Replaces a multi-choice field (components, versions) with these ids; empty clears it.</summary>
     public static FieldUpdate Options(string fieldId, IReadOnlyList<string> optionIds) => Replace(fieldId, writer =>
     {
         writer.WriteStartArray();

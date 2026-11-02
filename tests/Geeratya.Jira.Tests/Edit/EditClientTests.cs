@@ -36,6 +36,7 @@ public sealed class EditClientTests
         Assert.Equal(EditFieldKind.MultiOption, fields["components"].Kind);
         Assert.Equal(EditFieldKind.MultiOption, fields["fixVersions"].Kind);
         Assert.Equal(EditFieldKind.MultiOption, fields["customfield_10021"].Kind);
+        Assert.Equal("option", fields["customfield_10021"].SchemaItems);
         Assert.Equal(EditFieldKind.Parent, fields["parent"].Kind);
         Assert.Equal(["add", "set", "remove"], fields["labels"].Operations);
         Assert.Equal(5, fields["priority"].AllowedValues.Count);
@@ -90,9 +91,12 @@ public sealed class EditClientTests
     {
         const string body = """
             {"fields":{
-              "summary":{"key":"summary","name":"Summary","required":true,"operations":["set"],"schema":{"type":"string","system":"summary"}},
-              "parent":{"key":"parent","name":"Parent","operations":["set"],"schema":{"type":"issuelink","system":"parent"}},
-              "labels":{"key":"labels","name":"Labels","operations":["add","set","remove"],"schema":{"type":"array","items":"string","system":"labels"}}}}
+              "summary":{"key":"summary","name":"Summary","required":true,"operations":["set"],
+                "schema":{"type":"string","system":"summary"}},
+              "parent":{"key":"parent","name":"Parent","operations":["set"],
+                "schema":{"type":"issuelink","system":"parent"}},
+              "labels":{"key":"labels","name":"Labels","operations":["add","set","remove"],
+                "schema":{"type":"array","items":"string","system":"labels"}}}}
             """;
         using var fixture = new TransportFixture();
         fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/issue/GTM-5/editmeta", FakeResponse.Ok(body));
@@ -303,7 +307,9 @@ public sealed class EditClientTests
         var assignee = await client.UpdateAsync("GCM-1", [FieldUpdate.User("assignee", AccountId)], Cancel());
         var blank = await client.UpdateAsync("GCM-1", [FieldUpdate.Text(" ", "a")], Cancel());
 
-        Assert.All([empty, twice, assignee, blank], result => Assert.Equal(WriteErrorKind.Validation, result.Error.Kind));
+        Assert.All(
+            [empty, twice, assignee, blank],
+            result => Assert.Equal(WriteErrorKind.Validation, result.Error.Kind));
         Assert.Contains("assign", assignee.Error.Message);
         Assert.Empty(fixture.Handler.Requests);
     }
@@ -330,7 +336,9 @@ public sealed class EditClientTests
     public async Task GivenNoEditPermission_WhenUpdating_ThenPermissionErrorCarriesJirasMessage()
     {
         using var fixture = new TransportFixture();
-        const string body = """{"errorMessages":["You do not have permission to edit issues in this project."],"errors":{}}""";
+        const string body = """
+            {"errorMessages":["You do not have permission to edit issues in this project."],"errors":{}}
+            """;
         fixture.Handler.Serve(HttpMethod.Put, GcmIssuePath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, body));
 
         var result = await new EditClient(fixture.Transport)
@@ -386,7 +394,8 @@ public sealed class EditClientTests
         using var fixture = new TransportFixture();
         fixture.Handler.Serve(HttpMethod.Put, GcmAssigneePath, FakeResponse.WithStatus(HttpStatusCode.NoContent));
 
-        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User(AccountId), Cancel());
+        var result = await new EditClient(fixture.Transport)
+            .AssignAsync("GCM-1", AssigneeChange.User(AccountId), Cancel());
 
         Assert.True(result.IsSuccess);
         var request = Assert.Single(fixture.Handler.Requests);
@@ -425,11 +434,34 @@ public sealed class EditClientTests
     }
 
     [Fact]
+    public async Task GivenAutomaticIdAsAccount_WhenAssigning_ThenValidationWithoutARequest()
+    {
+        using var fixture = new TransportFixture();
+
+        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("-1"), Cancel());
+
+        Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void GivenNonFiniteNumber_WhenBuildingUpdate_ThenItThrowsInsteadOfClearing(double value)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => FieldUpdate.Number("customfield_90003", value));
+    }
+
+    [Fact]
     public async Task GivenUserWhoCannotBeAssigned_WhenAssigning_ThenValidationKeepsJirasMessage()
     {
         using var fixture = new TransportFixture();
         const string body = """{"errorMessages":["User 'x' cannot be assigned issues."],"errors":{}}""";
-        fixture.Handler.Serve(HttpMethod.Put, GcmAssigneePath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
+        fixture.Handler.Serve(
+            HttpMethod.Put,
+            GcmAssigneePath,
+            FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
 
         var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("x"), Cancel());
 

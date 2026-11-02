@@ -20,6 +20,7 @@ public sealed class EditClient(JiraTransport transport)
     private const string EditMetaPart = "editmeta";
     private const string AssigneePart = "assignee";
     private const string AssignableSearchPath = "/rest/api/3/user/assignable/search";
+    private const string AutomaticAccountId = "-1";
     private const int DefaultUserLimit = 50;
     private const int MaxUserLimit = 100;
     private const string NotFoundMessage = "Not found or no access.";
@@ -102,6 +103,11 @@ public sealed class EditClient(JiraTransport transport)
         if (change is AssigneeChange.AccountChange { AccountId: var accountId } && string.IsNullOrWhiteSpace(accountId))
         {
             return Refused(WriteErrorKind.Validation, "An account id is required.");
+        }
+
+        if (change is AssigneeChange.AccountChange { AccountId: AutomaticAccountId })
+        {
+            return Refused(WriteErrorKind.Validation, "Use the automatic assignee, not an account id.");
         }
 
         var request = JiraRequest.Write(

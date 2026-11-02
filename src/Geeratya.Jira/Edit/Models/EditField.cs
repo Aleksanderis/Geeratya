@@ -10,7 +10,7 @@ namespace Geeratya.Jira.Edit.Models;
 /// <param name="Name">The label Jira shows.</param>
 /// <param name="Required">True when Jira refuses an empty value.</param>
 /// <param name="SchemaType">Jira's schema type (<c>string</c>, <c>array</c>, <c>user</c>); empty when unknown.</param>
-/// <param name="SchemaItems">The element type of an array field (<c>option</c>, <c>component</c>); empty otherwise.</param>
+/// <param name="SchemaItems">The element type of an array field (<c>option</c>, <c>component</c>); else empty.</param>
 /// <param name="Operations">The operations Jira allows: <c>set</c>, <c>add</c>, <c>remove</c>, ...</param>
 /// <param name="AllowedValues">The choices Jira lists; empty for free-form and user fields.</param>
 /// <param name="HasDefaultValue">True when Jira fills the field in when it is left out.</param>
