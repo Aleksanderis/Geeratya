@@ -38,10 +38,11 @@ public static class FormFieldMapper
 
         foreach (var field in fields)
         {
-            var kind = field.IsEditable ? EditKind(field.Kind) : FormFieldKind.Unsupported;
+            var lossy = target.ReadOnlyIds?.Contains(field.FieldId) == true;
+            var kind = field.IsEditable && !lossy ? EditKind(field.Kind) : FormFieldKind.Unsupported;
             var known = target.Known.TryGetValue(field.FieldId, out var value);
 
-            if (target.Only is { } only && kind != only)
+            if ((target.Only is { } only && kind != only) || (target.OnlyId is { } id && field.FieldId != id))
             {
                 continue;
             }
@@ -53,10 +54,24 @@ public static class FormFieldMapper
 
             var mapped = FormField.Create(field.FieldId, field.Name, kind, field.Required, field.AllowedValues);
 
-            result.Add(known ? mapped.WithInitial(value!) : mapped);
+            result.Add(known ? mapped.WithInitial(Resolved(mapped, value!)) : mapped);
         }
 
         return Ordered(result);
+    }
+
+    // A choice known by its name only (a row shows "High", not the id) is matched to the option of that label.
+    private static FormValue Resolved(FormField field, FormValue value)
+    {
+        if (field.Kind != FormFieldKind.Select || value.Chosen.Count > 0 || value.Text.Length == 0)
+        {
+            return value;
+        }
+
+        var match = field.Options.FirstOrDefault(
+            option => string.Equals(option.Label, value.Text, StringComparison.OrdinalIgnoreCase));
+
+        return match is null ? FormValue.Empty : FormValue.OfChosen([match.Id]);
     }
 
     /// <summary>

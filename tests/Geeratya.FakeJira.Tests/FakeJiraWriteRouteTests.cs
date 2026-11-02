@@ -76,6 +76,32 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenRecordedIssue_WhenPriorityEditedById_ThenReadShowsItsName()
+    {
+        Start(0);
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GCM-8", """{"fields":{"priority":{"id":"2"}}}""");
+        var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-8"));
+
+        Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);
+        Assert.Equal("High", issue.GetProperty("fields").GetProperty("priority").GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task GivenAQuery_WhenAssignableUsersAreSearched_ThenOnlyNamedMatchesWithAnAccountComeBack()
+    {
+        Start(0);
+
+        var all = Parse(await _client.GetStringAsync(
+            $"{_baseUrl}/rest/api/3/user/assignable/search?issueKey=GCM-8&query=test"));
+        var none = Parse(await _client.GetStringAsync(
+            $"{_baseUrl}/rest/api/3/user/assignable/search?issueKey=GCM-8&query=zzzz"));
+
+        Assert.Equal("Test User 1", Assert.Single(all.EnumerateArray()).GetProperty("displayName").GetString());
+        Assert.Equal(0, none.GetArrayLength());
+    }
+
+    [Fact]
     public async Task GivenUpdateStyleEdit_WhenPut_ThenUnknownFieldErrorNotSummaryRequired()
     {
         Start(0);

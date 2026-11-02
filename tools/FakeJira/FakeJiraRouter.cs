@@ -29,9 +29,16 @@ public sealed partial class FakeJiraRouter
     private const string Delete = "DELETE";
     private const string RankPath = "/rest/agile/1.0/issue/rank";
     private const string CreatePath = "/rest/api/3/issue";
+    private const string LinkPath = "/rest/api/3/issueLink";
+    private const string LinkPrefix = "/rest/api/3/issueLink/";
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
     private const string AssigneePart = "assignee";
+    private const string AssignableUsersPath = "/rest/api/3/user/assignable/search";
+    private const string AssignableUsersFixture = "suggestions/users-assignable-gcm.json";
+    private const string QueryName = "query";
+    private const string DisplayName = "displayName";
+    private const string AccountIdName = "accountId";
     private const string EditMetaPart = "editmeta";
     private const string TeamManagedPrefix = "GTM-";
     private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
@@ -46,6 +53,7 @@ public sealed partial class FakeJiraRouter
         ["/rest/api/3/myself"] = "myself/myself.json",
         ["/rest/api/3/project/search"] = "projects/project-search.json",
         ["/rest/api/3/field"] = "metadata/field-list.json",
+        ["/rest/api/3/issueLinkType"] = "links/issuelink-types.json",
         ["/rest/api/3/issuetype"] = "metadata/issuetype-list.json",
         ["/rest/api/3/filter/my"] = "filters/filter-my.json",
         ["/rest/api/3/filter/search"] = "filters/filter-search.json",
@@ -61,6 +69,9 @@ public sealed partial class FakeJiraRouter
         ["/rest/agile/1.0/board/3/epic"] = "hierarchy/agile-board-epics-gtm.json",
         ["/rest/agile/1.0/board/4/epic"] = "hierarchy/agile-board-epics-gcm.json",
         ["/rest/api/3/filter/10001"] = "filters/filter-get.json",
+        ["/rest/api/3/label"] = "suggestions/recorded-labels.json",
+        ["/rest/api/3/user/viewissue/search"] = "suggestions/recorded-users-viewissue-gcm.json",
+        ["/rest/api/3/issue/picker"] = "suggestions/recorded-issue-picker.json",
         ["/rest/api/3/issue/GTM-9"] = "issues/issue-gtm9.json",
         ["/rest/api/3/issue/GTM-11"] = "issues/issue-gtm11.json",
         ["/rest/api/3/issue/GTM-20"] = "issues/issue-gtm20.json",
@@ -132,6 +143,11 @@ public sealed partial class FakeJiraRouter
         if (path == CountPath && _options.GeneratedIssues > 0)
         {
             return new FakeReply(200, GeneratedIssues.Count(_options.GeneratedIssues));
+        }
+
+        if (method == Get && path == AssignableUsersPath)
+        {
+            return AssignableUsers(query);
         }
 
         if (TryWrite(method, path, body) is { } written)
@@ -217,7 +233,7 @@ public sealed partial class FakeJiraRouter
         };
     }
 
-    /// <summary>Create, edit, delete, transition, comment and rank calls; null for any other request.</summary>
+    /// <summary>Create, edit, delete, transition, comment, rank and issue link calls; null for any other request.</summary>
     private FakeReply? TryWrite(string method, string path, string body)
     {
         if (method == Put && path == RankPath)
@@ -228,6 +244,16 @@ public sealed partial class FakeJiraRouter
         if (method == Post && path == CreatePath)
         {
             return _writes.Create(body);
+        }
+
+        if (method == Post && path == LinkPath)
+        {
+            return _writes.CreateLink(body);
+        }
+
+        if (method == Delete && path.StartsWith(LinkPrefix, StringComparison.Ordinal))
+        {
+            return _writes.DeleteLink(path[LinkPrefix.Length..]);
         }
 
         if (!IsWrite(method) || !path.StartsWith(IssuePrefix, StringComparison.Ordinal))
@@ -323,6 +349,32 @@ public sealed partial class FakeJiraRouter
         return parts[1] == CommentPart && _writes.Comments(key, recorded) is { } comments
             ? new FakeReply(200, comments)
             : null;
+    }
+
+    /// <summary>
+    /// <c>GET user/assignable/search</c>: the recorded users whose name contains the query (those without an account
+    /// id or a name are left out), as Jira's search does.
+    /// </summary>
+    private FakeReply AssignableUsers(IReadOnlyDictionary<string, string> query)
+    {
+        var text = query.TryGetValue(QueryName, out var typed) ? typed.Trim() : string.Empty;
+        var matches = new JsonArray();
+
+        if (JsonNode.Parse(ReadFixture(AssignableUsersFixture)) is JsonArray users)
+        {
+            foreach (var user in users.OfType<JsonObject>())
+            {
+                var name = user[DisplayName]?.GetValue<string>();
+
+                if (name is not null && user[AccountIdName] is not null
+                    && name.Contains(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    matches.Add(user.DeepClone());
+                }
+            }
+        }
+
+        return new FakeReply(200, Encoding.UTF8.GetBytes(matches.ToJsonString()));
     }
 
     /// <summary>True for an issue that a board or backlog list serves, so it can be ranked.</summary>

@@ -20,9 +20,6 @@ public sealed record CreateFormTarget(
     CreateIssueType? IssueType,
     bool OpenAfter = false) : FormTarget
 {
-    private const string NeedsParentText =
-        "This issue type needs a parent: create it from the parent (:create subtask)";
-
     public override string Title
     {
         get
@@ -55,7 +52,11 @@ public sealed record CreateFormTarget(
     {
         var type = IssueType ?? throw new InvalidOperationException("The issue type is not chosen yet.");
 
-        return new CreateRequest(ProjectKey, type.Id, type.Name, ParentKey, changes, OpenAfter);
+        // The parent starts as the selected issue and the user may change or clear it: a changed field wins.
+        var chosen = changes.FirstOrDefault(change => change.FieldId == FormFieldIds.Parent);
+        var parent = chosen is null ? ParentKey : chosen.Value.Chosen is [var first, ..] ? first : null;
+
+        return new CreateRequest(ProjectKey, type.Id, type.Name, parent, changes, OpenAfter);
     }
 
     public override FormTarget Loaded(IReadOnlyList<FormField> fields)
@@ -63,12 +64,5 @@ public sealed record CreateFormTarget(
         var takesParent = fields.Any(field => field.Id == FormFieldIds.Parent);
 
         return takesParent || ParentKey is null ? this : this with { ParentKey = null };
-    }
-
-    public override string? Blocked(IReadOnlyList<FormField> fields)
-    {
-        var needsParent = fields.Any(field => field is { Id: FormFieldIds.Parent, Required: true });
-
-        return needsParent && ParentKey is null ? NeedsParentText : null;
     }
 }

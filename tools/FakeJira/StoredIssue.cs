@@ -32,6 +32,9 @@ public sealed class StoredIssue
 
     public List<JsonObject> Comments { get; } = [];
 
+    /// <summary>Links made through the fake, as this issue lists them.</summary>
+    public List<StoredLink> Links { get; } = [];
+
     /// <summary>Label adds and removes laid over the recorded labels, in the order they were sent.</summary>
     public List<LabelOperation> LabelOperations { get; } = [];
 }

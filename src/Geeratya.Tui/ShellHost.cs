@@ -4,8 +4,10 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;
@@ -35,12 +37,16 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
+    private readonly string? _keymapNotice;
+    private readonly KeymapTable _defaultBindings;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
+    private readonly HistoryEffectHandler _historyEffects;
     private readonly BrowserEffectHandler _browserEffects;
+    private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly CancellationToken _shutdownToken;
@@ -50,6 +56,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly SourceLoadHandler _sourceLoads;
     private readonly WriteHandler _writes;
     private readonly FormMetadataHandler _formMetadata;
+    private readonly SuggestionHandler _suggestions;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -63,11 +70,15 @@ public sealed class ShellHost : ICommandSink, IDisposable
         ProfileServices profiles,
         GlyphSet glyphs = GlyphSet.Unicode)
     {
+        _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
+        _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
+        _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
+        _historyEffects = new HistoryEffectHandler(profiles.Histories);
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
@@ -79,6 +90,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _sourceLoads = new SourceLoadHandler(_network);
         _writes = new WriteHandler(_network);
         _formMetadata = new FormMetadataHandler(_network);
+        _suggestions = new SuggestionHandler(_network, TimeProvider.System);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
@@ -100,6 +112,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
+        _state = _state with { Message = JoinNotices(_state.Message, _keymapNotice) };
         _application = application;
         application.Init();
         application.Keyboard.KeyBindings.Clear();
@@ -213,6 +226,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
         var checks = new List<CheckConnectionEffect>();
+        KeymapReloaded? reloaded = null;
 
         foreach (var effect in result.Effects)
         {
@@ -251,6 +265,14 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 _ = _formMetadata.StartAsync(formMetadata);
             }
+            else if (effect is SearchSuggestionsEffect search)
+            {
+                _ = _suggestions.StartAsync(search);
+            }
+            else if (effect is CancelSuggestionsEffect stop)
+            {
+                _suggestions.Cancel(stop.Tab);
+            }
             else if (effect is InvalidateCacheEffect invalidate)
             {
                 InvalidateCaches(invalidate);
@@ -266,6 +288,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             else if (effect is WriteIssueCacheEffect writeIssue)
             {
                 ActiveCache()?.PutIssue(writeIssue.Issue);
+            }
+            else if (effect is ReloadKeymapEffect)
+            {
+                reloaded = ReloadKeymap();
             }
             else if (effect is CheckConnectionEffect check)
             {
@@ -285,11 +311,26 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         _ = ConnectAsync();
 
+        if (reloaded is not null)
+        {
+            Dispatch(reloaded);
+        }
+
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
             _ = _connectionChecks.StartAsync(check);
         }
+    }
+
+    /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>
+    private KeymapReloaded ReloadKeymap()
+    {
+        var notice = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
+
+        _screen?.RefreshHelp();
+
+        return new KeymapReloaded(notice ?? "Keymap reloaded");
     }
 
     /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>
@@ -350,12 +391,33 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private async Task<AppCommand?> RunHandlersAsync(Effect effect)
     {
-        return await _profileEffects.RunAsync(effect, _shutdownToken)
+        return _settingsEffects?.Run(effect)
+            ?? await _profileEffects.RunAsync(effect, _shutdownToken)
+            ?? _historyEffects.Run(effect)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
+    }
+
+    private AppSettings LoadSettings()
+    {
+        try
+        {
+            return _profiles.Settings?.Load() ?? AppSettings.Default;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return AppSettings.Default;
+        }
+    }
+
+    private static string? JoinNotices(string? first, string? second)
+    {
+        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
     }
 
     private AppState LoadProfiles()
     {
+        var settings = LoadSettings();
+
         try
         {
             var loaded = _profiles.Store.Load();
@@ -363,6 +425,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
             return AppState.Initial with
             {
+                Settings = settings,
                 Profiles = loaded.Catalog,
                 Session = SiteSession.Empty(loaded.Catalog.Active),
                 Message = notice,
@@ -370,7 +433,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppState.Initial with { Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)" };
+            return AppState.Initial with
+            {
+                Settings = settings,
+                Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
+            };
         }
     }
 }

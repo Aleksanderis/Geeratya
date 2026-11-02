@@ -51,6 +51,44 @@ public class FormFieldMapperTests
     }
 
     [Fact]
+    public void GivenAPriorityKnownByItsName_WhenMapped_ThenItsInitialValueIsTheIdOfThatOption()
+    {
+        var known = new Dictionary<string, FormValue> { ["priority"] = FormValue.OfText("high") };
+        var target = new EditFormTarget("X-1", known, true, null, "priority");
+        var choices = new FieldOption[] { new("1", "Highest"), new("2", "High") };
+        var priority = Edit("priority", EditFieldKind.Option) with { AllowedValues = choices };
+
+        var mapped = FormFieldMapper.FromEdit([priority, Edit("summary", EditFieldKind.Text)], target);
+
+        var field = Assert.Single(mapped);
+        Assert.Equal(["2"], field.Initial.Chosen);
+        Assert.False(field.IsChanged);
+    }
+
+    [Fact]
+    public void GivenAPriorityNameNoOptionHas_WhenMapped_ThenTheInitialValueIsEmptyNotAGuess()
+    {
+        var known = new Dictionary<string, FormValue> { ["priority"] = FormValue.OfText("Urgent") };
+        var target = new EditFormTarget("X-1", known, true, null);
+        var priority = Edit("priority", EditFieldKind.Option) with { AllowedValues = [new("1", "Highest")] };
+
+        var field = Assert.Single(FormFieldMapper.FromEdit([priority], target));
+
+        Assert.True(field.Initial.IsEmpty);
+    }
+
+    [Fact]
+    public void GivenAFieldThatWouldLoseContentWhenEdited_WhenMapped_ThenItIsListedReadOnly()
+    {
+        var target = new EditFormTarget("X-1", new Dictionary<string, FormValue>(), true, null, null, ["description"]);
+
+        var field = Assert.Single(FormFieldMapper.FromEdit([Edit("description", EditFieldKind.RichText)], target));
+
+        Assert.False(field.IsEditable);
+        Assert.Equal(FormFieldKind.Unsupported, field.Kind);
+    }
+
+    [Fact]
     public void GivenAnUnknownSchemaTypeAndAFieldWithoutOperations_WhenMapped_ThenBothStayListedReadOnlyAtTheEnd()
     {
         var fields = new[]

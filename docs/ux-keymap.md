@@ -6,7 +6,11 @@ Rules for the keymap. The reference of what is bound is generated from `src/Geer
 
 Rows of `{ "mode", "keys", "action" }`. `keys` is one key or a space-separated sequence (`g g`). A key is a single character (`j`, `?`, `G`) or a name (`Esc`, `Enter`, `Backspace`, `Tab`, `Shift-Tab`, `Space`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`, `Delete`), optionally prefixed `Ctrl-` or `Alt-`. Uppercase letters are the character itself (`G`, not `Shift-g`). `action` is an id from `ActionCatalog`, which carries the title shown in help and the reference.
 
-Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints.
+Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints. The which-key popup lists `KeymapTable.NextKeys` for the half-typed sequence (see `ux.md`, "Hints").
+
+## User file
+
+`keymap.json` in the configuration directory adds, replaces and removes rows over the defaults (`UserKeymap`, `UserKeymapStore` in Core); the guide is [customising-keys.md](customising-keys.md). Rows that fail the checks above (plus printable keys in Command and Insert mode and dialog-only actions in Normal mode) are skipped and reported in the status line, a file that does not parse leaves the defaults, and `:keys reload` swaps the bindings of the running shell (`KeymapTable.Replace`; the reducer and the shell share one table on the UI thread). The user's rows are listed first so hints show their keys.
 
 ## Key rule
 
@@ -34,7 +38,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M3) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
@@ -59,19 +63,20 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 
 | Keys | Action id | What | Level | Mouse | Bound by |
 |---|---|---|---|---|---|
-| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159 |
-| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159 |
+| `<space>is` | `issue.transition` | Change status: picker of the available transitions, then required fields | E | click the status badge | M2 #159, built |
+| `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 (bound) |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
-| `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
-| `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
-| `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
+| `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M3 #183 |
+| `<space>ia` | `issue.assign` | Assign: people picker (type to search, `(Unassigned)` first) | E | click the assignee | M2 #164 (bound) |
+| `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
+| `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
-| `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
-| `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
-| `<space>ma` | `comment.add` | Add a comment (multi-line editor) | E | `+` in the comments section | M2 #167 |
-| `<space>me` | `comment.edit` | Edit the comment under the cursor (your own; others are refused with the reason) | E | click the comment | M2 #167 |
-| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo) | A | context menu on the comment | M2 #167 |
+| `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M4 #190 (bound) |
+| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M4 #190 (bound) |
+| `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
+| `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part not built) | M2 #167 |
+| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part not built) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
 | `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M3 #182 |
@@ -102,7 +107,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 
 ### Text input
 
-- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves, `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts.
+- **Editors** (comment, description, other multi-line fields) are Insert mode: `Enter` is a new line, `Ctrl-s` saves (`Alt-Enter` too, for a terminal that swallows `Ctrl-s`), `Esc` cancels and asks first when the text changed. Single-line fields: `Enter` accepts. Built for comments in #167 (`Left`/`Right`/`Up`/`Down`/`Home`/`End`/`Delete` move and edit; `Ctrl-s` is the form's `form.submit`, the cursor actions are `editor.*`, Insert mode only); `docs/ux-screens.md`, "Comment editor".
 - **Forms** (transition, create, edit) show their fields in order; `Tab` and `Shift-Tab` move between fields (inside a form they do not change tab), `Ctrl-s` submits, `Esc` cancels (asks when changed). Required fields are marked and checked before the request. Built (#158): the three keys are Insert-mode rows (`form.field-next`, `form.field-previous`, `form.submit`); `Enter` accepts a field and, on the last one, submits, which is also the way out where a terminal swallows `Ctrl-s`. `Ctrl-o` (`form.open-browser`, #279) opens the issue page in the browser, for fields the form cannot edit; the form stays as it is. The key shows in the form footer only when a field is read-only. In vim `Ctrl-o` jumps back in the jump list; Geeratya has no jump list, so the key is free here. Its mouse path (click the address) comes with #200. In a create form `Ctrl-g` (`form.open-after`) switches "open the new issue after it is created" on and off; the footer shows the state (`Ctrl-o` stays the browser key everywhere).
 - **Suggestions** (owner's decision, #213 to #215): `@` (people) and `#` plus a project key (issues) open the popup inside text editors; picker fields (labels, components, assignee, selects) suggest by context as you type. No extra key opens a picker field's list. `Up`/`Down` and `Ctrl-p`/`Ctrl-n` choose, `Enter` or `Tab` accepts, `Esc` closes the popup only.
 - **Pickers** reuse the source picker's keys (`ux.md`, Insert mode).

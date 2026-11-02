@@ -1,5 +1,8 @@
+using System.Text.Json;
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
+using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
@@ -170,6 +173,11 @@ public sealed class WriteHandler
                 return await CreateAsync(services, effect, create, token);
             }
 
+            if (effect.Request is CommentRequest comment)
+            {
+                return await ExecuteCommentAsync(services, effect, comment, token);
+            }
+
             var result = await SendAsync(services, effect.Request, token);
 
             if (result.IsSuccess)
@@ -232,7 +240,7 @@ public sealed class WriteHandler
         var rows = await ReadKeysAsync(services, [key], token);
         var shown = rows is null ? [] : rows.Where(row => row.Key == key).ToArray();
 
-        return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown, key);
+        return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown, CreatedKey: key);
     }
 
     /// <summary>
@@ -263,6 +271,27 @@ public sealed class WriteHandler
         }
     }
 
+    /// <summary>
+    /// A comment write: no row is read afterwards (it changes none); the reply carries the stored comment instead.
+    /// </summary>
+    private async Task<Command> ExecuteCommentAsync(
+        JiraServices services,
+        ExecuteWriteEffect effect,
+        CommentRequest request,
+        CancellationToken token)
+    {
+        var reply = await CommentWriter.SendAsync(services, request, token);
+
+        if (reply.Error is not { } error)
+        {
+            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], Comment: reply.Comment);
+        }
+
+        return error.IsOutcomeUnknown
+            ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), error)
+            : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), error);
+    }
+
     private static async Task<WriteResult<WriteAccepted>> SendAsync(
         JiraServices services,
         WriteRequest request,
@@ -287,12 +316,51 @@ public sealed class WriteHandler
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
         }
 
+        if (request is LinkIssuesRequest link)
+        {
+            return await services.Links.CreateLinkAsync(link.TypeId, link.OutwardKey, link.InwardKey, token);
+        }
+
+        if (request is UnlinkIssuesRequest unlink)
+        {
+            return await services.Links.DeleteLinkAsync(unlink.LinkId, token);
+        }
+
         if (request is EditRequest edit)
         {
             return await EditAsync(services, edit, token);
         }
 
+        if (request is TransitionRequest transition)
+        {
+            return await TransitionAsync(services, transition, token);
+        }
+
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> TransitionAsync(
+        JiraServices services,
+        TransitionRequest transition,
+        CancellationToken token)
+    {
+        Dictionary<string, JsonElement> fields;
+
+        try
+        {
+            // Transition fields are plain values: the whole value is sent, never adds and removes.
+            var plain = transition.Changes.Select(change => change with { Initial = null }).ToArray();
+
+            fields = FieldUpdates.For(plain).ToDictionary(update => update.FieldId, update => update.ToElement());
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(error);
+        }
+
+        return await services.Transitions.PerformAsync(transition.Key, transition.Choice.Id, fields, null, token);
     }
 
     private static async Task<WriteResult<WriteAccepted>> RankAsync(
@@ -370,6 +438,13 @@ public sealed class WriteHandler
         VerifyWriteEffect effect,
         CancellationToken token)
     {
+        if (effect.Request is CommentRequest comment)
+        {
+            var check = await CommentWriter.VerifyAsync(services, comment, token);
+
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), check.Outcome, [], check.Comment);
+        }
+
         if (effect.Request is DeleteIssueRequest delete)
         {
             return await VerifyDeleteAsync(services, effect, delete, token);
@@ -378,6 +453,11 @@ public sealed class WriteHandler
         if (effect.Request is CreateRequest create)
         {
             return await VerifyCreateAsync(services, effect, create, token);
+        }
+
+        if (effect.Request is LinkWriteRequest linkRequest)
+        {
+            return await VerifyLinkAsync(services, effect, linkRequest, token);
         }
 
         if (!effect.Request.ReadsBack)
@@ -415,6 +495,35 @@ public sealed class WriteHandler
             else if (result.Error.Kind == JiraErrorKind.NotFound)
             {
                 outcome = VerifyOutcome.Applied;
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // A read that breaks is a read that failed: it never changes what is known about the write.
+        }
+
+        return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, []);
+    }
+
+    /// <summary>
+    /// A lost reply of a link write: the issue is read by key (links are part of it, and the read does not lag like
+    /// the search index). The issue shows the change or it does not; a read that fails decides nothing.
+    /// </summary>
+    private async Task<Command?> VerifyLinkAsync(
+        JiraServices services,
+        VerifyWriteEffect effect,
+        LinkWriteRequest request,
+        CancellationToken token)
+    {
+        var outcome = VerifyOutcome.Unreachable;
+
+        try
+        {
+            var result = await services.Issues.GetIssueAsync(request.Key, token);
+
+            if (result.IsSuccess)
+            {
+                outcome = request.IsShownBy(result.Value) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
             }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

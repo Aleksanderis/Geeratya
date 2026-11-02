@@ -48,7 +48,7 @@ public sealed class CreateHandlerTests
     [Theory]
     [InlineData("GCM", "10007", "createmeta-fields-gcm-subtask.json")]
     [InlineData("GTM", "10011", "createmeta-fields-gtm-subtask.json")]
-    public async Task GivenASubtaskType_WhenTheFieldsLoad_ThenTheParentIsShownAndSummaryComesFirst(
+    public async Task GivenASubtaskType_WhenTheFieldsLoad_ThenTheParentIsPrefilledAndSearchable(
         string project,
         string typeId,
         string fixtureName)
@@ -60,15 +60,15 @@ public sealed class CreateHandlerTests
 
         var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
         var parent = loaded.Fields.Single(field => field.Id == "parent");
-        Assert.Equal("summary", loaded.Fields[0].Kind == FormFieldKind.Text ? loaded.Fields[0].Id : string.Empty);
+        Assert.Contains(loaded.Fields, field => field is { Id: "summary", Kind: FormFieldKind.Text });
         Assert.Equal([$"{project}-6"], parent.Value.Chosen);
-        Assert.False(parent.IsEditable);
+        Assert.True(parent.IsEditable);
         Assert.DoesNotContain(loaded.Fields, field => field.Id is "project" or "issuetype");
         Assert.EndsWith($"/createmeta/{project}/issuetypes/{typeId}", fixture.Http.Requests.Single().AbsolutePath);
     }
 
     [Fact]
-    public async Task GivenATeamManagedTask_WhenTheFieldsLoad_ThenTheRequiredReporterIsReadOnlyAndNotTypedAsText()
+    public async Task GivenATeamManagedTask_WhenTheFieldsLoad_ThenTheRequiredReporterIsAPersonPickerAndNotText()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/createmeta-fields-gtm-task.json")));
         var type = new CreateIssueType("10015", "Task", string.Empty, 0, false);
@@ -78,7 +78,7 @@ public sealed class CreateHandlerTests
         var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
         var reporter = loaded.Fields.Single(field => field.Id == "reporter");
         Assert.True(reporter.Required);
-        Assert.False(reporter.IsEditable);
+        Assert.Equal(FormFieldKind.User, reporter.Kind);
     }
 
     [Fact]

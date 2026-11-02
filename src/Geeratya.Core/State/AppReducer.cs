@@ -1,9 +1,12 @@
 using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
@@ -29,12 +32,10 @@ public sealed class AppReducer
     ];
 
     private readonly KeymapTable _keymap;
-    private readonly int _helpLineCount;
 
     public AppReducer(KeymapTable keymap)
     {
         _keymap = keymap;
-        _helpLineCount = KeymapDocument.RenderHelpLines(keymap).Count;
     }
 
     public ReduceResult Reduce(AppState state, Command command)
@@ -48,7 +49,7 @@ public sealed class AppReducer
                 Confirm = requested.Request,
                 PendingKeys = string.Empty,
             }),
-            TextPasted pasted => Result(Paste(state, pasted.Text)),
+            TextPasted pasted => Pasted(state, pasted.Text),
             ViewCommand view => ViewReducer.Reduce(state, view),
             FormCommand form => FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
@@ -62,8 +63,21 @@ public sealed class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
             _ => Result(state),
         };
+    }
+
+    private static ReduceResult Pasted(AppState state, string pasted)
+    {
+        var text = PasteText.FirstLine(pasted);
+
+        if (text.Length > 0 && FormReducer.IsOpen(state))
+        {
+            return FormReducer.Paste(state, text);
+        }
+
+        return Result(Paste(state, pasted));
     }
 
     private static ReduceResult Result(AppState state)
@@ -101,6 +115,8 @@ public sealed class AppReducer
             Confirm = null,
             Form = null,
             Picker = null,
+            Jump = null,
+            Editor = null,
         };
     }
 
@@ -129,6 +145,12 @@ public sealed class AppReducer
         }
 
         var cleared = state with { PendingKeys = string.Empty, Count = 0 };
+
+        if (resolution.Action == ActionIds.IssueUnlink)
+        {
+            // The only action that needs the time of the key: the confirm carries the write that will start.
+            return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
+        }
 
         if (resolution.Kind == KeyResolutionKind.None)
         {
@@ -207,16 +229,16 @@ public sealed class AppReducer
     /// </summary>
     private static AppState Paste(AppState state, string pasted)
     {
+        if (state.Mode == InputMode.Insert && state.Editor is not null)
+        {
+            return CommentEditing.Type(state, PasteText.Lines(pasted));
+        }
+
         var text = PasteText.FirstLine(pasted);
 
         if (text.Length == 0)
         {
             return state;
-        }
-
-        if (FormReducer.IsOpen(state))
-        {
-            return FormReducer.Paste(state, text);
         }
 
         if (state.Mode == InputMode.Insert)
@@ -246,10 +268,20 @@ public sealed class AppReducer
 
     private static AppState TypeInInsert(AppState state, string text)
     {
+        if (state.Editor is not null)
+        {
+            return CommentEditing.Type(state, text);
+        }
+
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Type(state, text);
+        }
+
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
-    private ReduceResult Apply(AppState state, string action, DateTimeOffset at = default)
+    private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
         return action switch
         {
@@ -258,19 +290,29 @@ public sealed class AppReducer
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
-            ActionIds.PaletteSubmit => SubmitPalette(state),
-            ActionIds.Cancel => Result(ToNormal(RankActions.DropPickup(state))),
+            ActionIds.PaletteSubmit => SubmitPalette(state, at),
+            ActionIds.Cancel => state.Editor is null ? Result(ToNormal(RankActions.DropPickup(state))) : CommentEditing.Cancel(state),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
             ActionIds.RankDown => InNormal(state, () => RankActions.Step(state, RankMove.Down, 1, at)),
             ActionIds.RankTop => InNormal(state, () => RankActions.Step(state, RankMove.Top, 1, at)),
             ActionIds.RankBottom => InNormal(state, () => RankActions.Step(state, RankMove.Bottom, 1, at)),
             ActionIds.RankTo => InNormal(state, () => RankActions.PickUpOrDrop(state, DropKeys(), at)),
-            ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
-            ActionIds.ConfirmYes => Confirmed(state),
-            ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
+            ActionIds.ConfirmNo => DeclineConfirm(state),
+            ActionIds.ConfirmYes => Confirmed(state, at),
+            ActionIds.FormNext => Accept(state),
             ActionIds.FormBackspace => Result(Erase(state)),
-            ActionIds.PickerNext => Result(SourceReducer.Move(state, 1)),
-            ActionIds.PickerPrevious => Result(SourceReducer.Move(state, -1)),
+            ActionIds.PickerNext => Result(MovePicker(state, 1)),
+            ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
+            ActionIds.FormSubmit => CommentEditing.Save(state, at),
+            ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
+            ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
+            ActionIds.EditorRowStart => Result(CommentEditing.Move(state, EditorMove.RowStart)),
+            ActionIds.EditorRowEnd => Result(CommentEditing.Move(state, EditorMove.RowEnd)),
+            ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
+            ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
+            ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
+            ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state, at)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),
@@ -286,6 +328,9 @@ public sealed class AppReducer
             ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
             ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
+            ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
+            ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),
+            ActionIds.IssueTransitionPrevious => InNormal(state, () => TransitionForms.MoveCard(state, -1)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
@@ -295,6 +340,10 @@ public sealed class AppReducer
             ActionIds.IssueCreateSubtask => InNormal(
                 state,
                 () => FormReducer.Reduce(state, new OpenCreateFormRequested(true))),
+            ActionIds.IssueLink => InNormal(state, () => FormReducer.Reduce(state, new OpenLinkFormRequested())),
+            ActionIds.IssueEdit => InNormal(state, () => FormOpener.Edit(state)),
+            ActionIds.IssueAssign => InNormal(state, () => FormOpener.Assign(state)),
+            ActionIds.IssueAssignMe => InNormal(state, () => FormOpener.AssignMe(state, at)),
             ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
@@ -315,8 +364,61 @@ public sealed class AppReducer
         return state.Mode == InputMode.Normal ? action() : Result(state);
     }
 
+    /// <summary>Enter in Insert mode: a new line in the editor, else accepts the form field or picker row.</summary>
+    private static ReduceResult Accept(AppState state)
+    {
+        if (state.Editor is not null)
+        {
+            return Result(CommentEditing.Type(state, "\n"));
+        }
+
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Accept(state);
+        }
+
+        return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
+    }
+
+    /// <summary>Up and down in Insert mode: a row up or down in the editor, else the picker selection.</summary>
+    private static AppState MovePicker(AppState state, int direction)
+    {
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Move(state, direction);
+        }
+
+        if (state.Editor is null)
+        {
+            return SourceReducer.Move(state, direction);
+        }
+
+        return CommentEditing.Move(state, direction > 0 ? EditorMove.Down : EditorMove.Up);
+    }
+
+    /// <summary>n or Esc in Confirm mode; the discard question goes back to the editor with its text.</summary>
+    private static ReduceResult DeclineConfirm(AppState state)
+    {
+        if (state.Editor is not null)
+        {
+            return Result(CommentEditing.KeepEditing(state));
+        }
+
+        return Result(ToNormal(state) with { Message = "Cancelled." });
+    }
+
     private static AppState Erase(AppState state)
     {
+        if (state.Editor is not null)
+        {
+            return CommentEditing.Backspace(state);
+        }
+
+        if (state.Jump is not null)
+        {
+            return JumpReducer.Backspace(state);
+        }
+
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
     }
 
@@ -386,7 +488,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, _helpLineCount - 1)) };
+        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, KeymapDocument.RenderHelpLines(_keymap).Count - 1)) };
     }
 
     private static AppState Backspace(AppState state)
@@ -399,7 +501,7 @@ public sealed class AppReducer
         return state with { PaletteText = RemoveLastTextElement(state.PaletteText) };
     }
 
-    private static ReduceResult SubmitPalette(AppState state)
+    private static ReduceResult SubmitPalette(AppState state, DateTimeOffset at)
     {
         var text = state.PaletteText.Trim();
         var normal = ToNormal(state);
@@ -409,14 +511,24 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.History + " clear" => SourceReducer.ClearHistory(normal),
+            PaletteCommands.Status => TransitionForms.OpenPicker(normal),
+            "status next" => TransitionForms.MoveCard(normal, 1),
+            "status prev" or "status previous" => TransitionForms.MoveCard(normal, -1),
             PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             PaletteCommands.Create => FormReducer.Reduce(normal, new OpenCreateFormRequested(false)),
             PaletteCommands.CreateSubtask => FormReducer.Reduce(normal, new OpenCreateFormRequested(true)),
+            PaletteCommands.Edit => FormOpener.Edit(normal),
+            PaletteCommands.Priority => FormOpener.Priority(normal),
+            PaletteCommands.Assign => FormOpener.Assign(normal),
+            PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
+            _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
+            _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
     }
@@ -495,6 +607,26 @@ public sealed class AppReducer
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
     }
 
+    private static bool IsSetCommand(string text)
+    {
+        return text == "set" || text.StartsWith("set ", StringComparison.Ordinal);
+    }
+
+    private static ReduceResult KeysCommand(AppState state, string argument)
+    {
+        if (argument == "reload")
+        {
+            return new ReduceResult(state, [new ReloadKeymapEffect()]);
+        }
+
+        return Result(state with { Message = $"Usage: :{PaletteCommands.UsageOf(PaletteCommands.Keys)}" });
+    }
+
+    private static bool IsKeysCommand(string text)
+    {
+        return text == PaletteCommands.Keys || text.StartsWith($"{PaletteCommands.Keys} ", StringComparison.Ordinal);
+    }
+
     private static bool IsProfileCommand(string text)
     {
         return text == "profile" || text.StartsWith("profile ", StringComparison.Ordinal);
@@ -507,7 +639,7 @@ public sealed class AppReducer
         return text[..starts[^1]];
     }
 
-    private ReduceResult Confirmed(AppState state)
+    private ReduceResult Confirmed(AppState state, DateTimeOffset at)
     {
         var request = state.Confirm;
         var normal = ToNormal(state);
@@ -535,6 +667,6 @@ public sealed class AppReducer
         // The quit that was asked for while writes ran: the answer was yes, so no second question.
         return request.ActionOnConfirm == ActionIds.Quit
             ? new ReduceResult(normal, _quitEffects)
-            : Apply(normal, request.ActionOnConfirm);
+            : Apply(normal, request.ActionOnConfirm, at);
     }
 }

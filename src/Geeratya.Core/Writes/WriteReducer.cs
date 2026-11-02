@@ -1,6 +1,9 @@
 using System.Globalization;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -16,11 +19,17 @@ namespace Geeratya.Core.Writes;
 public static class WriteReducer
 {
     private const string NotConnectedText = "Not connected to Jira: cannot tell which account is yours.";
+    private const string ConfirmWriteAction = "write";
     private const string NoProfileText = "No profile is active.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
     public static ReduceResult Reduce(AppState state, WriteCommand command)
+    {
+        return CommentEditing.Settled(state, ReduceCore(state, command), command);
+    }
+
+    private static ReduceResult ReduceCore(AppState state, WriteCommand command)
     {
         return command switch
         {
@@ -95,10 +104,15 @@ public static class WriteReducer
             return Say(state, busy);
         }
 
+        if (!requested.Confirmed && write.AskText is { } question)
+        {
+            return Ask(state, requested, question);
+        }
+
         var id = state.Sequence + 1;
         var changes = Plan(session.Tabs, write);
         var operation = new Operation(id, write, requested.Tab, OperationPhase.Sending, changes, requested.At);
-        var patched = Patch(state, changes);
+        var patched = FollowCard(Patch(state, changes), requested);
 
         var next = patched with
         {
@@ -108,6 +122,36 @@ public static class WriteReducer
         };
 
         return new ReduceResult(next, [new ExecuteWriteEffect(id, write)]);
+    }
+
+    /// <summary>Opens Confirm mode; <c>y</c> runs the same request again, marked as confirmed.</summary>
+    private static ReduceResult Ask(AppState state, WriteRequested requested, string question)
+    {
+        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, requested with { Confirmed = true });
+        var asking = state with
+        {
+            Mode = InputMode.Confirm,
+            Confirm = confirm,
+            PendingKeys = string.Empty,
+            Message = null,
+        };
+
+        return new ReduceResult(asking, _noEffects);
+    }
+
+    /// <summary>
+    /// A card that changes status leaves its column: the cursor of the tab that started the move is dropped, so the
+    /// selection finds the card by key in its new column (and back again if the move is rolled back).
+    /// </summary>
+    private static AppState FollowCard(AppState state, WriteRequested requested)
+    {
+        if (requested.Request.Kind != OperationKind.Transition ||
+            ViewReducer.Find(state.Session.Tabs, requested.Tab) is not { Cursor: not null } tab)
+        {
+            return state;
+        }
+
+        return ViewReducer.Replace(state, tab with { Cursor = null });
     }
 
     private static string? BusyText(IReadOnlyList<Operation> operations, WriteRequest write)
@@ -200,7 +244,7 @@ public static class WriteReducer
     private static ReduceResult Unreachable(AppState state, Operation operation)
     {
         var text = operation.Request.UnreachableText;
-        var marked = MarkStale(state, operation.Keys);
+        var marked = operation.Request.ChangesRows ? MarkStale(state, operation.Keys) : state;
 
         return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)], true);
     }
@@ -222,12 +266,23 @@ public static class WriteReducer
             return CompleteCreation(state, operation, create, createdKey, rows);
         }
 
-        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        if (operation.Request is LinkWriteRequest)
+        {
+            return CompleteLink(state, operation);
+        }
+
+        var effects = new List<Effect>();
+
+        if (operation.Request.ChangesRows)
+        {
+            effects.Add(new InvalidateCacheEffect(operation.Keys));
+        }
+
         var replaced = ReplaceRows(state, rows);
-        var stale = MarkStale(replaced, operation.Keys);
+        var stale = operation.Request.ChangesRows ? MarkStale(replaced, operation.Keys) : replaced;
         var queued = QueueRankReload(stale, operation);
         var finished = Finish(queued, operation, true, effects, rows);
-        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+        var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
     }
@@ -284,6 +339,19 @@ public static class WriteReducer
         return rows.Count > 0 ? rows[0].Key : null;
     }
 
+    /// <summary>
+    /// Jira changed a link: no row shows links, so no row is replaced and no tab goes stale; the caches of both
+    /// issues are dropped and every open detail of either reloads.
+    /// </summary>
+    private static ReduceResult CompleteLink(AppState state, Operation operation)
+    {
+        var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
+        var finished = Finish(state, operation, false, effects);
+        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+
+        return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
     private static ReduceResult Failed(AppState state, WriteFailed failed)
     {
         if (failed.Error.IsOutcomeUnknown)
@@ -333,7 +401,7 @@ public static class WriteReducer
         var finished = Finish(queued, operation, false, effects);
 
         // A detail reply that landed during the write may hold the optimistic value: read the issue again.
-        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+        var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
         return new ReduceResult(reloaded with { Message = text }, effects);
     }

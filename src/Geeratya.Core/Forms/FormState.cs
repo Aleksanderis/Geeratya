@@ -1,3 +1,4 @@
+using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Create.Models;
 
 namespace Geeratya.Core.Forms;
@@ -15,6 +16,7 @@ namespace Geeratya.Core.Forms;
 /// <param name="OperationId">The write of the submit while it runs; the form shows Saving and ignores edits.</param>
 /// <param name="DiscardPending">Esc was pressed on a form with changes; waiting for y or n.</param>
 /// <param name="BrowserUrl">The issue page, shown with the fields the form cannot edit; null when unknown.</param>
+/// <param name="Suggest">The suggestion popup of the focused field while one is open, else null.</param>
 public sealed record FormState(
     FormTarget Target,
     IReadOnlyList<FormField> Fields,
@@ -24,7 +26,8 @@ public sealed record FormState(
     string? TopError,
     long? OperationId,
     bool DiscardPending,
-    string? BrowserUrl)
+    string? BrowserUrl,
+    SuggestionState? Suggest = null)
 {
     /// <summary>
     /// The issue types the create form offers while the user has not chosen one (the form then shows the type picker

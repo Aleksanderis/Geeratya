@@ -1,4 +1,6 @@
 using System.Globalization;
+using Geeratya.Core.Suggestions;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
@@ -14,6 +16,7 @@ public static class FormEditor
 
     private const string NoneLabel = "(none)";
 
+    private static readonly char[] _lineBreaks = ['\r', '\n'];
     private static readonly FieldOption _none = new(string.Empty, NoneLabel);
 
     /// <summary>
@@ -49,6 +52,11 @@ public static class FormEditor
             return field with { Entry = Bounded($"{field.Entry}{text}"), Cursor = 0 };
         }
 
+        if (FormFieldKinds.IsPicked(field.Kind))
+        {
+            return field with { Entry = Bounded($"{field.Entry}{FirstLine(text)}"), Error = null };
+        }
+
         return field with { Value = FormValue.OfText(Bounded($"{field.Value.Text}{text}")), Error = null };
     }
 
@@ -68,6 +76,11 @@ public static class FormEditor
         if (FormFieldKinds.IsChoice(field.Kind))
         {
             return field with { Entry = RemoveLast(field.Entry), Cursor = 0 };
+        }
+
+        if (FormFieldKinds.IsPicked(field.Kind))
+        {
+            return BackspacePicked(field);
         }
 
         return field with { Value = FormValue.OfText(RemoveLast(field.Value.Text)), Error = null };
@@ -100,6 +113,7 @@ public static class FormEditor
             FormFieldKind.Select => AcceptSelect(field),
             FormFieldKind.MultiSelect => new FormEdit(Toggle(field), false),
             FormFieldKind.Labels => AcceptLabels(field),
+            FormFieldKind.User or FormFieldKind.Parent => new FormEdit(field, field.Entry.Length == 0),
             _ => new FormEdit(field, true),
         };
     }
@@ -108,6 +122,55 @@ public static class FormEditor
     public static FormField Committed(FormField field)
     {
         return field.Kind == FormFieldKind.Labels ? CommitLabel(field) : field;
+    }
+
+    /// <summary>
+    /// Takes the suggestion the user accepted: a label is added to the labels, a person or issue becomes the value
+    /// (its name is kept as an option so the form can show it). The typing buffer is emptied.
+    /// </summary>
+    public static FormField Choose(FormField field, Suggestion suggestion)
+    {
+        if (!field.IsEditable)
+        {
+            return field;
+        }
+
+        if (field.Kind == FormFieldKind.Labels)
+        {
+            return CommitLabel(field with { Entry = suggestion.Id });
+        }
+
+        if (!FormFieldKinds.IsPicked(field.Kind))
+        {
+            return field;
+        }
+
+        var option = new FieldOption(suggestion.Id, SuggestionText.Of(suggestion));
+
+        return field with
+        {
+            Value = FormValue.OfChosen([suggestion.Id]),
+            Options = [.. field.Options.Where(other => other.Id != suggestion.Id), option],
+            Entry = string.Empty,
+            Error = null,
+        };
+    }
+
+    private static FormField BackspacePicked(FormField field)
+    {
+        if (field.Entry.Length > 0)
+        {
+            return field with { Entry = RemoveLast(field.Entry), Error = null };
+        }
+
+        return field with { Value = FormValue.Empty, Error = null };
+    }
+
+    private static string FirstLine(string text)
+    {
+        var end = text.IndexOfAny(_lineBreaks);
+
+        return end < 0 ? text : text[..end];
     }
 
     private static FormEdit AcceptSelect(FormField field)

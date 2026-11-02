@@ -10,4 +10,6 @@ public static class FormFieldIds
     public const string Labels = "labels";
     public const string Description = "description";
     public const string Parent = "parent";
+    public const string Priority = "priority";
+    public const string Assignee = "assignee";
 }

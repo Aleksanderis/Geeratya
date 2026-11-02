@@ -3,10 +3,13 @@ using Geeratya.Jira.Comments;
 using Geeratya.Jira.Create;
 using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
+using Geeratya.Jira.Links;
 using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Suggestions;
+using Geeratya.Jira.Transitions;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
 
@@ -32,11 +35,22 @@ public sealed class JiraServices
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
         Creates = new IssueCreateClient(transport);
+        Links = new LinkClient(transport);
+        Suggestions = new SuggestionClient(transport);
+        Transitions = new TransitionClient(transport);
         Ranks = new RankClient(transport);
     }
 
     /// <summary>Create metadata and the create call (the write is only called from the write handler).</summary>
     public IssueCreateClient Creates { get; }
+
+    /// <summary>Link types, and creating and removing issue links (writes: only called from the write handler).</summary>
+    public LinkClient Links { get; }
+    /// <summary>Lookups behind pickers: people, labels, components (reads).</summary>
+    public SuggestionClient Suggestions { get; }
+
+    /// <summary>Lists the transitions of an issue and performs one (the write only from the write handler).</summary>
+    public TransitionClient Transitions { get; }
 
     /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
     public EditClient Edits { get; }

@@ -178,7 +178,7 @@ public class CreateFormReducerTests
     }
 
     [Fact]
-    public void GivenATypeWithAParentField_WhenFieldsLoadForAnEpicChild_ThenTheParentShowsAsReadOnlyValue()
+    public void GivenATypeWithAParentField_WhenFieldsLoadForAnEpicChild_ThenTheParentIsPrefilledAndSearchable()
     {
         var opened = Palette(Tabbed(_epic), "create");
 
@@ -188,12 +188,12 @@ public class CreateFormReducerTests
         var parent = form.Fields.Single(field => field.Id == FormFieldIds.Parent);
         Assert.Equal("A-1", ((CreateFormTarget)form.Target).ParentKey);
         Assert.Equal(["A-1"], parent.Value.Chosen);
-        Assert.False(parent.IsEditable);
+        Assert.True(parent.IsEditable);
         Assert.False(form.IsDirty);
     }
 
     [Fact]
-    public void GivenATypeThatRequiresAParent_WhenNoParentWasGiven_ThenTheFormIsBlockedAndSendsNothing()
+    public void GivenATypeThatRequiresAParent_WhenNoParentWasGiven_ThenTheFieldSaysRequiredAndNothingIsSent()
     {
         var state = Loaded(Palette(Tabbed(_task), "create").State, SummaryField(), ParentField(true));
         state = Type(state, "Title");
@@ -201,7 +201,7 @@ public class CreateFormReducerTests
         var submitted = Press(state, "Ctrl-s", _start);
 
         Assert.Empty(submitted.Effects);
-        Assert.Contains("needs a parent", submitted.State.Session.Tabs[0].Form!.TopError);
+        Assert.NotNull(submitted.State.Session.Tabs[0].Form!.Fields.Single(field => field.Id == FormFieldIds.Parent).Error);
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class CreateFormReducerTests
         var sent = Press(Type(ChosenForm(_task, false, SummaryField()), "Title"), "Ctrl-s", _start);
         var id = sent.State.Session.Operations[0].Id;
 
-        var done = _reducer.Reduce(sent.State, new WriteSucceeded(id, _start, [], "A-7"));
+        var done = _reducer.Reduce(sent.State, new WriteSucceeded(id, _start, [], CreatedKey: "A-7"));
 
         Assert.Null(done.State.Session.Tabs[0].Form);
         Assert.Equal("Created A-7", done.State.Message);
@@ -310,7 +310,7 @@ public class CreateFormReducerTests
         var sent = Press(Type(state, "Title"), "Ctrl-s", _start);
         var id = sent.State.Session.Operations[0].Id;
 
-        var done = _reducer.Reduce(sent.State, new WriteSucceeded(id, _start, [], "A-7"));
+        var done = _reducer.Reduce(sent.State, new WriteSucceeded(id, _start, [], CreatedKey: "A-7"));
 
         var detail = Assert.Single(done.State.Session.Tabs[0].Detail);
         Assert.Equal("A-7", detail.Key);

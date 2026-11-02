@@ -1,6 +1,18 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i l  Link the issue to another issue                                                                            
+  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
+  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
+  Space i a  Assign the issue: search people, or unassign                                                               
+  Space i m  Assign the issue to me                                                                                     
+  Space g    Jump to an issue by key                                                                                    
+                                                                                                                        
+Help mode                                                                                                               
+  j          Move down                                                                                                  
+  Down       Move down                                                                                                  
+  k          Move up                                                                                                    
+  Up         Move up                                                                                                    
   ?          Show or hide help                                                                                          
   Esc        Close help                                                                                                 
   q          Close help                                                                                                 
@@ -21,16 +33,4 @@ Insert mode
   Enter      Accept the field and go to the next                                                                        
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
-  Ctrl-c     Cancel or close                                                                                            
-  Up         Previous source in the picker                                                                              
-  Ctrl-p     Previous source in the picker                                                                              
-  Down       Next source in the picker                                                                                  
-  Ctrl-n     Next source in the picker                                                                                  
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
-  Ctrl-s     Save the form                                                                                              
-  Ctrl-g     Open the new issue after it is created (on or off)                                                         
-  Ctrl-o     Open the issue page in the browser from the form                                                           
-                                                                                                                        
-Palette commands                                                                                                        
  HELP                                                                                            j down  k up  Esc close

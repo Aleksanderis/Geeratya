@@ -19,7 +19,8 @@ public static class NewIssues
 
         foreach (var change in request.Changes.Where(change => !change.Value.IsEmpty))
         {
-            if (change.FieldId == FormFieldIds.Summary)
+            // The parent has its own slot of the request, set from the form.
+            if (change.FieldId is FormFieldIds.Summary or FormFieldIds.Parent)
             {
                 continue;
             }
@@ -59,6 +60,7 @@ public static class NewIssues
             FormFieldKind.Select => CreateFieldValue.Choice(chosen[0]),
             FormFieldKind.MultiSelect => CreateFieldValue.Choices(chosen),
             FormFieldKind.Labels => CreateFieldValue.Labels(chosen),
+            FormFieldKind.User => CreateFieldValue.User(chosen[0]),
             _ => throw new NotSupportedException($"The field {change.FieldId} cannot be written."),
         };
     }

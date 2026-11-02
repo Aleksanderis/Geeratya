@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -17,7 +18,6 @@ public static class FormOverlay
     private const string LoadingText = "Loading fields…";
     private const string SavingText = "Saving…";
     private const string ChooseTypeText = "Choose the issue type";
-    private const string FromSelectionText = "set from the selection";
     private const string OpenAfterOnText = "on";
     private const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
@@ -34,6 +34,11 @@ public static class FormOverlay
     private const int Indent = 4;
     private const int OptionRows = 5;
     private const int ParagraphRows = 4;
+    private const int PopupRows = 5;
+    private const int PopupMargin = 2;
+    private const string SearchingText = "searching…";
+    private const string LookupFailedText = "lookup failed, showing what is loaded";
+    private const string NoMatchText = "No match";
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -43,6 +48,11 @@ public static class FormOverlay
         int width,
         int height)
     {
+        if (form is { IsLoading: true, Target.ShowsWhileLoading: false })
+        {
+            return body;
+        }
+
         var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
 
         if (boxWidth < 8 || height < MinimumBoxHeight)
@@ -50,7 +60,7 @@ public static class FormOverlay
             return body;
         }
 
-        var content = Content(form, boxWidth - 4 - Indent, keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser) ?? string.Empty);
+        var content = Content(form, boxWidth - 4 - Indent);
         var room = height - TopGap - 2;
         var footer = room >= FooterMinimumInner ? FooterHeight : 0;
         var inner = Math.Min(room, content.Lines.Count + footer);
@@ -172,6 +182,15 @@ public static class FormOverlay
             return $"{down}/{up} type   {choose} choose   {cancel} cancel";
         }
 
+        if (form.Suggest is { Items.Count: > 0 })
+        {
+            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
+            var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+
+            return $"{down}/{up} choose   {next}/{accept} accept   {cancel} close list";
+        }
+
         var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
             ? $"   {keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
             : string.Empty;
@@ -188,7 +207,7 @@ public static class FormOverlay
         return $"{text}   {open} open after: {state}";
     }
 
-    private static FormContent Content(FormState form, int valueWidth, string browserKey)
+    private static FormContent Content(FormState form, int valueWidth)
     {
         var lines = new List<StyledLine>();
         var focusStart = 0;
@@ -203,7 +222,7 @@ public static class FormOverlay
 
         for (var index = 0; index < form.Fields.Count; index++)
         {
-            var block = Block(form, index, valueWidth, browserKey);
+            var block = Block(form, index, valueWidth);
 
             if (index == form.Focus)
             {
@@ -251,17 +270,17 @@ public static class FormOverlay
         }
     }
 
-    private static List<StyledLine> Block(FormState form, int index, int valueWidth, string browserKey)
+    private static List<StyledLine> Block(FormState form, int index, int valueWidth)
     {
         var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
         var marker = focused ? ">" : " ";
         var required = field.Required ? " *" : string.Empty;
-        var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyNote(field)})";
+        var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
         var role = focused ? TextRole.Strong : TextRole.FieldLabel;
         var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}", role) };
 
-        lines.AddRange(ValueLines(field, focused, form.BrowserUrl is null ? null : browserKey, valueWidth));
+        lines.AddRange(ValueLines(field, focused, form, valueWidth));
 
         if (field.Error is not null)
         {
@@ -271,37 +290,21 @@ public static class FormOverlay
         return lines;
     }
 
-    private static List<StyledLine> ValueLines(FormField field, bool focused, string? browserKey, int valueWidth)
+    private static List<StyledLine> ValueLines(FormField field, bool focused, FormState form, int valueWidth)
     {
         if (!field.IsEditable)
         {
-            var shown = IsSelectedParent(field) ? string.Join(", ", field.Value.Chosen) : null;
-
-            if (shown is null && browserKey is { Length: > 0 })
-            {
-                shown = $"{browserKey} opens the issue in the browser";
-            }
-
-            return shown is null ? [] : [Indented(shown, TextRole.Muted)];
+            return [Indented(form.BrowserUrl ?? ReadOnlyText, TextRole.Muted)];
         }
 
         return field.Kind switch
         {
             FormFieldKind.Paragraph => ParagraphLines(field, focused, valueWidth),
             FormFieldKind.Select or FormFieldKind.MultiSelect => focused ? OptionLines(field) : [ChosenLine(field)],
-            FormFieldKind.Labels => LabelLines(field, focused, valueWidth),
+            FormFieldKind.Labels => [.. LabelLines(field, focused, valueWidth), .. PopupLines(focused, form, valueWidth)],
+            FormFieldKind.User or FormFieldKind.Parent => PickedLines(field, focused, form, valueWidth),
             _ => [TextLine(field, focused, valueWidth)],
         };
-    }
-
-    private static bool IsSelectedParent(FormField field)
-    {
-        return field.Kind == FormFieldKind.Parent && field.Value.Chosen.Count > 0;
-    }
-
-    private static string ReadOnlyNote(FormField field)
-    {
-        return IsSelectedParent(field) ? FromSelectionText : ReadOnlyText;
     }
 
     private static StyledLine TextLine(FormField field, bool focused, int valueWidth)
@@ -364,7 +367,7 @@ public static class FormOverlay
     /// <summary>The labels as tokens wrapped to the box; the buffer being typed ends the last line, caret in view.</summary>
     private static List<StyledLine> LabelLines(FormField field, bool focused, int valueWidth)
     {
-        var tokens = field.Value.Chosen.Select(label => $"[{label}]").ToList();
+        var tokens = field.Value.Chosen.Select(label => $"[{LabelOf(field, label)}]").ToList();
 
         if (focused)
         {
@@ -395,6 +398,59 @@ public static class FormOverlay
         rows.Add(current);
 
         return [.. rows.Select(row => Indented(row, TextRole.Editable))];
+    }
+
+    private static List<StyledLine> PickedLines(FormField field, bool focused, FormState form, int valueWidth)
+    {
+        if (!focused)
+        {
+            return [ChosenLine(field)];
+        }
+
+        return [.. LabelLines(field, true, valueWidth), .. PopupLines(true, form, valueWidth)];
+    }
+
+    /// <summary>The suggestion popup under the focused field: ranked rows, the cursor row marked, a status line.</summary>
+    private static List<StyledLine> PopupLines(bool focused, FormState form, int valueWidth)
+    {
+        if (!focused || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
+        {
+            return [];
+        }
+
+        var width = Math.Max(1, valueWidth - 2 - PopupMargin);
+        var margin = new string(' ', PopupMargin);
+        var lines = new List<StyledLine>();
+        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
+        var first = Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
+
+        foreach (var index in Enumerable.Range(first, shown))
+        {
+            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
+            var highlighted = index == cursor;
+            var pointer = highlighted ? ">" : " ";
+
+            lines.Add(Indented($"{margin}{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
+        }
+
+        if (PopupStatus(popup) is { } status)
+        {
+            lines.Add(Indented($"{margin}  {TextWidth.Fit(status.Text, width)}", status.Role));
+        }
+
+        return lines;
+    }
+
+    private static PopupNotice? PopupStatus(SuggestionState popup)
+    {
+        return popup.Status switch
+        {
+            SuggestionStatus.Loading => new PopupNotice(SearchingText, TextRole.Loading),
+            SuggestionStatus.Failed => new PopupNotice($"{LookupFailedText}: {popup.Error}", TextRole.Error),
+            SuggestionStatus.Loaded when popup.Items.Count == 0 => new PopupNotice(NoMatchText, TextRole.Muted),
+            _ => null,
+        };
     }
 
     private static List<StyledLine> OptionLines(FormField field)
@@ -453,6 +509,8 @@ public static class FormOverlay
     {
         return StyledLine.Of($"{new string(' ', Indent)}{text}", role);
     }
+
+    private sealed record PopupNotice(string Text, TextRole Role);
 
     private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength);
 }

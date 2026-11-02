@@ -51,7 +51,7 @@ public class FormOverlaySnapshotTests
 
         Assert.Contains(lines, line => line.Contains("! Required", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("(not editable here)", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("Ctrl-o opens the issue in the browser", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("https://", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
-    public void GivenACreateFormWithAParent_WhenBuildingTheFrame_ThenTheParentShowsReadOnlyAndOpenAfterIsInTheFooter()
+    public void GivenACreateFormWithAParent_WhenBuildingTheFrame_ThenTheParentShowsPrefilledAndOpenAfterIsInTheFooter()
     {
         var parent = FormField.Create("parent", "Parent", FormFieldKind.Parent, false, [])
             .WithInitial(FormValue.OfChosen(["A-1"]));
@@ -126,7 +126,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(form), 120, 36, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Create Task under A-1", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("Parent  (set from the selection)", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Parent", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Trim('│', ' ') == "A-1" || line.Contains("    A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
     }
@@ -144,6 +144,52 @@ public class FormOverlaySnapshotTests
             IsLoading = false,
             TypeChoices = types,
         };
+    }
+
+    [Fact]
+    public void GivenThePeoplePicker_WhenBuildingTheFrame_ThenTheTitleNamesTheIssueAndTheCurrentPersonShows()
+    {
+        var eve = new FieldOption("acc-eve", "Eve Example");
+        var field = FormField.Create("assignee", "Assignee", FormFieldKind.User, false, [eve])
+            .WithInitial(FormValue.OfChosen(["acc-eve"]));
+        var opened = FormState.Opened(new AssignFormTarget("A-1", null), 3, null);
+        var form = opened with { Fields = [field], IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Assign A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Eve Example", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenTheStatusPicker_WhenBuildingTheFrameAt80x24_ThenTheTitleTheFieldAndTheTransitionsShow()
+    {
+        var target = new TransitionPickTarget("A-1", [], null, [])
+            .With([Transition("21", "In Progress"), Transition("41", "Done")]);
+        var form = FormState.Opened(target, 3, null) with { Fields = target.Fields(), IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Change status of A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("> Move to *", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("( ) In Progress", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("( ) Done", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenACardMoveStillLoading_WhenBuildingTheFrame_ThenNoFormBoxShows()
+    {
+        var target = new TransitionPickTarget("A-1", ["2"], "In Progress", []);
+
+        var lines = FrameBuilder.Build(WithForm(FormState.Opened(target, 3, null)), 80, 24, _helpLines, _keymap);
+
+        Assert.DoesNotContain(lines, line => line.Contains("Move A-1 to In Progress", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Loading fields", StringComparison.Ordinal) && line.Contains('┌'));
+    }
+
+    private static Transition Transition(string id, string name)
+    {
+        return new Transition(id, name, new IssueStatus(id, name, "indeterminate"), false, true, []);
     }
 
     private static EditFormTarget Target()
