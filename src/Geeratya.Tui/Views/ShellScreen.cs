@@ -23,7 +23,7 @@ public sealed class ShellScreen : Window
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly Label _status;
-    private readonly IReadOnlyList<string> _helpLines;
+    private IReadOnlyList<string> _helpLines;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
@@ -61,6 +61,12 @@ public sealed class ShellScreen : Window
 
     /// <summary>The terminal width, which issue details are laid out for.</summary>
     public int BodyColumns => Math.Max(0, _size.Width);
+
+    /// <summary>Builds the help text again after the keymap was replaced.</summary>
+    public void RefreshHelp()
+    {
+        _helpLines = KeymapDocument.RenderHelpLines(_keymap);
+    }
 
     public void Render(AppState state, DateTimeOffset now)
     {

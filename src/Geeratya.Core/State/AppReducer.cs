@@ -31,12 +31,10 @@ public sealed class AppReducer
     ];
 
     private readonly KeymapTable _keymap;
-    private readonly int _helpLineCount;
 
     public AppReducer(KeymapTable keymap)
     {
         _keymap = keymap;
-        _helpLineCount = KeymapDocument.RenderHelpLines(keymap).Count;
     }
 
     public ReduceResult Reduce(AppState state, Command command)
@@ -64,6 +62,7 @@ public sealed class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
             _ => Result(state),
         };
     }
@@ -467,7 +466,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, _helpLineCount - 1)) };
+        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, KeymapDocument.RenderHelpLines(_keymap).Count - 1)) };
     }
 
     private static AppState Backspace(AppState state)
@@ -499,6 +498,7 @@ public sealed class AppReducer
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
+            _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
         };
     }
@@ -575,6 +575,21 @@ public sealed class AppReducer
         }
 
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+    }
+
+    private static ReduceResult KeysCommand(AppState state, string argument)
+    {
+        if (argument == "reload")
+        {
+            return new ReduceResult(state, [new ReloadKeymapEffect()]);
+        }
+
+        return Result(state with { Message = $"Usage: :{PaletteCommands.UsageOf(PaletteCommands.Keys)}" });
+    }
+
+    private static bool IsKeysCommand(string text)
+    {
+        return text == PaletteCommands.Keys || text.StartsWith($"{PaletteCommands.Keys} ", StringComparison.Ordinal);
     }
 
     private static bool IsProfileCommand(string text)

@@ -14,6 +14,7 @@ public static class PaletteCommands
     public const string Labels = "labels";
     public const string Status = "status";
     public const string Profile = "profile";
+    public const string Keys = "keys";
     public const string Help = "help";
     public const string Quit = "quit";
 
@@ -27,6 +28,7 @@ public static class PaletteCommands
         new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
         new(Profile, "profile add|list|switch <name>|remove <name>|check", "Manage Jira profiles"),
+        new(Keys, "keys reload", "Read keymap.json again and apply it"),
         new(Help, "help", "Show or hide help"),
         new(Quit, "quit", "Quit"),
     ];
