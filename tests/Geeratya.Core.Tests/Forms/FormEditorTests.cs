@@ -1,4 +1,5 @@
 using Geeratya.Core.Forms;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Tests.Forms;
@@ -40,42 +41,58 @@ public class FormEditorTests
     }
 
     [Fact]
-    public void GivenASingleChoiceThatIsNotRequired_WhenOpened_ThenNoneIsOfferedFirstAndClearsTheValue()
+    public void GivenASingleChoice_WhenChoosingNone_ThenTheValueIsClearedAndTheFilterEmptied()
+    {
+        var field = Field(FormFieldKind.Select) with { Value = FormValue.OfChosen(["2"]), Entry = "no" };
+
+        var cleared = FormEditor.Choose(field, new Suggestion(string.Empty, "(none)", null, false));
+
+        Assert.Empty(cleared.Value.Chosen);
+        Assert.Equal(string.Empty, cleared.Entry);
+    }
+
+    [Fact]
+    public void GivenASingleChoice_WhenChoosingAnOption_ThenItReplacesTheValue()
     {
         var field = Field(FormFieldKind.Select) with { Value = FormValue.OfChosen(["2"]) };
 
-        var visible = FormEditor.VisibleOptions(field);
-        var cleared = FormEditor.Accept(field);
+        var chosen = FormEditor.Choose(field, new Suggestion("3", "Alphabet", null, false));
 
-        Assert.Equal(["(none)", "Alpha", "Beta", "Alphabet"], visible.Select(option => option.Label));
-        Assert.Empty(cleared.Field.Value.Chosen);
-        Assert.True(cleared.Advance);
+        Assert.Equal(["3"], chosen.Value.Chosen);
     }
 
     [Fact]
-    public void GivenATypedFilter_WhenChoosing_ThenOnlyMatchesShowAndTheCursorPicksAmongThem()
-    {
-        var typed = FormEditor.Type(Field(FormFieldKind.Select), "alph");
-
-        var moved = FormEditor.Move(typed, 5);
-        var chosen = FormEditor.Accept(moved);
-
-        Assert.Equal(["Alpha", "Alphabet"], FormEditor.VisibleOptions(typed).Select(option => option.Label));
-        Assert.Equal(["3"], chosen.Field.Value.Chosen);
-        Assert.Equal(string.Empty, chosen.Field.Entry);
-    }
-
-    [Fact]
-    public void GivenAMultiChoice_WhenEnterIsPressedTwiceOnTheSameOption_ThenItIsToggledOnAndOff()
+    public void GivenAMultiChoice_WhenChoosingTwiceAndBackspacing_ThenChipsAreAddedOnceAndRemovedFromTheEnd()
     {
         var field = Field(FormFieldKind.MultiSelect);
 
-        var on = FormEditor.Accept(field);
-        var off = FormEditor.Accept(on.Field);
+        var one = FormEditor.Choose(field, new Suggestion("1", "Alpha", null, false));
+        var two = FormEditor.Choose(one, new Suggestion("2", "Beta", null, false));
+        var again = FormEditor.Choose(two, new Suggestion("2", "Beta", null, false));
+        var dropped = FormEditor.Backspace(again);
 
-        Assert.Equal(["1"], on.Field.Value.Chosen);
-        Assert.False(on.Advance);
-        Assert.Empty(off.Field.Value.Chosen);
+        Assert.Equal(["1", "2"], again.Value.Chosen);
+        Assert.Equal(["1"], dropped.Value.Chosen);
+    }
+
+    [Fact]
+    public void GivenASingleChoiceWithAFilter_WhenBackspacing_ThenTheFilterShrinksBeforeTheValueGoes()
+    {
+        var field = FormEditor.Type(Field(FormFieldKind.Select) with { Value = FormValue.OfChosen(["2"]) }, "a");
+
+        var filter = FormEditor.Backspace(field);
+        var value = FormEditor.Backspace(filter);
+
+        Assert.Equal(string.Empty, filter.Entry);
+        Assert.Equal(["2"], filter.Value.Chosen);
+        Assert.Empty(value.Value.Chosen);
+    }
+
+    [Fact]
+    public void GivenAChoiceField_WhenEnterIsPressedWithoutAPopupRow_ThenItMovesOn()
+    {
+        Assert.True(FormEditor.Accept(Field(FormFieldKind.Select)).Advance);
+        Assert.True(FormEditor.Accept(Field(FormFieldKind.MultiSelect)).Advance);
     }
 
     [Fact]

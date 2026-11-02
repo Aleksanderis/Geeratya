@@ -14,4 +14,7 @@ public enum SuggestionKind
 
     /// <summary>Issues by key or text (the parent field).</summary>
     Issues,
+
+    /// <summary>The allowed values of a select or multiple-choice field: matched locally, no Jira call.</summary>
+    Options,
 }

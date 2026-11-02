@@ -14,25 +14,7 @@ public static class FormEditor
     /// <summary>The longest text of a field.</summary>
     public const int MaxTextLength = 32767;
 
-    private const string NoneLabel = "(none)";
-
     private static readonly char[] _lineBreaks = ['\r', '\n'];
-    private static readonly FieldOption _none = new(string.Empty, NoneLabel);
-
-    /// <summary>
-    /// The options a choice field shows: those whose label contains the filter, and for a single choice that is not
-    /// required a first row that clears it (only while no filter is typed).
-    /// </summary>
-    public static IReadOnlyList<FieldOption> VisibleOptions(FormField field)
-    {
-        var matching = field.Options
-            .Where(option => option.Label.Contains(field.Entry, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        var offersNone = field is { Kind: FormFieldKind.Select, Required: false, Entry.Length: 0 };
-
-        return offersNone ? [_none, .. matching] : matching;
-    }
 
     /// <summary>Typed or pasted text goes to the value, the filter or the label buffer, as the kind says.</summary>
     public static FormField Type(FormField field, string text)
@@ -49,7 +31,7 @@ public static class FormEditor
 
         if (FormFieldKinds.IsChoice(field.Kind))
         {
-            return field with { Entry = Bounded($"{field.Entry}{text}"), Cursor = 0 };
+            return field with { Entry = Bounded($"{field.Entry}{FirstLine(text)}"), Error = null };
         }
 
         if (FormFieldKinds.IsPicked(field.Kind))
@@ -75,7 +57,7 @@ public static class FormEditor
 
         if (FormFieldKinds.IsChoice(field.Kind))
         {
-            return field with { Entry = RemoveLast(field.Entry), Cursor = 0 };
+            return BackspaceChoice(field);
         }
 
         if (FormFieldKinds.IsPicked(field.Kind))
@@ -86,20 +68,7 @@ public static class FormEditor
         return field with { Value = FormValue.OfText(RemoveLast(field.Value.Text)), Error = null };
     }
 
-    /// <summary>Moves the highlighted option of a choice field; stays inside the visible options.</summary>
-    public static FormField Move(FormField field, int delta)
-    {
-        if (!FormFieldKinds.IsChoice(field.Kind))
-        {
-            return field;
-        }
-
-        var last = Math.Max(0, VisibleOptions(field).Count - 1);
-
-        return field with { Cursor = Math.Clamp(field.Cursor + delta, 0, last) };
-    }
-
-    /// <summary>Enter: chooses or toggles the highlighted option, adds the typed label, or moves on.</summary>
+    /// <summary>Enter: adds the typed label, or moves on (a choice is taken from the suggestion popup).</summary>
     public static FormEdit Accept(FormField field)
     {
         if (!field.IsEditable)
@@ -110,8 +79,6 @@ public static class FormEditor
         return field.Kind switch
         {
             FormFieldKind.Paragraph => new FormEdit(Type(field, "\n"), false),
-            FormFieldKind.Select => AcceptSelect(field),
-            FormFieldKind.MultiSelect => new FormEdit(Toggle(field), false),
             FormFieldKind.Labels => AcceptLabels(field),
             FormFieldKind.User or FormFieldKind.Parent => new FormEdit(field, field.Entry.Length == 0),
             _ => new FormEdit(field, true),
@@ -140,6 +107,11 @@ public static class FormEditor
             return CommitLabel(field with { Entry = suggestion.Id });
         }
 
+        if (FormFieldKinds.IsChoice(field.Kind))
+        {
+            return ChooseOption(field, suggestion);
+        }
+
         if (!FormFieldKinds.IsPicked(field.Kind))
         {
             return field;
@@ -161,6 +133,39 @@ public static class FormEditor
         };
     }
 
+    // A single choice replaces its value (the "(none)" row clears it); a multiple choice adds a chip.
+    private static FormField ChooseOption(FormField field, Suggestion suggestion)
+    {
+        if (field.Kind == FormFieldKind.Select)
+        {
+            var value = suggestion.Id.Length == 0 ? FormValue.Empty : FormValue.OfChosen([suggestion.Id]);
+
+            return field with { Value = value, Entry = string.Empty, Error = null };
+        }
+
+        if (suggestion.Id.Length == 0 || field.Value.Chosen.Contains(suggestion.Id))
+        {
+            return field with { Entry = string.Empty };
+        }
+
+        var chosen = FormValue.OfChosen([.. field.Value.Chosen, suggestion.Id]);
+
+        return field with { Value = chosen, Entry = string.Empty, Error = null };
+    }
+
+    // Backspace edits the typed filter; on an empty filter it clears a single choice or drops the last chip.
+    private static FormField BackspaceChoice(FormField field)
+    {
+        if (field.Entry.Length > 0)
+        {
+            return field with { Entry = RemoveLast(field.Entry), Error = null };
+        }
+
+        var keep = field.Kind == FormFieldKind.Select ? 0 : Math.Max(0, field.Value.Chosen.Count - 1);
+
+        return field with { Value = FormValue.OfChosen(field.Value.Chosen.Take(keep)), Error = null };
+    }
+
     private static FormField BackspacePicked(FormField field)
     {
         if (field.Entry.Length > 0)
@@ -176,41 +181,6 @@ public static class FormEditor
         var end = text.IndexOfAny(_lineBreaks);
 
         return end < 0 ? text : text[..end];
-    }
-
-    private static FormEdit AcceptSelect(FormField field)
-    {
-        var visible = VisibleOptions(field);
-
-        if (visible.Count == 0)
-        {
-            return new FormEdit(field, true);
-        }
-
-        var option = visible[Math.Clamp(field.Cursor, 0, visible.Count - 1)];
-        var chosen = option.Id.Length == 0 ? FormValue.Empty : FormValue.OfChosen([option.Id]);
-
-        return new FormEdit(field with { Value = chosen, Entry = string.Empty, Cursor = 0, Error = null }, true);
-    }
-
-    private static FormField Toggle(FormField field)
-    {
-        var visible = VisibleOptions(field);
-
-        if (visible.Count == 0)
-        {
-            return field;
-        }
-
-        var id = visible[Math.Clamp(field.Cursor, 0, visible.Count - 1)].Id;
-        var chosen = field.Value.Chosen.Contains(id) ? Without(field.Value.Chosen, id) : [.. field.Value.Chosen, id];
-
-        return field with { Value = FormValue.OfChosen(chosen), Error = null };
-    }
-
-    private static List<string> Without(IReadOnlyList<string> chosen, string id)
-    {
-        return [.. chosen.Where(other => other != id)];
     }
 
     private static FormEdit AcceptLabels(FormField field)

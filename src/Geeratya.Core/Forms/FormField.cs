@@ -14,7 +14,6 @@ namespace Geeratya.Core.Forms;
 /// <param name="Value">The value as edited.</param>
 /// <param name="Initial">The value the form was opened with; only fields that differ are written.</param>
 /// <param name="Entry">The typing buffer: the filter of a choice field, the label being typed.</param>
-/// <param name="Cursor">The highlighted row of a choice field's visible options.</param>
 /// <param name="Error">Why the field is wrong (checked locally or refused by Jira), or null.</param>
 public sealed record FormField(
     string Id,
@@ -25,7 +24,6 @@ public sealed record FormField(
     FormValue Value,
     FormValue Initial,
     string Entry,
-    int Cursor,
     string? Error)
 {
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
@@ -58,7 +56,6 @@ public sealed record FormField(
             FormValue.Empty,
             FormValue.Empty,
             string.Empty,
-            0,
             null);
     }
 
