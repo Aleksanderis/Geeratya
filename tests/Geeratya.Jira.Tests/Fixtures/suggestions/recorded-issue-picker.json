@@ -1,0 +1,89 @@
+{
+  "sections": [
+    {
+      "id": "hs",
+      "issues": [],
+      "label": "History Search",
+      "msg": "No matching issues found"
+    },
+    {
+      "id": "cs",
+      "issues": [
+        {
+          "id": 10024,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "key": "GCM-17",
+          "keyHtml": "<b>GCM-1</b>7",
+          "summary": "Wrong date format in report",
+          "summaryText": "Wrong date format in report"
+        },
+        {
+          "id": 10023,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "key": "GCM-16",
+          "keyHtml": "<b>GCM-1</b>6",
+          "summary": "App crashes on empty profile",
+          "summaryText": "App crashes on empty profile"
+        },
+        {
+          "id": 10022,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "key": "GCM-15",
+          "keyHtml": "<b>GCM-1</b>5",
+          "summary": "Write the setup guide",
+          "summaryText": "Write the setup guide"
+        },
+        {
+          "id": 10021,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "key": "GCM-14",
+          "keyHtml": "<b>GCM-1</b>4",
+          "summary": "Pick a chart library",
+          "summaryText": "Pick a chart library"
+        },
+        {
+          "id": 10020,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "key": "GCM-13",
+          "keyHtml": "<b>GCM-1</b>3",
+          "summary": "Review onboarding copy",
+          "summaryText": "Review onboarding copy"
+        },
+        {
+          "id": 10019,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "key": "GCM-12",
+          "keyHtml": "<b>GCM-1</b>2",
+          "summary": "Export report as CSV",
+          "summaryText": "Export report as CSV"
+        },
+        {
+          "id": 10018,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "key": "GCM-11",
+          "keyHtml": "<b>GCM-1</b>1",
+          "summary": "Welcome screen",
+          "summaryText": "Welcome screen"
+        },
+        {
+          "id": 10017,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "key": "GCM-10",
+          "keyHtml": "<b>GCM-1</b>0",
+          "summary": "Sign up with email",
+          "summaryText": "Sign up with email"
+        },
+        {
+          "id": 10000,
+          "img": "/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "key": "GCM-1",
+          "keyHtml": "<b>GCM-1</b>",
+          "summary": "Survey task one",
+          "summaryText": "Survey task one"
+        }
+      ],
+      "label": "Current Search",
+      "sub": "Showing 9 of 9 matching issues"
+    }
+  ]
+}
