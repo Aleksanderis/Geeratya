@@ -29,6 +29,7 @@ Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and t
 - `Esc` backs out one level: it clears a half-typed sequence or the status message, closes an overlay or cancels Command and Confirm mode. In a tab it also pops the issue stack (issue detail back to the view it was opened from). In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
 - `Ctrl-c` quits from Normal, Help and Command mode (never from Confirm).
 - `q` quits only in Normal mode. In Help it closes the overlay; in Command mode it is text; in Confirm mode it does nothing.
+- Every quit (`q`, `Ctrl-c`, `:q`) asks first while writes are running (`1 write is still running; its result will not be shown. Quit anyway?`, `y`/`n`/`Esc`); so do `:profile switch` and removing the active profile.
 - Multi-key bindings (`g g`) show the typed prefix in the status line; any key that does not continue the binding drops it.
 - A key that no mode binds is ignored silently.
 

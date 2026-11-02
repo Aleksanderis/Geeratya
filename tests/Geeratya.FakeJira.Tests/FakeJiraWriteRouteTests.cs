@@ -135,6 +135,36 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAssign_WhenPutThenCleared_ThenTheIssueReadsWithTheAssigneeThenWithout()
+    {
+        Start(0);
+        var path = "/rest/api/3/issue/GTM-11";
+
+        var assigned = await Send(HttpMethod.Put, $"{path}/assignee", """{"accountId":"fake-account-1"}""");
+        var after = Parse(await _client.GetStringAsync($"{_baseUrl}{path}")).GetProperty("fields");
+        var cleared = await Send(HttpMethod.Put, $"{path}/assignee", """{"accountId":null}""");
+        var without = Parse(await _client.GetStringAsync($"{_baseUrl}{path}")).GetProperty("fields");
+
+        Assert.Equal(HttpStatusCode.NoContent, assigned.StatusCode);
+        Assert.Equal("Test User 1", after.GetProperty("assignee").GetProperty("displayName").GetString());
+        Assert.Equal("fake-account-1", after.GetProperty("assignee").GetProperty("accountId").GetString());
+        Assert.Equal(HttpStatusCode.NoContent, cleared.StatusCode);
+        Assert.Equal(JsonValueKind.Null, without.GetProperty("assignee").ValueKind);
+    }
+
+    [Fact]
+    public async Task GivenAssign_WhenIssueIsUnknownOrBodyIsEmpty_ThenItIsARecordedError()
+    {
+        Start(0);
+
+        var missing = await Send(HttpMethod.Put, "/rest/api/3/issue/ZZZ-1/assignee", """{"accountId":"x"}""");
+        var empty = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11/assignee", "{}");
+
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, empty.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenComment_WhenAddedEditedAndDeleted_ThenListFollowsEachStep()
     {
         Start(0);

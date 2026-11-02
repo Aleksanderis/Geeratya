@@ -6,6 +6,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
 
@@ -48,6 +49,7 @@ public sealed class AppReducer
             }),
             TextPasted pasted => Result(Paste(state, pasted.Text)),
             ViewCommand view => ViewReducer.Reduce(state, view),
+            WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
@@ -65,6 +67,19 @@ public sealed class AppReducer
     private static ReduceResult Result(AppState state)
     {
         return new ReduceResult(state, _noEffects);
+    }
+
+    /// <summary>Quits, but asks first while writes run: their results would be dropped.</summary>
+    private static ReduceResult Quit(AppState state)
+    {
+        if (WriteReducer.RunningText(state) is not { } running)
+        {
+            return new ReduceResult(state, _quitEffects);
+        }
+
+        var request = new ConfirmRequest($"{running}. Quit anyway?", ActionIds.Quit);
+
+        return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }
 
     private static string Join(string pending, string key)
@@ -171,7 +186,7 @@ public sealed class AppReducer
     {
         return action switch
         {
-            ActionIds.Quit => new ReduceResult(state, _quitEffects),
+            ActionIds.Quit => Quit(state),
             ActionIds.HelpToggle => Result(ToggleHelp(state)),
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
@@ -303,7 +318,7 @@ public sealed class AppReducer
         return text switch
         {
             "" => Result(normal),
-            "q" or "quit" => new ReduceResult(normal, _quitEffects),
+            "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
@@ -415,6 +430,14 @@ public sealed class AppReducer
             return ProfileReducer.Remove(normal, request.Target);
         }
 
-        return Apply(normal, request.ActionOnConfirm);
+        if (request.ActionOnConfirm == ProfileReducer.SwitchAction)
+        {
+            return ProfileReducer.ConfirmedSwitch(normal, request.Target);
+        }
+
+        // The quit that was asked for while writes ran: the answer was yes, so no second question.
+        return request.ActionOnConfirm == ActionIds.Quit
+            ? new ReduceResult(normal, _quitEffects)
+            : Apply(normal, request.ActionOnConfirm);
     }
 }

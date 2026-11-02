@@ -29,6 +29,7 @@ public sealed partial class FakeJiraRouter
     private const string CreatePath = "/rest/api/3/issue";
     private const string CommentPart = "comment";
     private const string TransitionsPart = "transitions";
+    private const string AssigneePart = "assignee";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;
 
@@ -218,6 +219,7 @@ public sealed partial class FakeJiraRouter
         {
             (Put, 1) => _writes.Edit(key, body),
             (Delete, 1) => _writes.Delete(key),
+            (Put, 2) when parts[1] == AssigneePart => _writes.Assign(key, body),
             (Post, 2) when parts[1] == TransitionsPart => _writes.Transition(key, body),
             (Post, 2) when parts[1] == CommentPart => _writes.AddComment(key, body),
             (Put, 3) when parts[1] == CommentPart => _writes.EditComment(key, parts[2], body),

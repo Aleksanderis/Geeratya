@@ -26,6 +26,11 @@ public sealed class FakeJiraWriteStore
     private const string NameName = "name";
     private const string ToName = "to";
     private const string StatusName = "status";
+    private const string AssigneeName = "assignee";
+    private const string AccountIdName = "accountId";
+    private const string DisplayNameName = "displayName";
+    private const string AutomaticAccountId = "-1";
+    private const string MyselfFixture = "myself/myself.json";
     private const string IssueTypeName = "issuetype";
     private const string ProjectName = "project";
     private const string TotalName = "total";
@@ -180,6 +185,30 @@ public sealed class FakeJiraWriteStore
             {
                 stored.Fields[field.Key] = field.Value?.DeepClone();
             }
+
+            return Empty(NoContent);
+        }
+    }
+
+    /// <summary>
+    /// <c>PUT issue/{key}/assignee</c>: an account id assigns (the display name is the recorded account's when the id
+    /// is its, else the id itself), a null id or the automatic <c>-1</c> unassigns.
+    /// </summary>
+    public FakeReply Assign(string key, string body)
+    {
+        if (!TryReadAccountId(body, out var accountId))
+        {
+            return Reply(BadRequest, MissingFieldsFixture);
+        }
+
+        lock (_lock)
+        {
+            if (Find(key) is not { } stored)
+            {
+                return Reply(NotFound, NotFoundFixture);
+            }
+
+            stored.Fields[AssigneeName] = AssigneeNode(accountId);
 
             return Empty(NoContent);
         }
@@ -409,6 +438,41 @@ public sealed class FakeJiraWriteStore
         {
             return null;
         }
+    }
+
+    private static bool TryReadAccountId(string body, out string? accountId)
+    {
+        accountId = null;
+
+        try
+        {
+            if (JsonNode.Parse(body) is not JsonObject { } parsed || !parsed.ContainsKey(AccountIdName))
+            {
+                return false;
+            }
+
+            accountId = StringOf(parsed[AccountIdName]);
+
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private JsonObject? AssigneeNode(string? accountId)
+    {
+        if (accountId is null or AutomaticAccountId)
+        {
+            return null;
+        }
+
+        var recorded = JsonNode.Parse(_readFixture(MyselfFixture))!;
+        var isMe = StringOf(recorded[AccountIdName]) == accountId;
+        var displayName = isMe ? StringOf(recorded[DisplayNameName]) : accountId;
+
+        return new JsonObject { [AccountIdName] = accountId, [DisplayNameName] = displayName };
     }
 
     private static void ApplyEdits(JsonNode node, StoredIssue stored)

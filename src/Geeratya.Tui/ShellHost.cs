@@ -6,6 +6,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
@@ -44,6 +45,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly ViewLoadHandler _viewLoads;
     private readonly IssueDetailLoadHandler _detailLoads;
     private readonly SourceLoadHandler _sourceLoads;
+    private readonly WriteHandler _writes;
     private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -70,6 +72,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _viewLoads = new ViewLoadHandler(_network);
         _detailLoads = new IssueDetailLoadHandler(_network);
         _sourceLoads = new SourceLoadHandler(_network);
+        _writes = new WriteHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
@@ -213,6 +216,14 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 _ = _sourceLoads.StartAsync(sources);
             }
+            else if (effect is ExecuteWriteEffect or VerifyWriteEffect)
+            {
+                _ = _writes.StartAsync(effect);
+            }
+            else if (effect is InvalidateCacheEffect invalidate)
+            {
+                InvalidateCaches(invalidate);
+            }
             else if (effect is WriteCacheEffect write)
             {
                 ActiveCache()?.Put(write.Key, write.View);
@@ -248,6 +259,24 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             _ = _connectionChecks.StartAsync(check);
         }
+    }
+
+    /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>
+    private void InvalidateCaches(InvalidateCacheEffect effect)
+    {
+        var cache = ActiveCache();
+
+        if (cache is null)
+        {
+            return;
+        }
+
+        foreach (var key in effect.Keys)
+        {
+            cache.RemoveIssue(key);
+        }
+
+        cache.RemoveViews();
     }
 
     /// <summary>The cache of the active profile, or null while there is none.</summary>

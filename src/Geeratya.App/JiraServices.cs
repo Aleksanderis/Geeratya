@@ -1,5 +1,6 @@
 using Geeratya.Jira.Boards;
 using Geeratya.Jira.Comments;
+using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
@@ -27,7 +28,11 @@ public sealed class JiraServices
         RemoteLinks = new RemoteLinkClient(transport);
         Boards = new BoardClient(transport);
         Filters = new FilterClient(transport);
+        Edits = new EditClient(transport);
     }
+
+    /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
+    public EditClient Edits { get; }
 
     /// <summary>Boards, board configuration, board issues and backlog (agile API).</summary>
     public BoardClient Boards { get; }

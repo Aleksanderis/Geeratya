@@ -203,6 +203,23 @@ public sealed class IssueCacheTests : IDisposable
     }
 
     [Fact]
+    public void GivenIssuesAndViews_WhenViewsAreRemoved_ThenIssueDetailsStay()
+    {
+        var folder = Path.Combine(_root, "p");
+        var key = new CacheKey(ViewSourceKind.Jql, "project = A");
+        using var cache = new SiteCache(folder);
+        cache.Put(key, new CachedView([], null, _saved));
+        cache.PutIssue(new CachedIssue(Detail("A-1", null), _saved));
+        cache.Flush();
+
+        cache.RemoveViews();
+        cache.Flush();
+
+        Assert.NotNull(cache.GetIssue("A-1"));
+        Assert.Null(cache.Get(key));
+    }
+
+    [Fact]
     public void GivenLowerCaseKey_WhenGettingIssue_ThenItIsFound()
     {
         var folder = Path.Combine(_root, "p");

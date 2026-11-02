@@ -3,6 +3,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -18,6 +19,7 @@ namespace Geeratya.Core.Views;
 public static class ViewReducer
 {
     private const string NoColumnsText = "This view has no columns layout";
+    private const string RefreshQueuedText = "Refresh after the write";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -438,7 +440,9 @@ public static class ViewReducer
     {
         var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
 
-        if (tab is null || !IsDue(state.Session.Link, tab, now))
+        // Writes first: a refresh under a running write would replace rows the write is about to settle. The due
+        // time stays in the past, so the first tick after the last operation ends refreshes.
+        if (state.Session.Operations.Count > 0 || tab is null || !IsDue(state.Session.Link, tab, now))
         {
             return new ReduceResult(state, _noEffects);
         }
@@ -479,7 +483,7 @@ public static class ViewReducer
             && tab.Rows.Count > ViewPaging.PageSize;
     }
 
-    private static AppState StartRefresh(AppState state, TabState tab, bool background, List<Effect> effects)
+    internal static AppState StartRefresh(AppState state, TabState tab, bool background, List<Effect> effects)
     {
         var requestId = state.Sequence + 1;
 
@@ -516,6 +520,12 @@ public static class ViewReducer
         if (tab.Load is Failed { Reason: LoadReason.NextPage } && tab.Rows.Count > 0 && tab.Next is not null)
         {
             return RequestNext(state, tab, effects);
+        }
+
+        if (state.Session.Operations.Count > 0)
+        {
+            // Not dropped: it runs when the last write ends (WriteReducer).
+            return Replace(state, tab with { RefreshQueued = true }) with { Message = RefreshQueuedText };
         }
 
         return StartRefresh(state, tab, false, effects);
@@ -642,8 +652,10 @@ public static class ViewReducer
             return GatherMore(state, tab, loading, combined, more, effects);
         }
 
+        // A reply that lands while a write runs (or started before one ended) keeps the tab's own row for its keys.
+        var merged = appended ? combined : WriteMerge.KeepHeldRows(state, tab, combined);
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
-        var rows = truncated ? combined.Take(ViewPaging.MaxRowsPerTab).ToArray() : combined;
+        var rows = truncated ? merged.Take(ViewPaging.MaxRowsPerTab).ToArray() : merged;
         var cursor = truncated ? null : loaded.Page.Next;
 
         var updated = tab with
@@ -656,7 +668,8 @@ public static class ViewReducer
             IsStale = false,
             LoadedAt = loaded.At,
             PendingRows = null,
-            KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : combined),
+            ProtectedKeys = [],
+            KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : merged),
             Failures = 0,
             Total = loaded.Page.Total ?? tab.Total,
             TotalIsApproximate = loaded.Page.Total is null && tab.TotalIsApproximate,
@@ -801,6 +814,7 @@ public static class ViewReducer
             RequestId = 0,
             IsStale = tab.Rows.Count > 0,
             PendingRows = null,
+            ProtectedKeys = [],
             Failures = failures,
             NextRefreshAt = nextRefresh,
         };

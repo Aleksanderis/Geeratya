@@ -1,6 +1,7 @@
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
 
@@ -25,6 +26,13 @@ public sealed record SiteSession(
     ConnectionState Connection,
     SourceLists Sources)
 {
+    /// <summary>
+    /// The writes that were sent and not yet settled, from every tab. Site level on purpose: exclusion must see all
+    /// tabs, and a tab closed after its write was sent must not forget it (<c>docs/architecture.md</c>, "Running
+    /// operations"). Dropped with the session on a profile change.
+    /// </summary>
+    public IReadOnlyList<Operation> Operations { get; init; } = [];
+
     public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked(), SourceLists.Empty);
 
     /// <summary>A session with no tabs for <paramref name="profile"/>.</summary>

@@ -57,6 +57,8 @@ public sealed class SiteCache : IDisposable
     private readonly Timer _timer;
     private long _stamp;
     private bool _disposed;
+    private bool _viewsRemoved;
+    private int _viewsRemovedEpoch;
     private bool _failureReported;
 
     public SiteCache(
@@ -111,6 +113,12 @@ public sealed class SiteCache : IDisposable
             if (_pending.TryGetValue(key, out var pending))
             {
                 return pending;
+            }
+
+            if (_viewsRemoved)
+            {
+                // Removed, the files are deleted by the next flush: not a hit.
+                return null;
             }
         }
 
@@ -217,6 +225,28 @@ public sealed class SiteCache : IDisposable
     }
 
     /// <summary>
+    /// Forgets every cached first page of a view: at once in memory, and the files are deleted with the next flush.
+    /// A write may have changed any issue, and the app cannot tell which cached pages hold it
+    /// (<c>docs/jira-layer.md</c>, "Cache keys"). A later <see cref="Put"/> caches again.
+    /// </summary>
+    public void RemoveViews()
+    {
+        lock (_memoryLock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _views.Clear();
+            _pending.Clear();
+            _viewsRemoved = true;
+            _viewsRemovedEpoch++;
+            _timer.Change(_debounce, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    /// <summary>
     /// Writes pending views and issues now (the debounce timer, and the exit of the application, call it).
     /// </summary>
     public void Flush()
@@ -226,13 +256,19 @@ public sealed class SiteCache : IDisposable
             Dictionary<CacheKey, CachedView> batch;
             List<CachedIssue> issues;
             List<string> removed;
+            bool removeViews;
+            int epoch;
 
             lock (_memoryLock)
             {
-                if (_disposed || _pending.Count + _pendingIssues.Count + _removedIssues.Count == 0)
+                if (_disposed || (!_viewsRemoved && _pending.Count + _pendingIssues.Count + _removedIssues.Count == 0))
                 {
                     return;
                 }
+
+                // The flag stays set until the files are gone, so a read in between is still a miss.
+                removeViews = _viewsRemoved;
+                epoch = _viewsRemovedEpoch;
 
                 batch = new Dictionary<CacheKey, CachedView>(_pending);
                 issues = [.. _pendingIssues.Values];
@@ -240,6 +276,12 @@ public sealed class SiteCache : IDisposable
                 _pending.Clear();
                 _pendingIssues.Clear();
                 _removedIssues.Clear();
+            }
+
+            if (removeViews)
+            {
+                DeleteViewFiles();
+                ClearViewsRemoved(epoch);
             }
 
             foreach (var key in removed)
@@ -265,6 +307,7 @@ public sealed class SiteCache : IDisposable
             _issues.Clear();
             _pendingIssues.Clear();
             _removedIssues.Clear();
+            _viewsRemoved = false;
         }
 
         _timer.Dispose();
@@ -279,6 +322,33 @@ public sealed class SiteCache : IDisposable
         lock (_diskLock)
         {
             Discard();
+        }
+    }
+
+    /// <summary>Ends the "views removed" state, unless another removal came in while the files were deleted.</summary>
+    private void ClearViewsRemoved(int epoch)
+    {
+        lock (_memoryLock)
+        {
+            if (_viewsRemovedEpoch == epoch)
+            {
+                _viewsRemoved = false;
+            }
+        }
+    }
+
+    private void DeleteViewFiles()
+    {
+        try
+        {
+            foreach (var path in Directory.EnumerateFiles(_folder, $"{ViewFilePrefix}*{FileExtension}"))
+            {
+                DeleteQuietly(path);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A folder that cannot be listed (or does not exist yet) has nothing to delete.
         }
     }
 
