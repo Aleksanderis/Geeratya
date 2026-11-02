@@ -143,9 +143,9 @@ public static class NetworkBanner
 
     private static string StaleText(TabState tab, DateTimeOffset now, bool compact)
     {
-        var shownAt = tab.Detail is [.., { IssueStale: true } top] ? top.LoadedAt : tab.LoadedAt;
+        var shownAt = tab.Detail is [.., { IssueStale: true } top] ? top.IssueSavedAt : tab.LoadedAt;
         var age = shownAt is { } loaded ? $"{Age(now - loaded)} old" : string.Empty;
-        var refreshing = tab.Load is Loading || tab.Detail is [.., { IssueStale: true }];
+        var refreshing = tab.Load is Loading || tab.Detail is [.., { IssueStale: true, IssueLoad: Loading }];
 
         if (compact)
         {

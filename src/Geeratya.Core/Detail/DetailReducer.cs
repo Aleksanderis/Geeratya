@@ -3,6 +3,7 @@ using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
 
@@ -138,7 +139,7 @@ internal static class DetailReducer
             state,
             cached.Tab,
             detail => detail.IssueRequest == cached.RequestId && detail.Issue is null
-                ? detail with { Issue = cached.Cached.Detail, IssueStale = true, LoadedAt = cached.Cached.SavedAt }
+                ? detail with { Issue = cached.Cached.Detail, IssueStale = true, IssueSavedAt = cached.Cached.SavedAt }
                 : null);
     }
 
@@ -332,7 +333,17 @@ internal static class DetailReducer
     {
         if (detail.IssueRequest == requestId)
         {
-            return detail with { IssueLoad = failure, IssueRequest = 0 };
+            // A cached copy of an issue that is gone or forbidden must not stay on screen.
+            return failure.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden
+                ? detail with
+                {
+                    Issue = null,
+                    IssueStale = false,
+                    IssueSavedAt = null,
+                    IssueLoad = failure,
+                    IssueRequest = 0,
+                }
+                : detail with { IssueLoad = failure, IssueRequest = 0 };
         }
 
         if (detail.CommentsRequest == requestId)
@@ -354,6 +365,7 @@ internal static class DetailReducer
         {
             Issue = loaded.Issue,
             IssueStale = false,
+            IssueSavedAt = null,
             IssueLoad = LoadState.Idle,
             IssueRequest = 0,
             LoadedAt = loaded.At,

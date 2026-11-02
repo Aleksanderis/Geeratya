@@ -32,6 +32,7 @@ public sealed class IssueDetailFlowTests : IDisposable
     private SiteConnections? _connections;
     private NetworkRunner? _runner;
     private IssueDetailLoadHandler? _handler;
+    private readonly List<string> _folders = [];
     private SiteCache? _cache;
 
     public void Dispose()
@@ -39,6 +40,20 @@ public sealed class IssueDetailFlowTests : IDisposable
         _runner?.Dispose();
         _connections?.Dispose();
         _cache?.Dispose();
+
+        foreach (var folder in _folders.Where(Directory.Exists))
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    private string CacheFolder()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), $"geeratya-detail-{Guid.NewGuid():N}");
+
+        _folders.Add(folder);
+
+        return folder;
     }
 
     private static IssueDetail Sample()
@@ -89,13 +104,13 @@ public sealed class IssueDetailFlowTests : IDisposable
     }
 
     [Fact]
-    public async Task GivenCachedIssueAndAnswerGated_WhenOpened_ThenTheCachedIssueIsPostedBeforeTheNetworkReplyAndIsReplacedByIt()
+    public async Task GivenCachedIssue_WhenOpened_ThenTheCachedIssueIsPostedBeforeTheNetworkReply()
     {
         _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json")
             .Fixture($"{Site}/GTM-5/comment", "adf/comments-gtm5.json")
             .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json");
         await ConnectAsync();
-        var cache = new SiteCache(Path.Combine(Path.GetTempPath(), $"geeratya-detail-{Guid.NewGuid():N}"));
+        var cache = new SiteCache(CacheFolder());
         _cache = cache;
         var fresh = await OpenAsync("GTM-5");
         var issue = Top(fresh).Issue!;
@@ -124,7 +139,7 @@ public sealed class IssueDetailFlowTests : IDisposable
     {
         _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json");
         await ConnectAsync();
-        _cache = new SiteCache(Path.Combine(Path.GetTempPath(), $"geeratya-detail-{Guid.NewGuid():N}"));
+        _cache = new SiteCache(CacheFolder());
         var opened = _reducer.Reduce(ListState("GTM-5"), new KeyPressed("Enter"));
         var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
         _posted.Clear();
@@ -141,7 +156,7 @@ public sealed class IssueDetailFlowTests : IDisposable
             new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)),
             (connection, token) => new JiraTransport(connection, token, _http)), _posted.Enqueue, CancellationToken.None);
         _handler = new IssueDetailLoadHandler(_runner);
-        _cache = new SiteCache(Path.Combine(Path.GetTempPath(), $"geeratya-detail-{Guid.NewGuid():N}"));
+        _cache = new SiteCache(CacheFolder());
         var opened = _reducer.Reduce(ListState("GTM-5"), new KeyPressed("Enter"));
         var effect = opened.Effects.OfType<LoadIssueDetailEffect>().Single();
         _cache.PutIssue(new CachedIssue(Sample(), DateTimeOffset.UnixEpoch));

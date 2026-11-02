@@ -36,6 +36,7 @@ namespace Geeratya.Core.Detail;
 /// <param name="Scroll">The first visible document line; follows the cursor.</param>
 /// <param name="Document">The laid-out lines for the last known width, null before the first layout.</param>
 /// <param name="IssueStale">The shown issue came from the cache; the network reply replaces it.</param>
+/// <param name="IssueSavedAt">When the cached issue was loaded from Jira; the age the STALE banner shows.</param>
 public sealed record DetailState(
     string Key,
     IssueSummary? Row,
@@ -58,7 +59,8 @@ public sealed record DetailState(
     int Cursor,
     int Scroll,
     DetailDocument? Document,
-    bool IssueStale = false)
+    bool IssueStale = false,
+    DateTimeOffset? IssueSavedAt = null)
 {
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(

@@ -64,7 +64,7 @@ public class IssueDetailReducerTests
         Assert.True(shown.IssueStale);
         Assert.IsType<Loading>(shown.IssueLoad);
         Assert.Equal(detail.IssueRequest, shown.IssueRequest);
-        Assert.Equal(savedAt, shown.LoadedAt);
+        Assert.Equal(savedAt, shown.IssueSavedAt);
         Assert.Contains("Old summary", Text(shown));
         Assert.Equal(NetworkStatusKind.Stale, TabStatus.Of(Active(cached), cached.Session.Link, _now).Kind);
 
@@ -76,6 +76,40 @@ public class IssueDetailReducerTests
         Assert.Contains("New summary", Text(replaced));
         Assert.DoesNotContain("Old summary", Text(replaced));
         Assert.NotEqual(NetworkStatusKind.Stale, TabStatus.Of(Active(fresh), fresh.Session.Link, _now).Kind);
+    }
+
+    [Fact]
+    public void GivenCachedIssueShown_WhenCommentsArrive_ThenTheStaleAgeStaysThatOfTheCachedCopy()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var savedAt = _now.AddHours(-5);
+        var cached = Deliver(opened.State, new IssueDetailCached(tab.Id, detail.IssueRequest, new CachedIssue(Detailed("A-1"), savedAt)));
+
+        var state = Deliver(cached, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, CommentPage(1), _now));
+
+        var shown = Active(state).Detail[0];
+        Assert.True(shown.IssueStale);
+        Assert.Equal(savedAt, shown.IssueSavedAt);
+    }
+
+    [Theory]
+    [InlineData(JiraErrorKind.NotFound)]
+    [InlineData(JiraErrorKind.Forbidden)]
+    public void GivenCachedIssueShown_WhenTheIssueIsGoneOrForbidden_ThenTheCachedCopyIsRemovedFromView(JiraErrorKind kind)
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var cached = Deliver(opened.State, new IssueDetailCached(tab.Id, detail.IssueRequest, new CachedIssue(Detailed("A-1"), _now)));
+
+        var failed = Deliver(cached, new IssueDetailFailed(tab.Id, detail.IssueRequest, new JiraError(kind, null, "x")));
+
+        var shown = Active(failed).Detail[0];
+        Assert.Null(shown.Issue);
+        Assert.False(shown.IssueStale);
+        Assert.IsType<Failed>(shown.IssueLoad);
     }
 
     [Fact]

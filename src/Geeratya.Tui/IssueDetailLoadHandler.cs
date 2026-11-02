@@ -34,7 +34,7 @@ public sealed class IssueDetailLoadHandler
     {
         if (cache is not null && effect is LoadIssueDetailEffect opening)
         {
-            // Off the UI thread and without a connection; posted before the network reply or failure.
+            // Off the UI thread and without a connection; posted before the network reply or failure, as for views.
             await _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
         }
 
