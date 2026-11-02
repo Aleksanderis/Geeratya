@@ -1,6 +1,7 @@
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Jql;
 using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transport;
@@ -162,9 +163,35 @@ public sealed class SuggestionHandler
                 source.KnownLabels,
                 cancel => LabelCacheFor(services).GetAsync(cancel),
                 token),
+            SuggestionKind.AssignableUsers when source.IssueKey is null && source.ProjectKey is { } project
+                => services.Suggestions.SearchAssignableUsersForProjectAsync(project, effect.Query, token),
             SuggestionKind.AssignableUsers => services.Suggestions.SearchAssignableUsersAsync(key, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
+            _ when source.IssueKey is null && source.ProjectKey is { } project
+                => SearchProjectIssuesAsync(services, project, effect.Query, token),
             _ => services.Suggestions.SearchIssuesAsync(effect.Query, null, token),
         };
+    }
+
+    // The parent of a new issue must belong to its project: the picker's history section is not narrowed by the
+    // JQL, so rows of other projects are dropped here (a row's detail is its issue key).
+    private static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchProjectIssuesAsync(
+        JiraServices services,
+        string projectKey,
+        string query,
+        CancellationToken token)
+    {
+        var result = await services.Suggestions.SearchIssuesAsync(query, JqlBuilder.Project(projectKey), token);
+
+        if (!result.IsSuccess)
+        {
+            return result;
+        }
+
+        var prefix = projectKey + "-";
+        IReadOnlyList<Suggestion> inProject =
+            [.. result.Value.Where(row => row.Detail?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true)];
+
+        return JiraResults.Success(inProject);
     }
 }

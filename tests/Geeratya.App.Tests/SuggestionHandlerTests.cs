@@ -1,3 +1,4 @@
+using Geeratya.Jira.Jql;
 using System.Net;
 using Geeratya.App.Tests.Fakes;
 using Geeratya.Core.Profiles;
@@ -230,6 +231,56 @@ public sealed class SuggestionHandlerTests
 
         Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
         Assert.EndsWith("/rest/api/3/issue/picker", Assert.Single(fixture.Http.Requests).AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenACreateFormUserQuery_WhenLookedUp_ThenProjectAssignableUsersAreAsked()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Users()));
+        var source = new SuggestionSource(SuggestionKind.AssignableUsers, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 5, source, "jo", TimeSpan.FromMilliseconds(250)));
+
+        Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.EndsWith("/rest/api/3/user/assignable/search", request.AbsolutePath);
+        Assert.Contains("project=GCM", request.Query);
+        Assert.DoesNotContain("issueKey", request.Query);
+    }
+
+    [Fact]
+    public async Task GivenACreateFormParentQuery_WhenLookedUp_ThenThePickerIsScopedToTheProject()
+    {
+        var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, picker));
+        var source = new SuggestionSource(SuggestionKind.Issues, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 6, source, "login", TimeSpan.FromMilliseconds(250)));
+
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.Contains("currentJQL=" + Uri.EscapeDataString(JqlBuilder.Project("GCM")), request.Query);
+    }
+
+    [Fact]
+    public async Task GivenACreateFormParentQuery_WhenThePickerReturnsOtherProjects_ThenOnlyTheProjectsIssuesAreOffered()
+    {
+        const string mixed = "{\"sections\":[{\"id\":\"cs\",\"label\":\"Current Search\",\"issues\":[{\"id\":1,\"key\":\"GCM-6\",\"summaryText\":\"In\"}]},"
+            + "{\"id\":\"hs\",\"label\":\"History Search\",\"issues\":[{\"id\":2,\"key\":\"OTHER-2\",\"summaryText\":\"Out\"}]}]}";
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, mixed));
+        var source = new SuggestionSource(SuggestionKind.Issues, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 7, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["GCM-6"], loaded.Items.Select(item => item.Id));
+    }
+
+    private static async Task RunAsync(Fixture fixture, SearchSuggestionsEffect effect)
+    {
+        var task = fixture.Handler.StartAsync(effect);
+        await fixture.WaitForTimersAsync(1);
+        fixture.Time.Advance(TimeSpan.FromMilliseconds(250));
+        await task;
     }
 
     private static void TwoSiteReads(ScriptedJiraHandler handler)
