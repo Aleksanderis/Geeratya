@@ -3,7 +3,7 @@
 #   scripts/smoke-mouse-overlays.sh --binary <geeratya>
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
-# source picker row (<space>t), jump prompt row, field form field and suggestion popup row, comment editor mention
+# source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
 # popup row, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
@@ -13,7 +13,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-mouse-overlays.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-mouse-overlays.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -62,8 +62,8 @@ send() {
     sleep 0.2
   done
 }
-# click <text> [button] [skip]: press and release (SGR, button 0 left, 2 right) on the first cell of a frame line that holds
-# <text>; skip lines to ignore from the top (default none, the last matching line is used).
+# click <text> [button]: press and release (SGR, button 0 left, 2 right) on the first cell of the last frame line that holds
+# <text>. The column is a character count, so it assumes single-width characters before the text (true for the fake's data).
 click() {
   local text=$1 button=${2:-0} line row col prefix seq
   line=$(frame | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to click"
