@@ -215,6 +215,7 @@ Fixtures: `adf/issue-gtm5-rich-description.json` (description and two comments),
 - Descriptions are `null` when empty, an ADF object otherwise; `fields.description` came back as a full `{version: 1, type: "doc", content: [...]}`. Comments: `GET /rest/api/3/issue/{key}/comment` is offset-paged (`startAt`, `maxResults: 100`, `total`, `comments[]`; `adf/comments-gtm5.json`). A comment has `id`, `author`, `body` (ADF), `created`, `updated`, `updateAuthor`, `jsdPublic`. The issue's `comment` field (`fields=comment`) holds the same, first page only. Posting a comment returns the created comment (201).
 - Mention ids and the visible mention text are personal data; the scrubber rewrites both (`scripts/scrub-fixture.py`).
 - `renderedFields` HTML exists but is not used (the app renders ADF itself).
+- The model and parser (#68) live in `src/Geeratya.Jira/Adf/`: `AdfParser.Parse(JsonElement | string | utf8 bytes)` returns an `AdfDocument` of typed `AdfNode` records (one per node type above, plus `AdfUnknownNode` with type name, own text and children) and typed `AdfMark` records (plus `AdfUnknownMark`). It reads `JsonElement` by hand, so it needs no serializer context. It never throws: `null`, wrong types, missing `content` and malformed JSON give an empty document (malformed sets `IsTruncated`), and nodes nested deeper than `AdfParser.MaxDepth` (64) are dropped with `IsTruncated` set, so recursion is bounded. `media` nodes are kept as nodes with their attributes and never resolved. Rendering is #80.
 
 ### Issue links, remote links, attachments
 
