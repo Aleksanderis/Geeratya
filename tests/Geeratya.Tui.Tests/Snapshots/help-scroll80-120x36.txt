@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Esc        Cancel or close                                                                                            
+  Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Confirm mode                                                                                                            
   y          Confirm                                                                                                    
@@ -19,6 +21,7 @@ Insert mode
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
+  Ctrl-g     Open the new issue after it is created (on or off)                                                         
   Alt-Enter  Save the form                                                                                              
   Left       Move the cursor left                                                                                       
   Right      Move the cursor right                                                                                      
@@ -30,7 +33,4 @@ Insert mode
 Palette commands                                                                                                        
   :jql [query]                                                                                                          
       Open a JQL query in a new tab (no query: pick from recent ones)                                                   
-  :filter [name]                                                                                                        
-      Open a saved filter in a new tab                                                                                  
-  :board [name]                                                                                                         
  HELP                                                                                            j down  k up  Esc close

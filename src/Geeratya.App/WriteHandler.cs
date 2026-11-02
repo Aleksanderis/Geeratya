@@ -3,6 +3,7 @@ using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
+using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search.Models;
@@ -167,6 +168,11 @@ public sealed class WriteHandler
     {
         try
         {
+            if (effect.Request is CreateRequest create)
+            {
+                return await CreateAsync(services, effect, create, token);
+            }
+
             if (effect.Request is CommentRequest comment)
             {
                 return await ExecuteCommentAsync(services, effect, comment, token);
@@ -198,6 +204,74 @@ public sealed class WriteHandler
     }
 
     /// <summary>
+    /// The create call. On success the new issue is read by key for its row (best effort: the search index may not
+    /// show it yet, the key still arrives). A refusal is a definite failure; a lost reply is never repeated.
+    /// </summary>
+    private async Task<Command> CreateAsync(
+        JiraServices services,
+        ExecuteWriteEffect effect,
+        CreateRequest create,
+        CancellationToken token)
+    {
+        NewIssue issue;
+
+        try
+        {
+            issue = NewIssues.For(create);
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            // Nothing was sent, so this is a definite failure and not a lost reply.
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return new WriteFailed(effect.OperationId, _clock.GetUtcNow(), error);
+        }
+
+        var result = await services.Creates.CreateIssueAsync(issue, token);
+
+        if (!result.IsSuccess)
+        {
+            return result.Error.IsOutcomeUnknown
+                ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), result.Error)
+                : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), result.Error);
+        }
+
+        var key = result.Value.Key;
+        var rows = await ReadKeysAsync(services, [key], token);
+        var shown = rows is null ? [] : rows.Where(row => row.Key == key).ToArray();
+
+        return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown, CreatedKey: key);
+    }
+
+    /// <summary>
+    /// A lost reply of a create: the recent issues of the account in the project are searched for the same type and
+    /// summary. Found means it was created; not found proves nothing (the index lags), so the outcome stays unknown.
+    /// </summary>
+    private async Task<Command?> VerifyCreateAsync(
+        JiraServices services,
+        VerifyWriteEffect effect,
+        CreateRequest create,
+        CancellationToken token)
+    {
+        try
+        {
+            var jql = JqlBuilder.WithOrder(
+                JqlBuilder.And(JqlBuilder.Project(create.ProjectKey), JqlBuilder.RecentOwnIssues()),
+                JqlOrder.CreatedDescending);
+            var result = await services.Search.SearchAsync(new IssueSearchQuery(jql), null, token);
+            var found = result.IsSuccess ? result.Value.Items.Where(create.IsShownBy).Take(1).ToArray() : [];
+            var outcome = found.Length > 0 ? VerifyOutcome.Applied : VerifyOutcome.Unreachable;
+
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, found);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // A read that breaks is a read that failed: it never changes what is known about the write.
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
+        }
+    }
+
+    /// <summary>
     /// A comment write: no row is read afterwards (it changes none); the reply carries the stored comment instead.
     /// </summary>
     private async Task<Command> ExecuteCommentAsync(
@@ -210,7 +284,7 @@ public sealed class WriteHandler
 
         if (reply.Error is not { } error)
         {
-            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], reply.Comment);
+            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], Comment: reply.Comment);
         }
 
         return error.IsOutcomeUnknown
@@ -353,7 +427,7 @@ public sealed class WriteHandler
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
 
-        var rows = await ReadAsync(services, effect.Request, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
         var shown = rows is null ? [] : rows.Where(effect.Request.IsShownBy).ToArray();
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown);
@@ -376,6 +450,11 @@ public sealed class WriteHandler
             return await VerifyDeleteAsync(services, effect, delete, token);
         }
 
+        if (effect.Request is CreateRequest create)
+        {
+            return await VerifyCreateAsync(services, effect, create, token);
+        }
+
         if (effect.Request is LinkWriteRequest linkRequest)
         {
             return await VerifyLinkAsync(services, effect, linkRequest, token);
@@ -387,7 +466,7 @@ public sealed class WriteHandler
             return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
         }
 
-        var rows = await ReadAsync(services, effect.Request, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
         var outcome = OutcomeOf(effect.Request, rows);
 
         return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, rows ?? []);
@@ -467,14 +546,14 @@ public sealed class WriteHandler
         return rows.All(request.IsShownBy) ? VerifyOutcome.Applied : VerifyOutcome.Unreachable;
     }
 
-    private static async Task<IReadOnlyList<IssueSummary>?> ReadAsync(
+    private static async Task<IReadOnlyList<IssueSummary>?> ReadKeysAsync(
         JiraServices services,
-        WriteRequest request,
+        IReadOnlyList<string> keys,
         CancellationToken token)
     {
         try
         {
-            var query = new IssueSearchQuery(JqlBuilder.KeyIn(request.Keys), request.Keys.Count);
+            var query = new IssueSearchQuery(JqlBuilder.KeyIn(keys), keys.Count);
             var result = await services.Search.SearchAsync(query, null, token);
 
             return result.IsSuccess ? result.Value.Items : null;

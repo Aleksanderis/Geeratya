@@ -13,6 +13,8 @@ public static class PaletteCommands
     public const string History = "history";
     public const string Tab = "tab";
     public const string Labels = "labels";
+    public const string Create = "create";
+    public const string CreateSubtask = "create subtask";
     public const string Edit = "edit";
     public const string Priority = "priority";
     public const string Assign = "assign";
@@ -35,6 +37,7 @@ public static class PaletteCommands
         new(Edit, "edit", "Edit the fields of the selected or shown issue (field form)"),
         new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
+        new(Create, "create [subtask]", "Create an issue, or a sub-task of the selected issue (field form)"),
         new(Priority, "priority", "Change the priority of the selected or shown issue (field form)"),
         new(Assign, "assign", "Assign the selected or shown issue: search people, or unassign"),
         new(AssignMe, "assign-me", "Assign the selected or shown issue to me"),

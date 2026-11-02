@@ -22,11 +22,11 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
 ┌─ Space i ──────────────────────────────────────┐                                                                      
 │ s         Change the status of the issue       │                                                                      
 │ d         Delete the issue (asks first; Jira c │                                                                      
+│ c         Create an issue (type picker, then t │                                                                      
+│ C         Create a sub-task of the selected is │                                                                      
 │ l         Link the issue to another issue      │                                                                      
 │ u         Remove the link under the cursor (as │                                                                      
 │ e         Edit fields of the issue (summary, l │                                                                      

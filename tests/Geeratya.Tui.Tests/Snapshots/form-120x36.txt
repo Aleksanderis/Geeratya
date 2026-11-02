@@ -11,7 +11,7 @@ A · 1 issue
           │     Low                                                                                          │          
           │   Eine sehr lange Bezeichnung für 日本語 das Feld Schätzung in Stunden pro Person                │          
           │     -                                                                                            │          
-          │   Team  (edit in browser)                                                                        │          
+          │   Team  (not editable here)                                                                      │          
           │     https://work.atlassian.net/browse/A-1                                                        │          
           │ ──────────────────────────────────────────────────────────────────────────────────────────────── │          
           │ Tab/Shift-Tab field   Ctrl-s save   Ctrl-o browser   Esc cancel                                  │          

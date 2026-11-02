@@ -49,6 +49,9 @@ public sealed partial class FakeJiraWriteStore
     private const int Forbidden = 403;
     private const int NotFound = 404;
 
+    private const string ParentName = "parent";
+    private const string InvalidParentFixture = "create/synthetic-create-400-invalid-parent.json";
+    private const string MissingParentFixture = "create/synthetic-create-400-missing-parent.json";
     private const string NotFoundFixture = "errors/issue-404.json";
     private const string DeleteForbiddenFixture = "errors/issue-delete-403-no-permission.json";
     private const string CreateTemplateFixture = "writes/create-gtm-task-reply.json";
@@ -141,8 +144,12 @@ public sealed partial class FakeJiraWriteStore
         }
 
         var projectKey = StringOf((fields[ProjectName] as JsonObject)?[KeyName]);
-        var typeName = StringOf((fields[IssueTypeName] as JsonObject)?[NameName]);
+        var typeObject = fields[IssueTypeName] as JsonObject;
+        var typeId = StringOf(typeObject?[IdName]);
+        var known = FakeIssueTypes.Find(projectKey, typeId, StringOf(typeObject?[NameName]));
+        var typeName = known?.Name ?? StringOf(typeObject?[NameName]);
         var summary = StringOf(fields[SummaryName]);
+        var parentKey = StringOf((fields[ParentName] as JsonObject)?[KeyName]);
 
         lock (_lock)
         {
@@ -156,14 +163,37 @@ public sealed partial class FakeJiraWriteStore
                 return Reply(BadRequest, NoSummaryFixture);
             }
 
+            if (known is { IsSubtask: true } && parentKey is null)
+            {
+                return Reply(BadRequest, MissingParentFixture);
+            }
+
+            if (known is { TakesParent: false } && parentKey is not null)
+            {
+                return Reply(BadRequest, InvalidParentFixture);
+            }
+
             var number = _nextNumber[projectKey]++;
             var key = $"{projectKey}-{number.ToString(CultureInfo.InvariantCulture)}";
             var stored = new StoredIssue(key, (_nextId++).ToString(CultureInfo.InvariantCulture), true)
             {
                 IssueType = typeName,
+                IssueTypeInfo = known,
             };
+
+            foreach (var field in fields.Where(field => !IsSetByCreate(field.Key)))
+            {
+                stored.Fields[field.Key] = field.Value?.DeepClone();
+            }
+
             stored.Fields[SummaryName] = JsonValue.Create(summary);
             stored.Fields[LabelsName] = fields[LabelsName]?.DeepClone() ?? new JsonArray();
+
+            if (parentKey is not null)
+            {
+                stored.Fields[ParentName] = new JsonObject { [KeyName] = parentKey };
+            }
+
             _issues[key] = stored;
 
             var reply = JsonNode.Parse(_readFixture(CreateTemplateFixture))!;
@@ -655,13 +685,32 @@ public sealed partial class FakeJiraWriteStore
         return Find(key)?.Comments.FirstOrDefault(entry => entry[IdName]?.GetValue<string>() == commentId);
     }
 
+    private static bool IsSetByCreate(string fieldId)
+    {
+        return fieldId is ProjectName or IssueTypeName or SummaryName or LabelsName or ParentName;
+    }
+
+    private static JsonObject IssueTypeNode(StoredIssue stored)
+    {
+        var node = new JsonObject { [NameName] = stored.IssueType };
+
+        if (stored.IssueTypeInfo is { } info)
+        {
+            node[IdName] = info.Id;
+            node["subtask"] = info.IsSubtask;
+            node["hierarchyLevel"] = info.HierarchyLevel;
+        }
+
+        return node;
+    }
+
     private JsonObject CreatedIssueNode(StoredIssue stored)
     {
         var status = stored.Status ?? StatusAfter(stored.Key, InitialStatusTransitionId);
         var projectKey = stored.Key[..stored.Key.IndexOf('-')];
         var fields = new JsonObject
         {
-            [IssueTypeName] = new JsonObject { [NameName] = stored.IssueType },
+            [IssueTypeName] = IssueTypeNode(stored),
             [ProjectName] = new JsonObject { [KeyName] = projectKey },
             [StatusName] = status?.DeepClone(),
         };

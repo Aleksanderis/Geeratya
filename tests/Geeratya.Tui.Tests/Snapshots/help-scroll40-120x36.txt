@@ -19,6 +19,8 @@ Help
   Space k b  Rank the issue to the bottom of the list or column                                                         
   Space k k  Pick up the issue, then drop it at the issue under the cursor                                              
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space i c  Create an issue (type picker, then the form)                                                               
+  Space i C  Create a sub-task of the selected issue                                                                    
   Space i l  Link the issue to another issue                                                                            
   Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
   Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
@@ -31,6 +33,4 @@ Help mode
   Down       Move down                                                                                                  
   k          Move up                                                                                                    
   Up         Move up                                                                                                    
-  ?          Show or hide help                                                                                          
-  Esc        Close help                                                                                                 
  HELP                                                                                            j down  k up  Esc close

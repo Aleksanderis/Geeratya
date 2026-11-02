@@ -21,6 +21,9 @@ public sealed class StoredIssue
 
     public string IssueType { get; set; } = "Task";
 
+    /// <summary>The type as the create metadata lists it, when the create named a known type id; else null.</summary>
+    public FakeIssueType? IssueTypeInfo { get; set; }
+
     /// <summary>The new value of each edited field, by field id.</summary>
     public Dictionary<string, JsonNode?> Fields { get; } = [];
 

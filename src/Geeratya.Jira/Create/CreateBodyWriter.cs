@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Geeratya.Jira.Adf;
 using Geeratya.Jira.Create.Models;
 
 namespace Geeratya.Jira.Create;
@@ -27,7 +28,7 @@ internal static class CreateBodyWriter
             if (!string.IsNullOrWhiteSpace(issue.Description))
             {
                 writer.WritePropertyName(CreateFieldIds.Description);
-                WriteAdf(writer, issue.Description);
+                WriteText(writer, issue.Description, issue.DescriptionIsMarkdown);
             }
 
             if (!string.IsNullOrWhiteSpace(issue.ParentKey))
@@ -61,6 +62,9 @@ internal static class CreateBodyWriter
                 break;
             case CreateFieldValueKind.RichText:
                 WriteAdf(writer, value.Values[0]);
+                break;
+            case CreateFieldValueKind.Markdown:
+                WriteText(writer, value.Values[0], true);
                 break;
             case CreateFieldValueKind.ChoiceId:
                 WriteObjectWith(writer, "id", value.Values[0]);
@@ -110,6 +114,18 @@ internal static class CreateBodyWriter
         }
 
         writer.WriteEndArray();
+    }
+
+    private static void WriteText(Utf8JsonWriter writer, string text, bool isMarkdown)
+    {
+        if (isMarkdown)
+        {
+            AdfJsonWriter.Write(writer, AdfMarkdownParser.Parse(text));
+        }
+        else
+        {
+            WriteAdf(writer, text);
+        }
     }
 
     private static void WriteAdf(Utf8JsonWriter writer, string text)

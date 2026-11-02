@@ -58,6 +58,8 @@ public static class ActionCatalog
         new(ActionIds.RankBottom, "Rank the issue to the bottom of the list or column"),
         new(ActionIds.RankTo, "Pick up the issue, then drop it at the issue under the cursor"),
         new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
+        new(ActionIds.IssueCreate, "Create an issue (type picker, then the form)"),
+        new(ActionIds.IssueCreateSubtask, "Create a sub-task of the selected issue"),
         new(ActionIds.IssueLink, "Link the issue to another issue"),
         new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)"),
         new(ActionIds.IssueJump, "Jump to an issue by key"),
@@ -74,6 +76,7 @@ public static class ActionCatalog
         new(ActionIds.FormFieldNext, "Next field of the form"),
         new(ActionIds.FormFieldPrevious, "Previous field of the form"),
         new(ActionIds.FormSubmit, "Save the form"),
+        new(ActionIds.FormOpenAfter, "Open the new issue after it is created (on or off)"),
         new(ActionIds.FormOpenBrowser, "Open the issue page in the browser from the form"),
     ];
 
@@ -106,6 +109,7 @@ public static class ActionCatalog
         ActionIds.FormFieldNext,
         ActionIds.FormFieldPrevious,
         ActionIds.FormSubmit,
+        ActionIds.FormOpenAfter,
         ActionIds.FormOpenBrowser,
     ];
 

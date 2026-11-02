@@ -13,6 +13,51 @@ public sealed class IssueCreateClientTests
     private const string MetaPath = "/rest/api/3/issue/createmeta";
     private const string IssuePath = "/rest/api/3/issue";
 
+    [Fact]
+    public async Task GivenADateAndADateTimeField_WhenGettingFields_ThenTheyAreDistinctKinds()
+    {
+        const string meta =
+            """{"startAt":0,"maxResults":50,"total":2,"fields":[{"fieldId":"customfield_1","name":"Day","required":false,"schema":{"type":"date"}},{"fieldId":"customfield_2","name":"Moment","required":false,"schema":{"type":"datetime"}}]}""";
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, $"{MetaPath}/GCM/issuetypes/10010", FakeResponse.Ok(meta));
+
+        var result = await new IssueCreateClient(fixture.Transport)
+            .GetFieldsAsync("GCM", "10010", CancellationToken.None);
+
+        Assert.Equal(CreateFieldKind.Date, result.Value[0].Kind);
+        Assert.Equal(CreateFieldKind.DateTime, result.Value[1].Kind);
+    }
+
+    [Fact]
+    public async Task GivenMarkdownDescriptionAndDateTime_WhenCreating_ThenBodyHasStructuredAdfAndAnOffsetDateTime()
+    {
+        using var fixture = ServingCreate("writes/create-gtm-task-reply.json");
+        var moment = new DateTimeOffset(2026, 12, 1, 9, 30, 0, TimeSpan.FromHours(2));
+
+        await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
+            new NewIssue(
+                "GTM",
+                "10015",
+                "Title",
+                "# Plan\n\n- one\n- two",
+                null,
+                new Dictionary<string, CreateFieldValue>
+                {
+                    ["customfield_2"] = CreateFieldValue.DateTime(moment),
+                    ["customfield_3"] = CreateFieldValue.Markdown("**bold**"),
+                },
+                true),
+            CancellationToken.None);
+
+        using var body = JsonDocument.Parse(Assert.Single(fixture.Handler.Requests).Body!);
+        var fields = body.RootElement.GetProperty("fields");
+        var content = fields.GetProperty("description").GetProperty("content");
+        Assert.Equal("heading", content[0].GetProperty("type").GetString());
+        Assert.Equal("bulletList", content[1].GetProperty("type").GetString());
+        Assert.Equal("2026-12-01T09:30:00.000+0200", fields.GetProperty("customfield_2").GetString());
+        Assert.Equal("doc", fields.GetProperty("customfield_3").GetProperty("type").GetString());
+    }
+
     [Theory]
     [InlineData("GCM", "createmeta-issuetypes-gcm", "Sub-task")]
     [InlineData("GTM", "createmeta-issuetypes-gtm", "Subtask")]

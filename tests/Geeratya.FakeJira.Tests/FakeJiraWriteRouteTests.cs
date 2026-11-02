@@ -303,6 +303,84 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         Assert.Contains(expectedField, names);
     }
 
+    [Theory]
+    [InlineData("GCM", "10007")]
+    [InlineData("GTM", "10011")]
+    public async Task GivenEitherProject_WhenCreateMetadataIsRead_ThenTypesAndFieldsAreServed(string project, string subtaskId)
+    {
+        Start(0);
+
+        var types = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/createmeta/{project}/issuetypes"));
+        var fields = Parse(await _client.GetStringAsync(
+            $"{_baseUrl}/rest/api/3/issue/createmeta/{project}/issuetypes/{subtaskId}"));
+
+        Assert.Equal(5, types.GetProperty("issueTypes").GetArrayLength());
+        Assert.Contains(
+            fields.GetProperty("fields").EnumerateArray(),
+            field => field.GetProperty("fieldId").GetString() == "parent");
+    }
+
+    [Fact]
+    public async Task GivenAnUnknownProjectOrType_WhenCreateMetadataIsRead_ThenItIsNotFound()
+    {
+        Start(0);
+
+        var project = await _client.GetAsync($"{_baseUrl}/rest/api/3/issue/createmeta/ZZZ/issuetypes");
+        var type = await _client.GetAsync($"{_baseUrl}/rest/api/3/issue/createmeta/GCM/issuetypes/99999");
+
+        Assert.Equal(HttpStatusCode.NotFound, project.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, type.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenASubtaskTypeId_WhenCreatedWithAParent_ThenTheIssueShowsTypeAndParentAndIsFoundByKey()
+    {
+        Start(0);
+        const string body =
+            """{"fields":{"project":{"key":"GCM"},"issuetype":{"id":"10007"},"summary":"Child","parent":{"key":"GCM-6"},"description":{"type":"doc","version":1,"content":[]}}}""";
+
+        var created = await Send(HttpMethod.Post, "/rest/api/3/issue", body);
+        var key = Parse(await created.Content.ReadAsStringAsync()).GetProperty("key").GetString();
+        var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/{key}"));
+        var search = await _client.GetStringAsync(
+            $"{_baseUrl}/rest/api/3/search/jql?jql={Uri.EscapeDataString($"key in ({key})")}");
+
+        var fields = issue.GetProperty("fields");
+        Assert.Equal("10007", fields.GetProperty("issuetype").GetProperty("id").GetString());
+        Assert.True(fields.GetProperty("issuetype").GetProperty("subtask").GetBoolean());
+        Assert.Equal("GCM-6", fields.GetProperty("parent").GetProperty("key").GetString());
+        Assert.Contains("Child", search, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("GCM", "10007")]
+    [InlineData("GTM", "10011")]
+    public async Task GivenASubtaskWithoutParent_WhenCreated_ThenJiraRefusesAtTheParentField(string project, string typeId)
+    {
+        Start(0);
+
+        var response = await Send(
+            HttpMethod.Post,
+            "/rest/api/3/issue",
+            $$$"""{"fields":{"project":{"key":"{{{project}}}"},"issuetype":{"id":"{{{typeId}}}"},"summary":"Child"}}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("\"parent\"", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenAnEpicWithAParent_WhenCreated_ThenJiraRefusesTheParent()
+    {
+        Start(0);
+
+        var response = await Send(
+            HttpMethod.Post,
+            "/rest/api/3/issue",
+            """{"fields":{"project":{"key":"GTM"},"issuetype":{"id":"10012"},"summary":"Epic","parent":{"key":"GTM-9"}}}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     public void Dispose()
     {
         _server?.Dispose();

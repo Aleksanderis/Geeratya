@@ -264,7 +264,7 @@ public sealed class FieldUpdate
         writer.WriteEndObject();
     }
 
-    private static string? FormatDateTime(DateTimeOffset? value)
+    internal static string? FormatDateTime(DateTimeOffset? value)
     {
         if (value is not { } moment)
         {

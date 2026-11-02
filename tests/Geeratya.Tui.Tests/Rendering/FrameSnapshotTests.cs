@@ -8,7 +8,7 @@ public class FrameSnapshotTests
     private static readonly string[] _sections =
         ["Normal mode", "Help mode", "Command mode", "Confirm mode", "Insert mode", "Palette commands", ":quit"];
 
-    private static readonly int[] _scrolls = [0, 20, 40, 60, 80, 112];
+    private static readonly int[] _scrolls = [0, 20, 40, 60, 80, 112, 116];
 
     public static TheoryData<string, string> Snapshots
     {

@@ -24,10 +24,29 @@ public static partial class IssueUrls
     }
 
     /// <summary>
+    /// The page of a project in the browser (<c>https://site/browse/PROJ</c>). Null when the key is not a valid
+    /// project key.
+    /// </summary>
+    public static Uri? BrowseProject(JiraConnection connection, string projectKey)
+    {
+        if (!ProjectKeyPattern().IsMatch(projectKey))
+        {
+            return null;
+        }
+
+        var site = connection.SiteUrl;
+
+        return new Uri($"{site.GetLeftPart(UriPartial.Authority)}{BrowsePath}{projectKey}");
+    }
+
+    /// <summary>
     /// True for <c>PROJ-123</c>: an upper-case project key, a hyphen and a number. Lower-case keys, which Jira would
     /// resolve, are not accepted: a caller that takes typed input upper-cases it first.
     /// </summary>
     public static bool IsValidKey(string? key) => key is { Length: > 0 and <= 255 } && KeyPattern().IsMatch(key);
+
+    [GeneratedRegex(@"^[A-Z][A-Z0-9_]*\z", RegexOptions.CultureInvariant)]
+    private static partial Regex ProjectKeyPattern();
 
     [GeneratedRegex(@"^[A-Z][A-Z0-9_]*-[0-9]+\z", RegexOptions.CultureInvariant)]
     private static partial Regex KeyPattern();

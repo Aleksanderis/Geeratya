@@ -4,6 +4,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transitions.Models;
 using Geeratya.Tui.Rendering;
@@ -49,8 +50,8 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(), 120, 36, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("! Required", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("(edit in browser)", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("net/browse/A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("(not editable here)", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("https://", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -99,6 +100,50 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(form), 40, 24, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END_", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenTheTypePicker_WhenBuildingTheFrame_ThenTheTypesAndTheirKeysShow()
+    {
+        var lines = FrameBuilder.Build(WithForm(PickerForm()), 80, 24, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Create issue in A", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("> Task", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("  Epic", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Enter choose", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Choose the issue type", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenACreateFormWithAParent_WhenBuildingTheFrame_ThenTheParentShowsPrefilledAndOpenAfterIsInTheFooter()
+    {
+        var parent = FormField.Create("parent", "Parent", FormFieldKind.Parent, false, [])
+            .WithInitial(FormValue.OfChosen(["A-1"]));
+        var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, true, []);
+        var target = new CreateFormTarget("A", "A-1", false, new CreateIssueType("10", "Task", string.Empty, 0, false));
+        var form = FormState.Opened(target, 3, null) with { Fields = [summary, parent], IsLoading = false };
+
+        var lines = FrameBuilder.Build(WithForm(form), 120, 36, _helpLines, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Create Task under A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Parent", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Trim('│', ' ') == "A-1" || line.Contains("    A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
+    }
+
+    private static FormState PickerForm()
+    {
+        CreateIssueType[] types =
+        [
+            new("10", "Task", string.Empty, 0, false),
+            new("11", "Epic", string.Empty, 1, false),
+        ];
+
+        return FormState.Opened(new CreateFormTarget("A", null, false, null), 3, null) with
+        {
+            IsLoading = false,
+            TypeChoices = types,
+        };
     }
 
     [Fact]

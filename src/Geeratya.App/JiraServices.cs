@@ -1,5 +1,6 @@
 using Geeratya.Jira.Boards;
 using Geeratya.Jira.Comments;
+using Geeratya.Jira.Create;
 using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Links;
@@ -33,11 +34,15 @@ public sealed class JiraServices
         Boards = new BoardClient(transport);
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
+        Creates = new IssueCreateClient(transport);
         Links = new LinkClient(transport);
         Suggestions = new SuggestionClient(transport);
         Transitions = new TransitionClient(transport);
         Ranks = new RankClient(transport);
     }
+
+    /// <summary>Create metadata and the create call (the write is only called from the write handler).</summary>
+    public IssueCreateClient Creates { get; }
 
     /// <summary>Link types, and creating and removing issue links (writes: only called from the write handler).</summary>
     public LinkClient Links { get; }

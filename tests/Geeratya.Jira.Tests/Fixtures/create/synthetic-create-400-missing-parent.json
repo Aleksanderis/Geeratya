@@ -1,0 +1,6 @@
+{
+  "errorMessages": [],
+  "errors": {
+    "parent": "Parent is required for this issue type."
+  }
+}

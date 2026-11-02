@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i l  Link the issue to another issue                                                                            
+  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
   Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
   Space i a  Assign the issue: search people, or unassign                                                               
   Space i m  Assign the issue to me                                                                                     
@@ -31,6 +33,4 @@ Insert mode
   Enter      Accept the field and go to the next                                                                        
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
-  Ctrl-c     Cancel or close                                                                                            
-  Up         Previous row in the picker                                                                                 
  HELP                                                                                            j down  k up  Esc close

@@ -44,4 +44,13 @@ public abstract record FormTarget
 
     /// <summary>The write for the changed fields of a valid form.</summary>
     public abstract WriteRequest Request(IReadOnlyList<FieldChange> changes);
+
+    /// <summary>
+    /// The target once its fields are known: a target may adapt to the metadata (a create drops the parent when the
+    /// issue type takes none). The default is the target itself.
+    /// </summary>
+    public virtual FormTarget Loaded(IReadOnlyList<FormField> fields)
+    {
+        return this;
+    }
 }

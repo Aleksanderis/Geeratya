@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Jira.Edit.Models;
 
 namespace Geeratya.Jira.Create.Models;
 
@@ -24,6 +25,15 @@ public sealed record CreateFieldValue
 
     /// <summary>Plain text written as an ADF document, one paragraph per line.</summary>
     public static CreateFieldValue RichText(string text) => new(CreateFieldValueKind.RichText, [text]);
+
+    /// <summary>
+    /// Markdown-like text (the editor's own syntax) written as ADF by the converter of <c>Geeratya.Jira.Adf</c>.
+    /// </summary>
+    public static CreateFieldValue Markdown(string text) => new(CreateFieldValueKind.Markdown, [text]);
+
+    /// <summary>A moment, written with its offset (<c>+0200</c>) as Jira reads a date-time field.</summary>
+    public static CreateFieldValue DateTime(DateTimeOffset moment) =>
+        new(CreateFieldValueKind.Text, [FieldUpdate.FormatDateTime(moment)!]);
 
     /// <summary>One allowed value, by id.</summary>
     public static CreateFieldValue Choice(string id) => new(CreateFieldValueKind.ChoiceId, [id]);

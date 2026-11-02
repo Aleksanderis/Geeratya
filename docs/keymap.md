@@ -63,6 +63,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space k b` | Rank the issue to the bottom of the list or column |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i c` | Create an issue (type picker, then the form) |
+| `Space i C` | Create a sub-task of the selected issue |
 | `Space i l` | Link the issue to another issue |
 | `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) |
 | `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
@@ -115,6 +117,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Ctrl-g` | Open the new issue after it is created (on or off) |
 | `Alt-Enter` | Save the form |
 | `Left` | Move the cursor left |
 | `Right` | Move the cursor right |
@@ -136,6 +139,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
+| `:create [subtask]` | Create an issue, or a sub-task of the selected issue (field form) |
 | `:priority` | Change the priority of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |

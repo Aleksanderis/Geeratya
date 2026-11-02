@@ -53,6 +53,8 @@ public static class ActionIds
     public const string RankBottom = "rank.bottom";
     public const string RankTo = "rank.to";
     public const string IssueDelete = "issue.delete";
+    public const string IssueCreate = "issue.create";
+    public const string IssueCreateSubtask = "issue.create-subtask";
     public const string IssueLink = "issue.link";
     public const string IssueUnlink = "issue.unlink";
     public const string IssueEdit = "issue.edit";
@@ -72,5 +74,6 @@ public static class ActionIds
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";
+    public const string FormOpenAfter = "form.open-after";
     public const string FormOpenBrowser = "form.open-browser";
 }

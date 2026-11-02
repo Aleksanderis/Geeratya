@@ -26,7 +26,8 @@ public sealed record OperationPhaseChanged(long OperationId, OperationPhase Phas
 
 /// <summary>
 /// Jira accepted the write; <paramref name="Rows"/> are the issues read again afterwards (empty when that read
-/// failed: the tabs then reload on their own). Applied only while the operation exists.
+/// failed: the tabs then reload on their own). Applied only while the operation exists. A create carries the key
+/// Jira gave the new issue in <paramref name="CreatedKey"/>, which the read may not show yet.
 /// <paramref name="Comment"/> is the stored comment of an add or edit of a comment, null for other writes.
 /// </summary>
 // ReSharper disable NotAccessedPositionalProperty.Global (the time is part of every reply; later issues log it)
@@ -34,7 +35,8 @@ public sealed record WriteSucceeded(
     long OperationId,
     DateTimeOffset At,
     IReadOnlyList<IssueSummary> Rows,
-    IssueComment? Comment = null) : WriteCommand;
+    IssueComment? Comment = null,
+    string? CreatedKey = null) : WriteCommand;
 
 /// <summary>Jira refused the write or it was not sent: nothing was applied, the optimistic rows are undone.</summary>
 public sealed record WriteFailed(long OperationId, DateTimeOffset At, WriteError Error) : WriteCommand;

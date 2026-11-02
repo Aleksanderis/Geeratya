@@ -69,6 +69,9 @@ public static class JqlBuilder
     /// <summary><c>project = "KEY"</c>, always quoted so a key that is a JQL reserved word still works.</summary>
     public static string Project(string projectKey) => $"project = {Quote(projectKey)}";
 
+    /// <summary>Issues the current account reported in the last ten minutes (the check of a lost create).</summary>
+    public static string RecentOwnIssues() => "reporter = currentUser() AND created >= -10m";
+
     public static string IssueTypeEpic() => IssueType(EpicIssueType);
 
     public static string IssueType(string name) => $"issuetype = {Quote(name)}";
