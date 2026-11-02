@@ -1,6 +1,11 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
+  Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
@@ -25,12 +30,7 @@ Insert mode
   Tab        Next field of the form                                                                                     
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
+  Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
-  :filter [name]                                                                                                        
-      Open a saved filter in a new tab                                                                                  
-  :board [name]                                                                                                         
-      Open a board as columns in a new tab                                                                              
  HELP                                                                                            j down  k up  Esc close

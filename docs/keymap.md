@@ -54,6 +54,11 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space i s` | Change the status of the issue |
 | `Alt-l` | Move the card to the next column |
 | `Alt-h` | Move the card to the previous column |
+| `Alt-k` | Rank the issue up (a count moves it that many places) |
+| `Alt-j` | Rank the issue down (a count moves it that many places) |
+| `Space k t` | Rank the issue to the top of the list or column |
+| `Space k b` | Rank the issue to the bottom of the list or column |
+| `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
 
 ## Help mode
@@ -101,6 +106,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |
+| `Ctrl-o` | Open the issue page in the browser from the form |
 
 ## Palette commands
 

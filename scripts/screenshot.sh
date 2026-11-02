@@ -21,6 +21,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Scenarios named detail-relations-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
+# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -50,6 +51,9 @@ all_scenarios=(
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "backlog;120;36;dark;:backlog GCM|;GCM"
   "filter;120;36;dark;:filter Filter for GCM|;GCM"
+  "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
+  "rank-board;120;36;dark;:board GCM|};Ranked"
+  "rank-board-team;120;36;dark;:board GTM|};Ranked"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )
 
@@ -132,6 +136,10 @@ capture_scenario() {
     key=${keys:index:1}
     if [ "$key" = "|" ]; then
       tmux -L "$socket" send-keys -t s Enter
+    elif [ "$key" = "}" ]; then
+      tmux -L "$socket" send-keys -t s M-j
+    elif [ "$key" = "{" ]; then
+      tmux -L "$socket" send-keys -t s M-k
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi
