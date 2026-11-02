@@ -872,6 +872,8 @@ public static class ViewReducer
             Next = null,
             PendingRows = null,
             Truncated = false,
+            Total = null,
+            TotalIsApproximate = false,
             Scroll = 0,
             Cursor = null,
             KeyWidth = 0,

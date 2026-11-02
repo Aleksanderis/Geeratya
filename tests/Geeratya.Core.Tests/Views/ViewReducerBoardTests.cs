@@ -105,6 +105,29 @@ public class ViewReducerBoardTests
     }
 
     [Fact]
+    public void GivenBoardPageWithTotal_WhenItArrives_ThenTheTabHoldsTheExactTotal()
+    {
+        var opened = Open(Start(), ViewSourceKind.Board);
+
+        var tab = Reply(opened, Page(3, PageCursor.Offset(3)) with { Total = 9 }).State.Session.Tabs[0];
+
+        Assert.Equal(9, tab.Total);
+        Assert.False(tab.TotalIsApproximate);
+    }
+
+    [Fact]
+    public void GivenBoardTab_WhenAnApproximateCountArrives_ThenItIsIgnored()
+    {
+        var opened = Open(Start(), ViewSourceKind.Board);
+        var loaded = Reply(opened, Page(3, PageCursor.Offset(3)) with { Total = 9 });
+        var id = loaded.State.Session.Tabs[0].Id;
+
+        var counted = new AppReducer(DefaultKeymap.Load()).Reduce(loaded.State, new ViewTotalLoaded(id, 500));
+
+        Assert.Equal(9, counted.State.Session.Tabs[0].Total);
+    }
+
+    [Fact]
     public void GivenBoardChangedMidWalk_WhenANextPageRepeatsAHeldCard_ThenTheCardIsNotShownTwice()
     {
         var opened = Open(Start(), ViewSourceKind.Board);

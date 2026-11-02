@@ -29,7 +29,8 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenTwoPages_WhenLoadingFirstThenContinuing_ThenPagesComeInOrderWithTheRequestId()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
 
         await fixture.Handler.StartAsync(Load("project = A", null, 11));
         var first = Assert.IsType<ViewPageLoaded>(fixture.Posted[0]);
@@ -50,7 +51,8 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenMorePages_WhenLoadingFirstPage_ThenTheApproximateCountFollowsThePage()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count));
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count));
 
         await fixture.Handler.StartAsync(Load("project = A", null, 3));
 
@@ -64,7 +66,8 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenCountCallFails_WhenLoadingFirstPage_ThenOnlyThePageIsPosted()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.InternalServerError, BadJql));
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.Forbidden, BadJql));
 
         await fixture.Handler.StartAsync(Load("project = A", null, 3));
 
@@ -221,7 +224,8 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenReducerAndHandler_WhenOpeningAJqlViewAndScrollingToTheEnd_ThenAllPagesLoadInOrder()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
         var reducer = new AppReducer(DefaultKeymap.Load());
         var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_a), Session = SiteSession.Empty(_a) };
 
