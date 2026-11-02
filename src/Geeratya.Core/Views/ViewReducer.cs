@@ -1,6 +1,7 @@
 using Geeratya.Core.State;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Views;
 
@@ -25,8 +26,9 @@ public static class ViewReducer
             ViewLayoutChanged changed => ChangeLayout(state, changed),
             ViewportChanged viewport => ChangeViewport(state, viewport.Rows),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
+            SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
-            ViewLoadFailed failed => LoadFailed(state, failed),
+            ViewLoadFailed failed => LoadFailed(state, failed, effects),
             _ => state,
         };
 
@@ -122,7 +124,16 @@ public static class ViewReducer
     {
         var tab = Find(state.Session.Tabs, id);
 
-        if (tab is null || tab.Cold || tab.Truncated || tab.Next is null || tab.Load is Loading)
+        return tab is null ? state : RequestNext(state, tab, effects);
+    }
+
+    /// <summary>
+    /// Issues the next page when the tab can take one: a cursor exists, nothing is in flight (one page per tab) and
+    /// the rows are not cold or capped.
+    /// </summary>
+    private static AppState RequestNext(AppState state, TabState tab, List<Effect> effects)
+    {
+        if (tab.Cold || tab.Truncated || tab.Next is null || tab.Load is Loading)
         {
             return state;
         }
@@ -130,7 +141,52 @@ public static class ViewReducer
         var requestId = state.Sequence + 1;
         var loading = tab with { Load = new Loading(LoadReason.NextPage), RequestId = requestId };
 
-        effects.Add(new LoadViewPageEffect(id, tab.Definition, tab.Next, requestId, LoadReason.NextPage, false));
+        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, tab.Next, requestId, LoadReason.NextPage, false));
+
+        return Replace(state, loading) with { Sequence = requestId };
+    }
+
+    /// <summary>
+    /// The automatic trigger: rows exist, the tab is idle (a failed tab waits for an explicit retry, so a held key
+    /// never hammers a failing Jira) and the selection is within one screen of the last loaded row (the last row
+    /// itself counts when the height is unknown).
+    /// </summary>
+    private static bool WantsNextPage(AppState state, TabState tab)
+    {
+        if (state.Session.Active != tab.Id || tab.Rows.Count == 0 || tab.Load is not IdleState)
+        {
+            return false;
+        }
+
+        return tab.Selected >= tab.Rows.Count - Math.Max(1, tab.VisibleRows);
+    }
+
+    private static AppState MoveSelection(AppState state, SelectionMoved moved, List<Effect> effects)
+    {
+        var tab = Find(state.Session.Tabs, moved.Tab);
+
+        if (tab is null || tab.Rows.Count == 0)
+        {
+            return state;
+        }
+
+        var index = Math.Clamp(moved.Index, 0, tab.Rows.Count - 1);
+        var selected = tab with { Selected = index, SelectedKey = tab.Rows[index].Key };
+        var next = Replace(state, selected);
+
+        return WantsNextPage(next, selected) ? RequestNext(next, selected, effects) : next;
+    }
+
+    /// <summary>
+    /// A continued load came back with a rejected page token: start again at the first page, keeping the rows on
+    /// screen and the selection by issue key, instead of showing an error.
+    /// </summary>
+    private static AppState Restart(AppState state, TabState tab, List<Effect> effects)
+    {
+        var requestId = state.Sequence + 1;
+        var loading = tab with { Load = new Loading(LoadReason.Retry), RequestId = requestId, Next = null };
+
+        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, null, requestId, LoadReason.Retry, false));
 
         return Replace(state, loading) with { Sequence = requestId };
     }
@@ -164,7 +220,11 @@ public static class ViewReducer
 
         var selected = appended ? updated : KeepSelection(updated);
 
-        return EnforceTotal(Replace(state, selected), effects);
+        var enforced = EnforceTotal(Replace(state, selected), effects);
+        var current = Find(enforced.Session.Tabs, selected.Id)!;
+
+        // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
+        return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
     }
 
     /// <summary>Over the cap, or exactly at it with more pages behind: the tab stops loading more.</summary>
@@ -173,13 +233,18 @@ public static class ViewReducer
         return count > ViewPaging.MaxRowsPerTab || (count == ViewPaging.MaxRowsPerTab && next is not null);
     }
 
-    private static AppState LoadFailed(AppState state, ViewLoadFailed failed)
+    private static AppState LoadFailed(AppState state, ViewLoadFailed failed, List<Effect> effects)
     {
         var tab = Find(state.Session.Tabs, failed.Tab);
 
-        if (tab is null || tab.RequestId != failed.RequestId || tab.Load is not Loading)
+        if (tab is null || tab.RequestId != failed.RequestId || tab.Load is not Loading loading)
         {
             return state;
+        }
+
+        if (failed.Error.Kind == JiraErrorKind.PageExpired && loading.Reason == LoadReason.NextPage)
+        {
+            return Restart(state, tab, effects);
         }
 
         var message = LoadErrorText.For(failed.Error);

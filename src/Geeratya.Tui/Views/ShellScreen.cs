@@ -46,6 +46,12 @@ public sealed class ShellScreen : Window
         ViewportChanged += OnViewportChanged;
     }
 
+    /// <summary>Raised when the body height changes after a resize; the host reports it as a viewport fact.</summary>
+    public event Action<int>? BodyRowsChanged;
+
+    /// <summary>The rows the body can show: the window height without the status line.</summary>
+    public int BodyRows => Math.Max(0, _size.Height - 1);
+
     public void Render(AppState state)
     {
         _state = state;
@@ -73,6 +79,7 @@ public sealed class ShellScreen : Window
 
         _size = size;
         Render(_state);
+        BodyRowsChanged?.Invoke(BodyRows);
     }
 
     private static Scheme CreateScheme(ResolvedStyle style)
