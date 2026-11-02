@@ -340,16 +340,16 @@ internal static class DetailReducer
 
     /// <summary>
     /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
-    /// breadcrumb row is 0), without scrolling. Rows outside the document change nothing.
+    /// breadcrumb row is 0), without scrolling. Null for rows outside the document.
     /// </summary>
-    public static AppState PlaceCursor(AppState state, TabState tab, int bodyRow)
+    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
     {
         var top = tab.Detail[^1];
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
 
         if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows || line >= document.Lines.Count)
         {
-            return state;
+            return null;
         }
 
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));

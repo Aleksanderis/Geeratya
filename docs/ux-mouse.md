@@ -4,14 +4,14 @@ Part of the UX spec; start at [ux.md](ux.md). Model: the mouse note of the owner
 
 ## Principle
 
-Mouse input is optional and never the only way: everything doable by mouse is doable by keyboard and the reverse. A gesture on an area becomes the **action id** a key would produce, and the same reducer handler runs it (the `ActionRequested` command, which a wheel notch repeats 3 times like `3j`). There is no second code path for the mouse.
+Mouse input is optional and never the only way: everything doable by mouse is doable by keyboard and the reverse. A gesture on an area becomes the **action id** a key would produce, and the same reducer handler runs it (the `ActionRequested` command, which a wheel notch repeats 3 times like `3j`). There is no second code path for the mouse; the only commands of its own are `PointerPlaced` (a click places the cursor, see below) and `TabActivated`, and both drop a half-typed chord and count like an action does.
 
 ## Layers
 
 1. The terminal driver reports SGR mouse events (Terminal.Gui enables them; no setting is needed).
 2. `MouseFlagTranslator` (Tui, `Input/`) turns the toolkit's flags into a `MouseGesture` (click, double-click, right-click, Ctrl-click, wheel up or down). Presses, releases, moves, other buttons and a sideways wheel are ignored.
-3. `MouseHitTester` (Core, pure) turns a cell and a `MouseContext` (size, header rows, overlay open, issue open) into a `MouseTarget`: the tab bar row, the banner row, the body (lists or detail) and the status line.
-4. `DefaultMouseMap` (Core) gives the row for the target and gesture; `MouseResolver` makes the `ActionRequested` command from it.
+3. `MouseHitTester` (Core, pure) turns a cell and a `MouseContext` (size, header rows, overlay open, issue open, the cells of each tab and whether the banner shows a line) into a `MouseTarget`: the tab bar row, the banner row, the body (lists or detail) and the status line.
+4. `DefaultMouseMap` (Core) gives the row for the target and gesture; `MouseResolver` makes the commands from it (a list: an `ActionRequested`, or a `PointerPlaced` that carries the action to run after placing).
 
 While an overlay, prompt, picker, form, editor, help or confirm is open, only the tab bar and banner rows count, as the `Backdrop` (a click there closes the overlay like `Esc`); the overlay's own rectangle is not known to the hit test, so clicks in the body then do nothing instead of closing what the user clicked on. Wheel events do nothing while an overlay is open.
 
@@ -21,7 +21,7 @@ The table is delivered in three parts of issue #200: **A** the input layer and t
 
 ## Placing the cursor
 
-A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column header (that column keeps its own card); in an opened issue the line (the breadcrumb row and rows past the end do nothing; the view does not scroll). Rows without an issue, the view title and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
+A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column header (that column keeps its own card); in an opened issue the line (the breadcrumb row and rows past the end do nothing; the view does not scroll). Rows without an issue, the view title and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer; on empty space (nothing placed) the action does not run. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
 
 ## Table
 

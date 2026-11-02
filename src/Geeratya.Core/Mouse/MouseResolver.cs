@@ -54,7 +54,7 @@ public static class MouseResolver
         // The row under the pointer is the target of the action, not the row the cursor happened to be on.
         var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick;
 
-        return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width), action] : [action];
+        return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
     }
 
     private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture)

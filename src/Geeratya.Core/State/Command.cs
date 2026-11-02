@@ -28,4 +28,8 @@ public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffse
 /// <param name="Column">The screen column of the click.</param>
 /// <param name="Row">The row inside the body (the first row under the tab bar and banner is 0).</param>
 /// <param name="Width">The screen width the body was drawn for; columns are laid out from it.</param>
-public sealed record PointerPlaced(int Column, int Row, int Width) : Command;
+/// <param name="Then">
+/// The action to run on what was placed (double-click opens, right-click opens the palette); it runs only when the
+/// click landed on a row, card or line, so a click on empty space never acts on the old selection.
+/// </param>
+public sealed record PointerPlaced(int Column, int Row, int Width, ActionRequested? Then = null) : Command;

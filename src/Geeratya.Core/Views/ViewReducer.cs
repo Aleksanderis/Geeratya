@@ -311,37 +311,42 @@ public static class ViewReducer
 
     /// <summary>
     /// A click on the body of the active tab: selects the row or card under the pointer, or puts the cursor on the
-    /// line of the opened issue. Anything else (a blank row, the column titles) changes nothing.
+    /// line of the opened issue. Null when the pointer is on nothing selectable (a blank row, a title, the area
+    /// under the cards), so the caller knows no action may follow.
     /// </summary>
-    public static ReduceResult PlaceCursor(AppState state, PointerPlaced placed)
+    public static ReduceResult? PlaceCursor(AppState state, PointerPlaced placed)
     {
         var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
 
         if (tab is null)
         {
-            return new ReduceResult(state, _noEffects);
+            return null;
         }
 
         if (tab.Detail.Count > 0)
         {
-            return new ReduceResult(DetailReducer.PlaceCursor(state, tab, placed.Row), _noEffects);
+            var placedLine = DetailReducer.PlaceCursor(state, tab, placed.Row);
+
+            return placedLine is null ? null : new ReduceResult(placedLine, _noEffects);
         }
 
         if (tab.Rows.Count == 0)
         {
-            return new ReduceResult(state, _noEffects);
+            return null;
         }
 
         if (tab.Definition.Layout == ViewLayout.Columns)
         {
-            return MovedInColumns(state, ColumnsNavigation.Place(tab, placed.Width, placed.Column, placed.Row));
+            var moved = ColumnsNavigation.Place(tab, placed.Width, placed.Column, placed.Row);
+
+            return ReferenceEquals(moved, tab) ? null : MovedInColumns(state, moved);
         }
 
         var index = tab.Scroll + placed.Row - ListLayout.HeaderRows;
 
         if (placed.Row < ListLayout.HeaderRows || index >= tab.Rows.Count || index >= tab.Scroll + tab.VisibleRows)
         {
-            return new ReduceResult(state, _noEffects);
+            return null;
         }
 
         return Reduce(state, new SelectionMoved(tab.Id, index));

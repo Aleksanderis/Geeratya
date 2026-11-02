@@ -235,6 +235,108 @@ public class MousePlacementTests
         Assert.Equal(state.Session.Active, result.Session.Active);
     }
 
+    [Fact]
+    public void GivenDoubleClickOnEmptySpace_WhenResolving_ThenNothingOpensAndTheSelectionStays()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1", "1:A-2");
+
+        var (result, effects) = Resolve(state, 80, 24, 2, HeaderRows + ListHeader + 10, MouseGesture.DoubleClick);
+
+        Assert.Empty(Active(result).Detail);
+        Assert.Empty(effects);
+        Assert.Equal("A-1", Active(result).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenRightClickOnEmptySpace_WhenResolving_ThenThePaletteStaysClosed()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+
+        var (result, _) = Resolve(state, 80, 24, 2, HeaderRows + ListHeader + 10, MouseGesture.RightClick);
+
+        Assert.Equal(InputMode.Normal, result.Mode);
+    }
+
+    [Fact]
+    public void GivenPendingCountAndChord_WhenClickingARow_ThenTheyAreDropped()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1", "1:A-2", "1:A-3");
+        var typed = _reducer.Reduce(_reducer.Reduce(state, new KeyPressed("5")).State, new KeyPressed("Space")).State;
+
+        var clicked = Click(typed, 80, 24, 2, HeaderRows + ListHeader + 1);
+
+        Assert.Equal(string.Empty, clicked.PendingKeys);
+        Assert.Equal(0, clicked.Count);
+        Assert.Equal("A-2", Active(clicked).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenPendingChord_WhenClickingATab_ThenItIsDropped()
+    {
+        var state = TwoTabs(80);
+        var typed = _reducer.Reduce(state, new KeyPressed("Space")).State;
+        var areas = TabBar.Areas(typed.Session.Tabs, typed.Session.Active, 80);
+
+        var clicked = Resolve(typed, 80, 24, areas[0].Start, 0, MouseGesture.Click).State;
+
+        Assert.Equal(string.Empty, clicked.PendingKeys);
+    }
+
+    [Fact]
+    public void GivenMoreColumnsThanFit_WhenClickingTheFirstDrawnColumn_ThenItsOwnColumnIsSelected()
+    {
+        var configuration = new BoardConfiguration(
+            4,
+            "Board",
+            BoardType.Kanban,
+            [.. Enumerable.Range(1, 6).Select(number => new BoardColumn($"C{number}", [number.ToString()]))],
+            "10001",
+            null,
+            null,
+            null);
+        var state = LoadedWith(
+            configuration,
+            ViewLayout.Columns,
+            80,
+            30,
+            ["1:A-1", "2:A-2", "3:A-3", "4:A-4", "5:A-5", "6:A-6"]);
+        var last = _reducer.Reduce(state, new ActionRequested(ActionIds.NavigateLastColumn)).State;
+
+        var first = Click(last, 80, 30, 5, HeaderRows + 2);
+        var lastDrawn = Click(last, 80, 30, 75, HeaderRows + 2);
+
+        Assert.Equal("A-3", Active(first).SelectedKey);
+        Assert.Equal("A-6", Active(lastDrawn).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenScrolledColumn_WhenClickingTheFirstShownCard_ThenTheCardOfTheScrollIsSelected()
+    {
+        var keys = Enumerable.Range(1, 30).Select(number => $"1:A-{number}").ToArray();
+        var state = Loaded(ViewLayout.Columns, 90, 30, keys);
+        var bottom = _reducer.Reduce(state, new ActionRequested(ActionIds.NavigateBottom)).State;
+        var scroll = Active(bottom).Cursor!.Scrolls[0];
+
+        var result = Click(bottom, 90, 30, 5, HeaderRows + 2);
+
+        Assert.True(scroll > 0);
+        Assert.Equal($"A-{scroll + 1}", Active(result).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenWideCharacterTabTitles_WhenClickingTheSecondTab_ThenItActivates()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "summary ~ \"日本語日本語\"", ViewLayout.List, "日本語日本語");
+        var two = _reducer.Reduce(state, new ViewOpenRequested(definition)).State;
+        var three = _reducer.Reduce(two, new ViewOpenRequested(definition)).State;
+        var areas = TabBar.Areas(three.Session.Tabs, three.Session.Active, 80);
+
+        var (result, _) = Resolve(three, 80, 24, areas[2].Start, 0, MouseGesture.Click);
+
+        Assert.Equal(three.Session.Tabs[2].Id, result.Session.Active);
+    }
+
     private static TabState Active(AppState state)
     {
         return state.Session.Tabs.Single(candidate => candidate.Id == state.Session.Active);
@@ -287,6 +389,16 @@ public class MousePlacementTests
 
     private AppState Loaded(ViewLayout layout, int width, int height, params string[] specs)
     {
+        return LoadedWith(_configuration, layout, width, height, specs);
+    }
+
+    private AppState LoadedWith(
+        BoardConfiguration configuration,
+        ViewLayout layout,
+        int width,
+        int height,
+        string[] specs)
+    {
         var rows = specs.Select(Issue).ToArray();
         var source = layout == ViewLayout.Columns ? ViewSourceKind.Board : ViewSourceKind.Jql;
         var definition = new ViewDefinition(source, source == ViewSourceKind.Board ? "4" : "project = A", layout, "View");
@@ -294,7 +406,7 @@ public class MousePlacementTests
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition)).State;
         var tab = Active(opened);
         var configured = layout == ViewLayout.Columns
-            ? _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, _configuration)).State
+            ? _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, configuration)).State
             : opened;
 
         return _reducer.Reduce(configured, new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(rows, null, rows.Length), _now))
