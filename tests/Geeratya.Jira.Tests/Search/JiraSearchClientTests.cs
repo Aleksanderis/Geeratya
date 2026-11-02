@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Geeratya.Jira.Jql;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
@@ -38,6 +39,20 @@ public sealed class JiraSearchClientTests
         Assert.Equal("Medium", done.Priority);
         Assert.Null(done.Assignee);
         Assert.Equal(new DateTimeOffset(2026, 11, 1, 17, 48, 14, 940, TimeSpan.FromHours(2)), done.Updated);
+    }
+
+    [Fact]
+    public async Task GivenRecordedSubTasksOfReply_WhenSearching_ThenTheSubtaskIsFoundWithItsTypeFlag()
+    {
+        using var fixture = Serving("search/search-subtasks-of-gtm.json");
+
+        var result = await FirstPageAsync(fixture, JqlBuilder.SubTasksOf("GTM-32"));
+
+        Assert.True(result.IsSuccess);
+        var subtask = Assert.Single(result.Value.Items);
+        Assert.Equal("GTM-33", subtask.Key);
+        Assert.True(subtask.IssueType.IsSubtask);
+        Assert.Contains("parent%20%3D%20GTM-32", Assert.Single(fixture.Handler.Requests).PathAndQuery);
     }
 
     [Fact]
