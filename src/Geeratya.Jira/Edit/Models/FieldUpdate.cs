@@ -35,6 +35,14 @@ public sealed class FieldUpdate
 
     internal string Json { get; }
 
+    /// <summary>The value as a JSON element, for the body of a call that takes plain field values (a transition).</summary>
+    public JsonElement ToElement()
+    {
+        using var document = JsonDocument.Parse(Json);
+
+        return document.RootElement.Clone();
+    }
+
     /// <summary>A single-line or plain multi-line text field. Null clears it.</summary>
     public static FieldUpdate Text(string fieldId, string? value) => Replace(fieldId, writer =>
     {

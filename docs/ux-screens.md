@@ -389,7 +389,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 
 ## Field form overlay
 
-One form model serves transition, create and edit (`architecture.md`, "Where form state lives"). It is a centred box over the tab, opened in Insert mode on the active tab (`TabState.Form`); built so far is the edit form, opened by the pilot command `:labels` (the labels of the selected or shown issue) until `<space>ie` binds it (#164). The field list, the kinds, the required marks and the options come only from the metadata Jira returns for the issue (`editmeta`; create and transition metadata map the same way), never from code.
+One form model serves transition, create and edit (`architecture.md`, "Where form state lives"). It is a centred box over the tab, opened in Insert mode on the active tab (`TabState.Form`); built so far are the edit form, opened by the pilot command `:labels` (the labels of the selected or shown issue) until `<space>ie` binds it (#164), and the status forms (#159): a one-field picker `Change status of GCM-3` (field `Move to`, the transitions Jira offers) and, for a transition that asks for fields, a second form `Move GCM-3 to Done` with those fields. A column move (`Alt-l`/`Alt-h`) opens the picker invisibly and sends at once when one transition leads to the column. The field list, the kinds, the required marks and the options come only from the metadata Jira returns for the issue (`editmeta`; create and transition metadata map the same way), never from code.
 
 ```text
  [1 JQL: project = GEN]
