@@ -52,6 +52,7 @@ public static class ActionCatalog
         new(ActionIds.FormFieldNext, "Next field of the form"),
         new(ActionIds.FormFieldPrevious, "Previous field of the form"),
         new(ActionIds.FormSubmit, "Save the form"),
+        new(ActionIds.FormOpenBrowser, "Open the issue page in the browser from the form"),
     ];
 
     /// <summary>
@@ -78,6 +79,7 @@ public static class ActionCatalog
         ActionIds.FormFieldNext,
         ActionIds.FormFieldPrevious,
         ActionIds.FormSubmit,
+        ActionIds.FormOpenBrowser,
     ];
 
     public static bool IsModalOnly(string id)
