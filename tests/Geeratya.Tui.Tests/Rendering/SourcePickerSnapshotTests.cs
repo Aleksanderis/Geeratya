@@ -5,6 +5,7 @@ using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -47,6 +48,18 @@ public class SourcePickerSnapshotTests
         var lines = FrameBuilder.Build(Sample("zzz"), 80, 24, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("zzz", StringComparison.Ordinal) && line.Contains("JQL", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenTheAsciiGlyphSet_WhenBuildingTheFrameWithThePicker_ThenNoShellGlyphIsDrawn(int width, int height)
+    {
+        var lines = FrameBuilder.Build(Sample("g"), width, height, _helpLines, _keymap, null, GlyphSet.Ascii);
+
+        Assert.Contains(lines, line => line.Contains('+', StringComparison.Ordinal));
+        Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
+        Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
 
     [Fact]

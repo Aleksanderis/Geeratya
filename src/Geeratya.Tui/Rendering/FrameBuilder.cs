@@ -94,10 +94,25 @@ public static class FrameBuilder
             body = Fit(WhichKeyOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
         }
 
-        return new StyledFrame(
+        var frame = new StyledFrame(
             Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),
             StatusBar.Render(state, width, keymap, clock));
+
+        return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
+    }
+
+    private static StyledFrame Asciified(StyledFrame frame)
+    {
+        return new StyledFrame(
+            frame.Header.Select(Asciified).ToList(),
+            frame.Body.Select(Asciified).ToList(),
+            Glyphs.ToAscii(frame.StatusLine));
+    }
+
+    private static StyledLine Asciified(StyledLine line)
+    {
+        return new StyledLine(line.Spans.Select(static span => span with { Text = Glyphs.ToAscii(span.Text) }).ToArray());
     }
 
     private static List<StyledLine> HeaderLines(AppState state, int width, DateTimeOffset now, int rows)

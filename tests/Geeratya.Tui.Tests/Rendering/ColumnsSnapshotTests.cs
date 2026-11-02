@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.App.Tests.Fakes;
 
@@ -36,6 +37,26 @@ public class ColumnsSnapshotTests
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+    }
+
+    [Theory]
+    [InlineData("gcm", 120, 36)]
+    [InlineData("gcm", 80, 24)]
+    [InlineData("gtm", 80, 24)]
+    public async Task GivenTheAsciiGlyphSet_WhenBuildingTheBoardFrame_ThenItMatchesTheSnapshotAndDrawsOnlyAscii(
+        string kind,
+        int width,
+        int height)
+    {
+        var state = await OpenAsync(kind, height);
+
+        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap, null, GlyphSet.Ascii);
+        var actual = string.Join('\n', lines) + "\n";
+        var expected = SnapshotFile.Expect($"columns-ascii-{kind}-{width}x{height}.txt", actual);
+
+        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
+        Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
 
     [Theory]
