@@ -4,7 +4,7 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile).
+# popup row, a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -77,6 +77,23 @@ click() {
   echo "clicked '$text' (button $button) at $col,$row"
 }
 
+# drag <text> <columns> [motion]: press on the first cell of <text>, release <columns> cells to the right on the same row
+# (SGR; with a third argument a motion event, button 32, goes between), the way a terminal reports a drag of a card.
+drag() {
+  local text=$1 shift_by=$2 motion=${3:-} line row col prefix seq
+  line=$(frame | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to drag"
+  row=${line%%:*}
+  line=${line#*:}
+  prefix=${line%%"$text"*}
+  col=$((${#prefix} + 2))
+  printf -v seq '\033[<0;%d;%dM' "$col" "$row"
+  [ -z "$motion" ] || printf -v seq '%s\033[<32;%d;%dM' "$seq" $((col + shift_by)) "$row"
+  printf -v seq '%s\033[<0;%d;%dm' "$seq" $((col + shift_by)) "$row"
+  tmux -L "$socket" send-keys -t s -l "$seq"
+  sleep 0.4
+  echo "dragged '$text' by $shift_by columns from $col,$row"
+}
+
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
 dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
@@ -107,6 +124,18 @@ wait_for "Open a view"
 click "Board   GCM board"
 wait_for "In Progress"
 wait_gone "Open a view"
+
+# Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
+# motion events a terminal sends (they carry the Pressed flag too) and without them; the click that follows a release is
+# swallowed, so the drop does not also select the card under the release cell.
+drag "Story GCM-11" 30 motion
+wait_for "Ctrl-s save"
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Ctrl-s save"
+drag "Story GCM-11" 30
+wait_for "Ctrl-s save"
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Ctrl-s save"
 
 # Create form: the type list row is taken by a click, then a click on another field moves the focus to it.
 send " ic"
