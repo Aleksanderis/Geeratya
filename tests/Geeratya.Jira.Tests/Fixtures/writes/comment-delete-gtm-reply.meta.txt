@@ -1,0 +1,5 @@
+HTTP/2 204 
+ratelimit-policy: "jira-burst-based";q=50;w=1
+ratelimit: "jira-burst-based";r=398;t=1
+x-ratelimit-limit: 400
+x-ratelimit-remaining: 398
