@@ -7,6 +7,9 @@ Help
   Space l    Switch between list and columns                                                                            
   Space o    Open the issue in the browser                                                                              
   Space p    Open the parent issue                                                                                      
+  Space i s  Change the status of the issue                                                                             
+  Alt-l      Move the card to the next column                                                                           
+  Alt-h      Move the card to the previous column                                                                       
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -30,7 +33,4 @@ Confirm mode
   Esc        Decline                                                                                                    
                                                                                                                         
 Insert mode                                                                                                             
-  Enter      Accept the field and go to the next                                                                        
-  Backspace  Delete the last character                                                                                  
-  Esc        Cancel or close                                                                                            
  HELP                                                                                            j down  k up  Esc close

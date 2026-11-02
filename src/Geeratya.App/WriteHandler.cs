@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Edit.Models;
@@ -178,7 +179,36 @@ public sealed class WriteHandler
             return await EditAsync(services, edit, token);
         }
 
+        if (request is TransitionRequest transition)
+        {
+            return await TransitionAsync(services, transition, token);
+        }
+
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> TransitionAsync(
+        JiraServices services,
+        TransitionRequest transition,
+        CancellationToken token)
+    {
+        Dictionary<string, JsonElement> fields;
+
+        try
+        {
+            // Transition fields are plain values: the whole value is sent, never adds and removes.
+            var plain = transition.Changes.Select(change => change with { Initial = null }).ToArray();
+
+            fields = FieldUpdates.For(plain).ToDictionary(update => update.FieldId, update => update.ToElement());
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(error);
+        }
+
+        return await services.Transitions.PerformAsync(transition.Key, transition.Choice.Id, fields, null, token);
     }
 
     private static async Task<WriteResult<WriteAccepted>> EditAsync(

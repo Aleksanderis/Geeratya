@@ -38,6 +38,11 @@ public static class FormOverlay
         int width,
         int height)
     {
+        if (form is { IsLoading: true, Target.ShowsWhileLoading: false })
+        {
+            return body;
+        }
+
         var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
 
         if (boxWidth < 8 || height < MinimumBoxHeight)

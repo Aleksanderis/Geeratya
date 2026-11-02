@@ -226,6 +226,9 @@ public sealed class AppReducer
             ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
             ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
+            ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
+            ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),
+            ActionIds.IssueTransitionPrevious => InNormal(state, () => TransitionForms.MoveCard(state, -1)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
@@ -332,6 +335,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.Status => TransitionForms.OpenPicker(normal),
             PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
@@ -436,6 +440,11 @@ public sealed class AppReducer
         if (request is null)
         {
             return Result(normal);
+        }
+
+        if (request.OnConfirm is { } command)
+        {
+            return Reduce(normal, command);
         }
 
         if (request.ActionOnConfirm == ProfileReducer.RemoveAction)

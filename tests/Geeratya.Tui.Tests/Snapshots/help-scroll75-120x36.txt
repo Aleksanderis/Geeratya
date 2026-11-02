@@ -1,6 +1,9 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-c     Cancel or close                                                                                            
+  Up         Previous source in the picker                                                                              
+  Ctrl-p     Previous source in the picker                                                                              
   Down       Next source in the picker                                                                                  
   Ctrl-n     Next source in the picker                                                                                  
   Tab        Next field of the form                                                                                     
@@ -18,6 +21,8 @@ Palette commands
       Open a board's backlog in a new tab                                                                               
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
+  :status                                                                                                               
+      Change the status of the selected or shown issue (transition picker)                                              
   :labels                                                                                                               
       Edit the labels of the selected or shown issue (field form)                                                       
   :profile add|list|switch <name>|remove <name>|check                                                                   
@@ -26,11 +31,6 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close
