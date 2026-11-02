@@ -28,7 +28,7 @@ internal static class CommentMapper
         return new OffsetPage<IssueComment>(items, startAt, page.MaxResults ?? requestedSize, total, isLast);
     }
 
-    private static IssueComment Map(CommentWire.Comment comment) =>
+    internal static IssueComment Map(CommentWire.Comment comment) =>
         new(
             comment.Id ?? string.Empty,
             comment.Author is { } author
