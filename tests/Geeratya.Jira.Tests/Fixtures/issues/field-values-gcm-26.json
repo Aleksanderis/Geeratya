@@ -1,0 +1,34 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "components": [
+      {
+        "description": "Geeratya sandbox component",
+        "id": "10000",
+        "name": "Sandbox core",
+        "self": "https://example.atlassian.net/rest/api/3/component/10000"
+      }
+    ],
+    "customfield_10015": "2026-11-15",
+    "customfield_10021": null,
+    "description": null,
+    "duedate": "2026-12-31",
+    "environment": null,
+    "fixVersions": [
+      {
+        "archived": false,
+        "description": "Geeratya sandbox version",
+        "id": "10000",
+        "name": "Sandbox 1.0",
+        "released": false,
+        "self": "https://example.atlassian.net/rest/api/3/version/10000"
+      }
+    ],
+    "labels": [
+      "fixture"
+    ]
+  },
+  "id": "10131",
+  "key": "GCM-26",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10131"
+}

@@ -133,19 +133,16 @@ public sealed class FormHandlerTests
     }
 
     [Theory]
-    [InlineData("metadata/editmeta-gcm-1.json", true)]
-    [InlineData("metadata/editmeta-gtm-11.json", false)]
+    [InlineData("metadata/editmeta-gcm-26.json", "issues/field-values-gcm-26.json", true)]
+    [InlineData("metadata/editmeta-gtm-40.json", "issues/field-values-gtm-40.json", false)]
     public async Task GivenEditableFieldsWithNoKnownValue_WhenTheFormLoads_ThenTheIssueIsReadForExactlyThoseIds(
         string metadataFixture,
+        string valuesFixture,
         bool hasComponents)
     {
-        const string issue = """
-            {"fields":{"duedate":"2026-12-24","components":[{"id":"10000","name":"Core"}],"fixVersions":[],
-            "customfield_10015":null,"customfield_10021":[{"id":"10019","value":"Impediment"}]}}
-            """;
         using var fixture = await ConnectedAsync(h => h
             .Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture))
-            .Reply(HttpStatusCode.OK, issue));
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read(valuesFixture)));
 
         await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, KnownTarget()));
 
@@ -159,10 +156,16 @@ public sealed class FormHandlerTests
         Assert.DoesNotContain("priority", asked);
         Assert.DoesNotContain("assignee", asked);
         Assert.Contains("duedate", asked);
-        Assert.Equal("2026-12-24", byId["duedate"].Value.Text);
-        Assert.Equal(FormValue.Empty, byId["customfield_10015"].Value);
-        Assert.Equal(["10019"], byId["customfield_10021"].Value.Chosen);
-        Assert.Equal(["10019"], byId["customfield_10021"].Initial.Chosen);
+        Assert.Equal("2026-12-31", byId["duedate"].Value.Text);
+        Assert.Equal("2026-11-15", byId["customfield_10015"].Value.Text);
+        Assert.Equal(FormValue.Empty, byId["customfield_10021"].Value);
+        if (hasComponents)
+        {
+            Assert.Equal(["10000"], byId["components"].Value.Chosen);
+            Assert.Equal(["10000"], byId["fixVersions"].Value.Chosen);
+            Assert.Equal(["10000"], byId["fixVersions"].Initial.Chosen);
+        }
+
         Assert.Equal(hasComponents, byId.ContainsKey("components"));
         Assert.Equal(hasComponents, asked.Contains("components"));
         Assert.DoesNotContain("customfield_10000", asked);

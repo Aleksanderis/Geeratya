@@ -46,6 +46,35 @@ public sealed class EditClientTests
     }
 
     [Fact]
+    public async Task GivenProjectWithComponentsAndVersions_WhenListing_ThenTheyCarryTheirAllowedValues()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GCM-26/editmeta", "metadata/editmeta-gcm-26.json");
+
+        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GCM-26", Cancel());
+
+        var fields = result.Value.ToDictionary(field => field.FieldId);
+        var component = Assert.Single(fields["components"].AllowedValues);
+        var version = Assert.Single(fields["fixVersions"].AllowedValues);
+        Assert.Equal("10000", component.Id);
+        Assert.Equal("Sandbox core", component.Label);
+        Assert.Equal("10000", version.Id);
+        Assert.Equal("Sandbox 1.0", version.Label);
+    }
+
+    [Fact]
+    public async Task GivenTeamManagedProject_WhenListing_ThenThereAreNoComponentsOrVersionFields()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GTM-40/editmeta", "metadata/editmeta-gtm-40.json");
+
+        var result = await new EditClient(fixture.Transport).GetEditFieldsAsync("GTM-40", Cancel());
+
+        var ids = result.Value.Select(field => field.FieldId).ToList();
+        Assert.DoesNotContain("components", ids);
+        Assert.DoesNotContain("fixVersions", ids);
+        Assert.Contains("duedate", ids);
+    }
+
+    [Fact]
     public async Task GivenFieldTypesTheAppCannotWrite_WhenListing_ThenTheyStayListedAsReadOnly()
     {
         using var fixture = Serving(GcmMetaPath, "metadata/editmeta-gcm-1.json");
