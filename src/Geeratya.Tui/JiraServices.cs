@@ -1,3 +1,4 @@
+using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Tui;
@@ -13,9 +14,13 @@ public sealed class JiraServices
     {
         Transport = transport;
         Generation = generation;
+        Search = new JiraSearchClient(transport);
     }
 
     public JiraTransport Transport { get; }
+
+    /// <summary>JQL search over this site's transport.</summary>
+    public JiraSearchClient Search { get; }
 
     /// <summary>The <see cref="SiteConnections.Generation"/> these services were built under.</summary>
     public int Generation { get; }

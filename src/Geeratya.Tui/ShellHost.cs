@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Platform.Browser;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
@@ -31,6 +32,7 @@ public sealed class ShellHost : IDisposable
     private readonly BrowserEffectHandler _browserEffects;
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
+    private ViewLoadHandler? _viewLoads;
     private IApplication? _application;
     private ShellScreen? _screen;
     private CancellationToken _shutdownToken;
@@ -63,6 +65,7 @@ public sealed class ShellHost : IDisposable
         _shutdownToken = shutdown.Token;
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
+        _viewLoads = new ViewLoadHandler(_network);
 
         _application = application;
         application.Init();
@@ -79,7 +82,9 @@ public sealed class ShellHost : IDisposable
         using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size);
 
         _screen = screen;
+        screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
         screen.Render(_state);
+        Dispatch(new ViewportChanged(screen.BodyRows));
         _ = ConnectAsync();
         application.Run(screen);
         shutdown.Cancel();
@@ -138,6 +143,14 @@ public sealed class ShellHost : IDisposable
                 // The cache drop (#82) hooks in here too.
                 _network!.CancelAll();
                 _connections.Drop(drop.Profile);
+            }
+            else if (effect is CancelTabEffect cancel)
+            {
+                _network!.CancelScope(cancel.Tab.Value);
+            }
+            else if (effect is LoadViewPageEffect load)
+            {
+                _ = _viewLoads!.StartAsync(load);
             }
             else
             {
