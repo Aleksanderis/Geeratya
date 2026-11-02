@@ -122,6 +122,25 @@ public sealed class FakeJiraServerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedIssues_WhenReadingOneIssueItsCommentsAndRemoteLinks_ThenTheyAreServedAsJira()
+    {
+        var baseUrl = StartServer(10, 0, 0);
+
+        using var issue = JsonDocument.Parse(await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-3"));
+        using var comments = JsonDocument.Parse(
+            await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-5/comment?startAt=100&maxResults=50"));
+        var links = await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-3/remotelink");
+        var missing = await _client.GetAsync($"{baseUrl}/rest/api/3/issue/GEN-11");
+
+        Assert.Equal("GEN-3", issue.RootElement.GetProperty("key").GetString());
+        Assert.Equal("doc", issue.RootElement.GetProperty("fields").GetProperty("description").GetProperty("type").GetString());
+        Assert.Equal(120, comments.RootElement.GetProperty("total").GetInt32());
+        Assert.Equal(20, comments.RootElement.GetProperty("comments").GetArrayLength());
+        Assert.Equal("[]", links);
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenNegativePageToken_WhenSearching_ThenBadRequestInsteadOfHang()
     {
         var baseUrl = StartServer(120, 0, 0);

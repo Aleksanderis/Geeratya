@@ -57,7 +57,6 @@ public static class ActionCatalog
     [
         ActionIds.NavigateLeft,
         ActionIds.NavigateRight,
-        ActionIds.ItemOpen,
         ActionIds.NavigateFirstColumn,
         ActionIds.NavigateLastColumn,
         ActionIds.SectionNext,

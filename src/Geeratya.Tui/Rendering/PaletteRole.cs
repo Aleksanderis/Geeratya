@@ -23,4 +23,6 @@ public enum PaletteRole
     StatusToDo,
     StatusInProgress,
     StatusDone,
+    FieldLabel,
+    Editable,
 }
