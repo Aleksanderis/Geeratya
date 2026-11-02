@@ -6,6 +6,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
@@ -144,6 +145,12 @@ public sealed class AppReducer
         }
 
         var cleared = state with { PendingKeys = string.Empty, Count = 0 };
+
+        if (resolution.Action == ActionIds.IssueUnlink)
+        {
+            // The only action that needs the time of the key: the confirm carries the write that will start.
+            return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
+        }
 
         if (resolution.Kind == KeyResolutionKind.None)
         {
@@ -329,6 +336,7 @@ public sealed class AppReducer
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
+            ActionIds.IssueLink => InNormal(state, () => FormReducer.Reduce(state, new OpenLinkFormRequested())),
             ActionIds.IssueEdit => InNormal(state, () => FormOpener.Edit(state)),
             ActionIds.IssueAssign => InNormal(state, () => FormOpener.Assign(state)),
             ActionIds.IssueAssignMe => InNormal(state, () => FormOpener.AssignMe(state, at)),
@@ -512,6 +520,7 @@ public sealed class AppReducer
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
+            _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
@@ -590,6 +599,11 @@ public sealed class AppReducer
         }
 
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+    }
+
+    private static bool IsSetCommand(string text)
+    {
+        return text == "set" || text.StartsWith("set ", StringComparison.Ordinal);
     }
 
     private static ReduceResult KeysCommand(AppState state, string argument)

@@ -48,6 +48,43 @@ public sealed class KeymapTable
         return new KeyResolution(isPrefix ? KeyResolutionKind.Prefix : KeyResolutionKind.None, null);
     }
 
+    /// <summary>
+    /// The keys that continue <paramref name="pending"/> in <paramref name="mode"/>, in keymap order, one entry per
+    /// next key (the data of the which-key popup); empty when nothing continues it.
+    /// </summary>
+    public IReadOnlyList<NextKey> NextKeys(InputMode mode, string pending)
+    {
+        var prefix = $"{pending}{SequenceSeparator}";
+        var order = new List<string>();
+        var actions = new Dictionary<string, string?>();
+        var counts = new Dictionary<string, int>();
+
+        foreach (var binding in Bindings)
+        {
+            if (binding.Mode != mode || !binding.Keys.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var rest = binding.Keys[prefix.Length..];
+            var separator = rest.IndexOf(SequenceSeparator);
+            var key = separator < 0 ? rest : rest[..separator];
+
+            if (!counts.TryAdd(key, 1))
+            {
+                counts[key]++;
+            }
+            else
+            {
+                order.Add(key);
+            }
+
+            actions[key] = separator < 0 ? binding.Action : null;
+        }
+
+        return order.Select(key => new NextKey(key, actions[key], counts[key])).ToList();
+    }
+
     /// <summary>The first keys bound to <paramref name="action"/> in <paramref name="mode"/>, or null when unbound.</summary>
     public string? FindKeys(InputMode mode, string action)
     {

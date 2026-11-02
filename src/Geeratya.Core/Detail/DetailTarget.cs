@@ -21,4 +21,5 @@ public enum DetailTargetKind
 /// <param name="Value">
 /// The issue key (issue and attachment rows), the URL (remote link rows) or the comment id (comment rows).
 /// </param>
-public sealed record DetailTarget(DetailTargetKind Kind, string Value);
+/// <param name="LinkId">The id of the issue link the row shows; null for any other row (#190 removes it).</param>
+public sealed record DetailTarget(DetailTargetKind Kind, string Value, string? LinkId = null);

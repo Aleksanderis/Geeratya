@@ -57,6 +57,8 @@
     { "mode": "normal", "keys": "Space k b", "action": "rank.bottom" },
     { "mode": "normal", "keys": "Space k k", "action": "rank.to" },
     { "mode": "normal", "keys": "Space i d", "action": "issue.delete" },
+    { "mode": "normal", "keys": "Space i l", "action": "issue.link" },
+    { "mode": "normal", "keys": "Space i u", "action": "issue.unlink" },
     { "mode": "normal", "keys": "Space i e", "action": "issue.edit" },
     { "mode": "normal", "keys": "Space i a", "action": "issue.assign" },
     { "mode": "normal", "keys": "Space i m", "action": "issue.assign-me" },

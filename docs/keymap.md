@@ -63,6 +63,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space k b` | Rank the issue to the bottom of the list or column |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor |
 | `Space i d` | Delete the issue (asks first; Jira cannot undo it) |
+| `Space i l` | Link the issue to another issue |
+| `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) |
 | `Space i e` | Edit fields of the issue (summary, labels, priority, description) |
 | `Space i a` | Assign the issue: search people, or unassign |
 | `Space i m` | Assign the issue to me |
@@ -138,6 +140,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:set hints|whichkey on|off` | Show or hide the status bar hints or the which-key popup (saved) |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |
 | `:quit` | Quit |

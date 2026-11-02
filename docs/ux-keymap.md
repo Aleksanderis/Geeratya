@@ -6,7 +6,7 @@ Rules for the keymap. The reference of what is bound is generated from `src/Geer
 
 Rows of `{ "mode", "keys", "action" }`. `keys` is one key or a space-separated sequence (`g g`). A key is a single character (`j`, `?`, `G`) or a name (`Esc`, `Enter`, `Backspace`, `Tab`, `Shift-Tab`, `Space`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`, `Delete`), optionally prefixed `Ctrl-` or `Alt-`. Uppercase letters are the character itself (`G`, not `Shift-g`). `action` is an id from `ActionCatalog`, which carries the title shown in help and the reference.
 
-Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints.
+Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints. The which-key popup lists `KeymapTable.NextKeys` for the half-typed sequence (see `ux.md`, "Hints").
 
 ## User file
 
@@ -72,8 +72,8 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
-| `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
-| `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |
+| `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M4 #190 (bound) |
+| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M4 #190 (bound) |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part not built) | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part not built) | M2 #167 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part not built) | M2 #167 |

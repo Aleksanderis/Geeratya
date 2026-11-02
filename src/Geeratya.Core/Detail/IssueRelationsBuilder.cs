@@ -133,7 +133,7 @@ internal static class IssueRelationsBuilder
             text.Append(DirectionText(link), TextRole.Emphasis);
             text.Append(" ", TextRole.Body);
             AddIssue(text, link.Issue.Key, link.Issue.Summary, link.Issue.Status);
-            content.Finish(text, IssueTarget(link.Issue.Key));
+            content.Finish(text, LinkTarget(link));
         }
 
         lines.AddPanel(Title(LinksTitle, links.Count), content, width);
@@ -229,6 +229,14 @@ internal static class IssueRelationsBuilder
     private static DetailTarget? IssueTarget(string key)
     {
         return IssueUrls.IsValidKey(key) ? new DetailTarget(DetailTargetKind.Issue, key) : null;
+    }
+
+    /// <summary>The row of a link opens the other issue and carries the link id, so the link can be removed.</summary>
+    private static DetailTarget? LinkTarget(IssueLink link)
+    {
+        var target = IssueTarget(link.Issue.Key);
+
+        return target is null ? null : target with { LinkId = link.Id };
     }
 
     private static void AddIssue(WrappedText text, string key, string summary, IssueStatus status)

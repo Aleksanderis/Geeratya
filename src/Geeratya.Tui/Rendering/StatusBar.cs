@@ -91,7 +91,9 @@ public static class StatusBar
         }
 
         var left = $" {Badge(state.Mode)} {Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch)}".TrimEnd();
-        var hints = Fit(HintTexts(state, keymap), width - TextWidth.Of(left));
+        var hints = state.Settings.StatusHints
+            ? Fit(HintTexts(state, keymap), width - TextWidth.Of(left))
+            : string.Empty;
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)

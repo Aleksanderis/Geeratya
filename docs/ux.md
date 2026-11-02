@@ -16,11 +16,18 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n` and `Esc` act | `y` (runs the action), `n`, `Esc` (cancel) |
-| Insert | `:profile add` (the first editable form), the jump-to-issue prompt (`<space>g`, same choose keys as the picker), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the field form (`<space>ie`, `<space>ia`, `:edit`, `:priority`, `:labels`, `:assign`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
+| Insert | `:profile add` (the first editable form), the jump-to-issue prompt (`<space>g`, same choose keys as the picker), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the link form (`<space>il`) and the field form (`<space>ie`, `<space>ia`, `:edit`, `:priority`, `:labels`, `:assign`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 
 Paste (terminal paste, e.g. `Ctrl-Shift-V`) fills the active Insert field, and the Command palette, in every form step. Terminal.Gui delivers a bracketed paste as one `Application.Paste` event (not as keys), which the shell turns into a `TextPasted` command; terminals without bracketed paste send plain key events and already work as typing. In a single-line field only the first non-empty line is used and control characters are dropped, so a trailing newline never submits a step; the comment editor keeps all lines. The token stays masked and is never printed or logged.
+
+## Hints
+
+Two helps, each switched off with `:set hints off` / `:set whichkey off` (and back with `on`; `:set` alone shows both). The choice is saved in `settings.json` in the configuration directory and both are on by default.
+
+- **Status bar hints** (right side of the status line): the main keys of the active screen (list, columns, issue detail, source picker, field form) plus the global ones (`? help`, `: command`, `q quit`). Each hint names an `ActionId` and a short label; the key shown comes from the keymap, and a hint whose action is unbound is left out. Advanced actions stay out of the hints (`ux-keymap.md`, rule 4). Off hides the whole right side.
+- **Which-key popup**: while a multi-key binding is half typed in Normal mode (`g`, `<space>`, `<space> i`), a box at the bottom of the body lists the keys that continue it: the key, and the action title from `ActionCatalog`, or `+group (n)` for a longer chain. It appears at once (no delay), disappears when the sequence completes or breaks, and is generated from the keymap, never written by hand.
 
 ## Focus model and key style
 

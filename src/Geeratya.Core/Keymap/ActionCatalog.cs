@@ -58,6 +58,8 @@ public static class ActionCatalog
         new(ActionIds.RankBottom, "Rank the issue to the bottom of the list or column"),
         new(ActionIds.RankTo, "Pick up the issue, then drop it at the issue under the cursor"),
         new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
+        new(ActionIds.IssueLink, "Link the issue to another issue"),
+        new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)"),
         new(ActionIds.IssueJump, "Jump to an issue by key"),
         new(ActionIds.PickerPrevious, "Previous row in the picker"),
         new(ActionIds.PickerNext, "Next row in the picker"),

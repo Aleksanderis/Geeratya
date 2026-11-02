@@ -1,4 +1,5 @@
 using Geeratya.Core.Forms;
+using Geeratya.Core.Links;
 using Geeratya.Core.State;
 using Geeratya.Jira.Transport;
 
@@ -12,6 +13,7 @@ namespace Geeratya.App;
 public sealed class FormMetadataHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
+    private const string NoLinkTypesMessage = "This site has no issue link types (linking is turned off).";
     private const string NeedsBrowserMessage =
         "This transition asks for a field Geeratya cannot edit yet; do it in the browser (<space>o).";
     private const string UnsupportedMessage = "This form cannot be opened yet.";
@@ -52,6 +54,11 @@ public sealed class FormMetadataHandler
             return await LoadTransitionAsync(services, effect, transition, token);
         }
 
+        if (effect.Target is LinkFormTarget link)
+        {
+            return await LoadLinkTypesAsync(services, effect, link, token);
+        }
+
         if (effect.Target is not EditFormTarget edit)
         {
             return new FormMetadataFailed(effect.Tab, effect.RequestId, UnsupportedMessage);
@@ -65,6 +72,27 @@ public sealed class FormMetadataHandler
         }
 
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, edit));
+    }
+
+    private static async Task<Command?> LoadLinkTypesAsync(
+        JiraServices services,
+        LoadFormMetadataEffect effect,
+        LinkFormTarget link,
+        CancellationToken token)
+    {
+        var result = await services.Links.GetLinkTypesAsync(token);
+
+        if (!result.IsSuccess)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, link.Key));
+        }
+
+        if (result.Value.Count == 0)
+        {
+            return new FormMetadataFailed(effect.Tab, effect.RequestId, NoLinkTypesMessage);
+        }
+
+        return new FormMetadataLoaded(effect.Tab, effect.RequestId, LinkFormFields.From(result.Value));
     }
 
     private static async Task<Command?> LoadPickAsync(
