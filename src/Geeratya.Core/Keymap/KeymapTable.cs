@@ -10,7 +10,16 @@ public sealed class KeymapTable
         Bindings = bindings;
     }
 
-    public IReadOnlyList<KeyBinding> Bindings { get; }
+    /// <summary>
+    /// The current bindings. <see cref="Replace"/> swaps them for <c>:keys reload</c>; the shell and the reducer share
+    /// one table and use it on the UI thread only.
+    /// </summary>
+    public IReadOnlyList<KeyBinding> Bindings { get; private set; }
+
+    public void Replace(IReadOnlyList<KeyBinding> bindings)
+    {
+        Bindings = bindings;
+    }
 
     /// <summary>Feeds <paramref name="key"/> after the already typed <paramref name="pending"/> keys.</summary>
     public KeyResolution Resolve(InputMode mode, string pending, string key)

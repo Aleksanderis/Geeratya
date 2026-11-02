@@ -13,6 +13,7 @@ public static class PaletteCommands
     public const string Tab = "tab";
     public const string Labels = "labels";
     public const string Profile = "profile";
+    public const string Keys = "keys";
     public const string Help = "help";
     public const string Quit = "quit";
 
@@ -25,6 +26,7 @@ public static class PaletteCommands
         new(Tab, "tab new|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
         new(Profile, "profile add|list|switch <name>|remove <name>|check", "Manage Jira profiles"),
+        new(Keys, "keys reload", "Read keymap.json again and apply it"),
         new(Help, "help", "Show or hide help"),
         new(Quit, "quit", "Quit"),
     ];

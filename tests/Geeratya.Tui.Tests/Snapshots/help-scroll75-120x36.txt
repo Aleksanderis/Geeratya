@@ -24,12 +24,12 @@ Palette commands
       Edit the labels of the selected or shown issue (field form)                                                       
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
+  :keys reload                                                                                                          
+      Read keymap.json again and apply it                                                                               
   :help                                                                                                                 
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

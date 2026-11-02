@@ -8,6 +8,10 @@ Rows of `{ "mode", "keys", "action" }`. `keys` is one key or a space-separated s
 
 Checks (`KeymapTableTests`): no two rows with the same keys in one mode, no sequence shadowed by a shorter binding (`g` and `g g`), every action known, every key spelled correctly, every catalog action bound. Actions bound ahead of their feature are listed in `ActionCatalog.Unimplemented` (a test checks that pressing them changes nothing); actions that exist only in a modal mode are listed in `ActionCatalog.ModalOnly` (`IsModalOnly`; a test checks they are never bound in Normal mode and all others are). Status bar hints and the start-screen hint carry a short label and an `ActionId`; the key shown is the first one the keymap binds to that action in the mode, so a remapped key shows up in the hints.
 
+## User file
+
+`keymap.json` in the configuration directory adds, replaces and removes rows over the defaults (`UserKeymap`, `UserKeymapStore` in Core); the guide is [customising-keys.md](customising-keys.md). Rows that fail the checks above (plus printable keys in Command and Insert mode and dialog-only actions in Normal mode) are skipped and reported in the status line, a file that does not parse leaves the defaults, and `:keys reload` swaps the bindings of the running shell (`KeymapTable.Replace`; the reducer and the shell share one table on the UI thread). The user's rows are listed first so hints show their keys.
+
 ## Key rule
 
 - Standard vim and neovim keys keep their vim meaning (`h j k l`, `g g`, `G`, `Ctrl-d`, `Ctrl-u`, `/`, `n`, `N`, `:`, `q`).
