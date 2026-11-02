@@ -1,5 +1,7 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Writes;
@@ -20,19 +22,18 @@ public static class WriteMerge
         TabState tab,
         IReadOnlyList<IssueSummary> incoming)
     {
-        if (state.Session.Operations.Count == 0 && tab.ProtectedKeys.Count == 0)
+        if (state.Session.Operations.Count == 0 && tab.ProtectedKeys.Count == 0 && tab.ProtectedRows.Count == 0)
         {
             return incoming;
         }
 
         var protectedKeys = ProtectedKeys(state, tab);
-
-        if (tab.Rows.Count == 0)
-        {
-            return incoming;
-        }
-
         var held = new Dictionary<string, IssueSummary>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in tab.ProtectedRows)
+        {
+            held[row.Key] = row;
+        }
 
         foreach (var row in tab.Rows)
         {
@@ -42,12 +43,54 @@ public static class WriteMerge
             }
         }
 
-        if (held.Count == 0)
+        var running = RunningChanges(state);
+
+        if (held.Count == 0 && running.Count == 0)
         {
             return incoming;
         }
 
-        return [.. incoming.Select(row => held.TryGetValue(row.Key, out var own) ? own : row)];
+        return [.. incoming.Select(row => Held(row, held, running))];
+    }
+
+    /// <summary>
+    /// <paramref name="incoming"/> with the fields that writes changed kept: the running operations' optimistic
+    /// values and the changes of writes that ended while this request was in flight. Returns the same instance when
+    /// nothing applies.
+    /// </summary>
+    public static IssueDetail KeepHeldFields(AppState state, DetailState detail, IssueDetail incoming)
+    {
+        var changes = RunningChanges(state).Where(change => IsFor(change, incoming.Key)).ToList();
+
+        changes.AddRange((detail.HeldChanges ?? []).Where(change => IsFor(change, incoming.Key)));
+
+        return changes.Aggregate(incoming, (current, change) => change.Patch(current));
+    }
+
+    private static IssueSummary Held(
+        IssueSummary row,
+        Dictionary<string, IssueSummary> held,
+        IReadOnlyList<RowChange> running)
+    {
+        if (held.TryGetValue(row.Key, out var own))
+        {
+            return own;
+        }
+
+        // A tab that does not hold the issue yet (a next page) takes the optimistic value of a running write.
+        var changes = running.Where(change => IsFor(change, row.Key));
+
+        return changes.Aggregate(row, (current, change) => change.Patch(current));
+    }
+
+    private static List<RowChange> RunningChanges(AppState state)
+    {
+        return [.. state.Session.Operations.SelectMany(operation => operation.Undo)];
+    }
+
+    private static bool IsFor(RowChange change, string key)
+    {
+        return string.Equals(change.Key, key, StringComparison.OrdinalIgnoreCase);
     }
 
     private static HashSet<string> ProtectedKeys(AppState state, TabState tab)

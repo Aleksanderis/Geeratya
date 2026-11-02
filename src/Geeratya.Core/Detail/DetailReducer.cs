@@ -2,6 +2,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
@@ -112,12 +113,18 @@ internal static class DetailReducer
         var wantsChildren = loaded.Issue.IssueType.HierarchyLevel >= DetailPaging.ParentLevel;
         var childrenRequest = wantsChildren ? state.Sequence + 1 : 0;
 
-        effects.Add(new WriteIssueCacheEffect(new CachedIssue(loaded.Issue, loaded.At)));
+        // Fields that a running or just ended write changed are kept (the reply may predate the write).
+        var current = tab.Detail.Last(detail => detail.IssueRequest == loaded.RequestId);
+        var issue = WriteMerge.KeepHeldFields(state, current, loaded.Issue);
+
+        effects.Add(new WriteIssueCacheEffect(new CachedIssue(issue, loaded.At)));
 
         var next = Update(
             state,
             loaded.Tab,
-            detail => detail.IssueRequest == loaded.RequestId ? AcceptIssue(detail, loaded, childrenRequest) : null);
+            detail => detail.IssueRequest == loaded.RequestId
+                ? AcceptIssue(detail, loaded with { Issue = issue }, childrenRequest)
+                : null);
 
         if (!wantsChildren)
         {
@@ -141,6 +148,42 @@ internal static class DetailReducer
             detail => detail.IssueRequest == cached.RequestId && detail.Issue is null
                 ? detail with { Issue = cached.Cached.Detail, IssueStale = true, IssueSavedAt = cached.Cached.SavedAt }
                 : null);
+    }
+
+    /// <summary>
+    /// Reloads the shown issue of a tab after a write on it: the shown copy stays (marked stale)
+    /// and a new request replaces any older one, so a reply that predates the write is dropped.
+    /// </summary>
+    public static AppState Reload(AppState state, TabId id, List<Effect> effects)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, id);
+
+        if (tab is null || tab.Detail.Count == 0)
+        {
+            return state;
+        }
+
+        var top = tab.Detail[^1];
+        var requestId = state.Sequence + 1;
+
+        var loading = top with
+        {
+            IssueStale = true,
+            IssueSavedAt = top.IssueSavedAt ?? top.LoadedAt,
+            IssueLoad = new Loading(LoadReason.Refresh, true),
+            IssueRequest = requestId,
+            HeldChanges = null,
+        };
+
+        effects.Add(new LoadIssueDetailEffect(id, top.Key, requestId));
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, loading)) with { Sequence = requestId };
+    }
+
+    /// <summary>Whether the shown issue was marked stale by a write and has no reload in flight.</summary>
+    public static bool NeedsReload(TabState tab)
+    {
+        return tab.Detail is [.., { IssueStale: true, IssueRequest: 0, Issue: not null }];
     }
 
     public static AppState ChildrenLoaded(AppState state, IssueChildrenLoaded loaded)
@@ -351,7 +394,7 @@ internal static class DetailReducer
                     IssueLoad = failure,
                     IssueRequest = 0,
                 }
-                : detail with { IssueLoad = failure, IssueRequest = 0 };
+                : detail with { IssueLoad = failure, IssueRequest = 0, HeldChanges = null };
         }
 
         if (detail.CommentsRequest == requestId)
@@ -374,6 +417,7 @@ internal static class DetailReducer
             Issue = loaded.Issue,
             IssueStale = false,
             IssueSavedAt = null,
+            HeldChanges = null,
             IssueLoad = LoadState.Idle,
             IssueRequest = 0,
             LoadedAt = loaded.At,

@@ -653,7 +653,9 @@ public static class ViewReducer
         }
 
         // A reply that lands while a write runs (or started before one ended) keeps the tab's own row for its keys.
-        var merged = appended ? combined : WriteMerge.KeepHeldRows(state, tab, combined);
+        var merged = appended
+            ? Append(tab.Rows, WriteMerge.KeepHeldRows(state, tab, loaded.Page.Items))
+            : WriteMerge.KeepHeldRows(state, tab, combined);
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? merged.Take(ViewPaging.MaxRowsPerTab).ToArray() : merged;
         var cursor = truncated ? null : loaded.Page.Next;
@@ -669,6 +671,7 @@ public static class ViewReducer
             LoadedAt = loaded.At,
             PendingRows = null,
             ProtectedKeys = [],
+            ProtectedRows = [],
             KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : merged),
             Failures = 0,
             Total = loaded.Page.Total ?? tab.Total,
@@ -815,6 +818,7 @@ public static class ViewReducer
             IsStale = tab.Rows.Count > 0,
             PendingRows = null,
             ProtectedKeys = [],
+            ProtectedRows = [],
             Failures = failures,
             NextRefreshAt = nextRefresh,
         };
@@ -846,7 +850,10 @@ public static class ViewReducer
         var session = state.Session with { Active = id };
         var next = Replace(state with { Session = session, Sequence = sequence }, shown);
 
-        return EnforceTotal(next, effects);
+        // A write marked the shown issue stale while this tab was hidden.
+        var reloaded = DetailReducer.NeedsReload(shown) ? DetailReducer.Reload(next, id, effects) : next;
+
+        return EnforceTotal(reloaded, effects);
     }
 
     /// <summary>Hidden tabs with the lowest last-active stamp give their rows up until the total fits.</summary>

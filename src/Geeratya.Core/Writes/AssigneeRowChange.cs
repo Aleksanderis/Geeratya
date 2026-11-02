@@ -1,3 +1,4 @@
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Writes;
@@ -8,6 +9,11 @@ public sealed record AssigneeRowChange(string Key, IssueAssignee? Before, IssueA
     public override IssueSummary Patch(IssueSummary row)
     {
         return row with { Assignee = After };
+    }
+
+    public override IssueDetail Patch(IssueDetail detail)
+    {
+        return detail with { Assignee = After };
     }
 
     public override IssueSummary Revert(IssueSummary row)
