@@ -99,6 +99,29 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAnAssigneeAndANarrowColumn_WhenRendering_ThenTheInitialsGoBeforeTheTypeName()
+    {
+        var tab = Tab(Issue("1", "ABCDEFGH-12345", assignee: "Jane Doe"));
+
+        var body = Render(tab, 120, 30);
+        var tight = Render(tab, 20, 30);
+
+        Assert.Contains("Task ABCDEFGH-12345", body[3].PlainText);
+        Assert.Contains("JD", body[3].PlainText);
+        Assert.DoesNotContain("JD", tight[3].PlainText);
+    }
+
+    [Fact]
+    public void GivenAnEmptyTypeName_WhenRendering_ThenTheMarkerShowsInsteadOfABlank()
+    {
+        var issue = Issue("1", "A-1") with { IssueType = new IssueTypeSummary("10", "", 0, false) };
+
+        var body = Render(Tab(issue), 120, 30);
+
+        Assert.Contains("┃ ? A-1", body[3].PlainText);
+    }
+
+    [Fact]
     public void GivenAnAssignee_WhenRendering_ThenInitialsSitAtTheColumnsRightEdgeAndUnassignedHasNone()
     {
         var tab = Tab(Issue("1", "A-1", assignee: "Jane Doe"), Issue("1", "A-2"));

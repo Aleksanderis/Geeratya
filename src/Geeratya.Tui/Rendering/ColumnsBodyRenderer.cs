@@ -15,6 +15,7 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public sealed class ColumnsBodyRenderer : IBodyRenderer
 {
+    private const int MinTypeName = 4;
     private const string NoCardsText = "no issues";
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
@@ -338,8 +339,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         spans.Add(new StyledSpan(Blank, TextRole.Body));
     }
 
-    private const int MinTypeName = 4;
-
     private static string BoxText(IssueSummary issue, int within, int width)
     {
         if (within == 1)
@@ -362,32 +361,27 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
     /// <summary>
     /// The key line: type name and key, with the assignee's initials at the right edge when there is room. The type
-    /// name is cut to fit, down to <see cref="MinTypeName"/> cells, and then replaced by the one-cell marker.
+    /// name wins over the initials: it is cut down to <see cref="MinTypeName"/> cells, then the initials go, then the
+    /// name is replaced by the one-cell marker.
     /// </summary>
     private static string KeyLine(IssueSummary issue, int width)
     {
         var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
-        var initialsWidth = initials.Length == 0 ? 0 : TextWidth.Of(initials) + 1;
-        var name = issue.IssueType.Name;
-        var room = width - initialsWidth - TextWidth.Of(issue.Key) - 1;
+        var keyRoom = width - TextWidth.Of(issue.Key) - 1;
 
-        if (room < MinTypeName && initialsWidth > 0)
+        if (initials.Length > 0 && keyRoom - TextWidth.Of(initials) - 1 < MinTypeName)
         {
-            initialsWidth = 0;
             initials = string.Empty;
-            room = width - TextWidth.Of(issue.Key) - 1;
         }
 
-        var label = room >= MinTypeName
-            ? TextWidth.Of(name) <= room ? name : CardText.Shorten(name, room)
+        var nameRoom = initials.Length > 0 ? keyRoom - TextWidth.Of(initials) - 1 : keyRoom;
+        var label = nameRoom >= MinTypeName && !string.IsNullOrWhiteSpace(issue.IssueType.Name)
+            ? CardText.Shorten(issue.IssueType.Name, nameRoom)
             : IssueTypeMarker.For(issue.IssueType).ToString();
         var key = $"{label} {issue.Key}";
 
-        if (initials.Length == 0)
-        {
-            return TextWidth.Fit(key, width);
-        }
-
-        return $"{TextWidth.Pad(key, width - initialsWidth)} {initials}";
+        return initials.Length == 0
+            ? TextWidth.Fit(key, width)
+            : $"{TextWidth.Pad(key, width - TextWidth.Of(initials) - 1)} {initials}";
     }
 }
