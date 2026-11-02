@@ -140,7 +140,7 @@ public sealed class FakeJiraRouter
 
     private static int IntOf(IReadOnlyDictionary<string, string> query, string name, int fallback)
     {
-        return query.TryGetValue(name, out var text) && int.TryParse(text, out var value) ? value : fallback;
+        return query.TryGetValue(name, out var text) && int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var value) ? value : fallback;
     }
 
     private static Dictionary<string, string> ReadBody(string body)

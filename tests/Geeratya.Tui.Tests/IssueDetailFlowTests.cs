@@ -17,7 +17,6 @@ namespace Geeratya.Tui.Tests;
 /// The issue detail through the real path: Enter in the reducer, the load handler against the recorded fixtures
 /// served by an in-process Jira, and the replies back through the reducer.
 /// </summary>
-[Trait("Os", "Independent")]
 public sealed class IssueDetailFlowTests : IDisposable
 {
     private const string Site = "/rest/api/3/issue";

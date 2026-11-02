@@ -574,6 +574,7 @@ public static class ViewReducer
             KeyWidth = 0,
             RequestId = 0,
             Load = LoadState.Idle,
+            Detail = [],
             Cold = true,
         };
     }

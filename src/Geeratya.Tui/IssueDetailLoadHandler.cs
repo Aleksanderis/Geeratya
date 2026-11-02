@@ -24,7 +24,9 @@ public sealed class IssueDetailLoadHandler
         _clock = clock ?? TimeProvider.System;
     }
 
-    /// <summary>Starts the load of <paramref name="effect"/> and returns the task that ends when it is posted or dropped.</summary>
+    /// <summary>
+    /// Starts the load of <paramref name="effect"/> and returns the task that ends when it is posted or dropped.
+    /// </summary>
     public Task StartAsync(Effect effect)
     {
         return effect switch

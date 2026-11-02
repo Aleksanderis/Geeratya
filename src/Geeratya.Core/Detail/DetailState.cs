@@ -11,7 +11,9 @@ namespace Geeratya.Core.Detail;
 /// is applied only while its id is the part's current one (<c>docs/architecture.md</c>, "Views and tabs").
 /// </summary>
 /// <param name="Key">The issue key.</param>
-/// <param name="Row">The list row it was opened from, shown in the header until the issue arrives; null when opened by key.</param>
+/// <param name="Row">
+/// The list row it was opened from, shown in the header until the issue arrives; null when opened by key.
+/// </param>
 /// <param name="Issue">The loaded issue, null until it arrives.</param>
 /// <param name="IssueLoad">Whether the issue is loading or failed.</param>
 /// <param name="IssueRequest">The id of the issue request in flight, 0 when none.</param>

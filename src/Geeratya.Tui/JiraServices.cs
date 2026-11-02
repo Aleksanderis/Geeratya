@@ -1,7 +1,7 @@
+using Geeratya.Jira.Boards;
 using Geeratya.Jira.Comments;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.RemoteLinks;
-using Geeratya.Jira.Boards;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;

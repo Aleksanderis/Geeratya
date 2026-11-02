@@ -124,7 +124,9 @@ internal static class DetailReducer
         return Update(state, failed.Tab, detail => Fail(detail, failed.RequestId, failure));
     }
 
-    /// <summary>Scrolls the top issue of the active tab by line or page; the document, not the selection, moves.</summary>
+    /// <summary>
+    /// Scrolls the top issue of the active tab by line or page; the document, not the selection, moves.
+    /// </summary>
     public static AppState Scroll(AppState state, TabState tab, ListMove move)
     {
         var top = tab.Detail[^1];
@@ -147,7 +149,9 @@ internal static class DetailReducer
         return ViewReducer.Replace(state, ReplaceTop(tab, scrolled));
     }
 
-    /// <summary>After a viewport change: the top issue of every tab is laid out for the new width and re-clamped.</summary>
+    /// <summary>
+    /// After a viewport change: the top issue of every tab is laid out for the new width and re-clamped.
+    /// </summary>
     public static TabState Resized(TabState tab, int columns)
     {
         if (tab.Detail.Count == 0)
@@ -157,7 +161,8 @@ internal static class DetailReducer
 
         var top = tab.Detail[^1];
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
-        var resized = top.Document?.Width == width ? Clamp(top, tab.VisibleRows) : Layout(top, columns, tab.VisibleRows);
+        var sameWidth = top.Document?.Width == width;
+        var resized = sameWidth ? Clamp(top, tab.VisibleRows) : Layout(top, columns, tab.VisibleRows);
 
         return ReplaceTop(tab, resized);
     }

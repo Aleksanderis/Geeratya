@@ -180,7 +180,7 @@ GCM board · 11 issues
 
 ## Issue detail
 
-Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). A breadcrumb replaces the view title: `GCM board › GCM-12`.
+Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). A breadcrumb replaces the view title: `GCM board › GCM-12`. The mockup is the target layout: the sub-task, link, remote link and attachment sections and the cursor row (`>`) arrive with #88.
 
 ```text
  [1 Board: GCM board]  2 Backlog: GCM board  3 JQL: assignee = currentUser() AND resolution = Unres…
@@ -204,11 +204,11 @@ Remote links (1)
 Attachments (1)
   screenshot.png  image/png  48 KB  (opens the issue page in the browser)
 Comments (3 of 7)
-  Load 4 older comments
-  Ola Nordmann · 3 d ago
+  Jane Doe · 3 d ago
     Can you check the refresh path?
-  Jane Doe · 1 d ago
+  Ola Nordmann · 1 d ago
     Found it, the redirect target is dropped.
+  Load more comments (Enter)
 
 
 
