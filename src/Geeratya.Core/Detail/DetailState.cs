@@ -32,7 +32,8 @@ namespace Geeratya.Core.Detail;
 /// <param name="ChildrenLoad">Whether the children are loading or failed.</param>
 /// <param name="ChildrenRequest">The id of the children request in flight, 0 when none.</param>
 /// <param name="LoadedAt">When the last reply arrived; the reference for relative times.</param>
-/// <param name="Scroll">The first visible document line.</param>
+/// <param name="Cursor">The document line the cursor is on; Enter and the open keys act on it.</param>
+/// <param name="Scroll">The first visible document line; follows the cursor.</param>
 /// <param name="Document">The laid-out lines for the last known width, null before the first layout.</param>
 public sealed record DetailState(
     string Key,
@@ -53,6 +54,7 @@ public sealed record DetailState(
     LoadState ChildrenLoad,
     long ChildrenRequest,
     DateTimeOffset? LoadedAt,
+    int Cursor,
     int Scroll,
     DetailDocument? Document)
 {
@@ -83,6 +85,7 @@ public sealed record DetailState(
             LoadState.Idle,
             0,
             null,
+            0,
             0,
             null);
     }

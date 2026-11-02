@@ -1,6 +1,7 @@
 using Geeratya.Core.Adf;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Issues;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.RemoteLinks.Models;
 using Geeratya.Jira.Search.Models;
@@ -25,7 +26,7 @@ internal static class IssueRelationsBuilder
     private const string UnknownType = "unknown type";
     private const string FirstChildrenOnlyText = "Showing the first children only.";
 
-    public static void Add(List<StyledLine> lines, DetailState detail, int width, int inner)
+    public static void Add(DocumentSink lines, DetailState detail, int width, int inner)
     {
         var issue = detail.Issue;
 
@@ -45,12 +46,12 @@ internal static class IssueRelationsBuilder
 
         if (issue is not null)
         {
-            AddAttachments(lines, issue.Attachments, detail.LoadedAt, width, inner);
+            AddAttachments(lines, detail.Key, issue.Attachments, detail.LoadedAt, width, inner);
         }
     }
 
     private static void AddStubs(
-        List<StyledLine> lines,
+        DocumentSink lines,
         string title,
         IReadOnlyList<IssueStub> stubs,
         int width,
@@ -61,33 +62,33 @@ internal static class IssueRelationsBuilder
             return;
         }
 
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         foreach (var stub in stubs)
         {
             var text = new WrappedText(inner, false);
 
             AddIssue(text, stub.Key, stub.Summary, stub.Status);
-            text.Finish(content);
+            content.Finish(text, IssueTarget(stub.Key));
         }
 
-        Panel.Add(lines, Title(title, stubs.Count), content, width);
+        lines.AddPanel(Title(title, stubs.Count), content, width);
     }
 
-    private static void AddChildren(List<StyledLine> lines, DetailState detail, int width, int inner)
+    private static void AddChildren(DocumentSink lines, DetailState detail, int width, int inner)
     {
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         switch (detail.ChildrenLoad)
         {
             case Loading:
                 content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                Panel.Add(lines, [new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
+                lines.AddPanel([new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
 
                 return;
             case Failed failed:
                 content.Add(StyledLine.Of(failed.Message, TextRole.Error));
-                Panel.Add(lines, [new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
+                lines.AddPanel([new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
 
                 return;
         }
@@ -103,7 +104,7 @@ internal static class IssueRelationsBuilder
 
             AddIssue(text, child.Key, child.Summary, child.Status);
             text.Append($"{Separator}{child.IssueType.Name}", TextRole.Muted);
-            text.Finish(content);
+            content.Finish(text, IssueTarget(child.Key));
         }
 
         if (detail.ChildrenMore)
@@ -113,17 +114,17 @@ internal static class IssueRelationsBuilder
 
         var count = detail.ChildrenMore ? $"{children.Count}+" : children.Count.ToString();
 
-        Panel.Add(lines, [new StyledSpan($"{ChildrenTitle} ({count})", TextRole.Heading)], content, width);
+        lines.AddPanel([new StyledSpan($"{ChildrenTitle} ({count})", TextRole.Heading)], content, width);
     }
 
-    private static void AddLinks(List<StyledLine> lines, IReadOnlyList<IssueLink> links, int width, int inner)
+    private static void AddLinks(DocumentSink lines, IReadOnlyList<IssueLink> links, int width, int inner)
     {
         if (links.Count == 0)
         {
             return;
         }
 
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         foreach (var link in links)
         {
@@ -132,26 +133,26 @@ internal static class IssueRelationsBuilder
             text.Append(DirectionText(link), TextRole.Emphasis);
             text.Append(" ", TextRole.Body);
             AddIssue(text, link.Issue.Key, link.Issue.Summary, link.Issue.Status);
-            text.Finish(content);
+            content.Finish(text, IssueTarget(link.Issue.Key));
         }
 
-        Panel.Add(lines, Title(LinksTitle, links.Count), content, width);
+        lines.AddPanel(Title(LinksTitle, links.Count), content, width);
     }
 
-    private static void AddRemoteLinks(List<StyledLine> lines, DetailState detail, int width, int inner)
+    private static void AddRemoteLinks(DocumentSink lines, DetailState detail, int width, int inner)
     {
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         switch (detail.LinksLoad)
         {
             case Loading:
                 content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                Panel.Add(lines, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel([new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
 
                 return;
             case Failed failed:
                 content.Add(StyledLine.Of(failed.Message, TextRole.Error));
-                Panel.Add(lines, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel([new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
 
                 return;
         }
@@ -166,10 +167,10 @@ internal static class IssueRelationsBuilder
             AddRemoteLink(content, link, inner);
         }
 
-        Panel.Add(lines, Title(RemoteLinksTitle, links.Count), content, width);
+        lines.AddPanel(Title(RemoteLinksTitle, links.Count), content, width);
     }
 
-    private static void AddRemoteLink(List<StyledLine> content, RemoteLink link, int inner)
+    private static void AddRemoteLink(PanelContent content, RemoteLink link, int inner)
     {
         var title = new WrappedText(inner, false);
 
@@ -180,16 +181,19 @@ internal static class IssueRelationsBuilder
             title.Append($"{Separator}{link.ApplicationName}", TextRole.Muted);
         }
 
-        title.Finish(content);
+        var target = new DetailTarget(DetailTargetKind.RemoteLink, link.Url);
+
+        content.Finish(title, target);
 
         var address = new WrappedText(inner, true);
 
         address.Append(link.Url, TextRole.Link);
-        address.Finish(content);
+        content.Finish(address, target);
     }
 
     private static void AddAttachments(
-        List<StyledLine> lines,
+        DocumentSink lines,
+        string key,
         IReadOnlyList<IssueAttachment> attachments,
         DateTimeOffset? reference,
         int width,
@@ -200,7 +204,7 @@ internal static class IssueRelationsBuilder
             return;
         }
 
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
 
         foreach (var attachment in attachments)
         {
@@ -215,10 +219,16 @@ internal static class IssueRelationsBuilder
                 text.Append($"{Separator}{RelativeTime.Format(created, now)}", TextRole.Muted);
             }
 
-            text.Finish(content);
+            content.Finish(text, new DetailTarget(DetailTargetKind.Attachment, key));
         }
 
-        Panel.Add(lines, Title(AttachmentsTitle, attachments.Count), content, width);
+        lines.AddPanel(Title(AttachmentsTitle, attachments.Count), content, width);
+    }
+
+    /// <summary>The row opens the issue only for a well-formed key; anything else stays plain text.</summary>
+    private static DetailTarget? IssueTarget(string key)
+    {
+        return IssueUrls.IsValidKey(key) ? new DetailTarget(DetailTargetKind.Issue, key) : null;
     }
 
     private static void AddIssue(WrappedText text, string key, string summary, IssueStatus status)

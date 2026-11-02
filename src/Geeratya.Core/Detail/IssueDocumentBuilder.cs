@@ -48,29 +48,26 @@ public static class IssueDocumentBuilder
     {
         var columns = Math.Max(1, width);
         var inner = Panel.InnerWidth(columns);
-        var lines = new List<StyledLine>();
+        var sink = new DocumentSink();
 
-        AddHeader(lines, detail, columns, inner);
+        AddHeader(sink, detail, columns, inner);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)
         {
-            Panel.Add(
-                lines,
-                [new StyledSpan(ErrorTitle, TextRole.Error)],
-                [
-                    StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error),
-                    StyledLine.Of(BackText, TextRole.Muted),
-                ],
-                columns);
+            var error = new PanelContent();
 
-            return new DetailDocument(columns, lines);
+            error.Add(StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error));
+            error.Add(StyledLine.Of(BackText, TextRole.Muted));
+            sink.AddPanel([new StyledSpan(ErrorTitle, TextRole.Error)], error, columns);
+
+            return sink.ToDocument(columns);
         }
 
-        AddDescription(lines, detail, columns, inner);
-        IssueRelationsBuilder.Add(lines, detail, columns, inner);
-        AddComments(lines, detail, columns, inner);
+        AddDescription(sink, detail, columns, inner);
+        IssueRelationsBuilder.Add(sink, detail, columns, inner);
+        AddComments(sink, detail, columns, inner);
 
-        return new DetailDocument(columns, lines);
+        return sink.ToDocument(columns);
     }
 
     private static string FailureText(string key, Failed failed)
@@ -78,7 +75,7 @@ public static class IssueDocumentBuilder
         return failed.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden ? NotFoundText(key) : failed.Message;
     }
 
-    private static void AddHeader(List<StyledLine> lines, DetailState detail, int width, int inner)
+    private static void AddHeader(DocumentSink sink, DetailState detail, int width, int inner)
     {
         var header = HeaderFields.Of(detail);
         var content = new List<StyledLine>();
@@ -102,7 +99,7 @@ public static class IssueDocumentBuilder
             title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
         }
 
-        Panel.Add(lines, title, content, width);
+        sink.AddPanel(title, Wrap(content), width);
     }
 
     private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference)
@@ -224,7 +221,7 @@ public static class IssueDocumentBuilder
         }
     }
 
-    private static void AddDescription(List<StyledLine> lines, DetailState detail, int width, int inner)
+    private static void AddDescription(DocumentSink sink, DetailState detail, int width, int inner)
     {
         var content = new List<StyledLine>();
 
@@ -241,10 +238,10 @@ public static class IssueDocumentBuilder
             content.AddRange(AdfRenderer.Render(detail.Issue.Description, inner).Lines);
         }
 
-        Panel.Add(lines, [new StyledSpan(DescriptionTitle, TextRole.Heading)], content, width);
+        sink.AddPanel([new StyledSpan(DescriptionTitle, TextRole.Heading)], Wrap(content), width);
     }
 
-    private static void AddComments(List<StyledLine> lines, DetailState detail, int width, int inner)
+    private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)
     {
         var content = new List<StyledLine>();
 
@@ -259,7 +256,16 @@ public static class IssueDocumentBuilder
         }
 
         AddCommentsFooter(content, detail);
-        Panel.Add(lines, [new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
+        sink.AddPanel([new StyledSpan(CommentsHeading(detail), TextRole.Heading)], Wrap(content), width);
+    }
+
+    private static PanelContent Wrap(List<StyledLine> lines)
+    {
+        var content = new PanelContent();
+
+        content.AddRange(lines);
+
+        return content;
     }
 
     private static string CommentsHeading(DetailState detail)

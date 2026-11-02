@@ -189,16 +189,32 @@ public sealed class AppReducer
             ActionIds.NavigateBottom => Navigate(state, ListMove.Bottom, 0),
             ActionIds.NavigatePageDown => Navigate(state, ListMove.PageDown, 0),
             ActionIds.NavigatePageUp => Navigate(state, ListMove.PageUp, 0),
-            ActionIds.ItemOpen => state.Mode == InputMode.Normal ? ViewReducer.OpenSelected(state) : Result(state),
+            ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
+            ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
+            ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
+            ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
-            ActionIds.IssueOpenInBrowser => BrowserReducer.OpenIssue(state, null),
+            ActionIds.IssueOpenInBrowser => DetailActions.OpenInBrowser(state) ?? BrowserReducer.OpenIssue(state, null),
             ActionIds.ViewRefresh => ViewReducer.RefreshActive(state),
             _ when TabNumber(action) is { } number => ViewReducer.GoToTab(state, number),
             _ => Result(state),
         };
+    }
+
+    /// <summary>
+    /// Enter: a remote link or attachment row opens in the browser; else a row, related issue or comment page.
+    /// </summary>
+    private static ReduceResult OpenItem(AppState state)
+    {
+        return DetailActions.EnterBrowserRow(state) ?? ViewReducer.OpenSelected(state);
+    }
+
+    private static ReduceResult InNormal(AppState state, Func<ReduceResult> action)
+    {
+        return state.Mode == InputMode.Normal ? action() : Result(state);
     }
 
     private static AppState Erase(AppState state)
