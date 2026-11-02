@@ -1,7 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
-using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Tests.Fakes;
 
@@ -54,11 +53,11 @@ public class ColumnsSnapshotTests
         var lines = FrameBuilder.Build(state, 120, 36, _helpLines, _keymap);
 
         var positions = new[] { first, second, third, fourth }
-            .Select(name => lines[2].IndexOf(name, StringComparison.Ordinal))
+            .Select(name => lines[3].IndexOf(name, StringComparison.Ordinal))
             .ToArray();
         Assert.All(positions, position => Assert.True(position >= 0));
         Assert.Equal(positions.Order(), positions);
-        Assert.Single(lines.Skip(3), line => line.Contains('>', StringComparison.Ordinal));
+        Assert.Single(lines.Skip(4), line => line.Contains('>', StringComparison.Ordinal));
     }
 
     [Theory]
@@ -82,7 +81,7 @@ public class ColumnsSnapshotTests
 
     private static Task<AppState> OpenAsync(string kind, int height)
     {
-        var rows = height - 1 - TabBar.Rows - ListLayout.HeaderRows;
+        var rows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows;
 
         return kind == "gcm" ? BoardStateFixtures.CompanyManagedAsync(rows) : BoardStateFixtures.TeamManagedAsync(rows);
     }

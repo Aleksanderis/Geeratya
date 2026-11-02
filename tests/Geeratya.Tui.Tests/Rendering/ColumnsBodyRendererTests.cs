@@ -248,7 +248,8 @@ public class ColumnsBodyRendererTests
             {
                 for (var height = 1; height <= 14; height++)
                 {
-                    var lines = FrameBuilder.Build(state, width, height + 1, _helpLines, _keymap).Skip(1).ToList();
+                    var frame = FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _helpLines, _keymap);
+                    var lines = frame.Skip(FrameBuilder.HeaderRows).ToList();
 
                     Assert.Equal(height, lines.Count);
                     Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));

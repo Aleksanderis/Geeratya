@@ -1,4 +1,5 @@
  [1 Board: GTM board]                                                           
+                                                                                
 GTM board · 16 issues                                                           
 [To Do 5]            In Progress 4       Backlog 4           Done 3             
 >E GTM-9             E GTM-10            T GTM-21            S GTM-13           
@@ -19,6 +20,5 @@ GTM board · 16 issues
                                                                                 
  s GTM-20                                                                       
  Validate the email                                                             
-                                                                                
                                                                                 
  NORMAL                                                ? help  : command  q quit

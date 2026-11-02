@@ -1,4 +1,5 @@
  [1 Board: GCM board]                                                                                                   
+                                                                                                                        
 GCM board · 24 issues                                                                                                   
 [Backlog 12]                   To Do 5                       In Progress 4                 Done 3                       
 >T GCM-1                       E GCM-8                       E GCM-9                       s GCM-18                     
@@ -31,6 +32,5 @@ GCM board · 24 issues
                                                                                                                         
  T GCM-20                                                                                                               
  Backlog: dark mode                                                                                                     
-                                                                                                                        
                                                                                                                         
  NORMAL                                                                                        ? help  : command  q quit
