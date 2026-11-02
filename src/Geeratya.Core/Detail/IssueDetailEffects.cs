@@ -15,3 +15,8 @@ public sealed record LoadIssueCommentsEffect(TabId Tab, string Key, int StartAt,
 
 /// <summary>Load the remote links; the answer is <see cref="IssueRemoteLinksLoaded"/> or a failure.</summary>
 public sealed record LoadRemoteLinksEffect(TabId Tab, string Key, long RequestId) : Effect;
+
+/// <summary>
+/// Load the first page of children (<c>parent = KEY</c>); the answer is <see cref="IssueChildrenLoaded"/> or a failure.
+/// </summary>
+public sealed record LoadIssueChildrenEffect(TabId Tab, string Key, long RequestId) : Effect;

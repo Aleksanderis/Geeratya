@@ -8,6 +8,7 @@ using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Paging;
+using Geeratya.Jira.RemoteLinks.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
@@ -20,6 +21,7 @@ public class IssueDetailReducerTests
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly IssueStatus _status = new("1", "To Do", "new");
     private static readonly IssueTypeSummary _type = new("10", "Task", 0, false);
+    private static readonly IssueTypeSummary _epic = new("11", "Epic", 1, false);
 
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
@@ -389,6 +391,148 @@ public class IssueDetailReducerTests
         Assert.Contains("The description of A-1", Text(links));
     }
 
+    [Fact]
+    public void GivenEpicArrives_WhenTheIssueLoads_ThenItsChildrenAreRequestedOnceWithAFreshRequestId()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+
+        var result = _reducer.Reduce(
+            opened.State,
+            new IssueDetailLoaded(tab.Id, detail.IssueRequest, Detailed("A-1", _epic), _now));
+
+        var children = Assert.Single(result.Effects.OfType<LoadIssueChildrenEffect>());
+        var loaded = Active(result.State).Detail[0];
+        Assert.Equal("A-1", children.Key);
+        Assert.Equal(tab.Id, children.Tab);
+        Assert.Equal(loaded.ChildrenRequest, children.RequestId);
+        Assert.NotEqual(0, children.RequestId);
+        Assert.DoesNotContain(
+            children.RequestId,
+            new[] { detail.IssueRequest, detail.CommentsRequest, detail.LinksRequest });
+        Assert.IsType<Loading>(loaded.ChildrenLoad);
+        Assert.Equal(children.RequestId, result.State.Sequence);
+    }
+
+    [Fact]
+    public void GivenTaskArrives_WhenTheIssueLoads_ThenNoChildrenAreRequested()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+
+        var result = _reducer.Reduce(
+            opened.State,
+            new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, Detailed("A-1"), _now));
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(LoadState.Idle, Active(result.State).Detail[0].ChildrenLoad);
+        Assert.Null(Active(result.State).Detail[0].Children);
+    }
+
+    [Fact]
+    public void GivenStaleIssueReply_WhenItArrives_ThenNoChildrenAreRequested()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var stale = tab.Detail[0].IssueRequest + 100;
+
+        var result = _reducer.Reduce(opened.State, new IssueDetailLoaded(tab.Id, stale, Detailed("A-1", _epic), _now));
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(opened.State, result.State);
+    }
+
+    [Fact]
+    public void GivenChildrenRequested_WhenTheyArrive_ThenTheyShowInTheDocumentWithAMoreMarker()
+    {
+        var state = OpenedEpic(out var tab, out var request);
+        var page = new IssuePage([Row(21), Row(22)], new PageCursor("next"), null);
+
+        state = Deliver(state, new IssueChildrenLoaded(tab, request, page, _now));
+
+        var detail = Active(state).Detail[0];
+        Assert.Equal(2, detail.Children!.Count);
+        Assert.True(detail.ChildrenMore);
+        Assert.Equal(LoadState.Idle, detail.ChildrenLoad);
+        Assert.Equal(0, detail.ChildrenRequest);
+        Assert.Contains("Epic children (2+)", Text(detail));
+        Assert.Contains("A-21 Issue 21", Text(detail));
+    }
+
+    [Fact]
+    public void GivenChildrenReplyForAnotherRequest_WhenItArrives_ThenItIsIgnored()
+    {
+        var state = OpenedEpic(out var tab, out var request);
+
+        var page = new IssuePage([Row(21)], null, null);
+
+        var after = Deliver(state, new IssueChildrenLoaded(tab, request + 7, page, _now));
+
+        Assert.Equal(state, after);
+    }
+
+    [Fact]
+    public void GivenChildrenReplyForAPoppedIssue_WhenItArrives_ThenTheStackIsUnchanged()
+    {
+        var state = OpenedEpic(out var tab, out var request);
+
+        state = Deliver(state, new IssueDetailBackRequested(tab));
+
+        var after = Deliver(state, new IssueChildrenLoaded(tab, request, new IssuePage([Row(21)], null, null), _now));
+
+        Assert.Empty(Active(after).Detail);
+        Assert.Equal(state, after);
+    }
+
+    [Fact]
+    public void GivenChildrenFailure_WhenItArrives_ThenOnlyThatSectionFailsAndTheBreadcrumbSignalsIt()
+    {
+        var state = OpenedEpic(out var tab, out var request);
+
+        state = Deliver(
+            state,
+            new IssueDetailFailed(tab, request, new JiraError(JiraErrorKind.Forbidden, null, "x")));
+
+        var detail = Active(state).Detail[0];
+        Assert.IsType<Failed>(detail.ChildrenLoad);
+        Assert.Null(detail.Children);
+        Assert.NotNull(detail.Issue);
+        Assert.Contains("The description of A-1", Text(detail));
+    }
+
+    [Fact]
+    public void GivenRemoteLinksArrive_WhenBuildingTheDocument_ThenTheyShowUnderRemoteLinks()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var detail = tab.Detail[0];
+        var link = new RemoteLink("1", "https://example.com/spec", "Design spec", "Confluence");
+
+        var state = Deliver(opened.State, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Detailed("A-1"), _now));
+
+        state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [link], _now));
+
+        var text = Text(Active(state).Detail[0]);
+        Assert.Contains("Remote links (1)", text);
+        Assert.Contains("Design spec · Confluence", text);
+        Assert.Contains("https://example.com/spec", text);
+    }
+
+    private AppState OpenedEpic(out TabId tab, out long childrenRequest)
+    {
+        var opened = Press(ListState(), "Enter");
+        var active = Active(opened.State);
+        var result = _reducer.Reduce(
+            opened.State,
+            new IssueDetailLoaded(active.Id, active.Detail[0].IssueRequest, Detailed("A-1", _epic), _now));
+
+        tab = active.Id;
+        childrenRequest = Assert.Single(result.Effects.OfType<LoadIssueChildrenEffect>()).RequestId;
+
+        return result.State;
+    }
+
     private static AppState Start()
     {
         var profiles = ProfileCatalog.Empty.With(_work);
@@ -422,7 +566,7 @@ public class IssueDetailReducerTests
             "A");
     }
 
-    private static IssueDetail Detailed(string key)
+    private static IssueDetail Detailed(string key, IssueTypeSummary? type = null)
     {
         var description = AdfParser.Parse(
             $$"""{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"The description of {{key}}"}]}]}""");
@@ -432,7 +576,7 @@ public class IssueDetailReducerTests
             key,
             "Issue 1",
             _status,
-            _type,
+            type ?? _type,
             "High",
             null,
             new IssueAssignee("r", "Rita Reporter"),
