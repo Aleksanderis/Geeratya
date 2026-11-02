@@ -45,12 +45,12 @@ public sealed class SourceLoadHandler
         return Task.WhenAll(tasks);
     }
 
-    private static Command? UnavailableBoards()
+    private static Command UnavailableBoards()
     {
         return Failure(SourceListKind.Boards, new JiraError(JiraErrorKind.Unexpected, null, NoConnectionMessage));
     }
 
-    private static Command? UnavailableFilters()
+    private static Command UnavailableFilters()
     {
         return Failure(SourceListKind.Filters, new JiraError(JiraErrorKind.Unexpected, null, NoConnectionMessage));
     }

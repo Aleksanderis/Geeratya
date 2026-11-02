@@ -261,7 +261,7 @@ Overflow: when the titles do not fit, the window of tabs slides so the active on
 
 The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab (until the picker exists it opens a copy of the current tab's view), `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
+Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
 ## Connection check and network states
 
@@ -378,7 +378,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
-| `:tab new` | the source picker (until it exists, a copy of the current tab's view); `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
+| `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
 | `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
 | `:refresh` | alias of `<space>r` |
 | `:browse` | alias of `<space>o` |
