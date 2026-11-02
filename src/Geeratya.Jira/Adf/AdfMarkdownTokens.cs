@@ -16,10 +16,16 @@ public static class AdfMarkdownTokens
         return Written(new AdfMention(accountId, $"{AdfMarkdownSyntax.MentionStart}{name}"));
     }
 
-    /// <summary>The editor text of a link to <paramref name="key"/> under <paramref name="siteUrl"/>.</summary>
+    /// <summary>The editor text of a link to <paramref name="key"/> on the site (the bare key when either is invalid).</summary>
     public static string IssueLink(string siteUrl, string key)
     {
-        var href = $"{siteUrl.TrimEnd('/')}{BrowseSegment}{key}";
+        if (!IsIssueKey(key) || !Uri.TryCreate(siteUrl, UriKind.Absolute, out var site))
+        {
+            return key;
+        }
+
+        // Only scheme and host of the site, as IssueUrls.Browse builds the page address.
+        var href = $"{site.GetLeftPart(UriPartial.Authority)}{BrowseSegment}{key}";
 
         return Written(new AdfText(key, [new AdfLinkMark(href)]));
     }

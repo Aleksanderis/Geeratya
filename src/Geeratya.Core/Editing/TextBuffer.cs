@@ -33,6 +33,12 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
+        // A cursor moved by rows can sit inside a token: typing goes after it, never into it.
+        if (TokenStartingAt(Cursor) is { } token && token.Start < Cursor)
+        {
+            return (this with { Cursor = token.End }).Insert(typed);
+        }
+
         var accepted = typed.Length > room ? Truncated(typed, room) : typed;
 
         return new TextBuffer(Text.Insert(Cursor, accepted), Cursor + accepted.Length);

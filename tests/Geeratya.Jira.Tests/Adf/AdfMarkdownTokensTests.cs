@@ -2,6 +2,7 @@ using Geeratya.Jira.Adf;
 
 namespace Geeratya.Jira.Tests.Adf;
 
+[Trait("Os", "Independent")]
 public sealed class AdfMarkdownTokensTests
 {
     [Fact]
@@ -39,6 +40,15 @@ public sealed class AdfMarkdownTokensTests
         Assert.Equal(2, spans.Count);
         Assert.Equal(mention, text[spans[0].Start..spans[0].End]);
         Assert.Equal(issue, text[spans[1].Start..spans[1].End]);
+    }
+
+    [Fact]
+    public void GivenAnInvalidKeyOrASitePath_WhenBuildingALink_ThenTheKeyStaysPlainAndOnlyTheHostIsUsed()
+    {
+        Assert.Equal("GCM-1/../x", AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "GCM-1/../x"));
+        Assert.Equal(
+            "[A-1](https://x.atlassian.net/browse/A-1)",
+            AdfMarkdownTokens.IssueLink("https://x.atlassian.net/ex/jira/abc", "A-1"));
     }
 
     [Fact]

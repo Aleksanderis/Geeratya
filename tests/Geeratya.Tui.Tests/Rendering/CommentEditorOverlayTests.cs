@@ -4,8 +4,8 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
-using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;

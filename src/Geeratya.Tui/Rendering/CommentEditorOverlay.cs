@@ -18,7 +18,6 @@ public static class CommentEditorOverlay
     private const string EditTitle = "Edit comment on";
     private const string SavingText = "Saving…";
     private const string PlaceholderText = " Type the comment here";
-    private const string PopupFooter = "Down/Up choose   Tab/Enter accept   Esc close list";
     private const string SearchingText = "searching…";
     private const string LookupFailedText = "lookup failed";
     private const string NoMatchText = "No match";
@@ -214,6 +213,17 @@ public static class CommentEditorOverlay
         }
     }
 
+    private static string PopupFooterText(KeymapTable keymap)
+    {
+        var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
+        var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
+        var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext);
+        var enter = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+        var close = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+
+        return $"{down}/{up} choose   {accept}/{enter} accept   {close} close list";
+    }
+
     private static string FooterText(KeymapTable keymap, CommentEditor editor)
     {
         var save = keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit);
@@ -223,7 +233,7 @@ public static class CommentEditorOverlay
 
         if (editor.Suggest is { Items.Count: > 0 })
         {
-            return PopupFooter;
+            return PopupFooterText(keymap);
         }
 
         return $"{save} {verb}   {newLine} new line   {cancel} cancel";
