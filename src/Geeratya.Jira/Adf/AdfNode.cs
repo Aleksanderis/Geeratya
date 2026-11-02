@@ -49,7 +49,9 @@ public sealed record AdfTableHeader(int ColumnSpan, IReadOnlyList<AdfNode> Child
     public IReadOnlyList<int> ColumnWidths { get; init; } = [];
 }
 
-/// <summary>A data cell; see <see cref="AdfTableHeader" /> for <see cref="RowSpan" /> and <see cref="ColumnWidths" />.</summary>
+/// <summary>
+/// A data cell; <see cref="AdfTableHeader" /> describes <see cref="RowSpan" /> and <see cref="ColumnWidths" />.
+/// </summary>
 public sealed record AdfTableCell(int ColumnSpan, IReadOnlyList<AdfNode> Children) : AdfContainerNode(Children)
 {
     public int RowSpan { get; init; } = 1;
@@ -59,7 +61,10 @@ public sealed record AdfTableCell(int ColumnSpan, IReadOnlyList<AdfNode> Childre
 
 public sealed record AdfExpand(string? Title, IReadOnlyList<AdfNode> Children) : AdfContainerNode(Children);
 
-/// <summary>An expand inside a table cell or another expand (<c>nestedExpand</c>); same attributes as <see cref="AdfExpand" />.</summary>
+/// <summary>
+/// An expand inside a table cell or another expand (<c>nestedExpand</c>); same attributes as
+/// <see cref="AdfExpand" />.
+/// </summary>
 public sealed record AdfNestedExpand(string? Title, IReadOnlyList<AdfNode> Children) : AdfContainerNode(Children);
 
 /// <summary>A decision list; its children are <see cref="AdfDecisionItem" />.</summary>

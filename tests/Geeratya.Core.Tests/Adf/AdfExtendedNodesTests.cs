@@ -5,7 +5,9 @@ using static Geeratya.Core.Tests.Adf.AdfTestSupport;
 
 namespace Geeratya.Core.Tests.Adf;
 
-/// <summary>Nodes the parser types since #110 must not lose their text or their attributes on the way to the screen or the cache.</summary>
+/// <summary>
+/// Nodes the parser types since #110 must not lose their text or attributes on the way to the screen or the cache.
+/// </summary>
 public sealed class AdfExtendedNodesTests
 {
     private const string ExtendedDescription = "issue-gcm-extended-nodes.json";

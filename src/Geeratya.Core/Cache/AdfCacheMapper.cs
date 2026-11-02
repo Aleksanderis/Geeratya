@@ -7,7 +7,8 @@ namespace Geeratya.Core.Cache;
 /// Converts ADF documents to the cache DTOs and back. Pure. Per kind the DTO members hold: heading Number=level;
 /// orderedList Number=order; taskItem Value=state; codeBlock Value=language; panel Value=panel type; table header
 /// and cell Number=column span, Value=row span (absent for 1), Second=column widths joined by commas; expand and
-/// nestedExpand Value=title; decisionItem Value=state; mediaInline as media; mediaSingle Value=layout; media Value=id, Second=media type,
+/// nestedExpand Value=title; decisionItem Value=state; mediaInline as media; mediaSingle Value=layout; media
+/// Value=id, Second=media type,
 /// Third=collection, Alt, Number=width, Height; text Text and Marks; inlineCard Value=URL; emoji Value=short name,
 /// Text=glyph; date Number=epoch milliseconds; status Text and Value=colour; mention Value=id, Text; unknown
 /// Value=type name, Text.
@@ -206,7 +207,9 @@ public static class AdfCacheMapper
 
     private static string? WidthsText(IReadOnlyList<int> widths)
     {
-        return widths.Count == 0 ? null : string.Join(',', widths.Select(width => width.ToString(CultureInfo.InvariantCulture)));
+        var texts = widths.Select(width => width.ToString(CultureInfo.InvariantCulture));
+
+        return widths.Count == 0 ? null : string.Join(',', texts);
     }
 
     private static List<int> Widths(string? text)

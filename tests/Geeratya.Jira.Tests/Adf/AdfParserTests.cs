@@ -9,6 +9,7 @@ public sealed class AdfParserTests
 {
     private const string RichDescription = "adf/issue-gtm5-rich-description.json";
     private const string Comments = "adf/comments-gtm5.json";
+    private const string ExtendedNodes = "adf/issue-gcm-extended-nodes.json";
 
     [Fact]
     public void GivenRichDescriptionFixture_WhenParsing_ThenEveryNodeTypeIsTyped()
@@ -344,8 +345,6 @@ public sealed class AdfParserTests
         Assert.Equal(AdfParser.MaxDepth - 1, Depth(parsed.Content));
     }
 
-    private const string ExtendedNodes = "adf/issue-gcm-extended-nodes.json";
-
     [Fact]
     public void GivenExtendedFixture_WhenParsing_ThenNoNodeIsUnknown()
     {
@@ -382,10 +381,12 @@ public sealed class AdfParserTests
 
         var nested = Assert.Single(nodes.OfType<AdfNestedExpand>());
         Assert.Equal("Inner", nested.Title);
-        Assert.Equal("nested body", Assert.IsType<AdfText>(Assert.IsType<AdfParagraph>(nested.Children.Single()).Children.Single()).Text);
+        var nestedParagraph = Assert.IsType<AdfParagraph>(nested.Children.Single());
+        Assert.Equal("nested body", Assert.IsType<AdfText>(nestedParagraph.Children.Single()).Text);
         Assert.Equal("Outer", Assert.Single(nodes.OfType<AdfExpand>()).Title);
         Assert.Equal("DECIDED", Assert.Single(nodes.OfType<AdfDecisionItem>()).State);
-        Assert.Equal("A caption", Assert.IsType<AdfText>(Assert.Single(nodes.OfType<AdfCaption>()).Children.Single()).Text);
+        var caption = Assert.Single(nodes.OfType<AdfCaption>());
+        Assert.Equal("A caption", Assert.IsType<AdfText>(caption.Children.Single()).Text);
         var inline = Assert.Single(nodes.OfType<AdfMediaInline>());
         Assert.Equal("file", inline.MediaType);
         Assert.Equal("00000000-0000-0000-0000-000000000001", inline.Id);
@@ -403,9 +404,9 @@ public sealed class AdfParserTests
     [InlineData("""{"rowspan":4}""", 4)]
     public void GivenRowSpanAttribute_WhenParsing_ThenInvalidValuesFallBackToOne(string attrs, int expected)
     {
-        var cell = ParseCell($$"""{"type":"tableCell","attrs":{{attrs}},"content":[]}""");
+        var (rowSpan, _) = ParseSpans($$"""{"type":"tableCell","attrs":{{attrs}},"content":[]}""");
 
-        Assert.Equal(expected, cell.RowSpan);
+        Assert.Equal(expected, rowSpan);
     }
 
     [Theory]
@@ -419,16 +420,17 @@ public sealed class AdfParserTests
     [InlineData("""null""", new int[0])]
     public void GivenColumnWidthAttribute_WhenParsing_ThenOnlyAWholeNumericListIsKept(string value, int[] expected)
     {
-        var cell = ParseCell($$"""{"type":"tableHeader","attrs":{"colwidth":{{value}}},"content":[]}""");
+        var (_, widths) = ParseSpans($$"""{"type":"tableHeader","attrs":{"colwidth":{{value}}},"content":[]}""");
 
-        Assert.Equal(expected, cell.ColumnWidths);
+        Assert.Equal(expected, widths);
     }
 
     [Fact]
     public void GivenTableCellWithoutAttrs_WhenParsing_ThenSpansAreOneAndWidthsEmpty()
     {
-        var cell = ParseCell("""{"type":"tableCell","content":[]}""");
+        var parsed = AdfParser.Parse("""{"type":"doc","content":[{"type":"tableCell","content":[]}]}""");
 
+        var cell = Assert.IsType<AdfTableCell>(Assert.Single(parsed.Content));
         Assert.Equal(1, cell.ColumnSpan);
         Assert.Equal(1, cell.RowSpan);
         Assert.Empty(cell.ColumnWidths);
@@ -438,29 +440,31 @@ public sealed class AdfParserTests
     public void GivenNestedExpandWithoutAttrsAndEmptyDecisionList_WhenParsing_ThenTheyParseWithoutThrowing()
     {
         var parsed = AdfParser.Parse(
-            """{"type":"doc","content":[{"type":"nestedExpand"},{"type":"decisionList","content":[{"type":"decisionItem"}]},{"type":"mediaInline"},{"type":"caption"}]}""");
+            """
+            {"type":"doc","content":[
+              {"type":"nestedExpand"},
+              {"type":"decisionList","content":[{"type":"decisionItem"}]},
+              {"type":"mediaInline"},
+              {"type":"caption"}]}
+            """);
 
         Assert.Equal(4, parsed.Content.Count);
         Assert.Null(Assert.IsType<AdfNestedExpand>(parsed.Content[0]).Title);
-        Assert.Null(Assert.IsType<AdfDecisionItem>(Assert.IsType<AdfDecisionList>(parsed.Content[1]).Children.Single()).State);
+        var list = Assert.IsType<AdfDecisionList>(parsed.Content[1]);
+        Assert.Null(Assert.IsType<AdfDecisionItem>(list.Children.Single()).State);
         Assert.Null(Assert.IsType<AdfMediaInline>(parsed.Content[2]).Id);
         Assert.Empty(Assert.IsType<AdfCaption>(parsed.Content[3]).Children);
     }
 
-    private static AdfTableCell ParseCell(string cellJson)
+    private static (int RowSpan, IReadOnlyList<int> Widths) ParseSpans(string cellJson)
     {
         var parsed = AdfParser.Parse($$"""{"type":"doc","content":[{{cellJson}}]}""");
-        var node = Assert.Single(parsed.Content);
 
-        return node switch
+        return Assert.Single(parsed.Content) switch
         {
-            AdfTableCell cell => cell,
-            AdfTableHeader header => new AdfTableCell(header.ColumnSpan, header.Children)
-            {
-                RowSpan = header.RowSpan,
-                ColumnWidths = header.ColumnWidths,
-            },
-            _ => throw new InvalidOperationException(node.GetType().Name),
+            AdfTableCell cell => (cell.RowSpan, cell.ColumnWidths),
+            AdfTableHeader header => (header.RowSpan, header.ColumnWidths),
+            var other => throw new InvalidOperationException(other.GetType().Name),
         };
     }
 

@@ -76,7 +76,9 @@ public sealed class IssueCacheTests : IDisposable
             ]),
             new AdfDecisionList([new AdfDecisionItem("DECIDED", [new AdfText("choice", [])])]),
             new AdfParagraph([new AdfMediaInline("m-2", "file", "coll", null, 10, 20)]),
-            new AdfMediaSingle(null, [new AdfMedia("m-3", "file", null, null, null, null), new AdfCaption([new AdfText("cap", [])])]),
+            new AdfMediaSingle(
+                null,
+                [new AdfMedia("m-3", "file", null, null, null, null), new AdfCaption([new AdfText("cap", [])])]),
             new AdfExpand("More", []),
             new AdfMediaSingle("wide", [new AdfMedia("m-1", "file", "coll", "alt text", 640, 480)]),
             new AdfMediaGroup([new AdfMedia(null, null, null, null, null, null)]),
