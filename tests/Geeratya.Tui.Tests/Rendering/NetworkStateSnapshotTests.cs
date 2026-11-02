@@ -18,8 +18,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// </summary>
 public class NetworkStateSnapshotTests
 {
-    private const string UpdateVariable = "GEERATYA_UPDATE_SNAPSHOTS";
-
     private static readonly DateTimeOffset _now = new(2026, 11, 2, 12, 5, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
@@ -50,12 +48,7 @@ public class NetworkStateSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var file = $"network-{name}-{width}x{height}.txt";
 
-        if (Environment.GetEnvironmentVariable(UpdateVariable) == "1")
-        {
-            File.WriteAllText(SourcePath(file), actual);
-        }
-
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", file));
+        var expected = SnapshotFile.Expect(file, actual);
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
     }
@@ -134,18 +127,6 @@ public class NetworkStateSnapshotTests
         Assert.Equal(fresh.Body.Count, offline.Body.Count);
         Assert.Equal(string.Empty, fresh.Header[1].PlainText.Trim());
         Assert.NotEqual(string.Empty, offline.Header[1].PlainText.Trim());
-    }
-
-    private static string SourcePath(string file)
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Geeratya.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return Path.Combine(directory!.FullName, "tests", "Geeratya.Tui.Tests", "Snapshots", file);
     }
 
     private static AppState Sample(string name)
