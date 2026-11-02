@@ -317,7 +317,7 @@ public sealed class IssueDetailFlowTests : IDisposable
     [InlineData(HttpStatusCode.NotFound, true)]
     [InlineData(HttpStatusCode.Forbidden, true)]
     [InlineData(HttpStatusCode.InternalServerError, false)]
-    public async Task GivenCachedIssueAndIssuePoppedBeforeReply_WhenGoneReplyArrives_ThenTheCacheEntryIsDropped(
+    public async Task GivenCachedIssue_WhenGoneReplyReachesTheHandlerWithNoStackedIssue_ThenTheEntryIsDroppedOnlyForNotFoundOrForbidden(
         HttpStatusCode status,
         bool dropped)
     {
