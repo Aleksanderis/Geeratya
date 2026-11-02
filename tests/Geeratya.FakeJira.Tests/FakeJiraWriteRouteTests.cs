@@ -209,6 +209,22 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenRankOfBacklogIssues_WhenReadingTheBacklogAgain_ThenTheNewOrderIsServed()
+    {
+        Start(0);
+        var path = $"{_baseUrl}/rest/agile/1.0/board/3/backlog";
+        var before = Keys(Parse(await _client.GetStringAsync(path)));
+
+        await Send(
+            HttpMethod.Put,
+            "/rest/agile/1.0/issue/rank",
+            $$"""{"issues":["{{before[0]}}"],"rankAfterIssue":"{{before[1]}}"}""");
+        var after = Keys(Parse(await _client.GetStringAsync(path)));
+
+        Assert.Equal([before[1], before[0], .. before.Skip(2)], after);
+    }
+
+    [Fact]
     public async Task GivenDropWriteEvery_WhenWritingOnAFreshConnection_ThenWriteIsAppliedButNeverAnswered()
     {
         Start(1);
@@ -224,6 +240,11 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     {
         _server?.Dispose();
         _client.Dispose();
+    }
+
+    private static string[] Keys(JsonElement list)
+    {
+        return [.. list.GetProperty("issues").EnumerateArray().Select(issue => issue.GetProperty("key").GetString()!)];
     }
 
     private static JsonElement Parse(string text) => JsonDocument.Parse(text).RootElement.Clone();

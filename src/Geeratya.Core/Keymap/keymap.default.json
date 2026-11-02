@@ -45,6 +45,11 @@
     { "mode": "normal", "keys": "Space l", "action": "view.layout-toggle" },
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },
+    { "mode": "normal", "keys": "Alt-k", "action": "rank.up" },
+    { "mode": "normal", "keys": "Alt-j", "action": "rank.down" },
+    { "mode": "normal", "keys": "Space k t", "action": "rank.top" },
+    { "mode": "normal", "keys": "Space k b", "action": "rank.bottom" },
+    { "mode": "normal", "keys": "Space k k", "action": "rank.to" },
 
     { "mode": "help", "keys": "j", "action": "nav.down" },
     { "mode": "help", "keys": "Down", "action": "nav.down" },

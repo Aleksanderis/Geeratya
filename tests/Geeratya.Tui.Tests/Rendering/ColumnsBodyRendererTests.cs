@@ -5,6 +5,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -63,6 +64,25 @@ public class ColumnsBodyRendererTests
             body[1].Spans.Where(span => span.Text.Contains("Doing", StringComparison.Ordinal)),
             span => span.Role == TextRole.Heading);
         Assert.Equal(5, body[2].PlainText.Count(character => character == '│'));
+    }
+
+    [Fact]
+    public void GivenARunningWriteOnACard_WhenRendering_ThenOnlyThatCardShowsTheBusyMarker()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2"));
+        var operation = new Operation(
+            9,
+            new RankRequest("A-2", "A-1", true, null),
+            tab.Id,
+            OperationPhase.Sending,
+            [],
+            DateTimeOffset.UnixEpoch);
+        var state = Active(tab);
+        var busy = state with { Session = state.Session with { Operations = [operation] } };
+
+        var text = string.Join("\n", RenderState(busy, 120, 30).Select(line => line.PlainText));
+
+        Assert.Equal(1, text.Count(character => character == '…'));
     }
 
     [Fact]
@@ -327,9 +347,14 @@ public class ColumnsBodyRendererTests
 
     private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height)
     {
+        return RenderState(Active(tab), width, height);
+    }
+
+    private static IReadOnlyList<StyledLine> RenderState(AppState state, int width, int height)
+    {
         var context = new BodyContext(_helpLines, _keymap);
 
-        return new ColumnsBodyRenderer().Render(Active(tab), context, width, height);
+        return new ColumnsBodyRenderer().Render(state, context, width, height);
     }
 
     private static AppState Active(TabState tab)

@@ -256,9 +256,14 @@ public static class StatusBar
             return state.Message;
         }
 
-        if (state.PendingKeys.Length > 0)
+        if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
-            return state.PendingKeys;
+            return PendingText(state);
+        }
+
+        if (ListBodyRenderer.ActiveTab(state)?.RankPickup is { } picked)
+        {
+            return $"Picked up {picked}: move to its new place and press the rank-to key again (Esc cancels)";
         }
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
@@ -270,6 +275,19 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
+    }
+
+    /// <summary>The typed count and keys of a multi-key binding: <c>3</c>, <c>g</c>, <c>3 Space k</c>.</summary>
+    private static string PendingText(AppState state)
+    {
+        if (state.Count == 0)
+        {
+            return state.PendingKeys;
+        }
+
+        var count = state.Count.ToString(CultureInfo.InvariantCulture);
+
+        return state.PendingKeys.Length == 0 ? count : $"{count} {state.PendingKeys}";
     }
 
     /// <summary>

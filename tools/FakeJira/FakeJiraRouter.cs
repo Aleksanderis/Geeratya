@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace Geeratya.FakeJira;
@@ -9,6 +10,7 @@ namespace Geeratya.FakeJira;
 public sealed partial class FakeJiraRouter
 {
     private const string SearchPath = "/rest/api/3/search/jql";
+    private const string BoardPrefix = "/rest/agile/1.0/board/";
     private const string BoardIssuesPath = "/rest/agile/1.0/board/4/issue";
     private const string StartAtName = "startAt";
     private const int BoardPageSize = 10;
@@ -103,11 +105,12 @@ public sealed partial class FakeJiraRouter
     private readonly Dictionary<string, byte[]> _fixtureCache = [];
     private readonly Lock _cacheLock = new();
     private readonly FakeJiraWriteStore _writes;
+    private HashSet<string>? _listedKeys;
 
     public FakeJiraRouter(FakeJiraOptions options)
     {
         _options = options;
-        _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue);
+        _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue, IsListedIssue);
     }
 
     /// <summary>True for the verbs that change data; the server may drop the connection after reading one.</summary>
@@ -137,7 +140,7 @@ public sealed partial class FakeJiraRouter
 
         if (method == Get && path == BoardIssuesPath)
         {
-            return BoardIssues(query);
+            return _writes.Ranked(BoardIssues(query));
         }
 
         if (method == Get && _options.GeneratedIssues > 0 && TryGeneratedIssue(path, query) is { } generated)
@@ -147,7 +150,9 @@ public sealed partial class FakeJiraRouter
 
         if (method == Get && _routes.TryGetValue(path, out var fixture))
         {
-            return new FakeReply(200, ReadFixture(fixture));
+            var reply = new FakeReply(200, ReadFixture(fixture));
+
+            return IsIssueList(path) ? _writes.Ranked(reply) : reply;
         }
 
         if (method == Get && path.StartsWith(FilterPrefix, StringComparison.Ordinal)
@@ -161,6 +166,13 @@ public sealed partial class FakeJiraRouter
         }
 
         return new FakeReply(404, ReadFixture(NotFoundFixture));
+    }
+
+    /// <summary>The agile lists whose order is the rank: a board's backlog and issues.</summary>
+    private static bool IsIssueList(string path)
+    {
+        return path.StartsWith(BoardPrefix, StringComparison.Ordinal)
+            && (path.EndsWith("/backlog", StringComparison.Ordinal) || path.EndsWith("/issue", StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -261,6 +273,39 @@ public sealed partial class FakeJiraRouter
         return parts[1] == CommentPart && _writes.Comments(key, recorded) is { } comments
             ? new FakeReply(200, comments)
             : null;
+    }
+
+    /// <summary>True for an issue that a board or backlog list serves, so it can be ranked.</summary>
+    private bool IsListedIssue(string key)
+    {
+        lock (_cacheLock)
+        {
+            _listedKeys ??= ReadListedKeys();
+
+            return _listedKeys.Contains(key);
+        }
+    }
+
+    private HashSet<string> ReadListedKeys()
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        var fixtures = _routes.Where(route => IsIssueList(route.Key)).Select(route => route.Value)
+            .Concat(_boardIssuePages);
+
+        foreach (var fixture in fixtures)
+        {
+            var issues = JsonNode.Parse(ReadFixture(fixture))?["issues"] as JsonArray ?? [];
+
+            foreach (var issue in issues)
+            {
+                if (issue?["key"]?.GetValue<string>() is { } key)
+                {
+                    keys.Add(key);
+                }
+            }
+        }
+
+        return keys;
     }
 
     private static bool IsRecordedIssue(string key) => _routes.ContainsKey($"{IssuePrefix}{key}");

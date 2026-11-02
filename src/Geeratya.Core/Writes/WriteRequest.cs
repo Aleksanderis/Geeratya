@@ -42,4 +42,10 @@ public abstract record WriteRequest
     /// lost reply, and to not trust a read that still lags behind the write (the search index is not instant).
     /// </summary>
     public abstract bool IsShownBy(IssueSummary row);
+
+    /// <summary>
+    /// Whether the issues are read again after the write (one search): false when a row shows nothing of the write
+    /// (a rank), so a re-read would prove nothing and is not made.
+    /// </summary>
+    public virtual bool ReadsBack => true;
 }

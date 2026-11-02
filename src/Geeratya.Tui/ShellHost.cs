@@ -184,7 +184,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         key.Handled = true;
 
-        Dispatch(new KeyPressed(spelled));
+        Dispatch(new KeyPressed(spelled, TimeProvider.System.GetUtcNow()));
     }
 
     /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>

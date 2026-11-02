@@ -80,6 +80,12 @@ public sealed record TabState(
     public IReadOnlyList<IssueSummary> ProtectedRows { get; init; } = [];
 
     /// <summary>
+    /// The issue picked up by the rank-to key and waiting to be dropped at the issue under the cursor; null when
+    /// none. Scoped to the tab, like the selection.
+    /// </summary>
+    public string? RankPickup { get; init; }
+
+    /// <summary>
     /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the
     /// approximate-count call of a JQL source. Null while unknown (the header then reads <c>N+</c>).
     /// </summary>
