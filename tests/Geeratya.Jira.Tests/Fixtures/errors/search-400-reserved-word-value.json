@@ -1,0 +1,6 @@
+{
+  "errorMessages": [
+    "Error in JQL Query: Expecting either a value, list or function but got 'OR'. You must surround 'OR' in quotation marks to use it as a value. (line 1, character 7)"
+  ],
+  "errors": {}
+}

@@ -1,0 +1,24 @@
+{
+  "isLast": false,
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Seed: Onboarding flow"
+      },
+      "id": "10015",
+      "key": "GCM-8",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10015"
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "fields": {
+        "summary": "Seed: Reporting"
+      },
+      "id": "10016",
+      "key": "GCM-9",
+      "self": "https://example.atlassian.net/rest/api/3/issue/10016"
+    }
+  ],
+  "nextPageToken": "EAIYktmB3Zk0IkFwcm9qZWN0ID0gR0NNIEFORCBzdGF0dXNDYXRlZ29yeSA9ICJJbiBQcm9ncmVzcyIgT1JERVIgQlkga2V5IEFTQyoCW10yIFRFTkFOVF9OT1RfRk9VTkRfSU5fVEVOQU5UX1NUT1JF"
+}
