@@ -52,7 +52,7 @@ The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys wha
 
 ## Writes (`src/Geeratya.Jira/Writes`, #155)
 
-Shared base of every write client. A write is built with `JiraRequest.Write` and sent with the `SendWriteAsync` extension on `JiraTransport` (namespace `Writes`) (typed reply, or no reply body for 204); the result is `WriteResult<T>` (value or `WriteError`). `SendWriteAsync` refuses a read request. Each write is its own client method named for what it does and is only called from a confirmed command.
+Shared base of every write client. A write is built with `JiraRequest.Write` and sent with the `SendWriteAsync` extension on `JiraTransport` (namespace `Writes`; typed reply, or no reply body for 204); the result is `WriteResult<T>` (value or `WriteError`). `SendWriteAsync` refuses a read request. Each write is its own client method named for what it does and is only called from a confirmed command.
 
 | Status / failure | `WriteErrorKind` | Outcome |
 |---|---|---|
@@ -66,7 +66,7 @@ Shared base of every write client. A write is built with `JiraRequest.Write` and
 | Network failure, 5xx, unreadable 2xx body, unexpected status (3xx) | `UnknownOutcome` | unknown |
 | Host not allowed | `NotSent` | nothing sent |
 
-- Never retried automatically, with one exception: a 429 that carries `Retry-After` is waited out and sent again (up to `MaxRetries`), because Jira did not process it. A 429 without `Retry-After`, and every timeout, network failure or 5xx, is returned as is: repeating a create or comment could duplicate it. The wait shows in `RateLimitedUntil` like a read's.
+- Never retried automatically, with one exception: a 429 that carries `Retry-After` is waited out and sent again (up to `MaxRetries`; a `Retry-After` beyond `MaxWait` is returned as `RateLimited` at once), because Jira did not process it. A 429 without `Retry-After`, and every timeout, network failure or 5xx, is returned as is: repeating a create or comment could duplicate it. The wait shows in `RateLimitedUntil` like a read's.
 - `WriteError.IsOutcomeUnknown` is true for `Timeout` and `UnknownOutcome`. The UI says "may or may not have been applied" and offers a reload; it never re-sends silently. Caller cancellation throws `OperationCanceledException` and is likewise unknown.
 - `ReadAfterWrite.ReloadIfUnknownAsync(write, reload, ct)` runs the caller's read only after an unknown outcome and returns null otherwise; the caller compares the reloaded issue with the intended change.
 - Error bodies: the three shapes under Errors; `errors` values and `errorMessages` entries are kept as Jira wrote them (truncated at 200 characters), HTML never reaches the message, the token is redacted. Fixtures: `errors/create-400-*.json`, `errors/issue-delete-403-no-permission.json`, `errors/issue-404.json`, `errors/search-429-rate-limited.json`; `errors/transition-409-conflict.json` is synthetic (a 409 was not recorded live).
@@ -78,7 +78,7 @@ The schedule is in `docs/architecture.md`, "Cache and refresh"; what the Jira la
 
 - Automatic refresh uses `AsBackground()` on the same transport: at most `cap - ReservedForUser` slots, throttled earlier than user work when the budget is low, so a refresh never delays a key press. Manual refresh, open, next page and retry are user requests.
 - Refresh traffic is bounded: one tab at a time, one load in flight per tab, pages walked sequentially. A list tab costs one search call per refresh (one a minute at the default interval); a board or backlog tab costs one call per page of its issues (100 per call, so a 1 000-issue board is 10 background calls a minute, a full 10 000-row board 100, the worst case).
-- While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries.
+- While `JiraTransport.RateLimitedUntil` is set the state layer starts no automatic refresh; the transport itself already waits `Retry-After` on retries. A `Retry-After` beyond `MaxWait` is not slept, so it does not set `RateLimitedUntil`; the caller reads `RetryAfter` from the error.
 
 ## Errors to UI states
 

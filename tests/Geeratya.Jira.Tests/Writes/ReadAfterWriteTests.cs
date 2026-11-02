@@ -4,6 +4,7 @@ using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Jira.Tests.Writes;
 
+[Trait("Os", "Independent")]
 public sealed class ReadAfterWriteTests
 {
     [Fact]

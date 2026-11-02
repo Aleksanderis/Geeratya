@@ -157,7 +157,7 @@ public sealed class JiraTransport : IDisposable
             return false;
         }
 
-        // A wait beyond the cap would end in the same 429; report it at once so the caller can show the wait.
+        // A wait beyond the cap would only end in another 429 or 503; return it at once, the caller reads RetryAfter.
         if (error.RetryAfter > _options.MaxWait)
         {
             return false;
@@ -181,7 +181,7 @@ public sealed class JiraTransport : IDisposable
     {
         if (error.RetryAfter is { } retryAfter)
         {
-            return Min(retryAfter, _options.MaxWait);
+            return retryAfter;
         }
 
         var factor = Math.Pow(2, Math.Min(attempt, MaxBackoffExponent));
