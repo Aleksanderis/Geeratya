@@ -290,7 +290,10 @@ internal static class AdfBlockRenderer
         var usable = context.Width - bar.Width >= 1;
         var innerContext = usable ? context.Narrow(bar.Width) : context.Deeper();
 
-        inner.Add(StyledLine.Of($"[{panel.PanelType}]", TextRole.Strong));
+        var label = new WrappedText(innerContext.Width, false);
+
+        label.Append($"[{panel.PanelType}]", TextRole.Strong);
+        label.Finish(inner);
         RenderBlocks(panel.Children, innerContext, false, inner);
         AppendPrefixed(inner, usable ? bar : LinePrefix.None, usable ? bar : LinePrefix.None, output);
     }

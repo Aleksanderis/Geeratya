@@ -32,6 +32,7 @@ internal sealed class AdfInlineWriter
     private readonly StringBuilder _linkText = new();
 
     private string? _linkAddress;
+    private int _depth;
 
     public AdfInlineWriter(int width, TextRole baseRole)
     {
@@ -78,7 +79,12 @@ internal sealed class AdfInlineWriter
                 break;
             case AdfContainerNode container:
                 WriteChildren(container.Children);
-                _text.LineBreak();
+
+                if (_depth <= AdfBlockRenderer.MaxDepth)
+                {
+                    _text.LineBreak();
+                }
+
                 break;
         }
     }
@@ -109,10 +115,19 @@ internal sealed class AdfInlineWriter
 
     private void WriteChildren(IReadOnlyList<AdfNode> children)
     {
+        if (_depth > AdfBlockRenderer.MaxDepth)
+        {
+            return;
+        }
+
+        _depth++;
+
         for (var index = 0; index < children.Count; index++)
         {
             Write(children[index]);
         }
+
+        _depth--;
     }
 
     private void WriteUnknown(AdfUnknownNode unknown)

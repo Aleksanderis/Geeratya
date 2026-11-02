@@ -19,6 +19,7 @@ internal static class AdfTableRenderer
     private const string RowEnd = " |";
     private const char HeaderRuleCharacter = '-';
     private const string StackedBullet = "- ";
+    private const string StackedIndent = "  ";
     private const string LabelSuffix = ": ";
 
     public static void Render(AdfTable table, RenderContext context, List<StyledLine> output)
@@ -332,7 +333,7 @@ internal static class AdfTableRenderer
         RenderContext context,
         List<StyledLine> output)
     {
-        var hasHeader = IsHeaderRow(rows[0]);
+        var hasHeader = IsHeaderRow(rows[0]) && rows.Count > 1;
         var labels = hasHeader ? HeaderLabels(rows[0], columnCount) : new string[columnCount];
         var produced = false;
 
@@ -380,10 +381,31 @@ internal static class AdfTableRenderer
         foreach (var cell in row)
         {
             var label = labels[cell.Column];
-            var text = string.IsNullOrEmpty(label) ? StackedBullet : $"{label}{LabelSuffix}";
-            var first = new LinePrefix(text, TextRole.Muted);
 
-            AdfBlockRenderer.RenderPrefixed(cell.Content, context, true, first, first.Hanging(), output);
+            if (string.IsNullOrEmpty(label))
+            {
+                var bullet = new LinePrefix(StackedBullet, TextRole.Muted);
+
+                AdfBlockRenderer.RenderPrefixed(cell.Content, context, true, bullet, bullet.Hanging(), output);
+
+                continue;
+            }
+
+            var inline = new LinePrefix($"{label}{LabelSuffix}", TextRole.Muted);
+
+            if (inline.Width <= context.Width / 2)
+            {
+                AdfBlockRenderer.RenderPrefixed(cell.Content, context, true, inline, inline.Hanging(), output);
+
+                continue;
+            }
+
+            var heading = new WrappedText(context.Width, false);
+            var indent = new LinePrefix(StackedIndent, TextRole.Body);
+
+            heading.Append(label, TextRole.Muted);
+            heading.Finish(output);
+            AdfBlockRenderer.RenderPrefixed(cell.Content, context, true, indent, indent, output);
         }
     }
 

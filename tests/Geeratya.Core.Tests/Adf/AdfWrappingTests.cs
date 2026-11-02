@@ -4,7 +4,6 @@ using static Geeratya.Core.Tests.Adf.AdfTestSupport;
 
 namespace Geeratya.Core.Tests.Adf;
 
-[Trait("Os", "Independent")]
 public sealed class AdfWrappingTests
 {
     [Theory]

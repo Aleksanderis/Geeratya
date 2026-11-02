@@ -4,7 +4,6 @@ using static Geeratya.Core.Tests.Adf.AdfTestSupport;
 
 namespace Geeratya.Core.Tests.Adf;
 
-[Trait("Os", "Independent")]
 public sealed class AdfRendererTests
 {
     [Theory]
@@ -189,6 +188,20 @@ public sealed class AdfRendererTests
             """;
 
         Assert.Equal(["| [info]", "| careful"], Lines(json, 40));
+    }
+
+    [Fact]
+    public void GivenPanelTypeWithEscapeSequenceAndLongText_WhenRendering_ThenItIsCleanAndWithinTheWidth()
+    {
+        const string json = """
+            {"type":"panel","attrs":{"panelType":"\u001b[2Jvery-long-panel-type-name"},"content":[
+              {"type":"paragraph","content":[{"type":"text","text":"x"}]}]}
+            """;
+
+        var lines = Lines(json, 12);
+
+        Assert.DoesNotContain(lines, static line => line.Contains('\u001b'));
+        Assert.All(lines, static line => Assert.True(line.Length <= 12, line));
     }
 
     [Fact]

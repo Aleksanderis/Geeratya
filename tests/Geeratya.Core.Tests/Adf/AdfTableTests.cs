@@ -137,6 +137,44 @@ public sealed class AdfTableTests
     }
 
     [Fact]
+    public void GivenHeaderOnlyTableTooNarrow_WhenRendering_ThenTheHeaderTextIsStillShown()
+    {
+        const string json = """
+            {"type":"table","content":[{"type":"tableRow","content":[
+              {"type":"tableHeader","content":[
+                {"type":"paragraph","content":[{"type":"text","text":"AAAAAAAAAAAAAA"}]}]},
+              {"type":"tableHeader","content":[
+                {"type":"paragraph","content":[{"type":"text","text":"BBBBBBBBBBBBBBB"}]}]}
+            ]}]}
+            """;
+
+        var lines = Lines(json, 12);
+
+        Assert.Contains(lines, static line => line.Contains("AAAAAAAAAA", StringComparison.Ordinal));
+        Assert.Contains(lines, static line => line.Contains("BBBBBBBBBB", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenVeryLongHeaderInStackedTable_WhenRendering_ThenTheLabelGetsItsOwnLineAboveTheValue()
+    {
+        const string json = """
+            {"type":"table","content":[
+              {"type":"tableRow","content":[
+                {"type":"tableHeader","content":[
+                  {"type":"paragraph","content":[{"type":"text","text":"Estimated effort in hours"}]}]},
+                {"type":"tableHeader","content":[
+                  {"type":"paragraph","content":[{"type":"text","text":"Other long one"}]}]}]},
+              {"type":"tableRow","content":[
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"12"}]}]},
+                {"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]}]}]}
+            """;
+
+        var expected = new[] { "Estimated effort in", "hours", "  12", "Other long one", "  y" };
+
+        Assert.Equal(expected, Lines(json, 20));
+    }
+
+    [Fact]
     public void GivenEmptyTable_WhenRendering_ThenThereAreNoLines()
     {
         Assert.Empty(Lines("""{"type":"table","content":[]}""", 40));

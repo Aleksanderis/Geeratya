@@ -6,7 +6,6 @@ using static Geeratya.Core.Tests.Adf.AdfTestSupport;
 
 namespace Geeratya.Core.Tests.Adf;
 
-[Trait("Os", "Independent")]
 public sealed class AdfUnknownAndMalformedTests
 {
     [Fact]
@@ -110,6 +109,21 @@ public sealed class AdfUnknownAndMalformedTests
         var rendering = AdfRenderer.Render(new AdfDocument(1, [node], false), 2000);
 
         Assert.Contains(PlainLines(rendering), static line => line.EndsWith("[unsupported: nesting too deep]"));
+    }
+
+    [Fact]
+    public void GivenHandBuiltInlineTreeDeeperThanTheLimit_WhenRendering_ThenItDoesNotThrow()
+    {
+        AdfNode node = new AdfText("leaf", []);
+
+        for (var level = 0; level < 5000; level++)
+        {
+            node = new AdfUnknownNode("deep", null, [node]);
+        }
+
+        var rendering = AdfRenderer.Render(new AdfDocument(1, [new AdfParagraph([node])], false), 80);
+
+        Assert.True(rendering.LineCount > 0);
     }
 
     [Fact]
