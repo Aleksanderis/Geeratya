@@ -1,7 +1,7 @@
 using Geeratya.FakeJira;
 
 const string usageText =
-    "usage: fakejira [--fixtures <dir>] [--port <n>] [--issues <n>] [--latency-ms <n>] [--rate-limit-every <n>]";
+    "usage: fakejira [--fixtures <dir>] [--port <n>] [--issues <n>] [--latency-ms <n>] [--rate-limit-every <n>] [--drop-write-every <n>]";
 
 var options = FakeJiraOptionsParser.TryParse(args, out var error);
 

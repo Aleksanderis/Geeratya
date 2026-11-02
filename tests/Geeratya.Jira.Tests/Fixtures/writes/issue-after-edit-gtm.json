@@ -1,0 +1,26 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "fields": {
+    "labels": [
+      "geeratya-test-156"
+    ],
+    "status": {
+      "description": "",
+      "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+      "id": "10004",
+      "name": "To Do",
+      "self": "https://example.atlassian.net/rest/api/3/status/10004",
+      "statusCategory": {
+        "colorName": "yellow",
+        "id": 4,
+        "key": "indeterminate",
+        "name": "In Progress",
+        "self": "https://example.atlassian.net/rest/api/3/statuscategory/4"
+      }
+    },
+    "summary": "geeratya write fixture 156 edited"
+  },
+  "id": "10049",
+  "key": "GTM-25",
+  "self": "https://example.atlassian.net/rest/api/3/issue/10049"
+}

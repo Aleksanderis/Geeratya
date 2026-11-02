@@ -6,6 +6,7 @@ public static class FakeJiraOptionsParser
     public const string IssuesFlag = "--issues";
     public const string LatencyFlag = "--latency-ms";
     public const string RateLimitFlag = "--rate-limit-every";
+    public const string DropWriteFlag = "--drop-write-every";
     public const string PortFlag = "--port";
     public const string FixturesFlag = "--fixtures";
 
@@ -20,6 +21,7 @@ public static class FakeJiraOptionsParser
         var issues = 0;
         var latency = 0;
         var rateLimitEvery = 0;
+        var dropWriteEvery = 0;
 
         for (var index = 0; index < arguments.Length; index += 2)
         {
@@ -66,6 +68,10 @@ public static class FakeJiraOptionsParser
                     rateLimitEvery = number;
 
                     break;
+                case DropWriteFlag:
+                    dropWriteEvery = number;
+
+                    break;
                 default:
                     error = $"Unknown option {flag}.";
 
@@ -80,7 +86,7 @@ public static class FakeJiraOptionsParser
             return null;
         }
 
-        return new FakeJiraOptions(fixtures, port, issues, latency, rateLimitEvery);
+        return new FakeJiraOptions(fixtures, port, issues, latency, rateLimitEvery, dropWriteEvery);
     }
 
     private static string? FindFixtures(string start)
