@@ -101,9 +101,9 @@ public class DeleteReducerTests
     }
 
     [Theory]
-    [InlineData(1, false, "Delete A-1 and its 1 sub-task? Jira cannot undo this. \"Issue 1\"")]
-    [InlineData(3, false, "Delete A-1 and its 3 sub-tasks? Jira cannot undo this. \"Issue 1\"")]
-    [InlineData(50, true, "Delete A-1 and its more than 50 sub-tasks? Jira cannot undo this. \"Issue 1\"")]
+    [InlineData(1, false, "Delete A-1 and its 1 sub-task (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
+    [InlineData(3, false, "Delete A-1 and its 3 sub-tasks (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
+    [InlineData(50, true, "Delete A-1 and its more than 50 sub-tasks (and any hidden from you)? Jira cannot undo this. \"Issue 1\"")]
     public void GivenSubtasks_WhenTheCountArrives_ThenConfirmCountsThemAndTheDeleteTakesThemAlong(
         int count,
         bool more,
@@ -252,7 +252,7 @@ public class DeleteReducerTests
     }
 
     [Fact]
-    public void GivenALostReply_WhenTheIssueIsGone_ThenTheDeleteFinishesAsDone()
+    public void GivenALostReply_WhenTheIssueReadsAs404_ThenTheRowGoesAndTheNoteIsAmbiguous()
     {
         var started = StartDelete(TwoTabs(), 0);
         var operation = started.State.Session.Operations[0];
@@ -265,7 +265,7 @@ public class DeleteReducerTests
 
         Assert.IsType<VerifyWriteEffect>(unknown.Effects[0]);
         Assert.Equal(["A-2"], verified.State.Session.Tabs[0].Rows.Select(row => row.Key));
-        Assert.Equal("Deleted A-1", verified.State.Message);
+        Assert.Equal("A-1: probably deleted, or hidden from you", verified.State.Message);
     }
 
     [Fact]

@@ -57,6 +57,7 @@ Design in `architecture.md`, "Write pipeline". What the user sees:
 - A second write on an issue that is still being written is refused (`GCM-3 is busy`), not queued. Other issues are free. Refresh waits until the writes end; `<space>r` is remembered and runs after.
 - If the answer is lost (timeout, network), the app says it is checking, re-reads the issue and then shows the true state; it never repeats a write by itself.
 - Delete, bulk changes and assignee or sprint changes for several issues ask first (`y`/`n`/`Esc`): the text names what changes and says Jira cannot undo it.
+- Delete (#165, #316): the confirm counts the visible sub-tasks and, when there are any, adds `(and any hidden from you)`, because the delete is sent with `deleteSubtasks=true`, which removes sub-tasks the user cannot browse too, and Jira gives no count of them. An issue with no visible sub-tasks is sent with `deleteSubtasks=false` and Jira refuses it if hidden ones exist. Jira answers `404` alike for a deleted issue and for one the user cannot see, so when the delete reply is lost and the check reads `404`, the status line says `probably deleted, or hidden from you` and the row goes.
 - The same issue in other tabs changes too; a list tab whose query no longer matches keeps the row, marked stale, until its next reload.
 - Closing a tab does not stop a write that was sent; quitting or switching profile with writes running asks first.
 

@@ -44,6 +44,12 @@ public abstract record WriteRequest
     /// <summary>The status line when Jira confirmed the write.</summary>
     public abstract string DoneText { get; }
 
+    /// <summary>
+    /// The status line when a lost reply was resolved to done by the check; defaults to <see cref="DoneText"/>.
+    /// A write whose check cannot tell "done" from another cause says so here.
+    /// </summary>
+    public virtual string VerifiedDoneText => DoneText;
+
     /// <summary>The status line when the reply was lost and the issue is being checked.</summary>
     public abstract string CheckingText { get; }
 

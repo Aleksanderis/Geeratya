@@ -206,6 +206,31 @@ public sealed class WriteHandlerDeleteTests
             failed.State.Message);
     }
 
+    [Fact]
+    public async Task GivenReducerAndHandler_WhenTheReplyIsLostAndTheCheckAnswers404_ThenTheRowGoesWithAnAmbiguousNote()
+    {
+        using var fixture = await ConnectedAsync(
+            h => h
+                .Reply(HttpStatusCode.OK, TwoSubtasks)
+                .Reply(HttpStatusCode.BadGateway, string.Empty)
+                .Reply(HttpStatusCode.NotFound, RecordedFixtures.Read("errors/issue-404.json")),
+            3);
+        var reducer = new AppReducer(DefaultKeymap.Load());
+
+        var asked = PressAll(reducer, OpenTab(reducer), "Space", "i", "d");
+        await fixture.Handler.StartAsync(Assert.Single(asked.Effects));
+        var confirm = reducer.Reduce(asked.State, Assert.Single(fixture.Posted));
+        var confirmed = reducer.Reduce(confirm.State, new KeyPressed("y"));
+        await fixture.Handler.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(confirmed.Effects)));
+        var checking = reducer.Reduce(confirmed.State, fixture.Posted[1]);
+        await fixture.Handler.StartAsync(Assert.IsType<VerifyWriteEffect>(checking.Effects[0]));
+        var settled = reducer.Reduce(checking.State, fixture.Posted[2]);
+
+        Assert.Contains("hidden from you", confirm.State.Confirm!.Message);
+        Assert.Empty(settled.State.Session.Tabs[0].Rows);
+        Assert.Equal("A-1: probably deleted, or hidden from you", settled.State.Message);
+    }
+
     private static ReduceResult PressAll(AppReducer reducer, AppState state, params string[] keys)
     {
         var result = new ReduceResult(state, []);
