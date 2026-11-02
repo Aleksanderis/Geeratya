@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -689,6 +690,21 @@ public class WriteReducerTests
         var landed = LandDetail(failed.State, 1, Detailed("A-1"));
 
         Assert.Null(landed.State.Session.Tabs[1].Detail[0].Issue!.Assignee);
+    }
+
+    [Fact]
+    public void GivenADetailReplyDuringAWrite_WhenTheWriteFails_ThenTheIssueIsReloadedAndNotCachedWithTheGuess()
+    {
+        var state = OpenDetail(TwoTabs(), 1);
+        var started = Request(state, state.Session.Tabs[0].Id, "A-1", _eve);
+        var landed = LandDetail(started.State, 1, Detailed("A-1"));
+
+        var failed = Fail(landed.State, Error(WriteErrorKind.Permission));
+
+        var cache = Assert.Single(landed.Effects.OfType<WriteIssueCacheEffect>());
+        Assert.Null(cache.Issue.Detail.Assignee);
+        Assert.Single(failed.Effects.OfType<LoadIssueDetailEffect>());
+        Assert.True(failed.State.Session.Tabs[1].Detail[0].IssueStale);
     }
 
     [Fact]

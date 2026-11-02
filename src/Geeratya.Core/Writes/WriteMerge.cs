@@ -60,11 +60,21 @@ public static class WriteMerge
     /// </summary>
     public static IssueDetail KeepHeldFields(AppState state, DetailState detail, IssueDetail incoming)
     {
-        var changes = RunningChanges(state).Where(change => IsFor(change, incoming.Key)).ToList();
+        var ended = KeepEndedFields(detail, incoming);
+        var running = RunningChanges(state).Where(change => IsFor(change, incoming.Key));
 
-        changes.AddRange((detail.HeldChanges ?? []).Where(change => IsFor(change, incoming.Key)));
+        return running.Aggregate(ended, (current, change) => change.Patch(current));
+    }
 
-        return changes.Aggregate(incoming, (current, change) => change.Patch(current));
+    /// <summary>
+    /// Only the changes of writes that ended and succeeded: what may be cached, because a running write may still
+    /// fail and its optimistic value must never reach the disk.
+    /// </summary>
+    public static IssueDetail KeepEndedFields(DetailState detail, IssueDetail incoming)
+    {
+        var ended = (detail.HeldChanges ?? []).Where(change => IsFor(change, incoming.Key));
+
+        return ended.Aggregate(incoming, (current, change) => change.Patch(current));
     }
 
     private static IssueSummary Held(

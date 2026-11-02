@@ -250,7 +250,10 @@ public static class WriteReducer
 
         var finished = Finish(reverted, operation, false, effects);
 
-        return new ReduceResult(finished with { Message = text }, effects);
+        // A detail reply that landed during the write may hold the optimistic value: read the issue again.
+        var reloaded = ReloadDetails(finished, operation.Keys, effects);
+
+        return new ReduceResult(reloaded with { Message = text }, effects);
     }
 
     /// <summary>The reply was lost: keep the optimistic rows and read the issue to find out what happened.</summary>

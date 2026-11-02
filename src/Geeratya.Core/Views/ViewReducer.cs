@@ -633,6 +633,21 @@ public static class ViewReducer
         return EnforceTotal(Replace(state, gathering) with { Sequence = requestId }, effects);
     }
 
+    private static IReadOnlyList<IssueSummary> MergedRows(
+        AppState state,
+        TabState tab,
+        ViewPageLoaded loaded,
+        IReadOnlyList<IssueSummary> combined,
+        bool appended)
+    {
+        if (appended)
+        {
+            return Append(tab.Rows, WriteMerge.KeepHeldRows(state, tab, loaded.Page.Items));
+        }
+
+        return WriteMerge.KeepHeldRows(state, tab, combined);
+    }
+
     private static AppState PageLoaded(AppState state, ViewPageLoaded loaded, List<Effect> effects)
     {
         var tab = Find(state.Session.Tabs, loaded.Tab);
@@ -653,9 +668,7 @@ public static class ViewReducer
         }
 
         // A reply that lands while a write runs (or started before one ended) keeps the tab's own row for its keys.
-        var merged = appended
-            ? Append(tab.Rows, WriteMerge.KeepHeldRows(state, tab, loaded.Page.Items))
-            : WriteMerge.KeepHeldRows(state, tab, combined);
+        var merged = MergedRows(state, tab, loaded, combined, appended);
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? merged.Take(ViewPaging.MaxRowsPerTab).ToArray() : merged;
         var cursor = truncated ? null : loaded.Page.Next;

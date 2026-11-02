@@ -117,14 +117,12 @@ internal static class DetailReducer
         var current = tab.Detail.Last(detail => detail.IssueRequest == loaded.RequestId);
         var issue = WriteMerge.KeepHeldFields(state, current, loaded.Issue);
 
-        effects.Add(new WriteIssueCacheEffect(new CachedIssue(issue, loaded.At)));
+        var cached = new CachedIssue(WriteMerge.KeepEndedFields(current, loaded.Issue), loaded.At);
 
-        var next = Update(
-            state,
-            loaded.Tab,
-            detail => detail.IssueRequest == loaded.RequestId
-                ? AcceptIssue(detail, loaded with { Issue = issue }, childrenRequest)
-                : null);
+        effects.Add(new WriteIssueCacheEffect(cached));
+
+        var accepted = loaded with { Issue = issue };
+        var next = Update(state, loaded.Tab, detail => AcceptRequested(detail, accepted, childrenRequest));
 
         if (!wantsChildren)
         {
@@ -408,6 +406,16 @@ internal static class DetailReducer
         }
 
         return detail.LinksRequest == requestId ? detail with { LinksLoad = failure, LinksRequest = 0 } : null;
+    }
+
+    private static DetailState? AcceptRequested(DetailState detail, IssueDetailLoaded loaded, long childrenRequest)
+    {
+        if (detail.IssueRequest != loaded.RequestId)
+        {
+            return null;
+        }
+
+        return AcceptIssue(detail, loaded, childrenRequest);
     }
 
     private static DetailState AcceptIssue(DetailState detail, IssueDetailLoaded loaded, long childrenRequest)
