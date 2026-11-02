@@ -4,6 +4,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -44,6 +45,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly ProfileEffectHandler _profileEffects;
     private readonly HistoryEffectHandler _historyEffects;
     private readonly BrowserEffectHandler _browserEffects;
+    private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly CancellationToken _shutdownToken;
@@ -73,6 +75,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
+        _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
         _historyEffects = new HistoryEffectHandler(profiles.Histories);
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
@@ -381,9 +384,22 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private async Task<AppCommand?> RunHandlersAsync(Effect effect)
     {
-        return await _profileEffects.RunAsync(effect, _shutdownToken)
+        return _settingsEffects?.Run(effect)
+            ?? await _profileEffects.RunAsync(effect, _shutdownToken)
             ?? _historyEffects.Run(effect)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
+    }
+
+    private AppSettings LoadSettings()
+    {
+        try
+        {
+            return _profiles.Settings?.Load() ?? AppSettings.Default;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return AppSettings.Default;
+        }
     }
 
     private static string? JoinNotices(string? first, string? second)
@@ -393,6 +409,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private AppState LoadProfiles()
     {
+        var settings = LoadSettings();
+
         try
         {
             var loaded = _profiles.Store.Load();
@@ -400,6 +418,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
             return AppState.Initial with
             {
+                Settings = settings,
                 Profiles = loaded.Catalog,
                 Session = SiteSession.Empty(loaded.Catalog.Active),
                 Message = notice,
@@ -407,7 +426,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppState.Initial with { Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)" };
+            return AppState.Initial with
+            {
+                Settings = settings,
+                Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
+            };
         }
     }
 }
