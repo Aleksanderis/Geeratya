@@ -1,6 +1,6 @@
 # UX
 
-Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). Mouse arrives with its own part. The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). [mouse](ux-mouse.md) (gesture to action id table). The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
 
 ## Shell
 
@@ -57,7 +57,7 @@ A profile is a Jira site plus an account (`Core/Profiles`); one is active. The p
 - `:profile remove <name>` asks in Confirm mode, naming the profile, site and account and saying the removal cannot be undone, then deletes the profile and its token (the token stays while another profile uses the same site and account).
 - A `profiles.json` that cannot be parsed is ignored, a copy is kept as `profiles.json.corrupt`, and the status line says so at start. A start without a home directory (`HOME` unset and no absolute `XDG_*` directory) prints the reason to standard error and exits with code 1.
 
-The start screen shows the active profile, or `:profile add` when there is none. Mouse paths for these commands arrive with the mouse part.
+The start screen shows the active profile, or `:profile add` when there is none. Mouse paths for these commands are in [ux-mouse.md](ux-mouse.md) (part B).
 
 ## Command palette
 

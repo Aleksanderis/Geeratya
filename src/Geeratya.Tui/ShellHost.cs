@@ -4,6 +4,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
@@ -16,6 +17,7 @@ using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
+using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Input;
@@ -127,6 +129,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         application.Keyboard.KeyDown += OnKeyDown;
         application.Paste += OnPaste;
+        application.Mouse.MouseEvent += OnMouse;
 
         using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
 
@@ -204,6 +207,29 @@ public sealed class ShellHost : ICommandSink, IDisposable
         key.Handled = true;
 
         Dispatch(new KeyPressed(spelled, TimeProvider.System.GetUtcNow()));
+    }
+
+    /// <summary>A pointer event: hit test and mouse table decide; the reducer runs the action like a key.</summary>
+    private void OnMouse(object? sender, Mouse mouse)
+    {
+        if (!MouseFlagTranslator.TryTranslate(mouse.Flags, out var gesture))
+        {
+            return;
+        }
+
+        var size = _application!.Screen.Size;
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows);
+        var position = mouse.ScreenPosition;
+        var command = MouseResolver.Resolve(context, position.X, position.Y, gesture, TimeProvider.System.GetUtcNow());
+
+        if (command is null)
+        {
+            return;
+        }
+
+        mouse.Handled = true;
+
+        Dispatch(command);
     }
 
     /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>

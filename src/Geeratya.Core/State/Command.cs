@@ -14,3 +14,9 @@ public sealed record ConfirmRequested(ConfirmRequest Request) : Command;
 
 /// <summary>Text pasted by the terminal (bracketed paste); fills the active Insert or Command field.</summary>
 public sealed record TextPasted(string Text) : Command;
+
+/// <summary>
+/// An action id that a non-key input (the mouse table) asks for: it runs the handler the key would, repeated
+/// <paramref name="Count"/> times for motions.
+/// </summary>
+public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffset At = default) : Command;
