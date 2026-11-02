@@ -323,7 +323,7 @@ public class FormSuggestionTests
         FormFieldKind kind,
         SuggestionKind expected)
     {
-        var result = Press(AsCreateForm(Focused(FormFieldIds.Assignee, kind)), "j");
+        var result = Press(AsCreateForm(Focused(kind == FormFieldKind.User ? FormFieldIds.Assignee : FormFieldIds.Parent, kind)), "j");
 
         var effect = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(result.Effects));
         Assert.Equal(expected, effect.Source.Kind);
@@ -336,6 +336,14 @@ public class FormSuggestionTests
     public void GivenACreateForm_WhenTypingInAnUnsupportedField_ThenNoLookupIsRequested()
     {
         var result = Press(AsCreateForm(Focused("customfield_1", FormFieldKind.Unsupported)), "j");
+
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenACreateForm_WhenTypingInANonAssigneePersonField_ThenNoLookupIsRequested()
+    {
+        var result = Press(AsCreateForm(Focused("customfield_9", FormFieldKind.User)), "j");
 
         Assert.Empty(result.Effects);
     }

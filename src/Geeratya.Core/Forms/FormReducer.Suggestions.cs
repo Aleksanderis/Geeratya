@@ -253,12 +253,14 @@ public static partial class FormReducer
         };
     }
 
-    // A create form has no issue yet: people who can be assigned in the project, and issues of the project as parent.
+    // A create form has no issue yet: people who can be assigned in the project (the assignee; other person fields have no project-scoped
+    // search yet), and issues of the project as parent.
     private static SuggestionSource? CreateSourceOf(CreateFormTarget create, FormField field)
     {
         return field.Kind switch
         {
-            FormFieldKind.User => new SuggestionSource(SuggestionKind.AssignableUsers, null, [], create.ProjectKey),
+            FormFieldKind.User when field.Id == FormFieldIds.Assignee
+                => new SuggestionSource(SuggestionKind.AssignableUsers, null, [], create.ProjectKey),
             FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, null, [], create.ProjectKey),
             _ => null,
         };
