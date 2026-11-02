@@ -52,6 +52,19 @@ public sealed class AdfMarkdownTokensTests
     }
 
     [Fact]
+    public void GivenAMentionAndALink_WhenAskingForTheLabel_ThenTheNameWithAtAndTheKeyComeBackUnescaped()
+    {
+        var mention = AdfMarkdownTokens.Mention("acc-1", "Olga [Ops] 日本");
+        var link = AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "GCM-12");
+
+        var mentionSpan = Assert.Single(AdfMarkdownTokens.Find(mention));
+        var linkSpan = Assert.Single(AdfMarkdownTokens.Find(link));
+
+        Assert.Equal("@Olga [Ops] 日本", AdfMarkdownTokens.Label(mention, mentionSpan));
+        Assert.Equal("GCM-12", AdfMarkdownTokens.Label(link, linkSpan));
+    }
+
+    [Fact]
     public void GivenALinkWhoseTextIsNotTheKeyInItsAddress_WhenFinding_ThenItIsPlainLinkText()
     {
         Assert.Empty(AdfMarkdownTokens.Find("[GCM-1](https://x.atlassian.net/browse/GCM-2)"));

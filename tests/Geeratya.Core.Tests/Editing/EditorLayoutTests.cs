@@ -1,6 +1,7 @@
 using Geeratya.Core.Editing;
 using Geeratya.Core.Text;
 using Geeratya.Core.State;
+using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Tests.Editing;
 
@@ -111,6 +112,81 @@ public class EditorLayoutTests
     public void GivenABoxWidth_WhenAskingForTheCapacity_ThenOneCellIsKeptForTheCursor(int inner, int capacity)
     {
         Assert.Equal(capacity, EditorLayout.Capacity(inner));
+    }
+
+    [Fact]
+    public void GivenAMention_WhenLayingOut_ThenItTakesTheWidthOfItsShortFormAndStaysWhole()
+    {
+        var text = $"ab {AdfMarkdownTokens.Mention("acc-1", "Olga")} cd";
+
+        var rows = EditorLayout.Rows(text, 20);
+        var cursorAfter = EditorLayout.Locate(text, rows, text.Length - 3);
+
+        Assert.Single(rows);
+        Assert.Equal(new EditorPosition(0, 3 + "@Olga".Length), cursorAfter);
+    }
+
+    [Fact]
+    public void GivenAMentionWithWideName_WhenItDoesNotFit_ThenItWrapsWholeToTheNextRow()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "日本語");
+        var text = $"abcd {token}";
+
+        var rows = EditorLayout.Rows(text, 8);
+
+        Assert.Equal([new EditorRow(0, 5), new EditorRow(5, text.Length)], rows);
+        Assert.Equal(new EditorPosition(1, 7), EditorLayout.Locate(text, rows, text.Length));
+    }
+
+    [Fact]
+    public void GivenALinkInTheRowAbove_WhenMovingDown_ThenTheColumnIsMeasuredInShortCells()
+    {
+        var link = AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "GCM-12");
+        var text = $"{link} x\nabcdefgh";
+        var buffer = new TextBuffer(text, text.IndexOf(" x", StringComparison.Ordinal) + 2);
+
+        var down = buffer.Vertical(1, 30);
+
+        Assert.Equal(text.IndexOf("abcdefgh", StringComparison.Ordinal) + "GCM-12 x".Length, down.Cursor);
+    }
+
+    [Fact]
+    public void GivenATokenEndingAWrappedRow_WhenMovingToTheRowEnd_ThenTheCursorIsAtTheTokenStart()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
+        var text = $"{token}xyz";
+
+        var end = new TextBuffer(text, 0).RowEnd(5);
+
+        Assert.Equal(0, end.Cursor);
+    }
+
+    [Fact]
+    public void GivenAnEscapedLineBreakInBrackets_WhenListingCells_ThenNoTokenSpansTheLines()
+    {
+        var cells = EditorLayout.Cells("@[a\\\nb](mention:x)");
+
+        Assert.DoesNotContain(cells, cell => cell.Display.Contains('\n') && cell.Display.Length > 1);
+    }
+
+    [Fact]
+    public void GivenAMarkRightAfterAToken_WhenListingCells_ThenTheMarkKeepsACell()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
+        var cells = EditorLayout.Cells($"{token}́x");
+
+        Assert.Equal(token.Length + 2, cells[^1].End);
+        Assert.Equal(3, cells.Count);
+    }
+
+    [Fact]
+    public void GivenAMention_WhenListingCells_ThenTheSavedTextIsUnchangedAndTheCellShowsTheShortForm()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
+        var cells = EditorLayout.Cells($"a{token}");
+
+        Assert.Equal(["a", "@Olga"], cells.Select(cell => cell.Display));
+        Assert.Equal(new EditorCell(1, 1 + token.Length, "@Olga"), cells[1]);
     }
 
     [Fact]
