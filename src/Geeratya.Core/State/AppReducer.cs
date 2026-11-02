@@ -489,6 +489,7 @@ public sealed class AppReducer
             "" => Result(normal),
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
+            PaletteCommands.History + " clear" => SourceReducer.ClearHistory(normal),
             PaletteCommands.Status => TransitionForms.OpenPicker(normal),
             "status next" => TransitionForms.MoveCard(normal, 1),
             "status prev" or "status previous" => TransitionForms.MoveCard(normal, -1),

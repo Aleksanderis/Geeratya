@@ -1,6 +1,8 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.History;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -75,7 +77,12 @@ internal static class DetailReducer
         effects.Add(new LoadIssueCommentsEffect(id, key, 0, commentsRequest));
         effects.Add(new LoadRemoteLinksEffect(id, key, linksRequest));
 
-        return ViewReducer.Replace(state, tab with { Detail = [.. tab.Detail, detail] }) with { Sequence = sequence };
+        var next = ViewReducer.Replace(state, tab with { Detail = [.. tab.Detail, detail] }) with { Sequence = sequence };
+        var recorded = SourceReducer.Recorded(new ReduceResult(next, []), HistoryKind.Issue, key);
+
+        effects.AddRange(recorded.Effects);
+
+        return recorded.State;
     }
 
     /// <summary>Esc: pops the top issue; with an empty stack nothing happens.</summary>
