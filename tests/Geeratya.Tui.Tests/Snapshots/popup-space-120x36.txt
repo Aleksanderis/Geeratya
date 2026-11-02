@@ -23,7 +23,6 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
 ┌─ Space ────────────────────────────────────────┐                                                                      
 │ t         Open the source picker for a new tab │                                                                      
 │ c         Close the tab                        │                                                                      
@@ -31,6 +30,7 @@
 │ l         Switch between list and columns      │                                                                      
 │ o         Open the issue in the browser        │                                                                      
 │ p         Open the parent issue                │                                                                      
-│ i         +issue (1)                           │                                                                      
+│ i         +issue (2)                           │                                                                      
+│ k         +rank (3)                            │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space                                                                                  ? help  : command  q quit

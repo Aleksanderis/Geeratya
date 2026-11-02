@@ -40,6 +40,9 @@ public sealed record AppState(
     /// <summary>The user's switches (hints, which-key); the defaults until the host loads the file.</summary>
     public AppSettings Settings { get; init; } = AppSettings.Default;
 
+    /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
+    public int Count { get; init; }
+
     public static AppState Initial { get; } =
         new(
             InputMode.Normal,

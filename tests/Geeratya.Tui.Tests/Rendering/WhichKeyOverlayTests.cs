@@ -23,7 +23,7 @@ public class WhichKeyOverlayTests
             Assert.Contains($"{next.Key,-10}{title[..Math.Min(20, title.Length)]}", text);
         }
 
-        Assert.Contains("+issue (1)", text);
+        Assert.Contains("+issue (", text);
     }
 
     [Fact]

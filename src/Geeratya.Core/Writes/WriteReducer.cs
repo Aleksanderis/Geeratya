@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -16,6 +17,7 @@ namespace Geeratya.Core.Writes;
 public static class WriteReducer
 {
     private const string NotConnectedText = "Not connected to Jira: cannot tell which account is yours.";
+    private const string ConfirmWriteAction = "write";
     private const string NoProfileText = "No profile is active.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -95,10 +97,15 @@ public static class WriteReducer
             return Say(state, busy);
         }
 
+        if (!requested.Confirmed && write.AskText is { } question)
+        {
+            return Ask(state, requested, question);
+        }
+
         var id = state.Sequence + 1;
         var changes = Plan(session.Tabs, write);
         var operation = new Operation(id, write, requested.Tab, OperationPhase.Sending, changes, requested.At);
-        var patched = Patch(state, changes);
+        var patched = FollowCard(Patch(state, changes), requested);
 
         var next = patched with
         {
@@ -108,6 +115,36 @@ public static class WriteReducer
         };
 
         return new ReduceResult(next, [new ExecuteWriteEffect(id, write)]);
+    }
+
+    /// <summary>Opens Confirm mode; <c>y</c> runs the same request again, marked as confirmed.</summary>
+    private static ReduceResult Ask(AppState state, WriteRequested requested, string question)
+    {
+        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, requested with { Confirmed = true });
+        var asking = state with
+        {
+            Mode = InputMode.Confirm,
+            Confirm = confirm,
+            PendingKeys = string.Empty,
+            Message = null,
+        };
+
+        return new ReduceResult(asking, _noEffects);
+    }
+
+    /// <summary>
+    /// A card that changes status leaves its column: the cursor of the tab that started the move is dropped, so the
+    /// selection finds the card by key in its new column (and back again if the move is rolled back).
+    /// </summary>
+    private static AppState FollowCard(AppState state, WriteRequested requested)
+    {
+        if (requested.Request.Kind != OperationKind.Transition ||
+            ViewReducer.Find(state.Session.Tabs, requested.Tab) is not { Cursor: not null } tab)
+        {
+            return state;
+        }
+
+        return ViewReducer.Replace(state, tab with { Cursor = null });
     }
 
     private static string? BusyText(IReadOnlyList<Operation> operations, WriteRequest write)
@@ -201,7 +238,7 @@ public static class WriteReducer
         var text = $"{keys}: could not check the result; reload to see the current state";
         var marked = MarkStale(state, operation.Keys);
 
-        return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)]);
+        return RolledBack(marked, operation, text, [new InvalidateCacheEffect(operation.Keys)], true);
     }
 
     /// <summary>Jira confirmed the write: the server rows replace the tabs' rows, the caches are dropped.</summary>
@@ -215,7 +252,8 @@ public static class WriteReducer
         var effects = new List<Effect> { new InvalidateCacheEffect(operation.Keys) };
         var replaced = ReplaceRows(state, rows);
         var stale = MarkStale(replaced, operation.Keys);
-        var finished = Finish(stale, operation, true, effects, rows);
+        var queued = QueueRankReload(stale, operation);
+        var finished = Finish(queued, operation, true, effects, rows);
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
@@ -264,7 +302,7 @@ public static class WriteReducer
         var linked = rejected ? state with { Session = state.Session with { Link = new Rejected() } } : state;
         var marked = failed.Error.Kind == WriteErrorKind.NotFound ? MarkStale(linked, operation.Keys) : linked;
 
-        return RolledBack(marked, operation, text, effects);
+        return RolledBack(marked, operation, text, effects, ReloadsAfter(failed.Error));
     }
 
     /// <summary>Undoes the optimistic rows where they still hold the patched value and ends the operation.</summary>
@@ -272,16 +310,19 @@ public static class WriteReducer
         AppState state,
         Operation operation,
         string text,
-        List<Effect> effects)
+        List<Effect> effects,
+        bool reload = false)
     {
         var reverted = state;
 
         foreach (var change in operation.Undo)
         {
             reverted = MapRows(reverted, [change.Key], change.Revert);
+            reverted = Reorder(reverted, change, true);
         }
 
-        var finished = Finish(reverted, operation, false, effects);
+        var queued = reload ? QueueRankReload(reverted, operation) : reverted;
+        var finished = Finish(queued, operation, false, effects);
 
         // A detail reply that landed during the write may hold the optimistic value: read the issue again.
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
@@ -427,6 +468,7 @@ public static class WriteReducer
         foreach (var change in changes)
         {
             patched = MapRows(patched, [change.Key], change.Patch);
+            patched = Reorder(patched, change, false);
         }
 
         return patched;
@@ -442,6 +484,60 @@ public static class WriteReducer
         var byKey = fresh.ToDictionary(row => row.Key, StringComparer.OrdinalIgnoreCase);
 
         return MapRows(state, [.. byKey.Keys], row => byKey.GetValueOrDefault(row.Key, row));
+    }
+
+    /// <summary>
+    /// A rank that Jira refused because the issues changed (a reference that is gone, a changed issue) leaves the
+    /// shown order doubtful, so the tabs reload; permission, rate limit and offline refusals do not.
+    /// </summary>
+    private static bool ReloadsAfter(WriteError error)
+    {
+        return error.Kind is WriteErrorKind.Validation or WriteErrorKind.NotFound or WriteErrorKind.Conflict;
+    }
+
+    /// <summary>
+    /// Rank changes the order, which a re-read of one issue cannot show: after the operation the tabs whose order is
+    /// the rank reload (queued, so it runs when the last write ends), and the server order is the truth.
+    /// </summary>
+    private static AppState QueueRankReload(AppState state, Operation operation)
+    {
+        if (operation.Kind != OperationKind.Rank)
+        {
+            return state;
+        }
+
+        var tabs = state.Session.Tabs
+            .Select(tab => IsRankOrdered(tab) && Holds(tab, operation.Keys) ? tab with { RefreshQueued = true } : tab)
+            .ToArray();
+
+        return state with { Session = state.Session with { Tabs = tabs } };
+    }
+
+    private static bool IsRankOrdered(TabState tab)
+    {
+        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+    }
+
+    /// <summary>Applies or undoes the order part of a change in every tab; the selection follows its issue.</summary>
+    private static AppState Reorder(AppState state, RowChange change, bool undo)
+    {
+        var tabs = state.Session.Tabs;
+        TabState[]? changed = null;
+
+        for (var index = 0; index < tabs.Count; index++)
+        {
+            var rows = undo ? change.RevertOrder(tabs[index]) : change.PatchOrder(tabs[index]);
+
+            if (ReferenceEquals(rows, tabs[index].Rows))
+            {
+                continue;
+            }
+
+            changed ??= [.. tabs];
+            changed[index] = ViewReducer.KeepSelection(tabs[index] with { Rows = rows });
+        }
+
+        return changed is null ? state : state with { Session = state.Session with { Tabs = changed } };
     }
 
     private static AppState MarkStale(AppState state, IReadOnlyList<string> keys)

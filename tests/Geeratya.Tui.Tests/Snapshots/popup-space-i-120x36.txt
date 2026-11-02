@@ -29,8 +29,8 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
 ┌─ Space i ──────────────────────────────────────┐                                                                      
+│ s         Change the status of the issue       │                                                                      
 │ d         Delete the issue (asks first; Jira c │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space i                                                                                ? help  : command  q quit

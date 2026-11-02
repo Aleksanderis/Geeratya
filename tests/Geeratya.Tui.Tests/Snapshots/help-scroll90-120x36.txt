@@ -1,13 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Ctrl-p     Previous source in the picker                                                                              
-  Down       Next source in the picker                                                                                  
-  Ctrl-n     Next source in the picker                                                                                  
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
-  Ctrl-s     Save the form                                                                                              
-  Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
@@ -20,6 +13,8 @@ Palette commands
       Open a board's backlog in a new tab                                                                               
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
+  :status [next|prev]                                                                                                   
+      Change the status of the selected or shown issue; next or prev moves the card a column                            
   :labels                                                                                                               
       Edit the labels of the selected or shown issue (field form)                                                       
   :profile add|list|switch <name>|remove <name>|check                                                                   
@@ -30,6 +25,11 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

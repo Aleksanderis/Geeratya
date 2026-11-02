@@ -1,6 +1,14 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Up         Move up                                                                                                    
+  ?          Show or hide help                                                                                          
+  Esc        Close help                                                                                                 
+  q          Close help                                                                                                 
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
+Command mode                                                                                                            
+  Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
@@ -25,12 +33,4 @@ Insert mode
   Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
-  :jql <query>                                                                                                          
-      Open a JQL query in a new tab                                                                                     
-  :filter [name]                                                                                                        
-      Open a saved filter in a new tab                                                                                  
-  :board [name]                                                                                                         
-      Open a board as columns in a new tab                                                                              
-  :backlog [name]                                                                                                       
-      Open a board's backlog in a new tab                                                                               
  HELP                                                                                            j down  k up  Esc close
