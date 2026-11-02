@@ -3,7 +3,9 @@ using Geeratya.Jira.Tests.Fakes;
 
 namespace Geeratya.Jira.Tests.Suggestions;
 
-/// <summary>Suggestion sources against replies recorded from the dev site (GCM company-managed, GTM team-managed).</summary>
+/// <summary>
+/// Suggestion sources against replies recorded from the dev site (GCM company-managed, GTM team-managed).
+/// </summary>
 public sealed class RecordedSuggestionTests
 {
     private const string Assignable = "/rest/api/3/user/assignable/search";
@@ -21,6 +23,19 @@ public sealed class RecordedSuggestionTests
 
         var user = Assert.Single(result.Value);
         Assert.Equal(("fake-account-1", "Test User 1", false), (user.Id, user.Label, user.IsInactive));
+    }
+
+    [Fact]
+    public async Task GivenRecordedViewIssueUsers_WhenSearchingMentions_ThenUsersAreMapped()
+    {
+        using var fixture = Serving("/rest/api/3/user/viewissue/search", "suggestions/recorded-users-viewissue-gcm.json");
+
+        var result = await new SuggestionClient(fixture.Transport)
+            .SearchMentionableUsersAsync("GCM-1", "a", CancellationToken.None);
+
+        Assert.Equal(4, result.Value.Count);
+        Assert.Equal(("fake-account-1", "Test User 1"), (result.Value[0].Id, result.Value[0].Label));
+        Assert.All(result.Value, user => Assert.False(user.IsInactive));
     }
 
     [Fact]
