@@ -1,3 +1,4 @@
+using Geeratya.App;
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
 using Geeratya.Platform.Terminal;

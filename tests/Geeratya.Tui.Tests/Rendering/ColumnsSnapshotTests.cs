@@ -2,7 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Tui.Rendering;
-using Geeratya.Tui.Tests.Fakes;
+using Geeratya.App.Tests.Fakes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 

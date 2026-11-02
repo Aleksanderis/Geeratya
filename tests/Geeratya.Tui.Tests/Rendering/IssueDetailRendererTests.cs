@@ -14,7 +14,7 @@ using Geeratya.Jira.RemoteLinks.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
-using Geeratya.Tui.Tests.Fakes;
+using Geeratya.App.Tests.Fakes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 

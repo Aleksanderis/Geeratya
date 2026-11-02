@@ -10,5 +10,6 @@
     <ProjectReference Include="..\Geeratya.Core\Geeratya.Core.csproj" />
     <ProjectReference Include="..\Geeratya.Jira\Geeratya.Jira.csproj" />
     <ProjectReference Include="..\Geeratya.Platform\Geeratya.Platform.csproj" />
+    <ProjectReference Include="..\Geeratya.App\Geeratya.App.csproj" />
   </ItemGroup>
 </Project>
