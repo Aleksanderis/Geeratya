@@ -30,7 +30,7 @@ all_scenarios=(
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
-  "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter: Generated"
+  "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "picker;120;36;dark; t;Open a view"
   "board;120;36;dark;:board GCM|;GCM"
   "backlog;120;36;dark;:backlog GCM|;GCM"
