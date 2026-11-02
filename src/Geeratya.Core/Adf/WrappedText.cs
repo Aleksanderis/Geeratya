@@ -14,6 +14,7 @@ internal sealed class WrappedText
 {
     private const int LastAscii = 0x7F;
     private const int TabWidth = 4;
+    private const char ZeroWidthJoiner = '\u200D';
 
     private static readonly string[] _asciiStrings = CreateAsciiStrings();
 
@@ -55,7 +56,7 @@ internal sealed class WrappedText
             {
                 index++;
             }
-            else if (character <= LastAscii)
+            else if (character <= LastAscii && !ContinuesCluster(text, index))
             {
                 index++;
                 AddCell(new Cell(_asciiStrings[character], 1, role));
@@ -91,6 +92,30 @@ internal sealed class WrappedText
 
         output.AddRange(_lines);
         _lines.Clear();
+    }
+
+    /// <summary>
+    /// Whether the character after an ASCII one extends its cluster (keycap emoji such as "1" + FE0F + 20E3: a
+    /// variation selector, an enclosing or combining mark, or a zero width joiner).
+    /// </summary>
+    private static bool ContinuesCluster(string text, int index)
+    {
+        if (index + 1 >= text.Length)
+        {
+            return false;
+        }
+
+        var next = text[index + 1];
+
+        if (next <= LastAscii)
+        {
+            return false;
+        }
+
+        return next == ZeroWidthJoiner
+            || CharUnicodeInfo.GetUnicodeCategory(next) is UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.EnclosingMark
+                or UnicodeCategory.SpacingCombiningMark;
     }
 
     private static string[] CreateAsciiStrings()
