@@ -53,6 +53,50 @@ public class ListBodyRendererTests
     }
 
     [Fact]
+    public void GivenApproximateTotal_WhenBuilding_ThenTheCountSaysAbout()
+    {
+        var tab = Tab(LoadState.Idle, 3) with { Next = new PageCursor("n2"), Total = 250, TotalIsApproximate = true };
+
+        Assert.StartsWith("project = A · 3 of about 250", Frame(tab)[0]);
+    }
+
+    [Fact]
+    public void GivenExactTotal_WhenBuilding_ThenTheCountIsNOfM()
+    {
+        var tab = Tab(LoadState.Idle, 3) with { Next = new PageCursor("n2"), Total = 250 };
+
+        var header = Frame(tab)[0];
+
+        Assert.StartsWith("project = A · 3 of 250", header);
+        Assert.DoesNotContain("about", header);
+    }
+
+    [Fact]
+    public void GivenTruncatedList_WhenBuilding_ThenTheCountIsNOfMWithATotalAndNPlusWithout()
+    {
+        var truncated = Tab(LoadState.Idle, 3) with { Truncated = true };
+
+        Assert.StartsWith("project = A · 3+", Frame(truncated)[0]);
+        Assert.StartsWith("project = A · 3 of 9", Frame(truncated with { Total = 9 })[0]);
+    }
+
+    [Fact]
+    public void GivenTotalBelowTheLoadedRows_WhenBuilding_ThenTheCountFallsBackToNPlus()
+    {
+        var tab = Tab(LoadState.Idle, 3) with { Next = new PageCursor("n"), Total = 2, TotalIsApproximate = true };
+
+        Assert.StartsWith("project = A · 3+", Frame(tab)[0]);
+    }
+
+    [Fact]
+    public void GivenAllRowsLoadedAndATotal_WhenBuilding_ThenTheCountIsPlain()
+    {
+        var tab = Tab(LoadState.Idle, 3) with { Total = 250, TotalIsApproximate = true };
+
+        Assert.StartsWith("project = A · 3 issues", Frame(tab)[0]);
+    }
+
+    [Fact]
     public void GivenSelection_WhenBuilding_ThenTheMarkerAndTheSelectedRoleMarkOnlyThatRow()
     {
         var body = Render(Tab(LoadState.Idle, 3) with { Selected = 2 }, 80, 10);

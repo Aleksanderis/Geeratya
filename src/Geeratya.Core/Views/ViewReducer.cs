@@ -41,6 +41,7 @@ public static class ViewReducer
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewCacheLoaded cached => CacheLoaded(state, cached),
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
+            ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
             IssueDetailOpenRequested open => DetailReducer.Open(state, open.Tab, open.Key, open.Row, effects),
@@ -240,6 +241,19 @@ public static class ViewReducer
         }
 
         return Replace(state, tab with { Board = configured.Configuration });
+    }
+
+    /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>
+    private static AppState TotalLoaded(AppState state, ViewTotalLoaded counted)
+    {
+        var tab = Find(state.Session.Tabs, counted.Tab);
+
+        if (tab is null || LoadsAllPages(tab.Definition.Source))
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { Total = counted.Total, TotalIsApproximate = true });
     }
 
     private static AppState MoveSelection(AppState state, SelectionMoved moved, List<Effect> effects)
@@ -643,6 +657,8 @@ public static class ViewReducer
             PendingRows = null,
             KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : combined),
             Failures = 0,
+            Total = loaded.Page.Total ?? tab.Total,
+            TotalIsApproximate = loaded.Page.Total is null && tab.TotalIsApproximate,
             NextRefreshAt = appended && tab.Failures == 0
                 ? tab.NextRefreshAt
                 : RefreshSchedule.AfterSuccess(loaded.At),
@@ -856,6 +872,8 @@ public static class ViewReducer
             Next = null,
             PendingRows = null,
             Truncated = false,
+            Total = null,
+            TotalIsApproximate = false,
             Scroll = 0,
             Cursor = null,
             KeyWidth = 0,

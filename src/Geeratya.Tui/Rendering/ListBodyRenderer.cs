@@ -107,9 +107,17 @@ public sealed class ListBodyRenderer : IBodyRenderer
     {
         var count = tab.Rows.Count;
 
-        if (tab.Next is not null)
+        if (tab.Next is not null || tab.Truncated)
         {
-            return $"{count}+";
+            // An approximate count below the loaded rows is stale: no total is better than a wrong one.
+            if (tab.Total is not { } total || total < count)
+            {
+                return $"{count}+";
+            }
+
+            var about = tab.TotalIsApproximate ? "about " : string.Empty;
+
+            return $"{count} of {about}{total}";
         }
 
         return count == 1 ? "1 issue" : $"{count} issues";

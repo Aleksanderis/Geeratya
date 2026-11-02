@@ -62,3 +62,9 @@ public sealed record RefreshRequested(TabId Tab) : ViewCommand;
 /// when it ended (which clears only a rate-limit state, not an offline or rejected link).
 /// </summary>
 public sealed record LinkChanged(SiteLink Link) : ViewCommand;
+
+/// <summary>
+/// The approximate number of matches of a JQL source, reported after its first page. Applied to the tab if it still
+/// exists; a failed count call posts nothing and the header keeps <c>N+</c>.
+/// </summary>
+public sealed record ViewTotalLoaded(TabId Tab, int Total) : ViewCommand;
