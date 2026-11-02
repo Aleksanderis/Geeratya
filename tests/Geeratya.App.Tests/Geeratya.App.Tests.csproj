@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Geeratya.App\Geeratya.App.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Geeratya.Jira.Tests\Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures" />
+  </ItemGroup>
+</Project>

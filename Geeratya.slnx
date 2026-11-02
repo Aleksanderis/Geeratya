@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Geeratya.App/Geeratya.App.csproj" />
     <Project Path="src/Geeratya.Core/Geeratya.Core.csproj" />
     <Project Path="src/Geeratya.Jira/Geeratya.Jira.csproj" />
     <Project Path="src/Geeratya.Platform/Geeratya.Platform.csproj" />
@@ -10,6 +11,7 @@
     <Project Path="tools/FakeJira/FakeJira.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Geeratya.App.Tests/Geeratya.App.Tests.csproj" />
     <Project Path="tests/Geeratya.AnsiToSvg.Tests/Geeratya.AnsiToSvg.Tests.csproj" />
     <Project Path="tests/Geeratya.FakeJira.Tests/Geeratya.FakeJira.Tests.csproj" />
     <Project Path="tests/Geeratya.Core.Tests/Geeratya.Core.Tests.csproj" />

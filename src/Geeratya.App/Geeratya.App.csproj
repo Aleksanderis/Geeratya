@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Geeratya.Core\Geeratya.Core.csproj" />
+    <ProjectReference Include="..\Geeratya.Jira\Geeratya.Jira.csproj" />
+    <ProjectReference Include="..\Geeratya.Platform\Geeratya.Platform.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,228 @@
+using Geeratya.Core.State;
+
+namespace Geeratya.App;
+
+/// <summary>
+/// Runs network work off the UI thread. Each run is stamped with the site generation when it starts and belongs to
+/// a scope (a tab id); a result is posted only when the generation is still current and the run was not cancelled,
+/// so a reply from a previous profile changes nothing. Cancellation is best effort; the reducer's request-id rule is
+/// the other half of the guarantee.
+/// </summary>
+public sealed class NetworkRunner : IDisposable
+{
+    private readonly SiteConnections _connections;
+    private readonly ICommandSink _sink;
+    private readonly CancellationToken _shutdown;
+    private readonly object _lock = new();
+    private readonly Dictionary<long, CancellationTokenSource> _scopes = [];
+    private CancellationTokenSource _all;
+
+    /// <param name="connections">The site whose generation stamps every run.</param>
+    /// <param name="sink">Thread-safe hand-over of a command to the UI thread (reducer).</param>
+    /// <param name="shutdown">Cancels every run when the application ends.</param>
+    public NetworkRunner(SiteConnections connections, ICommandSink sink, CancellationToken shutdown)
+    {
+        _connections = connections;
+        _sink = sink;
+        _shutdown = shutdown;
+        _all = CancellationTokenSource.CreateLinkedTokenSource(shutdown);
+    }
+
+    /// <summary>
+    /// Starts <paramref name="work"/> on a background task and returns at once. Does nothing while the site has no
+    /// transport, unless <paramref name="whenUnavailable"/> is given: its command is then posted (off the calling
+    /// thread), so a request never waits for a reply that cannot come. The work's command, if any, is posted when
+    /// the run is still current. The work maps its own Jira failures to a command; an unexpected exception of a
+    /// current run faults the returned task.
+    /// </summary>
+    public Task Start(
+        long scope,
+        Func<JiraServices, CancellationToken, Task<Command?>> work,
+        Func<Command?>? whenUnavailable = null)
+    {
+        return StartReporting(scope, (services, _, token) => work(services, token), whenUnavailable);
+    }
+
+    /// <summary>
+    /// Like <see cref="Start"/>, for work that has an intermediate result to hand over before its last command (the
+    /// board configuration ahead of the first issue page). The <c>report</c> action posts a command under the same
+    /// currency check as the final one: nothing is posted once the run was cancelled or the site changed.
+    /// </summary>
+    public Task StartReporting(
+        long scope,
+        Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
+        Func<Command?>? whenUnavailable = null)
+    {
+        var services = JiraServices.Create(_connections);
+
+        if (services is null)
+        {
+            return Unavailable(whenUnavailable);
+        }
+
+        var source = ScopeSource(scope);
+
+        var token = source.Token;
+
+        return Task.Run(() => RunAsync(services, work, token), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Starts work that needs no connection (reading the local cache) under the scope of a tab: it is cancelled with
+    /// the tab or by a profile drop, and its command is posted unless that happened. Works with no transport.
+    /// </summary>
+    public Task StartLocal(long scope, Func<CancellationToken, Command?> work)
+    {
+        var token = ScopeSource(scope).Token;
+
+        return Task.Run(() => RunLocal(work, token), CancellationToken.None);
+    }
+
+    /// <summary>Cancels the in-flight work of one tab (<c>CancelTabEffect</c>).</summary>
+    public void CancelScope(long scope)
+    {
+        CancellationTokenSource? source;
+
+        lock (_lock)
+        {
+            _scopes.Remove(scope, out source);
+        }
+
+        Cancel(source);
+    }
+
+    /// <summary>Cancels all in-flight work (<c>DropSiteCacheEffect</c>); later runs start fresh.</summary>
+    public void CancelAll()
+    {
+        CancellationTokenSource old;
+
+        lock (_lock)
+        {
+            old = _all;
+            _all = CancellationTokenSource.CreateLinkedTokenSource(_shutdown);
+            _scopes.Clear();
+        }
+
+        Cancel(old);
+    }
+
+    public void Dispose()
+    {
+        CancelAll();
+
+        lock (_lock)
+        {
+            _all.Dispose();
+        }
+    }
+
+    private CancellationTokenSource ScopeSource(long scope)
+    {
+        lock (_lock)
+        {
+            if (!_scopes.TryGetValue(scope, out var existing))
+            {
+                existing = CancellationTokenSource.CreateLinkedTokenSource(_all.Token);
+                _scopes[scope] = existing;
+            }
+
+            return existing;
+        }
+    }
+
+    private void RunLocal(Func<CancellationToken, Command?> work, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        Command? result;
+
+        try
+        {
+            result = work(token);
+        }
+        catch (Exception)
+        {
+            // Local work (a cache read) is best effort: a failure is a miss, never a reason to skip the network.
+            return;
+        }
+
+        if (result is not null && !token.IsCancellationRequested)
+        {
+            _sink.Post(result);
+        }
+    }
+
+    private static void Cancel(CancellationTokenSource? source)
+    {
+        try
+        {
+            source?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    private Task Unavailable(Func<Command?>? whenUnavailable)
+    {
+        if (whenUnavailable is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return Task.Run(() => PostUnavailable(whenUnavailable), CancellationToken.None);
+    }
+
+    private void PostUnavailable(Func<Command?> whenUnavailable)
+    {
+        if (!_shutdown.IsCancellationRequested && whenUnavailable() is { } command)
+        {
+            _sink.Post(command);
+        }
+    }
+
+    private void PostIfCurrent(JiraServices services, Command command, CancellationToken token)
+    {
+        if (!IsObsolete(services, token))
+        {
+            _sink.Post(command);
+        }
+    }
+
+    private bool IsObsolete(JiraServices services, CancellationToken token)
+    {
+        return token.IsCancellationRequested || !_connections.IsCurrent(services.Generation);
+    }
+
+    private async Task RunAsync(
+        JiraServices services,
+        Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
+        CancellationToken token)
+    {
+        Command? result;
+
+        try
+        {
+            result = await work(services, command => PostIfCurrent(services, command, token), token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception) when (IsObsolete(services, token))
+        {
+            // The old transport is disposed on a switch, so work still running may fail with anything.
+            return;
+        }
+
+        if (result is null || IsObsolete(services, token))
+        {
+            return;
+        }
+
+        _sink.Post(result);
+    }
+}

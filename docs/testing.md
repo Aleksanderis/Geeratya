@@ -23,7 +23,7 @@ Real responses recorded from the dev site, scrubbed and stored under `tests/Geer
 Two fakes share the fixture folder, for different consumers:
 
 - `FakeJiraHandler`: an `HttpMessageHandler` for unit and store tests. No socket. Scripted statuses, `Retry-After`, latency and hangs; records every request.
-- `ScriptedJiraHandler` (`tests/Geeratya.Tui.Tests/Fakes`): the same idea for the Tui tests, which do not reference the Jira test project: a queue of scripted replies (status, body, optional gate, `Retry-After`) and the recorded request URIs. Bodies are small inline JSON; recorded responses belong to the Jira layer's tests.
+- `ScriptedJiraHandler` (`tests/Geeratya.App.Tests/Fakes`): the same idea for the App tests (handlers, runner, connections), which do not reference the Jira test project; `Geeratya.Tui.Tests` links every file of that `Fakes` folder (so a fake added there is compiled into both test assemblies) to build board states through the real loading path: a queue of scripted replies (status, body, optional gate, `Retry-After`) and the recorded request URIs. Bodies are small inline JSON; recorded responses belong to the Jira layer's tests.
 - `tools/FakeJira` (`fakejira`): a local HTTP server on `127.0.0.1` for running the real binary. Prints its base URL as the first line on standard output and runs until interrupted.
 
 ```sh

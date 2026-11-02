@@ -1,3 +1,4 @@
+using Geeratya.App;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
@@ -22,7 +23,7 @@ namespace Geeratya.Tui;
 /// Runs the Terminal.Gui loop and connects it to the state layer: keys become commands, state becomes a frame.
 /// Nothing here waits on the network; the first frame is drawn before any Jira call exists.
 /// </summary>
-public sealed class ShellHost : IDisposable
+public sealed class ShellHost : ICommandSink, IDisposable
 {
     private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
 
@@ -37,14 +38,15 @@ public sealed class ShellHost : IDisposable
     private readonly ProfileEffectHandler _profileEffects;
     private readonly BrowserEffectHandler _browserEffects;
     private readonly SiteConnections _connections;
-    private NetworkRunner? _network;
-    private ViewLoadHandler? _viewLoads;
-    private IssueDetailLoadHandler? _detailLoads;
-    private SourceLoadHandler? _sourceLoads;
-    private ConnectionCheckHandler? _connectionChecks;
+    private readonly CancellationTokenSource _shutdown = new();
+    private readonly CancellationToken _shutdownToken;
+    private readonly NetworkRunner _network;
+    private readonly ViewLoadHandler _viewLoads;
+    private readonly IssueDetailLoadHandler _detailLoads;
+    private readonly SourceLoadHandler _sourceLoads;
+    private readonly ConnectionCheckHandler _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
-    private CancellationToken _shutdownToken;
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
 
@@ -63,6 +65,12 @@ public sealed class ShellHost : IDisposable
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens);
         _reducer = new AppReducer(keymap);
+        _shutdownToken = _shutdown.Token;
+        _network = new NetworkRunner(_connections, this, _shutdownToken);
+        _viewLoads = new ViewLoadHandler(_network);
+        _detailLoads = new IssueDetailLoadHandler(_network);
+        _sourceLoads = new SourceLoadHandler(_network);
+        _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
         _connections.RateLimitChanged += OnRateLimitChanged;
     }
@@ -73,24 +81,16 @@ public sealed class ShellHost : IDisposable
         _connections.RateLimitChanged -= OnRateLimitChanged;
         _tickTimer?.Dispose();
         _profiles.Caches.Dispose();
-        _network?.Dispose();
+        _network.Dispose();
         _connections.Dispose();
+        _shutdown.Dispose();
     }
 
     public int Run()
     {
         using var application = Application.Create();
 
-        using var shutdown = new CancellationTokenSource();
-
-        _shutdownToken = shutdown.Token;
         _state = LoadProfiles();
-        _network = new NetworkRunner(_connections, Post, _shutdownToken);
-        _viewLoads = new ViewLoadHandler(_network);
-        _detailLoads = new IssueDetailLoadHandler(_network);
-        _sourceLoads = new SourceLoadHandler(_network);
-        _connectionChecks = new ConnectionCheckHandler(_connections, _network);
-
         _application = application;
         application.Init();
         application.Keyboard.KeyBindings.Clear();
@@ -112,7 +112,7 @@ public sealed class ShellHost : IDisposable
         Dispatch(new ConnectionCheckRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
-        shutdown.Cancel();
+        _shutdown.Cancel();
         _profiles.Caches.FlushAll();
 
         return 0;
@@ -192,26 +192,26 @@ public sealed class ShellHost : IDisposable
             }
             else if (effect is DropSiteCacheEffect drop)
             {
-                _network!.CancelAll();
+                _network.CancelAll();
                 _profiles.Caches.Drop(drop.Profile);
                 _connections.Drop(drop.Profile);
             }
             else if (effect is CancelTabEffect cancel)
             {
-                _network!.CancelScope(cancel.Tab.Value);
+                _network.CancelScope(cancel.Tab.Value);
             }
             else if (effect is LoadViewPageEffect load)
             {
-                _ = _viewLoads!.StartAsync(load, ActiveCache());
+                _ = _viewLoads.StartAsync(load, ActiveCache());
             }
             else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect
                 or LoadIssueChildrenEffect)
             {
-                _ = _detailLoads!.StartAsync(effect, ActiveCache());
+                _ = _detailLoads.StartAsync(effect, ActiveCache());
             }
             else if (effect is LoadSourcesEffect sources)
             {
-                _ = _sourceLoads!.StartAsync(sources);
+                _ = _sourceLoads.StartAsync(sources);
             }
             else if (effect is WriteCacheEffect write)
             {
@@ -246,7 +246,7 @@ public sealed class ShellHost : IDisposable
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
-            _ = _connectionChecks!.StartAsync(check);
+            _ = _connectionChecks.StartAsync(check);
         }
     }
 
