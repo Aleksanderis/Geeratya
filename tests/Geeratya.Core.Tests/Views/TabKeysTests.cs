@@ -92,26 +92,15 @@ public class TabKeysTests
     }
 
     [Fact]
-    public void GivenAnActiveTab_WhenPressingSpaceT_ThenANewTabWithTheSameViewOpensAndLoads()
+    public void GivenAnActiveTab_WhenPressingSpaceT_ThenTheSourcePickerOpensAndNoTabIsCopied()
     {
         var state = OpenTabs(1);
 
         var result = Press(Press(state, "Space").State, "t");
 
-        Assert.Equal(2, result.State.Session.Tabs.Count);
-        Assert.Equal(result.State.Session.Tabs[1].Id, result.State.Session.Active);
-        Assert.Equal(state.Session.Tabs[0].Definition, result.State.Session.Tabs[1].Definition);
-        Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects));
-    }
-
-    [Fact]
-    public void GivenNoTab_WhenPressingSpaceT_ThenTheStatusLineExplainsAndNothingOpens()
-    {
-        var result = Press(Press(Start(), "Space").State, "t");
-
-        Assert.Empty(result.State.Session.Tabs);
-        Assert.Equal("No view to copy: open one with :jql <query>.", result.State.Message);
-        Assert.Empty(result.Effects);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+        Assert.NotNull(result.State.Picker);
+        Assert.Single(result.State.Session.Tabs);
     }
 
     [Fact]
@@ -147,13 +136,16 @@ public class TabKeysTests
         var previous = Run(next.State, "tab prev");
         var closed = Run(previous.State, "tab close");
         var created = Run(closed.State, "tab new");
+        var opened = Press(created.State, "Esc");
 
         Assert.Equal(ids[0], first.State.Session.Active);
         Assert.Equal(ids[1], next.State.Session.Active);
         Assert.Equal(ids[0], previous.State.Session.Active);
         Assert.Equal(2, closed.State.Session.Tabs.Count);
         Assert.Equal(ids[1], closed.State.Session.Active);
-        Assert.Equal(3, created.State.Session.Tabs.Count);
+        Assert.NotNull(created.State.Picker);
+        Assert.Null(opened.State.Picker);
+        Assert.Equal(2, opened.State.Session.Tabs.Count);
     }
 
     [Theory]

@@ -1,5 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 
 namespace Geeratya.Core.State;
 
@@ -16,6 +17,7 @@ namespace Geeratya.Core.State;
 /// <param name="ProfileBusy">A profile change is being saved; further changes are refused until it ends.</param>
 /// <param name="Sequence">The counter every tab id, request id and recency stamp is drawn from; it only grows.</param>
 /// <param name="ViewportRows">The last viewport height the host reported; new tabs start with it.</param>
+/// <param name="Picker">The open source picker (Insert mode), otherwise null.</param>
 public sealed record AppState(
     InputMode Mode,
     string PendingKeys,
@@ -28,7 +30,8 @@ public sealed record AppState(
     bool ProfileBusy,
     SiteSession Session,
     long Sequence,
-    int ViewportRows)
+    int ViewportRows,
+    SourcePickerState? Picker = null)
 {
     public static AppState Initial { get; } =
         new(

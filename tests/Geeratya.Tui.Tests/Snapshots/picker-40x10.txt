@@ -1,0 +1,10 @@
+                                        
+  ┌─ Open a view ────────────────────┐  
+  │ > g_                             │  
+  │ Boards                           │  
+  │ > Board   GCM board (scrum, GCM) │  
+  │   Backlog GCM board (scrum, GCM) │  
+  │   Board   GTM 日本語 board with  │  
+  │   Backlog GTM 日本語 board with  │  
+  └──────────────────────────────────┘  
+ INSERT open a view                     

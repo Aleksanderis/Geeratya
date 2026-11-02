@@ -45,7 +45,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-7` | Go to tab 7 |
 | `Alt-8` | Go to tab 8 |
 | `Alt-9` | Go to tab 9 |
-| `Space t` | Open a view in a new tab |
+| `Space t` | Open the source picker for a new tab |
 | `Space c` | Close the tab |
 | `Space r` | Refresh the view (also retries after an error) |
 | `Space l` | Switch between list and columns |
@@ -94,3 +94,16 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous source in the picker |
 | `Down` | Next source in the picker |
 | `Ctrl-n` | Next source in the picker |
+
+## Palette commands
+
+| Command | What it does |
+|---|---|
+| `:jql <query>` | Open a JQL query in a new tab |
+| `:filter [name]` | Open a saved filter in a new tab |
+| `:board [name]` | Open a board as columns in a new tab |
+| `:backlog [name]` | Open a board's backlog in a new tab |
+| `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:help` | Show or hide help |
+| `:quit` | Quit |

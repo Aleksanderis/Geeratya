@@ -1,6 +1,7 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Platform.Browser;
@@ -36,6 +37,7 @@ public sealed class ShellHost : IDisposable
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
+    private SourceLoadHandler? _sourceLoads;
     private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
     private ShellScreen? _screen;
@@ -77,6 +79,7 @@ public sealed class ShellHost : IDisposable
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
+        _sourceLoads = new SourceLoadHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
         _application = application;
@@ -185,6 +188,10 @@ public sealed class ShellHost : IDisposable
             else if (effect is LoadViewPageEffect load)
             {
                 _ = _viewLoads!.StartAsync(load, ActiveCache());
+            }
+            else if (effect is LoadSourcesEffect sources)
+            {
+                _ = _sourceLoads!.StartAsync(sources);
             }
             else if (effect is WriteCacheEffect write)
             {

@@ -261,7 +261,7 @@ Overflow: when the titles do not fit, the window of tabs slides so the active on
 
 The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab (until the picker exists it opens a copy of the current tab's view), `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
+Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
 ## Connection check and network states
 
@@ -310,7 +310,7 @@ Wording by status (jira-layer.md "Errors"); the body of an HTML or plain-text re
 
 ## Source picker overlay
 
-`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty; text that is not a valid JQL clause (no operator, like `gcm`) is sent as `text ~ "gcm"`, anything else as typed. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. The lists load when the picker first opens and are cached, so the picker works offline from cache; an empty cache shows `Loading…` in each group.
+`<space>t` (and `:tab new`) opens a centred box over the tab. It is a filter prompt in Insert mode: printable keys are text, `Up`/`Down` or `Ctrl-p`/`Ctrl-n` choose, `Enter` opens the choice in a new tab, `Esc` closes. Rows come in groups: Boards (two rows per board, `Board` and `Backlog`), Filters (saved filters: favourites and the caller's), and Query, the last row, which offers the typed text as JQL and is always present when the text is not empty; text that is not a valid JQL clause (no operator, like `gcm`) is sent as `text ~ "gcm"`, anything else as typed. Typing filters boards and filters by case-insensitive substring; the first matching row is highlighted, or the Query row when nothing matches. Boards load in pages up to 20 pages (1000 boards), more are not offered; narrow with `:jql`. The lists load when the picker first opens and are cached, so reopening it does not reload (the lists live in memory for the session, not on disk; after a cold start offline the groups show the error); an empty cache shows `Loading…` in each group.
 
 ```text
  1 Board: GCM board  2 Backlog: GCM board  [3 JQL: assignee = currentUser() AND resolution = Unresolved]  4 Filter: Mine
@@ -378,7 +378,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
-| `:tab new` | the source picker (until it exists, a copy of the current tab's view); `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
+| `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
 | `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
 | `:refresh` | alias of `<space>r` |
 | `:browse` | alias of `<space>o` |

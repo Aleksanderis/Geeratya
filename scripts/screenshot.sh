@@ -29,6 +29,10 @@ all_scenarios=(
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
+  "picker;120;36;dark; t;Open a view"
+  "board;120;36;dark;:board GCM|;GCM"
+  "backlog;120;36;dark;:backlog GCM|;GCM"
+  "filter;120;36;dark;:filter Filter for GCM|;GCM"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )
 
