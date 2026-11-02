@@ -26,6 +26,8 @@ public abstract record LinkWriteRequest(
     /// <summary>The link as a sentence: <c>GCM-3 blocks GCM-5</c>.</summary>
     public string Sentence => $"{Key} {DirectionText} {OtherKey}";
 
+    public override bool ReadsBack => false;
+
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)
     {

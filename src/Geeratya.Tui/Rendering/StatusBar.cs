@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
@@ -14,6 +15,7 @@ public static class StatusBar
     private const string Separator = " · ";
     private const int FieldCount = 4;
     private const string PickerPrompt = "open a view";
+    private const string JumpPrompt = "jump to an issue";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -51,6 +53,7 @@ public static class StatusBar
         new(InputMode.Normal, ActionIds.Cancel, "back", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.CommentAdd, "comment", HintScope.Detail),
     ];
 
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>
@@ -59,6 +62,13 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.PickerNext, "choose"),
         new(InputMode.Insert, ActionIds.FormNext, "open"),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
+    /// <summary>The hints shown while the comment editor is open (Insert mode, <see cref="AppState.Editor"/>).</summary>
+    public static IReadOnlyList<StatusHint> EditorHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
     /// <summary>The hints shown while a field form is open (Insert mode, the active tab's form).</summary>
@@ -129,12 +139,17 @@ public static class StatusBar
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
+        if (state.Editor is not null && state.Mode == InputMode.Insert)
+        {
+            return new HintList([], TextsOf(EditorHints, state.Mode, HintScope.Global, keymap));
+        }
+
         if (FormReducer.IsOpen(state))
         {
             return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
         }
 
-        if (state.Picker is not null)
+        if (state.Picker is not null || state.Jump is not null)
         {
             return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
         }
@@ -249,10 +264,20 @@ public static class StatusBar
             InputMode.Command => $":{state.PaletteText}",
             InputMode.Confirm => ConfirmText(state, width, keymap),
             InputMode.Help => string.Empty,
+            InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
+            InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };
+    }
+
+    private static string EditorText(CommentEditor editor)
+    {
+        var what = editor.IsEdit ? "Editing a comment on" : "Commenting on";
+        var saving = editor.IsSaving ? " · saving…" : string.Empty;
+
+        return $"{what} {editor.Key}{saving}";
     }
 
     private static string PickerText(SourcePickerState picker)
@@ -271,9 +296,14 @@ public static class StatusBar
             return state.Message;
         }
 
-        if (state.PendingKeys.Length > 0)
+        if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
-            return state.PendingKeys;
+            return PendingText(state);
+        }
+
+        if (ListBodyRenderer.ActiveTab(state)?.RankPickup is { } picked)
+        {
+            return $"Picked up {picked}: move to its new place and press the rank-to key again (Esc cancels)";
         }
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
@@ -285,6 +315,19 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
+    }
+
+    /// <summary>The typed count and keys of a multi-key binding: <c>3</c>, <c>g</c>, <c>3 Space k</c>.</summary>
+    private static string PendingText(AppState state)
+    {
+        if (state.Count == 0)
+        {
+            return state.PendingKeys;
+        }
+
+        var count = state.Count.ToString(CultureInfo.InvariantCulture);
+
+        return state.PendingKeys.Length == 0 ? count : $"{count} {state.PendingKeys}";
     }
 
     /// <summary>

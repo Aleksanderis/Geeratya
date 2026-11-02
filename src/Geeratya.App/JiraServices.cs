@@ -3,9 +3,11 @@ using Geeratya.Jira.Comments;
 using Geeratya.Jira.Edit;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Links;
+using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Transitions;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
 
@@ -31,13 +33,21 @@ public sealed class JiraServices
         Filters = new FilterClient(transport);
         Edits = new EditClient(transport);
         Links = new LinkClient(transport);
+        Transitions = new TransitionClient(transport);
+        Ranks = new RankClient(transport);
     }
 
     /// <summary>Link types, and creating and removing issue links (writes: only called from the write handler).</summary>
     public LinkClient Links { get; }
 
+    /// <summary>Lists the transitions of an issue and performs one (the write only from the write handler).</summary>
+    public TransitionClient Transitions { get; }
+
     /// <summary>Edits fields and assigns issues (writes: only called from the write handler).</summary>
     public EditClient Edits { get; }
+
+    /// <summary>Ranks issues (a write: only called from the write handler).</summary>
+    public RankClient Ranks { get; }
 
     /// <summary>Boards, board configuration, board issues and backlog (agile API).</summary>
     public BoardClient Boards { get; }

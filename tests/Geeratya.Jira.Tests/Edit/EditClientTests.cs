@@ -455,9 +455,25 @@ public sealed class EditClientTests
     }
 
     [Fact]
+    public async Task GivenUnknownAccountId_WhenAssigning_ThenRecordedNotFoundReplyMapsToNotFound()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(
+            HttpMethod.Put,
+            GcmAssigneePath,
+            FakeResponse.WithStatus(HttpStatusCode.NotFound, FixtureFiles.Read("writes/assignee-404-unknown-user.json")));
+
+        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("fake-account-404"), Cancel());
+
+        Assert.Equal(WriteErrorKind.NotFound, result.Error.Kind);
+        Assert.Equal("Not found or no access.", result.Error.Message);
+    }
+
+    [Fact]
     public async Task GivenUserWhoCannotBeAssigned_WhenAssigning_ThenValidationKeepsJirasMessage()
     {
         using var fixture = new TransportFixture();
+        // Synthetic: the dev site answers an unknown account with 404 (writes/assignee-404-unknown-user.json) and has no unassignable user.
         const string body = """{"errorMessages":["User 'x' cannot be assigned issues."],"errors":{}}""";
         fixture.Handler.Serve(
             HttpMethod.Put,
@@ -474,6 +490,7 @@ public sealed class EditClientTests
     public async Task GivenNoAssignPermission_WhenAssigning_ThenPermissionError()
     {
         using var fixture = new TransportFixture();
+        // Synthetic: a 403 needs a restricted account the dev site does not have.
         const string body = """{"errorMessages":["You do not have permission to assign issues."],"errors":{}}""";
         fixture.Handler.Serve(HttpMethod.Put, GcmAssigneePath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, body));
 
