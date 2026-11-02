@@ -40,9 +40,12 @@ internal static class DetailActions
 
         var target = DetailReducer.TargetOf(top.Detail);
 
-        return target is null or { Kind: DetailTargetKind.Comment }
-            ? BrowserReducer.OpenIssue(state, top.Detail.Key)
-            : OpenTarget(state, target);
+        if (target is null or { Kind: DetailTargetKind.Comment })
+        {
+            return BrowserReducer.OpenIssue(state, top.Detail.Key);
+        }
+
+        return OpenTarget(state, target);
     }
 
     /// <summary><c>issue.open-parent</c>: pushes the parent of the shown issue.</summary>

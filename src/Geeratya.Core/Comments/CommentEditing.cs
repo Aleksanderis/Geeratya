@@ -61,7 +61,8 @@ internal static class CommentEditing
             return Say(state, NoCommentText);
         }
 
-        var text = AdfMarkdownWriter.ToText(comment.Body);
+        // Another author wrote it: control characters (escape sequences, tabs, CR) must not reach the screen.
+        var text = PasteText.Lines(AdfMarkdownWriter.ToText(comment.Body));
         var editor = new CommentEditor(
             top.Tab.Id,
             top.Detail.Key,
@@ -414,9 +415,12 @@ internal static class CommentEditing
 
     private static string Clean(string text)
     {
-        return text.Any(char.IsControl)
-            ? string.Concat(text.Select(static character => char.IsControl(character) ? ' ' : character))
-            : text;
+        if (!text.Any(char.IsControl))
+        {
+            return text;
+        }
+
+        return string.Concat(text.Select(static character => char.IsControl(character) ? ' ' : character));
     }
 
     private static AppState WithOpenEditor(AppState state, CommentEditor editor)

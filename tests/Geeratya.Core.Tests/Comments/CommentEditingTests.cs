@@ -354,6 +354,19 @@ public class CommentEditingTests
     }
 
     [Fact]
+    public void GivenAForeignCommentWithControlCharacters_WhenEditing_ThenTheEditorTextHasNoneOfThem()
+    {
+        var hostile = string.Concat("a", (char)27, "[31m", (char)9, "b", (char)13, (char)10, "c", (char)7);
+        var comment = new IssueComment("1", _other, AdfMarkdownParser.Parse(hostile), _now, _now);
+
+        var editor = Press(OnComment(OpenIssue(), "1", comment), "Space", "m", "e").State.Editor!;
+
+        Assert.DoesNotContain(editor.Buffer.Text, character => char.IsControl(character) && character != (char)10);
+        Assert.Contains("    b", editor.Buffer.Text);
+        Assert.False(editor.IsChanged);
+    }
+
+    [Fact]
     public void GivenACommentWithATable_WhenEditing_ThenTheEditorWarnsThatFormattingIsReplaced()
     {
         var table = AdfParser.Parse(
