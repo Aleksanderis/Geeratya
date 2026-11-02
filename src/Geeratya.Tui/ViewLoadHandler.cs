@@ -7,8 +7,8 @@ namespace Geeratya.Tui;
 
 /// <summary>
 /// Turns a <see cref="LoadViewPageEffect"/> into the command that reports it: <see cref="ViewPageLoaded"/> or
-/// <see cref="ViewLoadFailed"/>, both carrying the effect's request id. The work runs on the <see cref="NetworkRunner"/>
-/// under the tab's scope, so closing the tab cancels it and a reply from an older site is dropped before it is posted.
+/// <see cref="ViewLoadFailed"/>, both carrying the effect's request id. The work runs on the
+/// <see cref="NetworkRunner"/> under the tab's scope, so closing the tab cancels it and a reply from an older site is dropped before it is posted.
 /// One method per source kind; a new source adds a case, not new loading code.
 /// </summary>
 public sealed class ViewLoadHandler

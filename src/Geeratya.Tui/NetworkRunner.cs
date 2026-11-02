@@ -31,8 +31,9 @@ public sealed class NetworkRunner : IDisposable
     /// <summary>
     /// Starts <paramref name="work"/> on a background task and returns at once. Does nothing while the site has no
     /// transport, unless <paramref name="whenUnavailable"/> is given: its command is then posted (off the calling
-    /// thread), so a request never waits for a reply that cannot come. The work's command, if any, is posted when the run is still current. The work maps its own Jira
-    /// failures to a command; an unexpected exception of a current run faults the returned task.
+    /// thread), so a request never waits for a reply that cannot come. The work's command, if any, is posted when
+    /// the run is still current. The work maps its own Jira failures to a command; an unexpected exception of a
+    /// current run faults the returned task.
     /// </summary>
     public Task Start(
         long scope,
@@ -43,9 +44,7 @@ public sealed class NetworkRunner : IDisposable
 
         if (services is null)
         {
-            return whenUnavailable is null
-                ? Task.CompletedTask
-                : Task.Run(() => PostUnavailable(whenUnavailable), CancellationToken.None);
+            return Unavailable(whenUnavailable);
         }
 
         CancellationTokenSource source;
@@ -113,6 +112,16 @@ public sealed class NetworkRunner : IDisposable
         catch (ObjectDisposedException)
         {
         }
+    }
+
+    private Task Unavailable(Func<Command?>? whenUnavailable)
+    {
+        if (whenUnavailable is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return Task.Run(() => PostUnavailable(whenUnavailable), CancellationToken.None);
     }
 
     private void PostUnavailable(Func<Command?> whenUnavailable)

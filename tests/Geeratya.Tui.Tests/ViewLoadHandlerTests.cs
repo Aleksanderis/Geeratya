@@ -11,6 +11,7 @@ using Geeratya.Tui.Tests.Fakes;
 
 namespace Geeratya.Tui.Tests;
 
+[Trait("Os", "Independent")]
 public sealed class ViewLoadHandlerTests
 {
     private const string PageOne =

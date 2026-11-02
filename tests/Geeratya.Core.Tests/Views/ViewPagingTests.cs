@@ -130,6 +130,37 @@ public class ViewPagingTests
     }
 
     [Fact]
+    public void GivenFailedNextPage_WhenTheSelectionMovesOnNearTheEnd_ThenNoRequestIsSentAgain()
+    {
+        var failed = FailedNextPage();
+        var id = failed.Session.Tabs[0].Id;
+
+        var moved = _reducer.Reduce(failed, new SelectionMoved(id, 90));
+
+        Assert.Empty(moved.Effects);
+        Assert.IsType<Failed>(moved.State.Session.Tabs[0].Load);
+    }
+
+    [Fact]
+    public void GivenFailedNextPage_WhenRequestingExplicitly_ThenTheNextPageIsRetried()
+    {
+        var failed = FailedNextPage();
+        var id = failed.Session.Tabs[0].Id;
+
+        var retry = _reducer.Reduce(failed, new NextPageRequested(id));
+
+        Assert.IsType<LoadViewPageEffect>(Assert.Single(retry.Effects));
+    }
+
+    [Fact]
+    public void GivenEmptyFirstPage_WhenItArrivesWithoutToken_ThenTheTabIsIdleAndAsksForNothing()
+    {
+        var state = LoadedFirstPage(0, 20, null);
+
+        Assert.Equal(LoadState.Idle, state.Session.Tabs[0].Load);
+    }
+
+    [Fact]
     public void GivenSelectionMovedOnUnknownTab_WhenReducing_ThenNothingChanges()
     {
         var state = LoadedFirstPage(10, 5);
@@ -295,6 +326,17 @@ public class ViewPagingTests
             null,
             null,
             "A");
+    }
+
+    private AppState FailedNextPage()
+    {
+        var state = LoadedFirstPage(100, 20);
+        var id = state.Session.Tabs[0].Id;
+        var requested = _reducer.Reduce(state, new SelectionMoved(id, 85));
+        var requestId = requested.State.Session.Tabs[0].RequestId;
+        var error = new JiraError(JiraErrorKind.ServerError, 500, "boom");
+
+        return _reducer.Reduce(requested.State, new ViewLoadFailed(id, requestId, error, _now)).State;
     }
 
     private ReduceResult Open(AppState state, string jql)

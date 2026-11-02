@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -12,6 +13,7 @@ namespace Geeratya.Tui.Rendering;
 public sealed class ViewBodyRenderer : IBodyRenderer
 {
     private const int HeaderRows = 2;
+    private const string TruncatedText = "Load more stopped at 10 000 rows.";
 
     public bool AppliesTo(AppState state)
     {
@@ -32,13 +34,17 @@ public sealed class ViewBodyRenderer : IBodyRenderer
 
         for (var index = first; index < tab.Rows.Count && lines.Count < limit; index++)
         {
-            var selected = index == tab.Selected;
-            var row = tab.Rows[index];
-
-            lines.Add(StyledLine.Of($"{(selected ? "> " : "  ")}{row.Key}  {row.Summary}", selected ? TextRole.Selected : TextRole.Body));
+            lines.Add(RowLine(tab.Rows[index], index == tab.Selected));
         }
 
         return lines;
+    }
+
+    private static StyledLine RowLine(IssueSummary row, bool selected)
+    {
+        var text = $"{row.Key}  {row.Summary}";
+
+        return selected ? StyledLine.Of($"> {text}", TextRole.Selected) : StyledLine.Of($"  {text}");
     }
 
     private static TabState? ActiveTab(AppState state)
@@ -53,7 +59,7 @@ public sealed class ViewBodyRenderer : IBodyRenderer
             Loading { Reason: LoadReason.NextPage } => StyledLine.Of("Loading more...", TextRole.Muted),
             Loading => StyledLine.Of("Loading...", TextRole.Muted),
             Failed failed => StyledLine.Of(failed.Message, TextRole.Error),
-            _ when tab.Truncated => StyledLine.Of($"Load more stopped at {ViewPaging.MaxRowsPerTab:N0} rows.", TextRole.Muted),
+            _ when tab.Truncated => StyledLine.Of(TruncatedText, TextRole.Muted),
             _ when tab.Rows.Count == 0 => StyledLine.Of("No issues.", TextRole.Muted),
             _ => StyledLine.Empty,
         };

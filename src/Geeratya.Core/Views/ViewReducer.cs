@@ -146,9 +146,18 @@ public static class ViewReducer
         return Replace(state, loading) with { Sequence = requestId };
     }
 
-    /// <summary>Within one screen of the last loaded row (the last row itself counts when the height is unknown).</summary>
-    private static bool IsNearEnd(TabState tab)
+    /// <summary>
+    /// The automatic trigger: rows exist, the tab is idle (a failed tab waits for an explicit retry, so a held key
+    /// never hammers a failing Jira) and the selection is within one screen of the last loaded row (the last row
+    /// itself counts when the height is unknown).
+    /// </summary>
+    private static bool WantsNextPage(AppState state, TabState tab)
     {
+        if (state.Session.Active != tab.Id || tab.Rows.Count == 0 || tab.Load is not IdleState)
+        {
+            return false;
+        }
+
         return tab.Selected >= tab.Rows.Count - Math.Max(1, tab.VisibleRows);
     }
 
@@ -165,7 +174,7 @@ public static class ViewReducer
         var selected = tab with { Selected = index, SelectedKey = tab.Rows[index].Key };
         var next = Replace(state, selected);
 
-        return state.Session.Active == selected.Id && IsNearEnd(selected) ? RequestNext(next, selected, effects) : next;
+        return WantsNextPage(next, selected) ? RequestNext(next, selected, effects) : next;
     }
 
     /// <summary>
@@ -215,9 +224,7 @@ public static class ViewReducer
         var current = Find(enforced.Session.Tabs, selected.Id)!;
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
-        return enforced.Session.Active == current.Id && IsNearEnd(current)
-            ? RequestNext(enforced, current, effects)
-            : enforced;
+        return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
     }
 
     /// <summary>Over the cap, or exactly at it with more pages behind: the tab stops loading more.</summary>
