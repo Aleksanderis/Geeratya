@@ -67,9 +67,9 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 |
-| `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
-| `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
-| `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
+| `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M3 #183 |
+| `<space>ia` | `issue.assign` | Assign: people picker (type to search, `(Unassigned)` first) | E | click the assignee | M2 #164 (bound) |
+| `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
