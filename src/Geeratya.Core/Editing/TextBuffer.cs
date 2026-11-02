@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Editing;
 
@@ -32,6 +33,12 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
+        // A cursor moved by rows can sit inside a token: typing goes after it, never into it.
+        if (TokenStartingAt(Cursor) is { } token && token.Start < Cursor)
+        {
+            return (this with { Cursor = token.End }).Insert(typed);
+        }
+
         var accepted = typed.Length > room ? Truncated(typed, room) : typed;
 
         return new TextBuffer(Text.Insert(Cursor, accepted), Cursor + accepted.Length);
@@ -45,9 +52,22 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
+        if (TokenEndingAt(Cursor) is { } token)
+        {
+            return new TextBuffer(Text.Remove(token.Start, token.End - token.Start), token.Start);
+        }
+
         var start = EditorLayout.PreviousStart(Text, Cursor);
 
         return new TextBuffer(Text.Remove(start, Cursor - start), start);
+    }
+
+    /// <summary>The text with <c>[start, end)</c> replaced by <paramref name="replacement"/>, the cursor after it.</summary>
+    public TextBuffer Replace(int start, int end, string replacement)
+    {
+        var text = $"{Text[..start]}{replacement}{Text[end..]}";
+
+        return text.Length > MaxLength ? this : new TextBuffer(text, start + replacement.Length);
     }
 
     /// <summary>Removes the character under the cursor.</summary>
@@ -58,17 +78,28 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
+        if (TokenStartingAt(Cursor) is { } token)
+        {
+            return new TextBuffer(Text.Remove(token.Start, token.End - token.Start), token.Start);
+        }
+
         return this with { Text = Text.Remove(Cursor, EditorLayout.NextStart(Text, Cursor) - Cursor) };
     }
 
+    /// <summary>One character left; a mention or issue reference counts as one character.</summary>
     public TextBuffer Left()
     {
-        return this with { Cursor = EditorLayout.PreviousStart(Text, Cursor) };
+        var target = TokenEndingAt(Cursor) is { } token ? token.Start : EditorLayout.PreviousStart(Text, Cursor);
+
+        return this with { Cursor = target };
     }
 
+    /// <summary>One character right; a mention or issue reference counts as one character.</summary>
     public TextBuffer Right()
     {
-        return this with { Cursor = EditorLayout.NextStart(Text, Cursor) };
+        var target = TokenStartingAt(Cursor) is { } token ? token.End : EditorLayout.NextStart(Text, Cursor);
+
+        return this with { Cursor = target };
     }
 
     /// <summary>
@@ -140,6 +171,18 @@ public sealed record TextBuffer(string Text, int Cursor)
         var row = EditorLayout.Locate(Text, rows, Cursor).Row;
 
         return this with { Cursor = EditorLayout.IndexAt(Text, rows, row, int.MaxValue) };
+    }
+
+    // A token the cursor is at the end of or inside (a cursor moved by rows can land inside one): the key before it
+    // acts on the whole token.
+    private AdfTokenSpan? TokenEndingAt(int index)
+    {
+        return AdfMarkdownTokens.Find(Text).FirstOrDefault(span => span.Start < index && index <= span.End);
+    }
+
+    private AdfTokenSpan? TokenStartingAt(int index)
+    {
+        return AdfMarkdownTokens.Find(Text).FirstOrDefault(span => span.Start <= index && index < span.End);
     }
 
     private static bool IsWordCharacter(char value)

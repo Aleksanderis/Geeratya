@@ -1,4 +1,5 @@
 using Geeratya.Core.Editing;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Comments;
@@ -16,6 +17,8 @@ namespace Geeratya.Core.Comments;
 /// <param name="Warning">What the user should know before saving (formatting lost, someone else's comment), or null.</param>
 /// <param name="Error">Why the last save did not happen, or null.</param>
 /// <param name="OperationId">The id of the write in flight, 0 while nothing is being saved.</param>
+/// <param name="Suggest">The open suggestion popup of the trigger before the cursor (@ or #), or null.</param>
+/// <param name="Dismissed">The text index of a trigger whose popup Esc closed (not reopened for it), or -1.</param>
 public sealed record CommentEditor(
     TabId Tab,
     string Key,
@@ -24,7 +27,9 @@ public sealed record CommentEditor(
     string Original,
     string? Warning = null,
     string? Error = null,
-    long OperationId = 0)
+    long OperationId = 0,
+    SuggestionState? Suggest = null,
+    int Dismissed = -1)
 {
     private const int DefaultColumns = 80;
     private const int NarrowColumns = 24;
