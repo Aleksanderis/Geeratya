@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -9,6 +10,8 @@ public sealed class FakeJiraRouter
     private const string SearchPath = "/rest/api/3/search/jql";
     private const string CountPath = "/rest/api/3/search/approximate-count";
     private const string NotFoundFixture = "errors/issue-404.json";
+    private const string FilterPrefix = "/rest/api/3/filter/";
+    private const string MissingFilterFixture = "filters/filter-get-missing.json";
     private const string MaxResultsName = "maxResults";
     private const string PageTokenName = "nextPageToken";
     private const string Get = "GET";
@@ -31,6 +34,11 @@ public sealed class FakeJiraRouter
         ["/rest/agile/1.0/board/4/configuration"] = "boards/board-gcm-config.json",
         ["/rest/agile/1.0/board/4/backlog"] = "boards/board-gcm-backlog.json",
         ["/rest/agile/1.0/board/4/issue"] = "boards/board-gcm-issues.json",
+        ["/rest/agile/1.0/board/3/issue"] = "hierarchy/agile-board-gtm-issues.json",
+        ["/rest/agile/1.0/board/3/backlog"] = "hierarchy/agile-board-gtm-backlog.json",
+        ["/rest/agile/1.0/board/3/epic"] = "hierarchy/agile-board-epics-gtm.json",
+        ["/rest/agile/1.0/board/4/epic"] = "hierarchy/agile-board-epics-gcm.json",
+        ["/rest/api/3/filter/10001"] = "filters/filter-get.json",
     };
 
     private static readonly string[] _searchPages =
@@ -64,6 +72,16 @@ public sealed class FakeJiraRouter
         if (method == Get && _routes.TryGetValue(path, out var fixture))
         {
             return new FakeReply(200, ReadFixture(fixture));
+        }
+
+        if (method == Get && path.StartsWith(FilterPrefix, StringComparison.Ordinal)
+            && long.TryParse(
+                path.AsSpan(FilterPrefix.Length),
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out _))
+        {
+            return new FakeReply(404, ReadFixture(MissingFilterFixture));
         }
 
         return new FakeReply(404, ReadFixture(NotFoundFixture));
