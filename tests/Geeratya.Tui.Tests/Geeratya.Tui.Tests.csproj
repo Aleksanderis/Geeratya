@@ -3,6 +3,7 @@
     <ProjectReference Include="..\..\src\Geeratya.Tui\Geeratya.Tui.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Geeratya.Jira.Tests\Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures" />
     <None Include="Snapshots\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="Snapshots" />
     <None Include="..\Geeratya.Jira.Tests\Fixtures\boards\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures\boards" />
     <None Include="..\Geeratya.Jira.Tests\Fixtures\filters\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Fixtures\filters" />

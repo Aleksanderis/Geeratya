@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Detail;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -54,6 +55,12 @@ public sealed record TabState(
     DateTimeOffset? NextRefreshAt = null,
     BoardCursor? Cursor = null)
 {
+    /// <summary>
+    /// The issue stack of the tab, last is the one shown; empty while the view itself is shown. Closing the tab or
+    /// switching the profile drops it.
+    /// </summary>
+    public IReadOnlyList<DetailState> Detail { get; init; } = [];
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

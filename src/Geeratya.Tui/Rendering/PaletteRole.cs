@@ -28,4 +28,6 @@ public enum PaletteRole
     TypeBug,
     TypeTask,
     TypeSubtask,
+    FieldLabel,
+    Editable,
 }

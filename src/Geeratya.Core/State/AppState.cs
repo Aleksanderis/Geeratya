@@ -33,6 +33,9 @@ public sealed record AppState(
     int ViewportRows,
     SourcePickerState? Picker = null)
 {
+    /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
+    public int ViewportColumns { get; init; }
+
     public static AppState Initial { get; } =
         new(
             InputMode.Normal,

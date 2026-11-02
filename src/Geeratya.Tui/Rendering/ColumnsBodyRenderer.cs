@@ -26,6 +26,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int BlankRow = int.MaxValue;
     private const int Margin = 1;
     private const int MinimumBoxWidth = 8;
+    private const int NestIndent = 2;
+    private const string ParentMark = "↑";
     private const string Vertical = "│";
     private const char HorizontalChar = '─';
     private const string TopLeft = "┌";
@@ -288,29 +290,38 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         {
             var role = selected ? TextRole.Selected : TextRole.Body;
 
-            var line = TextWidth.Pad(CompactLine(issue, selected, inner), inner);
+            var nested = group.IsNested(card);
+            var line = TextWidth.Pad(CompactLine(issue, selected, nested, inner), inner);
+            var at = nested ? 1 + NestIndent : 1;
 
-            if (selected || line.Length < 2)
+            if (selected || line.Length < at + 1)
             {
                 spans.Add(new StyledSpan(line, role));
             }
             else
             {
-                spans.Add(new StyledSpan(line[..1], role));
-                spans.Add(new StyledSpan(line[1..2], IssueTypeRole.For(issue.IssueType)));
-                spans.Add(new StyledSpan(line[2..], role));
+                spans.Add(new StyledSpan(line[..at], role));
+                spans.Add(new StyledSpan(line.Substring(at, 1), IssueTypeRole.For(issue.IssueType)));
+                spans.Add(new StyledSpan(line[(at + 1)..], role));
             }
 
             return;
         }
 
-        AddBoxRow(spans, issue, within, selected, inner);
+        AddBoxRow(spans, issue, within, selected, group.IsNested(card), inner);
     }
 
     /// <summary>One row of the bordered card, in a margin of one cell on each side of the column.</summary>
-    private static void AddBoxRow(List<StyledSpan> spans, IssueSummary issue, int within, bool selected, int inner)
+    private static void AddBoxRow(
+        List<StyledSpan> spans,
+        IssueSummary issue,
+        int within,
+        bool selected,
+        bool nested,
+        int inner)
     {
-        var width = inner - (2 * Margin);
+        var indent = nested && inner - (2 * Margin) - NestIndent >= MinimumBoxWidth ? NestIndent : 0;
+        var width = inner - (2 * Margin) - indent;
 
         if (width < MinimumBoxWidth)
         {
@@ -323,7 +334,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var text = selected ? TextRole.Selected : TextRole.Body;
         var heavy = selected;
 
-        spans.Add(new StyledSpan(Blank, TextRole.Body));
+        spans.Add(new StyledSpan(new string(' ', Margin + indent), TextRole.Body));
 
         if (within == 0 || within == BoardCards.FullRows - 1)
         {
@@ -334,7 +345,9 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
                 (false, true) => ("┗", "┛"),
                 _ => ("└", "┘"),
             };
-            var bar = new string(heavy ? '━' : HorizontalChar, width - 2);
+            var fill = heavy ? '━' : HorizontalChar;
+            var label = within == 0 && indent == 0 && !nested ? ParentLabel(issue, width - 2, fill) : string.Empty;
+            var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
 
             spans.Add(new StyledSpan($"{left}{bar}{right}", frame));
         }
@@ -378,12 +391,31 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         spans.Add(new StyledSpan(tail, text));
     }
 
-    private static string CompactLine(IssueSummary issue, bool selected, int width)
+    /// <summary>
+    /// The small header in the top border of a card whose parent is not shown above it in the same column:
+    /// <c> ↑ GTM-9 Parent summary </c>, cut to the border; empty for an issue without a parent.
+    /// </summary>
+    private static string ParentLabel(IssueSummary issue, int room, char fill)
+    {
+        if (issue.Parent is not { } parent || room < 6)
+        {
+            return string.Empty;
+        }
+
+        var summary = string.IsNullOrWhiteSpace(parent.Summary) ? string.Empty : $" {parent.Summary}";
+        var text = CardText.Shorten($"{fill}{Blank}{ParentMark} {parent.Key}{summary}", room - 2);
+
+        return $"{text}{Blank}";
+    }
+
+    private static string CompactLine(IssueSummary issue, bool selected, bool nested, int width)
     {
         var mark = selected ? SelectedMark : Blank;
         var marker = IssueTypeMarker.For(issue.IssueType);
+        var indent = nested ? new string(' ', NestIndent) : string.Empty;
+        var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
 
-        return CardText.Shorten($"{mark}{marker} {issue.Key} {issue.Summary}", width);
+        return CardText.Shorten($"{mark}{indent}{marker} {issue.Key}{parent} {issue.Summary}", width);
     }
 
     /// <summary>

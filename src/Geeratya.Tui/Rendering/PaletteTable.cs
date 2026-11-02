@@ -41,7 +41,7 @@ public static class PaletteTable
             Ansi16Color.Blue,
             RoleStyle.Reverse | RoleStyle.Bold),
         [PaletteRole.Key] = Create(0xEBCB8B, Ansi16Color.BrightYellow, RoleStyle.Bold),
-        [PaletteRole.StatusToDo] = Create(0x9AA5B8, Ansi16Color.Gray, RoleStyle.None),
+        [PaletteRole.StatusToDo] = Create(0xE5E9F0, Ansi16Color.White, RoleStyle.None),
         [PaletteRole.StatusInProgress] = Create(0x88C0D0, Ansi16Color.BrightCyan, RoleStyle.Bold),
         [PaletteRole.StatusDone] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Bold | RoleStyle.Italic),
         [PaletteRole.TypeEpic] = Create(0xB48EAD, Ansi16Color.BrightMagenta, RoleStyle.Bold),
@@ -49,6 +49,8 @@ public static class PaletteTable
         [PaletteRole.TypeBug] = Create(0xE5848E, Ansi16Color.BrightRed, RoleStyle.Bold),
         [PaletteRole.TypeTask] = Create(0x81A1C1, Ansi16Color.BrightCyan, RoleStyle.Bold),
         [PaletteRole.TypeSubtask] = Create(0x8FBCBB, Ansi16Color.Gray, RoleStyle.Bold),
+        [PaletteRole.FieldLabel] = Create(0x81A1C1, Ansi16Color.Cyan, RoleStyle.None),
+        [PaletteRole.Editable] = Create(0xEBCB8B, Ansi16Color.BrightYellow, RoleStyle.None),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -76,6 +78,8 @@ public static class PaletteTable
         [TextRole.Offline] = PaletteRole.Offline,
         [TextRole.RateLimited] = PaletteRole.RateLimited,
         [TextRole.Stale] = PaletteRole.Stale,
+        [TextRole.FieldLabel] = PaletteRole.FieldLabel,
+        [TextRole.Editable] = PaletteRole.Editable,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();

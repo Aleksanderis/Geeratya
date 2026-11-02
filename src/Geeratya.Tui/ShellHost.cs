@@ -1,4 +1,5 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -38,6 +39,7 @@ public sealed class ShellHost : IDisposable
     private readonly SiteConnections _connections;
     private NetworkRunner? _network;
     private ViewLoadHandler? _viewLoads;
+    private IssueDetailLoadHandler? _detailLoads;
     private SourceLoadHandler? _sourceLoads;
     private ConnectionCheckHandler? _connectionChecks;
     private IApplication? _application;
@@ -85,6 +87,7 @@ public sealed class ShellHost : IDisposable
         _state = LoadProfiles();
         _network = new NetworkRunner(_connections, Post, _shutdownToken);
         _viewLoads = new ViewLoadHandler(_network);
+        _detailLoads = new IssueDetailLoadHandler(_network);
         _sourceLoads = new SourceLoadHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
 
@@ -103,9 +106,9 @@ public sealed class ShellHost : IDisposable
         using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
 
         _screen = screen;
-        screen.BodyRowsChanged += rows => Dispatch(new ViewportChanged(rows));
+        screen.BodyRowsChanged += OnBodyRowsChanged;
         screen.Render(_state, TimeProvider.System.GetUtcNow());
-        Dispatch(new ViewportChanged(screen.BodyRows));
+        Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns));
         Dispatch(new ConnectionCheckRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
@@ -124,6 +127,11 @@ public sealed class ShellHost : IDisposable
         }
 
         _application!.Invoke(() => Dispatch(command));
+    }
+
+    private void OnBodyRowsChanged(int rows)
+    {
+        Dispatch(new ViewportChanged(rows, _screen!.BodyColumns));
     }
 
     /// <summary>Timer callback (not the UI thread): hands the clock to the reducer, which decides about refreshes.</summary>
@@ -195,6 +203,10 @@ public sealed class ShellHost : IDisposable
             else if (effect is LoadViewPageEffect load)
             {
                 _ = _viewLoads!.StartAsync(load, ActiveCache());
+            }
+            else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect)
+            {
+                _ = _detailLoads!.StartAsync(effect);
             }
             else if (effect is LoadSourcesEffect sources)
             {

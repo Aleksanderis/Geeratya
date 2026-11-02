@@ -387,6 +387,47 @@ public class ColumnsBodyRendererTests
         Assert.Contains(body, line => line.Spans.Any(span => span is { Role: TextRole.TypeTask, Text: "T" }));
     }
 
+    [Fact]
+    public void GivenASubtaskUnderItsParent_WhenRendering_ThenItIsIndentedAndHasNoParentHeader()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
+        var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("│ ┏", body[2].PlainText);
+        Assert.Contains("│   ┌", body[7].PlainText);
+        Assert.DoesNotContain("↑", body[7].PlainText);
+        Assert.Contains("A-2", body[8].PlainText);
+    }
+
+    [Fact]
+    public void GivenASubtaskWhoseParentIsInAnotherColumn_WhenRendering_ThenTheTopBorderNamesTheParent()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
+        var tab = Tab(child, Issue("2", "A-1"));
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("┏━ ↑ A-1 Parent summary ━", body[2].PlainText);
+    }
+
+    [Fact]
+    public void GivenAnOrphanSubtask_WhenRenderingAtEveryWidth_ThenLinesKeepTheWidthAndCompactLinesNameTheParent()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "日本語 parent") };
+        var tab = Tab(child);
+
+        for (var width = 1; width <= 60; width++)
+        {
+            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _helpLines, _keymap);
+
+            Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
+        }
+
+        Assert.Contains("↑A-1", Render(tab, 120, 8)[2].PlainText);
+    }
+
     private static IssueSummary Issue(string statusId, string key, string summary = "Summary", string? assignee = null)
     {
         return new IssueSummary(

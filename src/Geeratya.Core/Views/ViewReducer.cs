@@ -1,5 +1,6 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
@@ -35,13 +36,19 @@ public static class ViewReducer
             TabActivated activated => Activate(state, activated.Tab, effects),
             TabClosed closed => Close(state, closed.Tab, effects),
             ViewLayoutChanged changed => ChangeLayout(state, changed),
-            ViewportChanged viewport => ChangeViewport(state, viewport.Rows, effects),
+            ViewportChanged viewport => ChangeViewport(state, viewport, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewCacheLoaded cached => CacheLoaded(state, cached),
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
+            IssueDetailOpenRequested open => DetailReducer.Open(state, open.Tab, open.Key, open.Row, effects),
+            IssueDetailBackRequested back => DetailReducer.Back(state, back.Tab),
+            IssueDetailLoaded loaded => DetailReducer.IssueLoaded(state, loaded),
+            IssueCommentsLoaded loaded => DetailReducer.CommentsLoaded(state, loaded),
+            IssueRemoteLinksLoaded loaded => DetailReducer.LinksLoaded(state, loaded),
+            IssueDetailFailed failed => DetailReducer.LoadFailed(state, failed),
             RefreshRequested refresh => Refresh(state, refresh.Tab, effects),
             LinkChanged changed => ChangeLink(state, changed.Link),
             _ => state,
@@ -131,18 +138,22 @@ public static class ViewReducer
         return tab with { Scroll = position.Scroll };
     }
 
-    private static AppState ChangeViewport(AppState state, int rows, List<Effect> effects)
+    private static AppState ChangeViewport(AppState state, ViewportChanged viewport, List<Effect> effects)
     {
-        var height = Math.Max(0, rows);
+        var height = Math.Max(0, viewport.Rows);
+        var columns = viewport.Columns > 0 ? viewport.Columns : state.ViewportColumns;
 
-        if (state.ViewportRows == height && state.Session.Tabs.All(tab => tab.VisibleRows == height))
+        if (state.ViewportRows == height
+            && state.ViewportColumns == columns
+            && state.Session.Tabs.All(tab => tab.VisibleRows == height))
         {
             return state;
         }
 
-        var tabs = state.Session.Tabs.Select(tab => Resized(tab, height)).ToArray();
+        var tabs = state.Session.Tabs.Select(tab => DetailReducer.Resized(Resized(tab, height), columns)).ToArray();
 
-        var resized = WithSession(state, tabs, state.Session.Active, state.Sequence) with { ViewportRows = height };
+        var resized = WithSession(state, tabs, state.Session.Active, state.Sequence)
+            with { ViewportRows = height, ViewportColumns = columns };
 
         // A taller viewport can bring the end of the loaded rows within reach without any key press.
         var active = resized.Session.Active is { } id ? Find(resized.Session.Tabs, id) : null;
@@ -255,6 +266,11 @@ public static class ViewReducer
     {
         var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
 
+        if (tab is { Detail.Count: > 0 })
+        {
+            return new ReduceResult(DetailReducer.Scroll(state, tab, move), _noEffects);
+        }
+
         if (tab is null || tab.Rows.Count == 0)
         {
             return new ReduceResult(state, _noEffects);
@@ -273,6 +289,21 @@ public static class ViewReducer
             tab.VisibleRows);
 
         return Reduce(state, new SelectionMoved(tab.Id, position.Selected));
+    }
+
+    /// <summary>Enter: opens the selected row as an issue, or loads more comments inside an issue.</summary>
+    public static ReduceResult OpenSelected(AppState state)
+    {
+        var effects = new List<Effect>();
+        var next = DetailReducer.OpenSelected(state, effects);
+
+        return new ReduceResult(next, effects.Count == 0 ? _noEffects : effects);
+    }
+
+    /// <summary>Whether Esc has an issue to pop on the active tab.</summary>
+    public static bool CanGoBack(AppState state)
+    {
+        return DetailReducer.CanGoBack(state);
     }
 
     /// <summary>
@@ -829,6 +860,7 @@ public static class ViewReducer
             KeyWidth = 0,
             RequestId = 0,
             Load = LoadState.Idle,
+            Detail = [],
             Cold = true,
         };
     }
@@ -879,14 +911,14 @@ public static class ViewReducer
         return state with { Session = state.Session with { Tabs = tabs, Active = active }, Sequence = sequence };
     }
 
-    private static AppState Replace(AppState state, TabState tab)
+    internal static AppState Replace(AppState state, TabState tab)
     {
         var tabs = state.Session.Tabs.Select(existing => existing.Id == tab.Id ? tab : existing).ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
     }
 
-    private static TabState? Find(IReadOnlyList<TabState> tabs, TabId id)
+    internal static TabState? Find(IReadOnlyList<TabState> tabs, TabId id)
     {
         var index = IndexOf(tabs, id);
 

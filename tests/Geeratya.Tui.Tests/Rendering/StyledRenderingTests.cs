@@ -35,6 +35,8 @@ public class StyledRenderingTests
     [InlineData(TextRole.TypeTask, PaletteRole.TypeTask)]
     [InlineData(TextRole.TypeSubtask, PaletteRole.TypeSubtask)]
     [InlineData(TextRole.Error, PaletteRole.Error)]
+    [InlineData(TextRole.FieldLabel, PaletteRole.FieldLabel)]
+    [InlineData(TextRole.Editable, PaletteRole.Editable)]
     public void GivenTextRole_WhenMappingToPalette_ThenItIsTheExpectedPaletteRole(TextRole role, PaletteRole expected)
     {
         Assert.Equal(expected, PaletteTable.For(role));

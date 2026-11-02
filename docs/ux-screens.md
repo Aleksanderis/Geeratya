@@ -70,7 +70,7 @@ My open issues · 10 of about 340
  NORMAL  j/k move  Enter open  <space>r refresh  ? help
 ```
 
-- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. Only the list draws them so far (tab bar, banner, status bar and overlays still use `·`/`…`/box lines). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
+- **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. The list and the detail panel borders draw them (tab bar, banner, status bar and overlays still use `·`/`…`/box lines; in the detail, the `·` and `…` of titles and the `›` of the breadcrumb stay Unicode in ASCII mode). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
 - **Header.** Column titles in the `Muted` role, then the view title and the count: `N issues` when every page is loaded, `N of about M` when the approximate count is known (`/search/approximate-count`, JQL sources only; "about" is never dropped), `N+` while the total is unknown. A board or backlog list knows its total (offset paged) and shows `N of M`.
 - **Selection and scroll.** `j`/`k`/`Up`/`Down` move by one row, `Ctrl-d`/`Ctrl-u`/`PageDown`/`PageUp` by half the viewport (at least one row), `g g`/`G`/`Home`/`End` jump. The selection keeps three rows of context (`scrolloff=3`, fewer in a very short viewport) and the scroll never leaves blank rows above the last. Selection survives a refresh or a page append by issue key; when the issue is gone the nearest row is selected. The motion is `Core/Lists/ListMotion` (pure and clamped; it takes a repeat count, but the keymap has no count prefix yet); the keys send `SelectionMoved`. The viewport height the reducer works with excludes the list's two header rows (title with count, column titles). Only the rows in the viewport are rendered, never the loaded 10 000.
 - **Loading more.** Pages are fetched when the selection comes within one screen of the last loaded row. The note `Loading more…` (role `Loading`) shows in a row under the last row while the page is in flight; when the rows fill the screen it shows at the end of the header line instead. If the page fails the note becomes `Could not load more: <reason>` and the loaded rows stay; moving does not retry (a held key never hammers a failing Jira), an explicit retry does: `<space>r` retries the failed page (the loaded rows and the position stay). `Enter` is the open key, so it does not retry. The count is `N+` while more pages exist and `N issues` once all are loaded (`N of about M` arrives with the approximate count).
@@ -150,8 +150,9 @@ The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third)
 - **Movement.** `h`/`l`/`Left`/`Right` change column and keep the row index, clamped to the last card of the target column; the index aimed at is the one last chosen with `j`/`k`, so passing a short or empty column does not lose the row (an empty column is selectable and shows `no issues` in `Muted`). `0` and `$` jump to the first and last column. `j`/`k`, `g g`, `G`, `Ctrl-d`, `Ctrl-u` act inside the column; each column scrolls on its own and keeps three cards of context (`scrolloff`). `Enter` opens the selected card in the issue detail (#84) and does nothing on an empty column. After a refresh the selection stays on its issue key inside its column. The motion is `Core/Boards/BoardMotion` (pure).
 - **More columns than width.** Each column is at least 20 cells wide, and below 60 columns exactly one column is drawn. When the columns do not fit, only the columns that fit are drawn, centred on the selected one, and the title line shows the number of hidden columns right-aligned: `‹2` on the left, `1›` on the right. With one column drawn the header also names the neighbours, with `‹` and `›` where more lie beyond (the 40-column sketch below).
 - **Issues mapped to no column.** A status the board configuration does not map to a column would be invisible in Jira's own board. Geeratya adds a last column `Unmapped` only when at least one loaded issue has such a status, so no issue is hidden (the dev site never produced an unmapped status, so the implementing issue verifies what the board endpoint returns for one).
-- **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column). The type marker tells them apart. Grouping sub-tasks under their parent and hiding epics are swimlane work (#192), not part of this layout; no swimlanes in M1.
-- **Type colours.** The type name (or marker) on the key line is coloured by type, as Jira does: epic purple, story green, bug red, task blue, sub-task teal (grey in the 16-colour tier) (roles `TypeEpic`, `TypeStory`, `TypeBug`, `TypeTask`, `TypeSubtask`; any other type stays `Body`). The no-colour tier relies on the name itself. The selected card keeps the single `Selected` role (reversed), so its type is not coloured. One-line cards colour the marker the same way. The list layout is unchanged.
+- **Sub-tasks and epics** are cards like any other issue (the board endpoint returns them in their status column); the type tells them apart. Hiding epics is board-configuration work (#192), not part of this layout.
+- **Grouping under the parent.** Within a column a child (an issue with a `parent`) whose parent card is in the same column is moved to just after the parent (after the children already there) and drawn indented by two cells, so it reads as part of the parent; the other cards keep the rank order. A child whose parent is in another column (or not loaded) stays in its place and carries the parent in its top border: `┌─ ↑ GTM-9 Onboarding flow ─┐` (key and summary cut with `…`; heavy border when selected). Compact one-line cards indent a grouped child and show `↑GTM-9` after the key of an ungrouped one. Navigation follows the displayed order. `Core/Boards/BoardColumns.Arrange` does the ordering (pure).
+- **Type colours.** The type name (or marker) on the key line is coloured by type, as Jira does: epic purple, story green, bug red, task blue, sub-task teal (grey in the 16-colour tier). The colours are Geeratya's own: the Jira API gives no colour for an issue type (only an icon image, which is never drawn; the status category has a colour name, used for statuses) (roles `TypeEpic`, `TypeStory`, `TypeBug`, `TypeTask`, `TypeSubtask`; any other type stays `Body`). The no-colour tier relies on the name itself. The selected card keeps the single `Selected` role (reversed), so its type is not coloured. One-line cards colour the marker the same way. The list layout is unchanged.
 - **Order and limits.** Cards come in the order the board endpoint returns (rank). Pages load in the background until the total is reached or the per-tab row cap (`ViewPaging.MaxRowsPerTab`, 10 000; `architecture.md`) is hit.
 
 At 40x10 (body of six rows, one-line cards, one column at a time, the neighbours named in the frame):
@@ -171,68 +172,66 @@ GCM board · 24 issues                 3›
 
 ## Issue detail
 
-Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). A breadcrumb replaces the view title: `GCM board › GCM-12`.
+Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). A breadcrumb replaces the view title: `GCM board › GCM-12`. The screen is a stack of framed panels (header, description, relations, comments) in one scrolling column, so it reads as a form with parts rather than as a text dump. The mockup is the target layout: the filled relations panel (sub-tasks, links, remote links, attachments), the focused panel and the cursor row (`>`) arrive with #88.
+
+Survey that shaped it (what comparable tools do): lazygit and k9s draw every part in a bordered box with the title set into the top edge and mark the focused box by border colour; `gh dash` and jira-cli show a field table next to or under the title and keep long text in its own titled block; the Jira web page groups the same parts into cards with headings. Taken over: titled rounded panels, a label column for the fields, long text in panels of its own, a muted border that turns into a bright one on the focused panel (with #88). Not taken over: side-by-side panes (the detail needs the width for prose, and one scrolling column works in the 40-column case).
 
 ```text
  [1 Board: GCM board]  2 Backlog: GCM board  3 JQL: assignee = currentUser() AND resolution = Unres…
-GCM board › GCM-12   Task   Fix login redirect after token refresh
-Status: In Progress   Priority: High   Assignee: Jane Doe   Reporter: Ola Nordmann
-Labels: auth, bug-bash   Parent: GCM-17 Reporting overhaul   Updated: 2 h ago
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Description
-  After the token refresh the user lands on /login instead of the page they came from.
-  - reproduce: let the session expire, then open a deep link
-  - expected: the deep link opens after the refresh
-  [image] screenshot.png
 
-Sub-tasks (2)
-> s GCM-18 Write the CSV exporter                                      Done          Ola Nordmann
-  s GCM-19 Cover the redirect with a test                              To Do         -
-Linked issues (1)
-  blocks    B GCM-14 Crash when the board has no columns                To Do
-Remote links (1)
-  Confluence  Login flow design  (opens in the browser)
-Attachments (1)
-  screenshot.png  image/png  48 KB  (opens the issue page in the browser)
-Comments (3 of 7)
-  Load 4 older comments
-  Ola Nordmann · 3 d ago
-    Can you check the refresh path?
-  Jane Doe · 1 d ago
-    Found it, the redirect target is dropped.
-
-
-
-
-
-
-
-
-
- NORMAL  j/k scroll  ] ] section  Enter open  Esc back  <space>o browser  ? help
+GCM board › GCM-12                                                                              Top
+╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────╮
+│ Fix login redirect after token refresh                                                           │
+│                                                                                                  │
+│ Status    In Progress ▾                        Priority  High ▾                                  │
+│ Assignee  Jane Doe ▾                           Reporter  Ola Nordmann                            │
+│ Labels    auth, bug-bash ▾                     Parent    GCM-17 Reporting overhaul               │
+│ Updated   2 h ago                                                                                │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Description ────────────────────────────────────────────────────────────────────────────────────╮
+│ After the token refresh the user lands on /login instead of the page they came from.            │
+│ - reproduce: let the session expire, then open a deep link                                       │
+│ - expected: the deep link opens after the refresh                                                │
+│ [image] screenshot.png                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Relations ──────────────────────────────────────────────────────────────────────────────────────╮
+│ Sub-tasks, linked issues, remote links and attachments are not shown yet.                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments (2 of 7) ──────────────────────────────────────────────────────────────────────────────╮
+│ Jane Doe · 3 d ago                                                                               │
+│ Can you check the refresh path?                                                                  │
+│                                                                                                  │
+│ Ola Nordmann · 1 d ago                                                                           │
+│ Found it, the redirect target is dropped.                                                        │
+│                                                                                                  │
+│ Load more comments (Enter)                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  j/k scroll  Enter open  Esc back  <space>o browser  ? help
 ```
 
-- **Header.** Key, type, summary (wrapped, bold), then status (category role), priority, assignee, reporter, labels, parent (`KEY summary`, opens with `<space>p`), updated time. Missing values are omitted, not shown as empty. Below 80 columns the fields go one per line.
-- **Description.** The ADF rendered as formatted text (`docs/jira-layer.md` "ADF in real data"). Media nodes show as `[image] name` or `[image]` when no name can be matched; nothing is rendered as an image. A missing description shows nothing under the heading except `No description.` in `Muted`.
-- **Sections, in order:** Sub-tasks, Epic children (epics only, loaded with `parent = KEY` when the issue is opened), Linked issues (direction text from the link type, `blocks`, `is blocked by`, ...), Remote links (Confluence and others: application and title), Attachments (name, type, size; the row opens the issue page in the browser because the API download URL needs the auth header, jira-layer.md "Links"), Comments. A section with no entries is not drawn. Headings carry the count, `Name (n)`.
-- **Comments.** Oldest of the loaded set first, newest last, so the end of the screen is the latest. The first fetch is the newest 20 (`orderBy=-created`, shown reversed); when older ones exist the first row of the section is `Load n older comments`, and `Enter` on it loads the next page above. (The implementing issue verifies `orderBy` on the dev site.) A comment shows author, relative time and the rendered ADF body.
-- **Cursor and scrolling.** The body is a vertically scrolling document with a cursor row. `j`/`k`/`Ctrl-d`/`Ctrl-u`/`g g`/`G` move it. `] ]` and `[ [` jump to the next and previous section heading (vim's section motions). Rows that can be opened (a sub-task, child, linked issue, remote link, attachment, `Load n older comments`) are marked with the selection mark when the cursor is on them. `Enter` on an issue row pushes that issue on the stack; on a remote link or attachment it opens the browser (only `http` and `https` URLs are opened; any other scheme just shows the URL in the status line, since the URL is free text from Jira); on the load row it loads.
-- **Keys.** `Esc` goes back one level (pops the stack; at the view it does nothing more). `<space>o` opens the issue in the browser. `<space>p` opens the parent. `<space>r` reloads the issue.
-- **Loading.** The cached issue shows at once with the banner state `STALE` until the fresh copy arrives; with no cache the header shows the key from the list row and `Loading…` under it. Related data (children, comments, remote links) loads separately, each section showing `Loading…` until it arrives or an error line with `<space>r`.
+- **Panels.** A rounded frame (`╭ ╮ ╰ ╯ ─ │`, `+ - |` on terminals without Unicode, one cell for one cell) with one column of padding inside the sides and the title in the top edge. Borders are `Muted`, titles `Heading` (the header panel's title is the key in `Key` and the type in `Muted`). Panels follow each other without a gap. Below 12 columns the frames are dropped and the titles stay as plain lines. Content never touches the border: it wraps at the inner width, and a title that does not fit is cut with `…`.
+- **Header.** The panel title is `KEY · Type`; inside, the summary (wrapped, bold), a blank line and the fields as a table with a 10-cell label column in `FieldLabel` (steel blue, apart from the values, which are `Strong` or the status colour; `StatusToDo` is bright, not muted, so a To Do value is never mistaken for a label): status (category role), priority, assignee, reporter, labels, parent (`KEY summary`, opens with `<space>p`), updated time. From 60 inner columns two fields that fit half the panel share a row; a field that does not fit (a long parent, many labels) takes a row of its own and wraps under its value. Below 24 inner columns the label and value run together as `Label: value`. Missing values are omitted, not shown as empty. Fields that can be changed (status, priority, assignee, labels) end with a ` ▾` marker (`v` on terminals without Unicode) in the `Editable` role (amber); read-only fields (reporter, parent, updated) have none. The editing keys arrive with the write issues; the marker only shows what is editable.
+- **Description.** In the `Description` panel: the ADF rendered as formatted text (`docs/jira-layer.md` "ADF in real data"). Media nodes show as `[image] name` or `[image]` when no name can be matched; nothing is rendered as an image. A missing description shows `No description.` in `Muted`.
+- **Sections, in order:** Sub-tasks, Epic children (epics only, loaded with `parent = KEY` when the issue is opened), Linked issues (direction text from the link type, `blocks`, `is blocked by`, ...), Remote links (Confluence and others: application and title), Attachments (name, type, size; the row opens the issue page in the browser because the API download URL needs the auth header, jira-layer.md "Links"), Comments. Until #88 a `Relations` panel stands in for the first five (one muted line saying they are not shown yet) and is replaced by the real panels, each drawn only when it has entries. Panel titles carry the count, `Name (n)`.
+- **Comments.** The `Comments` panel; oldest first, newest last, 50 per page. A thread with more comments ends with `Load more comments (Enter)`; `Enter` loads the next page below. The title reads `Comments (n)`, or `Comments (n of total)` while pages are missing; a thread is cut at 1000 comments with `Showing the first comments only.` A comment shows author, relative time (against the time of the last reply, so it does not tick on its own), `(edited)` when it changed more than a minute after writing, and the rendered ADF body, a blank line between comments. A failed page shows its error with `(Enter to retry)`.
+- **Cursor and scrolling.** Built by #84: the whole body (header included) is one document that scrolls by line under a one-line breadcrumb; `j`/`k`/`Ctrl-d`/`Ctrl-u`/`g g`/`G` and the arrow and page keys move it, and the breadcrumb ends with a `Top`/`NN%`/`Bot` ruler when it does not fit. The document is laid out once per change of data or width (`IssueDocumentBuilder`) and the screen draws a window of it. The cursor row, `] ]`/`[ [` section jumps and the openable rows come with the relations issue (#88).
+- **Keys.** `Esc` goes back one level (pops the stack, after clearing a status notice or typed prefix; at the view it does nothing more). `Enter` loads or retries comments. `<space>o` opens the issue in the browser. `<space>p` opens the parent. `<space>r` reloads the issue.
+- **Loading.** The header shows the fields of the list row at once and `Loading…` in the Description panel until the issue arrives (the breadcrumb also says `Loading…`). The cached issue with the `STALE` state arrives with the issue-detail cache (#122), and `<space>r` reload with refresh (#89). Related data (comments, later children) loads separately, each section showing `Loading…` until it arrives or an error line.
+- **Not loaded.** A failed or missing issue shows its error in an `Error` panel under the header panel instead of the Description, Relations and Comments panels.
+- **Partial failures.** Each of the three loads (issue, comments, remote links) fails on its own: the issue stays readable, the failed part shows its error, and the breadcrumb says `Some parts failed to load`. The remote links are loaded for the relations issue (#88) and not drawn yet. A network error on the issue itself shows its message with `Esc` to go back; the list stays underneath.
 - **Not found.** 404 and 403 give the same text, `Not found or no access: GCM-99`, with `Esc` to go back.
 
-At 40x10:
+At 40x10 (the frames stay, the content wraps inside them, fields are one per row):
 
 ```text
  [1 Board: GCM board] 2 Backlog 3 JQL…›
-GCM board › GCM-12 Task
-Fix login redirect after token…
-In Progress · High
-Jane Doe (reporter Ola Nord…)
-Parent GCM-17
-Description
-  After the token refresh the…
 
+GCM board › GCM-12 · Top
+╭─ GCM-12 · Task ──────────────────────╮
+│ Fix login redirect after token       │
+│ refresh                              │
+│                                      │
+│ Status    In Progress ▾              │
  NORMAL  j/k Esc back <space>o ?
 ```
 

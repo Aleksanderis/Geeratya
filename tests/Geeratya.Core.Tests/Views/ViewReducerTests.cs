@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -381,6 +382,8 @@ public class ViewReducerTests
         state = FillTab(state, "project = C", 10_000);
         state = FillTab(state, "project = D", 10_000);
         state = FillTab(state, "project = E", 10_000);
+        var withDetail = state.Session.Tabs[0] with { Detail = [DetailState.Opened("A-1", null, 1, 2, 3)] };
+        state = state with { Session = state.Session with { Tabs = [withDetail, .. state.Session.Tabs.Skip(1)] } };
         var oldest = state.Session.Tabs[0];
 
         var result = Open(state, "project = F");
@@ -389,6 +392,7 @@ public class ViewReducerTests
         var tabs = loaded.State.Session.Tabs;
         Assert.True(tabs[0].Cold);
         Assert.Empty(tabs[0].Rows);
+        Assert.Empty(tabs[0].Detail);
         Assert.Equal(0, tabs[0].RequestId);
         Assert.Equal(LoadState.Idle, tabs[0].Load);
         Assert.Equal(oldest.Definition, tabs[0].Definition);

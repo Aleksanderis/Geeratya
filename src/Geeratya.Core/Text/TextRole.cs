@@ -26,4 +26,6 @@ public enum TextRole
     Offline,
     RateLimited,
     Stale,
+    FieldLabel,
+    Editable,
 }
