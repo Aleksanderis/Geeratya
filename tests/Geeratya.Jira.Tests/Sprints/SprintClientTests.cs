@@ -58,7 +58,7 @@ public sealed class SprintClientTests
         const string json = """
             {"values": [{"id": 3, "state": "paused", "goal": "  ", "startDate": "soon", "x": [1]}, {}]}
             """;
-        using var fixture = Serving(CompanySprintsPath, json, false);
+        using var fixture = ServingJson(CompanySprintsPath, json);
 
         var result = await new SprintClient(fixture.Transport)
             .ListSprintsAsync(6, new SprintQuery(), 0, CancellationToken.None);
@@ -208,7 +208,7 @@ public sealed class SprintClientTests
     [Fact]
     public async Task GivenNoActiveSprint_WhenGettingActive_ThenListIsEmpty()
     {
-        using var fixture = Serving(CompanySprintsPath, """{"values": [], "startAt": 0, "isLast": true}""", false);
+        using var fixture = ServingJson(CompanySprintsPath, """{"values": [], "startAt": 0, "isLast": true}""");
 
         var result = await new SprintClient(fixture.Transport).GetActiveSprintsAsync(6, CancellationToken.None);
 
@@ -232,6 +232,18 @@ public sealed class SprintClientTests
 
         Assert.Equal([7L, 12L], result.Value.Select(sprint => sprint.Id));
         Assert.Equal("1", QueryOf(fixture.Handler.Requests.Last())["startAt"]);
+    }
+
+    [Fact]
+    public async Task GivenReplyThatNeverEnds_WhenGettingActive_ThenWalkStopsWithInvalidResponse()
+    {
+        using var fixture = ServingJson(CompanySprintsPath, """{"values": [{"id": 1, "state": "active"}]}""");
+
+        var result = await new SprintClient(fixture.Transport).GetActiveSprintsAsync(6, CancellationToken.None);
+
+        Assert.Equal(JiraErrorKind.InvalidResponse, result.Error.Kind);
+        Assert.Equal(20, fixture.Handler.Requests.Count);
+        Assert.Equal("19", QueryOf(fixture.Handler.Requests.Last())["startAt"]);
     }
 
     [Fact]
@@ -320,10 +332,13 @@ public sealed class SprintClientTests
     private static NameValueCollection QueryOf(RecordedRequest request) =>
         HttpUtility.ParseQueryString(new Uri($"https://x{request.PathAndQuery}").Query);
 
-    private static TransportFixture Serving(string path, string content, bool fromFile = true)
+    private static TransportFixture Serving(string path, string fixtureName) =>
+        ServingJson(path, FixtureFiles.Read(fixtureName));
+
+    private static TransportFixture ServingJson(string path, string json)
     {
         var fixture = new TransportFixture();
-        fixture.Handler.Serve(HttpMethod.Get, path, FakeResponse.Ok(fromFile ? FixtureFiles.Read(content) : content));
+        fixture.Handler.Serve(HttpMethod.Get, path, FakeResponse.Ok(json));
 
         return fixture;
     }

@@ -101,6 +101,18 @@ public sealed class BoardKindResolverTests
     }
 
     [Fact]
+    public async Task GivenBackgroundPriority_WhenResolving_ThenProbeIsSentAsBackgroundWork()
+    {
+        using var fixture = ServingTeamScrum();
+        var resolver = new BoardKindResolver(new SprintClient(fixture.Transport));
+
+        var result = await resolver.ResolveAsync(Board(5), CancellationToken.None, JiraPriority.Background);
+
+        Assert.Equal(BoardKind.Scrum, result.Value);
+        Assert.Single(fixture.Handler.Requests);
+    }
+
+    [Fact]
     public async Task GivenUnknownBoardType_WhenResolving_ThenItIsProbedLikeSimple()
     {
         using var fixture = ServingTeamScrum();

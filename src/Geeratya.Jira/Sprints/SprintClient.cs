@@ -23,6 +23,7 @@ public sealed class SprintClient(JiraTransport transport)
     private const string SprintPath = "/rest/agile/1.0/sprint";
     private const string SprintSuffix = "sprint";
     private const string IssueSuffix = "issue";
+    private const int MaxActivePages = 20;
 
     public async Task<JiraResult<OffsetPage<Sprint>>> ListSprintsAsync(
         long boardId,
@@ -67,7 +68,9 @@ public sealed class SprintClient(JiraTransport transport)
 
     /// <summary>
     /// The active sprints of a Scrum board: none, one, or several (parallel sprints are allowed), in Jira's order.
-    /// Walks the pages, so a failure on any page fails the whole call.
+    /// Walks the pages from the offsets it sent, never from the reply's `startAt`, and gives up with an
+    /// invalid-response error after 20 pages, so a reply that never ends cannot loop forever. A failure on any page
+    /// fails the whole call.
     /// </summary>
     public async Task<JiraResult<IReadOnlyList<Sprint>>> GetActiveSprintsAsync(
         long boardId,
@@ -78,7 +81,7 @@ public sealed class SprintClient(JiraTransport transport)
         var sprints = new List<Sprint>();
         var startAt = 0;
 
-        while (true)
+        for (var pageNumber = 0; pageNumber < MaxActivePages; pageNumber++)
         {
             var result = await ListSprintsAsync(boardId, query, startAt, cancellationToken);
 
@@ -89,13 +92,16 @@ public sealed class SprintClient(JiraTransport transport)
 
             sprints.AddRange(result.Value.Items);
 
-            if (result.Value.NextStartAt is not { } next)
+            if (result.Value.IsLast)
             {
                 return JiraResults.Success<IReadOnlyList<Sprint>>(sprints);
             }
 
-            startAt = next;
+            startAt += result.Value.Items.Count;
         }
+
+        return JiraResults.Failure<IReadOnlyList<Sprint>>(
+            new JiraError(JiraErrorKind.InvalidResponse, null, "The active sprint list did not end."));
     }
 
     /// <summary>

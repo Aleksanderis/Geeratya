@@ -8,17 +8,19 @@ namespace Geeratya.Jira.Sprints;
 /// <summary>
 /// Tells Scrum boards from Kanban boards. <c>scrum</c> and <c>kanban</c> are taken from the board type. A
 /// <c>simple</c> (team-managed) or unknown board gets one probe of the sprint list: 200 is Scrum, the 400 "The board
-/// does not support sprints" is Kanban. Any other failure is returned and not remembered. Probed answers are
+/// does not support sprints" is Kanban. Any 400 counts as Kanban (the probe sends nothing else Jira could reject). Any other failure is returned and not
+/// remembered. Probed answers are
 /// remembered for this resolver (one per connection); the caller may seed it from a per-profile store with
 /// <see cref="Remember"/>.
 /// </summary>
 public sealed class BoardKindResolver(SprintClient sprints)
 {
-    private static readonly SprintQuery _probeQuery = new(null, 1);
-
     private readonly ConcurrentDictionary<long, BoardKind> _known = new();
 
-    public async Task<JiraResult<BoardKind>> ResolveAsync(BoardSummary board, CancellationToken cancellationToken)
+    public async Task<JiraResult<BoardKind>> ResolveAsync(
+        BoardSummary board,
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
     {
         switch (board.Type)
         {
@@ -33,7 +35,8 @@ public sealed class BoardKindResolver(SprintClient sprints)
             return JiraResults.Success(known);
         }
 
-        var probe = await sprints.ListSprintsAsync(board.Id, _probeQuery, 0, cancellationToken);
+        var probeQuery = new SprintQuery(null, 1) { Priority = priority };
+        var probe = await sprints.ListSprintsAsync(board.Id, probeQuery, 0, cancellationToken);
 
         if (probe.IsSuccess)
         {
