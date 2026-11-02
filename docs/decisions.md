@@ -6,8 +6,6 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 ## 2026-11-02
 
-**Architecture:** Write pipeline (issue #151, `architecture.md`, "Write pipeline"): running operations live in `SiteSession.Operations` (site level, stamped with the origin tab), not per tab, because exclusion must see the same issue in every tab and a tab close must not forget a sent write. A write on a busy issue is refused, not queued. Automatic refresh waits while any write runs, and loads keep the optimistic row of a key under an operation. Row-visible changes are optimistic with per-field rollback; create, delete and comments wait for the reply. Writes are never retried; a lost reply is verified by re-reading the issue. Form state is `TabState.Form`. The 10 000-row bound stays for Scrum. Why: Gitunia's M7 retrofit of the same rules; one rule set for every M2 feature.
-
 **Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate for every open path; the UI and ADF link callers must go through `OpenUrlRequested` (only the issue-key path is wired so far). Issue #118.
 
 **Scope:** Scrum boards and sprints are in (milestone M3, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
@@ -59,3 +57,5 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 ## 2026-11-02
 
 **UI:** The issue detail lists comments oldest first and loads further pages at the end (`Load more comments`, `Enter`), instead of the newest 20 with older ones above (supersedes that sentence of `ux-screens.md`, "Issue detail"; issue #84). Why: the comments client pages oldest first with offsets, and a thread of at most 50 comments reads the same either way; reversing the order needs a second client mode for no reader benefit yet. `q` still quits in the detail (Normal mode, `ux.md` "Focus model and key style"; workflow 4 says the same), although the issue text said otherwise.
+
+**Architecture:** Write pipeline (#151, `architecture.md`, "Write pipeline"): running operations live in `SiteSession.Operations` (site level, origin tab stamped) so exclusion sees every tab and a tab close does not forget a sent write; a busy issue refuses a second write; row-visible changes are optimistic with per-field rollback; writes are never retried and a lost reply is verified by re-reading. A single transition does not confirm (Jira exposes no workflow side effects; overrides the wording in CLAUDE.md and `ux.md`; fallback in roadmap question 6). Why: Gitunia's M7 retrofit of the same rules.
