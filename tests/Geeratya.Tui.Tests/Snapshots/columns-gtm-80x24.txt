@@ -6,15 +6,15 @@ GTM board · 16 issues
 │ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
 │ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
 │ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
-│ ├───────────────┤ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
-│ │ Story GTM-12  │ │ │ Task GTM-15   │ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │ Welcome       │ │ │ Pick a chart  │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
-│ │ screen        │ │ │ library       │ │ │ Backlog:      │ │ │ Write the    │ │
+│ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
+│ │   Sto… GTM-12 │ │ │   Task GTM-15 │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │   Welcome     │ │ │   Pick a      │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
+│ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
 │ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
 │ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│ │ Task GTM-14   │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
-│ │ Review        │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
-│ │ onboarding c… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
+│ │   Task GTM-14 │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
+│ │   Review      │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
+│ │   onboarding… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
 │ │               │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │

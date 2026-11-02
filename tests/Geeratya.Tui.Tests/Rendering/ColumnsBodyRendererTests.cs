@@ -388,7 +388,7 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenASubtaskUnderItsParent_WhenRendering_ThenBothShareOneOuterFrameWithoutIndentOrParentHeader()
+    public void GivenASubtaskUnderItsParent_WhenRendering_ThenBothShareOneOuterFrameWithIndentedChildAndHeavyParentBottom()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
         var tab = Tab(child, Issue("1", "A-1")) with { SelectedKey = "A-1" };
@@ -396,11 +396,24 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.Contains("│ ┏━", body[2].PlainText);
-        Assert.Contains("│ ├", body[6].PlainText);
+        Assert.Contains("│ ┣━", body[6].PlainText);
+        Assert.Contains("┫", body[6].PlainText);
         Assert.Contains("│ └", body[11].PlainText);
         Assert.DoesNotContain("↑", string.Concat(body.Select(line => line.PlainText)));
-        Assert.Contains("│ │ Task A-2", body[7].PlainText);
+        Assert.Contains("│ │   Task A-2", body[7].PlainText);
         Assert.Contains("┃", body[3].PlainText);
+    }
+
+    [Fact]
+    public void GivenAnUnselectedParent_WhenRendering_ThenItsSummaryIsStrongAndItsChildIsNot()
+    {
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
+        var tab = Tab(child, Issue("1", "A-1"), Issue("2", "A-9")) with { SelectedKey = "A-9" };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains(body[4].Spans, span => span.Role == TextRole.Strong);
+        Assert.DoesNotContain(body[8].Spans, span => span.Role == TextRole.Strong);
     }
 
     [Fact]
@@ -412,11 +425,11 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        Assert.Contains("│ ├", body[6].PlainText);
-        Assert.Contains("│ ┃ Task A-2", body[7].PlainText);
+        Assert.Contains("│ ┣━", body[6].PlainText);
+        Assert.Contains("│ ┃   Task A-2", body[7].PlainText);
         Assert.Contains("│ ┃", body[10].PlainText);
-        Assert.Contains("│ ├", body[11].PlainText);
-        Assert.Contains("│ │ Task A-3", body[12].PlainText);
+        Assert.Contains("│ ┣━", body[11].PlainText);
+        Assert.Contains("│ │   Task A-3", body[12].PlainText);
         Assert.Contains("│ └", body[16].PlainText);
         Assert.DoesNotContain("┃", body[3].PlainText);
     }

@@ -25,6 +25,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int FirstSummaryLine = 2;
     private const int BlankRow = int.MaxValue;
     private const int Margin = 1;
+    private const int ChildIndent = 2;
     private const int MinimumBoxWidth = 8;
     private const string ParentMark = "↑";
     private const string Vertical = "│";
@@ -311,7 +312,9 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             ? (group.IsNested(card + 1) ? GroupPart.Middle : GroupPart.Last)
             : (group.IsNested(card + 1) ? GroupPart.First : GroupPart.None);
 
-        AddBoxRow(spans, issue, within, selected, part, inner);
+        var nextSelected = column == cursor.Column && card + 1 == cursor.Cards[column] && group.IsNested(card + 1);
+
+        AddBoxRow(spans, issue, within, selected, part, inner, selected || nextSelected);
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
@@ -337,7 +340,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int within,
         bool selected,
         GroupPart part,
-        int inner)
+        int inner,
+        bool heavyBottom)
     {
         var width = inner - (2 * Margin);
 
@@ -355,7 +359,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (part != GroupPart.None)
         {
-            AddGroupedRow(spans, issue, within, selected, part, width);
+            AddGroupedRow(spans, issue, within, selected, part, width, heavyBottom);
         }
         else if (within == 0 || within == BoardCards.FullRows - 1)
         {
@@ -397,7 +401,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int within,
         bool selected,
         GroupPart part,
-        int width)
+        int width,
+        bool heavyBottom)
     {
         var first = part == GroupPart.First;
         var textRows = first ? within is >= 1 and <= 3 : within <= 2;
@@ -405,12 +410,13 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (!textRows && !blank)
         {
-            var heavy = selected && first && within == 0;
-            var (left, right) = (first && within == 0, part == GroupPart.Last) switch
+            var top = first && within == 0;
+            var heavy = top ? selected : heavyBottom;
+            var (left, right) = (top, part == GroupPart.Last) switch
             {
                 (true, _) => heavy ? ("┏", "┓") : ("┌", "┐"),
-                (_, true) => ("└", "┘"),
-                _ => ("├", "┤"),
+                (_, true) => heavy ? ("┗", "┛") : ("└", "┘"),
+                _ => heavy ? ("┣", "┫") : ("├", "┤"),
             };
             var fill = heavy ? '━' : HorizontalChar;
 
@@ -424,7 +430,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var side = selected ? "┃" : Vertical;
         var frame = selected ? TextRole.Selected : TextRole.Muted;
-        var text = selected ? TextRole.Selected : TextRole.Body;
+        var text = selected ? TextRole.Selected : first ? TextRole.Strong : TextRole.Body;
 
         spans.Add(new StyledSpan(side, frame));
 
@@ -434,7 +440,14 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         }
         else
         {
-            AddBoxText(spans, issue, first ? within : within + 1, selected, width - 2, text);
+            var indent = first ? 0 : ChildIndent;
+
+            if (indent > 0)
+            {
+                spans.Add(new StyledSpan(new string(' ', indent), text));
+            }
+
+            AddBoxText(spans, issue, first ? within : within + 1, selected, width - 2 - indent, text);
         }
 
         spans.Add(new StyledSpan(side, frame));

@@ -6,15 +6,15 @@ GCM board · 24 issues
 │ ┃ Task GCM-1    ┃ │ │ Epic GCM-8    │ │ │ Epic GCM-9    │ │ │ Sub-… GCM-18 │ │
 │ ┃ Survey task   ┃ │ │ Seed:         │ │ │ Seed:         │ │ │ Build the    │ │
 │ ┃ one           ┃ │ │ Onboarding f… │ │ │ Reporting     │ │ │ form         │ │
-│ ├───────────────┤ │ ├───────────────┤ │ ├───────────────┤ │ └──────────────┘ │
-│ │ Sub-ta… GCM-6 │ │ │ Story GCM-11  │ │ │ Task GCM-14   │ │ ┌─ ↑ GCM-9 S… ─┐ │
-│ │ Survey4       │ │ │ Welcome       │ │ │ Pick a chart  │ │ │ Story GCM-12 │ │
-│ │ subtask       │ │ │ screen        │ │ │ library       │ │ │ Export       │ │
+│ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ ├───────────────┤ │ └──────────────┘ │
+│ │   Sub-… GCM-6 │ │ │   Sto… GCM-11 │ │ │   Task GCM-14 │ │ ┌─ ↑ GCM-9 S… ─┐ │
+│ │   Survey4     │ │ │   Welcome     │ │ │   Pick a      │ │ │ Story GCM-12 │ │
+│ │   subtask     │ │ │   screen      │ │ │   chart libr… │ │ │ Export       │ │
 │ │               │ │ │               │ │ │               │ │ │ report as C… │ │
 │ └───────────────┘ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
-│ ┌───────────────┐ │ │ Task GCM-13   │ │ ┌─ ↑ GCM-8 Se… ─┐ │ ┌──────────────┐ │
-│ │ Task GCM-4    │ │ │ Review        │ │ │ Story GCM-10  │ │ │ Task GCM-15  │ │
-│ │ Survey task   │ │ │ onboarding c… │ │ │ Sign up with  │ │ │ Write the    │ │
+│ ┌───────────────┐ │ │   Task GCM-13 │ │ ┌─ ↑ GCM-8 Se… ─┐ │ ┌──────────────┐ │
+│ │ Task GCM-4    │ │ │   Review      │ │ │ Story GCM-10  │ │ │ Task GCM-15  │ │
+│ │ Survey task   │ │ │   onboarding… │ │ │ Sign up with  │ │ │ Write the    │ │
 │ │ four          │ │ │               │ │ │ email         │ │ │ setup guide  │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
