@@ -21,6 +21,7 @@ public sealed class ShellScreen : Window
 
     private readonly StyledBodyView _body;
     private readonly ColorSupport _colors;
+    private readonly GlyphSet _glyphs;
     private readonly Label _status;
     private readonly IReadOnlyList<string> _helpLines;
     private readonly KeymapTable _keymap;
@@ -28,10 +29,11 @@ public sealed class ShellScreen : Window
     private Size _size;
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
 
-    public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize)
+    public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize, GlyphSet glyphs = GlyphSet.Unicode)
     {
         _keymap = keymap;
         _colors = colors;
+        _glyphs = glyphs;
         _helpLines = KeymapDocument.RenderHelpLines(keymap);
         _size = initialSize;
         BorderStyle = LineStyle.None;
@@ -62,7 +64,7 @@ public sealed class ShellScreen : Window
         _state = state;
         _now = now;
 
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _helpLines, _keymap, null, now);
+        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _helpLines, _keymap, null, now, _glyphs);
 
         if (frame is null)
         {

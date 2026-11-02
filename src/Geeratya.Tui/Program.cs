@@ -5,6 +5,7 @@ using Geeratya.Tui;
 var capabilities = ConsoleCapabilities.Detect(
     EnvironmentReader.ForProcess(),
     Console.IsInputRedirected,
-    Console.IsOutputRedirected);
+    Console.IsOutputRedirected,
+    OperatingSystem.IsWindows());
 
-return new ApplicationRunner(Console.Out, capabilities.IsInteractive, capabilities.Colors).Run(args);
+return new ApplicationRunner(Console.Out, capabilities.IsInteractive, capabilities.Colors, glyphs: capabilities.Glyphs).Run(args);
