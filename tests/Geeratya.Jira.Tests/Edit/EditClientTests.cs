@@ -463,9 +463,10 @@ public sealed class EditClientTests
             GcmAssigneePath,
             FakeResponse.WithStatus(HttpStatusCode.NotFound, FixtureFiles.Read("writes/assignee-404-unknown-user.json")));
 
-        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("x"), Cancel());
+        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("fake-account-404"), Cancel());
 
         Assert.Equal(WriteErrorKind.NotFound, result.Error.Kind);
+        Assert.Equal("Not found or no access.", result.Error.Message);
     }
 
     [Fact]

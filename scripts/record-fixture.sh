@@ -8,7 +8,7 @@
 #   env RECORD_RAW=1        skip scrubbing (inspection only, never commit the output)
 # Writes also allowed: agile rank/backlog moves and creating issue links, only between GCM/GTM keys (no link deletes).
 # Also allowed: PUT and DELETE of one comment by id on a GCM/GTM issue.
-# Also allowed: PUT /assignee on a GCM/GTM issue (record the 400 for an unassignable account; use an issue the run created).
+# Also allowed: PUT /assignee on a GCM/GTM issue. Send only a made-up account id (Jira answers 404) to an issue the run created; a real id would reassign a seeded issue, and Jira has no undo.
 # Refuses hosts outside GEERATYA_LIVE_HOSTS. Never prints the token; the credential
 # goes to curl through a private config file, not argv.
 # Scrubbing (scripts/scrub-fixture.py): host -> example.atlassian.net, account ids -> fake-account-N,
