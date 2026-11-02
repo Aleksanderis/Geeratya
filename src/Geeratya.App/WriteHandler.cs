@@ -22,22 +22,95 @@ public sealed class WriteHandler
 
     private readonly NetworkRunner _runner;
     private readonly TimeProvider _clock;
+    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+    private readonly HashSet<Task> _running = [];
+    private readonly Lock _lock = new();
 
-    public WriteHandler(NetworkRunner runner, TimeProvider? clock = null)
+    /// <param name="runner">Runs the writes.</param>
+    /// <param name="clock">Stamps the replies.</param>
+    /// <param name="delay">The wait of <see cref="WaitForRunningAsync"/>; tests inject one they control.</param>
+    public WriteHandler(
+        NetworkRunner runner,
+        TimeProvider? clock = null,
+        Func<TimeSpan, CancellationToken, Task>? delay = null)
     {
         _runner = runner;
         _clock = clock ?? TimeProvider.System;
+        _delay = delay ?? Task.Delay;
+    }
+
+    /// <summary>True while a write or verification has been started and has not ended.</summary>
+    public bool HasRunning
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _running.Count > 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Waits until every started write has ended or <paramref name="timeout"/> has passed (quit after the confirm).
+    /// Returns true when none is left running.
+    /// </summary>
+    public async Task<bool> WaitForRunningAsync(TimeSpan timeout, CancellationToken token)
+    {
+        Task[] pending;
+
+        lock (_lock)
+        {
+            pending = [.. _running];
+        }
+
+        if (pending.Length == 0)
+        {
+            return true;
+        }
+
+        using var give = CancellationTokenSource.CreateLinkedTokenSource(token);
+        var all = Task.WhenAll(pending);
+        var timer = _delay(timeout, give.Token);
+        var first = await Task.WhenAny(all, timer);
+
+        await give.CancelAsync();
+
+        return first == all;
     }
 
     /// <summary>Starts the effect and returns the task that ends when its answer is posted or dropped.</summary>
     public Task StartAsync(Effect effect)
     {
-        return effect switch
+        var task = effect switch
         {
             ExecuteWriteEffect execute => StartExecute(execute),
             VerifyWriteEffect verify => StartVerify(verify),
             _ => Task.CompletedTask,
         };
+
+        if (task.IsCompleted)
+        {
+            return task;
+        }
+
+        lock (_lock)
+        {
+            _running.Add(task);
+        }
+
+        _ = task.ContinueWith(Forget, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+
+        return task;
+    }
+
+    private void Forget(Task task)
+    {
+        lock (_lock)
+        {
+            _running.Remove(task);
+        }
     }
 
     private Task StartExecute(ExecuteWriteEffect effect)
