@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Home       Move the cursor to the start of the row                                                                    
   End        Move the cursor to the end of the row                                                                      
   Delete     Delete the character under the cursor                                                                      
   Ctrl-o     Open the issue page in the browser from the form                                                           
@@ -30,7 +31,6 @@ Palette commands
       Show or hide help                                                                                                 
   :quit                                                                                                                 
       Quit                                                                                                              
-                                                                                                                        
                                                                                                                         
                                                                                                                         
  HELP                                                                                            j down  k up  Esc close

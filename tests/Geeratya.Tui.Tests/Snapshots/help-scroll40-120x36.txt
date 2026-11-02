@@ -19,6 +19,7 @@ Help
   Space k b  Rank the issue to the bottom of the list or column                                                         
   Space k k  Pick up the issue, then drop it at the issue under the cursor                                              
   Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
+  Space g    Jump to an issue by key                                                                                    
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -32,5 +33,4 @@ Help mode
                                                                                                                         
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
-  Backspace  Delete the last character                                                                                  
  HELP                                                                                            j down  k up  Esc close

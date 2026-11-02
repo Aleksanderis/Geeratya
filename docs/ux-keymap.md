@@ -38,7 +38,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M3) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
@@ -70,6 +70,7 @@ The `<space>v` rows (M4) are provisional; nothing else depends on them. Level: E
 | `<space>ie` | `issue.edit` | Edit a field: field picker (summary, description, priority, labels, components, estimate, other editable fields), then its editor | E | click the field in the detail | M2 #164, M3 #183 |
 | `<space>ia` | `issue.assign` | Assign: people picker | E | click the assignee | M2 #164 |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 |
+| `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M5 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (type picker, then issue picker) | A | context menu | M4 #190 |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor (Confirm) | A | context menu on the link row | M4 #190 |

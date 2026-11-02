@@ -15,6 +15,7 @@ public static class StatusBar
     private const string Separator = " · ";
     private const int FieldCount = 4;
     private const string PickerPrompt = "open a view";
+    private const string JumpPrompt = "jump to an issue";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -148,7 +149,7 @@ public static class StatusBar
             return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
         }
 
-        if (state.Picker is not null)
+        if (state.Picker is not null || state.Jump is not null)
         {
             return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
         }
@@ -265,6 +266,7 @@ public static class StatusBar
             InputMode.Help => string.Empty,
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
+            InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };

@@ -57,6 +57,7 @@
     { "mode": "normal", "keys": "Space k b", "action": "rank.bottom" },
     { "mode": "normal", "keys": "Space k k", "action": "rank.to" },
     { "mode": "normal", "keys": "Space i d", "action": "issue.delete" },
+    { "mode": "normal", "keys": "Space g", "action": "issue.jump" },
 
     { "mode": "help", "keys": "j", "action": "nav.down" },
     { "mode": "help", "keys": "Down", "action": "nav.down" },

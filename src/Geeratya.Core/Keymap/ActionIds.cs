@@ -53,6 +53,7 @@ public static class ActionIds
     public const string RankBottom = "rank.bottom";
     public const string RankTo = "rank.to";
     public const string IssueDelete = "issue.delete";
+    public const string IssueJump = "issue.jump";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string CommentAdd = "comment.add";

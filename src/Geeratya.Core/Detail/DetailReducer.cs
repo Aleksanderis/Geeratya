@@ -1,5 +1,6 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
+using Geeratya.Core.Jump;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -129,7 +130,9 @@ internal static class DetailReducer
         effects.Add(new WriteIssueCacheEffect(cached));
 
         var accepted = loaded with { Issue = issue };
-        var next = Update(state, loaded.Tab, detail => AcceptRequested(detail, accepted, childrenRequest));
+        var next = JumpReducer.Remember(
+            Update(state, loaded.Tab, detail => AcceptRequested(detail, accepted, childrenRequest)),
+            loaded.Issue.Key);
 
         if (!wantsChildren)
         {
