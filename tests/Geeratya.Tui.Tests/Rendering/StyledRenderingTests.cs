@@ -29,6 +29,11 @@ public class StyledRenderingTests
     [InlineData(TextRole.StatusToDo, PaletteRole.StatusToDo)]
     [InlineData(TextRole.StatusInProgress, PaletteRole.StatusInProgress)]
     [InlineData(TextRole.StatusDone, PaletteRole.StatusDone)]
+    [InlineData(TextRole.TypeEpic, PaletteRole.TypeEpic)]
+    [InlineData(TextRole.TypeStory, PaletteRole.TypeStory)]
+    [InlineData(TextRole.TypeBug, PaletteRole.TypeBug)]
+    [InlineData(TextRole.TypeTask, PaletteRole.TypeTask)]
+    [InlineData(TextRole.TypeSubtask, PaletteRole.TypeSubtask)]
     [InlineData(TextRole.Error, PaletteRole.Error)]
     public void GivenTextRole_WhenMappingToPalette_ThenItIsTheExpectedPaletteRole(TextRole role, PaletteRole expected)
     {

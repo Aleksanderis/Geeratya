@@ -355,6 +355,27 @@ public class ColumnsBodyRendererTests
         };
     }
 
+    [Fact]
+    public void GivenATaskCard_WhenRendering_ThenOnlyItsTypeNameCarriesTheTypeRoleUnlessSelected()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+
+        var plain = body[3].Spans.Single(span => span.Role == TextRole.TypeTask);
+        Assert.Equal("Task", plain.Text);
+        Assert.DoesNotContain(body[8].Spans, span => span.Role == TextRole.TypeTask);
+        Assert.Equal(120, TextWidth.Of(body[3].PlainText));
+    }
+
+    [Fact]
+    public void GivenACompactCard_WhenRendering_ThenTheMarkerCarriesTheTypeRole()
+    {
+        var body = Render(Tab(Issue("1", "A-1"), Issue("1", "A-2")), 120, 8);
+
+        Assert.Contains(body, line => line.Spans.Any(span => span is { Role: TextRole.TypeTask, Text: "T" }));
+    }
+
     private static IssueSummary Issue(string statusId, string key, string summary = "Summary", string? assignee = null)
     {
         return new IssueSummary(

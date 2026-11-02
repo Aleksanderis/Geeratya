@@ -288,7 +288,18 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         {
             var role = selected ? TextRole.Selected : TextRole.Body;
 
-            spans.Add(new StyledSpan(TextWidth.Pad(CompactLine(issue, selected, inner), inner), role));
+            var line = TextWidth.Pad(CompactLine(issue, selected, inner), inner);
+
+            if (selected || line.Length < 2)
+            {
+                spans.Add(new StyledSpan(line, role));
+            }
+            else
+            {
+                spans.Add(new StyledSpan(line[..1], role));
+                spans.Add(new StyledSpan(line[1..2], IssueTypeRole.For(issue.IssueType)));
+                spans.Add(new StyledSpan(line[2..], role));
+            }
 
             return;
         }
@@ -332,23 +343,39 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var side = heavy ? "┃" : Vertical;
 
             spans.Add(new StyledSpan(side, frame));
-            spans.Add(new StyledSpan(TextWidth.Pad(BoxText(issue, within, width - 4), width - 2), text));
+            AddBoxText(spans, issue, within, selected, width - 2, text);
             spans.Add(new StyledSpan(side, frame));
         }
 
         spans.Add(new StyledSpan(Blank, TextRole.Body));
     }
 
-    private static string BoxText(IssueSummary issue, int within, int width)
+    /// <summary>The text between the side borders; the type name on the key line is coloured by type.</summary>
+    private static void AddBoxText(
+        List<StyledSpan> spans,
+        IssueSummary issue,
+        int within,
+        bool selected,
+        int room,
+        TextRole text)
     {
-        if (within == 1)
+        if (within != 1)
         {
-            return $" {KeyLine(issue, width)} ";
+            var lines = CardText.TwoLines(issue.Summary, room - 2);
+
+            spans.Add(new StyledSpan(
+                TextWidth.Pad($" {(within == FirstSummaryLine ? lines.First : lines.Second)} ", room),
+                text));
+
+            return;
         }
 
-        var lines = CardText.TwoLines(issue.Summary, width);
+        var (label, remainder) = KeyLine(issue, room - 2);
+        var tail = TextWidth.Pad($"{remainder} ", room - 1 - TextWidth.Of(label));
 
-        return $" {(within == FirstSummaryLine ? lines.First : lines.Second)} ";
+        spans.Add(new StyledSpan(Blank, text));
+        spans.Add(new StyledSpan(label, selected ? text : IssueTypeRole.For(issue.IssueType)));
+        spans.Add(new StyledSpan(tail, text));
     }
 
     private static string CompactLine(IssueSummary issue, bool selected, int width)
@@ -364,7 +391,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     /// name wins over the initials: it is cut down to <see cref="MinTypeName"/> cells, then the initials go, then the
     /// name is replaced by the one-cell marker.
     /// </summary>
-    private static string KeyLine(IssueSummary issue, int width)
+    private static (string Label, string Remainder) KeyLine(IssueSummary issue, int width)
     {
         var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
         var keyRoom = width - TextWidth.Of(issue.Key) - 1;
@@ -378,10 +405,13 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var label = nameRoom >= MinTypeName && !string.IsNullOrWhiteSpace(issue.IssueType.Name)
             ? CardText.Shorten(issue.IssueType.Name, nameRoom)
             : IssueTypeMarker.For(issue.IssueType).ToString();
-        var key = $"{label} {issue.Key}";
+        var key = $" {issue.Key}";
 
-        return initials.Length == 0
-            ? TextWidth.Fit(key, width)
-            : $"{TextWidth.Pad(key, width - TextWidth.Of(initials) - 1)} {initials}";
+        if (initials.Length == 0)
+        {
+            return (label, TextWidth.Fit(key, Math.Max(0, width - TextWidth.Of(label))));
+        }
+
+        return (label, $"{TextWidth.Pad(key, width - TextWidth.Of(initials) - 1 - TextWidth.Of(label))} {initials}");
     }
 }
