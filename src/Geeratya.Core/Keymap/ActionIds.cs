@@ -17,6 +17,7 @@ public static class ActionIds
     public const string Cancel = "mode.cancel";
     public const string PaletteOpen = "palette.open";
     public const string ContextMenuOpen = "menu.context";
+    public const string ViewMenuOpen = "menu.view";
     public const string PaletteSubmit = "palette.submit";
     public const string PaletteBackspace = "palette.backspace";
     public const string ConfirmYes = "confirm.yes";

@@ -89,6 +89,29 @@ public static class ContextMenus
         }
     }
 
+    /// <summary>
+    /// The menu of the active tab and its view: close the tab, the previous tab (only with several tabs), the layout,
+    /// jump, help and quit. Null when no tab is open.
+    /// </summary>
+    public static ContextMenuState? ForView(AppState state)
+    {
+        if (state.Session.Active is null)
+        {
+            return null;
+        }
+
+        var actions = new List<string> { ActionIds.TabClose };
+
+        if (state.Session.Tabs.Count > 1)
+        {
+            actions.Add(ActionIds.TabPrevious);
+        }
+
+        actions.AddRange([ActionIds.ViewLayoutToggle, ActionIds.IssueJump, ActionIds.HelpToggle, ActionIds.Quit]);
+
+        return new ContextMenuState(actions.Select(Item).ToList(), 0);
+    }
+
     /// <summary>Moves the highlight, clamped to the items.</summary>
     public static ContextMenuState Move(ContextMenuState menu, int delta)
     {
