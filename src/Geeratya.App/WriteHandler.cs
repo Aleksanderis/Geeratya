@@ -277,6 +277,11 @@ public sealed class WriteHandler
             return await services.Edits.AssignAsync(assign.Key, change, token);
         }
 
+        if (request is RankRequest rank)
+        {
+            return await RankAsync(services, rank, token);
+        }
+
         if (request is DeleteIssueRequest delete)
         {
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
@@ -288,6 +293,34 @@ public sealed class WriteHandler
         }
 
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> RankAsync(
+        JiraServices services,
+        RankRequest rank,
+        CancellationToken token)
+    {
+        IReadOnlyList<string> keys = [rank.Key];
+        var result = rank.Before
+            ? await services.Ranks.RankBeforeAsync(keys, rank.ReferenceKey, rank.RankFieldId, token)
+            : await services.Ranks.RankAfterAsync(keys, rank.ReferenceKey, rank.RankFieldId, token);
+
+        if (!result.IsSuccess)
+        {
+            return WriteResults.Failure<WriteAccepted>(result.Error);
+        }
+
+        if (result.Value.AllRanked)
+        {
+            return WriteResults.Success(new WriteAccepted());
+        }
+
+        // A 207 that names the issue as not moved: Jira refused it, so nothing was applied.
+        var messages = result.Value.Failed.SelectMany(item => item.Errors).ToArray();
+        var message = messages.Length > 0 ? messages[0] : "Jira did not move the issue";
+
+        return WriteResults.Failure<WriteAccepted>(
+            new WriteError(WriteErrorKind.Validation, null, message, [], messages));
     }
 
     private static async Task<WriteResult<WriteAccepted>> EditAsync(
@@ -321,7 +354,7 @@ public sealed class WriteHandler
         ExecuteWriteEffect effect,
         CancellationToken token)
     {
-        if (effect.Request.RemovesIssues)
+        if (effect.Request.RemovesIssues || !effect.Request.ReadsBack)
         {
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
@@ -345,6 +378,12 @@ public sealed class WriteHandler
         if (effect.Request is CreateRequest create)
         {
             return await VerifyCreateAsync(services, effect, create, token);
+        }
+
+        if (!effect.Request.ReadsBack)
+        {
+            // Nothing a read of the issue shows can tell (a rank): the user is told to reload.
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
         }
 
         var rows = await ReadKeysAsync(services, effect.Request.Keys, token);

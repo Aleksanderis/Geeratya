@@ -21,7 +21,7 @@ public static class FormOverlay
     private const string OpenAfterOnText = "on";
     private const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
-    private const string ReadOnlyText = "edit in browser";
+    private const string ReadOnlyText = "not editable here";
     private const string EmptyText = "-";
     private const string Caret = "_";
     private const int MaxBoxWidth = 100;
@@ -50,7 +50,7 @@ public static class FormOverlay
             return body;
         }
 
-        var content = Content(form, boxWidth - 4 - Indent);
+        var content = Content(form, boxWidth - 4 - Indent, keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser) ?? string.Empty);
         var room = height - TopGap - 2;
         var footer = room >= FooterMinimumInner ? FooterHeight : 0;
         var inner = Math.Min(room, content.Lines.Count + footer);
@@ -172,7 +172,10 @@ public static class FormOverlay
             return $"{down}/{up} type   {choose} choose   {cancel} cancel";
         }
 
-        var text = $"{next}/{previous} field   {submit} save   {cancel} cancel";
+        var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
+            ? $"   {keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
+            : string.Empty;
+        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
 
         if (form.Target is not CreateFormTarget create)
         {
@@ -185,7 +188,7 @@ public static class FormOverlay
         return $"{text}   {open} open after: {state}";
     }
 
-    private static FormContent Content(FormState form, int valueWidth)
+    private static FormContent Content(FormState form, int valueWidth, string browserKey)
     {
         var lines = new List<StyledLine>();
         var focusStart = 0;
@@ -200,7 +203,7 @@ public static class FormOverlay
 
         for (var index = 0; index < form.Fields.Count; index++)
         {
-            var block = Block(form, index, valueWidth);
+            var block = Block(form, index, valueWidth, browserKey);
 
             if (index == form.Focus)
             {
@@ -248,7 +251,7 @@ public static class FormOverlay
         }
     }
 
-    private static List<StyledLine> Block(FormState form, int index, int valueWidth)
+    private static List<StyledLine> Block(FormState form, int index, int valueWidth, string browserKey)
     {
         var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
@@ -258,7 +261,7 @@ public static class FormOverlay
         var role = focused ? TextRole.Strong : TextRole.FieldLabel;
         var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}", role) };
 
-        lines.AddRange(ValueLines(field, focused, form.BrowserUrl, valueWidth));
+        lines.AddRange(ValueLines(field, focused, form.BrowserUrl is null ? null : browserKey, valueWidth));
 
         if (field.Error is not null)
         {
@@ -268,13 +271,18 @@ public static class FormOverlay
         return lines;
     }
 
-    private static List<StyledLine> ValueLines(FormField field, bool focused, string? browserUrl, int valueWidth)
+    private static List<StyledLine> ValueLines(FormField field, bool focused, string? browserKey, int valueWidth)
     {
         if (!field.IsEditable)
         {
-            var shown = IsSelectedParent(field) ? string.Join(", ", field.Value.Chosen) : browserUrl;
+            var shown = IsSelectedParent(field) ? string.Join(", ", field.Value.Chosen) : null;
 
-            return [Indented(shown ?? ReadOnlyText, TextRole.Muted)];
+            if (shown is null && browserKey is { Length: > 0 })
+            {
+                shown = $"{browserKey} opens the issue in the browser";
+            }
+
+            return shown is null ? [] : [Indented(shown, TextRole.Muted)];
         }
 
         return field.Kind switch

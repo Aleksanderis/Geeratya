@@ -95,6 +95,7 @@ public sealed class AppReducer
         {
             Mode = InputMode.Normal,
             PendingKeys = string.Empty,
+            Count = 0,
             PaletteText = string.Empty,
             HelpScroll = 0,
             Confirm = null,
@@ -110,6 +111,11 @@ public sealed class AppReducer
             return FormReducer.Key(state, key, at, _keymap);
         }
 
+        if (Counts.IsDigit(state, key))
+        {
+            return Result(state with { Count = Counts.Append(state.Count, key), Message = null });
+        }
+
         var resolution = _keymap.Resolve(state.Mode, state.PendingKeys, key);
 
         if (resolution.Kind == KeyResolutionKind.Prefix)
@@ -122,14 +128,63 @@ public sealed class AppReducer
             return ViewReducer.Reduce(state, new IssueDetailBackRequested(state.Session.Active!.Value));
         }
 
-        var cleared = state with { PendingKeys = string.Empty };
+        var cleared = state with { PendingKeys = string.Empty, Count = 0 };
 
         if (resolution.Kind == KeyResolutionKind.None)
         {
             return Result(TypeText(cleared, key));
         }
 
-        return Apply(cleared with { Message = null }, resolution.Action!);
+        if (state.Count > 0)
+        {
+            return ApplyCounted(cleared with { Message = null }, resolution.Action!, state.Count, at);
+        }
+
+        return Apply(cleared with { Message = null }, resolution.Action!, at);
+    }
+
+    /// <summary>
+    /// An action typed after a count (<c>docs/ux-keymap.md</c>, "Selection and counts"): a motion or a rank step
+    /// repeats; any other write refuses; every other action ignores the count.
+    /// </summary>
+    private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
+    {
+        switch (action)
+        {
+            case ActionIds.NavigateDown:
+                return Repeat(state, ListMove.Down, count);
+            case ActionIds.NavigateUp:
+                return Repeat(state, ListMove.Up, count);
+            case ActionIds.RankUp:
+                return InNormal(state, () => RankActions.Step(state, RankMove.Up, count, at));
+            case ActionIds.RankDown:
+                return InNormal(state, () => RankActions.Step(state, RankMove.Down, count, at));
+            case ActionIds.RankTop:
+            case ActionIds.RankBottom:
+            case ActionIds.RankTo:
+                return Result(state with { Message = $"A count does not apply to: {ActionCatalog.FindTitle(action)}" });
+            default:
+                return Apply(state, action, at);
+        }
+    }
+
+    private ReduceResult Repeat(AppState state, ListMove move, int count)
+    {
+        if (state.Mode != InputMode.Normal)
+        {
+            return Navigate(state, move, move == ListMove.Down ? 1 : -1);
+        }
+
+        var current = Result(state);
+
+        for (var step = 0; step < count; step++)
+        {
+            var next = ViewReducer.Navigate(current.State, move);
+
+            current = new ReduceResult(next.State, [.. current.Effects, .. next.Effects]);
+        }
+
+        return current;
     }
 
     /// <summary>
@@ -194,7 +249,7 @@ public sealed class AppReducer
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);
     }
 
-    private ReduceResult Apply(AppState state, string action)
+    private ReduceResult Apply(AppState state, string action, DateTimeOffset at = default)
     {
         return action switch
         {
@@ -204,7 +259,12 @@ public sealed class AppReducer
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state),
-            ActionIds.Cancel => Result(ToNormal(state)),
+            ActionIds.Cancel => Result(ToNormal(RankActions.DropPickup(state))),
+            ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
+            ActionIds.RankDown => InNormal(state, () => RankActions.Step(state, RankMove.Down, 1, at)),
+            ActionIds.RankTop => InNormal(state, () => RankActions.Step(state, RankMove.Top, 1, at)),
+            ActionIds.RankBottom => InNormal(state, () => RankActions.Step(state, RankMove.Bottom, 1, at)),
+            ActionIds.RankTo => InNormal(state, () => RankActions.PickUpOrDrop(state, DropKeys(), at)),
             ActionIds.ConfirmNo => Result(ToNormal(state) with { Message = "Cancelled." }),
             ActionIds.ConfirmYes => Confirmed(state),
             ActionIds.FormNext => state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state),
@@ -258,6 +318,18 @@ public sealed class AppReducer
     private static AppState Erase(AppState state)
     {
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);
+    }
+
+    private string DropKeys()
+    {
+        var keys = _keymap.FindKeys(InputMode.Normal, ActionIds.RankTo);
+
+        return keys is null ? "the same key" : string.Concat(keys.Split(' ').Select(KeyText));
+    }
+
+    private static string KeyText(string key)
+    {
+        return key == KeyNotation.Space ? "<space>" : key;
     }
 
     private static int? TabNumber(string action)

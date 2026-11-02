@@ -11,10 +11,10 @@ A · 1 issue
   │     Low                                                                  │  
   │   Eine sehr lange Bezeichnung für 日本語 das Feld Schätzung in Stunden p │  
   │     -                                                                    │  
-  │   Team  (edit in browser)                                                │  
-  │     https://work.atlassian.net/browse/A-1                                │  
+  │   Team  (not editable here)                                              │  
+  │     Ctrl-o opens the issue in the browser                                │  
   │ ──────────────────────────────────────────────────────────────────────── │  
-  │ Tab/Shift-Tab field   Ctrl-s save   Esc cancel                           │  
+  │ Tab/Shift-Tab field   Ctrl-s save   Ctrl-o browser   Esc cancel          │  
   └──────────────────────────────────────────────────────────────────────────┘  
                                                                                 
                                                                                 

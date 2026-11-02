@@ -306,7 +306,7 @@ public class CreateFormReducerTests
     public void GivenOpenAfterIsOn_WhenJiraConfirms_ThenTheNewIssueOpensInTheDetail()
     {
         var state = ChosenForm(_task, false, SummaryField());
-        state = Press(state, "Ctrl-o").State;
+        state = Press(state, "Ctrl-g").State;
         var sent = Press(Type(state, "Title"), "Ctrl-s", _start);
         var id = sent.State.Session.Operations[0].Id;
 
@@ -322,8 +322,8 @@ public class CreateFormReducerTests
     {
         var state = ChosenForm(_task, false, SummaryField());
 
-        var on = Press(state, "Ctrl-o").State;
-        var off = Press(on, "Ctrl-o").State;
+        var on = Press(state, "Ctrl-g").State;
+        var off = Press(on, "Ctrl-g").State;
 
         Assert.True(((CreateFormTarget)on.Session.Tabs[0].Form!.Target).OpenAfter);
         Assert.False(((CreateFormTarget)off.Session.Tabs[0].Form!.Target).OpenAfter);
@@ -368,7 +368,7 @@ public class CreateFormReducerTests
 
         Assert.Equal("Space i c", keymap.FindKeys(InputMode.Normal, ActionIds.IssueCreate));
         Assert.Equal("Space i C", keymap.FindKeys(InputMode.Normal, ActionIds.IssueCreateSubtask));
-        Assert.Equal("Ctrl-o", keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter));
+        Assert.Equal("Ctrl-g", keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter));
         Assert.NotNull(ActionCatalog.FindTitle(ActionIds.IssueCreate));
         Assert.NotNull(ActionCatalog.FindTitle(ActionIds.IssueCreateSubtask));
     }

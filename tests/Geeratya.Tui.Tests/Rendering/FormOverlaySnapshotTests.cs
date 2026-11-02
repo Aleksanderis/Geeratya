@@ -50,8 +50,8 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(), 120, 36, _helpLines, _keymap);
 
         Assert.Contains(lines, line => line.Contains("! Required", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("(edit in browser)", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("net/browse/A-1", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("(not editable here)", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Ctrl-o opens the issue in the browser", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains("Create Task under A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Parent  (set from the selection)", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Trim('│', ' ') == "A-1" || line.Contains("    A-1", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("Ctrl-o open after: off", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
     }
 
     private static FormState PickerForm()

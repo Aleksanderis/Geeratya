@@ -17,6 +17,7 @@ public static class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
     private const string NoFieldsText = "Nothing here can be edited";
+    private const string NoPageText = "No issue page to open";
     private const string NothingChangedText = "Nothing changed";
     private const string DetachedText = "Closed the form; the save continues";
 
@@ -80,6 +81,7 @@ public static class FormReducer
             ActionIds.Cancel => Cancel(state, tab, form),
             ActionIds.FormOpenAfter => Result(CreateFormReducer.ToggleOpenAfter(state, tab, form)),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
+            ActionIds.FormOpenBrowser => OpenBrowser(state, form),
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
@@ -187,6 +189,16 @@ public static class FormReducer
         }
 
         return tab.Rows.FirstOrDefault(row => string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))?.Labels;
+    }
+
+    private static ReduceResult OpenBrowser(AppState state, FormState form)
+    {
+        if (form.BrowserUrl is not { } url)
+        {
+            return Result(state with { Message = NoPageText });
+        }
+
+        return BrowserReducer.Request(state, new OpenUrlRequested(url, false, form.Target.IssueKey));
     }
 
     private static string? BrowserUrl(AppState state, FormTarget target)

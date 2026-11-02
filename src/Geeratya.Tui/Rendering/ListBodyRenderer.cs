@@ -58,10 +58,11 @@ public sealed class ListBodyRenderer : IBodyRenderer
         }
 
         var first = FirstRow(tab);
+        var busy = BusyMarks.Keys(state);
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(RowLine(tab.Rows[index], columns, index == tab.Selected, width, glyphs));
+            lines.Add(RowLine(BusyMarks.Mark(tab.Rows[index], busy, glyphs), columns, index == tab.Selected, width, glyphs));
         }
 
         if (footerFits)
