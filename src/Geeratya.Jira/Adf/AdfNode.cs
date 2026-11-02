@@ -1,6 +1,9 @@
 namespace Geeratya.Jira.Adf;
 
-/// <summary>A node of an ADF tree. Media nodes are kept as nodes and never resolved to attachments.</summary>
+/// <summary>
+/// A node of an ADF tree. Media nodes are kept as nodes and never resolved to attachments. Records with child lists
+/// compare the lists by reference, so tests assert through a tree walk, not on whole-tree equality.
+/// </summary>
 public abstract record AdfNode;
 
 /// <summary>A node that holds child nodes.</summary>
@@ -65,7 +68,9 @@ public sealed record AdfInlineCard(string? Url) : AdfNode;
 /// <summary>An emoji: the short name (<c>:rocket:</c>) and the glyph in <see cref="Text" /> when sent.</summary>
 public sealed record AdfEmoji(string? ShortName, string? Text) : AdfNode;
 
-/// <summary><see cref="TimestampMilliseconds" /> is epoch milliseconds (sent as a string), null if unreadable.</summary>
+/// <summary>
+/// <see cref="TimestampMilliseconds" /> is epoch milliseconds (sent as a string), null if unreadable.
+/// </summary>
 public sealed record AdfDate(long? TimestampMilliseconds) : AdfNode;
 
 public sealed record AdfStatus(string Text, string? Color) : AdfNode;
@@ -73,6 +78,9 @@ public sealed record AdfStatus(string Text, string? Color) : AdfNode;
 /// <summary><see cref="Id" /> is an account id, <see cref="Text" /> the visible <c>@Name</c>.</summary>
 public sealed record AdfMention(string? Id, string? Text) : AdfNode;
 
-/// <summary>A node this model does not know; its type name, own text (if any) and children are kept.</summary>
+/// <summary>
+/// A node this model does not know; its type name, own text (<c>text</c>, else <c>attrs.text</c>) and children are
+/// kept, other attributes are dropped.
+/// </summary>
 public sealed record AdfUnknownNode(string TypeName, string? Text, IReadOnlyList<AdfNode> Children)
     : AdfContainerNode(Children);

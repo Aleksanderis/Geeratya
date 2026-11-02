@@ -88,6 +88,18 @@ public sealed class AdfParserTests
     }
 
     [Fact]
+    public void GivenUnknownNodeWithTextOnlyInAttributes_WhenParsing_ThenThatTextIsKept()
+    {
+        const string json = """{"type":"doc","content":[{"type":"placeholder","attrs":{"text":"Type here"}}]}""";
+
+        var parsed = AdfParser.Parse(json);
+
+        var unknown = Assert.IsType<AdfUnknownNode>(Assert.Single(parsed.Content));
+        Assert.Equal("placeholder", unknown.TypeName);
+        Assert.Equal("Type here", unknown.Text);
+    }
+
+    [Fact]
     public void GivenCommentsFixture_WhenParsingEveryBody_ThenNothingIsUnknown()
     {
         using var document = JsonDocument.Parse(FixtureFiles.Read(Comments));
@@ -235,7 +247,8 @@ public sealed class AdfParserTests
         var parsed = AdfParser.Parse(json);
 
         Assert.Equal(1, Assert.IsType<AdfHeading>(parsed.Content[0]).Level);
-        Assert.Equal(string.Empty, Assert.IsType<AdfText>(Assert.Single(((AdfHeading)parsed.Content[0]).Children)).Text);
+        var headingChildren = ((AdfHeading)parsed.Content[0]).Children;
+        Assert.Equal(string.Empty, Assert.IsType<AdfText>(Assert.Single(headingChildren)).Text);
         var ordered = Assert.IsType<AdfOrderedList>(parsed.Content[1]);
         Assert.Equal(7, ordered.Order);
         Assert.Empty(ordered.Children);
@@ -247,7 +260,8 @@ public sealed class AdfParserTests
         Assert.Equal("info", Assert.IsType<AdfPanel>(parsed.Content[7]).PanelType);
         var paragraph = Assert.IsType<AdfParagraph>(parsed.Content[8]);
         Assert.Empty(Assert.IsType<AdfText>(paragraph.Children[0]).Marks);
-        Assert.Equal(string.Empty, Assert.IsType<AdfUnknownMark>(Assert.Single(((AdfText)paragraph.Children[1]).Marks)).TypeName);
+        var secondMarks = ((AdfText)paragraph.Children[1]).Marks;
+        Assert.Equal(string.Empty, Assert.IsType<AdfUnknownMark>(Assert.Single(secondMarks)).TypeName);
         Assert.Equal(string.Empty, Assert.IsType<AdfUnknownNode>(parsed.Content[9]).TypeName);
     }
 

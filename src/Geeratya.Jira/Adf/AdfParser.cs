@@ -71,7 +71,11 @@ public static class AdfParser
         }
     }
 
-    /// <summary>Parses an element such as <c>fields.description</c> or a comment <c>body</c>; null gives an empty one.</summary>
+    /// <summary>
+    /// Parses an element such as <c>fields.description</c> or a comment <c>body</c>; null gives an empty one.
+    /// A caller that parses the whole response with default <see cref="JsonDocumentOptions" /> (depth 64) fails
+    /// before this method on very deep input; pass the raw text or bytes to the other overloads for that.
+    /// </summary>
     public static AdfDocument Parse(JsonElement element)
     {
         if (element.ValueKind != JsonValueKind.Object)
@@ -129,7 +133,6 @@ public static class AdfParser
                 state.IsTruncated = true;
             }
 
-
             return children;
         }
 
@@ -165,23 +168,27 @@ public static class AdfParser
             case AdfNodeTypes.Rule:
                 return new AdfRule();
             case AdfNodeTypes.InlineCard:
-                return new AdfInlineCard(GetString(attributes, "url"));
+                return new AdfInlineCard(GetString(attributes, AdfAttributeNames.Url));
             case AdfNodeTypes.Emoji:
-                return new AdfEmoji(GetString(attributes, "shortName"), GetString(attributes, TextProperty));
+                return new AdfEmoji(
+                    GetString(attributes, AdfAttributeNames.ShortName),
+                    GetString(attributes, TextProperty));
             case AdfNodeTypes.Date:
-                return new AdfDate(GetLong(attributes, "timestamp"));
+                return new AdfDate(GetLong(attributes, AdfAttributeNames.Timestamp));
             case AdfNodeTypes.Status:
-                return new AdfStatus(GetString(attributes, TextProperty) ?? string.Empty, GetString(attributes, "color"));
+                return new AdfStatus(
+                    GetString(attributes, TextProperty) ?? string.Empty,
+                    GetString(attributes, AdfAttributeNames.Color));
             case AdfNodeTypes.Mention:
-                return new AdfMention(GetString(attributes, "id"), GetString(attributes, TextProperty));
+                return new AdfMention(GetString(attributes, AdfAttributeNames.Id), GetString(attributes, TextProperty));
             case AdfNodeTypes.Media:
                 return new AdfMedia(
-                    GetString(attributes, "id"),
+                    GetString(attributes, AdfAttributeNames.Id),
                     GetString(attributes, TypeProperty),
-                    GetString(attributes, "collection"),
-                    GetString(attributes, "alt"),
-                    GetInt(attributes, "width"),
-                    GetInt(attributes, "height"));
+                    GetString(attributes, AdfAttributeNames.Collection),
+                    GetString(attributes, AdfAttributeNames.Alt),
+                    GetInt(attributes, AdfAttributeNames.Width),
+                    GetInt(attributes, AdfAttributeNames.Height));
         }
 
         var children = ParseChildren(element, depth + 1, state);
@@ -191,21 +198,28 @@ public static class AdfParser
             AdfNodeTypes.Paragraph => new AdfParagraph(children),
             AdfNodeTypes.Heading => new AdfHeading(ParseHeadingLevel(attributes), children),
             AdfNodeTypes.BulletList => new AdfBulletList(children),
-            AdfNodeTypes.OrderedList => new AdfOrderedList(GetInt(attributes, "order") ?? DefaultOrder, children),
+            AdfNodeTypes.OrderedList => new AdfOrderedList(
+                GetInt(attributes, AdfAttributeNames.Order) ?? DefaultOrder,
+                children),
             AdfNodeTypes.ListItem => new AdfListItem(children),
             AdfNodeTypes.TaskList => new AdfTaskList(children),
             AdfNodeTypes.TaskItem => new AdfTaskItem(ParseTaskState(attributes), children),
-            AdfNodeTypes.CodeBlock => new AdfCodeBlock(GetString(attributes, "language"), children),
+            AdfNodeTypes.CodeBlock => new AdfCodeBlock(GetString(attributes, AdfAttributeNames.Language), children),
             AdfNodeTypes.Blockquote => new AdfBlockquote(children),
-            AdfNodeTypes.Panel => new AdfPanel(GetString(attributes, "panelType") ?? DefaultPanelType, children),
+            AdfNodeTypes.Panel => new AdfPanel(
+                GetString(attributes, AdfAttributeNames.PanelType) ?? DefaultPanelType,
+                children),
             AdfNodeTypes.Table => new AdfTable(children),
             AdfNodeTypes.TableRow => new AdfTableRow(children),
             AdfNodeTypes.TableHeader => new AdfTableHeader(ParseSpan(attributes), children),
             AdfNodeTypes.TableCell => new AdfTableCell(ParseSpan(attributes), children),
-            AdfNodeTypes.Expand => new AdfExpand(GetString(attributes, "title"), children),
-            AdfNodeTypes.MediaSingle => new AdfMediaSingle(GetString(attributes, "layout"), children),
+            AdfNodeTypes.Expand => new AdfExpand(GetString(attributes, AdfAttributeNames.Title), children),
+            AdfNodeTypes.MediaSingle => new AdfMediaSingle(GetString(attributes, AdfAttributeNames.Layout), children),
             AdfNodeTypes.MediaGroup => new AdfMediaGroup(children),
-            _ => new AdfUnknownNode(type, GetString(element, TextProperty), children),
+            _ => new AdfUnknownNode(
+                type,
+                GetString(element, TextProperty) ?? GetString(attributes, TextProperty),
+                children),
         };
     }
 
@@ -236,8 +250,8 @@ public static class AdfParser
                     AdfMarkTypes.Strike => new AdfStrikeMark(),
                     AdfMarkTypes.Code => new AdfCodeMark(),
                     AdfMarkTypes.Underline => new AdfUnderlineMark(),
-                    AdfMarkTypes.Link => new AdfLinkMark(GetString(attributes, "href")),
-                    AdfMarkTypes.TextColor => new AdfTextColorMark(GetString(attributes, "color")),
+                    AdfMarkTypes.Link => new AdfLinkMark(GetString(attributes, AdfAttributeNames.Href)),
+                    AdfMarkTypes.TextColor => new AdfTextColorMark(GetString(attributes, AdfAttributeNames.Color)),
                     AdfMarkTypes.SubSup => new AdfSubSupMark(GetString(attributes, TypeProperty)),
                     _ => new AdfUnknownMark(type),
                 });
@@ -312,21 +326,21 @@ public static class AdfParser
 
     private static int ParseHeadingLevel(JsonElement attributes)
     {
-        var level = GetInt(attributes, "level") ?? DefaultHeadingLevel;
+        var level = GetInt(attributes, AdfAttributeNames.Level) ?? DefaultHeadingLevel;
 
         return Math.Clamp(level, DefaultHeadingLevel, MaxHeadingLevel);
     }
 
     private static int ParseSpan(JsonElement attributes)
     {
-        var span = GetInt(attributes, "colspan") ?? DefaultSpan;
+        var span = GetInt(attributes, AdfAttributeNames.ColumnSpan) ?? DefaultSpan;
 
         return Math.Max(span, DefaultSpan);
     }
 
     private static AdfTaskState ParseTaskState(JsonElement attributes)
     {
-        return GetString(attributes, "state") == TaskDoneState ? AdfTaskState.Done : AdfTaskState.Todo;
+        return GetString(attributes, AdfAttributeNames.State) == TaskDoneState ? AdfTaskState.Done : AdfTaskState.Todo;
     }
 
     private sealed class ParseState
