@@ -13,7 +13,7 @@ public sealed record TransitionFormTarget(string Key, TransitionChoice Choice) :
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
 
-    public override string EmptyText => $"{Choice.Name} is no longer available for {Key}";
+    public override string EmptyText => $"{Choice.Name} has no fields to fill in for {Key}";
 
     public override bool AllowsNoChanges => true;
 

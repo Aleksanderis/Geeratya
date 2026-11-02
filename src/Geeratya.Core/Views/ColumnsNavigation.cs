@@ -29,6 +29,22 @@ public static class ColumnsNavigation
         return Follow(tab, columns, cursor);
     }
 
+    /// <summary>
+    /// Moves the cursor to the card with <paramref name="key"/> after its status changed, keeping the scroll offsets
+    /// of the columns. A tab without a cursor, or without that card, is returned as it is.
+    /// </summary>
+    public static TabState FollowCard(TabState tab, string key)
+    {
+        if (tab.Cursor is not { } cursor)
+        {
+            return tab;
+        }
+
+        var columns = ColumnsOf(tab);
+
+        return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, CardsVisible(tab)));
+    }
+
     /// <summary>The issue under the cursor, null when the selected column is empty or the tab has no rows.</summary>
     public static IssueSummary? SelectedIssue(TabState tab)
     {

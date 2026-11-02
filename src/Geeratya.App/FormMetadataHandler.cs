@@ -56,7 +56,7 @@ public sealed class FormMetadataHandler
 
         if (effect.Target is TransitionFormTarget transition)
         {
-            return await LoadTransitionAsync(services, effect, transition, token);
+            return LoadTransition(effect, transition);
         }
 
         if (effect.Target is LinkFormTarget link)
@@ -147,28 +147,11 @@ public sealed class FormMetadataHandler
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, loaded.Fields(), loaded, at);
     }
 
-    private static async Task<Command?> LoadTransitionAsync(
-        JiraServices services,
-        LoadFormMetadataEffect effect,
-        TransitionFormTarget target,
-        CancellationToken token)
+    // The picker already read the screen fields (one transitions read per move), so no request goes out here.
+    private static Command LoadTransition(LoadFormMetadataEffect effect, TransitionFormTarget target)
     {
-        var result = await services.Transitions.GetTransitionsAsync(target.Key, token);
-
-        if (!result.IsSuccess)
-        {
-            return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, target.Key));
-        }
-
-        var transition = result.Value.FirstOrDefault(candidate => candidate.Id == target.Choice.Id);
-
-        if (transition is null)
-        {
-            return new FormMetadataFailed(effect.Tab, effect.RequestId, target.EmptyText);
-        }
-
         // A field Jira fills in when it is left out is not required of the user.
-        var metas = transition.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
+        var metas = target.Choice.Fields.Select(meta => meta with { Required = meta.Required && !meta.HasDefaultValue });
 
         var fields = FormFieldMapper.FromTransition([.. metas]);
 

@@ -219,6 +219,32 @@ public class BoardMotionTests
         Assert.Equal(0, right.Scrolls[1]);
     }
 
+    [Fact]
+    public void GivenACardInAnotherColumn_WhenFollowingIt_ThenTheColumnAndCardChangeAndEveryScrollStays()
+    {
+        var columns = Columns(10, 10, 10);
+        var cursor = new BoardCursor(0, [4, 2, 6], [3, 0, 5], 4);
+
+        var followed = BoardMotion.Follow(columns, cursor, "C1-1", Visible);
+
+        Assert.Equal(1, followed.Column);
+        Assert.Equal(1, followed.Card);
+        Assert.Equal(4, followed.Cards[0]);
+        Assert.Equal(3, followed.Scrolls[0]);
+        Assert.Equal(5, followed.Scrolls[2]);
+    }
+
+    [Fact]
+    public void GivenAKeyNotOnTheBoard_WhenFollowing_ThenTheCursorStays()
+    {
+        var cursor = new BoardCursor(2, [0, 0, 3], [0, 0, 1], 3);
+
+        var followed = BoardMotion.Follow(Columns(2, 2, 5), cursor, "X-9", Visible);
+
+        Assert.Equal(2, followed.Column);
+        Assert.Equal(3, followed.Card);
+    }
+
     private static List<BoardColumnGroup> Columns(params int[] sizes)
     {
         return [.. sizes.Select((size, column) => new BoardColumnGroup(

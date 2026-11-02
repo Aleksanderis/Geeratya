@@ -45,11 +45,12 @@ public sealed class TransitionHandlerTests
     {
         var synthetic = RecordedFixtures.Read("writes/synthetic-transitions-required-field.json");
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, synthetic));
-        var choice = new TransitionChoice("41", "Done", new("10005", "Done", "done"), true, false);
+        var choice = await PickedAsync(fixture, "A-1", "41");
 
-        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, new TransitionFormTarget("A-1", choice)));
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 8, new TransitionFormTarget("A-1", choice)));
 
-        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var loaded = Assert.IsType<FormMetadataLoaded>(fixture.Posted[1]);
+        Assert.Single(fixture.Http.Requests);
         var field = Assert.Single(loaded.Fields);
         Assert.Equal("resolution", field.Id);
         Assert.True(field.Required);
@@ -82,25 +83,12 @@ public sealed class TransitionHandlerTests
             "schema":{"type":"any"},"hasDefaultValue":false}}}]}
             """;
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, screen));
-        var choice = new TransitionChoice("31", "Start", new("3", "In Progress", "indeterminate"), true, false);
+        var choice = await PickedAsync(fixture, "A-1", "31");
 
-        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, new TransitionFormTarget("A-1", choice)));
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 8, new TransitionFormTarget("A-1", choice)));
 
-        var failed = Assert.IsType<FormMetadataFailed>(Assert.Single(fixture.Posted));
+        var failed = Assert.IsType<FormMetadataFailed>(fixture.Posted[1]);
         Assert.Contains("do it in the browser", failed.Message);
-    }
-
-    [Fact]
-    public async Task GivenATransitionThatNoLongerExists_WhenItsFormLoads_ThenTheFormFailsWithTheReason()
-    {
-        var recorded = RecordedFixtures.Read("transitions/transitions-gcm-1.json");
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, recorded));
-        var choice = new TransitionChoice("99", "Gone", new("1", "Gone", "new"), true, false);
-
-        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, new TransitionFormTarget("A-1", choice)));
-
-        var failed = Assert.IsType<FormMetadataFailed>(Assert.Single(fixture.Posted));
-        Assert.Equal("Gone is no longer available for A-1", failed.Message);
     }
 
     [Fact]
@@ -163,9 +151,20 @@ public sealed class TransitionHandlerTests
         Assert.Single(fixture.Http.Requests);
     }
 
+    private static async Task<TransitionChoice> PickedAsync(Fixture fixture, string key, string transitionId)
+    {
+        var target = new TransitionPickTarget(key, [], null, []);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, target));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(fixture.Posted[0]);
+
+        return Assert.IsType<TransitionPickTarget>(loaded.Target).Choices.Single(choice => choice.Id == transitionId);
+    }
+
     private static TransitionChoice Choice(string id, string statusId, string name)
     {
-        return new TransitionChoice(id, name, new(statusId, name, "indeterminate"), false, false);
+        return new TransitionChoice(id, name, new(statusId, name, "indeterminate"), false, false, []);
     }
 
     private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script)
