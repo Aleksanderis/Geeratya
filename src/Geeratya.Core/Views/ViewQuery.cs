@@ -7,7 +7,7 @@ public static class ViewQuery
 {
     /// <summary>
     /// The JQL a list source loads: typed JQL as typed, a saved filter as <c>filter = &lt;id&gt;</c>. Null for the
-    /// sources that load through the agile API (board, backlog; #78).
+    /// sources that load through the agile API (board, backlog).
     /// </summary>
     public static string? JqlFor(ViewDefinition definition)
     {

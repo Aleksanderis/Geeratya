@@ -40,6 +40,19 @@ public sealed class NetworkRunner : IDisposable
         Func<JiraServices, CancellationToken, Task<Command?>> work,
         Func<Command?>? whenUnavailable = null)
     {
+        return StartReporting(scope, (services, _, token) => work(services, token), whenUnavailable);
+    }
+
+    /// <summary>
+    /// Like <see cref="Start"/>, for work that has an intermediate result to hand over before its last command (the
+    /// board configuration ahead of the first issue page). The <c>report</c> action posts a command under the same
+    /// currency check as the final one: nothing is posted once the run was cancelled or the site changed.
+    /// </summary>
+    public Task StartReporting(
+        long scope,
+        Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
+        Func<Command?>? whenUnavailable = null)
+    {
         var services = JiraServices.Create(_connections);
 
         if (services is null)
@@ -171,6 +184,14 @@ public sealed class NetworkRunner : IDisposable
         }
     }
 
+    private void PostIfCurrent(JiraServices services, Command command, CancellationToken token)
+    {
+        if (!IsObsolete(services, token))
+        {
+            _post(command);
+        }
+    }
+
     private bool IsObsolete(JiraServices services, CancellationToken token)
     {
         return token.IsCancellationRequested || !_connections.IsCurrent(services.Generation);
@@ -178,14 +199,14 @@ public sealed class NetworkRunner : IDisposable
 
     private async Task RunAsync(
         JiraServices services,
-        Func<JiraServices, CancellationToken, Task<Command?>> work,
+        Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
         CancellationToken token)
     {
         Command? result;
 
         try
         {
-            result = await work(services, token);
+            result = await work(services, command => PostIfCurrent(services, command, token), token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {

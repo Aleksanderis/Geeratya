@@ -1,6 +1,7 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
@@ -30,6 +31,7 @@ public static class ViewReducer
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewCacheLoaded cached => CacheLoaded(state, cached),
+            BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
             _ => state,
@@ -168,12 +170,44 @@ public static class ViewReducer
     /// </summary>
     private static bool WantsNextPage(AppState state, TabState tab)
     {
-        if (state.Session.Active != tab.Id || tab.Rows.Count == 0 || tab.Load is not IdleState)
+        if (tab.Rows.Count == 0 || tab.Load is not IdleState)
+        {
+            return false;
+        }
+
+        // Board and backlog sources need every card for the columns: they walk all pages, scrolled or not.
+        if (LoadsAllPages(tab.Definition.Source))
+        {
+            return true;
+        }
+
+        if (state.Session.Active != tab.Id)
         {
             return false;
         }
 
         return tab.Selected >= tab.Rows.Count - Math.Max(1, tab.VisibleRows);
+    }
+
+    private static bool LoadsAllPages(ViewSourceKind source)
+    {
+        return source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+    }
+
+    /// <summary>
+    /// The board configuration of a board or backlog load: kept in the tab, applied only while the request is the
+    /// tab's current one.
+    /// </summary>
+    private static AppState ConfigurationLoaded(AppState state, BoardConfigurationLoaded configured)
+    {
+        var tab = Find(state.Session.Tabs, configured.Tab);
+
+        if (tab is null || tab.RequestId != configured.RequestId || tab.Load is not Loading)
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { Board = configured.Configuration });
     }
 
     private static AppState MoveSelection(AppState state, SelectionMoved moved, List<Effect> effects)
@@ -298,7 +332,7 @@ public static class ViewReducer
         }
 
         var appended = loading.Reason == LoadReason.NextPage;
-        var combined = appended ? [.. tab.Rows, .. loaded.Page.Items] : loaded.Page.Items;
+        var combined = appended ? Append(tab.Rows, loaded.Page.Items) : loaded.Page.Items;
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
         var rows = truncated ? combined.Take(ViewPaging.MaxRowsPerTab).ToArray() : combined;
         var cursor = truncated ? null : loaded.Page.Next;
@@ -320,7 +354,7 @@ public static class ViewReducer
 
         if (!appended)
         {
-            effects.Add(FirstPageWrite(tab.Definition, loaded));
+            effects.Add(FirstPageWrite(tab.Definition, tab.Board, loaded));
         }
 
         var enforced = EnforceTotal(Replace(state, selected), effects);
@@ -328,6 +362,34 @@ public static class ViewReducer
 
         // The reply may still leave the end within reach (a tall viewport, or a selection waiting at the last row).
         return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
+    }
+
+    /// <summary>
+    /// The rows plus a further page, without the issues already held: offset paging shifts when issues are created
+    /// or moved between two page requests, so a page can repeat a card of the previous one.
+    /// </summary>
+    private static List<IssueSummary> Append(IReadOnlyList<IssueSummary> rows, IReadOnlyList<IssueSummary> page)
+    {
+        var known = new HashSet<string>(rows.Count);
+
+        foreach (var row in rows)
+        {
+            known.Add(row.Key);
+        }
+
+        var combined = new List<IssueSummary>(rows.Count + page.Count);
+
+        combined.AddRange(rows);
+
+        foreach (var item in page)
+        {
+            if (known.Add(item.Key))
+            {
+                combined.Add(item);
+            }
+        }
+
+        return combined;
     }
 
     /// <summary>
@@ -350,16 +412,26 @@ public static class ViewReducer
             return state;
         }
 
-        var shown = tab with { Rows = rows, Next = null, IsStale = true, LoadedAt = cached.View.SavedAt };
+        var shown = tab with
+        {
+            Rows = rows,
+            Next = null,
+            IsStale = true,
+            LoadedAt = cached.View.SavedAt,
+            Board = tab.Board ?? cached.View.Board,
+        };
 
         return Replace(state, KeepSelection(shown));
     }
 
-    private static WriteCacheEffect FirstPageWrite(ViewDefinition definition, ViewPageLoaded loaded)
+    private static WriteCacheEffect FirstPageWrite(
+        ViewDefinition definition,
+        BoardConfiguration? board,
+        ViewPageLoaded loaded)
     {
         var rows = loaded.Page.Items.Take(ViewPaging.PageSize).ToArray();
 
-        return new WriteCacheEffect(CacheKey.For(definition), new CachedView(rows, null, loaded.At));
+        return new WriteCacheEffect(CacheKey.For(definition), new CachedView(rows, board, loaded.At));
     }
 
     private static int KeyWidthOf(int known, IReadOnlyList<IssueSummary> items)

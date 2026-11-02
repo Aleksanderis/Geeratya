@@ -150,21 +150,6 @@ public sealed class ViewLoadHandlerTests
         Assert.Contains("Not connected", LoadErrorText.For(failed.Error));
     }
 
-    [Theory]
-    [InlineData(ViewSourceKind.Board)]
-    [InlineData(ViewSourceKind.Backlog)]
-    public async Task GivenBoardSource_WhenLoading_ThenItFailsAsNotSupportedYetWithoutACall(ViewSourceKind source)
-    {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Empty));
-        var effect = Load("1", null, 2) with { Definition = new ViewDefinition(source, "1", ViewLayout.Columns, "B") };
-
-        await fixture.Handler.StartAsync(effect);
-
-        var failed = Assert.IsType<ViewLoadFailed>(Assert.Single(fixture.Posted));
-        Assert.Contains("cannot be loaded yet", failed.Error.Message);
-        Assert.Empty(fixture.Http.Requests);
-    }
-
     [Fact]
     public async Task GivenLoadInFlight_WhenTheTabIsClosed_ThenTheReplyIsNeverPosted()
     {
