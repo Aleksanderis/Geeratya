@@ -1,9 +1,9 @@
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Edit.Models;
-using Geeratya.Jira.Transport;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
 

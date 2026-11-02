@@ -62,7 +62,7 @@ public static class DeleteReducer
 
         if (cleared.Mode != InputMode.Normal)
         {
-            return new ReduceResult(cleared, _noEffects);
+            return new ReduceResult(cleared with { Message = null }, _noEffects);
         }
 
         var request = new DeleteIssueRequest(pending.Key, pending.Summary, counted.Count, counted.More);

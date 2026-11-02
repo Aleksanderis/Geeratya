@@ -35,8 +35,9 @@ public sealed partial class FakeJiraRouter
     private const string EditMetaGcmFixture = "metadata/editmeta-gcm-1.json";
     private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
     private const int DefaultPageSize = 50;
-    private static readonly byte[] _emptyPage = Encoding.UTF8.GetBytes("{\"isLast\":true,\"issues\":[]}");
     private const int MaxPageSize = 5000;
+
+    private static readonly byte[] _emptyPage = Encoding.UTF8.GetBytes("{\"isLast\":true,\"issues\":[]}");
 
     private static readonly Dictionary<string, string> _routes = new()
     {
@@ -378,7 +379,6 @@ public sealed partial class FakeJiraRouter
         return new FakeReply(200, GeneratedIssues.Page(_options.GeneratedIssues, start, pageSize));
     }
 
-    /// <summary>The fixture for a <c>parent = KEY</c> search of a known epic; null for any other JQL.</summary>
     /// <summary>
     /// The sub-task question of the delete confirm (<c>parent = KEY AND issuetype in subTaskIssueTypes()</c>). The
     /// fake has no sub-task data of its own: it answers with the recorded children of the key (an approximation, an
@@ -396,6 +396,7 @@ public sealed partial class FakeJiraRouter
         return new FakeReply(200, recorded is null ? _emptyPage : ReadFixture(recorded));
     }
 
+    /// <summary>The fixture for a <c>parent = KEY</c> search of a known epic; null for any other JQL.</summary>
     private static string? ChildrenFixtureOf(string? jql)
     {
         if (jql is null || ParentJql().Match(jql) is not { Success: true } match)

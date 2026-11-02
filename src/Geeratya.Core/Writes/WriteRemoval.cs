@@ -19,6 +19,14 @@ public static class WriteRemoval
 
     private static TabState Without(TabState tab, IReadOnlyList<string> keys)
     {
+        // A load in flight may still bring the deleted issues back: its reply drops them (WriteMerge).
+        var loading = tab.Load is Loading ? tab with { RemovedKeys = [.. tab.RemovedKeys.Union(keys)] } : tab;
+
+        return WithoutRows(loading, keys);
+    }
+
+    private static TabState WithoutRows(TabState tab, IReadOnlyList<string> keys)
+    {
         var details = tab.Detail.Where(detail => !Contains(keys, detail.Key)).ToArray();
         var kept = tab.Rows.Where(row => !Contains(keys, row.Key)).ToArray();
         var removed = tab.Rows.Count - kept.Length;
@@ -29,7 +37,13 @@ public static class WriteRemoval
         }
 
         var total = tab.Total - removed;
-        var shrunk = tab with { Rows = kept, Detail = details, Total = total is < 0 ? 0 : total, IsStale = true };
+
+        if (total < 0)
+        {
+            total = 0;
+        }
+
+        var shrunk = tab with { Rows = kept, Detail = details, Total = total, IsStale = true };
 
         return ViewReducer.KeepSelection(shrunk);
     }

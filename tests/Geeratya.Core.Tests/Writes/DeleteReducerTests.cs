@@ -233,6 +233,25 @@ public class DeleteReducerTests
     }
 
     [Fact]
+    public void GivenALoadInFlight_WhenTheDeleteSucceedsAndTheOlderReplyStillHoldsTheIssue_ThenTheRowStaysGone()
+    {
+        var state = TwoTabs();
+        var other = state.Session.Tabs[0].Id;
+        var loading = _reducer.Reduce(state, new RefreshRequested(other));
+        var started = StartDelete(loading.State, 0);
+        var operation = started.State.Session.Operations[0];
+
+        var done = _reducer.Reduce(started.State, new WriteSucceeded(operation.Id, _start, []));
+        var tab = done.State.Session.Tabs[0];
+        var reply = new IssuePage([Issue(1), Issue(2)], null, null);
+        var landed = _reducer.Reduce(done.State, new ViewPageLoaded(tab.Id, tab.RequestId, reply, _start));
+
+        Assert.Equal(["A-1"], tab.RemovedKeys);
+        Assert.Equal(["A-2"], landed.State.Session.Tabs[0].Rows.Select(row => row.Key));
+        Assert.Empty(landed.State.Session.Tabs[0].RemovedKeys);
+    }
+
+    [Fact]
     public void GivenALostReply_WhenTheIssueIsGone_ThenTheDeleteFinishesAsDone()
     {
         var started = StartDelete(TwoTabs(), 0);
@@ -244,7 +263,7 @@ public class DeleteReducerTests
             unknown.State,
             new WriteVerified(operation.Id, _start, VerifyOutcome.Applied, []));
 
-        Assert.IsType<VerifyWriteEffect>(unknown.Effects.OfType<Effect>().First());
+        Assert.IsType<VerifyWriteEffect>(unknown.Effects[0]);
         Assert.Equal(["A-2"], verified.State.Session.Tabs[0].Rows.Select(row => row.Key));
         Assert.Equal("Deleted A-1", verified.State.Message);
     }

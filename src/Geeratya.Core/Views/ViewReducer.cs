@@ -685,6 +685,7 @@ public static class ViewReducer
             PendingRows = null,
             ProtectedKeys = [],
             ProtectedRows = [],
+            RemovedKeys = [],
             KeyWidth = KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : merged),
             Failures = 0,
             Total = loaded.Page.Total ?? tab.Total,
@@ -832,6 +833,7 @@ public static class ViewReducer
             PendingRows = null,
             ProtectedKeys = [],
             ProtectedRows = [],
+            RemovedKeys = [],
             Failures = failures,
             NextRefreshAt = nextRefresh,
         };
