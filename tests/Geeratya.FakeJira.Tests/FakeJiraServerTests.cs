@@ -86,6 +86,29 @@ public sealed class FakeJiraServerTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("key = GTM-11", "\"key\": \"GTM-11\"", true)]
+    [InlineData("issuekey = \"GCM-8\"", "\"key\": \"GCM-8\"", true)]
+    [InlineData("key = GTM-9999", "GTM-", false)]
+    public async Task GivenKeyJql_WhenSearched_ThenOnlyARoutedRecordedIssueIsServed(string jql, string expected, bool routed)
+    {
+        var baseUrl = StartServer(0, 0, 0);
+
+        var body = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?jql={Uri.EscapeDataString(jql)}");
+        using var document = JsonDocument.Parse(body);
+        var issues = document.RootElement.GetProperty("issues");
+
+        if (routed)
+        {
+            Assert.Equal(1, issues.GetArrayLength());
+            Assert.Contains(expected, body, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.True(issues.GetArrayLength() > 1, "an unrouted key falls back to the recorded search pages");
+        }
+    }
+
     [Fact]
     public async Task GivenUnknownIssueKey_WhenRequested_ThenRecordedIssue404IsServed()
     {

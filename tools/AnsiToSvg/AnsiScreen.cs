@@ -89,6 +89,11 @@ public static class AnsiScreen
     {
         var position = start + 1;
 
+        if (position < line.Length && line[position] == ']')
+        {
+            return SkipOsc(line, position + 1);
+        }
+
         if (position >= line.Length || line[position] != '[')
         {
             return position;
@@ -114,6 +119,27 @@ public static class AnsiScreen
         }
 
         return position + 1;
+    }
+
+    /// <summary>Skips an operating system command (for example an OSC 8 hyperlink) up to its BEL or ST terminator.</summary>
+    private static int SkipOsc(string line, int position)
+    {
+        while (position < line.Length)
+        {
+            if (line[position] == '\a')
+            {
+                return position + 1;
+            }
+
+            if (line[position] == Escape && position + 1 < line.Length && line[position + 1] == '\\')
+            {
+                return position + 2;
+            }
+
+            position++;
+        }
+
+        return position;
     }
 
     private static CellStyle ApplySgr(CellStyle style, string parameterText)

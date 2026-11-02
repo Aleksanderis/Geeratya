@@ -20,6 +20,7 @@ public sealed partial class FakeJiraRouter
     private const string PageTokenName = "nextPageToken";
     private const string JqlName = "jql";
     private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
+    private const string IssuePrefix = "/rest/api/3/issue/";
     private const string Get = "GET";
     private const string Post = "POST";
     private const int DefaultPageSize = 50;
@@ -207,14 +208,21 @@ public sealed partial class FakeJiraRouter
         var parameters = method == Post ? ReadBody(body) : query;
         var token = parameters.GetValueOrDefault(PageTokenName);
 
+        var jql = parameters.GetValueOrDefault(JqlName);
+
+        if (ChildrenFixtureOf(jql) is { } children)
+        {
+            return new FakeReply(200, ReadFixture(children));
+        }
+
+        if (RecordedIssueOf(jql) is { } recorded)
+        {
+            return recorded;
+        }
+
         if (_options.GeneratedIssues > 0)
         {
             return GeneratedPage(parameters, token);
-        }
-
-        if (ChildrenFixtureOf(parameters.GetValueOrDefault(JqlName)) is { } children)
-        {
-            return new FakeReply(200, ReadFixture(children));
         }
 
         var page = token is null ? 0 : FixturePageOf(token);
@@ -269,6 +277,26 @@ public sealed partial class FakeJiraRouter
 
         return _childrenSearches.GetValueOrDefault(match.Groups[1].Value);
     }
+
+    /// <summary>
+    /// A search for one recorded issue (<c>key = KEY</c>) answers a single-issue page built from its detail fixture,
+    /// so a view can open issues that have relations; null for any other JQL or an unrouted key.
+    /// </summary>
+    private FakeReply? RecordedIssueOf(string? jql)
+    {
+        if (jql is null || KeyJql().Match(jql) is not { Success: true } match
+            || !_routes.TryGetValue(IssuePrefix + match.Groups[1].Value, out var fixture))
+        {
+            return null;
+        }
+
+        var issue = Encoding.UTF8.GetString(ReadFixture(fixture));
+
+        return new FakeReply(200, Encoding.UTF8.GetBytes($"{{\"isLast\":true,\"issues\":[{issue}]}}"));
+    }
+
+    [GeneratedRegex(@"^\s*(?:issue)?key\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*$", RegexOptions.IgnoreCase)]
+    private static partial Regex KeyJql();
 
     [GeneratedRegex(
         @"^\s*parent\s*=\s*""?([A-Za-z][A-Za-z0-9_]*-\d+)""?\s*(?:order\s+by.*)?$",
