@@ -39,6 +39,23 @@ public class CommentEditingTests
         Assert.False(editor.IsChanged);
     }
 
+    [Fact]
+    public void GivenTheEditor_WhenPressingWordAndPageKeys_ThenTheCursorMovesByWordAndByRows()
+    {
+        var state = Press(OpenIssue(), "Space", "m", "a").State;
+        state = Press(state, "o", "n", "e", "Space", "t", "w", "o", "Enter", "x").State;
+
+        var wordLeft = Press(Press(state, "Ctrl-Left").State, "Ctrl-Left").State;
+        var wordRight = Press(wordLeft, "Ctrl-Right").State;
+        var pageUp = Press(state, "PageUp").State;
+        var pageDown = Press(pageUp, "PageDown").State;
+
+        Assert.Equal(4, Assert.IsType<CommentEditor>(wordLeft.Editor).Buffer.Cursor);
+        Assert.Equal(7, Assert.IsType<CommentEditor>(wordRight.Editor).Buffer.Cursor);
+        Assert.Equal(1, Assert.IsType<CommentEditor>(pageUp.Editor).Buffer.Cursor);
+        Assert.Equal(9, Assert.IsType<CommentEditor>(pageDown.Editor).Buffer.Cursor);
+    }
+
     [Theory]
     [InlineData("a")]
     [InlineData("e")]

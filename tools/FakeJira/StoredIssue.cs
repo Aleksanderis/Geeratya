@@ -32,6 +32,12 @@ public sealed class StoredIssue
 
     public List<JsonObject> Comments { get; } = [];
 
+    /// <summary>Recorded comments that were edited, by comment id (a copy; the fixture stays untouched).</summary>
+    public Dictionary<string, JsonObject> EditedRecordedComments { get; } = [];
+
+    /// <summary>Ids of recorded comments that were deleted.</summary>
+    public HashSet<string> DeletedRecordedComments { get; } = [];
+
     /// <summary>Links made through the fake, as this issue lists them.</summary>
     public List<StoredLink> Links { get; } = [];
 

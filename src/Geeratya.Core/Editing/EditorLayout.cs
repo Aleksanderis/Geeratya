@@ -4,8 +4,8 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Editing;
 
 /// <summary>
-/// Lays an edited text out in visual rows of a fixed capacity: a newline ends a row, a row that is full wraps at the
-/// next character (no word wrap, so a cursor index maps to one row and column). The last column of a row is kept
+/// Lays an edited text out in visual rows of a fixed capacity: a newline ends a row, a row that is full wraps after
+/// its last space (a word longer than the row wraps by character), so a cursor index maps to one row and column. The last column of a row is kept
 /// free for the cursor. Pure; the reducer (cursor moves) and the renderer use the same rows.
 /// </summary>
 public static class EditorLayout
@@ -25,6 +25,8 @@ public static class EditorLayout
         var limit = Math.Max(1, capacity);
         var rowStart = 0;
         var used = 0;
+        var breakAt = -1;
+        var usedAtBreak = 0;
         var elements = StringInfo.GetTextElementEnumerator(text);
 
         while (elements.MoveNext())
@@ -37,20 +39,40 @@ public static class EditorLayout
                 rows.Add(new EditorRow(rowStart, index));
                 rowStart = index + 1;
                 used = 0;
+                breakAt = -1;
 
                 continue;
             }
 
             var width = DisplayWidth.Of(element);
+            var isSpace = element[0] == ' ';
 
             if (used > 0 && used + width > limit)
             {
-                rows.Add(new EditorRow(rowStart, index));
-                rowStart = index;
-                used = 0;
+                if (!isSpace && breakAt > rowStart)
+                {
+                    // Word wrap: the word that does not fit moves to the next row with the text after the last space.
+                    rows.Add(new EditorRow(rowStart, breakAt));
+                    rowStart = breakAt;
+                    used -= usedAtBreak;
+                }
+                else
+                {
+                    rows.Add(new EditorRow(rowStart, index));
+                    rowStart = index;
+                    used = 0;
+                }
+
+                breakAt = -1;
             }
 
             used += width;
+
+            if (isSpace)
+            {
+                breakAt = index + 1;
+                usedAtBreak = used;
+            }
         }
 
         rows.Add(new EditorRow(rowStart, text.Length));

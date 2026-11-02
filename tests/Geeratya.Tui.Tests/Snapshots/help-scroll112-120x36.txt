@@ -1,6 +1,10 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+                                                                                                                        
+Palette commands                                                                                                        
+  :jql [query]                                                                                                          
+      Open a JQL query in a new tab (no query: pick from recent ones)                                                   
   :filter [name]                                                                                                        
       Open a saved filter in a new tab                                                                                  
   :board [name]                                                                                                         
@@ -29,8 +33,4 @@ Help
       Manage Jira profiles                                                                                              
   :set hints|whichkey on|off                                                                                            
       Show or hide the status bar hints or the which-key popup (saved)                                                  
-  :keys reload                                                                                                          
-      Read keymap.json again and apply it                                                                               
-  :help                                                                                                                 
-      Show or hide help                                                                                                 
  HELP                                                                                            j down  k up  Esc close

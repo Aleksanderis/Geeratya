@@ -217,6 +217,32 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenRecordedComment_WhenEditedAndDeleted_ThenListFollowsAndOthersStay()
+    {
+        Start(0);
+        const string path = "/rest/api/3/issue/GCM-6/comment";
+        var before = Parse(await _client.GetStringAsync($"{_baseUrl}{path}"));
+        var total = before.GetProperty("total").GetInt32();
+        var ids = before.GetProperty("comments").EnumerateArray().Select(c => c.GetProperty("id").GetString()).ToList();
+
+        var edited = await Send(HttpMethod.Put, $"{path}/{ids[0]}", CommentBody.Replace("hello", "changed", StringComparison.Ordinal));
+        var afterEdit = await _client.GetStringAsync($"{_baseUrl}{path}");
+        var deleted = await Send(HttpMethod.Delete, $"{path}/{ids[1]}", null);
+        var afterDelete = Parse(await _client.GetStringAsync($"{_baseUrl}{path}"));
+        var again = await Send(HttpMethod.Delete, $"{path}/{ids[1]}", null);
+        var unknown = await Send(HttpMethod.Put, $"{path}/99999999", CommentBody);
+
+        Assert.True(ids.Count >= 2);
+        Assert.Equal(HttpStatusCode.OK, edited.StatusCode);
+        Assert.Contains("changed", afterEdit, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+        Assert.Equal(total - 1, afterDelete.GetProperty("total").GetInt32());
+        Assert.DoesNotContain(afterDelete.GetProperty("comments").EnumerateArray(), c => c.GetProperty("id").GetString() == ids[1]);
+        Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenRank_WhenIssuesExistOrNot_ThenNoContentOrRecordedError()
     {
         Start(0);

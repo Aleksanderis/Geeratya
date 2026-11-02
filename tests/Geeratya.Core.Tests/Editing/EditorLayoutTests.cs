@@ -39,6 +39,32 @@ public class EditorLayoutTests
     }
 
     [Fact]
+    public void GivenAWordThatDoesNotFit_WhenLayingOut_ThenItWrapsWholeAfterTheLastSpace()
+    {
+        var rows = EditorLayout.Rows("aa bbb cc", 5);
+
+        Assert.Equal([new EditorRow(0, 3), new EditorRow(3, 7), new EditorRow(7, 9)], rows);
+    }
+
+    [Fact]
+    public void GivenAWordLongerThanTheRow_WhenLayingOut_ThenItWrapsByCharacterAfterTheSpaceWrap()
+    {
+        var rows = EditorLayout.Rows("a bcdefghij", 4);
+
+        Assert.Equal([new EditorRow(0, 2), new EditorRow(2, 6), new EditorRow(6, 10), new EditorRow(10, 11)], rows);
+    }
+
+    [Fact]
+    public void GivenAWordWrappedRow_WhenLocatingAtItsBoundary_ThenTheIndexBelongsToTheNextRow()
+    {
+        const string text = "aa bbb cc";
+        var rows = EditorLayout.Rows(text, 5);
+
+        Assert.Equal(new EditorPosition(1, 0), EditorLayout.Locate(text, rows, 3));
+        Assert.Equal(new EditorPosition(0, 2), EditorLayout.Locate(text, rows, 2));
+    }
+
+    [Fact]
     public void GivenAWrappedRowBoundary_WhenLocating_ThenTheIndexBelongsToTheNextRow()
     {
         const string text = "abcdefgh";
