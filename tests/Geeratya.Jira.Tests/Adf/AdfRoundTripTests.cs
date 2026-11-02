@@ -12,6 +12,15 @@ public sealed class AdfRoundTripTests
     private const string RichDescription = "adf/issue-gtm5-rich-description.json";
     private const string ExtendedNodes = "adf/issue-gcm-extended-nodes.json";
     private const string LiveWriterBody = "adf/writer-roundtrip-gtm30.json";
+    private const string LiveEdgeBody = "adf/writer-edge-gtm31.json";
+    private const string LiveWriterSource =
+        "Intro with **bold** and @[Test User 1](mention:fake-account-1) here.\n\n- one\n  - nested a\n    - deeper\n"
+        + "  - nested b\n- two\n\n1. first\n   1. sub first\n   2. sub second\n2. second\n\n- [ ] todo item\n"
+        + "- [x] done item\n\n> a quote with *italic*\n> second line\n\n- item with quote\n  > inside item\n\n"
+        + "## Heading\n\n```csharp\nvar x = 1;\n```\n\n---\n\n<https://example.com/x>\n";
+    private const string LiveEdgeSource =
+        "- \n- real item\n\n> \n\n> # heading in quote\n> ---\n> > nested quote\n\n- - opens item\n"
+        + "- # heading in item\n  ---\n  more\n\n- last\n  > quote in item\n";
     private const string FuzzAlphabet = "ab *_~+`[]()<>\\#-.1\n@:x\"é";
 
     [Theory]
@@ -438,20 +447,25 @@ public sealed class AdfRoundTripTests
         }
     }
 
-    [Fact]
-    public void GivenBodyJiraStoredAfterWriterJson_WhenRoundTripping_ThenDescriptionAndCommentSurvive()
+    [Theory]
+    [InlineData(LiveWriterBody, LiveWriterSource)]
+    [InlineData(LiveEdgeBody, LiveEdgeSource)]
+    public void GivenSourceSentToDevSite_WhenWritingJson_ThenItEqualsWhatJiraStoredForDescriptionAndComment(
+        string fixture,
+        string source)
     {
-        using var stored = JsonDocument.Parse(FixtureFiles.Read(LiveWriterBody));
+        // The fixtures are what the dev site stored after accepting AdfJsonWriter output (issue #266) as an issue
+        // description and as a comment; Jira only adds an empty accessLevel and the mention text.
+        using var stored = JsonDocument.Parse(FixtureFiles.Read(fixture));
         var fields = stored.RootElement.GetProperty("fields");
         var description = AdfParser.Parse(fields.GetProperty("description").Clone());
         var commentBody = fields.GetProperty("comment").GetProperty("comments")[0].GetProperty("body");
         var comment = AdfParser.Parse(commentBody.Clone());
+        var written = AdfJsonWriter.ToJson(AdfMarkdownParser.Parse(source));
 
+        Assert.Equal(written, AdfJsonWriter.ToJson(description));
+        Assert.Equal(written, AdfJsonWriter.ToJson(comment));
         Assert.True(AdfRoundTrip.RoundTrips(description));
-        Assert.True(AdfRoundTrip.RoundTrips(comment));
-        Assert.Equal(AdfJsonWriter.ToJson(description), AdfJsonWriter.ToJson(comment));
-        Assert.Contains("\"taskList\"", AdfJsonWriter.ToJson(description), StringComparison.Ordinal);
-        Assert.Contains("\"mention\"", AdfJsonWriter.ToJson(description), StringComparison.Ordinal);
     }
 
     private static AdfDocument Body(string fixture, int commentIndex = 0)
