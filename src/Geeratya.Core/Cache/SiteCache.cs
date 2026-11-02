@@ -296,12 +296,49 @@ public sealed class SiteCache : IDisposable
     /// <summary>
     /// Drops the memory part and any pending write at once, without waiting for file work in progress (the UI
     /// thread calls it on a profile switch). A batch already being written may still finish; the disk stays.
+    /// Pending removals (an issue that is gone, removed views) are not lost: they are deleted on a pool thread,
+    /// the returned task completes when that is done.
     /// </summary>
-    public void Discard()
+    public Task Discard()
     {
+        var (removed, removeViews) = DiscardMemory();
+
+        if (removed.Count == 0 && !removeViews)
+        {
+            return Task.CompletedTask;
+        }
+
+        return Task.Run(() =>
+        {
+            lock (_diskLock)
+            {
+                DeletePending(removed, removeViews);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Like <see cref="Discard"/>, but waits for a write in progress, so nothing can touch the folder afterwards
+    /// (a folder that is about to be deleted, so pending removals are not carried out).
+    /// </summary>
+    public void Dispose()
+    {
+        lock (_diskLock)
+        {
+            DiscardMemory();
+        }
+    }
+
+    private (List<string> Removed, bool RemoveViews) DiscardMemory()
+    {
+        List<string> removed;
+        bool removeViews;
+
         lock (_memoryLock)
         {
             _disposed = true;
+            removed = [.. _removedIssues];
+            removeViews = _viewsRemoved;
             _views.Clear();
             _pending.Clear();
             _issues.Clear();
@@ -311,17 +348,20 @@ public sealed class SiteCache : IDisposable
         }
 
         _timer.Dispose();
+
+        return (removed, removeViews);
     }
 
-    /// <summary>
-    /// Like <see cref="Discard"/>, but waits for a write in progress, so nothing can touch the folder afterwards
-    /// (a folder that is about to be deleted).
-    /// </summary>
-    public void Dispose()
+    private void DeletePending(List<string> removed, bool removeViews)
     {
-        lock (_diskLock)
+        if (removeViews)
         {
-            Discard();
+            DeleteViewFiles();
+        }
+
+        foreach (var key in removed)
+        {
+            DeleteQuietly(Path.Combine(_folder, IssueFileName(key)));
         }
     }
 

@@ -68,7 +68,7 @@ public sealed class SiteCaches : IDisposable
             _open.Remove(FolderOf(profile), out cache);
         }
 
-        cache?.Discard();
+        _ = cache?.Discard();
     }
 
     /// <summary>
