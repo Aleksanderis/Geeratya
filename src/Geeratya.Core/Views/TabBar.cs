@@ -38,14 +38,17 @@ public static class TabBar
 
     /// <summary>
     /// The cells each drawn tab occupies in the bar built for <paramref name="width"/>, in the order drawn. A mouse
-    /// click on a cell inside an area activates that tab (the hidden-tab marks <c>‹n</c> and <c>+n ›</c> are areas too: they step to the neighbouring hidden tab); the separators are not.
+    /// click on a cell inside an area activates that tab (the hidden-tab marks <c>‹n</c> and <c>+n ›</c> are areas
+    /// too: they step to the neighbouring hidden tab); the separators are not.
     /// </summary>
     public static IReadOnlyList<TabArea> Areas(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
         return Layout(tabs, active, width).Areas;
     }
 
-    /// <summary>The cells of the <c>+</c> button after the last tab, null when the bar has no room for it or hides tabs.</summary>
+    /// <summary>
+    /// The cells of the <c>+</c> button after the last tab, null when the bar has no room for it or hides tabs.
+    /// </summary>
     public static TabButton? NewTabButton(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
         return Layout(tabs, active, width).NewTab;
@@ -235,7 +238,9 @@ public static class TabBar
             var mark = HiddenRight(texts.Length - 1 - high);
 
             spans.Add(new StyledSpan(Separator, TextRole.Body));
-            areas.Add(new TabArea(tabs[high + 1].Id, column + Separator.Length, column + Separator.Length + DisplayWidth.Of(mark)));
+            var markStart = column + Separator.Length;
+
+            areas.Add(new TabArea(tabs[high + 1].Id, markStart, markStart + DisplayWidth.Of(mark)));
             spans.Add(new StyledSpan(mark, TextRole.Muted));
 
             return (new StyledLine(spans), areas, null);
@@ -247,7 +252,9 @@ public static class TabBar
             spans.Add(new StyledSpan(Separator, TextRole.Body));
             spans.Add(new StyledSpan(NewTabText, TextRole.Muted));
 
-            return (new StyledLine(spans), areas, new TabButton(column + Separator.Length, column + Separator.Length + NewTabText.Length));
+            var buttonStart = column + Separator.Length;
+
+            return (new StyledLine(spans), areas, new TabButton(buttonStart, buttonStart + NewTabText.Length));
         }
 
         return (new StyledLine(spans), areas, null);

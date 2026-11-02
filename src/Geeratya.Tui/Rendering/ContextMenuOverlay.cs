@@ -19,7 +19,9 @@ public static class ContextMenuOverlay
     private const int KeyGap = 2;
     private const int TopGap = 2;
 
-    /// <summary>Draws the menu of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
+    /// <summary>
+    /// Draws the menu of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).
+    /// </summary>
     public static IReadOnlyList<StyledLine> Compose(
         IReadOnlyList<StyledLine> body,
         AppState state,

@@ -48,7 +48,8 @@ public static class ColumnsNavigation
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
 
         if (BoardWindows.For(columns.Count, cursor.Column, width).Count < 2
-            || BoardHits.At(columns, cursor, tab.VisibleRows, width, fromColumn, fromRow, tab.Next is not null) is not { Card: not null } source
+            || BoardHits.At(columns, cursor, tab.VisibleRows, width, fromColumn, fromRow, tab.Next is not null)
+                is not { Card: not null } source
             || BoardHits.ColumnAtCell(columns, cursor, width, toColumn) is not { } target)
         {
             return null;

@@ -1,6 +1,8 @@
 using Geeratya.Core.Comments;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Menus;
 
@@ -36,7 +38,9 @@ public static class ContextMenus
     /// <summary>The menu for the cursor of the active tab, null when there is no issue under it.</summary>
     public static ContextMenuState? For(AppState state)
     {
-        var tab = state.Session.Active is { } id ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id) : null;
+        var tab = state.Session.Active is { } id
+            ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id)
+            : null;
 
         if (tab is null)
         {
@@ -44,13 +48,18 @@ public static class ContextMenus
         }
 
         var actions = new List<string>(_issueActions);
+        var parent = tab.Detail.Count > 0
+            ? tab.Detail[^1].Issue?.Parent?.Key ?? tab.Detail[^1].Row?.Parent?.Key
+            : tab.Rows.ElementAtOrDefault(tab.Selected)?.Parent?.Key;
+
+        if (parent is null)
+        {
+            actions.Remove(ActionIds.IssueOpenParent);
+        }
 
         if (tab.Detail.Count > 0)
         {
-            if (CommentEditing.IsOnComment(state))
-            {
-                actions.Add(ActionIds.CommentDelete);
-            }
+            AddDetailActions(state, tab, actions);
         }
         else if (tab.Rows.Count == 0)
         {
@@ -58,12 +67,26 @@ public static class ContextMenus
         }
         else
         {
+            actions.Remove(ActionIds.IssueUnlink);
             actions.AddRange(_rankActions);
         }
 
         var items = actions.Select(Item).ToList();
 
         return new ContextMenuState(items, 0);
+    }
+
+    private static void AddDetailActions(AppState state, TabState tab, List<string> actions)
+    {
+        if (DetailReducer.TargetOf(tab.Detail[^1]) is not { LinkId: not null })
+        {
+            actions.Remove(ActionIds.IssueUnlink);
+        }
+
+        if (CommentEditing.IsOnComment(state))
+        {
+            actions.Add(ActionIds.CommentDelete);
+        }
     }
 
     /// <summary>Moves the highlight, clamped to the items.</summary>

@@ -66,6 +66,11 @@ public static class MouseHitTester
 
         var button = context.NewTabButton;
 
-        return button is { } cells && column >= cells.Start && column < cells.End ? MouseTarget.NewTabButton : MouseTarget.Tabs;
+        if (button is { } cells && column >= cells.Start && column < cells.End)
+        {
+            return MouseTarget.NewTabButton;
+        }
+
+        return MouseTarget.Tabs;
     }
 }

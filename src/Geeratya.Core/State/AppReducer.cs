@@ -633,7 +633,7 @@ public sealed class AppReducer
     {
         if (ContextMenus.For(state) is not { } menu)
         {
-            return Result(state with { Message = "No issue under the pointer." });
+            return Result(state with { Message = "No issue selected." });
         }
 
         return Result(ToNormal(state) with { Mode = InputMode.Insert, ContextMenu = menu });

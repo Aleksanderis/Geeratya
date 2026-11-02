@@ -169,14 +169,18 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (selected > 0)
         {
-            spans.Add(new StyledSpan(BoardHeaderText.LeftNeighbour(columns[selected - 1], tab.Next is not null), TextRole.Muted));
+            var left = BoardHeaderText.LeftNeighbour(columns[selected - 1], tab.Next is not null);
+
+            spans.Add(new StyledSpan(left, TextRole.Muted));
         }
 
         spans.Add(new StyledSpan(ColumnTitle(tab, columns[selected]), TextRole.Heading));
 
         if (selected < columns.Count - 1)
         {
-            spans.Add(new StyledSpan(BoardHeaderText.RightNeighbour(columns[selected + 1], tab.Next is not null), TextRole.Muted));
+            var right = BoardHeaderText.RightNeighbour(columns[selected + 1], tab.Next is not null);
+
+            spans.Add(new StyledSpan(right, TextRole.Muted));
         }
 
         var fitted = Fitted(spans, window.Width - 1, HorizontalChar);

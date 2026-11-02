@@ -27,7 +27,7 @@
 │ l         Switch between list and columns      │                                                                      
 │ o         Open the issue in the browser        │                                                                      
 │ p         Open the parent issue                │                                                                      
-│ a         Open the actions of the row under th │                                                                      
+│ a         Open the actions menu of the selecte │                                                                      
 │ m         +comment (3)                         │                                                                      
 │ i         +issue (9)                           │                                                                      
 │ k         +rank (3)                            │                                                                      

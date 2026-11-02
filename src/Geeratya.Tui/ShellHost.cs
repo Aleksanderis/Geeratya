@@ -250,7 +250,12 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         if (drag is { } dropped)
         {
-            return MouseResolver.ResolveDrag(context, dropped.FromColumn, dropped.FromRow, dropped.ToColumn, dropped.ToRow);
+            return MouseResolver.ResolveDrag(
+                context,
+                dropped.FromColumn,
+                dropped.FromRow,
+                dropped.ToColumn,
+                dropped.ToRow);
         }
 
         return MouseFlagTranslator.TryTranslate(flags, out var gesture)

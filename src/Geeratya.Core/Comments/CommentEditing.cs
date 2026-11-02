@@ -440,7 +440,9 @@ internal static class CommentEditing
         return WithEditor(state, editor with { Buffer = buffer, Error = edited ? null : editor.Error });
     }
 
-    /// <summary>Whether the cursor of the shown issue is on a comment (the right-click menu offers its delete then).</summary>
+    /// <summary>
+    /// Whether the cursor of the shown issue is on a comment (the right-click menu offers its delete then).
+    /// </summary>
     public static bool IsOnComment(AppState state)
     {
         return TopOf(state) is { } top && CommentUnderCursor(top.Detail) is not null;

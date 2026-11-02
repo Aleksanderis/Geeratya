@@ -1,4 +1,5 @@
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -12,9 +13,13 @@ internal static class CardDrag
     public static ReduceResult Drop(AppState state, CardDragged drag)
     {
         var none = new ReduceResult(state, []);
-        var tab = state.Session.Active is { } id ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id) : null;
+        var tab = state.Session.Active is { } id
+            ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id)
+            : null;
 
-        if (state.Mode != Keymap.InputMode.Normal || tab is not { Detail.Count: 0 } || tab.Definition.Layout != ViewLayout.Columns)
+        if (state.Mode != InputMode.Normal
+            || tab is not { Detail.Count: 0 }
+            || tab.Definition.Layout != ViewLayout.Columns)
         {
             return none;
         }

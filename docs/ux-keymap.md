@@ -38,7 +38,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>g` jump to an issue by key |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>g` jump to an issue by key |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M4) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
@@ -73,10 +73,10 @@ The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M6 #194 (bound), #300 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M5 #190 (bound) |
-| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | context menu on the link row | M5 #190 (bound) |
+| `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | right-click menu on the link row (offered only there) | M5 #190 (bound) |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
-| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | context menu on the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
+| `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | right-click menu on the comment ([ux-mouse.md](ux-mouse.md), part M) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
 | `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M4 #182 |

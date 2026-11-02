@@ -105,6 +105,19 @@ public class MousePlacementTests
         Assert.DoesNotContain(ActionIds.TabClose, actions);
         Assert.DoesNotContain(ActionIds.Quit, actions);
         Assert.DoesNotContain(ActionIds.CommentDelete, actions);
+        Assert.DoesNotContain(ActionIds.IssueUnlink, actions);
+        Assert.DoesNotContain(ActionIds.IssueOpenParent, actions);
+    }
+
+    [Fact]
+    public void GivenNoIssue_WhenOpeningTheMenuByKey_ThenNoMenuOpensAndTheNoticeSaysSo()
+    {
+        var state = Start();
+
+        var keyed = _reducer.Reduce(_reducer.Reduce(state, new KeyPressed("Space")).State, new KeyPressed("a")).State;
+
+        Assert.Null(keyed.ContextMenu);
+        Assert.Equal(InputMode.Normal, keyed.Mode);
     }
 
     [Fact]
@@ -612,7 +625,14 @@ public class MousePlacementTests
             "A");
     }
 
-    private ReduceResult Drag(AppState state, int width, int height, int fromColumn, int fromRow, int toColumn, int toRow)
+    private ReduceResult Drag(
+        AppState state,
+        int width,
+        int height,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow)
     {
         var context = MouseContext.From(state, width, height, HeaderRows, _now);
         var current = new ReduceResult(state, []);
