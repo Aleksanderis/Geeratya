@@ -56,3 +56,15 @@ Method: a temporary xUnit test (not committed) repeated the 24 issues of `search
 | `AdfParser.Parse(ReadOnlySpan<byte>)` (includes `JsonDocument.Parse`) | same | same | 47 us | 82 us |
 
 Method: temporary console project outside the repo (2000 warm-up, 5000 timed iterations, `Stopwatch`), noisy machine. The parse happens once per opened issue or comment, never per frame.
+
+### ADF rendering (#80)
+
+| Path | Binary | Dataset | Median | p95 |
+|---|---|---|---|---|
+| `AdfRenderer.Render` at width 80 | Native AOT, tiny console project referencing `Geeratya.Core` | `fields.description` of `adf/issue-gtm5-rich-description.json` (longest recorded, 11.1 KB, about 45 lines, 28 KB allocated) | 10 us | 16 us |
+| same at width 20 | same | same | 10 us | 16 us |
+| same at width 80 | same | `adf/issue-gcm-media-description.json` (one media node) | under 1 us | 1 us |
+| same at width 80 | same | synthetic document: the rich description repeated to 5001 lines (3.5 MB allocated) | 1.2 ms | 2.8 ms |
+| same at width 120 | same | same synthetic document | 1.7 ms | 7.5 ms |
+
+Method: temporary console project outside the repo (warm-up of a fifth of the runs, 3000 timed renders for the recorded descriptions, 40 for the synthetic one, `Stopwatch`), machine under load (load average 18 on 14 cores), so p95 is noisy. Rendering is pure and happens once per (document, width), when an issue is opened or the terminal is resized, never per frame; the renderer wraps the whole document (no laziness), which is far below a frame even at 5000 lines. `DisplayWidth.Of` got an ASCII fast path (a scan for printable ASCII before the grapheme enumerator) because table padding measures every line.
