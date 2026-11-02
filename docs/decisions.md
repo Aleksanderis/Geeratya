@@ -8,6 +8,10 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Scope:** Scrum boards and sprints are in (milestone M3, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
 
+**Jira layer:** Project configuration is dynamic: issue types, fields (including custom ones), required fields, allowed values, transitions, statuses and link types are read per connection and project from Jira metadata, never hard-coded from the dev projects; unsupported field types degrade to read-only with a browser link. Why: every site and project differs (custom fields, custom issue types, team-managed vs company-managed). Rule in `.claude/rules/jira-layer.md`.
+
+**UI:** Suggestions: `@` opens people, `#` plus a project key opens issues (inside text editors, Neovim-style popup); picker fields (labels, components, assignee, selects) suggest by context as you type, fzf/zoxide `zi` style. Why: owner's choice; issues #213-#215.
+
 **Process:** Milestones after M2 follow what Gitunia had to redo, not its order: the write pipeline and a UI-free `Geeratya.App` project come first in M2 (running operations in state, rollback, mutual exclusion), the keymap gets command levels and a completeness test (M5), themes get a contrast test each (M6), and version stamping, idle CPU and macOS come before release week (M7). Why: Gitunia's M5 keymap redesign, M7 effects-as-data refactor and M6 theme and console fixes were rework.
 
 ## 2026-11-01
