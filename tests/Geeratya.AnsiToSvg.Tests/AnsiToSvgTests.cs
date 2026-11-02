@@ -15,6 +15,18 @@ public sealed class AnsiToSvgTests
         Assert.Equal(CellStyle.Plain, screen[0][2].Style);
     }
 
+    [Theory]
+    [InlineData("\u001b]8;;https://example.com\u001b\\")]
+    [InlineData("\u001b]8;;https://example.com\a")]
+    public void GivenHyperlinkSequences_WhenParsed_ThenOnlyTheLinkTextIsShown(string open)
+    {
+        var screen = AnsiScreen.Parse($"{open}ab{_escape}]8;;{_escape}\\c", 6, 1);
+
+        Assert.Equal("a", screen[0][0].Text);
+        Assert.Equal("b", screen[0][1].Text);
+        Assert.Equal("c", screen[0][2].Text);
+    }
+
     [Fact]
     public void GivenWideCharacter_WhenParsed_ThenItTakesTwoColumnsWithoutGap()
     {

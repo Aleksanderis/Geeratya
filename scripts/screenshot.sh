@@ -167,7 +167,7 @@ render() {
   dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo >> "$work/build.log" 2>&1 \
     || { tail -20 "$work/build.log" >&2; exit 1; }
 
-  # The deterministic dataset is the generated one, so no recorded name or key reaches an image.
+  # The deterministic dataset is the generated one; only the detail-relations scenarios use the scrubbed recorded fixtures.
   dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
   fake_pid=$!
   for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
@@ -175,11 +175,14 @@ render() {
   case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
 
   # The recorded dataset is scrubbed fixtures; only the relations scenarios use it.
-  dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
-  recorded_pid=$!
-  for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
-  recorded_url=$(head -n 1 "$work/fake-recorded.url")
-  case $recorded_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+  # Started only when a selected scenario needs it.
+  if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* ]]; then
+    dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
+    recorded_pid=$!
+    for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
+    recorded_url=$(head -n 1 "$work/fake-recorded.url")
+    case $recorded_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+  fi
 
   local rendered=0
   for spec in "${all_scenarios[@]}"; do
