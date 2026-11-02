@@ -245,7 +245,7 @@ public sealed class JiraTransport : IDisposable
             var body = await response.Content.ReadAsStringAsync(timeout.Token);
 
             return response.IsSuccessStatusCode
-                ? ParseBody(body, resultInfo)
+                ? ParseBody(body, resultInfo, request.AllowsEmptyBody)
                 : JiraResults.Failure<T>(MapFailure(response, body));
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -337,9 +337,9 @@ public sealed class JiraTransport : IDisposable
         return message;
     }
 
-    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T>? resultInfo)
+    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T>? resultInfo, bool allowsEmptyBody)
     {
-        if (resultInfo is null)
+        if (resultInfo is null || (allowsEmptyBody && string.IsNullOrWhiteSpace(body)))
         {
             return JiraResults.Success<T>(default!);
         }
