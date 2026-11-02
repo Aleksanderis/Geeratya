@@ -79,7 +79,7 @@ public static class JqlBuilder
         return joined.Length == 0 ? string.Empty : $"({joined})";
     }
 
-    /// <summary>Appends <c>ORDER BY</c> terms to a restriction (empty restriction: the result is unbounded).</summary>
+    /// <summary>Appends <c>ORDER BY</c> terms to a restriction that has none (empty restriction: the result is unbounded).</summary>
     public static string WithOrder(string restriction, params IEnumerable<JqlOrder> orders)
     {
         var terms = string.Join(", ", orders.Select(Term));
@@ -90,7 +90,12 @@ public static class JqlBuilder
             return body;
         }
 
-        return body.Length == 0 ? $"{OrderByKeyword} {terms}" : $"{body} {OrderByKeyword} {terms}";
+        if (body.Length == 0)
+        {
+            return $"{OrderByKeyword} {terms}";
+        }
+
+        return $"{body} {OrderByKeyword} {terms}";
     }
 
     /// <summary>

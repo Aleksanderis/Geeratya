@@ -142,6 +142,9 @@ public sealed class JqlBuilderTests
     [InlineData("project = GCM", true)]
     [InlineData("project = GCM ORDER BY Rank", true)]
     [InlineData("summary ~ \"order by x\"", true)]
+    [InlineData("summary ~ 'order by x'", true)]
+    [InlineData("summary ~ 'it\\'s' ORDER BY created", true)]
+    [InlineData("summary ~ \"unterminated order by", true)]
     [InlineData("summary ~ \"a\\\" order by\" ORDER BY created", true)]
     [InlineData("reorder by", true)]
     [InlineData("filter = 10001", true)]
@@ -181,16 +184,22 @@ public sealed class JqlBuilderTests
         Assert.Equal("project = \"GCM\" AND parent = GCM-5 AND filter = 10001 ORDER BY Rank ASC", received);
     }
 
+    /// <summary>Strict: fails when a quote inside the literal is unescaped or an escape dangles at the end.</summary>
     private static string Unquote(string literal)
     {
+        Assert.StartsWith("\"", literal);
+        Assert.EndsWith("\"", literal);
         var inner = literal[1..^1];
         var result = new StringBuilder();
 
         for (var index = 0; index < inner.Length; index++)
         {
+            Assert.NotEqual('"', inner[index]);
+
             if (inner[index] == '\\')
             {
                 index++;
+                Assert.True(index < inner.Length, "Dangling escape would swallow the closing quote.");
             }
 
             result.Append(inner[index]);
