@@ -39,8 +39,6 @@ public class ColumnsSnapshotTests
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
     }
 
-    private const string _drawnGlyphs = "‹›↑▾…·○◐●─━│┃┌┐└┘├┤┬┴┼┏┓┗┛┣┫╭╮╰╯";
-
     [Theory]
     [InlineData("gcm", 120, 36)]
     [InlineData("gcm", 80, 24)]
@@ -57,7 +55,7 @@ public class ColumnsSnapshotTests
         var expected = SnapshotFile.Expect($"columns-ascii-{kind}-{width}x{height}.txt", actual);
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
-        Assert.All(lines, line => Assert.DoesNotContain(line, character => _drawnGlyphs.Contains(character)));
+        Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
 

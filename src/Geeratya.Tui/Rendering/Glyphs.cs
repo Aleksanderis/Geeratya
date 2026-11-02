@@ -36,7 +36,9 @@ public sealed class Glyphs
 
     /// <summary>
     /// Swaps every character the shell draws outside ASCII (box lines, arrows, marks, separators) for one ASCII character,
-    /// one cell for one cell, so a line keeps its width. Other text, such as issue content, is not touched.
+    /// one cell for one cell, so a line keeps its width. Other characters are kept, but these same characters inside issue
+    /// text are swapped too (the pass cannot tell them apart, and a terminal that needs the ASCII set cannot show them anyway).
+    /// A cut text ends with <c>.</c> instead of <c>…</c> to stay one cell wide.
     /// </summary>
     public static string ToAscii(string text)
     {
@@ -47,6 +49,9 @@ public sealed class Glyphs
 
         return string.Concat(text.Select(static character => _asciiOf.TryGetValue(character, out var ascii) ? ascii : character));
     }
+
+    /// <summary>Every character <see cref="ToAscii"/> swaps.</summary>
+    public static IEnumerable<char> AsciiSwapped => _asciiOf.Keys;
 
     public static Glyphs For(GlyphSet set)
     {
@@ -62,6 +67,7 @@ public sealed class Glyphs
             ['↑'] = '^',
             ['▾'] = 'v',
             ['…'] = '.',
+            ['→'] = '>',
             ['·'] = '-',
             ['○'] = '.',
             ['◐'] = '~',
