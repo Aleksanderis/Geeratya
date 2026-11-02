@@ -46,6 +46,12 @@ public sealed class FakeJiraRouter
         ["/rest/api/3/issue/GCM-6"] = "issues/issue-gcm6.json",
         ["/rest/api/3/issue/GCM-10"] = "issues/issue-gcm10.json",
         ["/rest/api/3/issue/GCM-24"] = "issues/issue-gcm24.json",
+        ["/rest/api/3/issue/GTM-5/comment"] = "adf/comments-gtm5.json",
+        ["/rest/api/3/issue/GCM-6/comment"] = "comments/comments-gcm6.json",
+        ["/rest/api/3/issue/GCM-2/comment"] = "comments/comments-empty.json",
+        ["/rest/api/3/issue/GTM-5/remotelink"] = "links/remotelink-list-gtm5.json",
+        ["/rest/api/3/issue/GCM-6/remotelink"] = "links/remotelink-list-gcm6.json",
+        ["/rest/api/3/issue/GCM-2/remotelink"] = "links/remotelink-list-empty.json",
     };
 
     private static readonly string[] _searchPages =

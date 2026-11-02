@@ -1,0 +1,34 @@
+[
+  {
+    "application": {
+      "name": "Confluence",
+      "type": "com.atlassian.confluence"
+    },
+    "id": 10000,
+    "object": {
+      "icon": {},
+      "title": "Design notes",
+      "url": "https://example.atlassian.net/wiki/spaces/DEV/pages/1"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issue/GCM-6/remotelink/10000"
+  },
+  {
+    "application": {},
+    "id": 10001,
+    "object": {
+      "icon": {},
+      "title": "Plain web page",
+      "url": "https://example.com/plain"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issue/GCM-6/remotelink/10001"
+  },
+  {
+    "application": {},
+    "id": 10002,
+    "object": {
+      "icon": {},
+      "url": "https://example.com/untitled"
+    },
+    "self": "https://example.atlassian.net/rest/api/3/issue/GCM-6/remotelink/10002"
+  }
+]
