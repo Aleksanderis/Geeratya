@@ -164,7 +164,10 @@ public sealed partial class FakeScrumStore
 
     private static string StateOf(JsonNode? sprint) => sprint![StateName]!.GetValue<string>();
 
-    private static string Now() => DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
+    private static string Now()
+    {
+        return DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
+    }
 
     private FakeReply Raw(int status, string fixture) => new(status, _readFixture(fixture));
 

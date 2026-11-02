@@ -81,7 +81,7 @@ public sealed partial class FakeScrumStore
         return Json(Ok, list);
     }
 
-    /// <summary>Sprints of the board: closed first, then active, then future (not by id), filtered by <c>state</c>.</summary>
+    /// <summary>Sprints of the board: closed first, then active, then future, filtered by <c>state</c>.</summary>
     private FakeReply SprintList(FakeScrumBoard board, IReadOnlyDictionary<string, string> query)
     {
         var states = query.TryGetValue(StateFilterName, out var text) ? text.Split(',') : [];

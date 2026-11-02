@@ -100,6 +100,12 @@ public sealed partial class FakeScrumStore
 
         var current = StateOf(sprint);
         var target = TextOf(request, StateName) ?? current;
+
+        if (Unknown(target))
+        {
+            return Raw(BadRequest, InvalidPayloadFixture);
+        }
+
         var failure = CheckTransition(sprint, request, current, target);
 
         if (failure is not null)
@@ -166,7 +172,7 @@ public sealed partial class FakeScrumStore
         return new FakeReply(NoContent, []);
     }
 
-    /// <summary>Moves issues into an open sprint; an issue in another open sprint leaves it (one open sprint each).</summary>
+    /// <summary>Moves issues into an open sprint; an issue in another open sprint leaves it.</summary>
     private FakeReply MoveIssues(int id, string body)
     {
         if (!IsOpen(id))
@@ -176,7 +182,7 @@ public sealed partial class FakeScrumStore
 
         var keys = KeysOf(body);
 
-        if (keys is null)
+        if (keys is null || keys.Any(key => !SameBoard(id, key)))
         {
             return Raw(BadRequest, MissingIssueFixture);
         }
@@ -211,6 +217,13 @@ public sealed partial class FakeScrumStore
         return new FakeReply(NoContent, []);
     }
 
+    private bool SameBoard(int sprintId, string key)
+    {
+        var board = FindSprint(sprintId)![OriginBoardName]!.GetValue<int>();
+
+        return _boardIssueKeys[board].Contains(key);
+    }
+
     private void LeaveOpenSprints(string key)
     {
         foreach (var sprint in _sprints.Where(candidate => StateOf(candidate) != ClosedState))
@@ -219,7 +232,7 @@ public sealed partial class FakeScrumStore
         }
     }
 
-    /// <summary>The issue keys of <c>{"issues": [...]}</c>; null when empty, malformed or naming an unknown issue.</summary>
+    /// <summary>The keys of <c>{"issues": [...]}</c>; null when empty, malformed or naming an unknown issue.</summary>
     private List<string>? KeysOf(string body)
     {
         if (ParseObject(body)?[IssuesName] is not JsonArray array || array.Count == 0)

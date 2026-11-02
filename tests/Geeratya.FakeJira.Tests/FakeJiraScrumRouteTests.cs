@@ -7,7 +7,8 @@ namespace Geeratya.FakeJira.Tests;
 public sealed class FakeJiraScrumRouteTests : IDisposable
 {
     private const string Agile = "/rest/agile/1.0";
-    private const string StartBody = """{"state":"active","startDate":"2026-11-02T10:00:00.000Z","endDate":"2026-11-09T10:00:00.000Z"}""";
+    private const string StartBody =
+        """{"state":"active","startDate":"2026-11-02T10:00:00.000Z","endDate":"2026-11-09T10:00:00.000Z"}""";
 
     private readonly HttpClient _client = new();
     private readonly FakeJiraServer _server;
@@ -80,7 +81,9 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         var response = await _client.GetAsync($"{_baseUrl}{Agile}/board/{board}/sprint");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("does not support sprints", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        var text = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("does not support sprints", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -256,7 +259,9 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         var sprint = await Json($"{Agile}/sprint/7");
 
         Assert.Equal(HttpStatusCode.BadRequest, complete.StatusCode);
-        Assert.Contains("Invalid request payload", await complete.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        var text = await complete.Content.ReadAsStringAsync();
+
+        Assert.Contains("Invalid request payload", text, StringComparison.Ordinal);
         Assert.Equal("active", sprint.GetProperty("state").GetString());
     }
 
@@ -271,6 +276,18 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
         Assert.DoesNotContain(backlog[0], after);
         Assert.Contains(backlog[0], Keys(await Json($"{Agile}/sprint/8/issue")));
+    }
+
+    [Fact]
+    public async Task GivenUnknownStateOrForeignBoardIssue_WhenSent_ThenBadRequestAndNothingChanges()
+    {
+        var state = await Send(HttpMethod.Put, $"{Agile}/sprint/8", """{"state":"bogus"}""");
+        var foreign = await Send(HttpMethod.Post, $"{Agile}/sprint/8/issue", """{"issues":["GTS-22"]}""");
+        var sprint = await Json($"{Agile}/sprint/8");
+
+        Assert.Equal(HttpStatusCode.BadRequest, state.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, foreign.StatusCode);
+        Assert.Equal("future", sprint.GetProperty("state").GetString());
     }
 
     [Fact]

@@ -58,7 +58,6 @@ public sealed partial class FakeJiraRouter
         ["/rest/api/3/filter/my"] = "filters/filter-my.json",
         ["/rest/api/3/filter/search"] = "filters/filter-search.json",
         ["/rest/api/3/filter/favourite"] = "filters/filter-favourite-empty.json",
-        ["/rest/agile/1.0/board"] = "boards/board-list.json",
         ["/rest/agile/1.0/board/3"] = "boards/board-gtm.json",
         ["/rest/agile/1.0/board/4"] = "boards/board-gcm.json",
         ["/rest/agile/1.0/board/3/configuration"] = "boards/board-gtm-config.json",
