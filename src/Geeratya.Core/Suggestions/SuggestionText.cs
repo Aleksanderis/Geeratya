@@ -11,6 +11,7 @@ public static class SuggestionText
     public static string Of(Suggestion suggestion)
     {
         var name = suggestion.Detail is { Length: > 0 } detail && detail != SuggestionRanker.NewValueDetail
+            && detail != AssigneeQuickRows.MeDetail
             ? $"{detail}  {suggestion.Label}"
             : suggestion.Label;
 
@@ -20,6 +21,11 @@ public static class SuggestionText
     /// <summary>The text of a list row: as <see cref="Of"/>, and a typed value marked as new.</summary>
     public static string Row(Suggestion suggestion)
     {
-        return suggestion.Detail == SuggestionRanker.NewValueDetail ? $"{suggestion.Label}{NewValue}" : Of(suggestion);
+        return suggestion.Detail switch
+        {
+            SuggestionRanker.NewValueDetail => $"{suggestion.Label}{NewValue}",
+            AssigneeQuickRows.MeDetail => $"Me ({suggestion.Label})",
+            _ => Of(suggestion),
+        };
     }
 }
