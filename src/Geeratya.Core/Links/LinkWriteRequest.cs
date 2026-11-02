@@ -8,7 +8,8 @@ namespace Geeratya.Core.Links;
 /// A write that creates or removes a link between two issues. Not optimistic: a list row shows nothing of a link,
 /// so there is no row to patch, no row to read back and no query that the write could make stale. The open details
 /// of both issues reload instead. A lost reply is checked by reading the issue (links are part of it), which does not
-/// lag like the search index.
+/// lag like the search index. Limit: a link that already existed before a lost create reply looks like the new one,
+/// so that check can say "linked" for a link that was not made.
 /// </summary>
 /// <param name="Key">The issue the user acted on.</param>
 /// <param name="OtherKey">The issue at the other end.</param>

@@ -7,7 +7,8 @@ namespace Geeratya.FakeJira;
 
 /// <summary>
 /// The issue link part of the write store: <c>POST /issueLink</c> and <c>DELETE /issueLink/{id}</c>. A new link is
-/// listed on both issues the way Jira lists it (only the other issue, as <c>outwardIssue</c> or <c>inwardIssue</c>);
+/// listed on both issues the way Jira lists it (only the other issue, as <c>outwardIssue</c> or <c>inwardIssue</c>;
+/// the issue posted as <c>inwardIssue</c> reads the outward wording, "blocks");
 /// a removed link disappears from both. A recorded link (an id below <see cref="FirstLinkId"/>) is removed by id only:
 /// the fake cannot tell whether such an id exists, so any id not removed before is accepted.
 /// </summary>
@@ -57,8 +58,9 @@ public sealed partial class FakeJiraWriteStore
             var inwardText = StringOf(type[InwardName]) ?? name;
             var outwardText = StringOf(type[OutwardName]) ?? name;
 
-            outward.Links.Add(new StoredLink(id, typeId, name, inwardText, outwardText, inwardKey, true));
-            inward.Links.Add(new StoredLink(id, typeId, name, inwardText, outwardText, outwardKey, false));
+            // The issue posted as inwardIssue reads the outward wording ("blocks"), as Jira does.
+            inward.Links.Add(new StoredLink(id, typeId, name, inwardText, outwardText, outwardKey, true));
+            outward.Links.Add(new StoredLink(id, typeId, name, inwardText, outwardText, inwardKey, false));
 
             return Empty(Created);
         }

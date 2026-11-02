@@ -24,7 +24,7 @@ public sealed class FakeJiraLinkRouteTests : IDisposable
     [Theory]
     [InlineData("GCM-10", "GCM-2")]
     [InlineData("GTM-11", "GTM-9")]
-    public async Task GivenTwoRecordedIssues_WhenLinked_ThenEachListsTheOtherOnItsOwnSide(string outward, string inward)
+    public async Task GivenTwoRecordedIssues_WhenLinked_ThenEachListsTheOtherOnItsOwnSide(string inward, string outward)
     {
         Start();
 
@@ -35,10 +35,12 @@ public sealed class FakeJiraLinkRouteTests : IDisposable
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var onOutward = outwardLinks.Single(link => link.GetProperty("id").GetString() == "40000");
         var onInward = inwardLinks.Single(link => link.GetProperty("id").GetString() == "40000");
-        Assert.Equal(inward, onOutward.GetProperty("outwardIssue").GetProperty("key").GetString());
-        Assert.Equal(outward, onInward.GetProperty("inwardIssue").GetProperty("key").GetString());
-        Assert.Equal("blocks", onOutward.GetProperty("type").GetProperty("outward").GetString());
-        Assert.Equal("is blocked by", onInward.GetProperty("type").GetProperty("inward").GetString());
+
+        // The inwardIssue reads the outward wording: it "blocks" the outwardIssue, which "is blocked by" it.
+        Assert.Equal(outward, onInward.GetProperty("outwardIssue").GetProperty("key").GetString());
+        Assert.Equal(inward, onOutward.GetProperty("inwardIssue").GetProperty("key").GetString());
+        Assert.Equal("blocks", onInward.GetProperty("type").GetProperty("outward").GetString());
+        Assert.Equal("is blocked by", onOutward.GetProperty("type").GetProperty("inward").GetString());
     }
 
     [Fact]
@@ -102,7 +104,7 @@ public sealed class FakeJiraLinkRouteTests : IDisposable
         var links = await LinksOf(key);
 
         var link = Assert.Single(links);
-        Assert.Equal("GTM-11", link.GetProperty("outwardIssue").GetProperty("key").GetString());
+        Assert.Equal("GTM-11", link.GetProperty("inwardIssue").GetProperty("key").GetString());
     }
 
     public void Dispose()

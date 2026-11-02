@@ -50,23 +50,24 @@ public class LinkFormTests
     }
 
     [Fact]
-    public void GivenTheOutwardChoice_WhenBuildingTheRequest_ThenThisIssueIsTheOutwardSide()
+    public void GivenTheOutwardChoice_WhenBuildingTheRequest_ThenThisIssueIsPostedAsTheInwardIssue()
     {
         var request = Request("10000", IssueLinkDirection.Outward, "blocks", "gcm-5");
 
-        Assert.Equal("A-1", request.OutwardKey);
-        Assert.Equal("GCM-5", request.InwardKey);
+        // Jira names the sides by the wording the other issue reads: the issue that blocks is the inwardIssue.
+        Assert.Equal("A-1", request.InwardKey);
+        Assert.Equal("GCM-5", request.OutwardKey);
         Assert.Equal("10000", request.TypeId);
         Assert.Equal("Linked A-1 blocks GCM-5", request.DoneText);
     }
 
     [Fact]
-    public void GivenTheInwardChoice_WhenBuildingTheRequest_ThenThisIssueIsTheInwardSide()
+    public void GivenTheInwardChoice_WhenBuildingTheRequest_ThenThisIssueIsPostedAsTheOutwardIssue()
     {
         var request = Request("10000", IssueLinkDirection.Inward, "is blocked by", "  GCM-5 ");
 
-        Assert.Equal("GCM-5", request.OutwardKey);
-        Assert.Equal("A-1", request.InwardKey);
+        Assert.Equal("A-1", request.OutwardKey);
+        Assert.Equal("GCM-5", request.InwardKey);
         Assert.Equal("A-1 is blocked by GCM-5", request.Sentence);
         Assert.Equal(["A-1", "GCM-5"], request.Keys);
     }

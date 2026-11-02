@@ -36,10 +36,11 @@ public sealed class LinkClient(JiraTransport transport)
     }
 
     /// <summary>
-    /// Links two issues (<c>POST /issueLink</c>, 201). <paramref name="outwardKey"/> is the issue that reads the
-    /// type's outward wording ("blocks"), <paramref name="inwardKey"/> the one that reads the inward wording ("is
-    /// blocked by"). A malformed key, or both keys the same, is refused here (<see cref="WriteErrorKind.Validation"/>
-    /// at <see cref="IssueFieldId"/>); a missing issue or permission is Jira's 404 or 403.
+    /// Links two issues (<c>POST /issueLink</c>, 201). The parameters are the values of Jira's own fields:
+    /// <paramref name="inwardKey"/> is the issue that reads the type's outward wording ("blocks"),
+    /// <paramref name="outwardKey"/> the one that reads the inward wording ("is blocked by"). A malformed key,
+    /// or both keys the same, is refused here (<see cref="WriteErrorKind.Validation"/> at
+    /// <see cref="IssueFieldId"/>); a missing issue or permission is Jira's 404 or 403.
     /// </summary>
     public Task<WriteResult<WriteAccepted>> CreateLinkAsync(
         string typeId,

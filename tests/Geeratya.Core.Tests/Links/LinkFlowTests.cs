@@ -69,8 +69,8 @@ public class LinkFlowTests
         var effect = Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects));
         var request = Assert.IsType<LinkIssuesRequest>(effect.Request);
         Assert.Equal("is blocked by", request.DirectionText);
-        Assert.Equal("A-30", request.OutwardKey);
-        Assert.Equal("A-1", request.InwardKey);
+        Assert.Equal("A-1", request.OutwardKey);
+        Assert.Equal("A-30", request.InwardKey);
         Assert.Equal("Linking A-1 is blocked by A-30", submitted.State.Message);
     }
 

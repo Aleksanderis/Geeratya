@@ -34,8 +34,23 @@ public sealed class WriteHandlerLinkTests
         Assert.Equal(["POST"], fixture.Http.Methods);
         Assert.EndsWith("/rest/api/3/issueLink", Assert.Single(fixture.Http.Requests).AbsolutePath);
         using var body = JsonDocument.Parse(Assert.Single(fixture.Http.Bodies));
-        Assert.Equal("A-2", body.RootElement.GetProperty("outwardIssue").GetProperty("key").GetString());
-        Assert.Equal("A-1", body.RootElement.GetProperty("inwardIssue").GetProperty("key").GetString());
+        Assert.Equal("A-1", body.RootElement.GetProperty("outwardIssue").GetProperty("key").GetString());
+        Assert.Equal("A-2", body.RootElement.GetProperty("inwardIssue").GetProperty("key").GetString());
+    }
+
+    [Fact]
+    public async Task GivenTheRecordedDevSiteLink_WhenReplayingItsRequest_ThenTheBodyIsTheOneThatMadeIt()
+    {
+        // The seed script posted inwardIssue GTM-12 and outwardIssue GTM-11; the recorded read
+        // (issues/issue-gtm11.json) shows GTM-11 "is blocked by" GTM-12, so "GTM-12 blocks GTM-11" must produce exactly that body.
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Created, string.Empty));
+        var request = new LinkIssuesRequest("GTM-12", "GTM-11", "10000", IssueLinkDirection.Outward, "blocks");
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, request));
+
+        using var body = JsonDocument.Parse(Assert.Single(fixture.Http.Bodies));
+        Assert.Equal("GTM-12", body.RootElement.GetProperty("inwardIssue").GetProperty("key").GetString());
+        Assert.Equal("GTM-11", body.RootElement.GetProperty("outwardIssue").GetProperty("key").GetString());
     }
 
     [Fact]
@@ -175,8 +190,8 @@ public sealed class WriteHandlerLinkTests
 
         Assert.Equal(["GET", "POST"], fixture.Http.Methods);
         using var body = JsonDocument.Parse(fixture.Http.Bodies.Last());
-        Assert.Equal("A-1", body.RootElement.GetProperty("outwardIssue").GetProperty("key").GetString());
-        Assert.Equal("A-2", body.RootElement.GetProperty("inwardIssue").GetProperty("key").GetString());
+        Assert.Equal("A-1", body.RootElement.GetProperty("inwardIssue").GetProperty("key").GetString());
+        Assert.Equal("A-2", body.RootElement.GetProperty("outwardIssue").GetProperty("key").GetString());
         Assert.Equal("10000", body.RootElement.GetProperty("type").GetProperty("id").GetString());
         Assert.Equal("Linked A-1 blocks A-2", finished.State.Message);
         Assert.Null(finished.State.Session.Tabs[0].Form);
