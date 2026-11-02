@@ -1,0 +1,11 @@
+{
+  "startAt": 0,
+  "maxResults": 50,
+  "total": 4,
+  "issueTypes": [
+    {"id": "20001", "name": "Initiative", "description": "Synthetic type above epics.", "hierarchyLevel": 2, "subtask": false},
+    {"id": "20002", "name": "Chore", "hierarchyLevel": 0, "subtask": false},
+    {"id": "20003", "name": "Mikro-uzduotis", "description": "Renamed sub-task type.", "hierarchyLevel": -1, "subtask": true},
+    {"name": "No id", "hierarchyLevel": 0, "subtask": false}
+  ]
+}

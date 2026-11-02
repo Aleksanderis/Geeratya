@@ -1,0 +1,6 @@
+{
+  "errorMessages": [],
+  "errors": {
+    "parent": "Given parent issue is not valid for this issue type."
+  }
+}
