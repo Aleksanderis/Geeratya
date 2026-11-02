@@ -53,6 +53,41 @@ public class ViewReducerTests
     }
 
     [Fact]
+    public void GivenLoadedJqlTab_WhenTheCountArrives_ThenTheTotalIsApproximate()
+    {
+        var first = Loaded(Open(Start(), "project = A"), Page(2, new PageCursor("n")));
+        var id = first.State.Session.Tabs[0].Id;
+
+        var counted = _reducer.Reduce(first.State, new ViewTotalLoaded(id, 250));
+
+        var tab = Assert.Single(counted.State.Session.Tabs);
+        Assert.Equal(250, tab.Total);
+        Assert.True(tab.TotalIsApproximate);
+    }
+
+    [Fact]
+    public void GivenClosedTab_WhenTheCountArrives_ThenItIsIgnored()
+    {
+        var first = Loaded(Open(Start(), "project = A"), Page(2, new PageCursor("n")));
+
+        var counted = _reducer.Reduce(first.State, new ViewTotalLoaded(new TabId(99), 250));
+
+        Assert.Null(Assert.Single(counted.State.Session.Tabs).Total);
+    }
+
+    [Fact]
+    public void GivenPageWithAnExactTotal_WhenItArrives_ThenTheTabHoldsItAsExact()
+    {
+        var opened = Open(Start(), "project = A");
+        var page = Page(2, new PageCursor("n")) with { Total = 40 };
+
+        var tab = Assert.Single(Loaded(opened, page).State.Session.Tabs);
+
+        Assert.Equal(40, tab.Total);
+        Assert.False(tab.TotalIsApproximate);
+    }
+
+    [Fact]
     public void GivenLoadedTabWithNextPage_WhenRequestingAndReceivingIt_ThenRowsAreAppendedAndSelectionStays()
     {
         var first = Loaded(Open(Start(), "project = A"), Page(2, new PageCursor("n")));

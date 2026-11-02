@@ -107,9 +107,11 @@ public sealed class ListBodyRenderer : IBodyRenderer
     {
         var count = tab.Rows.Count;
 
-        if (tab.Next is not null)
+        if (tab.Next is not null || tab.Truncated)
         {
-            return $"{count}+";
+            return tab.Total is { } total
+                ? $"{count} of {(tab.TotalIsApproximate ? "about " : string.Empty)}{total}"
+                : $"{count}+";
         }
 
         return count == 1 ? "1 issue" : $"{count} issues";

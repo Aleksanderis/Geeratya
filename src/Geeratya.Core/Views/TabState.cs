@@ -61,6 +61,15 @@ public sealed record TabState(
     /// </summary>
     public IReadOnlyList<DetailState> Detail { get; init; } = [];
 
+    /// <summary>
+    /// The number of issues the source has, when known: from the paged reply of a board or backlog, or from the
+    /// approximate-count call of a JQL source. Null while unknown (the header then reads <c>N+</c>).
+    /// </summary>
+    public int? Total { get; init; }
+
+    /// <summary>The <see cref="Total"/> is an approximation (JQL sources), so the header says "about".</summary>
+    public bool TotalIsApproximate { get; init; }
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

@@ -67,9 +67,9 @@ public sealed class ViewLoadHandler
                 () => Failure(effect, UnsupportedSourceMessage));
         }
 
-        return _runner.Start(
+        return _runner.StartReporting(
             effect.Tab.Value,
-            (services, token) => SearchAsync(services, effect, jql, token),
+            (services, report, token) => SearchAsync(services, effect, jql, report, token),
             () => Failure(effect, NoConnectionMessage));
     }
 
@@ -89,6 +89,7 @@ public sealed class ViewLoadHandler
         JiraServices services,
         LoadViewPageEffect effect,
         string jql,
+        Action<Command> report,
         CancellationToken token)
     {
         var query = new IssueSearchQuery(jql, ViewPaging.PageSize);
@@ -102,13 +103,47 @@ public sealed class ViewLoadHandler
         {
             var result = await services.Search.SearchAsync(query, effect.Cursor, token);
 
-            return result.IsSuccess
-                ? new ViewPageLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
-                : new ViewLoadFailed(effect.Tab, effect.RequestId, result.Error, _clock.GetUtcNow());
+            if (!result.IsSuccess)
+            {
+                return new ViewLoadFailed(effect.Tab, effect.RequestId, result.Error, _clock.GetUtcNow());
+            }
+
+            var page = new ViewPageLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow());
+
+            if (effect.Cursor is not null || result.Value.IsLast)
+            {
+                return page;
+            }
+
+            report(page);
+
+            return await CountAsync(services, effect, query, token);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
+        }
+    }
+
+    /// <summary>
+    /// The approximate count, asked after the first page was posted and only when more pages exist. A failure (or a
+    /// throw) posts nothing: the header keeps <c>N+</c>.
+    /// </summary>
+    private static async Task<Command?> CountAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        IssueSearchQuery query,
+        CancellationToken token)
+    {
+        try
+        {
+            var count = await services.Search.ApproximateCountAsync(query, token);
+
+            return count.IsSuccess ? new ViewTotalLoaded(effect.Tab, count.Value) : null;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return null;
         }
     }
 

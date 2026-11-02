@@ -18,6 +18,7 @@ public sealed class ViewLoadHandlerTests
         """{"issues":[{"id":"1","key":"A-1","fields":{"summary":"One"}},{"id":"2","key":"A-2","fields":{"summary":"Two"}}],"nextPageToken":"t2","isLast":false}""";
 
     private const string PageTwo = """{"issues":[{"id":"3","key":"A-3","fields":{"summary":"Three"}}],"isLast":true}""";
+    private const string Count = """{"count":42}""";
     private const string Empty = """{"issues":[],"isLast":true}""";
     private const string BadJql = """{"errorMessages":["Error in the JQL Query: bad"],"errors":{}}""";
 
@@ -28,13 +29,13 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenTwoPages_WhenLoadingFirstThenContinuing_ThenPagesComeInOrderWithTheRequestId()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, PageTwo));
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
 
         await fixture.Handler.StartAsync(Load("project = A", null, 11));
-        var first = Assert.IsType<ViewPageLoaded>(Assert.Single(fixture.Posted));
+        var first = Assert.IsType<ViewPageLoaded>(fixture.Posted[0]);
         await fixture.Handler.StartAsync(Load("project = A", first.Page.Next, 12));
 
-        var second = Assert.IsType<ViewPageLoaded>(fixture.Posted[1]);
+        var second = Assert.IsType<ViewPageLoaded>(fixture.Posted[2]);
         Assert.Equal(["A-1", "A-2"], first.Page.Items.Select(issue => issue.Key));
         Assert.Equal(11, first.RequestId);
         Assert.Equal(_tab, first.Tab);
@@ -43,7 +44,42 @@ public sealed class ViewLoadHandlerTests
         Assert.Equal(12, second.RequestId);
         Assert.Null(second.Page.Next);
         Assert.DoesNotContain("nextPageToken", fixture.Requested(0));
-        Assert.Contains("nextPageToken=t2", fixture.Requested(1));
+        Assert.Contains("nextPageToken=t2", fixture.Requested(2));
+    }
+
+    [Fact]
+    public async Task GivenMorePages_WhenLoadingFirstPage_ThenTheApproximateCountFollowsThePage()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count));
+
+        await fixture.Handler.StartAsync(Load("project = A", null, 3));
+
+        Assert.IsType<ViewPageLoaded>(fixture.Posted[0]);
+        var total = Assert.IsType<ViewTotalLoaded>(fixture.Posted[1]);
+        Assert.Equal(42, total.Total);
+        Assert.Equal(_tab, total.Tab);
+        Assert.EndsWith("approximate-count", fixture.Http.Requests.ElementAt(1).AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenCountCallFails_WhenLoadingFirstPage_ThenOnlyThePageIsPosted()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.InternalServerError, BadJql));
+
+        await fixture.Handler.StartAsync(Load("project = A", null, 3));
+
+        Assert.IsType<ViewPageLoaded>(Assert.Single(fixture.Posted));
+    }
+
+    [Fact]
+    public async Task GivenTheLastPageIsTheFirst_WhenLoading_ThenNoCountIsAsked()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageTwo));
+
+        await fixture.Handler.StartAsync(Load("project = A", null, 3));
+
+        Assert.Single(fixture.Posted);
+        Assert.Single(fixture.Http.Requests);
     }
 
     [Fact]
@@ -185,7 +221,7 @@ public sealed class ViewLoadHandlerTests
     [Fact]
     public async Task GivenReducerAndHandler_WhenOpeningAJqlViewAndScrollingToTheEnd_ThenAllPagesLoadInOrder()
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, PageTwo));
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PageOne).Reply(HttpStatusCode.OK, Count).Reply(HttpStatusCode.OK, PageTwo));
         var reducer = new AppReducer(DefaultKeymap.Load());
         var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_a), Session = SiteSession.Empty(_a) };
 
@@ -200,6 +236,8 @@ public sealed class ViewLoadHandlerTests
 
         Assert.Equal(["A-1", "A-2", "A-3"], tab.Rows.Select(issue => issue.Key));
         Assert.Null(tab.Next);
+        Assert.Equal(42, tab.Total);
+        Assert.True(tab.TotalIsApproximate);
         Assert.Equal(LoadState.Idle, tab.Load);
     }
 
