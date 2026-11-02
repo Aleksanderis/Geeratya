@@ -120,6 +120,7 @@ public static class AdfCacheMapper
 
     // JSON can hold nulls where the DTOs promise values, so the null checks below are not redundant.
     // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+    // ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
     private static List<AdfNode> FromNodes(List<CachedAdfNode>? nodes)
     {
         return nodes is null ? [] : [.. nodes.Where(node => node?.Kind is not null).Select(FromNode)];
@@ -130,7 +131,9 @@ public static class AdfCacheMapper
         return marks is null ? [] : [.. marks.Where(mark => mark?.Kind is not null).Select(FromMark)];
     }
 
+    // ReSharper restore ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
     // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+
     private static AdfNode FromNode(CachedAdfNode node)
     {
         var children = FromNodes(node.Children);

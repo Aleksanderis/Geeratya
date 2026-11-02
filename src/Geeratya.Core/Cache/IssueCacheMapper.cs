@@ -35,7 +35,10 @@ public static class IssueCacheMapper
             [.. detail.Attachments.Select(ToAttachment)]);
     }
 
-    /// <summary>The issue in <paramref name="file"/>; null when the schema or content is not readable.</summary>
+    /// <summary>
+    /// The issue in <paramref name="file"/>; null when the schema or structure is not readable (only the structure
+    /// is validated: required members present, not the strings inside status, type or person records).
+    /// </summary>
     public static CachedIssue? FromFile(CachedIssueFile file)
     {
         if (file.Schema != Schema || !IsComplete(file))

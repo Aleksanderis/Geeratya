@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using Geeratya.Core.Adf;
 using Geeratya.Core.Cache;
@@ -38,6 +42,42 @@ public sealed class IssueCacheTests : IDisposable
         Assert.Equal(
             AdfTestSupport.PlainLines(AdfRenderer.Render(detail.Description!, 40)),
             AdfTestSupport.PlainLines(AdfRenderer.Render(read.Detail.Description!, 40)));
+    }
+
+    [Fact]
+    public void GivenDocumentWithEveryNodeAndMarkKind_WhenMappedToDtoAndBack_ThenEveryAttributeSurvives()
+    {
+        AdfMark[] marks =
+        [
+            new AdfStrongMark(), new AdfEmphasisMark(), new AdfStrikeMark(), new AdfCodeMark(),
+            new AdfUnderlineMark(), new AdfLinkMark("https://example.test/x"), new AdfTextColorMark("#ff0000"),
+            new AdfSubSupMark("sup"), new AdfUnknownMark("fancy"),
+        ];
+        AdfNode[] content =
+        [
+            new AdfHeading(3, [new AdfText("title", marks)]),
+            new AdfBulletList([new AdfListItem([new AdfParagraph([new AdfHardBreak()])])]),
+            new AdfOrderedList(7, [new AdfListItem([])]),
+            new AdfTaskList([new AdfTaskItem(AdfTaskState.Done, []), new AdfTaskItem(AdfTaskState.Todo, [])]),
+            new AdfCodeBlock("csharp", [new AdfText("code", [])]),
+            new AdfBlockquote([new AdfRule()]),
+            new AdfPanel("warning", []),
+            new AdfTable([new AdfTableRow([new AdfTableHeader(2, []), new AdfTableCell(3, [])])]),
+            new AdfExpand("More", []),
+            new AdfMediaSingle("wide", [new AdfMedia("m-1", "file", "coll", "alt text", 640, 480)]),
+            new AdfMediaGroup([new AdfMedia(null, null, null, null, null, null)]),
+            new AdfInlineCard("https://example.test/card"),
+            new AdfEmoji(":rocket:", "R"),
+            new AdfDate(1760000000000),
+            new AdfStatus("DONE", "green"),
+            new AdfMention("acc-9", "@Name"),
+            new AdfUnknownNode("layoutSection", "own text", [new AdfText("inner", [])]),
+        ];
+        var document = new AdfDocument(1, content, true);
+
+        var read = AdfCacheMapper.FromDto(AdfCacheMapper.ToDto(document));
+
+        Assert.Equal(Dump(document), Dump(read));
     }
 
     [Fact]
@@ -260,6 +300,58 @@ public sealed class IssueCacheTests : IDisposable
         {
             Directory.Delete(_root, true);
         }
+    }
+
+    private static string Dump(object? value)
+    {
+        var builder = new StringBuilder();
+
+        DumpTo(builder, value);
+
+        return builder.ToString();
+    }
+
+    // Reflection is fine in tests; the records hold lists that compare by reference, so walk them by value.
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Test helper, never trimmed.")]
+    private static void DumpTo(StringBuilder builder, object? value)
+    {
+        if (value is null or string || value.GetType().IsPrimitive || value.GetType().IsEnum)
+        {
+            builder.Append(value).Append(';');
+
+            return;
+        }
+
+        if (value is IEnumerable items)
+        {
+            builder.Append('[');
+
+            foreach (var item in items)
+            {
+                DumpTo(builder, item);
+            }
+
+            builder.Append(']');
+
+            return;
+        }
+
+        builder.Append(value.GetType().Name).Append('{');
+
+        var properties = value.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var property in properties.Where(IsData))
+        {
+            builder.Append(property.Name).Append('=');
+            DumpTo(builder, property.GetValue(value));
+        }
+
+        builder.Append('}');
+    }
+
+    private static bool IsData(PropertyInfo property)
+    {
+        return property.Name != "EqualityContract";
     }
 
     private static string Json(CachedIssue issue)

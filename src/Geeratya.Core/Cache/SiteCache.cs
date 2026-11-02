@@ -8,7 +8,8 @@ namespace Geeratya.Core.Cache;
 
 /// <summary>
 /// The cache of one profile: the first page of every opened view (most recent 32 in memory) and the detail of
-/// every opened issue (most recent 200 in memory), both on disk below the cache folder. Host-owned and not part of the app state (<c>docs/architecture.md</c>, "Cache and refresh").
+/// every opened issue (most recent 200 in memory), both on disk below the cache folder. Host-owned and not
+/// part of the app state (<c>docs/architecture.md</c>, "Cache and refresh").
 /// Reads and writes are meant for background threads; <see cref="Put"/> only records the page and schedules the
 /// write, which runs debounced on a timer thread. A disposed cache ignores everything and never touches the disk
 /// again, so a pending write cannot recreate a folder that was deleted. A cache is never a reason to fail a read:
@@ -169,7 +170,7 @@ public sealed class SiteCache : IDisposable
 
         if (read is not null)
         {
-            RememberIssue(read);
+            RememberIssueIfAbsent(read);
         }
 
         return read;
@@ -191,7 +192,9 @@ public sealed class SiteCache : IDisposable
         }
     }
 
-    /// <summary>Writes pending views and issues now (the debounce timer, and the exit of the application, call it).</summary>
+    /// <summary>
+    /// Writes pending views and issues now (the debounce timer, and the exit of the application, call it).
+    /// </summary>
     public void Flush()
     {
         lock (_diskLock)
@@ -292,11 +295,12 @@ public sealed class SiteCache : IDisposable
         }
     }
 
-    private void RememberIssue(CachedIssue issue)
+    /// <summary>Remembers a detail read from disk unless a newer one was stored while the file was read.</summary>
+    private void RememberIssueIfAbsent(CachedIssue issue)
     {
         lock (_memoryLock)
         {
-            if (!_disposed)
+            if (!_disposed && !_issues.ContainsKey(issue.Detail.Key) && !_pendingIssues.ContainsKey(issue.Detail.Key))
             {
                 RememberIssueLocked(issue);
             }
