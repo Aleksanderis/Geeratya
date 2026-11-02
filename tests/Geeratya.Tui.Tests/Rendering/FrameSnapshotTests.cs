@@ -8,7 +8,7 @@ public class FrameSnapshotTests
     private static readonly string[] _sections =
         ["Normal mode", "Help mode", "Command mode", "Confirm mode", "Insert mode", "Palette commands", ":quit"];
 
-    private static readonly int[] _scrolls = [0, 20, 40, 70, 100];
+    private static readonly int[] _scrolls = [0, 20, 40, 60, 80, 88];
 
     public static TheoryData<string, string> Snapshots
     {
@@ -44,8 +44,9 @@ public class FrameSnapshotTests
     [Theory]
     [InlineData(20)]
     [InlineData(40)]
-    [InlineData(70)]
-    [InlineData(100)]
+    [InlineData(60)]
+    [InlineData(80)]
+    [InlineData(88)]
     public void GivenHelpScrolled_WhenPrintingTheFrame_ThenItMatchesTheSnapshotThatShowsTheLaterSections(int scroll)
     {
         using var writer = new StringWriter();

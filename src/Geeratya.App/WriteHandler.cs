@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
@@ -230,6 +231,11 @@ public sealed class WriteHandler
             return await services.Edits.AssignAsync(assign.Key, change, token);
         }
 
+        if (request is RankRequest rank)
+        {
+            return await RankAsync(services, rank, token);
+        }
+
         if (request is DeleteIssueRequest delete)
         {
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
@@ -240,7 +246,64 @@ public sealed class WriteHandler
             return await EditAsync(services, edit, token);
         }
 
+        if (request is TransitionRequest transition)
+        {
+            return await TransitionAsync(services, transition, token);
+        }
+
         throw new NotSupportedException($"No handler for {request.GetType().Name}.");
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> TransitionAsync(
+        JiraServices services,
+        TransitionRequest transition,
+        CancellationToken token)
+    {
+        Dictionary<string, JsonElement> fields;
+
+        try
+        {
+            // Transition fields are plain values: the whole value is sent, never adds and removes.
+            var plain = transition.Changes.Select(change => change with { Initial = null }).ToArray();
+
+            fields = FieldUpdates.For(plain).ToDictionary(update => update.FieldId, update => update.ToElement());
+        }
+        catch (Exception exception) when (exception is FormatException or NotSupportedException)
+        {
+            var error = new WriteError(WriteErrorKind.Validation, null, exception.Message, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(error);
+        }
+
+        return await services.Transitions.PerformAsync(transition.Key, transition.Choice.Id, fields, null, token);
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> RankAsync(
+        JiraServices services,
+        RankRequest rank,
+        CancellationToken token)
+    {
+        IReadOnlyList<string> keys = [rank.Key];
+        var result = rank.Before
+            ? await services.Ranks.RankBeforeAsync(keys, rank.ReferenceKey, rank.RankFieldId, token)
+            : await services.Ranks.RankAfterAsync(keys, rank.ReferenceKey, rank.RankFieldId, token);
+
+        if (!result.IsSuccess)
+        {
+            return WriteResults.Failure<WriteAccepted>(result.Error);
+        }
+
+        if (result.Value.AllRanked)
+        {
+            return WriteResults.Success(new WriteAccepted());
+        }
+
+        // A 207 that names the issue as not moved: Jira refused it, so nothing was applied.
+        var messages = result.Value.Failed.SelectMany(item => item.Errors).ToArray();
+        var message = messages.Length > 0 ? messages[0] : "Jira did not move the issue";
+
+        return WriteResults.Failure<WriteAccepted>(
+            new WriteError(WriteErrorKind.Validation, null, message, [], messages));
     }
 
     private static async Task<WriteResult<WriteAccepted>> EditAsync(
@@ -274,7 +337,7 @@ public sealed class WriteHandler
         ExecuteWriteEffect effect,
         CancellationToken token)
     {
-        if (effect.Request.RemovesIssues)
+        if (effect.Request.RemovesIssues || !effect.Request.ReadsBack)
         {
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
@@ -300,6 +363,12 @@ public sealed class WriteHandler
         if (effect.Request is DeleteIssueRequest delete)
         {
             return await VerifyDeleteAsync(services, effect, delete, token);
+        }
+
+        if (!effect.Request.ReadsBack)
+        {
+            // Nothing a read of the issue shows can tell (a rank): the user is told to reload.
+            return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
         }
 
         var rows = await ReadAsync(services, effect.Request, token);

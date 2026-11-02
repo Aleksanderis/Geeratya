@@ -16,7 +16,7 @@ namespace Geeratya.Core.Forms;
 public static class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
-    private const string NoFieldsText = "Nothing here can be edited";
+    private const string NoPageText = "No issue page to open";
     private const string NothingChangedText = "Nothing changed";
     private const string DetachedText = "Closed the form; the save continues";
 
@@ -72,6 +72,7 @@ public static class FormReducer
         {
             ActionIds.Cancel => Cancel(state, tab, form),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
+            ActionIds.FormOpenBrowser => OpenBrowser(state, form),
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
@@ -164,7 +165,7 @@ public static class FormReducer
         return Open(state, tab.Id, target);
     }
 
-    private static string? TargetKey(AppState state, TabState tab)
+    internal static string? TargetKey(AppState state, TabState tab)
     {
         return tab.Detail.Count > 0 ? tab.Detail[^1].Key : BrowserReducer.SelectedKey(state);
     }
@@ -179,6 +180,16 @@ public static class FormReducer
         }
 
         return tab.Rows.FirstOrDefault(row => string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))?.Labels;
+    }
+
+    private static ReduceResult OpenBrowser(AppState state, FormState form)
+    {
+        if (form.BrowserUrl is not { } url)
+        {
+            return Result(state with { Message = NoPageText });
+        }
+
+        return BrowserReducer.Request(state, new OpenUrlRequested(url, false, form.Target.IssueKey));
     }
 
     private static string? BrowserUrl(AppState state, FormTarget target)
@@ -207,10 +218,17 @@ public static class FormReducer
             return Result(state);
         }
 
-        var top = loaded.Fields.Any(field => field.IsEditable) ? null : NoFieldsText;
-        var filled = form with { Fields = loaded.Fields, IsLoading = false, TopError = top };
+        var target = loaded.Target ?? form.Target;
+        var top = loaded.Fields.Any(field => field.IsEditable) ? null : target.EmptyText;
+        var filled = form with { Target = target, Fields = loaded.Fields, IsLoading = false, TopError = top };
+        var shown = filled with { Focus = Step(filled, 0) };
 
-        return Result(Replace(state, tab, filled with { Focus = Step(filled, 0) }));
+        if (target.Automatic is { } changes)
+        {
+            return Send(Replace(state, tab, shown), tab, shown, changes, loaded.At);
+        }
+
+        return Result(Replace(state, tab, shown));
     }
 
     private static ReduceResult Failed(AppState state, FormMetadataFailed failed)
@@ -310,7 +328,7 @@ public static class FormReducer
             .Select(field => new FieldChange(field.Id, field.Kind, field.Value, field.Initial))
             .ToArray();
 
-        if (changes.Length == 0)
+        if (changes.Length == 0 && !form.Target.AllowsNoChanges)
         {
             return Result(Replace(state, tab, form with { Fields = checkedFields, TopError = NothingChangedText }));
         }
@@ -325,8 +343,19 @@ public static class FormReducer
         IReadOnlyList<FieldChange> changes,
         DateTimeOffset at)
     {
+        if (form.Target.Following(changes) is { } following)
+        {
+            return Open(state, tab.Id, following);
+        }
+
         var request = form.Target.Request(changes);
         var started = WriteReducer.Reduce(state, new WriteRequested(tab.Id, request, at));
+
+        if (state.Confirm is null && started.State.Confirm is not null)
+        {
+            // The write asks first: the form is done, the answer decides.
+            return started with { State = Closed(started.State, tab) };
+        }
 
         if (started.State.Session.Operations.Count <= state.Session.Operations.Count)
         {
@@ -334,6 +363,11 @@ public static class FormReducer
             var refused = form with { TopError = started.State.Message };
 
             return Result(Replace(state, tab, refused));
+        }
+
+        if (form.Target.ClosesOnSend)
+        {
+            return started with { State = Closed(started.State, tab) };
         }
 
         var locked = form with { OperationId = started.State.Sequence };

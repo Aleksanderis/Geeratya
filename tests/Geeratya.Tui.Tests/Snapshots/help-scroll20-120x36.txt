@@ -30,7 +30,7 @@ Help
   Space m a  Add a comment to the issue                                                                                 
   Space m e  Edit the comment under the cursor                                                                          
   Space m d  Delete the comment under the cursor                                                                        
-  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
-                                                                                                                        
-Help mode                                                                                                               
+  Space i s  Change the status of the issue                                                                             
+  Alt-l      Move the card to the next column                                                                           
+  Alt-h      Move the card to the previous column                                                                       
  HELP                                                                                            j down  k up  Esc close

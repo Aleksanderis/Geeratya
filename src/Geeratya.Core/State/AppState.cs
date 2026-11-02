@@ -39,6 +39,8 @@ public sealed record AppState(
 
     /// <summary>The open comment editor (Insert mode, or Confirm while it asks to discard), otherwise null.</summary>
     public CommentEditor? Editor { get; init; }
+    /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
+    public int Count { get; init; }
 
     public static AppState Initial { get; } =
         new(

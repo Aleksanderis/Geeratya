@@ -1,8 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Esc        Decline                                                                                                    
-                                                                                                                        
 Insert mode                                                                                                             
   Enter      Accept the field and go to the next                                                                        
   Backspace  Delete the last character                                                                                  
@@ -21,6 +19,7 @@ Insert mode
   Home       Move the cursor to the start of the row                                                                    
   End        Move the cursor to the end of the row                                                                      
   Delete     Delete the character under the cursor                                                                      
+  Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
   :jql <query>                                                                                                          
@@ -33,4 +32,5 @@ Palette commands
       Open a board's backlog in a new tab                                                                               
   :tab new|close|next|prev|<n>                                                                                          
       Open the source picker, close or switch tabs                                                                      
+  :status [next|prev]                                                                                                   
  HELP                                                                                            j down  k up  Esc close
