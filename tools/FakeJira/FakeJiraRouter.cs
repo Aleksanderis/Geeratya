@@ -122,12 +122,14 @@ public sealed partial class FakeJiraRouter
     private readonly Dictionary<string, byte[]> _fixtureCache = [];
     private readonly Lock _cacheLock = new();
     private readonly FakeJiraWriteStore _writes;
+    private readonly FakeScrumStore _scrum;
     private HashSet<string>? _listedKeys;
 
     public FakeJiraRouter(FakeJiraOptions options)
     {
         _options = options;
         _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue, IsListedIssue);
+        _scrum = new FakeScrumStore(ReadFixture);
     }
 
     /// <summary>True for the verbs that change data; the server may drop the connection after reading one.</summary>
@@ -148,6 +150,11 @@ public sealed partial class FakeJiraRouter
         if (method == Get && path == AssignableUsersPath)
         {
             return AssignableUsers(query);
+        }
+
+        if (_scrum.TryRoute(method, path, query, body) is { } scrum)
+        {
+            return scrum;
         }
 
         if (TryWrite(method, path, body) is { } written)
