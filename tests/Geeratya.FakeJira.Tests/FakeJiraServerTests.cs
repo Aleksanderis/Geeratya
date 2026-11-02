@@ -28,6 +28,11 @@ public sealed class FakeJiraServerTests : IDisposable
     [InlineData("/rest/api/3/issue/GTM-11", "Validate the email")]
     [InlineData("/rest/api/3/issue/GCM-10", "Sign up with email")]
     [InlineData("/rest/api/3/issue/GCM-24", "media probe 27")]
+    [InlineData("/rest/api/3/issue/GCM-6/comment", "Former user")]
+    [InlineData("/rest/api/3/issue/GTM-5/comment", "Heading one")]
+    [InlineData("/rest/api/3/issue/GCM-2/comment", "\"total\": 0")]
+    [InlineData("/rest/api/3/issue/GCM-6/remotelink", "Design notes")]
+    [InlineData("/rest/api/3/issue/GTM-5/remotelink", "Remote page")]
     public async Task GivenBoardAndFilterRoutes_WhenRequested_ThenRecordedFixtureIsServed(string path, string expected)
     {
         var baseUrl = StartServer(0, 0, 0);
