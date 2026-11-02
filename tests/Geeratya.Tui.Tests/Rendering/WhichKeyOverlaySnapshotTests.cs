@@ -16,7 +16,7 @@ public class WhichKeyOverlaySnapshotTests
     {
         var state = AppState.Initial with { PendingKeys = keys };
         var actual = string.Join('\n', FrameBuilder.Build(state, 120, 36, _helpLines, _keymap));
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
+        var expected = SnapshotFile.Expect(name, actual + "\n");
 
         Assert.Equal(expected.ReplaceLineEndings("\n").TrimEnd(), actual.TrimEnd());
     }

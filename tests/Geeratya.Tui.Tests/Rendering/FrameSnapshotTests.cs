@@ -50,11 +50,10 @@ public class FrameSnapshotTests
     public void GivenHelpScrolled_WhenPrintingTheFrame_ThenItMatchesTheSnapshotThatShowsTheLaterSections(int scroll)
     {
         using var writer = new StringWriter();
-        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"help-scroll{scroll}-120x36.txt");
-        var expected = File.ReadAllText(path);
 
         var exitCode = new ApplicationRunner(writer, false)
             .Run(["--print-frame", "--size", "120x36", "--mode", "help", "--help-scroll", scroll.ToString()]);
+        var expected = SnapshotFile.Expect($"help-scroll{scroll}-120x36.txt", writer.ToString());
 
         Assert.Equal(0, exitCode);
         Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
