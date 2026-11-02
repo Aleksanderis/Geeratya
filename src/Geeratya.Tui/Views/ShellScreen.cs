@@ -2,6 +2,7 @@ using System.Text;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Terminal.Gui.Drawing;
@@ -51,10 +52,10 @@ public sealed class ShellScreen : Window
     public event Action<int>? BodyRowsChanged;
 
     /// <summary>
-    /// The issue rows a list can show: the window height without the status line and the list's own header rows
+    /// The issue rows a list can show: the window height without the tab bar, the status line and the list's own header rows
     /// (title with count, column titles).
     /// </summary>
-    public int BodyRows => Math.Max(0, _size.Height - 1 - ListLayout.HeaderRows);
+    public int BodyRows => Math.Max(0, _size.Height - 1 - TabBar.Rows - ListLayout.HeaderRows);
 
     public void Render(AppState state)
     {

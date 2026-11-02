@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -32,8 +33,8 @@ public static class FrameBuilder
 
     /// <summary>
     /// The styled frame; null for a size of zero. <paramref name="screens"/> are tried before the built-in help and
-    /// start screens, in order. <paramref name="headerRows"/> is the header region (the tab bar slot): zero until
-    /// tabs exist, so today's frames do not change; the tab bar issue passes one.
+    /// start screens, in order. The first line is always the tab bar (blank without tabs), so the body height does not
+    /// change when the first tab opens or the last one closes.
     /// </summary>
     public static StyledFrame? BuildStyled(
         AppState state,
@@ -41,15 +42,14 @@ public static class FrameBuilder
         int height,
         IReadOnlyList<string> helpLines,
         KeymapTable keymap,
-        IReadOnlyList<IBodyRenderer>? screens = null,
-        int headerRows = 0)
+        IReadOnlyList<IBodyRenderer>? screens = null)
     {
         if (width <= 0 || height <= 0)
         {
             return null;
         }
 
-        var header = Math.Min(headerRows, height - 1);
+        var header = Math.Min(TabBar.Rows, height - 1);
         var bodyHeight = height - 1 - header;
         var context = new BodyContext(helpLines, keymap);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
@@ -57,7 +57,7 @@ public static class FrameBuilder
         var body = renderer.Render(state, context, width, bodyHeight);
 
         return new StyledFrame(
-            Fit([], width, header),
+            Fit(header == 0 ? [] : [TabBar.Build(state.Session.Tabs, state.Session.Active, width)], width, header),
             Fit(body, width, bodyHeight),
             StatusBar.Render(state, width, keymap));
     }
