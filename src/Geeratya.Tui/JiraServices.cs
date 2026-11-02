@@ -1,5 +1,6 @@
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
+using Geeratya.Jira.Users;
 
 namespace Geeratya.Tui;
 
@@ -15,7 +16,11 @@ public sealed class JiraServices
         Transport = transport;
         Generation = generation;
         Search = new JiraSearchClient(transport);
+        Users = new JiraUserClient(transport);
     }
+
+    /// <summary>The current account (<c>/myself</c>), also the credential check.</summary>
+    public JiraUserClient Users { get; }
 
     public JiraTransport Transport { get; }
 

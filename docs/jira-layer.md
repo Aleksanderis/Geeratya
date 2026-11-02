@@ -76,7 +76,7 @@ Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer b
 Fixture: `myself/myself.json`.
 
 - Returns `accountId`, `accountType` (`atlassian`), `active`, `displayName`, `emailAddress`, `locale`, `timeZone`, `avatarUrls`, `self`. `expand=groups,applicationRoles` is advertised but the lists come back empty with only a `size`; do not rely on them.
-- Use it as the credential check when a profile is added or switched: 200 means email and token are good, 401 means not (see Errors).
+- Use it as the credential check when a profile is added or switched: 200 means email and token are good, 401 means not (see Errors). The shell runs it as a `CheckConnectionEffect` (user lane) at start, after `:profile add` and a switch, and on `:profile check`; the failure kind (401, 403, network, timeout, host refused, 429) picks the hint in `ConnectionText`. Nothing from `/myself` is cached.
 - `emailAddress` can be hidden by the account's privacy settings; treat it as optional.
 
 ## Projects: `GET /rest/api/3/project/search`

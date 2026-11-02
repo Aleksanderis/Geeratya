@@ -23,10 +23,10 @@ timeout_ms=${TIMEOUT_MS:-5000}
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
 all_scenarios=(
-  "default;120;36;dark;;$profile_line"
+  "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
-  "narrow;64;30;dark;;$profile_ready"
-  "light;120;36;light;;$profile_line"
+  "narrow;64;30;dark;;Connected"
+  "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
 )

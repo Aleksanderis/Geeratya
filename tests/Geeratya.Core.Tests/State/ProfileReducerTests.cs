@@ -337,7 +337,7 @@ public class ProfileReducerTests
         Assert.Empty(result.State.Session.Tabs);
         Assert.Equal("dev", result.State.Session.ProfileName);
         Assert.Equal(_dev.SiteUrl, result.State.Session.SiteUrl);
-        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
+        Assert.Equal(_work, Assert.Single(result.Effects.OfType<DropSiteCacheEffect>()).Profile);
     }
 
     [Fact]
@@ -374,7 +374,7 @@ public class ProfileReducerTests
 
         Assert.Empty(result.State.Session.Tabs);
         Assert.Equal("dev", result.State.Session.ProfileName);
-        Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
+        Assert.Single(result.Effects.OfType<DropSiteCacheEffect>());
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class ProfileReducerTests
         var result = _reducer.Reduce(AppState.Initial, new ProfilesChanged(ProfileCatalog.Empty.With(_work), "Added."));
 
         Assert.Equal("work", result.State.Session.ProfileName);
-        Assert.Empty(result.Effects);
+        Assert.Empty(result.Effects.OfType<DropSiteCacheEffect>());
     }
 
     [Fact]
@@ -393,7 +393,7 @@ public class ProfileReducerTests
 
         var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("dev"), "Done."));
 
-        Assert.Equal(_work, Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects)).Profile);
+        Assert.Equal(_work, Assert.Single(result.Effects.OfType<DropSiteCacheEffect>()).Profile);
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public class ProfileReducerTests
         var result = _reducer.Reduce(state, new ProfilesChanged(state.Profiles.Activate("work2"), "Done."));
 
         Assert.Equal("work2", result.State.Session.ProfileName);
-        Assert.IsType<DropSiteCacheEffect>(Assert.Single(result.Effects));
+        Assert.Single(result.Effects.OfType<DropSiteCacheEffect>());
     }
 
     private static AppState WithOpenSession()
