@@ -6,7 +6,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 ## 2026-11-02
 
-**Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate covers links from remote links, ADF and issue keys alike. Issue #118.
+**Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate for every open path; the UI and ADF link callers must go through `OpenUrlRequested` (only the issue-key path is wired so far). Issue #118.
 
 **Scope:** Scrum boards and sprints are in (milestone M3, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
 

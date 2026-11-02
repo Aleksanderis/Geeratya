@@ -54,6 +54,16 @@ public sealed class RemoteLinkClientTests
     }
 
     [Fact]
+    public async Task GivenNonHttpScheme_WhenGetting_ThenUrlIsPassedThroughForTheOpenGate()
+    {
+        using var fixture = Serving(GcmPath, """[{"id": 1, "object": {"url": "javascript:alert(1)"}}]""", isJson: true);
+
+        var result = await new RemoteLinkClient(fixture.Transport).GetRemoteLinksAsync("GCM-6", CancellationToken.None);
+
+        Assert.Equal("javascript:alert(1)", Assert.Single(result.Value).Url);
+    }
+
+    [Fact]
     public async Task GivenNoLinks_WhenGetting_ThenListIsEmpty()
     {
         using var fixture = Serving("/rest/api/3/issue/GCM-2/remotelink", "links/remotelink-list-empty.json");

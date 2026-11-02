@@ -3,9 +3,11 @@ using Geeratya.Jira.RemoteLinks.Models;
 
 namespace Geeratya.Jira.RemoteLinks;
 
-/// <summary>Maps the remote link array. Pure and tolerant: an entry with no usable URL is skipped.
+/// <summary>
+/// Maps the remote link array. Pure and tolerant: an entry with no usable URL is skipped.
 /// The scheme is passed through on purpose: the Jira layer reports what Jira holds, and the https-only check runs
-/// where a link is opened (<c>BrowserUrlCheck</c> in Geeratya.Core, via <c>OpenUrlRequested</c>).</summary>
+/// where a link is opened (<c>BrowserUrlCheck</c> in Geeratya.Core, via <c>OpenUrlRequested</c>).
+/// </summary>
 internal static class RemoteLinkMapper
 {
     public static IReadOnlyList<RemoteLink> Map(List<RemoteLinkWire.Link?>? links)
