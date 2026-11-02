@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -226,13 +227,89 @@ public class ProfileReducerTests
     }
 
     [Fact]
-    public void GivenProfilesAndNone_WhenListing_ThenMessageMarksTheActiveOne()
+    public void GivenProfilesAndNone_WhenListing_ThenTheListOpensOnTheActiveOneOrTheMessageSaysToAdd()
     {
-        var some = Palette(WithProfiles(_work, _dev), "profile");
+        var both = WithProfiles(_work, _dev);
+        var some = Palette(both with { Profiles = both.Profiles.Activate("dev") }, "profile");
         var none = Palette(AppState.Initial, "profile list");
 
-        Assert.Equal("Profiles: work *, dev (* active)", some.State.Message);
+        Assert.Equal(InputMode.Insert, some.State.Mode);
+        Assert.Equal(1, some.State.ProfileList!.Selected);
+        Assert.Null(none.State.ProfileList);
         Assert.Contains("profile add", none.State.Message);
+    }
+
+    [Fact]
+    public void GivenTheOpenList_WhenMovingAndPressingEnter_ThenTheHighlightedProfileIsSwitchedTo()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State;
+
+        var moved = Press(opened, "Down").State;
+        var again = Press(moved, "Down").State;
+        var result = Press(moved, "Enter");
+        var effect = Assert.IsType<SaveProfilesEffect>(Assert.Single(result.Effects));
+
+        Assert.Equal(1, moved.ProfileList!.Selected);
+        Assert.Equal(1, again.ProfileList!.Selected);
+        Assert.Equal("dev", effect.Catalog.ActiveName);
+        Assert.Null(result.State.ProfileList);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+    }
+
+    [Fact]
+    public void GivenTheOpenList_WhenPressingCtrlX_ThenTheHighlightedProfileIsAskedToBeRemovedAndNothingRuns()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State;
+
+        var result = Press(Press(opened, "Down").State, "Ctrl-x");
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Equal("dev", result.State.Confirm!.Target);
+        Assert.Contains("cannot be undone", result.State.Confirm.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheOpenList_WhenPressingEsc_ThenItClosesWithoutChangingProfiles()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State;
+
+        var result = Press(opened, "Esc");
+
+        Assert.Null(result.State.ProfileList);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenSavePending_WhenEnterOrCtrlXOrAClickInTheOpenList_ThenItIsRefusedAndNothingRuns()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State with { ProfileBusy = true };
+        var click = new OverlayRowClicked(MouseTarget.ProfileRow, 1, ActionIds.FormNext);
+        var clickRemove = new OverlayRowClicked(MouseTarget.ProfileRow, 1, ActionIds.ProfileRemove);
+
+        ReduceResult[] results =
+        [
+            Press(opened, "Enter"),
+            Press(opened, "Ctrl-x"),
+            _reducer.Reduce(opened, click),
+            _reducer.Reduce(opened, clickRemove),
+        ];
+
+        Assert.All(results, result => Assert.Empty(result.Effects));
+        Assert.All(results, result => Assert.Contains("Still saving", result.State.Message));
+        Assert.All(results, result => Assert.NotEqual(InputMode.Confirm, result.State.Mode));
+    }
+
+    [Fact]
+    public void GivenTheOpenList_WhenAClickNamesARowThatIsGone_ThenItIsClampedToTheLastProfile()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile list").State;
+        var click = new OverlayRowClicked(MouseTarget.ProfileRow, 7, ActionIds.FormNext);
+
+        var result = _reducer.Reduce(opened, click);
+
+        Assert.Equal("dev", Assert.IsType<SaveProfilesEffect>(Assert.Single(result.Effects)).Catalog.ActiveName);
     }
 
     [Fact]
@@ -272,7 +349,8 @@ public class ProfileReducerTests
         Assert.Contains("Still saving", refusedSwitch.State.Message);
         Assert.Equal(InputMode.Normal, refusedAdd.State.Mode);
         Assert.Equal(InputMode.Normal, refusedRemove.State.Mode);
-        Assert.Contains("Profiles:", listing.State.Message);
+        Assert.Equal(InputMode.Insert, listing.State.Mode);
+        Assert.NotNull(listing.State.ProfileList);
         Assert.False(done.ProfileBusy);
         Assert.Single(Palette(done, "profile switch work").Effects);
     }

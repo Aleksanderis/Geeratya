@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -120,6 +121,64 @@ public class CreateFormReducerTests
         var form = state.Session.Tabs[0].Form!;
         Assert.False(form.IsChoosingType);
         Assert.Contains("no issue types", form.TopError);
+    }
+
+    [Fact]
+    public void GivenTheTypePicker_WhenClickingARow_ThenTheFieldsOfThatTypeAreRequestedLikeEnterOnIt()
+    {
+        var state = TypesShown(_task, false);
+
+        var chosen = _reducer.Reduce(state, Click(MouseTarget.FormChoice, 1));
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(chosen.Effects));
+        var target = Assert.IsType<CreateFormTarget>(effect.Target);
+        Assert.Equal("Epic", target.IssueType!.Name);
+        Assert.False(chosen.State.Session.Tabs[0].Form!.IsChoosingType);
+    }
+
+    [Fact]
+    public void GivenTheTypePicker_WhenClickingARowThatDoesNotExist_ThenNothingChanges()
+    {
+        var state = TypesShown(_task, false);
+
+        var result = _reducer.Reduce(state, Click(MouseTarget.FormChoice, 9));
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(state, result.State);
+    }
+
+    [Fact]
+    public void GivenAFormThatSavesOrAsksToDiscard_WhenClickingAField_ThenNothingChanges()
+    {
+        var loaded = ChosenForm(_task, false, SummaryField(), DescriptionField());
+        var form = loaded.Session.Tabs[0].Form!;
+        var saving = form with { OperationId = 7 };
+        var discarding = form with { DiscardPending = true };
+
+        foreach (var shown in new[] { saving, discarding })
+        {
+            var state = WithForm(loaded, shown);
+
+            var result = _reducer.Reduce(state, Click(MouseTarget.FormField, 1));
+
+            Assert.Empty(result.Effects);
+            Assert.Equal(0, result.State.Session.Tabs[0].Form!.Focus);
+        }
+    }
+
+    [Fact]
+    public void GivenAForm_WhenClickingAnEditableFieldOrANonEditableOne_ThenOnlyTheEditableOneTakesTheFocus()
+    {
+        var loaded = ChosenForm(_task, false, SummaryField(), DescriptionField());
+        var form = loaded.Session.Tabs[0].Form!;
+        var fields = new List<FormField>(form.Fields) { form.Fields[0] with { Kind = FormFieldKind.Unsupported } };
+        var shown = WithForm(loaded, form with { Fields = fields });
+
+        var focused = _reducer.Reduce(shown, Click(MouseTarget.FormField, 1)).State.Session.Tabs[0].Form!;
+        var ignored = _reducer.Reduce(shown, Click(MouseTarget.FormField, 2)).State.Session.Tabs[0].Form!;
+
+        Assert.Equal(1, focused.Focus);
+        Assert.Equal(0, ignored.Focus);
     }
 
     [Fact]
@@ -390,6 +449,18 @@ public class CreateFormReducerTests
         Assert.Equal(FormFieldKind.DateTime, mapped.Single(field => field.Id == "customfield_1").Kind);
         Assert.Equal(FormFieldKind.Date, mapped.Single(field => field.Id == "duedate").Kind);
         Assert.Equal(["A-1"], mapped.Single(field => field.Id == "parent").Value.Chosen);
+    }
+
+    private static AppState WithForm(AppState state, FormState form)
+    {
+        var tab = state.Session.Tabs[0] with { Form = form };
+
+        return state with { Session = state.Session with { Tabs = [tab] } };
+    }
+
+    private static OverlayRowClicked Click(MouseTarget target, int index)
+    {
+        return new OverlayRowClicked(target, index, ActionIds.FormNext, _start);
     }
 
     private AppState TypesShown(IssueTypeSummary selected, bool subtask)

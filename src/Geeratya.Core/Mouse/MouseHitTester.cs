@@ -33,12 +33,28 @@ public static class MouseHitTester
 
         if (context.OverlayOpen)
         {
-            return null;
+            return OverlayHit(context, column, row);
         }
 
         var bodyTarget = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists;
 
         return new MouseHit(bodyTarget, row - header, column);
+    }
+
+    // The topmost region under the cell; the rest of the overlay, and the body behind it, does nothing.
+    private static MouseHit? OverlayHit(MouseContext context, int column, int row)
+    {
+        var regions = context.Regions;
+
+        for (var index = regions.Count - 1; index >= 0; index--)
+        {
+            if (regions[index].Contains(column, row))
+            {
+                return new MouseHit(regions[index].Target, regions[index].Index, column);
+            }
+        }
+
+        return null;
     }
 
     private static MouseTarget HeaderTarget(int row)

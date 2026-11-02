@@ -78,6 +78,17 @@ internal static class EditorSuggestions
         };
     }
 
+    /// <summary>A click on row <paramref name="index"/> of the popup takes it, like Enter on that row.</summary>
+    public static ReduceResult Clicked(AppState state, int index)
+    {
+        if (state.Editor is not { Suggest: { } popup } editor || index < 0 || index >= popup.Items.Count)
+        {
+            return Result(state);
+        }
+
+        return Accepted(state, editor, popup.Items[index]);
+    }
+
     /// <summary>The lookup answer for the editor's popup; null when the answer is not for it.</summary>
     public static ReduceResult? Reply(AppState state, FormCommand command)
     {

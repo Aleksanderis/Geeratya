@@ -13,7 +13,7 @@ namespace Geeratya.Core.State;
 /// </summary>
 public static class ProfileReducer
 {
-    public const string RemoveAction = "profile.remove";
+    public const string RemoveAction = ActionIds.ProfileRemove;
     public const string SwitchAction = "profile.switch";
 
     private const string AddVerb = "add";
@@ -47,12 +47,55 @@ public static class ProfileReducer
         return verb switch
         {
             AddVerb => Plain(state with { Mode = InputMode.Insert, Form = ProfileForm.Start }),
-            "" or ListVerb => Plain(Say(state, List(state.Profiles))),
+            "" or ListVerb => OpenList(state),
             SwitchVerb => Switch(state, name),
             RemoveVerb => AskRemove(state, name),
             CheckVerb => CheckConnection(state, announce: true),
             _ => Plain(Say(state, Usage)),
         };
+    }
+
+    /// <summary>Moves the highlight of the profile list one row (clamped).</summary>
+    public static AppState MoveList(AppState state, int delta)
+    {
+        if (state.ProfileList is not { } list)
+        {
+            return state;
+        }
+
+        var last = Math.Max(0, state.Profiles.Profiles.Count - 1);
+
+        var selected = Math.Clamp(ClampedRow(state, list) + delta, 0, last);
+
+        return state with { ProfileList = new ProfileListState(selected) };
+    }
+
+    /// <summary>Enter in the profile list: switches to the highlighted profile (as the palette command does).</summary>
+    public static ReduceResult SwitchHighlighted(AppState state, int? row = null)
+    {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        return Highlighted(state, row) is { } profile ? Switch(Closed(state), profile.Name) : Plain(state);
+    }
+
+    /// <summary>Ctrl-x in the profile list: asks to remove the highlighted profile (as the palette command does).</summary>
+    public static ReduceResult RemoveHighlighted(AppState state, int? row = null)
+    {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        return Highlighted(state, row) is { } profile ? AskRemove(Closed(state), profile.Name) : Plain(state);
+    }
+
+    /// <summary>Closes the profile list and leaves Insert mode.</summary>
+    public static AppState Closed(AppState state)
+    {
+        return state with { Mode = InputMode.Normal, ProfileList = null, PendingKeys = string.Empty };
     }
 
     public static AppState Type(AppState state, string text)
@@ -305,6 +348,38 @@ public static class ProfileReducer
         var next = catalog.Without(profile.Name).ActiveName;
 
         return next is null ? " No profile will be active." : $" {next} becomes the active profile.";
+    }
+
+    private static ReduceResult OpenList(AppState state)
+    {
+        if (state.Profiles.Profiles.Count == 0)
+        {
+            return Plain(Say(state, List(state.Profiles)));
+        }
+
+        var active = state.Profiles.Profiles.ToList().FindIndex(profile => profile.Name == state.Profiles.ActiveName);
+
+        return Plain(state with
+        {
+            Mode = InputMode.Insert,
+            ProfileList = new ProfileListState(Math.Max(0, active)),
+            Message = null,
+        });
+    }
+
+    private static Profile? Highlighted(AppState state, int? row)
+    {
+        if (state.ProfileList is not { } list || state.Profiles.Profiles.Count == 0)
+        {
+            return null;
+        }
+
+        return state.Profiles.Profiles[Math.Clamp(row ?? list.Selected, 0, state.Profiles.Profiles.Count - 1)];
+    }
+
+    private static int ClampedRow(AppState state, ProfileListState list)
+    {
+        return Math.Clamp(list.Selected, 0, Math.Max(0, state.Profiles.Profiles.Count - 1));
     }
 
     private static string List(ProfileCatalog catalog)

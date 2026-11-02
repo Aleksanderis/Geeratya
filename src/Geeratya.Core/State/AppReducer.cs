@@ -8,6 +8,7 @@ using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -48,6 +49,7 @@ public sealed class AppReducer
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
+            OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,
@@ -128,6 +130,30 @@ public sealed class AppReducer
             Picker = null,
             Jump = null,
             Editor = null,
+            ProfileList = null,
+        };
+    }
+
+    /// <summary>
+    /// A click on an overlay row: the row is chosen, then the key's handler runs (Enter takes it, Tab focuses a field,
+    /// Ctrl-x removes a profile), so a click and a key end in the same state.
+    /// </summary>
+    private static ReduceResult ReduceOverlayRow(AppState state, OverlayRowClicked clicked)
+    {
+        var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
+
+        return clicked.Target switch
+        {
+            MouseTarget.PickerRow when cleared.Picker is { } picker
+                => SourceReducer.Accept(cleared with { Picker = picker with { Selected = clicked.Index } }),
+            MouseTarget.JumpRow when cleared.Jump is { } jump
+                => JumpReducer.Accept(cleared with { Jump = jump with { Selected = clicked.Index } }),
+            MouseTarget.ProfileRow when clicked.Action == ActionIds.ProfileRemove
+                => ProfileReducer.RemoveHighlighted(cleared, clicked.Index),
+            MouseTarget.ProfileRow => ProfileReducer.SwitchHighlighted(cleared, clicked.Index),
+            MouseTarget.FormField or MouseTarget.FormChoice => FormReducer.Clicked(cleared, clicked),
+            MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),
+            _ => Result(state),
         };
     }
 
@@ -369,6 +395,7 @@ public sealed class AppReducer
             ActionIds.ConfirmYes => Confirmed(state, at),
             ActionIds.FormNext => Accept(state),
             ActionIds.FormBackspace => Result(Erase(state)),
+            ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
@@ -449,6 +476,11 @@ public sealed class AppReducer
             return JumpReducer.Accept(state);
         }
 
+        if (state.ProfileList is not null)
+        {
+            return ProfileReducer.SwitchHighlighted(state);
+        }
+
         return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
     }
 
@@ -458,6 +490,11 @@ public sealed class AppReducer
         if (state.Jump is not null)
         {
             return JumpReducer.Move(state, direction);
+        }
+
+        if (state.ProfileList is not null)
+        {
+            return ProfileReducer.MoveList(state, direction);
         }
 
         if (state.Editor is null)

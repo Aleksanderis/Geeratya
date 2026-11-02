@@ -1,6 +1,7 @@
 using System.Text;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -28,6 +29,7 @@ public sealed class ShellScreen : Window
     private AppState _state = AppState.Initial;
     private Size _size;
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
+    private IReadOnlyList<OverlayRegion> _regions = [];
 
     public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize, GlyphSet glyphs = GlyphSet.Unicode)
     {
@@ -59,6 +61,9 @@ public sealed class ShellScreen : Window
     /// </summary>
     public int BodyRows => Math.Max(0, _size.Height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows);
 
+    /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test.</summary>
+    public IReadOnlyList<OverlayRegion> OverlayRegions => _regions;
+
     /// <summary>The terminal width, which issue details are laid out for.</summary>
     public int BodyColumns => Math.Max(0, _size.Width);
 
@@ -80,6 +85,7 @@ public sealed class ShellScreen : Window
             return;
         }
 
+        _regions = frame.Regions;
         _body.SetLines(frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _colors)).ToList());
         _status.Text = frame.StatusLine;
         SetNeedsDraw();

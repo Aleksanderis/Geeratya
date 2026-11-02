@@ -1,3 +1,4 @@
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -37,6 +38,38 @@ public static class OverlayBox
         spans.Add(new StyledSpan(Vertical, TextRole.Muted));
 
         return new StyledLine(spans);
+    }
+
+    /// <summary>
+    /// Notes the clickable rows of a box in <paramref name="regions"/> (when not null): the box row at
+    /// <paramref name="boxTop"/> + <paramref name="offset"/> + n covers the walls' inner width and stands for
+    /// <paramref name="indexes"/>[n] (a negative index is not clickable).
+    /// </summary>
+    public static void Mark(
+        List<OverlayRegion>? regions,
+        MouseTarget target,
+        int boxTop,
+        int left,
+        int boxWidth,
+        int offset,
+        IEnumerable<int> indexes)
+    {
+        if (regions is null)
+        {
+            return;
+        }
+
+        var row = boxTop + offset;
+
+        foreach (var index in indexes)
+        {
+            if (index >= 0)
+            {
+                regions.Add(new OverlayRegion(target, row, left + 1, Math.Max(1, boxWidth - 2), 1, index));
+            }
+
+            row++;
+        }
     }
 
     /// <summary>The box row between blank margins, exactly <paramref name="width"/> columns.</summary>

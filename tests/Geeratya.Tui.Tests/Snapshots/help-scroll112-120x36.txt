@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-o     Open the issue page in the browser from the form                                                           
                                                                                                                         
 Palette commands                                                                                                        
   :jql [query]                                                                                                          
@@ -32,5 +33,4 @@ Palette commands
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
   :set hints|whichkey on|off                                                                                            
-      Show or hide the status bar hints or the which-key popup (saved)                                                  
  HELP                                                                                            j down  k up  Esc close

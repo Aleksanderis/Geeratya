@@ -1,6 +1,7 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
@@ -37,7 +38,8 @@ public static class CommentEditorOverlay
         AppState state,
         KeymapTable keymap,
         int width,
-        int height)
+        int height,
+        List<OverlayRegion>? regions = null)
     {
         var boxWidth = CommentEditor.BoxWidth(width);
 
@@ -56,12 +58,35 @@ public static class CommentEditorOverlay
         var left = (width - boxWidth) / 2;
         var result = body.ToList();
 
+        MarkPopup(regions, editor, top + 1 + area, left, boxWidth);
+
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
             result[top + index] = OverlayBox.Place(box[index], left, width);
         }
 
         return result;
+    }
+
+    // The popup rows are the first rows under the text; the first index shown follows the cursor.
+    private static void MarkPopup(List<OverlayRegion>? regions, CommentEditor editor, int top, int left, int boxWidth)
+    {
+        if (editor.Suggest is not { } popup)
+        {
+            return;
+        }
+
+        var first = PopupFirst(popup);
+        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
+
+        OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, Enumerable.Range(first, shown));
+    }
+
+    private static int PopupFirst(SuggestionState popup)
+    {
+        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
+
+        return Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
     }
 
     private static List<StyledLine> BoxLines(
@@ -185,7 +210,7 @@ public static class CommentEditorOverlay
 
         var width = Math.Max(1, inner - 2);
         var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-        var first = Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        var first = PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         foreach (var index in Enumerable.Range(first, shown))

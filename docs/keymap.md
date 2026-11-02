@@ -114,6 +114,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker |
 | `Down` | Next row in the picker |
 | `Ctrl-n` | Next row in the picker |
+| `Ctrl-x` | Remove the highlighted profile (asks first; the stored token is deleted) |
 | `Tab` | Next field of the form |
 | `Shift-Tab` | Previous field of the form |
 | `Ctrl-s` | Save the form |

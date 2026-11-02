@@ -1,3 +1,4 @@
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -11,6 +12,9 @@ public sealed record StyledFrame(
     IReadOnlyList<StyledLine> Body,
     string StatusLine)
 {
+    /// <summary>The clickable rectangles of the open overlay in screen cells (header rows included), later on top.</summary>
+    public IReadOnlyList<OverlayRegion> Regions { get; init; } = [];
+
     /// <summary>Every line with the styles dropped: what <c>--print-frame</c> prints.</summary>
     public IReadOnlyList<string> PlainLines()
     {

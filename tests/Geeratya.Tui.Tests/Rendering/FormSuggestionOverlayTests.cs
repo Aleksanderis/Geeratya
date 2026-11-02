@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -35,6 +36,52 @@ public class FormSuggestionOverlayTests
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-suggest-{width}x{height}.txt");
 
         Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+    }
+
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAnOpenPopup_WhenReadingTheRegions_ThenPopupRowsAndFieldRowsAreTagged(int width, int height)
+    {
+        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var frame = FrameBuilder.BuildStyled(state, width, height, _helpLines, _keymap)!;
+        var choices = RegionProbe.Rows(frame, MouseTarget.FormChoice);
+        var fields = RegionProbe.Rows(frame, MouseTarget.FormField);
+
+        Assert.NotEmpty(choices);
+        Assert.Equal(Enumerable.Range(0, choices.Count), choices.Select(row => row.Index));
+        Assert.Contains("日本語チーム", choices[0].Text, StringComparison.Ordinal);
+        Assert.NotEmpty(fields);
+        Assert.DoesNotContain(fields, field => choices.Any(choice => choice.Region.Top == field.Region.Top));
+    }
+
+    [Fact]
+    public void GivenAnOpenPopup_WhenClickingASecondRow_ThenTheValueIsTakenLikeEnterOnIt()
+    {
+        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.FormChoice).Single(candidate => candidate.Index == 1);
+
+        var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
+        var form = result.State.Session.Tabs[0].Form!;
+
+        Assert.Equal(["backend", "日本チーム-北"], form.Fields[0].Value.Chosen);
+        Assert.Null(form.Suggest);
+    }
+
+    [Fact]
+    public void GivenAnOpenPopup_WhenClickingAnotherField_ThenItIsFocusedAndThePopupCloses()
+    {
+        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.FormField).First(candidate => candidate.Index == 1);
+
+        var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
+        var form = result.State.Session.Tabs[0].Form!;
+
+        Assert.Equal(1, form.Focus);
+        Assert.Null(form.Suggest);
     }
 
     [Theory]

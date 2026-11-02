@@ -47,6 +47,10 @@ public sealed record AppState(
 
     /// <summary>The open jump-to-issue prompt (Insert mode), otherwise null.</summary>
     public JumpState? Jump { get; init; }
+
+    /// <summary>The open profile list (Insert mode), otherwise null.</summary>
+    public ProfileListState? ProfileList { get; init; }
+
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 

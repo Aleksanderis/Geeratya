@@ -219,7 +219,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         var size = _application!.Screen.Size;
         var now = TimeProvider.System.GetUtcNow();
-        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now);
+        var regions = _screen!.OverlayRegions;
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions);
         var position = mouse.ScreenPosition;
         var commands = MouseResolver.Resolve(context, position.X, position.Y, gesture, now);
 

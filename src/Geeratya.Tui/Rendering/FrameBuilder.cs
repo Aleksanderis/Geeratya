@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -69,24 +70,33 @@ public static class FrameBuilder
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
         var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);
 
+        var regions = new List<OverlayRegion>();
+
+        if (state.ProfileList is not null)
+        {
+            body = Fit(ProfileListOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
+        }
+
         if (state.Picker is not null)
         {
-            body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+            body = Fit(SourcePickerOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (state.Jump is not null)
         {
-            body = Fit(JumpOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+            body = Fit(JumpOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (state.Editor is not null)
         {
-            body = Fit(CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
+            var composed = CommentEditorOverlay.Compose(body, state, keymap, width, bodyHeight, regions);
+
+            body = Fit(composed, width, bodyHeight);
         }
 
         if (FormReducer.OpenForm(state) is { } form)
         {
-            body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight), width, bodyHeight);
+            body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (WhichKeyOverlay.Applies(state) && state.Picker is null)
@@ -97,7 +107,10 @@ public static class FrameBuilder
         var frame = new StyledFrame(
             Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),
-            StatusBar.Render(state, width, keymap, clock));
+            StatusBar.Render(state, width, keymap, clock))
+        {
+            Regions = [.. regions.Select(region => region.Shifted(header))],
+        };
 
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
     }
@@ -107,7 +120,10 @@ public static class FrameBuilder
         return new StyledFrame(
             frame.Header.Select(Asciified).ToList(),
             frame.Body.Select(Asciified).ToList(),
-            Glyphs.ToAscii(frame.StatusLine));
+            Glyphs.ToAscii(frame.StatusLine))
+        {
+            Regions = frame.Regions,
+        };
     }
 
     private static StyledLine Asciified(StyledLine line)

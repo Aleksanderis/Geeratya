@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -30,7 +31,8 @@ public static class SourcePickerOverlay
         AppState state,
         KeymapTable keymap,
         int width,
-        int height)
+        int height,
+        List<OverlayRegion>? regions = null)
     {
         var picker = state.Picker;
         var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
@@ -47,6 +49,10 @@ public static class SourcePickerOverlay
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
         var result = body.ToList();
+        var area = inner - 1 - footer;
+        var visible = rows.ChoiceOfLine.Skip(FirstVisible(rows, area)).Take(Math.Max(0, area));
+
+        OverlayBox.Mark(regions, MouseTarget.PickerRow, top, left, boxWidth, 2, visible);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -122,27 +128,65 @@ public static class SourcePickerOverlay
         var choices = SourceChoices.For(picker, lists);
         var selected = Math.Clamp(picker.Selected, 0, Math.Max(0, choices.Count - 1));
         var lines = new List<StyledLine>();
+        var choiceOfLine = new List<int>();
         var selectedLine = 0;
 
         if (picker.Scope is not (PickerScope.Filters or PickerScope.Jql))
         {
-            AddGroup(lines, "Boards", BoardGroup(picker.Scope), choices, selected, width, ref selectedLine, lists);
+            AddGroup(
+                lines,
+                "Boards",
+                BoardGroup(picker.Scope),
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
         }
 
         if (picker.Scope is PickerScope.All or PickerScope.Filters)
         {
-            AddGroup(lines, "Filters", [SourceChoiceKind.Filter], choices, selected, width, ref selectedLine, lists);
+            AddGroup(
+                lines,
+                "Filters",
+                [SourceChoiceKind.Filter],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
         }
 
-        AddGroup(lines, "Recent", [SourceChoiceKind.Recent], choices, selected, width, ref selectedLine, lists);
-        AddGroup(lines, "Query", [SourceChoiceKind.Query], choices, selected, width, ref selectedLine, lists);
+        AddGroup(
+                lines,
+                "Recent",
+                [SourceChoiceKind.Recent],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
+        AddGroup(
+                lines,
+                "Query",
+                [SourceChoiceKind.Query],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
 
         if (lines.Count == 0)
         {
             lines.Add(StyledLine.Of(NothingText, TextRole.Muted));
+            choiceOfLine.Add(-1);
         }
 
-        return new PickerRows(lines, selectedLine);
+        return new PickerRows(lines, selectedLine, choiceOfLine);
     }
 
     private static SourceChoiceKind[] BoardGroup(PickerScope scope)
@@ -158,9 +202,11 @@ public static class SourcePickerOverlay
         int selected,
         int width,
         ref int selectedLine,
-        SourceLists lists)
+        SourceLists lists,
+        List<int> choiceOfLine)
     {
         var members = new List<StyledLine>();
+        var memberChoices = new List<int>();
 
         for (var index = 0; index < choices.Count; index++)
         {
@@ -174,15 +220,21 @@ public static class SourcePickerOverlay
                 }
 
                 members.Add(ChoiceLine(choices[index], isSelected, width));
+                memberChoices.Add(index);
             }
         }
 
-        members.AddRange(StateLines(heading, lists, members.Count));
+        var notices = StateLines(heading, lists, members.Count).ToList();
+
+        members.AddRange(notices);
+        memberChoices.AddRange(notices.Select(static _ => -1));
 
         if (members.Count > 0)
         {
             lines.Add(StyledLine.Of(heading, TextRole.Heading));
+            choiceOfLine.Add(-1);
             lines.AddRange(members);
+            choiceOfLine.AddRange(memberChoices);
         }
     }
 
@@ -238,5 +290,5 @@ public static class SourcePickerOverlay
         };
     }
 
-    private sealed record PickerRows(List<StyledLine> Lines, int SelectedLine);
+    private sealed record PickerRows(List<StyledLine> Lines, int SelectedLine, List<int> ChoiceOfLine);
 }

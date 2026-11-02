@@ -1,5 +1,6 @@
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -28,6 +29,35 @@ public class JumpOverlaySnapshotTests
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"jump-{width}x{height}.txt");
 
         Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+    }
+
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAnOpenPrompt_WhenReadingTheRegions_ThenEachRowCoversItsKey(int width, int height)
+    {
+        var frame = FrameBuilder.BuildStyled(Sample("gcm"), width, height, _helpLines, _keymap)!;
+        var rows = RegionProbe.Rows(frame, MouseTarget.JumpRow);
+
+        Assert.NotEmpty(rows);
+        Assert.All(rows, row => Assert.Contains("GCM", row.Text, StringComparison.Ordinal));
+        Assert.All(rows, row => Assert.InRange(row.Region.Top, FrameBuilder.HeaderRows, height - 2));
+        Assert.Equal(rows.Count, rows.Select(row => row.Region.Top).Distinct().Count());
+    }
+
+    [Fact]
+    public void GivenAnOpenPrompt_WhenClickingASecondRow_ThenThePromptClosesOnThatRow()
+    {
+        var state = Sample("gcm");
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.JumpRow).Single(candidate => candidate.Index == 1);
+
+        var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
+
+        Assert.Contains("GCM-120", row.Text);
+        Assert.Null(result.State.Jump);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
     }
 
     [Fact]
