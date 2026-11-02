@@ -1,0 +1,11 @@
+{
+  "createdDate": "2026-11-02T18:15:37.953Z",
+  "endDate": "2026-11-09T10:00:00.000Z",
+  "goal": "keep me",
+  "id": 16,
+  "name": "s184 probe",
+  "originBoardId": 6,
+  "self": "https://example.atlassian.net/rest/agile/1.0/sprint/16",
+  "startDate": "2026-11-02T10:00:00.000Z",
+  "state": "active"
+}
