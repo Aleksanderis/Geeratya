@@ -8,8 +8,8 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The profile list box (<c>:profile list</c>): a centred box over the body with one row per saved profile (name,
-/// account, site, the active one marked) and a key footer. Enter or a click switches, <c>Ctrl-x</c> or a right-click
-/// asks to remove. Pure.
+/// account, site, the active one marked), the Add and Edit buttons and a key footer. Enter or a click switches,
+/// <c>Ctrl-a</c> adds, <c>Ctrl-e</c> edits, <c>Ctrl-x</c> or a right-click asks to remove. Pure.
 /// </summary>
 public static class ProfileListOverlay
 {
@@ -19,8 +19,11 @@ public static class ProfileListOverlay
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
     private const int MinimumBoxHeight = 4;
-    private const int FooterHeight = 2;
-    private const int FooterMinimumInner = 7;
+    private const int FooterHeight = 3;
+    private const int FooterMinimumInner = 8;
+    private const string AddLabel = "Add";
+    private const string EditLabel = "Edit";
+    private const int ButtonGap = 3;
     private const int NameColumn = 16;
     private const int TopGap = 2;
 
@@ -54,6 +57,11 @@ public static class ProfileListOverlay
         var shown = Math.Max(0, Math.Min(area, profiles.Count - first));
 
         OverlayBox.Mark(regions, MouseTarget.ProfileRow, top, left, boxWidth, 1, Enumerable.Range(first, shown));
+
+        if (footer > 0)
+        {
+            MarkButtons(regions, top + area + 2, left);
+        }
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -99,6 +107,7 @@ public static class ProfileListOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
+            lines.Add(OverlayBox.Wall(ButtonLine(), contentWidth));
             lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
         }
 
@@ -127,14 +136,46 @@ public static class ProfileListOverlay
         ]);
     }
 
+    private static StyledLine ButtonLine()
+    {
+        var gap = new string(' ', ButtonGap);
+
+        return new StyledLine(
+        [
+            new StyledSpan(AddLabel, TextRole.Key),
+            new StyledSpan(gap, TextRole.Body),
+            new StyledSpan(EditLabel, TextRole.Key),
+        ]);
+    }
+
+    private static void MarkButtons(List<OverlayRegion>? regions, int row, int left)
+    {
+        if (regions is null)
+        {
+            return;
+        }
+
+        var column = left + 2;
+
+        regions.Add(new OverlayRegion(MouseTarget.ProfileAddButton, row, column, AddLabel.Length, 1, 0));
+        regions.Add(
+            new OverlayRegion(
+                MouseTarget.ProfileEditButton,
+                row,
+                column + AddLabel.Length + ButtonGap,
+                EditLabel.Length,
+                1,
+                0));
+    }
+
     private static string FooterText(KeymapTable keymap)
     {
-        var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-        var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
         var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+        var add = keymap.FindKeys(InputMode.Insert, ActionIds.ProfileAdd);
+        var edit = keymap.FindKeys(InputMode.Insert, ActionIds.ProfileEdit);
         var remove = keymap.FindKeys(InputMode.Insert, ActionIds.ProfileRemove);
         var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
 
-        return $"{up}/{down} choose   {accept} switch   {remove} remove   {cancel} close";
+        return $"{accept} switch  {add} add  {edit} edit  {remove} remove  {cancel} close";
     }
 }

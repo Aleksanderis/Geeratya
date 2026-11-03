@@ -158,7 +158,7 @@ public class NetworkStatusTests
         Assert.True(status.CredentialsRejected);
         Assert.Equal(TextRole.Error, banner.Spans[0].Role);
         Assert.Contains("Jira rejected the token (401).", banner.PlainText);
-        Assert.Contains(":profile remove work, then :profile add", banner.PlainText);
+        Assert.Contains(":profile edit work and type the token again", banner.PlainText);
         Assert.Equal(3, failed.Session.Tabs[0].Rows.Count);
     }
 

@@ -54,9 +54,9 @@ public class ProfileFormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(ProfileFormField.Email, null), 80, 24, _keymap);
         var status = lines[^1];
 
-        Assert.Contains("INSERT [3/4] Account email", status, StringComparison.Ordinal);
+        Assert.Contains("INSERT Account email", status, StringComparison.Ordinal);
         Assert.DoesNotContain("_", status, StringComparison.Ordinal);
-        Assert.Contains(lines, line => line.Contains("> ", StringComparison.Ordinal) && line.Contains('│'));
+        Assert.Contains(lines, line => line.Contains("> Account", StringComparison.Ordinal) && line.Contains('│'));
     }
 
     [Theory]
@@ -85,11 +85,10 @@ public class ProfileFormOverlaySnapshotTests
     [InlineData(ProfileFormField.SiteUrl, "Enter next")]
     [InlineData(ProfileFormField.Email, "Enter next")]
     [InlineData(ProfileFormField.Token, "Enter save")]
-    public void GivenEachStep_WhenBuildingTheFrame_ThenBoxFooterAndStatusHintSayTheSame(ProfileFormField field, string expected)
+    public void GivenEachStep_WhenBuildingTheFrame_ThenTheStatusHintSaysWhatEnterDoes(ProfileFormField field, string expected)
     {
         var lines = FrameBuilder.Build(Sample(field, null), 100, 30, _keymap);
 
-        Assert.Contains(lines, line => line.Contains('│') && line.Contains(expected, StringComparison.Ordinal));
         Assert.Contains(expected, lines[^1], StringComparison.Ordinal);
     }
 

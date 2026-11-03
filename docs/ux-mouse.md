@@ -43,7 +43,12 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | PaletteRow | Wheel down | `picker.next` | O | Command palette: moves the highlight down 3 rows over the list (runs nothing) |
 | ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
 | ProfileRow | Right-click | `profile.remove` | O | Profile list: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
-| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
+| ProfileAddButton | Click | `profile.add` | O | Profile list: opens the empty profile form, same as `Ctrl-a` |
+| ProfileEditButton | Click | `profile.edit` | O | Profile list: opens the form of the highlighted profile, same as `Ctrl-e` |
+| ProfileTestButton | Click | `profile.test` | O | Profile form: tests the connection with the typed values (nothing is saved), same as `Alt-t` |
+| ProfileSaveButton | Click | `form.submit` | O | Profile form: saves the profile, same as `Ctrl-s` |
+| ProfileCancelButton | Click | `mode.cancel` | O | Profile form: closes it without saving, same as `Esc` |
+| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms and the profile form): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
 | HelpPage | Click | `help.page-next` | O | Help popup: shows the clicked section (an entry of the menu on the left), from its first line; same as `Tab` or `Shift-Tab` until that section; the filter stays |

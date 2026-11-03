@@ -12,17 +12,15 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                              ┌─ Add profile  [4/4] ─────────────────────────────────────┐                              
-                              │ Your Jira API token (hidden).                            │                              
-                              │                                                          │                              
-                              │ > ************_                                          │                              
-                              │                                                          │                              
-                              │ Enter save   Esc cancel                                  │                              
-                              └──────────────────────────────────────────────────────────┘                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
+                        ┌─ Add profile ────────────────────────────────────────────────────────┐                        
+                        │   Name                                                               │                        
+                        │   Site URL                                                           │                        
+                        │   Account                                                            │                        
+                        │ > Token        ************_                                         │                        
+                        │                                                                      │                        
+                        │ Test connection   Save   Cancel                                      │                        
+                        │ Tab field  Ctrl-s save  Alt-t test  Esc cancel                       │                        
+                        └──────────────────────────────────────────────────────────────────────┘                        
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -33,4 +31,6 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
- INSERT [4/4] API token (hidden)                                                                  Enter save  Esc cancel
+                                                                                                                        
+                                                                                                                        
+ INSERT API token (hidden)                                                            Enter save  Alt-t test  Esc cancel

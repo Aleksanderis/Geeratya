@@ -31,6 +31,17 @@ public sealed record ProfileCatalog(string? ActiveName, IReadOnlyList<Profile> P
         return new ProfileCatalog(active, replaced);
     }
 
+    /// <summary>
+    /// Replaces the profile named <paramref name="oldName"/> in place (same position); the active mark follows a rename.
+    /// </summary>
+    public ProfileCatalog Replace(string oldName, Profile profile)
+    {
+        var replaced = Profiles.Select(existing => existing.Name == oldName ? profile : existing).ToList();
+        var active = ActiveName == oldName ? profile.Name : ActiveName;
+
+        return new ProfileCatalog(active, replaced);
+    }
+
     /// <summary>Removes the profile; when it was active, the first remaining one becomes active.</summary>
     public ProfileCatalog Without(string name)
     {

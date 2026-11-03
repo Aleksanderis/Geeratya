@@ -16,6 +16,9 @@ public sealed class TokenProvider
 
     public ISecretStore Store { get; }
 
+    /// <summary>Whether <c>GEERATYA_TOKEN</c> is set (its value is never exposed here).</summary>
+    public bool HasEnvironmentToken => _environment.Get(EnvironmentVariable) is not null;
+
     public async Task<TokenResolution> ResolveAsync(
         string credentialKey,
         bool allowEnvironment,

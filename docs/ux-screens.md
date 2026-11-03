@@ -317,7 +317,7 @@ States, as a one-line banner under the tab bar (highest priority wins: error, of
  OFFLINE  Cannot reach example.atlassian.net. Retrying in 8 s, <space>r retries now. Data is 23 min old.
  RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.
  STALE  Data is 23 min old. Refreshing…
- ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :profile add.
+ ERROR  Jira rejected the token (401). Replace it: :profile edit work and type the token again.
 ```
 
 Ages are relative (`45 s`, `23 min`, `5 h`, `3 d`), not clock times, so the text does not depend on the time zone. The part to act on comes before the age, so a line that is cut loses the age first. A 401 is a site-wide state: every tab shows it. Other errors show Jira's own message (`ERROR  Not found, or you have no access to it.`, `ERROR  Jira returned an error (503). <space>r tries again.`).
@@ -347,7 +347,7 @@ Wording by status (jira-layer.md "Errors"); the body of an HTML or plain-text re
 
 | Reply | Text |
 |---|---|
-| 401 | `Jira rejected the token for <email> at <host> (401). Replace it: :profile remove <name>, then :profile add.` (a wrong email and a wrong token look the same) |
+| 401 | `Jira rejected the token for <email> at <host> (401). Replace it: :profile edit <name> and type the token again.` (a wrong email and a wrong token look the same) |
 | 403, 404 | `Not found or no access: <what>` (Jira does not tell them apart) |
 | 400 on a JQL source | `Query error: <Jira's message>` with the line and character; the JQL stays in the tab so it can be fixed with `:jql` |
 | 429 | rate-limited state, not an error |

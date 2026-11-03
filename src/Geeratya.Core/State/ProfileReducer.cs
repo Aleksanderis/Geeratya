@@ -21,8 +21,11 @@ public static class ProfileReducer
     private const string SwitchVerb = "switch";
     private const string RemoveVerb = "remove";
     private const string CheckVerb = "check";
+    private const string EditVerb = "edit";
     private const string BusyMessage = "Still saving the previous profile change; try again in a moment.";
-    private const string Usage = "Usage: profile add | list | switch <name> | remove <name> | check";
+    private const string Usage = "Usage: profile add | edit [name] | list | switch <name> | remove <name> | check";
+
+    private const string TokenMissing = "The API token cannot be empty.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -34,7 +37,7 @@ public static class ProfileReducer
         var verb = space < 0 ? text : text[..space];
         var name = space < 0 ? string.Empty : text[(space + 1)..].Trim();
 
-        if (state.ProfileBusy && verb is AddVerb or SwitchVerb or RemoveVerb)
+        if (state.ProfileBusy && verb is AddVerb or EditVerb or SwitchVerb or RemoveVerb)
         {
             return Plain(Say(state, BusyMessage));
         }
@@ -46,13 +49,125 @@ public static class ProfileReducer
 
         return verb switch
         {
-            AddVerb => Plain(state with { Mode = InputMode.Insert, Form = ProfileForm.Start }),
+            AddVerb => Add(state),
+            EditVerb => Edit(state, name.Length == 0 ? state.Profiles.ActiveName : name),
             "" or ListVerb => OpenList(state),
             SwitchVerb => Switch(state, name),
             RemoveVerb => AskRemove(state, name),
             CheckVerb => CheckConnection(state, announce: true),
             _ => Plain(Say(state, Usage)),
         };
+    }
+
+    /// <summary>Opens the form for a new profile (from the palette, the list or the start screen).</summary>
+    public static ReduceResult Add(AppState state)
+    {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        return Plain(Closed(state) with { Mode = InputMode.Insert, Form = ProfileForm.Start, Message = null });
+    }
+
+    /// <summary>Ctrl-e in the profile list: edits the highlighted profile.</summary>
+    public static ReduceResult EditHighlighted(AppState state, int? row = null)
+    {
+        return Highlighted(state, row) is { } profile ? Edit(state, profile.Name) : Plain(state);
+    }
+
+    /// <summary>Opens the form of the named profile; the stored token is not read and stays hidden.</summary>
+    public static ReduceResult Edit(AppState state, string? name)
+    {
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        if (state.Profiles.Profiles.Count == 0)
+        {
+            return Plain(Say(state, List(state.Profiles)));
+        }
+
+        if (state.Profiles.Find(name) is not { } profile)
+        {
+            return Plain(Say(state, $"No profile named {name}. {List(state.Profiles)}"));
+        }
+
+        var form = ProfileForm.For(profile);
+
+        return Plain(Closed(state) with { Mode = InputMode.Insert, Form = form, Message = null });
+    }
+
+    /// <summary>Tab and Shift-Tab: moves the focus one field, wrapping around.</summary>
+    public static AppState Focus(AppState state, int delta)
+    {
+        if (state.Form is not { } form)
+        {
+            return state;
+        }
+
+        var count = Enum.GetValues<ProfileFormField>().Length;
+        var next = (ProfileFormField)(((int)form.Field + delta + count) % count);
+
+        return state with { Form = Normalize(form) with { Field = next } };
+    }
+
+    /// <summary>A click on a field: focuses it.</summary>
+    public static AppState FocusField(AppState state, int index)
+    {
+        if (state.Form is not { } form || !Enum.IsDefined((ProfileFormField)index))
+        {
+            return state;
+        }
+
+        return state with { Form = Normalize(form) with { Field = (ProfileFormField)index } };
+    }
+
+    /// <summary>Alt-t in the form: checks the typed site, account and token (or the stored one) without saving.</summary>
+    public static ReduceResult TestConnection(AppState state)
+    {
+        if (state.Form is not { } form || form.Testing)
+        {
+            return Plain(state);
+        }
+
+        var problem = FirstProblem(form, state.Profiles);
+
+        if (problem is { } found && found.Field != ProfileFormField.Name)
+        {
+            return Plain(state with { Form = form with { Field = found.Field, Error = found.Text } });
+        }
+
+        var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
+        var original = form.EditingName is null ? null : state.Profiles.Find(form.EditingName);
+        var typed = form.Token.IsEmpty ? null : form.Token;
+        var allowEnvironment = state.Profiles.Profiles.Count == 1;
+
+        if (typed is null && original is null)
+        {
+            return Plain(state with { Form = form with { Field = ProfileFormField.Token, Error = TokenMissing } });
+        }
+
+        var tested = form with { Testing = true, TestResult = null, TestFailed = false, Error = null };
+
+        return new ReduceResult(
+            state with { Form = tested },
+            [new TestProfileEffect(profile, typed, original?.CredentialKey, allowEnvironment)]);
+    }
+
+    /// <summary>The answer of a connection test; dropped when the form is closed.</summary>
+    public static ReduceResult Tested(AppState state, ProfileTested tested)
+    {
+        if (state.Form is not { Testing: true } form)
+        {
+            return Plain(state);
+        }
+
+        return Plain(state with
+        {
+            Form = form with { Testing = false, TestFailed = !tested.Succeeded, TestResult = tested.Message },
+        });
     }
 
     /// <summary>Moves the highlight of the profile list one row (clamped).</summary>
@@ -107,7 +222,7 @@ public static class ProfileReducer
             return state;
         }
 
-        return state with { Form = Edit(form, current => $"{current}{text}", secret => secret.Append(text)) };
+        return Typed(state, EditField(form, current => $"{current}{text}", secret => secret.Append(text)));
     }
 
     public static AppState Backspace(AppState state)
@@ -119,10 +234,10 @@ public static class ProfileReducer
             return state;
         }
 
-        return state with { Form = Edit(form, RemoveLastElement, secret => secret.RemoveLast()) };
+        return Typed(state, EditField(form, RemoveLastElement, secret => secret.RemoveLast()));
     }
 
-    /// <summary>Validates the current field; on the last one the profile is added through an effect.</summary>
+    /// <summary>Enter: validates the current field and moves on; on the last one the profile is saved.</summary>
     public static ReduceResult Submit(AppState state)
     {
         var form = state.Form;
@@ -144,9 +259,30 @@ public static class ProfileReducer
             return Plain(state with { Form = Normalize(form) with { Field = form.Field + 1, Error = null } });
         }
 
-        var profile = new Profile(form.Name.Trim(), form.SiteUrl, form.Email.Trim());
-        var catalog = state.Profiles.With(profile);
-        var normal = state with
+        return Save(state);
+    }
+
+    /// <summary>Ctrl-s: validates every field (focusing the first problem) and saves the profile through an effect.</summary>
+    public static ReduceResult Save(AppState state)
+    {
+        if (state.Form is not { } form)
+        {
+            return Plain(state);
+        }
+
+        if (state.ProfileBusy)
+        {
+            return Plain(Say(state, BusyMessage));
+        }
+
+        if (FirstProblem(form, state.Profiles) is { } problem)
+        {
+            return Plain(state with { Form = form with { Field = problem.Field, Error = problem.Text } });
+        }
+
+        var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
+        var original = form.EditingName is null ? null : state.Profiles.Find(form.EditingName);
+        var busy = state with
         {
             Mode = InputMode.Normal,
             Form = null,
@@ -154,7 +290,16 @@ public static class ProfileReducer
             ProfileBusy = true,
         };
 
-        return new ReduceResult(normal, [new AddProfileEffect(profile, form.Token, catalog)]);
+        if (original is null)
+        {
+            return new ReduceResult(busy, [new AddProfileEffect(profile, form.Token, state.Profiles.With(profile))]);
+        }
+
+        var catalog = state.Profiles.Replace(original.Name, profile);
+        var shared = catalog.Profiles.Any(other => other.CredentialKey == original.CredentialKey);
+        var token = form.Token.IsEmpty ? null : form.Token;
+
+        return new ReduceResult(busy, [new UpdateProfileEffect(original, profile, token, catalog, shared)]);
     }
 
     public static ReduceResult Changed(AppState state, ProfilesChanged changed)
@@ -164,7 +309,7 @@ public static class ProfileReducer
         var previous = state.Profiles.Active;
         var current = changed.Catalog.Active;
 
-        if (previous == current)
+        if (previous == current && !changed.Reconnect)
         {
             return Plain(next);
         }
@@ -356,7 +501,7 @@ public static class ProfileReducer
     {
         if (state.Profiles.Profiles.Count == 0)
         {
-            return Plain(Say(state, List(state.Profiles)));
+            return Add(state);
         }
 
         var active = state.Profiles.Profiles.ToList().FindIndex(profile => profile.Name == state.Profiles.ActiveName);
@@ -398,23 +543,57 @@ public static class ProfileReducer
 
     private static string? Validate(ProfileForm form, ProfileCatalog catalog)
     {
-        return form.Field switch
+        return Validate(form, form.Field, catalog);
+    }
+
+    private static string? Validate(ProfileForm form, ProfileFormField field, ProfileCatalog catalog)
+    {
+        return field switch
         {
-            ProfileFormField.Name => ValidateName(form.Name.Trim(), catalog),
+            ProfileFormField.Name => ValidateName(form.Name.Trim(), form.EditingName, catalog),
             ProfileFormField.SiteUrl => ValidateSite(form.SiteUrl),
             ProfileFormField.Email => ValidateEmail(form.Email.Trim()),
-            _ => form.Token.IsEmpty ? "The API token cannot be empty." : null,
+            _ => form.Token.IsEmpty && !form.IsEdit ? TokenMissing : null,
         };
     }
 
-    private static string? ValidateName(string name, ProfileCatalog catalog)
+    private static FieldProblem? FirstProblem(ProfileForm form, ProfileCatalog catalog)
+    {
+        foreach (var field in Enum.GetValues<ProfileFormField>())
+        {
+            if (Validate(form, field, catalog) is { } text)
+            {
+                return new FieldProblem(field, text);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Validates as the user types: a field that is still empty shows nothing yet.</summary>
+    private static AppState Typed(AppState state, ProfileForm form)
+    {
+        var empty = form.Field switch
+        {
+            ProfileFormField.Name => form.Name.Length == 0,
+            ProfileFormField.SiteUrl => form.SiteUrl.Length == 0,
+            ProfileFormField.Email => form.Email.Length == 0,
+            _ => form.Token.IsEmpty,
+        };
+
+        var error = empty ? null : Validate(form, state.Profiles);
+
+        return state with { Form = form with { Error = error, TestResult = null, TestFailed = false } };
+    }
+
+    private static string? ValidateName(string name, string? editing, ProfileCatalog catalog)
     {
         if (name.Length == 0)
         {
             return "The name cannot be empty.";
         }
 
-        return catalog.Find(name) is null ? null : $"A profile named {name} already exists.";
+        return catalog.Find(name) is null || name == editing ? null : $"A profile named {name} already exists.";
     }
 
     private static string? ValidateSite(string text)
@@ -459,7 +638,7 @@ public static class ProfileReducer
         };
     }
 
-    private static ProfileForm Edit(ProfileForm form, Func<string, string> text, Func<SecretText, SecretText> secret)
+    private static ProfileForm EditField(ProfileForm form, Func<string, string> text, Func<SecretText, SecretText> secret)
     {
         return form.Field switch
         {
@@ -491,4 +670,6 @@ public static class ProfileReducer
     {
         return new ReduceResult(state, _noEffects);
     }
+
+    private sealed record FieldProblem(ProfileFormField Field, string Text);
 }

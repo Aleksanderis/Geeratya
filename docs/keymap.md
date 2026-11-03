@@ -158,6 +158,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
 | `Ctrl-l` | Accept the field and go to the next | `form.next` | everyday |
 | `Ctrl-x` | Remove the highlighted profile (asks first; the stored token is deleted) | `profile.remove` | everyday |
+| `Ctrl-a` | Add a profile (site, account and token in one form) | `profile.add` | everyday |
+| `Ctrl-e` | Edit the highlighted profile (the stored token is kept unless replaced) | `profile.edit` | everyday |
+| `Alt-t` | Test the connection of the profile form (nothing is saved) | `profile.test` | everyday |
 | `Tab` | Next field of the form | `form.field-next` | everyday |
 | `Shift-Tab` | Previous field of the form | `form.field-previous` | everyday |
 | `Ctrl-s` | Save the form | `form.submit` | everyday |
@@ -193,7 +196,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:estimate` | Change the estimate (story points) of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
-| `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:profile add|edit [name]|list|switch <name>|remove <name>|check` | Manage Jira profiles |
 | `:set [hints.statusBar|hints.whichKey|commandlevel|theme|jump.target] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |

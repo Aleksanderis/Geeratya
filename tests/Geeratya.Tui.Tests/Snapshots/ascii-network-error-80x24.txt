@@ -1,5 +1,5 @@
  [1 JQL: My open issues !]  +                                            [jump] 
- ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :p
+ ERROR  Jira rejected the token (401). Replace it: :profile edit work and type t
 My open issues - 3 issues                                                       
   Key    T Summary                                                Status        
 > GCM-12 T Fix login redirect after token refresh                 In Progress   

@@ -26,11 +26,11 @@
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
             │               │   Backspace  Delete the last character                                       │            
+            │               │   Ctrl-a     Add a profile (site, account and token in one form)             │            
+            │               │   Ctrl-e     Edit the highlighted profile (the stored token is kept unless   │            
+            │               │              replaced)                                                       │            
+            │               │   Alt-t      Test the connection of the profile form (nothing is saved)      │            
             │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
-            │               │              is deleted)                                                     │            
-            │               │   Up         Previous row in the picker  (Ctrl-p, Ctrl-k)                    │            
-            │               │   Down       Next row in the picker  (Ctrl-n, Ctrl-j)                        │            
-            │               │   Ctrl-t     Open the highlighted sprint in a new tab                        │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
