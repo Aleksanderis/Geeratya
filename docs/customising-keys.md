@@ -59,6 +59,8 @@ A row with no `mode` (or no `keys` or `action`) is reported and skipped; it neve
 
 If you unbind every way to quit or to open the palette, Ctrl-c still quits unless you removed it too. Edit or delete `keymap.json` from outside the app and start again.
 
+Planned (#303): `Ctrl-c` is read before the keymap, so a `keymap.json` can no longer remove it; a `Custom` page in the help overlay (#371) lists your own bindings, and the Messages overlay (#369) keeps every skipped row, not only the first.
+
 ## Applying changes
 
 Geeratya reads the file at start. After editing it, run `:keys reload` in the command palette to apply it without a restart; the status line says `Keymap reloaded` or names the first problem.

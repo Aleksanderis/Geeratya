@@ -36,6 +36,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `0` `$` | line start, line end | first and last column of the board |
 | `] ]` `[ [` | next and previous section | next and previous section of the issue |
 | `g t` `g T` | next and previous tab | next and previous tab |
+| `Ctrl-p` (planned, M6) | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up) |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
 | `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key |
@@ -52,7 +53,7 @@ Decided in #152 so that M2 and M4 bind into a plan. Nothing here is in `keymap.d
 1. **One noun, one `<space>` group.** `i` issue, `m` comment, `s` sprint, `k` rank, `v` view options (M5). A verb is the second key: `<space>is` changes the status of the issue. The M1 leaves `t c r l o p` stay leaves, and a leaf is never also a prefix (the conflict test enforces it), so no group may start with them. That is why comment is `m` (`c` closes a tab) and rank is `k` (`r` refreshes).
 2. **No bare letters.** Writes never take a bare vim key (see "Key rule"). Two families only: `<space>` chords and `Alt-` chords. `Alt-h/j/k/l` move the selected card or row (status or rank); they mirror the vim motions, so nothing is learned twice. Every `Alt-` action also has a palette command (rule 6), which covers terminals that send no Alt (macOS Terminal.app without "Option as Meta"); `Ctrl-s` in editors needs the same check in #167 (flow control) with a fallback.
 3. **No case pairs with unrelated meanings.** A capital is allowed only for the same verb with a narrower or wider target (`ic` create, `iC` create a sub-task of the selected issue).
-4. **Everyday and advanced.** Each action has a level; M6 implements the setting and the filtering (#196). Everyday is what a normal working day needs, advanced is rare or risky. The level never changes a key: an advanced action stays bound and runs from the palette, it is only left out of hints and which-key.
+4. **Everyday and advanced.** Each action has a level; M6 implements the setting and the filtering (#196). Everyday is what a normal working day needs, advanced is rare or risky. The level never changes a key: an advanced action stays bound and runs from the palette, it is only left out of the palette's default list, hints and which-key (hidden, never disabled, as in Gitunia); `<space>*` switches the level for the session.
 5. **Same keys in every view.** A write acts on the selected issue of the active tab in list, columns, backlog and issue detail alike (in detail: the shown issue, or the comment under the cursor for `m` actions). A key that does not apply (a sprint key on a Kanban board, `Alt-h` in a list) shows a status note naming the reason and does nothing else.
 6. **Every action has an id and a palette command** (`issue.create` is `:create`), so keys can be remapped later (M6) and the mouse path runs the same action.
 7. **Stray keys never write.** Printable keys act in Normal mode only; text fields, pickers and forms are Insert mode. Destructive actions go through Confirm mode (`y`, `n`, `Esc`; `Enter` never confirms) and say what changes and that Jira cannot undo it.
@@ -92,10 +93,14 @@ The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E
 | `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open or save a saved view | E | tab picker | M5 #191 |
 | `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M4 #181 |
 | `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M4 #181 |
+| `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | none (the setting is `:set`) | M6 #196 |
+| `<space>n` | `messages.open` | Open the status message history (`<space>m` is the comment group, so Gitunia's `<space>m` is not reused) | E | click the message in the status line | M6 #369 |
+| `<space>x` | `messages.dismiss` | Dismiss the status message | E | none | M6 #369 |
+| `Ctrl-p` | `palette.open` | A second key for the command palette (`:` stays); vim's `Ctrl-p` (up a line) is not needed, the arrow keys and `k` do that | E | click the status line | M6 #368 |
 
 The estimate has no key of its own: the `<space>ie` field picker offers the board's estimation field (#183). Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
 
-Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
+Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 
 ### Selection and counts
 

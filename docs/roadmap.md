@@ -73,9 +73,12 @@ Goal: views beyond boards, as new sources and layouts.
 
 Goal: every command is findable and the keys are the user's.
 
-- Command palette, quick jump to an issue key, which-key hints, status bar hints per view.
-- Command levels (everyday and advanced) and a help whose completeness a test checks.
-- User key configuration file (the defaults are already data in `keymap.default.json`) and a guide.
+- Command palette (a fuzzy list of every action with its keys; typed commands stay, #368), quick jump to an issue key, which-key hints with a short delay and status bar hints per view (#372).
+- Command levels (everyday and advanced, `<space>*`) and a help of pages for the active view whose completeness a test checks (#196, #371).
+- Status messages with severity, expiry and a history, so a late write result is not wiped by the next key (#369).
+- User key configuration file (the defaults are already data in `keymap.default.json`), a guide, and one settings registry whose writer keeps the user's comments (#373).
+
+These follow Gitunia's proven design (`docs/decisions.md`, 2026-11-03). The Confirm dialog (#370) is in M3 with the mouse paths.
 
 ## M7 - Release and going public
 
