@@ -32,9 +32,9 @@ public class FormSuggestionOverlayTests
     {
         var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
-        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-suggest-{width}x{height}.txt");
+        var name = $"form-suggest-{width}x{height}.txt";
 
-        Assert.Equal(File.ReadAllText(path), actual);
+        Assert.Equal(SnapshotFile.Expect(name, actual), actual);
     }
 
     [Theory]

@@ -355,7 +355,7 @@ public class SelectionTests
     public void GivenTheColumnsLayout_WhenCtrlClickingAColumnHeader_ThenNothingIsMarked()
     {
         var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
-        var placed = new PointerPlaced(5, 1, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+        var placed = new PointerPlaced(5, 0, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
 
         var result = _reducer.Reduce(state, placed).State;
 

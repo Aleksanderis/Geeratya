@@ -239,23 +239,17 @@ public class IssueRelationsBuilderTests
 
     private static List<string> Panels(DetailDocument document)
     {
-        return
-        [
-            .. document.Lines
-                .Select(static line => line.PlainText)
-                .Where(static text => text.StartsWith("╭─ "))
-                .Select(static text => text[3..].TrimEnd('╮', '─', ' ')),
-        ];
+        return [.. document.PaneTitles.Select(static title => string.Concat(title.Select(static span => span.Text)))];
     }
 
-    /// <summary>The lines of the panel with the given title prefix.</summary>
+    /// <summary>The lines of the panel with the given title prefix, its shared top edge included.</summary>
     private static string Section(DetailDocument document, string title)
     {
-        var lines = document.Lines.Select(static line => line.PlainText).ToList();
-        var start = lines.FindIndex(line => line.StartsWith($"╭─ {title}"));
-        var end = lines.FindIndex(start, static line => line.StartsWith('╰'));
+        var index = Panels(document).FindIndex(panel => panel.StartsWith(title));
+        var start = Math.Max(0, document.Sections[index] - 1);
+        var end = index + 1 < document.Sections.Count ? document.Sections[index + 1] - 1 : document.Lines.Count;
 
-        return string.Join('\n', lines.Skip(start).Take(end - start + 1));
+        return string.Join('\n', document.Lines.Skip(start).Take(end - start).Select(static line => line.PlainText));
     }
 
     private static DetailState Detail(IssueDetail issue)

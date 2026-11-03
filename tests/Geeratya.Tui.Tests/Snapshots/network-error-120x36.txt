@@ -1,36 +1,36 @@
  [1 JQL: My open issues !]  +                                                                                    [jump] 
  ERROR  Jira rejected the token (401). Replace it: :profile remove work, then :profile add.                             
-My open issues · 3 issues                                                                                               
-  Key    T Summary                                                                       Status         Assignee        
-> GCM-12 T Fix login redirect after token refresh                                        In Progress    -               
-  GCM-14 T Crash when the board has no columns                                           To Do          -               
-  GCM-15 T As a user I can filter by label                                               Done           -               
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
+╭─ My open issues ────────────────────────────────────────────────────────────────────────────────────────── 3 issues ─╮
+│  Key    T Summary                                                                     Status         Assignee        │
+│> GCM-12 T Fix login redirect after token refresh                                      In Progress    -               │
+│  GCM-14 T Crash when the board has no columns                                         To Do          -               │
+│  GCM-15 T As a user I can filter by label                                             Done           -               │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL error                        j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit

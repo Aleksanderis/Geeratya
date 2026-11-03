@@ -8,7 +8,7 @@ namespace Geeratya.Core.Detail;
 /// <param name="Targets">One entry per line: what Enter on that line opens, null for a plain line.</param>
 /// <param name="Sections">The line index of the first content line of each section (panel), ascending.</param>
 /// <param name="Stops">
-/// The lines the cursor can rest on, ascending: every line except the panel edges (title and bottom border).
+/// The lines the cursor can rest on, ascending: every line except the shared panel edges.
 /// </param>
 public sealed record DetailDocument(
     int Width,
@@ -17,6 +17,27 @@ public sealed record DetailDocument(
     IReadOnlyList<int> Sections,
     IReadOnlyList<int> Stops)
 {
+    /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
+    public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
+
+    /// <summary>The index of the section that holds <paramref name="line"/>; its shared edge belongs to it.</summary>
+    public int SectionAt(int line)
+    {
+        var index = 0;
+
+        for (var section = 0; section < Sections.Count; section++)
+        {
+            var edge = section == 0 ? 0 : Sections[section] - 1;
+
+            if (edge <= line)
+            {
+                index = section;
+            }
+        }
+
+        return index;
+    }
+
     /// <summary>The first stop after <paramref name="line"/>, or the last stop when there is none.</summary>
     public int StopAfter(int line)
     {

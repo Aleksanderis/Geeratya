@@ -1,7 +1,7 @@
  [1 JQL: project = GCM .]  +                                             [jump] 
                                                                                 
-project = GCM - 4 issues                                                        
-  Key T Summary                                                   Status        
++- project = GCM --------------------------------------------------- 4 issues -+
+|  Key T Summary                                                 Status        |
   +- Jump to an issue -------------------------------------------------------+  
   | > gcm_                                                                   |  
   | > GCM-12      Fix the login redirect                                     |  
@@ -11,14 +11,14 @@ project = GCM - 4 issues
   |                                                                          |  
   |                                                                          |  
   +--------------------------------------------------------------------------+  
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
++------------------------------------------------------------------------------+
  INSERT jump to an issue                      Down choose  Enter open  Esc close

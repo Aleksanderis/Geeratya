@@ -1,24 +1,24 @@
  [1 JQL: My open issues …]  +                                            [jump] 
  STALE  Data is 23 min old. Refreshing…                                         
-My open issues · 3 issues                                                       
-  Key    T Summary                                                Status        
-> GCM-12 T Fix login redirect after token refresh                 In Progress   
-  GCM-14 T Crash when the board has no columns                    To Do         
-  GCM-15 T As a user I can filter by label                        Done          
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+╭─ My open issues ────────────────────────────────────────────────── 3 issues ─╮
+│  Key    T Summary                                              Status        │
+│> GCM-12 T Fix login redirect after token refresh               In Progress   │
+│  GCM-14 T Crash when the board has no columns                  To Do         │
+│  GCM-15 T As a user I can filter by label                      Done          │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL stale  j/k move  Enter open  Space o browser  ? help  : commands  q quit

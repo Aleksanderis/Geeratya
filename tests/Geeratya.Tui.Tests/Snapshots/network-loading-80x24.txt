@@ -1,24 +1,24 @@
  [1 JQL: My open issues …]  +                                            [jump] 
                                                                                 
-My open issues · 3 issues                                                       
-  Key    T Summary                                                Status        
-> GCM-12 T Fix login redirect after token refresh                 In Progress   
-  GCM-14 T Crash when the board has no columns                    To Do         
-  GCM-15 T As a user I can filter by label                        Done          
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+╭─ My open issues ────────────────────────────────────────────────── 3 issues ─╮
+│  Key    T Summary                                              Status        │
+│> GCM-12 T Fix login redirect after token refresh               In Progress   │
+│  GCM-14 T Crash when the board has no columns                  To Do         │
+│  GCM-15 T As a user I can filter by label                      Done          │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL loading                 j/k move  Enter open  ? help  : commands  q quit

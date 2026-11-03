@@ -8,7 +8,7 @@ public class GlyphsTests
     [Fact]
     public void GivenEveryShellGlyph_WhenConvertingToAscii_ThenEachBecomesOneAsciiCharacter()
     {
-        const string drawn = "‹›↑▾…→·○◐●─━│┃┌┐└┘├┤┬┴┼┏┓┗┛┣┫╭╮╰╯";
+        const string drawn = "‹›▸↑▾…→·○◐●─━│┃┌┐└┘├┤┬┴┼┏┓┗┛┣┫╭╮╰╯";
 
         var ascii = Glyphs.ToAscii(drawn);
 

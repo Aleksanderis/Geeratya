@@ -1,6 +1,6 @@
  [1 JQL: A]  +                   [jump] 
                                         
-A - 1 issue                             
++- A ------------------------ 1 issue -+
   +- Edit A-1 -----------------------+  
   | > Labels                         |  
   |     [backend] [ui] _             |  

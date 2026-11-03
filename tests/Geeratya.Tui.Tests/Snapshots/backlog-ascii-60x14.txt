@@ -1,12 +1,12 @@
-Scrum board - 5 issues                                      
-  Key   T Summary                             Status        
-> + Sprint 1 - active - 2 Nov - 16 Nov - 2 issues - 8 pts   
-  - Sprint 2 - no dates - 2 issues - 3 pts                  
-  GCS-2 S Reporting overhaul with a very long To Do         
-  GCS-6 S Crash when the board has no columns To Do         
-  - Sprint 3 - no dates - 0 issues                          
-    No issues in this sprint.                               
-  - Backlog - 1 issue - 1.5 pts                             
-  GCS-5 S Tidy the release notes              To Do         
-                                                            
++- Scrum board --------------------------------- 5 issues -+
+|  Key   T Summary                           Status        |
++- > Sprint 1 - active - 2 Nov - 16 Nov - 2 issues - 8 p. -+
++- Sprint 2 ----------------- no dates - 2 issues - 3 pts -+
+|  GCS-2 S Reporting overhaul with a very lo To Do         |
+|  GCS-6 S Crash when the board has no colum To Do         |
++- Sprint 3 ------------------------- no dates - 0 issues -+
+|    No issues in this sprint.                             |
++- Backlog ---------------------------- 1 issue - 1.5 pts -+
+|  GCS-5 S Tidy the release notes            To Do         |
++----------------------------------------------------------+
  NORMAL     j/k move  Enter open  ? help  : commands  q quit

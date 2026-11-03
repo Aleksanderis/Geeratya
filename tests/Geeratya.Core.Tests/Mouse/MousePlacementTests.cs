@@ -371,9 +371,9 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "1:A-2");
 
-        var same = Drag(state, 90, 30, 5, HeaderRows + 2, 6, HeaderRows + 7);
-        var fromHeader = Drag(state, 90, 30, 5, HeaderRows + 1, 45, HeaderRows + 2);
-        var fromBlank = Drag(state, 90, 30, 5, HeaderRows + 20, 45, HeaderRows + 2);
+        var same = Drag(state, 90, 30, 5, HeaderRows + 1, 6, HeaderRows + 6);
+        var fromHeader = Drag(state, 90, 30, 5, HeaderRows, 45, HeaderRows + 1);
+        var fromBlank = Drag(state, 90, 30, 5, HeaderRows + 20, 45, HeaderRows + 1);
 
         foreach (var result in new[] { same, fromHeader, fromBlank })
         {
@@ -511,9 +511,9 @@ public class MousePlacementTests
         var state = Loaded(ViewLayout.Columns, 30, 20, "1:A-1", "2:A-2", "4:A-3");
         var centre = _reducer.Reduce(state, new ActionRequested(ActionIds.NavigateRight)).State;
 
-        var left = Click(centre, 30, 20, 4, HeaderRows + 1);
-        var right = Click(centre, 30, 20, 25, HeaderRows + 1);
-        var title = Click(centre, 30, 20, 14, HeaderRows + 1);
+        var left = Click(centre, 30, 20, 4, HeaderRows);
+        var right = Click(centre, 30, 20, 25, HeaderRows);
+        var title = Click(centre, 30, 20, 14, HeaderRows);
 
         Assert.Equal(0, Active(left).Cursor!.Column);
         Assert.Equal(2, Active(right).Cursor!.Column);
@@ -526,8 +526,8 @@ public class MousePlacementTests
         var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "2:A-2", "2:A-3", "4:A-4");
 
         // Three 30-wide columns: the second starts at cell 30. Full cards are five rows, the first one starts on
-        // body row 2.
-        var second = Click(state, 90, 30, 35, HeaderRows + 2 + 5);
+        // body row 1, under the top edge that carries the column titles.
+        var second = Click(state, 90, 30, 35, HeaderRows + 1 + 5);
 
         Assert.Equal("A-3", Active(second).SelectedKey);
         Assert.Equal(1, Active(second).Cursor!.Column);
@@ -538,7 +538,7 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "2:A-2", "4:A-3");
 
-        var result = Click(state, 90, 30, 80, HeaderRows + 1);
+        var result = Click(state, 90, 30, 80, HeaderRows);
 
         Assert.Equal("A-3", Active(result).SelectedKey);
         Assert.Equal(2, Active(result).Cursor!.Column);
@@ -549,7 +549,7 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.Columns, 90, 30, "1:A-1", "2:A-2");
 
-        var result = Click(state, 90, 30, 35, HeaderRows + 2 + 15);
+        var result = Click(state, 90, 30, 35, HeaderRows + 1 + 15);
 
         Assert.Equal(Active(state).SelectedKey, Active(result).SelectedKey);
         Assert.Equal(Active(state).Cursor?.Column, Active(result).Cursor?.Column);
@@ -560,7 +560,7 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.Columns, 40, 30, "1:A-1", "1:A-2");
 
-        var result = Click(state, 40, 30, 5, HeaderRows + 2 + 5);
+        var result = Click(state, 40, 30, 5, HeaderRows + 1 + 5);
 
         Assert.Equal("A-2", Active(result).SelectedKey);
     }
@@ -570,7 +570,7 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.Columns, 90, 10, "1:A-1", "1:A-2", "1:A-3");
 
-        var result = Click(state, 90, 10, 5, HeaderRows + 2 + 2);
+        var result = Click(state, 90, 10, 5, HeaderRows + 1 + 2);
 
         Assert.Equal("A-3", Active(result).SelectedKey);
     }

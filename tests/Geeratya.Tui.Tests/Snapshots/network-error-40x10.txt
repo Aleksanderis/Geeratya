@@ -1,10 +1,10 @@
  [1 JQL: My open issues !]  +    [jump] 
  ERROR  Token rejected. See :profile    
-My open issues · 3 issues               
-  Key    T Summary                     S
-> GCM-12 T Fix login redirect after to ◐
-  GCM-14 T Crash when the board has no ○
-  GCM-15 T As a user I can filter by l ●
-                                        
-                                        
+╭─ My open issues ────────── 3 issues ─╮
+│  Key    T Summary                   S│
+│> GCM-12 T Fix login redirect after  ◐│
+│  GCM-14 T Crash when the board has  ○│
+│  GCM-15 T As a user I can filter by ●│
+│                                      │
+╰──────────────────────────────────────╯
  NORMAL error                           

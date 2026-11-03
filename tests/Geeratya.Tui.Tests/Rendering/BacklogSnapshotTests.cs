@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -76,6 +77,39 @@ public class BacklogSnapshotTests
         var lines = FrameBuilder.Build(Sample(false), width, height, _keymap);
 
         Assert.NotNull(lines);
+    }
+
+    [Theory]
+    [InlineData(false, GlyphSet.Unicode)]
+    [InlineData(true, GlyphSet.Unicode)]
+    [InlineData(false, GlyphSet.Ascii)]
+    public void GivenAnyTerminalSize_WhenBuildingTheFrame_ThenEveryLineKeepsTheWidthAndTheFrameCloses(
+        bool collapsedFirst,
+        GlyphSet glyphs)
+    {
+        for (var width = 1; width <= 130; width++)
+        {
+            for (var height = 1; height <= 14; height++)
+            {
+                var lines = FrameBuilder.Build(Sample(collapsedFirst), width, height, _keymap, null, glyphs);
+
+                Assert.Equal(height, lines.Count);
+                Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+            }
+        }
+    }
+
+    [Fact]
+    public void GivenSections_WhenRendered_ThenTheSharedEdgesCarryTheSprintChipsAndTheFrameHasRoundedCorners()
+    {
+        var body = FrameBuilder.Build(Sample(false), 100, 24, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.StartsWith("╭─ Scrum board", body[0]);
+        Assert.EndsWith("─╮", body[0]);
+        Assert.Contains(body, line => line.StartsWith("├─ Sprint 1 · active") && line.EndsWith("─┤"));
+        Assert.Contains(body, line => line.StartsWith("├─ Backlog") && line.Contains("1 issue"));
+        Assert.StartsWith("╰", body[^2]);
+        Assert.DoesNotContain(body, line => line.StartsWith('┌') || line.StartsWith('┐'));
     }
 
     [Fact]

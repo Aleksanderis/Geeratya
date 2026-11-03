@@ -27,7 +27,7 @@ public class ListSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var name = $"list-{width}x{height}.txt";
 
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
+        var expected = SnapshotFile.Expect(name, actual);
 
         Assert.Equal(expected, actual);
     }
@@ -39,7 +39,7 @@ public class ListSnapshotTests
             .Skip(FrameBuilder.HeaderRows);
         var actual = string.Join('\n', lines) + "\n";
 
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", "list-ascii-40x10.txt"));
+        var expected = SnapshotFile.Expect("list-ascii-40x10.txt", actual);
 
         Assert.Equal(expected, actual);
     }

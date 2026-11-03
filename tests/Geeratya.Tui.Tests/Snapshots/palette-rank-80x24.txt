@@ -1,6 +1,6 @@
  [1 JQL: View]  +                                                        [jump] 
                                                                                 
-View · 0 issues                                                                 
+╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
   ┌─ Commands ───────────────────────────────────────────────────────────────┐  
   │ Rank                                                                     │  
   │ > Rank the issue up (a count moves it that many places)            Alt-k │  
@@ -15,10 +15,10 @@ View · 0 issues
   │ Navigate                                                                 │  
   │   Collapse or expand the sprint section of the Scrum backlog         z a │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND :rank                               Up/Down move  Enter run  Esc cancel

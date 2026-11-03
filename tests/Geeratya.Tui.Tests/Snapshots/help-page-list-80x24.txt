@@ -1,6 +1,6 @@
  [1 JQL: Sample]  +                                                      [jump] 
                                                                                 
-Sample · 1 issue                                                                
+╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
   ┌─ Help ───────────────────────────────────────────────────────────────────┐  
   │ > List        │   j          Move down  (Down)                           │  
   │   Global      │   k          Move up  (Up)                               │  
@@ -20,5 +20,5 @@ Sample · 1 issue
   │               │   Space i s  Change the status of the issue              │  
   │               │   Alt-k      Rank the issue up (a count moves it that    │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
+╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

@@ -28,9 +28,9 @@ public class SourcePickerSnapshotTests
     {
         var lines = FrameBuilder.Build(Sample("g"), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
-        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"picker-{width}x{height}.txt");
+        var name = $"picker-{width}x{height}.txt";
 
-        Assert.Equal(File.ReadAllText(path), actual);
+        Assert.Equal(SnapshotFile.Expect(name, actual), actual);
     }
 
     [Theory]

@@ -5,7 +5,6 @@ using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
-using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -19,7 +18,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int MinTypeName = 4;
     private const string NoCardsText = "no issues";
     private const string NoSprintText = "No active sprint on this board.";
-    private const int MinGoal = 8;
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
     private const string SelectedMark = ">";
@@ -33,12 +31,6 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const string ParentMark = "↑";
     private const string Vertical = "│";
     private const char HorizontalChar = '─';
-    private const string TopLeft = "┌";
-    private const string TopJoin = "┬";
-    private const string TopRight = "┐";
-    private const string BottomLeft = "└";
-    private const string BottomJoin = "┴";
-    private const string BottomRight = "┘";
 
     public bool AppliesTo(AppState state)
     {
@@ -51,53 +43,141 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     {
         var tab = ListBodyRenderer.ActiveTab(state)!;
         var glyphs = Glyphs.For(context.Glyphs);
-        var area = Math.Max(0, height - ListLayout.HeaderRows);
+        var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
         var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOf(tab), BusyMarks.Keys(state), glyphs);
         var cards = BoardCards.Visible(area, ListLayout.HeaderRows);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, cards);
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
-        var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area))
-        {
-            TitleLine(tab, window, width, glyphs, context.Now),
-        };
 
         if (tab.Rows.Count == 0 || columns.Count == 0)
         {
-            lines.Add(StyledLine.Empty);
-
-            if (NoActiveSprint(tab))
-            {
-                lines.Add(StyledLine.Of(NoSprintText, TextRole.Muted));
-                lines.Add(StyledLine.Of(NoSprintHint(context.Keymap), TextRole.Muted));
-
-                return lines;
-            }
-
-            ListBodyRenderer.AddBodyMessage(lines, tab, width, glyphs);
-
-            return lines;
+            return Message(tab, context, width, height, glyphs);
         }
 
-        lines.Add(HeaderLine(tab, columns, cursor, window));
+        if (!FrameGrid.CanFrame(width, height))
+        {
+            return Bare(tab, columns, cursor, width, height);
+        }
 
         var compact = BoardCards.IsCompact(area, ListLayout.HeaderRows);
-
-        var cardRows = Math.Max(0, area - BoardCards.FrameRows);
+        var cardRows = BoardCards.CardRows(area, ListLayout.HeaderRows);
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var panes = Panes(window, width, height);
+        var grid = new FrameGrid(width, height, panes);
+        var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
 
         for (var row = 0; row < cardRows; row++)
         {
-            lines.Add(row < cards * (compact ? 1 : BoardCards.FullRows)
-                ? CardRow(columns, cursor, window, row, compact, marks)
-                : CardRow(columns, cursor, window, BlankRow, compact, marks));
+            var card = row < cards * (compact ? 1 : BoardCards.FullRows) ? row : BlankRow;
+            var spans = grid.Row(
+                row + BoardCards.TopRows,
+                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks));
+
+            lines.Add(new StyledLine(spans));
         }
 
-        if (area > 0)
+        lines.Add(new StyledLine(grid.Row(height - 1, static (_, _) => [])));
+
+        return lines;
+    }
+
+    /// <summary>The empty and loading states: the message lines inside the frame, the board title as the chip.</summary>
+    private static List<StyledLine> Message(TabState tab, BodyContext context, int width, int height, Glyphs glyphs)
+    {
+        var inner = FrameGrid.CanFrame(width, height) ? width - 2 : width;
+        var lines = new List<StyledLine>();
+
+        if (NoActiveSprint(tab))
         {
-            lines.Add(BottomLine(window));
+            lines.Add(StyledLine.Of(NoSprintText, TextRole.Muted));
+            lines.Add(StyledLine.Of(NoSprintHint(context.Keymap), TextRole.Muted));
+        }
+        else
+        {
+            ListBodyRenderer.AddBodyMessage(lines, tab, inner, glyphs);
+        }
+
+        var title = new List<StyledSpan> { new(tab.Definition.Title, TextRole.Heading) };
+
+        return PaneFrame.Build(width, height, title, null, lines, []);
+    }
+
+    /// <summary>Below the size that gets a frame: the selected column as one-line cards under its title.</summary>
+    private static List<StyledLine> Bare(
+        TabState tab,
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
+        int width,
+        int height)
+    {
+        var group = columns[cursor.Column];
+        var lines = new List<StyledLine> { StyledLine.Of(ColumnTitle(tab, group), TextRole.Heading) };
+        var first = cursor.Scrolls[cursor.Column];
+
+        for (var card = first; card < group.Rows.Count && lines.Count < height; card++)
+        {
+            var selected = card == cursor.Cards[cursor.Column];
+            var role = selected ? TextRole.Selected : TextRole.Body;
+
+            lines.Add(StyledLine.Of(CompactLine(group.Rows[card], selected, false, false, false, width), role));
         }
 
         return lines;
+    }
+
+    /// <summary>The panes of the window: one box per drawn column, sharing the edge with the next.</summary>
+    private static List<PaneRect> Panes(BoardWindow window, int width, int height)
+    {
+        var panes = new List<PaneRect>(window.Count);
+        var column = 0;
+
+        for (var position = 0; position < window.Count; position++)
+        {
+            var last = position == window.Count - 1;
+            var right = last ? width - 1 : column + window.ColumnWidth(position);
+
+            panes.Add(new PaneRect(0, column, height, right - column + 1));
+            column = right;
+        }
+
+        return panes;
+    }
+
+    /// <summary>
+    /// The text of the title line of the board, which the status bar shows now: the sprint's name, dates, days left,
+    /// count and points on a sprint board, else the title and count, then the view options and the loading note, and
+    /// on a sprint board the goal last (the status bar cuts from the end).
+    /// </summary>
+    public static string StatusText(TabState tab, Glyphs glyphs, DateTimeOffset now)
+    {
+        var parts = new List<string>();
+
+        if (tab.Sprint is { } sprint && tab.Definition.Source == ViewSourceKind.Sprint)
+        {
+            parts.Add(sprint.Name);
+            parts.Add(SprintHeaderText.Dates(sprint));
+            parts.Add(now == default ? string.Empty : SprintHeaderText.DaysLeft(sprint, now));
+            parts.Add(ListBodyRenderer.CountText(tab));
+            parts.Add(SprintHeaderText.Points(tab.Rows));
+        }
+        else
+        {
+            parts.Add(tab.Definition.Title);
+            parts.Add(ListBodyRenderer.CountText(tab));
+            parts.Add(BoardViewOptions.Summary(tab, glyphs.Separator));
+        }
+
+        if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
+        {
+            parts.Add(note.PlainText);
+        }
+
+        if (tab is { Sprint.Goal: { } goal } && tab.Definition.Source == ViewSourceKind.Sprint)
+        {
+            parts.Add(string.Join(' ', goal.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)));
+        }
+
+        return string.Join(glyphs.Separator, parts.Where(part => part.Length > 0));
     }
 
     /// <summary>A Sprint view of "the active sprint" whose lookup finished with none: say so instead of "empty".</summary>
@@ -116,117 +196,39 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     }
 
     /// <summary>
-    /// The title of a Sprint view: sprint name, dates, days left, issue count and points done/total, then the goal cut
-    /// to what is left of the width. Falls back to the plain title while the sprint is unknown.
+    /// The top edge. A window of several columns shows each column's title as a chip, the selected one in the heading
+    /// role, and the columns left out on each side at the right end (<c>‹2 1›</c>). A window of one column names
+    /// its neighbours around the title, inside the edge.
     /// </summary>
-    private static StyledLine SprintTitle(
+    private static StyledLine TopEdge(
         TabState tab,
-        Sprint sprint,
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
         BoardWindow window,
-        int width,
-        Glyphs glyphs,
-        DateTimeOffset now)
+        FrameGrid grid,
+        List<PaneRect> panes)
     {
-        var parts = new[]
+        if (window.Count == 1 && window.Total > 1)
         {
-            SprintHeaderText.Dates(sprint),
-            now == default ? string.Empty : SprintHeaderText.DaysLeft(sprint, now),
-            ListBodyRenderer.CountText(tab),
-            SprintHeaderText.Points(tab.Rows),
-        };
-        var spans = new List<StyledSpan> { new(sprint.Name, TextRole.Heading) };
-
-        foreach (var part in parts.Where(part => part.Length > 0))
-        {
-            spans.Add(new StyledSpan($"{glyphs.Separator}{part}", TextRole.Muted));
+            return NeighbourEdge(tab, columns, cursor, window, grid);
         }
 
-        if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
-        {
-            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
-            spans.AddRange(note.Spans);
-        }
-
+        var chips = new List<EdgeChip>(window.Count * 2);
         var hidden = HiddenText(window);
-        var reserved = hidden.Length > 0 ? TextWidth.Of(hidden) + 1 : 0;
 
-        var goal = string.Join(' ', (sprint.Goal ?? string.Empty)
-            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        var used = spans.Sum(span => TextWidth.Of(span.Text));
-        var room = width - reserved - used - TextWidth.Of(glyphs.Separator);
-
-        if (goal.Length > 0 && room >= MinGoal)
+        for (var position = 0; position < window.Count; position++)
         {
-            spans.Add(new StyledSpan($"{glyphs.Separator}{CardText.Shorten(goal, room)}", TextRole.Muted));
+            var column = window.First + position;
+            var role = column == cursor.Column ? TextRole.Heading : TextRole.Muted;
+            var title = new List<StyledSpan> { new(ColumnTitle(tab, columns[column]), role) };
+            var right = position == window.Count - 1 && hidden.Length > 0
+                ? new List<StyledSpan> { new(hidden, TextRole.Muted) }
+                : null;
+
+            chips.AddRange(FrameGrid.Chips(panes[position], title, right));
         }
 
-        var line = CutTo(spans, width - reserved);
-        var gap = width - TextWidth.Of(line.PlainText) - TextWidth.Of(hidden);
-
-        if (hidden.Length == 0 || gap < 1)
-        {
-            return line;
-        }
-
-        return new StyledLine(
-        [
-            .. line.Spans,
-            new StyledSpan(new string(' ', gap), TextRole.Body),
-            new StyledSpan(hidden, TextRole.Muted),
-        ]);
-    }
-
-    /// <summary>The spans cut to <paramref name="width"/> cells, without padding.</summary>
-    private static StyledLine CutTo(List<StyledSpan> spans, int width)
-    {
-        var cut = new List<StyledSpan>(spans.Count);
-        var left = width;
-
-        foreach (var span in spans)
-        {
-            var text = TextWidth.Fit(span.Text, left);
-
-            cut.Add(new StyledSpan(text, span.Role));
-            left -= TextWidth.Of(text);
-        }
-
-        return new StyledLine(cut);
-    }
-
-    private static StyledLine TitleLine(TabState tab, BoardWindow window, int width, Glyphs glyphs, DateTimeOffset now)
-    {
-        if (tab.Sprint is { } sprint && tab.Definition.Source == ViewSourceKind.Sprint)
-        {
-            return SprintTitle(tab, sprint, window, width, glyphs, now);
-        }
-
-        var spans = new List<StyledSpan>
-        {
-            new($"{tab.Definition.Title}{glyphs.Separator}{ListBodyRenderer.CountText(tab)}", TextRole.Heading),
-        };
-
-        if (BoardViewOptions.Summary(tab, glyphs.Separator) is { Length: > 0 } options)
-        {
-            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
-            spans.Add(new StyledSpan(options, TextRole.Strong));
-        }
-
-        if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
-        {
-            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
-            spans.AddRange(note.Spans);
-        }
-
-        var hidden = HiddenText(window);
-        var used = spans.Sum(span => TextWidth.Of(span.Text));
-
-        if (hidden.Length > 0 && used + 1 + TextWidth.Of(hidden) <= width)
-        {
-            spans.Add(new StyledSpan(new string(' ', width - used - TextWidth.Of(hidden)), TextRole.Body));
-            spans.Add(new StyledSpan(hidden, TextRole.Muted));
-        }
-
-        return new StyledLine(spans);
+        return new StyledLine(grid.Row(0, static (_, _) => [], chips));
     }
 
     /// <summary>The number of columns left out on each side, as <c>‹2 1›</c>; empty when all columns show.</summary>
@@ -238,52 +240,21 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return string.Join(' ', new[] { left, right }.Where(part => part.Length > 0));
     }
 
-    private static StyledLine HeaderLine(
-        TabState tab,
-        IReadOnlyList<BoardColumnGroup> columns,
-        BoardCursor cursor,
-        BoardWindow window)
-    {
-        if (window.Count == 1 && window.Total > 1)
-        {
-            return NeighbourHeader(tab, columns, cursor, window);
-        }
-
-        var spans = new List<StyledSpan>(window.Count * 3);
-
-        for (var position = 0; position < window.Count; position++)
-        {
-            var column = window.First + position;
-            var selected = column == cursor.Column;
-            var width = window.ColumnWidth(position);
-            var last = position == window.Count - 1;
-            var room = Math.Max(0, width - 2 - (last ? 1 : 0));
-            var title = TextWidth.Fit($" {ColumnTitle(tab, columns[column])} ", room);
-            var fill = width - 2 - TextWidth.Of(title) - (last ? 1 : 0);
-
-            spans.Add(new StyledSpan(position == 0 ? TopLeft : TopJoin, TextRole.Muted));
-            spans.Add(new StyledSpan(HorizontalChar.ToString(), TextRole.Muted));
-            spans.Add(new StyledSpan(title, selected ? TextRole.Heading : TextRole.Muted));
-            spans.Add(new StyledSpan(new string(HorizontalChar, Math.Max(0, fill)), TextRole.Muted));
-        }
-
-        spans.Add(new StyledSpan(TopRight, TextRole.Muted));
-
-        return new StyledLine(spans);
-    }
-
     /// <summary>
-    /// Header of a window of one column: the selected column between the names of its neighbours, with
-    /// <c>‹</c> and <c>›</c> where more columns lie beyond, inside the frame.
+    /// Top edge of a window of one column: the selected column between the names of its neighbours, with
+    /// <c>‹</c> and <c>›</c> where more columns lie beyond. The cells follow <see cref="BoardHeaderText"/>, which the
+    /// mouse hit test reads.
     /// </summary>
-    private static StyledLine NeighbourHeader(
+    private static StyledLine NeighbourEdge(
         TabState tab,
         IReadOnlyList<BoardColumnGroup> columns,
         BoardCursor cursor,
-        BoardWindow window)
+        BoardWindow window,
+        FrameGrid grid)
     {
         var selected = cursor.Column;
-        var spans = new List<StyledSpan>(5) { new(TopLeft + HorizontalChar, TextRole.Muted) };
+        var corner = $"{grid.Glyph(0, 0)}{HorizontalChar}";
+        var spans = new List<StyledSpan>(5) { new(corner, TextRole.Muted) };
 
         if (selected > 0)
         {
@@ -303,7 +274,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var fitted = Fitted(spans, window.Width - 1, HorizontalChar);
 
-        return new StyledLine([.. fitted.Spans, new StyledSpan(TopRight, TextRole.Muted)]);
+        return new StyledLine([.. fitted.Spans, new StyledSpan(grid.Glyph(0, window.Width - 1), TextRole.Muted)]);
     }
 
     /// <summary>The spans cut to <paramref name="width"/> columns, then filled with <paramref name="fill"/>.</summary>
@@ -330,48 +301,31 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return BoardHeaderText.Title(column, tab.Next is not null);
     }
 
-    private static StyledLine BottomLine(BoardWindow window)
-    {
-        var spans = new List<StyledSpan>(window.Count + 1);
-
-        for (var position = 0; position < window.Count; position++)
-        {
-            var last = position == window.Count - 1;
-            var width = window.ColumnWidth(position) - (last ? 1 : 0);
-
-            var corner = position == 0 ? BottomLeft : BottomJoin;
-
-            spans.Add(new StyledSpan(corner + new string(HorizontalChar, Math.Max(0, width - 1)), TextRole.Muted));
-        }
-
-        spans.Add(new StyledSpan(BottomRight, TextRole.Muted));
-
-        return new StyledLine(spans);
-    }
-
-    private static StyledLine CardRow(
+    /// <summary>The cells between two borders: the column whose pane holds the run starting at <paramref name="start"/>.</summary>
+    private static List<StyledSpan> Cell(
         IReadOnlyList<BoardColumnGroup> columns,
         BoardCursor cursor,
         BoardWindow window,
+        List<PaneRect> panes,
+        int start,
+        int length,
         int row,
         bool compact,
         HashSet<string> marks)
     {
-        var spans = new List<StyledSpan>(window.Count * 5);
+        var position = 0;
 
-        for (var position = 0; position < window.Count; position++)
+        while (position + 1 < panes.Count && panes[position + 1].Column < start)
         {
-            var column = window.First + position;
-            var last = position == window.Count - 1;
-            var inner = Math.Max(0, window.ColumnWidth(position) - 1 - (last ? 1 : 0));
-
-            spans.Add(new StyledSpan(Vertical, TextRole.Muted));
-            AddCell(spans, columns[column], cursor, column, row, compact, inner, marks);
+            position++;
         }
 
-        spans.Add(new StyledSpan(Vertical, TextRole.Muted));
+        var column = window.First + position;
+        var spans = new List<StyledSpan>();
 
-        return new StyledLine(spans);
+        AddCell(spans, columns[column], cursor, column, row, compact, length, marks);
+
+        return spans;
     }
 
     private static void AddCell(

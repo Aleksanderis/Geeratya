@@ -19,6 +19,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 {
     private const string Expanded = "-";
     private const string Collapsed = "+";
+    private const string CollapsedMark = "▸";
     private const string ActiveWord = "active";
     private const string NoDatesText = "no dates";
     private const string DateFormat = "d MMM";
@@ -43,15 +44,22 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     {
         var tab = ListBodyRenderer.ActiveTab(state)!;
         var glyphs = Glyphs.For(context.Glyphs);
-        var area = Math.Max(0, height - ListLayout.HeaderRows);
+        var framed = FrameGrid.CanFrame(width, height);
+        var inner = framed ? width - 2 : width;
+        var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
         var layout = BacklogSections.Build(tab);
-        var columns = ColumnsFor(tab, width);
+        var columns = ColumnsFor(tab, inner);
         var note = ListBodyRenderer.FooterLine(tab, glyphs);
-        var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area))
+        var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area));
+        var dividers = new List<PaneDivider>();
+
+        // Too small for a frame: the title stays a plain line above the column titles.
+        if (!framed)
         {
-            ListBodyRenderer.HeaderLine(tab, note, glyphs),
-            ListBodyRenderer.TitlesLine(columns),
-        };
+            lines.Add(ListBodyRenderer.HeaderLine(tab, note, glyphs));
+        }
+
+        lines.Add(ListBodyRenderer.TitlesLine(columns));
 
         var busy = BusyMarks.Keys(state);
         var range = RowSelection.VisualRange(tab);
@@ -73,15 +81,66 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
                 var onCursor = index == tab.Selected && tab.FocusedSprintId is null;
 
-                lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, width, glyphs));
+                lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, inner, glyphs));
 
                 continue;
             }
 
-            lines.Add(NonRowLine(tab, found.Section, line, width, glyphs));
+            if (framed && line == found.Section.FirstLine)
+            {
+                dividers.Add(Divider(tab, found.Section, lines.Count, glyphs));
+            }
+
+            lines.Add(NonRowLine(tab, found.Section, line, inner, glyphs));
         }
 
-        return lines;
+        var chips = ListBodyRenderer.ChipsOf(tab, note, glyphs);
+
+        return PaneFrame.Build(width, height, chips.Left, chips.Right, lines, dividers);
+    }
+
+    /// <summary>
+    /// The shared edge of a section: the name and state as the left chip, dates, count and points as the right one.
+    /// A collapsed section is only this edge, marked with <c>▸</c>; the cursor on it selects the chip.
+    /// </summary>
+    private static PaneDivider Divider(TabState tab, BacklogSection section, int contentIndex, Glyphs glyphs)
+    {
+        var name = section.Collapsed ? $"{CollapsedMark} {section.Name}" : section.Name;
+
+        if (section.State == SprintState.Active)
+        {
+            name = $"{name}{glyphs.Separator}{ActiveWord}";
+        }
+
+        var role = IsOnCursor(tab, section) ? TextRole.Selected : TextRole.Strong;
+        var parts = new List<string>();
+
+        if (!section.IsBacklog)
+        {
+            parts.Add(DatesText(section.Sprint));
+        }
+
+        var loadingMore = tab.Next is not null;
+        var plus = loadingMore ? "+" : string.Empty;
+
+        parts.Add($"{section.RowCount}{plus} {(section.RowCount == 1 && !loadingMore ? "issue" : "issues")}");
+
+        if (section.HasEstimates)
+        {
+            parts.Add($"{PointsText(section.Points)}{plus} pts");
+        }
+
+        var right = new StyledSpan(string.Join(glyphs.Separator, parts), TextRole.Muted);
+
+        return new PaneDivider(contentIndex, [new StyledSpan(name, role)], [right]);
+    }
+
+    private static bool IsOnCursor(TabState tab, BacklogSection section)
+    {
+        var onCursor = section.Collapsed && section.HasRows && section.FirstRow == tab.Selected
+            && tab.FocusedSprintId is null;
+
+        return onCursor || (section.Sprint is { } sprint && sprint.Id == tab.FocusedSprintId);
     }
 
     /// <summary>
@@ -169,12 +228,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     private static StyledLine HeaderLine(TabState tab, BacklogSection section, int width, Glyphs glyphs)
     {
         var text = HeaderText(section, tab.Next is not null, glyphs);
-        var onCursor = section.Collapsed && section.HasRows && section.FirstRow == tab.Selected
-            && tab.FocusedSprintId is null;
-
-        onCursor |= section.Sprint is { } sprint && sprint.Id == tab.FocusedSprintId;
-
-        if (onCursor)
+        if (IsOnCursor(tab, section))
         {
             var selected = $"> {text}";
 

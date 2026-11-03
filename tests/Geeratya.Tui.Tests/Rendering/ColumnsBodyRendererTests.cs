@@ -63,9 +63,10 @@ public class ColumnsBodyRendererTests
         };
 
         var body = Render(tab, 120, 30);
+        var title = ColumnsBodyRenderer.StatusText(tab, Glyphs.For(GlyphSet.Unicode), default);
 
-        Assert.Contains("Filter: Recently Updated", body[0].PlainText);
-        Assert.Contains("Lane 2/2: Bo Li", body[0].PlainText);
+        Assert.Contains("Filter: Recently Updated", title);
+        Assert.Contains("Lane 2/2: Bo Li", title);
         Assert.Contains(body, line => line.PlainText.Contains("A-2", StringComparison.Ordinal));
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-1", StringComparison.Ordinal));
     }
@@ -88,11 +89,14 @@ public class ColumnsBodyRendererTests
         var body = Render(Tab(Issue("1", "A-1"), Issue("1", "A-2"), Issue("2", "A-3")), 120, 30);
 
         Assert.StartsWith("Board · 3 issues", body[0].PlainText);
-        Assert.StartsWith("┌─ To Do 2 ", body[1].PlainText);
+        Assert.StartsWith("╭─ To Do 2 ", body[1].PlainText);
         Assert.Contains("┬─ Doing 1 ", body[1].PlainText);
         Assert.Contains("┬─ Empty 0 ", body[1].PlainText);
         Assert.Contains("┬─ Done 0 ", body[1].PlainText);
-        Assert.EndsWith("┐", body[1].PlainText);
+        Assert.EndsWith("╮", body[1].PlainText);
+        Assert.StartsWith("╰", body[^1].PlainText);
+        Assert.EndsWith("╯", body[^1].PlainText);
+        Assert.Contains("┴", body[^1].PlainText);
         var toDo = body[1].Spans.Single(span => span.Text.Contains("To Do", StringComparison.Ordinal));
         Assert.Equal(TextRole.Heading, toDo.Role);
         Assert.DoesNotContain(
@@ -237,7 +241,7 @@ public class ColumnsBodyRendererTests
 
         Assert.Contains("Col6 1", body[1].PlainText);
         Assert.DoesNotContain("Col1 ", body[1].PlainText);
-        Assert.EndsWith("‹4", body[0].PlainText.TrimEnd());
+        Assert.Contains("‹4", body[1].PlainText);
         Assert.Equal(80, TextWidth.Of(body[1].PlainText));
     }
 
@@ -248,7 +252,7 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 40, 8);
 
-        Assert.StartsWith("┌─‹ To Do 1  Doing 1  Empty 0 ›", body[1].PlainText);
+        Assert.StartsWith("╭─‹ To Do 1  Doing 1  Empty 0 ›", body[1].PlainText);
         Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text == "Doing 1").Role);
         Assert.StartsWith("│>T A-2 Summary", body[2].PlainText);
         Assert.Equal(40, TextWidth.Of(body[1].PlainText));
@@ -299,7 +303,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.StartsWith("Board · 1+ · Loading more…", body[0].PlainText);
-        Assert.StartsWith("┌─ To Do 1+ ", body[1].PlainText);
+        Assert.StartsWith("╭─ To Do 1+ ", body[1].PlainText);
     }
 
     [Fact]
@@ -324,7 +328,7 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 80, 20);
 
-        Assert.StartsWith("┌─ Issues 1 ", body[1].PlainText);
+        Assert.StartsWith("╭─ Issues 1 ", body[1].PlainText);
         Assert.Contains("A-1", body[3].PlainText);
     }
 
@@ -405,7 +409,7 @@ public class ColumnsBodyRendererTests
 
         Assert.StartsWith("Seed Sprint 2 · 30 Oct - 13 Nov · 10d left · 2 issues · 3/8 pts", body[0].PlainText);
         Assert.Equal(height, body.Count);
-        Assert.All(body, line => Assert.True(TextWidth.Of(line.PlainText) <= width));
+        Assert.All(body.Skip(1), line => Assert.True(TextWidth.Of(line.PlainText) <= width));
     }
 
     [Fact]
@@ -414,8 +418,7 @@ public class ColumnsBodyRendererTests
         var body = RenderSprint(SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true }, 90, 20);
 
         Assert.Contains("Ship the board", body[0].PlainText);
-        Assert.DoesNotContain("left on the list", body[0].PlainText);
-        Assert.True(TextWidth.Of(body[0].PlainText) <= 90);
+        Assert.All(body.Skip(1), line => Assert.Equal(90, TextWidth.Of(line.PlainText)));
     }
 
     [Fact]
@@ -455,7 +458,7 @@ public class ColumnsBodyRendererTests
 
         var body = RenderSprint(tab, 100, 20);
 
-        Assert.Contains(body, line => line.PlainText.StartsWith("No active sprint", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.StartsWith("│No active sprint", StringComparison.Ordinal));
         Assert.Contains(body, line => line.PlainText.Contains("backlog", StringComparison.Ordinal));
     }
 
@@ -477,8 +480,8 @@ public class ColumnsBodyRendererTests
 
         var body = RenderSprint(tab, 40, 20);
 
-        Assert.Matches("[‹›]", body[0].PlainText);
-        Assert.True(TextWidth.Of(body[0].PlainText) <= 40);
+        Assert.Matches("[‹›]", body[1].PlainText);
+        Assert.Equal(40, TextWidth.Of(body[1].PlainText));
     }
 
     [Fact]
@@ -505,9 +508,18 @@ public class ColumnsBodyRendererTests
 
     private static IReadOnlyList<StyledLine> RenderSprint(TabState tab, int width, int height)
     {
-        var context = new BodyContext(_keymap, GlyphSet.Unicode, _now);
+        return Titled(Active(tab), new BodyContext(_keymap, GlyphSet.Unicode, _now), width, height);
+    }
 
-        return new ColumnsBodyRenderer().Render(Active(tab), context, width, height);
+    // The title line moved from the body to the status bar: tests keep reading it as the first line, above the frame
+    // that now has the rest of the height.
+    private static IReadOnlyList<StyledLine> Titled(AppState state, BodyContext context, int width, int height)
+    {
+        var tab = state.Session.Tabs.First(candidate => candidate.Id == state.Session.Active);
+        var title = ColumnsBodyRenderer.StatusText(tab, Glyphs.For(context.Glyphs), context.Now);
+        var frame = new ColumnsBodyRenderer().Render(state, context, width, height - 1);
+
+        return [StyledLine.Of(title, TextRole.Heading), .. frame];
     }
 
     private static TabState SprintTab(params IssueSummary[] rows)
@@ -532,9 +544,7 @@ public class ColumnsBodyRendererTests
 
     private static IReadOnlyList<StyledLine> RenderState(AppState state, int width, int height)
     {
-        var context = new BodyContext(_keymap);
-
-        return new ColumnsBodyRenderer().Render(state, context, width, height);
+        return Titled(state, new BodyContext(_keymap), width, height);
     }
 
     private static AppState Active(TabState tab)
