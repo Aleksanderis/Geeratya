@@ -79,6 +79,12 @@ public class LiveSprintMoveTests
         Assert.True(toSprint.Value.AllMoved);
         Assert.Equal(sprintId, await SprintOfAsync(transport, key, token));
 
+        // Moving an issue into the sprint it is already in is harmless (#502).
+        var again = await client.MoveToSprintAsync(sprintId, [key], token);
+        Assert.True(again.IsSuccess, again.IsSuccess ? string.Empty : again.Error.Message);
+        Assert.Equal([key], again.Value.Moved);
+        Assert.Equal(sprintId, await SprintOfAsync(transport, key, token));
+
         var toBacklog = await client.MoveToBacklogAsync([key], token);
         Assert.True(toBacklog.IsSuccess, toBacklog.IsSuccess ? string.Empty : toBacklog.Error.Message);
         Assert.Equal([key], toBacklog.Value.Moved);
