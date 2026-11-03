@@ -32,6 +32,9 @@ gh issue list --state open --milestone "$milestone" --limit 200 --json number,ti
 echo "== Open PRs"
 gh pr list --state open --json number,title,headRefName,isDraft --jq '.[]|"#\(.number) \(.headRefName) \(.title)\(if .isDraft then " (draft)" else "" end)"'
 
+echo "== Open issues without a milestone (assign each: gh issue edit <n> -m \"<milestone>\")"
+gh issue list --state open --limit 500 --json number,title,milestone --jq '.[] | select(.milestone == null) | "#\(.number) \(.title)"'
+
 echo "== Worktrees"
 git worktree list
 

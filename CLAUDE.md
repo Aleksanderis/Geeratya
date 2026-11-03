@@ -70,6 +70,7 @@ Follow the `work-task` skill (`.claude/skills/work-task/`) for the procedure. To
 
 - `spike` and `needs-review` issues are never merged by an agent: spikes stay on unmerged `spike/` branches and close with findings; `needs-review` stops at an open PR for the owner.
 - Merge commits only, never squash or rebase, never force-push.
+- Every issue has a milestone, with no exception: whoever creates an issue passes `-m "<milestone>"` (a follow-up stays in its feature's milestone, or goes to the next open one if that is closed). The orchestrator state script lists open issues without one.
 - Every PR carries the reviewer's findings as a PR comment; every owner comment gets an agent-marked reply; loose ends are registered as issues, not left in notes.
 - Don't block on questions: decide from the docs or take the recommended default, log it, and say so in the PR.
 - Models: use Sonnet for every role, not Opus. Cost is tuned with reasoning effort, set in the skill and agent frontmatter, not repeated in prose.
