@@ -9,7 +9,6 @@ using Geeratya.Core.Sources;
 using Geeratya.Core.Text;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
-using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -173,7 +172,8 @@ public static class StatusBar
 
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var text = Text(state, width, keymap, clock, confirmDialogShown, 0);
-        var wanted = TextWidth.Of(Text(state, width, keymap, clock, confirmDialogShown, int.MaxValue))
+        // The goal never asks for room: it shows only when it fits whole, after the rest.
+        var wanted = TextWidth.Of(Text(state, width, keymap, clock, confirmDialogShown, int.MaxValue, false, false))
             - TextWidth.Of(text);
 
         // The view text (source, count, filter and lane, breadcrumb, ruler) is state the user needs: up to
@@ -209,10 +209,10 @@ public static class StatusBar
         }
 
         // The cursor position is last in line: it shows only when the line, the hints and their gap still fit.
-        var viewRoom = shown == text ? 0 : PositionedRoom(state, spare);
+        var viewRoom = shown == text ? 0 : StatusViewText.PositionedRoom(state, spare);
         var positioned = Text(state, width, keymap, clock, confirmDialogShown, viewRoom, true);
 
-        if (positioned != shown)
+        if (positioned != shown && !StatusViewText.LosesGoal(state, shown, positioned))
         {
             var positionedLeft = Left(state, positioned);
             var needed = TextWidth.Of(positionedLeft) + hintWidth + (hints.Count > 0 ? HintGap.Length : 0);
@@ -242,26 +242,6 @@ public static class StatusBar
         spans.AddRange(HintBar.Spans(hints));
 
         return StyledLines.Fit(new StyledLine(spans), width, TextRole.BarText);
-    }
-
-    /// <summary>The view text's room once the cursor position takes its cells: the board text gives way, not a hint.</summary>
-    private static int PositionedRoom(AppState state, int spare)
-    {
-        if (ListBodyRenderer.ActiveTab(state) is not { Detail.Count: 0 } tab)
-        {
-            return spare;
-        }
-
-        var position = CursorPosition.Text(tab);
-
-        if (position.Length == 0)
-        {
-            return spare;
-        }
-
-        var reduced = spare - TextWidth.Of(position) - Separator.Length;
-
-        return reduced >= MinViewRoom ? reduced : spare;
     }
 
     private static string Left(AppState state, string text)
@@ -613,7 +593,8 @@ public static class StatusBar
         DateTimeOffset now,
         bool confirmDialogShown,
         int viewRoom,
-        bool withPosition = false)
+        bool withPosition = false,
+        bool withGoal = true)
     {
         return state.Mode switch
         {
@@ -626,7 +607,7 @@ public static class StatusBar
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
-            _ => NormalText(state, now, viewRoom, withPosition),
+            _ => NormalText(state, now, viewRoom, withPosition, withGoal),
         };
     }
 
@@ -683,7 +664,7 @@ public static class StatusBar
     /// Pending keys, a count and a rank pickup win (they echo what the user is typing); then the notice; otherwise the network word of the active tab (first, so it survives a cut)
     /// and the result of the connection check show.
     /// </summary>
-    private static string NormalText(AppState state, DateTimeOffset now, int viewRoom, bool withPosition)
+    private static string NormalText(AppState state, DateTimeOffset now, int viewRoom, bool withPosition, bool withGoal)
     {
         if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
@@ -712,7 +693,7 @@ public static class StatusBar
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
-        var view = viewRoom > 0 ? ViewText(state, now, viewRoom) : string.Empty;
+        var view = viewRoom > 0 ? StatusViewText.Of(state, now, viewRoom, withGoal) : string.Empty;
 
         if (withPosition && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } positioned)
         {
@@ -741,30 +722,6 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
-    }
-
-    /// <summary>
-    /// What the screen no longer draws as a title line of its own: the source and its count on a board, the
-    /// breadcrumb and the ruler in the issue detail (<c>docs/ux-look.md</c>, sections 2 and 5).
-    /// </summary>
-    private static string ViewText(AppState state, DateTimeOffset now, int room)
-    {
-        if (ListBodyRenderer.ActiveTab(state) is not { } tab)
-        {
-            return string.Empty;
-        }
-
-        if (tab.Detail.Count > 0)
-        {
-            return CardText.Shorten(DetailStatus.Text(tab, room), room);
-        }
-
-        if (tab.Definition.Layout != ViewLayout.Columns)
-        {
-            return string.Empty;
-        }
-
-        return CardText.Shorten(ColumnsBodyRenderer.StatusText(tab, Glyphs.For(GlyphSet.Unicode), now), room);
     }
 
     private static string SelectedText(TabState tab)
@@ -808,11 +765,11 @@ public static class StatusBar
             return $"{step} {form.TestResult}";
         }
 
-        var value = ProfileFormOverlay.Shown(form);
         var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
-        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}_");
+        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}");
+        var window = PromptWindow.Of(ProfileFormOverlay.PromptOf(form, form.Field), Math.Max(0, width - used));
 
-        return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
+        return $"{prefix}{window.Before}{window.Caret}{window.After}";
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>
