@@ -65,7 +65,7 @@ public static class ConfirmOverlay
 
             foreach (var text in layout.Warning)
             {
-                lines.Add(OverlayBox.Wall(StyledLine.Of(text, TextRole.RateLimited), contentWidth));
+                lines.Add(OverlayBox.Wall(StyledLine.Of(text, TextRole.Warning), contentWidth));
             }
         }
 

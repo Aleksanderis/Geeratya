@@ -4,7 +4,7 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile).
+# popup row, a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -184,6 +184,27 @@ tmux -L "$socket" send-keys -t s Escape
 wait_gone "Remove profile second"
 send ":profile list|"
 wait_for "Ctrl-x remove"
+
+# Confirm dialog buttons (#379): a click on the Cancel row closes it and keeps the profile; a click on the answer row
+# ("Remove profile", below the question that starts with the same words) confirms and removes it (the inactive profile,
+# after the click-switch to the other one).
+click "second  " 2
+wait_for "Remove profile second"
+click "Cancel"
+wait_gone "Remove profile second"
+send ":profile list|"
+wait_for "Ctrl-x remove"
+frame | grep -qF -- "second  " || fail "the profile was removed by a click on Cancel"
 click "second  "
 wait_for "second: second@example.com"
+send ":profile list|"
+wait_for "Ctrl-x remove"
+click "fake  " 2
+wait_for "Remove profile fake"
+click "Remove profile  "
+wait_gone "Remove profile fake"
+send ":profile list|"
+wait_for "Ctrl-x remove"
+frame | grep -qF -- "fake  " && fail "the profile is still listed after a click on the yes row"
+echo "ok: confirm dialog click on Cancel keeps, click on yes removes"
 echo "PASS"
