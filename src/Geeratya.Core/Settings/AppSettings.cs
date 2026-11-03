@@ -8,7 +8,7 @@ namespace Geeratya.Core.Settings;
 /// <param name="Theme">The name of the colour theme: a built-in one or a file in the <c>themes</c> folder.</param>
 public sealed record AppSettings(bool StatusHints = true, bool WhichKey = true, string Theme = AppSettings.DefaultTheme)
 {
-    public const string DefaultTheme = "catppuccin-mocha";
+    public const string DefaultTheme = "auto";
 
     public static AppSettings Default { get; } = new();
 }

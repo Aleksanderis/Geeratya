@@ -65,6 +65,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly SuggestionHandler _suggestions;
     private readonly MentionCheckHandler _mentionCheck;
     private readonly ConnectionCheckHandler _connectionChecks;
+    private readonly TerminalBackgroundDetector? _background;
+    private bool? _lightBackground;
     private IApplication? _application;
     private ShellScreen? _screen;
     private AppState _state = AppState.Initial;
@@ -75,8 +77,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
         KeymapTable keymap,
         ColorSupport colors,
         ProfileServices profiles,
-        GlyphSet glyphs = GlyphSet.Unicode)
+        GlyphSet glyphs = GlyphSet.Unicode,
+        TerminalBackgroundDetector? background = null)
     {
+        _background = background;
         _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
         _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
@@ -123,6 +127,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _state = LoadProfiles();
         _state = _state with { Message = JoinNotices(_state.Message, _keymapNotice) };
         _application = application;
+        DetectBackground();
         application.Init();
         application.Keyboard.KeyBindings.Clear();
 
@@ -402,10 +407,27 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
     }
 
+    /// <summary>
+    /// Asks the terminal for its background before the UI owns the input, only when the saved theme is <c>auto</c>.
+    /// The answer is kept for a later <c>:theme auto</c>, because the terminal cannot be asked once the UI runs.
+    /// </summary>
+    private void DetectBackground()
+    {
+        if (BuiltInThemes.IsAuto(_state.Settings.Theme))
+        {
+            _lightBackground = _background?.IsLight(allowQuery: true);
+        }
+    }
+
+    private bool? EnvironmentBackground()
+    {
+        return _background?.IsLight(allowQuery: false);
+    }
+
     /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
     private Theme StartTheme()
     {
-        var start = _themes.Start(_state.Settings.Theme);
+        var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
         _state = _state with { Message = JoinNotices(_state.Message, start.Notice) };
 
@@ -415,7 +437,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>
     private ThemeApplied ApplyTheme(string name)
     {
-        var choice = _themes.Choose(name, _state.Settings.Theme);
+        var choice = _themes.Choose(name, _state.Settings.Theme, _lightBackground ?? EnvironmentBackground());
 
         if (choice.Theme is not null)
         {

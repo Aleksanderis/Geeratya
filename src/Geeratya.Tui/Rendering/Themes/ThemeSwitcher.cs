@@ -13,7 +13,7 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
     /// The theme for the start: the saved one, or the default dark one with a notice when the name is gone or its
     /// file is invalid (a theme must never stop the start). Theme files that were not offered are reported as well.
     /// </summary>
-    public ThemeStart Start(string? savedName)
+    public ThemeStart Start(string? savedName, bool? lightBackground = null)
     {
         var notices = new List<string>();
 
@@ -27,7 +27,7 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
             return new ThemeStart(BuiltInThemes.Default, Join(notices));
         }
 
-        var result = catalog.Find(savedName);
+        var result = catalog.Find(BuiltInThemes.IsAuto(savedName) ? ForBackground(lightBackground) : savedName);
 
         if (result?.Theme is { } theme)
         {
@@ -43,13 +43,19 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
 
     /// <summary>
     /// What <c>:theme [name]</c> does. No name: the families on offer. An exact name (or <c>dark</c>, <c>light</c>)
-    /// switches. Anything else lists the names that contain the text, and nothing changes.
+    /// switches. <c>auto</c> switches to the theme for the background (light or dark, null counts as dark) and keeps the
+    /// name <c>auto</c> for saving. Anything else lists the names that contain the text, and nothing changes.
     /// </summary>
-    public ThemeChoice Choose(string name, string current)
+    public ThemeChoice Choose(string name, string current, bool? lightBackground = null)
     {
         if (name.Length == 0)
         {
             return new ThemeChoice(null, current, List(current));
+        }
+
+        if (BuiltInThemes.IsAuto(name))
+        {
+            return ChooseAuto(lightBackground);
         }
 
         var result = catalog.Find(name);
@@ -65,6 +71,19 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
         }
 
         return new ThemeChoice(theme, theme.Name, $"Theme {theme.Name}.");
+    }
+
+    /// <summary>The built-in theme <c>auto</c> stands for: light for a light background, dark otherwise.</summary>
+    public static string ForBackground(bool? lightBackground)
+    {
+        return lightBackground == true ? BuiltInThemes.DefaultLightName : BuiltInThemes.DefaultDarkName;
+    }
+
+    private ThemeChoice ChooseAuto(bool? lightBackground)
+    {
+        var theme = catalog.Find(ForBackground(lightBackground))!.Theme!;
+
+        return new ThemeChoice(theme, BuiltInThemes.AutoName, $"Theme auto: {theme.Name}.");
     }
 
     private static string Reasons(IReadOnlyList<string> reasons)

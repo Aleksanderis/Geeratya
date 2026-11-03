@@ -152,6 +152,30 @@ public sealed class ThemeSwitcherTests : IDisposable
         Assert.Contains("(+9 more)", start.Notice);
     }
 
+    [Theory]
+    [InlineData(true, "catppuccin-latte")]
+    [InlineData(false, "catppuccin-mocha")]
+    [InlineData(null, "catppuccin-mocha")]
+    public void GivenSavedAuto_WhenStarting_ThenTheThemeFollowsTheBackgroundWithoutANotice(bool? light, string expected)
+    {
+        var start = Switcher().Start("auto", light);
+
+        Assert.Equal(expected, start.Theme.Name);
+        Assert.Null(start.Notice);
+    }
+
+    [Theory]
+    [InlineData(true, "catppuccin-latte")]
+    [InlineData(null, "catppuccin-mocha")]
+    public void GivenAuto_WhenChoosing_ThenTheBackgroundThemeIsDrawnAndAutoIsTheSavedName(bool? light, string expected)
+    {
+        var choice = Switcher().Choose("auto", "nord", light);
+
+        Assert.Equal(expected, choice.Theme!.Name);
+        Assert.Equal("auto", choice.Name);
+        Assert.Equal($"Theme auto: {expected}.", choice.Message);
+    }
+
     private ThemeSwitcher Switcher()
     {
         return new ThemeSwitcher(new ThemeCatalog(_directory));
