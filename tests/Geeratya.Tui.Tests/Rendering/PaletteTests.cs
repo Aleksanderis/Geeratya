@@ -8,6 +8,8 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class PaletteTests
 {
+    private const double MinimumSelectionBarRatio = 1.1;
+
     public static TheoryData<string, ColorSupport> ThemesAndTiers
     {
         get
@@ -137,6 +139,36 @@ public class PaletteTests
         foreach (var role in distinct)
         {
             Assert.NotEqual(body, Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, role).Style);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingSelectedLine_ThenItIsVisiblyDistinctFromBody(
+        string name,
+        ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var body = Palette.Resolve(theme, tier, PaletteRole.Body);
+        var selected = Palette.Resolve(theme, tier, PaletteRole.Selected);
+
+        Assert.NotEqual(body.Background, selected.Background);
+        Assert.True(
+            Contrast.Ratio(body.Background!.Value, selected.Background!.Value) >= MinimumSelectionBarRatio,
+            $"{name}: selection bar in {tier} is faint against the body");
+    }
+
+    [Fact]
+    public void GivenNoColourTier_WhenResolvingSelectedLine_ThenItDiffersFromBodyWithoutColour()
+    {
+        foreach (var name in BuiltInThemes.Names)
+        {
+            var theme = BuiltInThemes.Find(name)!.Theme!;
+
+            Assert.NotEqual(
+                Palette.Resolve(theme, ColorSupport.None, PaletteRole.Body).Style,
+                Palette.Resolve(theme, ColorSupport.None, PaletteRole.Selected).Style);
         }
     }
 
