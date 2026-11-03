@@ -1,6 +1,6 @@
 # UX
 
-Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). [mouse](ux-mouse.md) (gesture to action id table). The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](keymap.md), [customising keys](customising-keys.md). [look](ux-look.md) (frame, chips, focus, overlays, chrome), [mouse](ux-mouse.md) (gesture to action id table). The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
 
 ## Shell
 

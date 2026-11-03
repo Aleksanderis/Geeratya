@@ -129,3 +129,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **Scope:** In-view find (`/`, `n`/`N`) and copy are not included (#467). Why: filtering is done with JQL and README Features does not list them. Revisit only with a README Features line first.
 
 **UI:** The actions menu stays `<space>a` (issue) and `<space>A` (tab and view) (#468), not Gitunia's `<space>.`. Why: already built, documented and taught in hints. No code.
+
+## 2026-11-03 (look spec, #523)
+
+**UI:** The look follows Gitunia (one frame with shared edges, title chips, accent focus, floating overlays) but differs where listed in `ux-look.md` section 8: panes per screen instead of a fixed pane set, one `OverlayBox` over a muted visible view, no pane-resize keys, and issue-type and status colours instead of Git colours so it does not read as a Git client. Pane focus reuses `h`/`l` and `]`/`[`, so no keymap change. Why: owner intent (slicker, Gitunia-styled, not a Git look); Gitunia `ux-look.md` and `ux-mouse.md` (Backdrop) shaped it.
