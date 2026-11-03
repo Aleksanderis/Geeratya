@@ -116,6 +116,11 @@ public static class ContextMenus
             actions.Add(ActionIds.SprintSwitch);
         }
 
+        if (active is { Sprint.Goal: { } goal } && !string.IsNullOrWhiteSpace(goal))
+        {
+            actions.Add(ActionIds.SprintGoal);
+        }
+
         if (state.Session.Tabs.Count > 1)
         {
             actions.Add(ActionIds.TabPrevious);
