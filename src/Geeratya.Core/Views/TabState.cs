@@ -4,6 +4,7 @@ using Geeratya.Core.Forms;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Views;
 
@@ -115,6 +116,15 @@ public sealed record TabState(
 
     /// <summary>The <see cref="Total"/> is an approximation (JQL sources), so the header says "about".</summary>
     public bool TotalIsApproximate { get; init; }
+
+    /// <summary>The sprint a Sprint view shows (name, goal, dates); null while unknown or when there is none.</summary>
+    public Sprint? Sprint { get; init; }
+
+    /// <summary>
+    /// The sprint lookup finished, so a null <see cref="Sprint"/> means the board has no sprint to show rather than
+    /// "not loaded yet".
+    /// </summary>
+    public bool SprintResolved { get; init; }
 
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);

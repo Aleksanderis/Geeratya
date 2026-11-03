@@ -9,6 +9,8 @@ using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Jira.Transport;
 using Geeratya.Tui.Rendering;
 
@@ -337,6 +339,139 @@ public class ColumnsBodyRendererTests
 
         Assert.Equal(36, body.Count);
         Assert.Equal(SpanCount(Render(Tab([.. rows.Take(200)]), 120, 36)), SpanCount(body));
+    }
+
+    private static readonly DateTimeOffset _now = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
+
+    private static readonly Sprint _sprint = new(
+        7,
+        "Seed Sprint 2",
+        SprintState.Active,
+        "Ship the board 日本語 and polish everything that is left on the list",
+        new DateTimeOffset(2026, 10, 30, 9, 0, 0, TimeSpan.Zero),
+        new DateTimeOffset(2026, 11, 13, 9, 0, 0, TimeSpan.Zero),
+        null,
+        4);
+
+    [Theory]
+    [InlineData(120, 30)]
+    [InlineData(80, 20)]
+    [InlineData(72, 8)]
+    public void GivenASprintView_WhenRendering_ThenTheHeaderLineShowsSprintDatesDaysLeftCountAndPointsAtEverySize(
+        int width,
+        int height)
+    {
+        var rows = new[]
+        {
+            Issue("1", "A-1") with { Estimate = 5 },
+            Issue("4", "A-2") with { Estimate = 3, Status = new IssueStatus("4", "Done", "done") },
+        };
+
+        var body = RenderSprint(SprintTab(rows) with { Sprint = _sprint, SprintResolved = true }, width, height);
+
+        Assert.StartsWith("Seed Sprint 2 · 30 Oct - 13 Nov · 10d left · 2 issues · 3/8 pts", body[0].PlainText);
+        Assert.Equal(height, body.Count);
+        Assert.All(body, line => Assert.True(TextWidth.Of(line.PlainText) <= width));
+    }
+
+    [Fact]
+    public void GivenALongGoalWithWideCharacters_WhenRendering_ThenItIsCutToTheWidth()
+    {
+        var body = RenderSprint(SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true }, 90, 20);
+
+        Assert.Contains("Ship the board", body[0].PlainText);
+        Assert.DoesNotContain("left on the list", body[0].PlainText);
+        Assert.True(TextWidth.Of(body[0].PlainText) <= 90);
+    }
+
+    [Fact]
+    public void GivenSprintWithoutGoalDatesOrPoints_WhenRendering_ThenOnlyNameAndCountShow()
+    {
+        var bare = new Sprint(7, "Bare", SprintState.Future, null, null, null, null, 4);
+
+        var body = RenderSprint(SprintTab(Issue("1", "A-1")) with { Sprint = bare, SprintResolved = true }, 100, 20);
+
+        Assert.Equal("Bare · 1 issue", body[0].PlainText.TrimEnd());
+    }
+
+    [Fact]
+    public void GivenSprintViewWhoseSprintIsUnknown_WhenRendering_ThenTheTabTitleShows()
+    {
+        var body = RenderSprint(SprintTab(Issue("1", "A-1")), 100, 20);
+
+        Assert.StartsWith("Board · 1 issue", body[0].PlainText);
+    }
+
+    [Fact]
+    public void GivenNoActiveSprint_WhenRendering_ThenAClearEmptyStateOffersTheBacklog()
+    {
+        var tab = SprintTab() with { SprintResolved = true };
+
+        var body = RenderSprint(tab, 100, 20);
+
+        Assert.Contains(body, line => line.PlainText.StartsWith("No active sprint", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.Contains("backlog", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenACardWithPoints_WhenRendering_ThenThePointsShowOnTheKeyLine()
+    {
+        var body = RenderSprint(SprintTab(Issue("1", "A-1") with { Estimate = 0.5 }), 120, 30);
+
+        Assert.Contains(
+            body,
+            line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal)
+                && line.PlainText.Contains("0.5p", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenASprintViewWithHiddenColumns_WhenRendering_ThenTheHeaderLineEndsWithTheHiddenMarker()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true };
+
+        var body = RenderSprint(tab, 40, 20);
+
+        Assert.Matches("[‹›]", body[0].PlainText);
+        Assert.True(TextWidth.Of(body[0].PlainText) <= 40);
+    }
+
+    [Fact]
+    public void GivenASprintViewWithMoreRowsToLoad_WhenRendering_ThenThePartialCountIsMarked()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true, Truncated = true };
+
+        var body = RenderSprint(tab, 140, 20);
+
+        Assert.Contains("1+", body[0].PlainText);
+    }
+
+    [Fact]
+    public void GivenSprintViewAndNoClock_WhenRendering_ThenNoDaysLeftShow()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true };
+        var context = new BodyContext(_keymap);
+
+        var body = new ColumnsBodyRenderer().Render(Active(tab), context, 120, 20);
+
+        Assert.DoesNotContain("d left", body[0].PlainText);
+        Assert.DoesNotContain("ago", body[0].PlainText);
+    }
+
+    private static IReadOnlyList<StyledLine> RenderSprint(TabState tab, int width, int height)
+    {
+        var context = new BodyContext(_keymap, GlyphSet.Unicode, _now);
+
+        return new ColumnsBodyRenderer().Render(Active(tab), context, width, height);
+    }
+
+    private static TabState SprintTab(params IssueSummary[] rows)
+    {
+        var tab = Tab(rows);
+
+        return tab with
+        {
+            Definition = tab.Definition with { Source = ViewSourceKind.Sprint, SourceValue = "4:active" },
+        };
     }
 
     private static int SpanCount(IReadOnlyList<StyledLine> body)

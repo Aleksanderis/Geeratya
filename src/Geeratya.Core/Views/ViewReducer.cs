@@ -45,6 +45,7 @@ public static class ViewReducer
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewCacheLoaded cached => CacheLoaded(state, cached),
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
+            SprintLoaded sprint => SprintArrived(state, sprint),
             ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
@@ -166,6 +167,8 @@ public static class ViewReducer
             RefreshQueued = false,
             Detail = [],
             LoadedAt = null,
+            Sprint = null,
+            SprintResolved = false,
         };
 
         effects.Add(new CancelTabEffect(tab.Id));
@@ -302,6 +305,19 @@ public static class ViewReducer
         }
 
         return Replace(state, tab with { Board = configured.Configuration });
+    }
+
+    /// <summary>The sprint of a Sprint view: kept in the tab while the request is the tab's current one.</summary>
+    private static AppState SprintArrived(AppState state, SprintLoaded loaded)
+    {
+        var tab = Find(state.Session.Tabs, loaded.Tab);
+
+        if (tab is null || tab.RequestId != loaded.RequestId || tab.Load is not Loading)
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { Sprint = loaded.Sprint, SprintResolved = !loaded.LookupFailed });
     }
 
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>

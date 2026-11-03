@@ -115,6 +115,8 @@ My open issues · 10+
 
 ## Columns layout (Kanban)
 
+A Sprint view (Scrum, #176) uses the same columns; its first line is the sprint header instead of the tab title: name, dates, days left (active sprints), issue count, points done/total (done = status category done; left out when no issue has an estimate), then the goal cut to the remaining width. Cards show their points as `5p` before the assignee initials. "The active sprint" loads the issues of the open sprints that are not future ones; with parallel active sprints the header names the first and the counts cover all. A board with no active sprint shows "No active sprint on this board." and the `:backlog` hint. The full goal in a popup is a follow-up.
+
 One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). The Backlog column is shown like any other column.
 
 ```text

@@ -22,6 +22,9 @@ public sealed class ViewLoadHandler
 
     private const string OpenSprintsJql = "sprint in openSprints()";
 
+    // Jira has no activeSprints(): open minus future leaves the active sprints, so a planned sprint never mixes in.
+    private const string ActiveSprintJql = "sprint in openSprints() and sprint not in futureSprints()";
+
     // Active and future sprints plus the backlog; closed sprints (thousands of done issues) are left out.
     private const string BacklogWithSprintsJql =
         "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
@@ -184,6 +187,11 @@ public sealed class ViewLoadHandler
                 loaded = configuration.Value;
                 services.Fields.RememberEstimate(id, loaded.EstimationFieldId);
                 report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, loaded));
+
+                if (effect.Definition.Source == ViewSourceKind.Sprint)
+                {
+                    report(await FindSprintAsync(services, effect, id, token));
+                }
             }
 
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
@@ -197,6 +205,36 @@ public sealed class ViewLoadHandler
         {
             return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
         }
+    }
+
+    /// <summary>
+    /// The sprint of a Sprint view: the named one, or the first active sprint of the board. No sprint for none active; a failed lookup is marked so the view does not claim there is none (the issues still load).
+    /// </summary>
+    private static async Task<SprintLoaded> FindSprintAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        long boardId,
+        CancellationToken token)
+    {
+        if (!SprintSource.TryParse(effect.Definition.SourceValue, out var source))
+        {
+            return new SprintLoaded(effect.Tab, effect.RequestId, null, true);
+        }
+
+        var priority = effect.Background ? JiraPriority.Background : JiraPriority.User;
+
+        if (source.SprintId is { } sprintId)
+        {
+            var one = await services.Sprints.GetSprintAsync(sprintId, token, priority);
+
+            return new SprintLoaded(effect.Tab, effect.RequestId, one.IsSuccess ? one.Value : null, !one.IsSuccess);
+        }
+
+        var active = await services.Sprints.GetActiveSprintsAsync(boardId, token, priority);
+
+        var first = active.IsSuccess && active.Value.Count > 0 ? active.Value[0] : null;
+
+        return new SprintLoaded(effect.Tab, effect.RequestId, first, !active.IsSuccess);
     }
 
     private async Task<Command?> BoardPageAsync(
@@ -315,7 +353,7 @@ public sealed class ViewLoadHandler
         if (definition.Source == ViewSourceKind.Sprint
             && SprintSource.TryParse(definition.SourceValue, out var sprint))
         {
-            return sprint.SprintId is { } id ? $"sprint = {id.ToString(CultureInfo.InvariantCulture)}" : OpenSprintsJql;
+            return sprint.SprintId is { } id ? $"sprint = {id.ToString(CultureInfo.InvariantCulture)}" : ActiveSprintJql;
         }
 
         return null;

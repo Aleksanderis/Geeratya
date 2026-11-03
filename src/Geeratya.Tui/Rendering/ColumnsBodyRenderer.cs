@@ -5,6 +5,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -17,6 +18,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 {
     private const int MinTypeName = 4;
     private const string NoCardsText = "no issues";
+    private const string NoSprintText = "No active sprint on this board.";
+    private const int MinGoal = 8;
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
     private const string SelectedMark = ">";
@@ -54,12 +57,21 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
         var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area))
         {
-            TitleLine(tab, window, width, glyphs),
+            TitleLine(tab, window, width, glyphs, context.Now),
         };
 
         if (tab.Rows.Count == 0 || columns.Count == 0)
         {
             lines.Add(StyledLine.Empty);
+
+            if (NoActiveSprint(tab))
+            {
+                lines.Add(StyledLine.Of(NoSprintText, TextRole.Muted));
+                lines.Add(StyledLine.Of(NoSprintHint(context.Keymap), TextRole.Muted));
+
+                return lines;
+            }
+
             ListBodyRenderer.AddBodyMessage(lines, tab, width, glyphs);
 
             return lines;
@@ -86,8 +98,106 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return lines;
     }
 
-    private static StyledLine TitleLine(TabState tab, BoardWindow window, int width, Glyphs glyphs)
+    /// <summary>A Sprint view of "the active sprint" whose lookup finished with none: say so instead of "empty".</summary>
+    private static bool NoActiveSprint(TabState tab)
     {
+        return tab is { Definition.Source: ViewSourceKind.Sprint, SprintResolved: true, Sprint: null, Load: IdleState }
+            && SprintSource.TryParse(tab.Definition.SourceValue, out var source)
+            && source.SprintId is null;
+    }
+
+    private static string NoSprintHint(KeymapTable keymap)
+    {
+        var palette = keymap.FindKeys(InputMode.Normal, ActionIds.PaletteOpen);
+
+        return $"Plan one in the backlog: {palette}backlog";
+    }
+
+    /// <summary>
+    /// The title of a Sprint view: sprint name, dates, days left, issue count and points done/total, then the goal cut
+    /// to what is left of the width. Falls back to the plain title while the sprint is unknown.
+    /// </summary>
+    private static StyledLine SprintTitle(
+        TabState tab,
+        Sprint sprint,
+        BoardWindow window,
+        int width,
+        Glyphs glyphs,
+        DateTimeOffset now)
+    {
+        var parts = new[]
+        {
+            SprintHeaderText.Dates(sprint),
+            now == default ? string.Empty : SprintHeaderText.DaysLeft(sprint, now),
+            ListBodyRenderer.CountText(tab),
+            SprintHeaderText.Points(tab.Rows),
+        };
+        var spans = new List<StyledSpan> { new(sprint.Name, TextRole.Heading) };
+
+        foreach (var part in parts.Where(part => part.Length > 0))
+        {
+            spans.Add(new StyledSpan($"{glyphs.Separator}{part}", TextRole.Muted));
+        }
+
+        if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
+        {
+            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
+            spans.AddRange(note.Spans);
+        }
+
+        var hidden = HiddenText(window);
+        var reserved = hidden.Length > 0 ? TextWidth.Of(hidden) + 1 : 0;
+
+        var goal = string.Join(' ', (sprint.Goal ?? string.Empty)
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        var used = spans.Sum(span => TextWidth.Of(span.Text));
+        var room = width - reserved - used - TextWidth.Of(glyphs.Separator);
+
+        if (goal.Length > 0 && room >= MinGoal)
+        {
+            spans.Add(new StyledSpan($"{glyphs.Separator}{CardText.Shorten(goal, room)}", TextRole.Muted));
+        }
+
+        var line = CutTo(spans, width - reserved);
+        var gap = width - TextWidth.Of(line.PlainText) - TextWidth.Of(hidden);
+
+        if (hidden.Length == 0 || gap < 1)
+        {
+            return line;
+        }
+
+        return new StyledLine(
+        [
+            .. line.Spans,
+            new StyledSpan(new string(' ', gap), TextRole.Body),
+            new StyledSpan(hidden, TextRole.Muted),
+        ]);
+    }
+
+    /// <summary>The spans cut to <paramref name="width"/> cells, without padding.</summary>
+    private static StyledLine CutTo(List<StyledSpan> spans, int width)
+    {
+        var cut = new List<StyledSpan>(spans.Count);
+        var left = width;
+
+        foreach (var span in spans)
+        {
+            var text = TextWidth.Fit(span.Text, left);
+
+            cut.Add(new StyledSpan(text, span.Role));
+            left -= TextWidth.Of(text);
+        }
+
+        return new StyledLine(cut);
+    }
+
+    private static StyledLine TitleLine(TabState tab, BoardWindow window, int width, Glyphs glyphs, DateTimeOffset now)
+    {
+        if (tab.Sprint is { } sprint && tab.Definition.Source == ViewSourceKind.Sprint)
+        {
+            return SprintTitle(tab, sprint, window, width, glyphs, now);
+        }
+
         var spans = new List<StyledSpan>
         {
             new($"{tab.Definition.Title}{glyphs.Separator}{ListBodyRenderer.CountText(tab)}", TextRole.Heading),
@@ -517,6 +627,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private static (string Label, string Remainder) KeyLine(IssueSummary issue, int width)
     {
         var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
+
+        if (issue.Estimate is not null)
+        {
+            initials = $"{SprintHeaderText.Estimate(issue.Estimate)}p {initials}".TrimEnd();
+        }
+
         var keyRoom = width - TextWidth.Of(issue.Key) - 1;
 
         if (initials.Length > 0 && keyRoom - TextWidth.Of(initials) - 1 < MinTypeName)
