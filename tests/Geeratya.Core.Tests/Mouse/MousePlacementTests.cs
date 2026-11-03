@@ -453,7 +453,9 @@ public class MousePlacementTests
         var state = TwoTabs(80);
 
         Assert.Null(TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 20));
-        Assert.True(DisplayWidth.Of(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 20).PlainText) <= 20);
+        var narrow = TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 20);
+
+        Assert.True(DisplayWidth.Of(narrow.PlainText) <= 20);
     }
 
     [Fact]

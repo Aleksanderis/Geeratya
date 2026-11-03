@@ -56,8 +56,9 @@ public static class TabBar
     }
 
     /// <summary>
-    /// The cells of the jump chip at the right end of the bar, null when there are no tabs or the bar leaves no room
-    /// (two spare cells between the last tab item or <c>+</c> and the chip). A click on it opens the jump prompt.
+    /// The cells of the jump chip at the right end of the bar, null when there are no tabs or the bar leaves
+    /// no room (two spare cells between the last tab item or <c>+</c> and the chip). A click on it opens the
+    /// jump prompt.
     /// </summary>
     public static TabButton? JumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
@@ -73,10 +74,19 @@ public static class TabBar
     {
         var start = width - JumpChipText.Length - 1;
 
-        return start >= DisplayWidth.Of(line.PlainText) + Separator.Length ? new TabButton(start, start + JumpChipText.Length) : null;
+        var minimum = DisplayWidth.Of(line.PlainText) + Separator.Length;
+
+        if (start < minimum)
+        {
+            return null;
+        }
+
+        return new TabButton(start, start + JumpChipText.Length);
     }
 
-    /// <summary>The bar with the jump chip right-aligned in the spare cells (the bar itself when there is no room).</summary>
+    /// <summary>
+    /// The bar with the jump chip right-aligned in the spare cells (the bar itself when there is no room).
+    /// </summary>
     public static StyledLine BuildWithJumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
         var line = Layout(tabs, active, width).Line;
@@ -88,7 +98,10 @@ public static class TabBar
 
         var gap = chip.Start - DisplayWidth.Of(line.PlainText);
 
-        return new StyledLine([.. line.Spans, new StyledSpan(new string(' ', gap), TextRole.Body), new StyledSpan(JumpChipText, TextRole.Muted)]);
+        var filler = new StyledSpan(new string(' ', gap), TextRole.Body);
+        var label = new StyledSpan(JumpChipText, TextRole.Muted);
+
+        return new StyledLine([.. line.Spans, filler, label]);
     }
 
     private static (StyledLine Line, IReadOnlyList<TabArea> Areas, TabButton? NewTab) Layout(
