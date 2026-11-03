@@ -259,16 +259,37 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenTheColumnsLayout_WhenPressingVOrAltM_ThenItIsRefusedWithAReason()
+    public void GivenTheColumnsLayout_WhenPressingV_ThenItIsRefusedWithAReason()
     {
         var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
 
         var visual = Press(state, "v");
-        var mark = Press(state, "Alt-m");
 
-        Assert.Equal("Visual mode and marks work in the list and backlog layouts", visual.State.Message);
-        Assert.Equal("Visual mode and marks work in the list and backlog layouts", mark.State.Message);
-        Assert.Empty(Tab(mark.State).Marks);
+        Assert.Equal("Visual mode works in the list and backlog layouts; mark cards with Alt-m", visual.State.Message);
+        Assert.Null(Tab(visual.State).VisualAnchor);
+    }
+
+    [Fact]
+    public void GivenTheColumnsLayout_WhenPressingAltM_ThenTheCardIsMarkedAndTheCursorMovesDownTheColumn()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+
+        var first = Press(state, "Alt-m");
+        var second = Press(first.State, "Alt-m");
+
+        Assert.Equal(["A-1", "A-2"], Tab(second.State).Marks);
+        Assert.Equal("A-2", ColumnsNavigation.SelectedIssue(Tab(first.State))?.Key);
+    }
+
+    [Fact]
+    public void GivenAMarkedCardInTheColumnsLayout_WhenAWriteIsPressed_ThenItRefuses()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var marked = Press(state, "Alt-m").State;
+
+        var result = Press(marked, "Alt-l");
+
+        Assert.Equal("1 issue selected; clear the selection first", result.State.Message);
     }
 
     [Fact]

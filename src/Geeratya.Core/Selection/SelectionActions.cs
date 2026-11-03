@@ -14,7 +14,7 @@ namespace Geeratya.Core.Selection;
 public static class SelectionActions
 {
     private const string InsideIssueText = "Select rows in the list, not inside an issue";
-    private const string ColumnsText = "Visual mode and marks work in the list and backlog layouts";
+    private const string ColumnsText = "Visual mode works in the list and backlog layouts; mark cards with Alt-m";
     private const string NothingText = "Nothing to select here";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -69,7 +69,7 @@ public static class SelectionActions
     /// <summary><c>v</c>: starts Visual mode on the cursor row, or leaves it.</summary>
     public static ReduceResult ToggleVisual(AppState state)
     {
-        var tab = Target(state, out var refusal);
+        var tab = Target(state, out var refusal, false);
 
         if (tab is null)
         {
@@ -91,11 +91,16 @@ public static class SelectionActions
     /// </summary>
     public static ReduceResult ToggleMark(AppState state, bool advance)
     {
-        var tab = Target(state, out var refusal);
+        var tab = Target(state, out var refusal, true);
 
         if (tab is null)
         {
             return Say(state, refusal!);
+        }
+
+        if (CursorKey(tab) is not { } cursorKey)
+        {
+            return Say(state, NothingText);
         }
 
         if (tab.VisualAnchor is not null && advance)
@@ -105,7 +110,7 @@ public static class SelectionActions
             return Result(ViewReducer.Replace(state, Toggled(tab, keys) with { VisualAnchor = null }));
         }
 
-        var marked = ViewReducer.Replace(state, Toggled(tab, [CursorKey(tab)]));
+        var marked = ViewReducer.Replace(state, Toggled(tab, [cursorKey]));
 
         return advance ? ViewReducer.Navigate(marked, ListMove.Down) : Result(marked);
     }
@@ -147,7 +152,7 @@ public static class SelectionActions
     {
         var started = ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.FromRow, drag.Width));
 
-        if (started is null || state.Mode != InputMode.Normal || Target(started.State, out _) is not { } tab)
+        if (started is null || state.Mode != InputMode.Normal || Target(started.State, out _, false) is not { } tab)
         {
             return Result(state);
         }
@@ -180,7 +185,7 @@ public static class SelectionActions
         return tab with { Marks = [.. tab.Marks, .. added] };
     }
 
-    private static TabState? Target(AppState state, out string? refusal)
+    private static TabState? Target(AppState state, out string? refusal, bool allowColumns)
     {
         refusal = null;
 
@@ -200,7 +205,7 @@ public static class SelectionActions
             return null;
         }
 
-        if (tab.Definition.Layout == ViewLayout.Columns)
+        if (!allowColumns && tab.Definition.Layout == ViewLayout.Columns)
         {
             refusal = ColumnsText;
 
@@ -210,8 +215,13 @@ public static class SelectionActions
         return tab;
     }
 
-    private static string CursorKey(TabState tab)
+    private static string? CursorKey(TabState tab)
     {
+        if (tab.Definition.Layout == ViewLayout.Columns)
+        {
+            return ColumnsNavigation.SelectedIssue(tab)?.Key;
+        }
+
         return tab.Rows[Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)].Key;
     }
 

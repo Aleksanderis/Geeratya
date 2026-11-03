@@ -34,7 +34,7 @@ public static class ActionCatalog
         [ActionIds.RankBottom] = ActionScope.Lists,
         [ActionIds.RankTo] = ActionScope.Lists,
         [ActionIds.SelectionVisual] = ActionScope.List | ActionScope.Backlog,
-        [ActionIds.SelectionMark] = ActionScope.List | ActionScope.Backlog,
+        [ActionIds.SelectionMark] = ActionScope.Lists,
         [ActionIds.IssueDelete] = ActionScope.Views,
         [ActionIds.IssueCreateSubtask] = ActionScope.Views,
         [ActionIds.IssueLink] = ActionScope.Views,

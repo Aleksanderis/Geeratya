@@ -23,6 +23,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
     private const string SelectedMark = ">";
+    private const string MarkedMark = "*";
     private const string Blank = " ";
     private const int FirstSummaryLine = 2;
     private const int BlankRow = int.MaxValue;
@@ -82,12 +83,13 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var compact = BoardCards.IsCompact(area, ListLayout.HeaderRows);
 
         var cardRows = Math.Max(0, area - BoardCards.FrameRows);
+        var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
 
         for (var row = 0; row < cardRows; row++)
         {
             lines.Add(row < cards * (compact ? 1 : BoardCards.FullRows)
-                ? CardRow(columns, cursor, window, row, compact)
-                : CardRow(columns, cursor, window, BlankRow, compact));
+                ? CardRow(columns, cursor, window, row, compact, marks)
+                : CardRow(columns, cursor, window, BlankRow, compact, marks));
         }
 
         if (area > 0)
@@ -346,7 +348,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         BoardCursor cursor,
         BoardWindow window,
         int row,
-        bool compact)
+        bool compact,
+        HashSet<string> marks)
     {
         var spans = new List<StyledSpan>(window.Count * 5);
 
@@ -357,7 +360,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var inner = Math.Max(0, window.ColumnWidth(position) - 1 - (last ? 1 : 0));
 
             spans.Add(new StyledSpan(Vertical, TextRole.Muted));
-            AddCell(spans, columns[column], cursor, column, row, compact, inner);
+            AddCell(spans, columns[column], cursor, column, row, compact, inner, marks);
         }
 
         spans.Add(new StyledSpan(Vertical, TextRole.Muted));
@@ -372,7 +375,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int column,
         int row,
         bool compact,
-        int inner)
+        int inner,
+        HashSet<string> marks)
     {
         if (group.Rows.Count == 0)
         {
@@ -396,13 +400,14 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var selected = column == cursor.Column && card == cursor.Cards[column];
         var issue = group.Rows[card];
+        var marked = marks.Contains(issue.Key);
 
         if (compact)
         {
             var role = selected ? TextRole.Selected : TextRole.Body;
 
             var nested = group.IsNested(card);
-            var line = TextWidth.Pad(CompactLine(issue, selected, nested, group.IsNested(card + 1), inner), inner);
+            var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, group.IsNested(card + 1), inner), inner);
             var at = nested ? 2 : 1;
 
             if (selected || line.Length < at + 1)
@@ -425,7 +430,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var nextSelected = column == cursor.Column && card + 1 == cursor.Cards[column] && group.IsNested(card + 1);
 
-        AddBoxRow(spans, issue, within, selected, part, inner, selected || nextSelected);
+        AddBoxRow(spans, issue, within, selected, marked, part, inner, selected || nextSelected);
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
@@ -450,6 +455,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         IssueSummary issue,
         int within,
         bool selected,
+        bool marked,
         GroupPart part,
         int inner,
         bool heavyBottom)
@@ -470,7 +476,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (part != GroupPart.None)
         {
-            AddGroupedRow(spans, issue, within, selected, part, width, heavyBottom);
+            AddGroupedRow(spans, issue, within, selected, marked, part, width, heavyBottom);
         }
         else if (within == 0 || within == BoardCards.FullRows - 1)
         {
@@ -493,7 +499,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var side = selected ? "┃" : Vertical;
 
             spans.Add(new StyledSpan(side, frame));
-            AddBoxText(spans, issue, within, selected, width - 2, text);
+            AddBoxText(spans, issue, within, selected, marked, width - 2, text);
             spans.Add(new StyledSpan(side, frame));
         }
 
@@ -511,6 +517,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         IssueSummary issue,
         int within,
         bool selected,
+        bool marked,
         GroupPart part,
         int width,
         bool heavyBottom)
@@ -558,7 +565,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
                 spans.Add(new StyledSpan(new string(' ', indent), text));
             }
 
-            AddBoxText(spans, issue, first ? within : within + 1, selected, width - 2 - indent, text);
+            AddBoxText(spans, issue, first ? within : within + 1, selected, marked, width - 2 - indent, text);
         }
 
         spans.Add(new StyledSpan(side, frame));
@@ -570,6 +577,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         IssueSummary issue,
         int within,
         bool selected,
+        bool marked,
         int room,
         TextRole text)
     {
@@ -587,7 +595,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var (label, remainder) = KeyLine(issue, room - 2);
         var tail = TextWidth.Pad($"{remainder} ", room - 1 - TextWidth.Of(label));
 
-        spans.Add(new StyledSpan(Blank, text));
+        // The cell before the type name is the set mark: `*` for a marked card (never colour alone).
+        spans.Add(new StyledSpan(marked ? MarkedMark : Blank, marked ? TextRole.Strong : text));
         spans.Add(new StyledSpan(label, selected ? text : IssueTypeRole.For(issue.IssueType)));
         spans.Add(new StyledSpan(tail, text));
     }
@@ -609,14 +618,14 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         return $"{text}{Blank}";
     }
 
-    private static string CompactLine(IssueSummary issue, bool selected, bool nested, bool more, int width)
+    private static string CompactLine(IssueSummary issue, bool selected, bool marked, bool nested, bool more, int width)
     {
         var mark = selected ? SelectedMark : Blank;
         var marker = IssueTypeMarker.For(issue.IssueType);
         var branch = nested ? (more ? "├" : "└") : string.Empty;
         var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
 
-        return CardText.Shorten($"{mark}{branch}{marker} {issue.Key}{parent} {issue.Summary}", width);
+        return CardText.Shorten($"{mark}{branch}{marker}{(marked ? MarkedMark : Blank)}{issue.Key}{parent} {issue.Summary}", width);
     }
 
     /// <summary>
