@@ -33,10 +33,10 @@ public sealed class ApplicationRunner
         "Usage: geeratya [options]",
         "",
         "Options:",
-        $"  {ShortHelpFlag}, {HelpFlag}      Print this usage and exit.",
-        $"  {VersionFlag}            Print the name and version and exit.",
+        $"  {ShortHelpFlag}, {HelpFlag}        Print this usage and exit.",
+        $"  {VersionFlag}             Print the name and version and exit.",
         $"  {PrintKeymapFlag}  Print the key reference as Markdown and exit.",
-        $"  {PrintFrameFlag}       Print the plain-text frame the shell would draw and exit.",
+        $"  {PrintFrameFlag}        Print the plain-text frame the shell would draw and exit.",
         $"      [{SizeFlag} <width>x<height>]                  default 80x24",
         $"      [{ModeFlag} normal|help|command|confirm|insert]",
         $"      [{HelpPageFlag} <page>] [{HelpScrollFlag} <line>]   need {ModeFlag} help",
@@ -145,7 +145,7 @@ public sealed class ApplicationRunner
 
         if (size is null || mode is null)
         {
-            _output.WriteLine(Usage);
+            _error.WriteLine(Usage);
 
             return 2;
         }
@@ -156,7 +156,7 @@ public sealed class ApplicationRunner
 
         if (scroll is null || page is null || level is null)
         {
-            _output.WriteLine(Usage);
+            _error.WriteLine(Usage);
 
             return 2;
         }
