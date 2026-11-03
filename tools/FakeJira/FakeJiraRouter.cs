@@ -334,6 +334,24 @@ public sealed partial class FakeJiraRouter
         var key = parts[0];
         var recorded = _routes.TryGetValue(path, out var fixture) ? ReadFixture(fixture) : null;
 
+        if (parts.Length == 1 && _scrum.IssueDetail(key) is { } scrumIssue)
+        {
+            return new FakeReply(200, scrumIssue);
+        }
+
+        if (parts.Length == 2 && _scrum.IssueDetail(key) is not null && !_writes.Knows(key))
+        {
+            if (parts[1] == CommentPart)
+            {
+                return new FakeReply(200, ReadFixture("comments/comments-empty.json"));
+            }
+
+            if (parts[1] == "remotelink")
+            {
+                return new FakeReply(200, ReadFixture("links/remotelink-list-empty.json"));
+            }
+        }
+
         if (parts.Length == 1)
         {
             return _writes.Issue(key, recorded) is { } issue ? new FakeReply(200, issue) : null;
@@ -563,7 +581,9 @@ public sealed partial class FakeJiraRouter
         }
 
         var key = match.Groups[1].Value;
-        var recorded = _routes.TryGetValue(IssuePrefix + key, out var fixture) ? ReadFixture(fixture) : null;
+        var recorded = _routes.TryGetValue(IssuePrefix + key, out var fixture)
+            ? ReadFixture(fixture)
+            : _scrum.IssueDetail(key);
 
         if ((_writes.Issue(key, recorded) ?? recorded) is not { } bytes)
         {

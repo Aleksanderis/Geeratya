@@ -193,6 +193,20 @@ public sealed partial class FakeScrumStore
         return Json(Ok, page);
     }
 
+    /// <summary>
+    /// The detail of a recorded Scrum board issue (<c>GCS-n</c>, <c>GTS-n</c>) as JSON bytes, with the
+    /// <c>Sprint</c> field following the current memberships; null for any other key.
+    /// </summary>
+    public byte[]? IssueDetail(string key)
+    {
+        lock (_gate)
+        {
+            Load();
+
+            return _issues.ContainsKey(key) ? System.Text.Encoding.UTF8.GetBytes(IssueView(key).ToJsonString()) : null;
+        }
+    }
+
     /// <summary>The issue with its <c>Sprint</c> field rebuilt from the current memberships (null when none).</summary>
     private JsonObject IssueView(string key)
     {

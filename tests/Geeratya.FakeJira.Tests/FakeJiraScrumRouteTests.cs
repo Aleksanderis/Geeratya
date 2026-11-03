@@ -171,6 +171,41 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         Assert.Equal(JsonValueKind.Null, entry.GetProperty("fields").GetProperty("customfield_10020").ValueKind);
     }
 
+    [Theory]
+    [InlineData("GCS-3")]
+    [InlineData("GTS-24")]
+    public async Task GivenScrumBoardIssue_WhenDetailAndKeySearchRead_ThenBothServeItWithCommentsAndLinks(string key)
+    {
+        var detail = await Json($"/rest/api/3/issue/{key}");
+        var search = await Json($"/rest/api/3/search/jql?jql={Uri.EscapeDataString($"key = {key}")}");
+        var comments = await Json($"/rest/api/3/issue/{key}/comment");
+        var links = await _client.GetAsync($"{_baseUrl}/rest/api/3/issue/{key}/remotelink");
+
+        Assert.Equal(key, Key(detail));
+        Assert.Equal([key], [.. search.GetProperty("issues").EnumerateArray().Select(Key)]);
+        Assert.Equal(0, comments.GetProperty("comments").GetArrayLength());
+        Assert.Equal(HttpStatusCode.OK, links.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenScrumIssueMoved_WhenDetailRead_ThenSprintFieldFollowsMembership()
+    {
+        await Send(HttpMethod.Post, $"{Agile}/sprint/8/issue", """{"issues":["GCS-10"]}""");
+
+        var detail = await Json("/rest/api/3/issue/GCS-10");
+        var sprints = detail.GetProperty("fields").GetProperty("customfield_10020").EnumerateArray();
+
+        Assert.Equal([8], [.. sprints.Select(IdOf)]);
+    }
+
+    [Fact]
+    public async Task GivenUnknownScrumKey_WhenDetailRead_ThenNotFound()
+    {
+        var response = await _client.GetAsync($"{_baseUrl}/rest/api/3/issue/GCS-9999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     [Fact]
     public async Task GivenClosedSprint_WhenIssuesMovedIn_ThenRecordedBadRequestAndNothingMoves()
     {
