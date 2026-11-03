@@ -32,6 +32,5 @@ View · 0 issues
                     │   Refresh the view (also retries after an error)                     Space r │                    
                     │   Switch the command level for the session                           Space * │                    
                     │   Switch the sprint shown (active, future, closed)                 Space s v │                    
-                    │ Tabs                                                                         │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
  COMMAND :                                                                           Up/Down move  Enter run  Esc cancel
