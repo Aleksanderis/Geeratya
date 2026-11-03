@@ -8,7 +8,6 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Terminal;
-using Geeratya.Tui.PrintFrame;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Rendering.Themes;
 
@@ -146,7 +145,12 @@ public sealed partial class ApplicationRunner
         var loader = new ScreenLoader(DefaultKeymap.Load(), _transports ?? new AllowListedTransportFactory(allowed));
         using var timeout = new CancellationTokenSource(_screenTimeout);
 
-        var state = loader.LoadAsync(profile, SettingsOf(services), source, layout, size, timeout.Token)
+        var viewport = new ViewportChanged(
+            FrameBuilder.ListRows(size.Height),
+            size.Width,
+            FrameBuilder.BodyHeight(size.Height));
+
+        var state = loader.LoadAsync(profile, SettingsOf(services), source, layout, viewport, timeout.Token)
             .GetAwaiter()
             .GetResult();
 

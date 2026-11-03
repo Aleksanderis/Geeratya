@@ -16,9 +16,11 @@ var background = new TerminalBackgroundDetector(
     operatingSystem,
     new ConsoleBackgroundQuery(environment));
 
-return new ApplicationRunner(
+var context = new RunnerContext(
     Console.Out,
     capabilities.IsInteractive,
     capabilities.Colors,
-    glyphs: capabilities.Glyphs,
-    background: background).Run(args);
+    Glyphs: capabilities.Glyphs,
+    Background: background);
+
+return new ApplicationRunner(context).Run(args);

@@ -64,24 +64,18 @@ public sealed partial class ApplicationRunner
     private readonly ITransportFactory? _transports;
 
     public ApplicationRunner(
-        TextWriter output,
-        bool isInteractive,
-        ColorSupport colors = ColorSupport.TrueColor,
-        TextWriter? error = null,
+        RunnerContext context,
         Func<ProfileServices>? createProfiles = null,
-        GlyphSet glyphs = GlyphSet.Unicode,
-        TerminalBackgroundDetector? background = null,
-        EnvironmentReader? environment = null,
         ITransportFactory? transports = null)
     {
-        _environment = environment ?? EnvironmentReader.ForProcess();
+        _environment = context.Environment ?? EnvironmentReader.ForProcess();
         _transports = transports;
-        _background = background;
-        _output = output;
-        _error = error ?? Console.Error;
-        _isInteractive = isInteractive;
-        _colors = colors;
-        _glyphs = glyphs;
+        _background = context.Background;
+        _output = context.Output;
+        _error = context.Error ?? Console.Error;
+        _isInteractive = context.IsInteractive;
+        _colors = context.Colors;
+        _glyphs = context.Glyphs;
         _createProfiles = createProfiles ?? ProfileServices.CreateForProcess;
     }
 
