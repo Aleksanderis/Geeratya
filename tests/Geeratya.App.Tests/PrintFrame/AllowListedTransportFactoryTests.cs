@@ -5,6 +5,8 @@ using Geeratya.Jira.Users;
 
 namespace Geeratya.App.Tests.PrintFrame;
 
+// The allowed-host side is covered by the transport tests in Geeratya.Jira.Tests (JiraTransportTests).
+[Trait("Os", "Independent")]
 public sealed class AllowListedTransportFactoryTests
 {
     [Fact]
