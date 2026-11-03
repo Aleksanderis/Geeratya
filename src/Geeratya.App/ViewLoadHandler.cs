@@ -195,6 +195,20 @@ public sealed class ViewLoadHandler
                 }
             }
 
+            BoardKind? probed = null;
+
+            if (effect.Definition.Source == ViewSourceKind.Backlog && loaded is not null)
+            {
+                // A team-managed Scrum board is typed "simple", so only the sprint probe tells it from Kanban.
+                probed = await ResolveKindAsync(services, id, loaded, effect.Background, token);
+
+                if (probed == BoardKind.Scrum)
+                {
+                    report(new BacklogBecameScrum(effect.Tab, effect.RequestId));
+                    effect = effect with { Definition = effect.Definition with { Source = ViewSourceKind.ScrumBacklog } };
+                }
+            }
+
             if (effect.Definition.Source == ViewSourceKind.ScrumBacklog && NeedsConfiguration(effect))
             {
                 await ReportSprintsAsync(services, effect, id, report, token);
@@ -203,7 +217,7 @@ public sealed class ViewLoadHandler
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
             var kind = effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog
                 ? BoardKind.Scrum
-                : await ResolveKindAsync(services, id, loaded, effect.Background, token);
+                : probed ?? await ResolveKindAsync(services, id, loaded, effect.Background, token);
 
             return await BoardPageAsync(services, effect, id, kind, token);
         }

@@ -48,6 +48,7 @@ public static class ViewReducer
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
             SprintLoaded sprint => SprintArrived(state, sprint),
             SprintsLoaded sprints => SprintsReceived(state, sprints),
+            BacklogBecameScrum scrum => BecameScrum(state, scrum),
             ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
@@ -345,6 +346,22 @@ public static class ViewReducer
         var withSprints = tab with { Sprints = loaded.Sprints };
 
         return Replace(state, tab.Rows.Count == 0 ? withSprints : KeepSelection(withSprints));
+    }
+
+    /// <summary>A plain backlog proved to be a Scrum board: the tab takes the Scrum backlog source while its load runs.</summary>
+    private static AppState BecameScrum(AppState state, BacklogBecameScrum scrum)
+    {
+        var tab = Find(state.Session.Tabs, scrum.Tab);
+
+        if (tab is null
+            || tab.RequestId != scrum.RequestId
+            || tab.Load is not Loading
+            || tab.Definition.Source != ViewSourceKind.Backlog)
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { Definition = tab.Definition with { Source = ViewSourceKind.ScrumBacklog } });
     }
 
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>

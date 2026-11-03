@@ -93,22 +93,6 @@ public sealed class ViewLoadHandlerScrumTests
     }
 
     [Fact]
-    public async Task GivenScrumBacklog_WhenOpened_ThenTheBacklogEndpointIsAskedWithoutTheSprintFilter()
-    {
-        using var fixture = await ConnectedAsync(
-            http => http
-                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
-                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
-                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/backlog-gcs.json")));
-
-        await OpenAsync(fixture, ViewSourceKind.Backlog, "6");
-
-        Assert.Equal("/rest/agile/1.0/board/6/backlog", fixture.Path(2));
-        Assert.DoesNotContain("jql=", fixture.Query(2));
-        Assert.Contains("customfield_10020", fixture.Query(2));
-    }
-
-    [Fact]
     public async Task GivenSprintSource_WhenOpened_ThenOnlyThatSprintIsAskedWithSprintAndEstimateFields()
     {
         using var fixture = await ConnectedAsync(
@@ -305,6 +289,44 @@ public sealed class ViewLoadHandlerScrumTests
             uri => uri.AbsolutePath.EndsWith("/field", StringComparison.Ordinal));
         Assert.DoesNotContain("customfield", fixture.Query(2));
         Assert.Equal(BoardKind.Kanban, fixture.Services.BoardKinds.Recall(3));
+    }
+
+    [Fact]
+    public async Task GivenTeamManagedScrumBoard_WhenBacklogIsOpened_ThenTheTabBecomesTheScrumBacklogWithSprintSections()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gts-config.json"))
+                .Reply(HttpStatusCode.OK, SprintPage)
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/sprints-gts.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gts.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Backlog, "5");
+
+        var tab = state.Session.Tabs[0];
+        Assert.Equal(ViewSourceKind.ScrumBacklog, tab.Definition.Source);
+        Assert.True(BacklogSections.Applies(tab));
+        Assert.NotEmpty(tab.Sprints);
+        Assert.Contains("jql=", fixture.Query(4));
+        Assert.Equal("/rest/agile/1.0/board/5/issue", fixture.Path(4));
+        Assert.Equal(BoardKind.Scrum, fixture.Services.BoardKinds.Recall(5));
+    }
+
+    [Fact]
+    public async Task GivenTeamManagedKanbanBoard_WhenBacklogIsOpened_ThenItKeepsThePlainBacklog()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("boards/board-gtm-config.json"))
+                .Reply(HttpStatusCode.BadRequest, NoSprints)
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("boards/rows-gtm-issues.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Backlog, "3");
+
+        Assert.Equal(ViewSourceKind.Backlog, state.Session.Tabs[0].Definition.Source);
+        Assert.Equal("/rest/agile/1.0/board/3/backlog", fixture.Path(2));
+        Assert.Empty(state.Session.Tabs[0].Sprints);
     }
 
     private static ViewDefinition Definition(ViewSourceKind source, string id)
