@@ -11,7 +11,7 @@ public sealed class HelpBodyRenderer : IBodyRenderer
 
     public bool AppliesTo(AppState state)
     {
-        return state.Mode == InputMode.Help;
+        return state.Mode == InputMode.Help && !state.MessagesOpen;
     }
 
     public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)

@@ -63,6 +63,8 @@ public static class ActionIds
     public const string IssueAssign = "issue.assign";
     public const string IssueAssignMe = "issue.assign-me";
     public const string IssueJump = "issue.jump";
+    public const string StatusHistory = "status.history";
+    public const string StatusDismiss = "status.dismiss";
     public const string ProfileRemove = "profile.remove";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";

@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-c     Quit                                                                                                       
+                                                                                                                        
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
@@ -31,6 +33,4 @@ Insert mode
   Ctrl-s     Save the form                                                                                              
   Ctrl-g     Open the new issue after it is created (on or off)                                                         
   Alt-Enter  Save the form                                                                                              
-  Left       Move the cursor left                                                                                       
-  Right      Move the cursor right                                                                                      
  HELP                                                                                            j down  k up  Esc close

@@ -25,6 +25,8 @@ public sealed class ShellScreen : Window
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly Label _status;
+    private readonly Label _statusMessage;
+    private PaletteRole _messageRole = PaletteRole.Error;
     private IReadOnlyList<string> _helpLines;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
@@ -52,9 +54,18 @@ public sealed class ShellScreen : Window
 
         _body = new StyledBodyView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1) };
         _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), HotKeySpecifier = _noHotKey };
+        _statusMessage = new Label
+        {
+            Text = string.Empty,
+            X = 0,
+            Y = Pos.AnchorEnd(1),
+            Width = 0,
+            Visible = false,
+            HotKeySpecifier = _noHotKey,
+        };
         ApplySchemes();
 
-        Add(_body, _status);
+        Add(_body, _status, _statusMessage);
         ViewportChanged += OnViewportChanged;
     }
 
@@ -107,7 +118,30 @@ public sealed class ShellScreen : Window
 
         _body.SetLines(lines.ToList());
         _status.Text = frame.StatusLine;
+        ShowMessage(frame.StatusSegment);
         SetNeedsDraw();
+    }
+
+    // The warning or error message sits on top of the bar in its own role; an info message keeps the bar's colours.
+    private void ShowMessage(StatusSegment? segment)
+    {
+        if (segment is null)
+        {
+            _statusMessage.Visible = false;
+
+            return;
+        }
+
+        if (segment.Role != _messageRole)
+        {
+            _messageRole = segment.Role;
+            ApplySchemes();
+        }
+
+        _statusMessage.X = segment.Start;
+        _statusMessage.Width = segment.Width;
+        _statusMessage.Text = segment.Text;
+        _statusMessage.Visible = true;
     }
 
     private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)
@@ -131,6 +165,7 @@ public sealed class ShellScreen : Window
         SetScheme(body);
         _body.SetScheme(body);
         _status.SetScheme(CreateScheme(Palette.Resolve(_theme, _colors, PaletteRole.Status)));
+        _statusMessage.SetScheme(CreateScheme(Palette.Resolve(_theme, _colors, _messageRole)));
     }
 
     private static Scheme CreateScheme(ResolvedStyle style)

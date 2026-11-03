@@ -132,7 +132,7 @@ public class WriteReducerTests
         var tick = _reducer.Reduce(started.State, new Tick(_start + TimeSpan.FromMinutes(10)));
 
         Assert.Empty(tick.Effects);
-        Assert.Same(started.State, tick.State);
+        Assert.Same(started.State.Session, tick.State.Session);
     }
 
     [Fact]

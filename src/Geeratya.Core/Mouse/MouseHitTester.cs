@@ -33,7 +33,14 @@ public static class MouseHitTester
                 return new MouseHit(MouseTarget.Backdrop, 0, column);
             }
 
-            return context.OverlayOpen ? null : new MouseHit(MouseTarget.Status, 0, column);
+            if (context.OverlayOpen)
+            {
+                return null;
+            }
+
+            var message = context.StatusMessage is { } cells && column >= cells.Start && column < cells.End;
+
+            return new MouseHit(message ? MouseTarget.StatusMessage : MouseTarget.Status, 0, column);
         }
 
         if (context.OverlayOpen)

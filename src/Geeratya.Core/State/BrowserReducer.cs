@@ -16,14 +16,14 @@ public static class BrowserReducer
 
         if (host.Length == 0 && !request.IsRemoteLink)
         {
-            return Say(state, "Cannot open the link: no active site");
+            return Warn(state, "Cannot open the link: no active site");
         }
 
         var check = BrowserUrlCheck.Check(request.Url, request.IsRemoteLink ? null : host);
 
         if (check.Url is null)
         {
-            return Say(state, $"Cannot open the link: {check.Reason}");
+            return Warn(state, $"Cannot open the link: {check.Reason}");
         }
 
         var opening = state with { Message = "Opening in the browser..." };
@@ -42,19 +42,19 @@ public static class BrowserReducer
 
         if (key is null)
         {
-            return Say(state, "No issue selected: select a row or use :browse KEY");
+            return Warn(state, "No issue selected: select a row or use :browse KEY");
         }
 
         if (state.Profiles.Active is not { } profile || !Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site))
         {
-            return Say(state, "Cannot open the link: no active site");
+            return Warn(state, "Cannot open the link: no active site");
         }
 
         var url = IssueUrls.Browse(new JiraConnection(site, profile.Email), key);
 
         if (url is null)
         {
-            return Say(state, "Cannot open the link: not an issue key");
+            return Warn(state, "Cannot open the link: not an issue key");
         }
 
         return Request(state, new OpenUrlRequested(url.AbsoluteUri, false, key));
@@ -86,7 +86,7 @@ public static class BrowserReducer
     {
         if (finished.Error is not null)
         {
-            return Say(state, $"Cannot open the link: {finished.Error}");
+            return Warn(state, $"Cannot open the link: {finished.Error}");
         }
 
         return Say(state, finished.Label is null ? "Opened in the browser" : $"Opened {finished.Label} in the browser");
@@ -100,6 +100,11 @@ public static class BrowserReducer
         }
 
         return Uri.TryCreate(state.Profiles.Active.SiteUrl, UriKind.Absolute, out var site) ? site.Host : string.Empty;
+    }
+
+    private static ReduceResult Warn(AppState state, string message)
+    {
+        return new ReduceResult(StatusMessages.Warn(state, message), _noEffects);
     }
 
     private static ReduceResult Say(AppState state, string message)
