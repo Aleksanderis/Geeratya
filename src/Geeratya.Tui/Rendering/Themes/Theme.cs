@@ -6,14 +6,15 @@ namespace Geeratya.Tui.Rendering.Themes;
 /// </summary>
 public sealed class Theme
 {
-    // The overlay fill is the selection step moved a third of the way to the page; a step that would be too
-    // close to the page to read as raised is moved less (ux-look.md, section 7).
-    private const double SurfaceContrast = 1.3;
+    // The view behind an overlay is the page moved towards black (a scrim), so the box keeps the theme's own page
+    // colour and stands out as the bright part (ux-look.md, section 6); a light page needs less than a dark one.
+    private const double DarkScrim = 0.6;
+    private const double LightScrim = 0.15;
     private const double DimStart = 0.3;
     private const double DimStep = 0.05;
     private const double DimTextContrast = 3.0;
 
-    private static readonly double[] _surfaceAmounts = [1.0 / 3, 0.2, 0.1];
+    private static readonly Rgb _black = new(0, 0, 0);
 
     private readonly IReadOnlyDictionary<PaletteRole, PaletteEntry> _entries;
 
@@ -21,7 +22,8 @@ public sealed class Theme
         string name,
         ThemeVariant variant,
         IReadOnlyDictionary<ThemeColor, Rgb> colors,
-        IReadOnlyDictionary<ThemeColor, Ansi16Color> ansi)
+        IReadOnlyDictionary<ThemeColor, Ansi16Color> ansi,
+        Rgb? overlayBackground = null)
     {
         Name = name;
         Variant = variant;
@@ -29,54 +31,45 @@ public sealed class Theme
         Ansi = ansi;
         _entries = PaletteTable.Build(this);
         PageBackground = colors[ThemeColor.BaseBackground];
-        Surface = ChooseSurface(colors);
-        DimAmount = ChooseDimAmount(colors);
+        Surface = overlayBackground ?? PageBackground;
+        ScrimBackground = Rgb.Blend(
+            PageBackground,
+            _black,
+            variant == ThemeVariant.Light ? LightScrim : DarkScrim);
+        DimAmount = ChooseDimAmount(colors, ScrimBackground);
     }
 
     /// <summary>The page background (<see cref="ThemeColor.BaseBackground"/>).</summary>
     public Rgb PageBackground { get; }
 
-    /// <summary>The fill of an overlay box: raised from the page, but quieter than the selection tint.</summary>
+    /// <summary>
+    /// The fill of an overlay box: the optional <c>overlayBackground</c> of the theme file, else the page colour (the
+    /// view behind the box is what gets darker, <see cref="ScrimBackground"/>).
+    /// </summary>
     public Rgb Surface { get; }
 
+    /// <summary>The page background as it is drawn behind an overlay: the page moved towards black.</summary>
+    public Rgb ScrimBackground { get; }
+
     /// <summary>
-    /// How far text behind an overlay is blended towards the page background: 0.3, lowered until muted text keeps a
-    /// contrast of 3.0 against the page.
+    /// How far text behind an overlay is blended towards the scrim: 0.3, lowered until muted text keeps a contrast
+    /// of 3.0 against it.
     /// </summary>
     public double DimAmount { get; }
 
     /// <summary>The colour of <paramref name="color"/> as it is drawn behind an overlay.</summary>
     public Rgb Dimmed(Rgb color)
     {
-        return Rgb.Blend(color, PageBackground, DimAmount);
+        return Rgb.Blend(color, ScrimBackground, DimAmount);
     }
 
-    private static Rgb ChooseSurface(IReadOnlyDictionary<ThemeColor, Rgb> colors)
-    {
-        var selection = colors[ThemeColor.Selection];
-        var page = colors[ThemeColor.BaseBackground];
-
-        foreach (var amount in _surfaceAmounts)
-        {
-            var candidate = Rgb.Blend(selection, page, amount);
-
-            if (Contrast.Ratio(candidate, page) >= SurfaceContrast)
-            {
-                return candidate;
-            }
-        }
-
-        return selection;
-    }
-
-    private static double ChooseDimAmount(IReadOnlyDictionary<ThemeColor, Rgb> colors)
+    private static double ChooseDimAmount(IReadOnlyDictionary<ThemeColor, Rgb> colors, Rgb scrim)
     {
         var muted = colors[ThemeColor.Muted];
-        var page = colors[ThemeColor.BaseBackground];
 
         for (var amount = DimStart; amount > 0; amount -= DimStep)
         {
-            if (Contrast.Ratio(Rgb.Blend(muted, page, amount), page) >= DimTextContrast)
+            if (Contrast.Ratio(Rgb.Blend(muted, scrim, amount), scrim) >= DimTextContrast)
             {
                 return amount;
             }

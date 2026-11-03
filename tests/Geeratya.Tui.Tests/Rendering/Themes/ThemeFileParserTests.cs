@@ -16,6 +16,37 @@ public class ThemeFileParserTests
         """;
 
     [Fact]
+    public void GivenNoOverlayBackground_WhenParsing_ThenTheBoxIsThePageColour()
+    {
+        var result = ThemeFileParser.Parse("mine", $$"""{ "variant": "dark", {{Colors}} }""");
+
+        Assert.Equal(result.Theme!.PageBackground, result.Theme.Surface);
+    }
+
+    [Fact]
+    public void GivenAnOverlayBackground_WhenParsing_ThenTheBoxUsesIt()
+    {
+        var text = $$"""{ "variant": "dark", {{WithOverlay("#102030")}} }""";
+
+        var result = ThemeFileParser.Parse("mine", text);
+
+        Assert.Empty(result.Errors);
+        Assert.Equal(Rgb.FromHex(0x102030), result.Theme!.Surface);
+    }
+
+    [Fact]
+    public void GivenABadOverlayBackground_WhenParsing_ThenTheFileIsRefusedWithOneReason()
+    {
+        var text = $$"""{ "variant": "dark", {{WithOverlay("blue")}} }""";
+
+        var result = ThemeFileParser.Parse("mine", text);
+
+        Assert.Null(result.Theme);
+        Assert.Single(result.Errors);
+        Assert.Contains("overlayBackground", result.Errors[0]);
+    }
+
+    [Fact]
     public void GivenValidFileWithCommentsAndTrailingCommas_WhenParsing_ThenThemeComesBack()
     {
         var text = $$"""
@@ -120,5 +151,10 @@ public class ThemeFileParserTests
         var text = $$"""{ "variant": "dark", {{Colors.Replace("#cdd6f4", "#1f1f2f")}} }""";
 
         Assert.NotNull(ThemeFileParser.Parse("mine", text).Theme);
+    }
+
+    private static string WithOverlay(string colour)
+    {
+        return Colors.Replace("\"colors\": {", $"\"colors\": {{ \"overlayBackground\": \"{colour}\",");
     }
 }

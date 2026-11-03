@@ -149,3 +149,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (profile manager screen, #535)
 
 **UI:** The profile manager stays open under the profile form and the remove question and is the first screen when no profile exists; its details pane shows the token source only (looked up by the host, never the token) and, for inactive profiles, no connection status (no request goes to an inactive site). Why: a screen that vanishes on Ctrl-a loses the list the user is editing; the first run needs one place to add a profile.
+
+## 2026-11-03 (theme backgrounds, #559)
+
+**UI:** An overlay box is filled with the theme's own page colour and the view behind it is darkened (the page moved towards black) instead of the box being a `selection`-derived gray raised from an unchanged page; a theme file may set an optional `overlayBackground` for the box. Why: measured in tmux, every theme painted its published `baseBackground` faithfully, but the box fill (a gray step towards `selection`) and the dimmed text on the unchanged page read as two competing grays. Overrides the "backgrounds unchanged" rule of `ux-look.md` section 6. Details: `ux.md`, "Themes"; `ux-look.md`, sections 6 and 7.

@@ -15,6 +15,7 @@ public static class ThemeFileParser
 
     private const int HexLength = 7;
     private const char HexPrefix = '#';
+    private const string OverlayBackgroundKey = "overlayBackground";
     private const string DarkName = "dark";
     private const string LightName = "light";
 
@@ -58,13 +59,14 @@ public static class ThemeFileParser
         var variant = ReadVariant(model.Variant, errors);
         var colors = ReadColors(model.Colors, errors);
         var ansi = ReadAnsi(model.Ansi, errors);
+        var overlay = ReadOverlayBackground(model.Colors, errors);
 
         if (errors.Count > 0 || variant is null)
         {
             return new ThemeLoadResult(null, errors);
         }
 
-        return new ThemeLoadResult(new Theme(name, variant.Value, colors, ansi), []);
+        return new ThemeLoadResult(new Theme(name, variant.Value, colors, ansi, overlay), []);
     }
 
     private static ThemeLoadResult Refuse(string error)
@@ -110,6 +112,25 @@ public static class ThemeFileParser
         }
 
         return colors;
+    }
+
+    private static Rgb? ReadOverlayBackground(Dictionary<string, string>? values, List<string> errors)
+    {
+        var text = Find(values, OverlayBackgroundKey);
+
+        if (text is null)
+        {
+            return null;
+        }
+
+        if (TryParseHex(text, out var rgb))
+        {
+            return rgb;
+        }
+
+        errors.Add($"colors.{OverlayBackgroundKey}: '{text}' is not a colour like #RRGGBB");
+
+        return null;
     }
 
     private static Dictionary<ThemeColor, Ansi16Color> ReadAnsi(Dictionary<string, string>? values, List<string> errors)
