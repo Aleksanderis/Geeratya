@@ -190,7 +190,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
             return;
         }
 
-        var isBoard = tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+        var isBoard = tab.Definition.Source.IsBoardBased();
 
         lines.Add(Centered(isBoard ? NoBoardIssuesText : NoIssuesText, width));
 

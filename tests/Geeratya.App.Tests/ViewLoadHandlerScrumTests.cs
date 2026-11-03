@@ -105,6 +105,67 @@ public sealed class ViewLoadHandlerScrumTests
     }
 
     [Fact]
+    public async Task GivenSprintSource_WhenOpened_ThenOnlyThatSprintIsAskedWithSprintAndEstimateFields()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Sprint, "6:7");
+
+        Assert.Equal("/rest/agile/1.0/board/6/issue", fixture.Path(2));
+        Assert.Contains("jql=sprint = 7", Uri.UnescapeDataString(fixture.Query(2)));
+        Assert.Contains("customfield_10020", fixture.Query(2));
+        Assert.Equal(LoadState.Idle, state.Session.Tabs[0].Load);
+        Assert.NotEmpty(state.Session.Tabs[0].Rows);
+    }
+
+    [Fact]
+    public async Task GivenActiveSprintSource_WhenOpened_ThenOpenSprintsAreAsked()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        await OpenAsync(fixture, ViewSourceKind.Sprint, "6:active");
+
+        Assert.Contains($"jql={OpenSprints}", Uri.UnescapeDataString(fixture.Query(2)));
+    }
+
+    [Fact]
+    public async Task GivenScrumBacklogSource_WhenOpened_ThenOnlyOpenAndFutureSprintsAndTheBacklogAreAsked()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, "6");
+
+        Assert.Equal("/rest/agile/1.0/board/6/issue", fixture.Path(2));
+        Assert.Contains(
+            "jql=sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY",
+            Uri.UnescapeDataString(fixture.Query(2)));
+        Assert.Contains("customfield_10020", fixture.Query(2));
+    }
+
+    [Fact]
+    public async Task GivenMalformedSprintSource_WhenOpened_ThenTheTabFailsWithoutARequest()
+    {
+        using var fixture = await ConnectedAsync(_ => { });
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Sprint, "6");
+
+        Assert.IsType<Failed>(state.Session.Tabs[0].Load);
+        Assert.Empty(fixture.Http.Requests);
+    }
+
+    [Fact]
     public async Task GivenFieldListFails_WhenScrumBoardIsOpened_ThenRowsLoadWithoutSprintOrEstimate()
     {
         using var fixture = await ConnectedAsync(
