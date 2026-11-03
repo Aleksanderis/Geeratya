@@ -63,11 +63,16 @@ public sealed class MouseDragTracker
             return null;
         }
 
+        var wasMoved = _moved;
+
         _start = null;
         _moved = false;
 
         if (start.Column == column && start.Row == row)
         {
+            // After a live move the click that follows the release must not act either.
+            _dragged = wasMoved;
+
             return null;
         }
 

@@ -404,7 +404,8 @@ public class SprintMoveTests
     {
         var state = WithSprints(Loaded());
         var tab = Tab(state);
-        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3")));
+        var line = BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3"));
+        var from = Screen(tab, line);
         var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
 
         var result = _reducer.Reduce(started, new RowsDragScrolled(3));

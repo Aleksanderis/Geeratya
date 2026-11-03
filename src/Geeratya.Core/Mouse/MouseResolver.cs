@@ -110,10 +110,7 @@ public static class MouseResolver
         int toRow,
         bool first)
     {
-        if (context.OverlayOpen || context.ColumnsLayout || context.DetailOpen
-            || DefaultMouseMap.Find(MouseTarget.Lists, MouseGesture.DragRows) is not { } found
-            || !WiredParts.Contains(found.Part)
-            || MouseHitTester.Locate(context, fromColumn, fromRow) is not { Target: MouseTarget.Lists } start)
+        if (LiveStart(context, fromColumn, fromRow) is not { } start)
         {
             return _none;
         }
@@ -130,6 +127,28 @@ public static class MouseResolver
         }
 
         return [new RowsDragging(fromColumn, start.Row, end, context.Width, first)];
+    }
+
+    /// <summary>
+    /// The auto-scroll speed of a held button whose pointer is on that screen row: signed rows per step, zero inside
+    /// the body or when the press does not start a live range (columns layout, overlay, press outside the body).
+    /// </summary>
+    public static int DragScrollStep(MouseContext context, int fromColumn, int fromRow, int pointerRow)
+    {
+        return LiveStart(context, fromColumn, fromRow) is null ? 0 : DragAutoScroll.StepFor(context, pointerRow);
+    }
+
+    // The body row a live range starts on, null when this press cannot start one.
+    private static MouseHit? LiveStart(MouseContext context, int fromColumn, int fromRow)
+    {
+        if (context.OverlayOpen || context.ColumnsLayout || context.DetailOpen
+            || DefaultMouseMap.Find(MouseTarget.Lists, MouseGesture.DragRows) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return null;
+        }
+
+        return MouseHitTester.Locate(context, fromColumn, fromRow) is { Target: MouseTarget.Lists } start ? start : null;
     }
 
     // A row of an open overlay (picker, jump prompt, profile list, form field, suggestion popup): the row is chosen,

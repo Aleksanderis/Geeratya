@@ -24,7 +24,7 @@ public sealed class DragAutoScroller : IDisposable
     /// <summary>The rows the next step moves, zero when stopped.</summary>
     public int Rows => Volatile.Read(ref _rows);
 
-    /// <summary>Scrolls at that speed (zero stops); the timer starts once and keeps running while the speed changes.</summary>
+    /// <summary>Scrolls at that speed (zero stops); the timer starts once and runs on while the speed changes.</summary>
     public void Start(int rows)
     {
         if (rows == 0)

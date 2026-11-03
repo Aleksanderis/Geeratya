@@ -49,6 +49,19 @@ public class MouseDragTrackerTests
     }
 
     [Fact]
+    public void GivenALiveMoveAndBackToThePressCell_WhenReleasing_ThenTheFollowingClickIsSwallowed()
+    {
+        var tracker = new MouseDragTracker();
+        var motion = MouseFlags.LeftButtonPressed | MouseFlags.PositionReport;
+
+        tracker.Track(MouseFlags.LeftButtonPressed, 5, 3);
+        tracker.TrackMotion(motion, 20, 4);
+
+        Assert.Null(tracker.Track(MouseFlags.LeftButtonReleased, 5, 3));
+        Assert.True(tracker.SwallowsClick(MouseFlags.LeftButtonClicked));
+    }
+
+    [Fact]
     public void GivenNoPress_WhenMotionArrivesOrANewPressStarts_ThenThereIsNoLiveDrag()
     {
         var tracker = new MouseDragTracker();

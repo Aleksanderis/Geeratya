@@ -311,7 +311,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         var size = _application!.Screen.Size;
 
-        return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, _screen!.OverlayRegions, _keymap) with
+        var regions = _screen!.OverlayRegions;
+
+        return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
         {
             LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
         };
@@ -329,21 +331,19 @@ public sealed class ShellHost : ICommandSink, IDisposable
             motion.Row,
             motion.First);
 
-        if (commands.Count == 0)
+        if (commands.Count > 0)
         {
-            StopDragScroll();
-
-            return;
+            mouse.Handled = true;
         }
-
-        mouse.Handled = true;
 
         foreach (var command in commands)
         {
             Dispatch(command);
         }
 
-        _dragScroller.Start(DragAutoScroll.StepFor(context, motion.Row));
+        // The speed follows the pointer on every move, also when it is outside the body and nothing else resolves.
+        _dragScroller.Start(MouseResolver.DragScrollStep(context, motion.FromColumn, motion.FromRow, motion.Row));
+
     }
 
     /// <summary>Timer thread: hands one auto-scroll step to the UI thread.</summary>
@@ -351,7 +351,16 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         if (!_shutdownToken.IsCancellationRequested)
         {
-            Post(new RowsDragScrolled(rows));
+            _application!.Invoke(() => StepDragScroll(rows));
+        }
+    }
+
+    // On the UI thread: a step queued before the release must not move the cursor after it.
+    private void StepDragScroll(int rows)
+    {
+        if (_dragTracker.Held)
+        {
+            Dispatch(new RowsDragScrolled(rows));
         }
     }
 

@@ -121,7 +121,7 @@ hold_drag() {
   line=${line#*:}
   prefix=${line%%"$from"*}
   col=$((${#prefix} + 2))
-  to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1)
+  if [[ $to =~ ^[0-9]+$ ]]; then to_row=$to; else to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1); fi
   [ -n "$to_row" ] || fail "no line with '$to' to move to"
   printf -v seq '\033[<0;%d;%dM\033[<32;%d;%dM\033[<32;%d;%dM' "$col" "$from_row" "$col" "$from_row" "$col" "$to_row"
   tmux -L "$socket" send-keys -t s -l "$seq"
@@ -190,6 +190,18 @@ wait_for "3 selected"
 release_held
 wait_for "3 selected"
 echo "ok: live range while the button is held, kept on release"
+
+# Auto-scroll: a held button on the status row (below the body) keeps moving the cursor; after the release it stops.
+tmux -L "$socket" send-keys -t s Escape
+sleep 0.3
+hold_drag "GEN-1 " 36
+wait_for "GEN-40 "
+release_held
+sleep 0.6
+before=$(frame)
+sleep 0.6
+[ "$before" = "$(frame)" ] || fail "the list kept scrolling after the release"
+echo "ok: auto-scroll below the body, stopped by the release"
 
 # Scrum backlog (#394): a row dragged onto another section asks first, nothing is sent before y; Esc keeps everything.
 send ":backlog GEN board|"

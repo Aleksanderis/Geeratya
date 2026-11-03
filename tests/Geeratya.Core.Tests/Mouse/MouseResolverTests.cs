@@ -114,9 +114,26 @@ public class MouseResolverTests
     [Fact]
     public void GivenTheReleaseOfALiveRange_WhenResolving_ThenTheDragIsMarkedLive()
     {
-        var dragged = Assert.IsType<RowsDragged>(Assert.Single(MouseResolver.ResolveDrag(_normal, 5, 10, 5, 13, default, true)));
+        var commands = MouseResolver.ResolveDrag(_normal, 5, 10, 5, 13, default, true);
+        var dragged = Assert.IsType<RowsDragged>(Assert.Single(commands));
 
         Assert.True(dragged.Live);
+    }
+
+    [Fact]
+    public void GivenARangeStartedInTheBody_WhenThePointerMovesInsideThenBelowIt_ThenTheSpeedBecomesNonZero()
+    {
+        Assert.Equal(0, MouseResolver.DragScrollStep(_normal, 5, 10, 12));
+        Assert.Equal(1, MouseResolver.DragScrollStep(_normal, 5, 10, 23));
+        Assert.Equal(-2, MouseResolver.DragScrollStep(_normal, 5, 10, 0));
+    }
+
+    [Fact]
+    public void GivenAPressThatStartsNoLiveRange_WhenThePointerIsOutside_ThenThereIsNoScroll()
+    {
+        Assert.Equal(0, MouseResolver.DragScrollStep(_normal with { ColumnsLayout = true }, 5, 10, 23));
+        Assert.Equal(0, MouseResolver.DragScrollStep(_normal with { OverlayOpen = true }, 5, 10, 23));
+        Assert.Equal(0, MouseResolver.DragScrollStep(_normal, 5, 0, 23));
     }
 
     [Theory]
