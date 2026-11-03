@@ -6,10 +6,10 @@
             │   All actions │   q          Quit  (Ctrl-c)                                                  │            
             │   Commands    │   Esc        Cancel or close                                                 │            
             │               │   :          Open the command palette  (Ctrl-p)                              │            
-            │               │   Space A    Open the actions menu of the tab and the view                   │            
-            │               │   Tab        Next tab  (g t)                                                 │            
-            │               │   Shift-Tab  Previous tab  (g T)                                             │            
-            │               │   Ctrl-^     Previously active tab  (Space Tab)                              │            
+            │               │   <space>A   Open the actions menu of the tab and the view                   │            
+            │               │   Tab        Next tab  (gt)                                                  │            
+            │               │   Shift-Tab  Previous tab  (gT)                                              │            
+            │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │            
             │               │   Alt-1      Go to tab 1                                                     │            
             │               │   Alt-2      Go to tab 2                                                     │            
             │               │   Alt-3      Go to tab 3                                                     │            
@@ -19,18 +19,18 @@
             │               │   Alt-7      Go to tab 7                                                     │            
             │               │   Alt-8      Go to tab 8                                                     │            
             │               │   Alt-9      Go to tab 9                                                     │            
-            │               │   Space t    Open the source picker for a new tab                            │            
-            │               │   Space c    Close the tab                                                   │            
-            │               │   Space r    Refresh the view (also retries after an error)                  │            
-            │               │   Space v v  Open a saved view in a new tab                                  │            
-            │               │   Space v w  Save this view under a name (opens :view save)                  │            
-            │               │   Space *    Switch the command level for the session                        │            
-            │               │   Space i c  Create an issue (type picker, then the form)                    │            
-            │               │   Space g    Jump to an issue by key                                         │            
-            │               │   Space n    Show the message history                                        │            
-            │               │   Space x    Dismiss the status message                                      │            
-            │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
-            │               │   Space s g  Show the full goal of the sprint                                │            
+            │               │   <space>t   Open the source picker for a new tab                            │            
+            │               │   <space>c   Close the tab                                                   │            
+            │               │   <space>r   Refresh the view (also retries after an error)                  │            
+            │               │   <space>vv  Open a saved view in a new tab                                  │            
+            │               │   <space>vw  Save this view under a name (opens :view save)                  │            
+            │               │   <space>*   Switch the command level for the session                        │            
+            │               │   <space>ic  Create an issue (type picker, then the form)                    │            
+            │               │   <space>g   Jump to an issue by key                                         │            
+            │               │   <space>n   Show the message history                                        │            
+            │               │   <space>x   Dismiss the status message                                      │            
+            │               │   <space>sv  Switch the sprint shown (active, future, closed)                │            
+            │               │   <space>sg  Show the full goal of the sprint                                │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

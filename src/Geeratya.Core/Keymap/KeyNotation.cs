@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Geeratya.Core.Keymap;
@@ -35,6 +36,37 @@ public static class KeyNotation
         return IsValidBase(key);
     }
 
+    /// <summary>
+    /// The keys of a binding as the UI and the docs show them (the Gitunia labelling): the leader as <c>&lt;space&gt;</c>,
+    /// a plain character run joined (<c>gg</c>, <c>&lt;space&gt;is</c>), a space only next to a long key name
+    /// (<c>Ctrl-w c</c>, <c>g Esc</c>), and a named key inside a sequence in angle brackets (<c>&lt;space&gt;&lt;Tab&gt;</c>).
+    /// A single named key stays bare (<c>Esc</c>, <c>Enter</c>, <c>Down</c>). The config file keeps the stored spelling.
+    /// </summary>
+    [return: NotNullIfNotNull(nameof(keys))]
+    public static string? Display(string? keys)
+    {
+        if (keys is null)
+        {
+            return null;
+        }
+
+        var parts = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var tokens = parts.Select(part => DisplayToken(part, parts.Length > 1)).ToList();
+        var builder = new System.Text.StringBuilder();
+
+        for (var index = 0; index < tokens.Count; index++)
+        {
+            if (index > 0 && (IsLong(tokens[index]) || IsLong(tokens[index - 1])))
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(tokens[index]);
+        }
+
+        return builder.ToString();
+    }
+
     /// <summary>The text a key types, or null when the key is not printable (names, modifier combinations).</summary>
     public static string? ToText(string key)
     {
@@ -44,6 +76,27 @@ public static class KeyNotation
         }
 
         return IsSingleCharacter(key) ? key : null;
+    }
+
+    private static string DisplayToken(string key, bool inSequence)
+    {
+        if (key == Space)
+        {
+            return "<space>";
+        }
+
+        var bare = key.StartsWith(CtrlPrefix, StringComparison.Ordinal) || key.StartsWith(AltPrefix, StringComparison.Ordinal)
+            ? string.Empty
+            : key;
+
+        return inSequence && bare.Length > 1 && _keyNames.Contains(bare) ? $"<{bare}>" : key;
+    }
+
+    private static bool IsLong(string token)
+    {
+        var bracketed = token[0] == '<' && token[^1] == '>';
+
+        return token.Length > 1 && token != "<space>" && !bracketed;
     }
 
     private static bool IsValidBase(string key)

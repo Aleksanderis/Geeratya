@@ -1,4 +1,4 @@
- 1 JQL View x   +                                                                                          Space g jump 
+ 1 JQL View x   +                                                                                         <space>g jump 
                                                                                                                         
 ╭─ View ──────────────────────────────────────────────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                                        Status         Assignee        │
@@ -6,17 +6,17 @@
 │project = A        │ : _                                                                          │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Issue                                                                        │                   │
-│                   │ > Jump to an issue by key                                            Space g │                   │
-│                   │   Open the issue in the browser                                      Space o │                   │
-│                   │   Open the parent issue                                              Space p │                   │
-│                   │   Edit fields of the issue (summary, labels, priority, descriptio  Space i e │                   │
-│                   │   Assign the issue: search people, or unassign                     Space i a │                   │
-│                   │   Assign the issue to me                                           Space i m │                   │
-│                   │   Change the status of the issue                                   Space i s │                   │
+│                   │ > Jump to an issue by key                                           <space>g │                   │
+│                   │   Open the issue in the browser                                     <space>o │                   │
+│                   │   Open the parent issue                                             <space>p │                   │
+│                   │   Edit fields of the issue (summary, labels, priority, descriptio  <space>ie │                   │
+│                   │   Assign the issue: search people, or unassign                     <space>ia │                   │
+│                   │   Assign the issue to me                                           <space>im │                   │
+│                   │   Change the status of the issue                                   <space>is │                   │
 │                   │   Move the card to the next column                                     Alt-l │                   │
 │                   │   Move the card to the previous column                                 Alt-h │                   │
-│                   │   Create an issue (type picker, then the form)                     Space i c │                   │
-│                   │   Create a sub-task of the selected issue                          Space i C▼│                   │
+│                   │   Create an issue (type picker, then the form)                     <space>ic │                   │
+│                   │   Create a sub-task of the selected issue                          <space>iC▼│                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Up/Down move  Enter run  Esc cancel                                          │                   │
 │                   ╰──────────────────────────────────────────────────────────────────────────────╯                   │

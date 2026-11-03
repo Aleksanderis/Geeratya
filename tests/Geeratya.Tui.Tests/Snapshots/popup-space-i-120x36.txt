@@ -25,7 +25,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                         ╭─ Space i ───────────────────────────────────────────────────────────────────╮
+                                         ╭─ <space>i ──────────────────────────────────────────────────────────────────╮
                                          │ m         Assign the issue to me                                            │
                                          │ a         Assign the issue: search people, or unassign                      │
                                          │ s         Change the status of the issue                                    │
@@ -33,4 +33,4 @@
                                          │ c         Create an issue (type picker, then the form)                      │
                                          │ e         Edit fields of the issue (summary, labels, priority, description) │
                                          ╰─────────────────────────────────────────────────────────────────────────────╯
- NORMAL  Space i                                                                              ? help  : commands  q quit
+ NORMAL  <space>i                                                                             ? help  : commands  q quit

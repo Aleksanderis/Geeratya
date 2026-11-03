@@ -30,7 +30,7 @@ public static class KeymapDocument
             {
                 var title = ActionCatalog.FindTitle(binding.Action);
 
-                builder.Append($"| `{binding.Keys}` | {title} | `{binding.Action}` | {LevelWord(binding.Action)} |\n");
+                builder.Append($"| `{KeyNotation.Display(binding.Keys)}` | {title} | `{binding.Action}` | {LevelWord(binding.Action)} |\n");
             }
         }
 

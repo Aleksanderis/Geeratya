@@ -30,7 +30,7 @@ public static class TabBar
     public const int CloseFrom = 80;
 
     private const string NewTabText = " + ";
-    private const string DefaultJumpKeys = "Space g";
+    private const string DefaultJumpKeys = "<space>g";
     private const string Separator = " ";
     private const string LoadingMark = " …";
     private const string FailedMark = " !";
@@ -95,12 +95,12 @@ public static class TabBar
         return ChipFor(Layout(tabs, active, width).Line, width, JumpChipText(keymap));
     }
 
-    /// <summary>The text of the jump chip, <c> Space g jump </c>: the keys come from the keymap, the label stays.</summary>
+    /// <summary>The text of the jump chip, <c> &lt;space&gt;g jump </c>: the keys come from the keymap, the label stays.</summary>
     public static string JumpChipText(KeymapTable? keymap = null)
     {
         var keys = keymap is null ? DefaultJumpKeys : keymap.FindKeys(InputMode.Normal, ActionIds.IssueJump);
 
-        return keys is null ? " jump " : $" {keys} jump ";
+        return keys is null ? " jump " : $" {KeyNotation.Display(keys)} jump ";
     }
 
     /// <summary>

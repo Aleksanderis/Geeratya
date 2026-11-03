@@ -24,8 +24,8 @@ public class KeymapDocumentTests
         var markdown = KeymapDocument.RenderMarkdown(DefaultKeymap.Load());
 
         Assert.Contains("| Keys | Action | Id | Level |", markdown);
-        Assert.Contains("| `Space i d` | Delete the issue (asks first; Jira cannot undo it) | `issue.delete` | advanced |", markdown);
-        Assert.Contains("| `Space i s` | Change the status of the issue | `issue.transition` | everyday |", markdown);
+        Assert.Contains("| `<space>id` | Delete the issue (asks first; Jira cannot undo it) | `issue.delete` | advanced |", markdown);
+        Assert.Contains("| `<space>is` | Change the status of the issue | `issue.transition` | everyday |", markdown);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class KeymapDocumentTests
 
         foreach (var binding in keymap.Bindings)
         {
-            var pattern = $@"\| `{Regex.Escape(binding.Keys)}` \| [^|]+ \| `{Regex.Escape(binding.Action)}` \| (everyday|advanced) \|";
+            var pattern = $@"\| `{Regex.Escape(KeyNotation.Display(binding.Keys))}` \| [^|]+ \| `{Regex.Escape(binding.Action)}` \| (everyday|advanced) \|";
 
             Assert.Matches(pattern, markdown);
         }

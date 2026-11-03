@@ -311,7 +311,7 @@ public static class StatusBar
 
         if (state.Confirm?.Title is not null)
         {
-            var close = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
+            var close = KeyNotation.Display(keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes)) ?? string.Empty;
 
             return new HintList([], [new HintChip(close, "close")]);
         }
@@ -412,14 +412,14 @@ public static class StatusBar
     /// </summary>
     private static string? KeysOf(StatusHint hint, InputMode mode, KeymapTable keymap)
     {
-        var keys = keymap.FindKeys(mode, hint.ActionId);
+        var keys = KeyNotation.Display(keymap.FindKeys(mode, hint.ActionId));
 
         if (keys is null || hint.SecondActionId is null)
         {
             return keys;
         }
 
-        var second = keymap.FindKeys(mode, hint.SecondActionId);
+        var second = KeyNotation.Display(keymap.FindKeys(mode, hint.SecondActionId));
 
         return second is null ? null : $"{keys}/{second}";
     }
@@ -657,17 +657,17 @@ public static class StatusBar
         return $"{RowSelection.Count(tab)} selected";
     }
 
-    /// <summary>The typed count and keys of a multi-key binding: <c>3</c>, <c>g</c>, <c>3 Space k</c>.</summary>
+    /// <summary>The typed count and keys of a multi-key binding: <c>3</c>, <c>g</c>, <c>3&lt;space&gt;k</c>.</summary>
     private static string PendingText(AppState state)
     {
         if (state.Count == 0)
         {
-            return state.PendingKeys;
+            return KeyNotation.Display(state.PendingKeys);
         }
 
         var count = state.Count.ToString(CultureInfo.InvariantCulture);
 
-        return state.PendingKeys.Length == 0 ? count : $"{count} {state.PendingKeys}";
+        return state.PendingKeys.Length == 0 ? count : $"{count}{KeyNotation.Display(state.PendingKeys)}";
     }
 
     /// <summary>
@@ -730,8 +730,8 @@ public static class StatusBar
     /// </summary>
     private static string ConfirmText(AppState state, int width, KeymapTable keymap, bool dialogShown)
     {
-        var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
-        var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
+        var yes = KeyNotation.Display(keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes));
+        var no = KeyNotation.Display(keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo));
 
         if (state.Confirm?.Title is { } title)
         {

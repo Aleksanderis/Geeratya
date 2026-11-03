@@ -108,7 +108,7 @@ public static class HelpPages
 
         var noun = hidden == 1 ? "advanced command" : "advanced commands";
         var toggle = keymap.FindKeys(InputMode.Help, ActionIds.ViewCycleCommandLevel);
-        var how = toggle is null ? "set commandlevel advanced shows them" : $"{toggle} shows them";
+        var how = toggle is null ? "set commandlevel advanced shows them" : $"{KeyNotation.Display(toggle)} shows them";
 
         return $"{RowIndent}({hidden} {noun} hidden; {how})";
     }
@@ -219,6 +219,7 @@ public static class HelpPages
             var title = row.Action is null ? null : ActionCatalog.FindTitle(row.Action);
             var matches = filter.Length == 0
                 || row.Keys.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                || KeyNotation.Display(row.Keys).Contains(filter, StringComparison.OrdinalIgnoreCase)
                 || (row.Action?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)
                 || (title?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
@@ -231,8 +232,8 @@ public static class HelpPages
             var mode = row.Mode == InputMode.Normal ? string.Empty : $" [{modeName} mode]";
 
             lines.Add(row.Action is null
-                ? $"{RowIndent}Unbound: {row.Keys}{mode}"
-                : $"{RowIndent}{row.Keys,-KeyColumnWidth} {title} ({row.Action}){mode}");
+                ? $"{RowIndent}Unbound: {KeyNotation.Display(row.Keys)}{mode}"
+                : $"{RowIndent}{KeyNotation.Display(row.Keys),-KeyColumnWidth} {title} ({row.Action}){mode}");
         }
 
         return lines;
@@ -266,7 +267,7 @@ public static class HelpPages
     {
         var normal = keymap.Bindings
             .Where(binding => binding.Mode == InputMode.Normal && binding.Action == action)
-            .Select(binding => binding.Keys)
+            .Select(binding => KeyNotation.Display(binding.Keys))
             .Distinct()
             .ToList();
 
@@ -279,7 +280,7 @@ public static class HelpPages
         [
             .. keymap.Bindings
                 .Where(binding => binding.Action == action)
-                .Select(binding => binding.Keys)
+                .Select(binding => KeyNotation.Display(binding.Keys))
                 .Distinct(),
         ];
     }

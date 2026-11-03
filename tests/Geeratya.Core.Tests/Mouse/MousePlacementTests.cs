@@ -428,15 +428,15 @@ public class MousePlacementTests
         var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
         var text = TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 80).PlainText;
 
-        Assert.Equal(" Space g jump ", text.Substring(chip.Start, chip.End - chip.Start));
+        Assert.Equal(" <space>g jump ", text.Substring(chip.Start, chip.End - chip.Start));
         Assert.Equal(80, chip.End);
     }
 
     [Theory]
     [InlineData(-1, false)]
     [InlineData(0, true)]
-    [InlineData(13, true)]
-    [InlineData(14, false)]
+    [InlineData(14, true)]
+    [InlineData(15, false)]
     public void GivenWideTabBar_WhenClickingAroundTheChip_ThenOnlyItsCellsOpenThePrompt(int offset, bool opens)
     {
         var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");

@@ -1,2 +1,2 @@
- 1 Board GCM board   2 JQL project = GEN x   3 Backlog GEN board   +                                       Space g jump 
- NORMAL                              j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit
+ 1 Board GCM board   2 JQL project = GEN x   3 Backlog GEN board   +                                      <space>g jump 
+ NORMAL                             j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

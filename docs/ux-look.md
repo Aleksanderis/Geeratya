@@ -18,7 +18,7 @@ Implemented (#524): `FrameGrid` (pane rectangles, plain junctions, rounded outer
 Every pane is a box and neighbouring boxes share their edge, so the body is one frame divided into panes. A `FrameGrid` (Tui layer, pure geometry plus a draw function; `--print-frame` uses the same) takes the body rectangle and a list of pane rectangles that tile it, and draws each shared edge once with the right junction.
 
 ```
- 1 Board GCM   2 JQL project = GEN   +                         Space g jump   <- tab row (bar)
+ 1 Board GCM   2 JQL project = GEN   +                        <space>g jump   <- tab row (bar)
 ╭─ To Do 5 ────────────────┬─ In Progress 4 ──────────┬─ Done 3 ───────────────╮
 │ ┌──────────────────────┐ │ ┌──────────────────────┐ │ ┌────────────────────┐ │
 │ │ GCM-8   Epic         │ │ │ GCM-9   Epic         │ │ │ GCM-10  Story      │ │
@@ -51,7 +51,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 **Issue detail.** Panes stacked vertically with shared horizontal edges; each pane has its chip (section 3):
 
 ```
- 1 JQL project = GEN   2 Board GCM   +                        Space g jump
+ 1 JQL project = GEN   2 Board GCM   +                       <space>g jump
 ╭─ GEN-5 · Story ──────────────────────────────────────────────────────────────╮
 │ Generated issue 5                                                            │
 │                                                                              │
@@ -78,7 +78,7 @@ The panes are the sections the detail already has (header and fields, Descriptio
 **Backlog (Scrum and Kanban).** Panes are the sprint sections and the Backlog section, stacked; each pane's chip carries the sprint name and state, its right-hand chip dates and points:
 
 ```
- 1 Backlog GEN board   2 Board GEN   +                        Space g jump
+ 1 Backlog GEN board   2 Board GEN   +                       <space>g jump
 ╭─ Sprint 2 · active ── 19 Jan - 1 Feb ── 11 issues · 41 pts ──────────────────╮
 │  Key    T Summary                                          Status         Pts│
 │> GEN-12 T Generated issue 12                               Backlog          3│
@@ -136,12 +136,12 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 **Tab row** (row 0):
 
 ```
- 1 Board GCM   2 JQL project = GEN   3 Backlog GEN board   +             Space g jump
+ 1 Board GCM   2 JQL project = GEN   3 Backlog GEN board   +            <space>g jump
  ^^^^^^^^^^^^^ filled accent chip, bold; the rest dim chips on the bar
 ```
 
 - One chip per tab: ` <number> <kind> <name> `, the active tab the filled accent chip (bold), others muted text on the bar. Kind words are Jira nouns (`Board`, `Backlog`, `JQL`, `Filter`, `Issue`); a tab label is at most 24 columns, truncated with `…`.
-- After the last chip a `+` target (opens the source picker, same as `<space>t`). The right end keeps the `jump` chip (`JumpChip`, still a click target: opens the jump prompt), now drawn as the dim chip `Space g jump`. The close affordance (new mouse target) `x` shows on the active chip when the width is 80 or more (` 1 Board GCM x `), and on a hovered chip; middle-click closes any chip.
+- After the last chip a `+` target (opens the source picker, same as `<space>t`). The right end keeps the `jump` chip (`JumpChip`, still a click target: opens the jump prompt), now drawn as the dim chip `<space>g jump`. The close affordance (new mouse target) `x` shows on the active chip when the width is 80 or more (` 1 Board GCM x `), and on a hovered chip; middle-click closes any chip.
 - Mouse targets (`ux-mouse.md`, tab targets): a chip switches, `x` closes (at once, like `tab.close`), `+` opens the picker; the targets are exactly the cells the chip occupies (the `x` target is the `x` and the pad after it).
 - Overflow: the active chip is always visible; chips that do not fit are hidden behind the dim `‹n` and `+n ›` chips (click steps to the neighbouring hidden tab). Under 40 columns only the active chip and `+` remain. Not done in #527, registered as #547: middle-click close, `x` on hover, and the `+N` chip opening a tab list in the picker.
 - ASCII tier: chips are bracketed, `[1 Board GCM]`: the padding cells of the chip become the brackets, so a chip keeps its width and its mouse cells. No-colour tier: the bar is reversed and the active chip is bold without reverse, so it reads as the one normal-video chip on the reversed bar (a reversed chip on a reversed bar would vanish).
@@ -194,7 +194,7 @@ Mockups below show the box on a few rows of the muted view.
 ### Command palette (`:`; #527)
 
 ```
- 1 JQL project = GCM   +                                      Space g jump
+ 1 JQL project = GCM   +                                     <space>g jump
 ╭─ project = GCM ─ 24 issues ──────────────────────────────────────────────────╮
 │ GCM-8   E Seed: Onboarding flow                         Backlog              │
 │ GCM-9  ╭─ Commands ───────────────────────────────────────── 12/87 ─╮        │
@@ -223,11 +223,11 @@ Mockups below show the box on a few rows of the muted view.
 ╭─ Help ────────────────────────────────────────────────────────── / filter ───╮
 │ > List        │  j          Move down  (Down)                                │
 │   Global      │  k          Move up  (Up)                                    │
-│   All actions │  g g        Go to the top  (Home)                            │
-│   Commands    │  Space a    Open the actions menu of the selected issue      │
-│               │  Space i e  Edit fields of the issue (summary, labels,       │
+│   All actions │  gg         Go to the top  (Home)                            │
+│   Commands    │  <space>a   Open the actions menu of the selected issue      │
+│               │  <space>ie  Edit fields of the issue (summary, labels,       │
 │               │             priority, description)                           │
-│               │  Space o    Open the issue in the browser                    │
+│               │  <space>o   Open the issue in the browser                    │
 │ ──────────────┴────────────────────────────────────────────────────────────  │
 │ j section  J scroll  / filter  Esc close                                     │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -292,7 +292,7 @@ Same anatomy as the palette: query line, subheaders (`Boards`, `Filters`, `Recen
 The manager is a full-body screen, not an overlay (it is also the first-run screen when there is no profile): a frame with two panes, the list and the details of the highlighted profile.
 
 ```
- Profiles                                                       Space g jump
+ Profiles                                                      <space>g jump
 ╭─ Profiles 2 ───────────────────┬─ Details ───────────────────────────────────╮
 │ ● work       me@acme.com       │ Site     https://acme.atlassian.net         │
 │ > personal   me@home.net       │ Account  me@home.net                        │

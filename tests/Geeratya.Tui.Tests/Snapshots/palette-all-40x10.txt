@@ -1,10 +1,10 @@
- 1 JQL View   +            Space g jump 
+ 1 JQL View   +           <space>g jump 
                                         
 ╭─ View ──────────────────── 0 issues ─╮
 │  Key T Summary                      S│
 │ ╭─ Commands ─────────────── 68/68 ─╮ │
 │p│ : _                              │ │
 │ ├──────────────────────────────────┤ │
-│ │ > Jump to an issue by k  Space g▲│ │
+│ │ > Jump to an issue by   <space>g▲│ │
 ╰─╰──────────────────────────────────╯─╯
  COMMAND  :                             

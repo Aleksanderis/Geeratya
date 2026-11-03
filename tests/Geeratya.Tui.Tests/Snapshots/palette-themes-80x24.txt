@@ -1,4 +1,4 @@
- 1 JQL View x   +                                                  Space g jump 
+ 1 JQL View x   +                                                 <space>g jump 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
@@ -11,7 +11,7 @@
 │ │   Theme: nord                                                            │ │
 │ │                                                                          │ │
 │ │ View                                                                     │ │
-│ │   Save this view under a name (opens :view save)               Space v w │ │
+│ │   Save this view under a name (opens :view save)               <space>vw │ │
 │ │                                                                          │ │
 │ │                                                                          │ │
 │ │                                                                          │ │

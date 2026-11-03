@@ -1,27 +1,27 @@
- 1 JQL Sample x   +                                                                                        Space g jump 
+ 1 JQL Sample x   +                                                                                       <space>g jump 
                                                                                                                         
 ╭─ A-1 · Task ─────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │>Summary   ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │ > Issue detail │   j          Move down  (Down)                                              │           │
 │ Status    │   Global       │   k          Move up  (Up)                                                  │           │
-├─ Descripti│   All actions  │   g g        Go to the top  (Home)                                          │───────────┤
+├─ Descripti│   All actions  │   gg         Go to the top  (Home)                                          │───────────┤
 │ Loading…  │   Commands     │   G          Go to the bottom  (End)                                        │           │
 ├─ Remote li│                │   Ctrl-d     Page down  (PageDown)                                          │───────────┤
 │ Loading…  │                │   Ctrl-u     Page up  (PageUp)                                              │           │
-├─ Comments │                │   Space a    Open the actions menu of the selected issue                    │───────────┤
+├─ Comments │                │   <space>a   Open the actions menu of the selected issue                    │───────────┤
 │ Loading…  │                │   Enter      Open the selected item                                         │           │
-            │                │   ] ]        Next section of the issue or the Scrum backlog                 │            
-            │                │   [ [        Previous section of the issue or the Scrum backlog             │            
-            │                │   Space o    Open the issue in the browser                                  │            
-            │                │   Space p    Open the parent issue                                          │            
-            │                │   Space i e  Edit fields of the issue (summary, labels, priority,           │            
+            │                │   ]]         Next section of the issue or the Scrum backlog                 │            
+            │                │   [[         Previous section of the issue or the Scrum backlog             │            
+            │                │   <space>o   Open the issue in the browser                                  │            
+            │                │   <space>p   Open the parent issue                                          │            
+            │                │   <space>ie  Edit fields of the issue (summary, labels, priority,           │            
             │                │              description)                                                   │            
-            │                │   Space i a  Assign the issue: search people, or unassign                   │            
-            │                │   Space i m  Assign the issue to me                                         │            
-            │                │   Space i s  Change the status of the issue                                 │            
-            │                │   Space i C  Create a sub-task of the selected issue                        │            
-            │                │   Space m a  Add a comment to the issue                                     │            
-            │                │   Space m e  Edit the comment under the cursor                              │            
+            │                │   <space>ia  Assign the issue: search people, or unassign                   │            
+            │                │   <space>im  Assign the issue to me                                         │            
+            │                │   <space>is  Change the status of the issue                                 │            
+            │                │   <space>iC  Create a sub-task of the selected issue                        │            
+            │                │   <space>ma  Add a comment to the issue                                     │            
+            │                │   <space>me  Edit the comment under the cursor                              │            
             │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            

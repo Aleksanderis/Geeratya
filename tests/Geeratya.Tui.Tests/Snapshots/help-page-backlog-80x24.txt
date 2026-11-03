@@ -1,23 +1,23 @@
- 1 Backlog Sample x   +                                            Space g jump 
+ 1 Backlog Sample x   +                                           <space>g jump 
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
 │>│ > Backlog     │   j          Move down  (Down)                           │ │
 │ │   Global      │   k          Move up  (Up)                               │ │
-│ │   All actions │   g g        Go to the top  (Home)                       │ │
+│ │   All actions │   gg         Go to the top  (Home)                       │ │
 │ │   Commands    │   G          Go to the bottom  (End)                     │ │
 │ │               │   Ctrl-d     Page down  (PageDown)                       │ │
 │ │               │   Ctrl-u     Page up  (PageUp)                           │ │
-│ │               │   Space a    Open the actions menu of the selected issue │ │
+│ │               │   <space>a   Open the actions menu of the selected issue │ │
 │ │               │   Enter      Open the selected item                      │ │
-│ │               │   ] ]        Next section of the issue or the Scrum      │ │
+│ │               │   ]]         Next section of the issue or the Scrum      │ │
 │ │               │              backlog                                     │ │
-│ │               │   [ [        Previous section of the issue or the Scrum  │ │
+│ │               │   [[         Previous section of the issue or the Scrum  │ │
 │ │               │              backlog                                     │ │
-│ │               │   z a        Fold a backlog section or the sub-tasks of  │ │
+│ │               │   za         Fold a backlog section or the sub-tasks of  │ │
 │ │               │              a card                                      │ │
-│ │               │   Space l    Switch between list and columns             │ │
-│ │               │   Space v f  Cycle the quick filter of the board (off,   │ │
+│ │               │   <space>l   Switch between list and columns             │ │
+│ │               │   <space>vf  Cycle the quick filter of the board (off,   │ │
 │ │               │              then each filter in turn)                   │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯

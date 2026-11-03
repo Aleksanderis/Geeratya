@@ -769,12 +769,7 @@ public sealed class AppReducer
     {
         var keys = _keymap.FindKeys(InputMode.Normal, ActionIds.RankTo);
 
-        return keys is null ? "the same key" : string.Concat(keys.Split(' ').Select(KeyText));
-    }
-
-    private static string KeyText(string key)
-    {
-        return key == KeyNotation.Space ? "<space>" : key;
+        return keys is null ? "the same key" : KeyNotation.Display(keys);
     }
 
     private static int? TabNumber(string action)

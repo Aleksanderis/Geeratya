@@ -4,7 +4,7 @@
                                         
   +- Actions ------------------------+  
 wo| > Show or hide help            ? |as
-  |   Edit the issue       Space i e |  
+  |   Edit the issue       <space>ie |  
   |   Quit                         q |  
   +----------------------------------+  
 [INSERT]                                

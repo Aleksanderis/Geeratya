@@ -117,7 +117,7 @@ public class WhichKeyOverlayTests
     public void GivenAnOpenPopup_WhenBuilding_ThenTheBoxSitsFlushRight()
     {
         var lines = Build(Opened("Space"), 120, 36);
-        var top = lines.Single(line => line.Contains("╭─ Space "));
+        var top = lines.Single(line => line.Contains("╭─ <space> "));
 
         Assert.EndsWith("╮", top.TrimEnd());
         Assert.True(top.IndexOf('╭') > 40);

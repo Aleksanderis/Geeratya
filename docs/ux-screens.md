@@ -67,7 +67,7 @@ My open issues · 10 of about 340
 
 
 
- NORMAL  j/k move  Enter open  Space o browser  ? help  : commands  q quit
+ NORMAL  j/k move  Enter open  <space>o browser  ? help  : commands  q quit
 ```
 
 - **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII on a classic console (Linux `TERM=linux`, Windows console host; `docs/architecture.md`, "Cross-platform"), when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. The list and the detail panel borders draw them (with the ASCII set the finished frame is passed through `Glyphs.ToAscii`, which swaps every shell-drawn character one cell for one cell: box lines to `+ - |`, `‹ › ↑ ▾ … ·` to `< > ^ v . -`, so the tab bar, banner, status bar, overlays and board are covered and widths do not change; the same characters inside issue text are swapped too, and a cut text ends with `.` instead of `…` to keep one cell; in the detail, the `›` of the breadcrumb becomes `>`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
@@ -93,7 +93,7 @@ My open issues · 10 of about 340
   GCM-23   T Document the release checklist                       Done
 
 
- NORMAL  j/k move  Enter open  Space o browser  ? help  : commands  q quit
+ NORMAL  j/k move  Enter open  <space>o browser  ? help  : commands  q quit
 ```
 
   At 40 columns (and 10 rows):
@@ -249,7 +249,7 @@ GCM board › GCM-12                                                            
 │                                                                                                  │
 │ Load more comments (Enter)                                                                       │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : commands  q quit
+ NORMAL  j/k scroll  Enter open  Esc back  <space>o browser  <space>p parent  ? help  : commands  q quit
 ```
 
 - **Panels.** A rounded frame (`╭ ╮ ╰ ╯ ─ │`, `+ - |` on terminals without Unicode, one cell for one cell) with one column of padding inside the sides and the title in the top edge. Borders are `Border` (`FrameFocus` on the pane that holds the cursor), titles are chips (`ChipFocus` filled for that pane, dim otherwise; the header panel's title is the key and the type). Panels follow each other without a gap. Below 12 columns the frames are dropped and the titles stay as plain lines. Content never touches the border: it wraps at the inner width, and a title that does not fit is cut with `…`.
@@ -304,7 +304,7 @@ Overflow: when the chips do not fit, the window of tabs slides so the active one
 
 A ` + ` button (clickable, `tab.new`) follows the last chip when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits. The bar always takes the first row, full width on the bar background and blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-A dim chip with the keys of `issue.jump` (` Space g jump `, clickable) is right-aligned in the line when at least one cell remains after the last chip or the `+`; it is not drawn when no tab is open.
+A dim chip with the keys of `issue.jump` (` <space>g jump `, clickable) is right-aligned in the line when at least one cell remains after the last chip or the `+`; it is not drawn when no tab is open.
 
 Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
@@ -423,7 +423,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 - **Rows.** The typed key first (with its title when the tab knows it), then completions that contain the text: the issues opened on the tab's stack (newest first), the tab's rows, then keys opened earlier (`recent`: those of this session, up to 20, then the profile's remembered issue keys from `SiteHistory.Issues`, newest first, no repeats; the history is read from disk when the prompt opens if not yet loaded, and is the profile's, so a profile switch shows the other one's). With an empty prompt the recent keys come first, then the tab's keys; typing filters all of them. `Up`/`Down`, `Ctrl-p`/`Ctrl-n` and `Ctrl-j`/`Ctrl-k` choose, `Ctrl-l` accepts, at most 30 rows. A key is remembered when its issue loaded, so a key that was not found never becomes a completion.
 - **Enter** opens the highlighted row on top of the active tab's issue stack (or in a new tab, see Target), so `Esc` returns to where the user was (the stack limit applies: with 50 issues open the status line says so). With no tab open, a tab for `key = KEY` is opened first. The issue loads as from any list (cache first, three requests); a missing or hidden issue shows `Not found or no access: KEY` in the detail, as for any other open.
 - **Target.** `:set jump.target current|tab` (default `current`, see [settings.md](settings.md)). With `tab` every jump opens a new tab `key = KEY` with the issue on top, and `Esc` in it returns to that one-issue list; the tab you jumped from stays as it was.
-- **Mouse.** A click on a prompt row and the menu item `issue.jump` already run this reducer, so they follow the target. A click on the jump chip (` Space g jump `) at the right end of the tab bar row (drawn when the bar has room) opens the prompt, same as the key.
+- **Mouse.** A click on a prompt row and the menu item `issue.jump` already run this reducer, so they follow the target. A click on the jump chip (` <space>g jump `) at the right end of the tab bar row (drawn when the bar has room) opens the prompt, same as the key.
 
 ## Field form overlay
 
