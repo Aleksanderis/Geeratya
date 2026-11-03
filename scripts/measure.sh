@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Measure cold start to first frame and key-to-frame of the real binary in tmux.
-# Usage: [SCENARIO=list|views] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
+# Usage: [SCENARIO=list|views|detail] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  base URL printed by tools/FakeJira; written as the site of one active fake profile into the
 #               private configuration directory (token: GEERATYA_TOKEN=fake), so the binary talks to the fake
@@ -10,6 +10,9 @@
 #   from `:jql` to the first rows, compare it with the first open; start the fake with a latency well above
 #   the floor, for example 300 ms, so a cache hit shows), and 10 tabs (`:jql` x10): RSS after them and the
 #   time of KEYS `Tab` presses.
+# SCENARIO=detail measures only the first issue-detail open of a session: per session (fresh private cache) it
+#   types `:jql $JQL`, waits for the list, presses Enter at once (no settling sleep; the list header shows
+#   after the connect, so the site-fields warm-up has normally answered) and times Enter to the detail header without "Loading…".
 # SCENARIO=list also measures a loaded view (no fixed sleeps, every wait polls the frame): per session it types
 #   `:jql $JQL` (default `project = GCM`), times the wait for the list header (open list: includes the fake's
 #   latency), then times KEYS presses of `j` (key to frame in a loaded list), then loads pages with `G` until
@@ -88,7 +91,7 @@ start_session() {
   wait_frame ""
 }
 
-case ${SCENARIO:-} in '' | list | views) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list or views)" >&2; exit 2 ;; esac
+case ${SCENARIO:-} in '' | list | views | detail) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list, views or detail)" >&2; exit 2 ;; esac
 base_runs=$runs
 if [ -n "${SCENARIO:-}" ]; then base_runs=0; fi
 # The floor: a shell that prints one character, so the numbers can be read net of tmux and polling cost.
@@ -137,6 +140,27 @@ pane_rss_mb() {
   if ! grep -q geeratya "/proc/$pid/comm"; then pid=$(pgrep -P "$pid" | head -1); fi
   awk '/VmRSS/ { printf "%d", $2 / 1024 }' "/proc/$pid/status"
 }
+
+if [ "${SCENARIO:-}" = detail ]; then
+  jql=${JQL:-project = GCM}
+  detail=()
+  for ((run = 1; run <= runs; run++)); do
+    export XDG_CACHE_HOME=$work/cache-$run XDG_STATE_HOME=$work/state-$run
+    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    tmux -L "$socket" kill-server 2> /dev/null || true
+    socket=$socket_base-d$run
+    start_session "$binary" > /dev/null
+    tmux -L "$socket" send-keys -t m ":jql $jql" Enter
+    wait_match 'Generated issue 1  ' > /dev/null
+    tmux -L "$socket" send-keys -t m Enter
+    detail+=("$(wait_match '› GEN-1 *$')")
+  done
+  read -r b1 b2 <<< "$(printf '%s\n' "${detail[@]}" | summarise)"
+  echo "scenario detail, JQL: $jql"
+  echo "load average:  $load_before before, $(load_now) after ($(nproc 2> /dev/null || echo '?') cores)"
+  echo "first Enter to issue detail loaded (ms):           median $b1, p95 $b2"
+  exit 0
+fi
 
 if [ "${SCENARIO:-}" = views ]; then
   jql=${JQL:-project = GCM}
