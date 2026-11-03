@@ -1,5 +1,6 @@
 using System.Net;
 using Geeratya.App.Tests.Fakes;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -197,6 +198,31 @@ public sealed class ViewLoadHandlerScrumTests
             Uri.UnescapeDataString(fixture.Query(3)));
         Assert.Contains("customfield_10020", fixture.Query(3));
         Assert.Equal(["Sprint 1", "Sprint 2"], state.Session.Tabs[0].Sprints.Select(sprint => sprint.Name));
+    }
+
+    [Theory]
+    [InlineData("scrum/board-gcs-config.json", "scrum/board-issues-gcs.json", "6")]
+    [InlineData("scrum/board-gts-config.json", "scrum/board-issues-gts.json", "5")]
+    public async Task GivenEitherProjectKind_WhenTheScrumBacklogIsOpened_ThenRowsAreGroupedIntoContiguousSections(
+        string configuration,
+        string issues,
+        string board)
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read(configuration))
+                .Reply(HttpStatusCode.OK, ActiveAndFutureSprints)
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read(issues)));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, board);
+
+        var tab = state.Session.Tabs[0];
+        var layout = BacklogSections.Build(tab);
+        Assert.Equal(tab.Rows.Count, layout.Sections.Sum(section => section.RowCount));
+        Assert.Equal(BacklogSections.BacklogKey, layout.Sections[^1].Key);
+        Assert.Equal(layout.Sections.Count, layout.Sections.Select(section => section.Key).Distinct().Count());
+        Assert.Same(tab.Rows, BacklogSections.Order(tab.Rows));
     }
 
     [Fact]

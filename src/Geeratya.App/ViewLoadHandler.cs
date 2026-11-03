@@ -4,7 +4,6 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
-using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
@@ -257,7 +256,7 @@ public sealed class ViewLoadHandler
     {
         var sprints = new List<Sprint>();
         var priority = effect.Background ? JiraPriority.Background : JiraPriority.User;
-        var query = new SprintQuery([SprintState.Active, SprintState.Future], SprintClient.MaxPageSize)
+        var query = new SprintQuery([SprintState.Active, SprintState.Future])
         {
             Priority = priority,
         };

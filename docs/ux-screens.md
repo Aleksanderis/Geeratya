@@ -113,6 +113,28 @@ My open issues · 10+
 
   Below 40 columns the type marker drops too. The column-title row drops below 12 rows (as in this 40x10 sketch), so at 10 rows seven issues show.
 
+## Scrum backlog (sections)
+
+The backlog of a Scrum board (`scrum` boards from the picker and `:backlog`; a team-managed board reports `simple` and opens the plain backlog until #442 routes it by the sprint probe) is one list in sections: the active sprints, the future sprints by id, then the backlog (`ViewSourceKind.ScrumBacklog`, layout List; closed sprints are never loaded). Each section has a header line `- Sprint 1 · active · 2 Nov - 16 Nov · 8 issues · 21 pts`: name, `active` for the running sprint, the dates (`no dates` for a sprint never given any), the issues loaded and the story points (the sum of the estimates, omitted when no issue has one). An expanded sprint with a goal shows `Goal: ...` under the header; a sprint without issues shows `No issues in this sprint.` so it can still be seen. While more pages are coming the counts read `N+`.
+
+```
+Scrum board · 5 issues
+  Key   T Summary                                                 Status
+  - Sprint 1 · active · 2 Nov - 16 Nov · 2 issues · 8 pts
+    Goal: Ship the login
+> GCS-3 S Fix login redirect after token refresh                  To Do
+  GCS-4 S As a user I can filter by label                         To Do
+  + Sprint 2 · no dates · 2 issues · 3 pts
+  - Backlog · 1 issue · 1.5 pts
+  GCS-5 S Tidy the release notes                                  To Do
+```
+
+- **Rows.** The tab keeps its rows in section order (rank order inside a section), so everything that acts on the row under the cursor (open, edit, marks, Visual, rank within the loaded rows) works as in any list. The sprint of a row is the one its `Sprint` field says is current: active, else future, else the backlog; the sprint list (`GET board/{id}/sprint?state=active,future`, read once per open or manual refresh) supplies dates, goal and sprints with no issue yet. When it fails the sections take their names from the issues.
+- **Cursor.** `j`/`k` and the other motions step over the rows of all sections; headers are not stops. `] ]` and `[ [` jump to the first row of the next section, or of this one and then the previous (sections with no issues are skipped).
+- **Collapse.** `z a` (`section.toggle`, also in the right-click menu) collapses the section under the cursor or expands it. A collapsed section shows its header only, and its first row stands in for it: the cursor stops on the header (`> + Sprint 1`), `Enter` there expands the section instead of opening an issue, and `z a` does too. Hidden rows are not reachable by the cursor but still belong to the tab; collapsing is refused in Visual mode so no hidden issue joins the range. The collapsed sections are kept per tab across reloads.
+- **Scroll.** The window scrolls by display lines (headers, goal lines and notes count), and the header comes into view with the first row of its section. A click on a header or goal line places the cursor on the section's first row.
+- **Limits.** The tab holds at most 10 000 rows (roadmap, open question 5); one tab with 5 000 issues over 20 sprints is measured in the PR. Epics as a column or filter come with the list columns (#179). Moving issues between sections and ranking across them come with #181 and #182.
+
 ## Columns layout (Kanban)
 
 A Sprint view (Scrum, #176) uses the same columns; its first line is the sprint header instead of the tab title: name, dates, days left (active sprints), issue count, points done/total (done = status category done; left out when no issue has an estimate), then the goal cut to the remaining width. Cards show their points as `5p` before the assignee initials. "The active sprint" loads the issues of the open sprints that are not future ones; with parallel active sprints the header names the first and the counts cover all. A board with no active sprint shows "No active sprint on this board." and the `:backlog` hint. The full goal in a popup is a follow-up.

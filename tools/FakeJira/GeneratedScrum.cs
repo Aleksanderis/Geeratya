@@ -249,6 +249,12 @@ public sealed partial class GeneratedScrum
             return [.. all];
         }
 
+        if (jql.Contains("futureSprints()", StringComparison.OrdinalIgnoreCase))
+        {
+            // The Scrum backlog source: open and future sprints plus the issues in no sprint.
+            return [.. all.Where(number => SprintIndexOf(number) < 0 || StateOfSprint(SprintIndexOf(number)) != Closed)];
+        }
+
         if (jql.Contains("openSprints()", StringComparison.OrdinalIgnoreCase))
         {
             return [.. all.Where(number => InState(number, Active))];

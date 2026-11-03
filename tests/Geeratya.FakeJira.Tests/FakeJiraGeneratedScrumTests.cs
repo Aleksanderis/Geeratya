@@ -97,6 +97,18 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedBoard_WhenTheScrumBacklogJqlIsAsked_ThenOpenFutureAndUnsprintedIssuesComeBackWithoutClosedOnes()
+    {
+        const string jql = "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
+        var page = await Json($"{Agile}/board/7/issue?maxResults=1000&jql={Uri.EscapeDataString(jql)}");
+        var keys = Keys(page);
+
+        Assert.DoesNotContain("GEN-1", keys);
+        Assert.Contains("GEN-801", keys);
+        Assert.True(page.GetProperty("total").GetInt32() > 80);
+    }
+
+    [Fact]
     public async Task GivenGeneratedMode_WhenRecordedOrUnknownScrumRoutesAsked_ThenBehaviourIsUnchanged()
     {
         var recorded = await Json($"{Agile}/board/6/sprint");

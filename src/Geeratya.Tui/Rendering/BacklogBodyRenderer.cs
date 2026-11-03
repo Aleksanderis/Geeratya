@@ -17,8 +17,8 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public sealed class BacklogBodyRenderer : IBodyRenderer
 {
-    private const string Expanded = "v";
-    private const string Collapsed = ">";
+    private const string Expanded = "-";
+    private const string Collapsed = "+";
     private const string ActiveWord = "active";
     private const string NoDatesText = "no dates";
     private const string DateFormat = "d MMM";
@@ -114,12 +114,10 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         return $"{marker} {section.Name}{glyphs.Separator}{string.Join(glyphs.Separator, parts)}";
     }
 
-    /// <summary>The estimates as the board shows them: whole numbers without a fraction, else one decimal.</summary>
+    /// <summary>The estimates as the board shows them: whole numbers without a fraction, else one decimal at most.</summary>
     public static string PointsText(double points)
     {
-        return points == Math.Floor(points)
-            ? points.ToString("0", CultureInfo.InvariantCulture)
-            : points.ToString("0.#", CultureInfo.InvariantCulture);
+        return points.ToString("0.#", CultureInfo.InvariantCulture);
     }
 
     private static string DatesText(Sprint? sprint)

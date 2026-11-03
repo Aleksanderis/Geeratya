@@ -74,6 +74,8 @@ all_scenarios=(
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "backlog;120;36;dark;:backlog GCM|;GCM"
   "filter;120;36;dark;:filter Filter for GCM|;GCM"
+  "backlog-sprints;120;36;dark;:backlog GEN board|;Generated Sprint 3"
+  "backlog-sprints-collapsed;120;36;dark;:backlog GEN board|za]];Generated Sprint 3"
   "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
   "rank-board;120;36;dark;:board GCM|};Ranked"
   "rank-board-team;120;36;dark;:board GTM|};Ranked"
