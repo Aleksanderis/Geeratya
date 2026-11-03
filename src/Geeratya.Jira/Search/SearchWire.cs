@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Geeratya.Jira.Search;
@@ -21,7 +22,12 @@ internal static class SearchWire
         List<string>? Labels,
         Parent? Parent,
         string? Updated,
-        Project? Project);
+        Project? Project)
+    {
+        /// <summary>The fields not named above: the site-specific ones a request added (Sprint, estimate).</summary>
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? Extra { get; set; }
+    }
 
     internal sealed record Status(string? Id, string? Name, StatusCategory? StatusCategory);
 
@@ -35,7 +41,9 @@ internal static class SearchWire
 
     internal sealed record Parent(string? Key, [property: JsonPropertyName(IssueFields.FieldsProperty)] ParentStub? Stub);
 
-    internal sealed record ParentStub(string? Summary);
+    internal sealed record ParentStub(
+        string? Summary,
+        [property: JsonPropertyName(IssueFields.IssueType)] IssueType? IssueType);
 
     internal sealed record Project(string? Key);
 

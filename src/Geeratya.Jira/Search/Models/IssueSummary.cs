@@ -23,4 +23,17 @@ public sealed record IssueSummary(
     IReadOnlyList<string> Labels,
     IssueParent? Parent,
     DateTimeOffset? Updated,
-    string ProjectKey);
+    string ProjectKey)
+{
+    /// <summary>The sprints the Sprint field lists, oldest first; empty when none or the field was not requested.</summary>
+    public IReadOnlyList<IssueSprint> Sprints { get; init; } = [];
+
+    /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>
+    public double? Estimate { get; init; }
+
+    /// <summary>The epic of the issue: its parent when that is an epic, otherwise null.</summary>
+    public IssueParent? Epic => Parent is { IsEpic: true } ? Parent : null;
+
+    /// <summary>The sprint the issue is in now (active, else future, else last closed); null for none.</summary>
+    public IssueSprint? CurrentSprint => IssueSprint.Current(Sprints);
+}

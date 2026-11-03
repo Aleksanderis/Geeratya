@@ -11,6 +11,7 @@ namespace Geeratya.Jira.Boards.Models;
 /// <param name="SubQuery">An extra JQL clause of the board; null when the board has none.</param>
 /// <param name="RankFieldId">The rank field as a field id such as <c>customfield_10019</c>; null if absent.</param>
 /// <param name="ConstraintType">The column constraint (<c>issueCount</c>, <c>none</c>, ...); null if absent.</param>
+/// <remarks>Scrum boards carry <see cref="EstimationFieldId"/>; Kanban boards have no estimation.</remarks>
 public sealed record BoardConfiguration(
     long BoardId,
     string Name,
@@ -19,4 +20,8 @@ public sealed record BoardConfiguration(
     string FilterId,
     string? SubQuery,
     string? RankFieldId,
-    string? ConstraintType);
+    string? ConstraintType)
+{
+    /// <summary>The estimation field (story points) as a field id; null for a board without field estimation.</summary>
+    public string? EstimationFieldId { get; init; }
+}

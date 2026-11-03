@@ -17,7 +17,8 @@ public sealed class IssueClient(JiraTransport transport)
     public async Task<JiraResult<IssueDetail>> GetIssueAsync(
         string key,
         CancellationToken cancellationToken,
-        JiraPriority priority = JiraPriority.User)
+        JiraPriority priority = JiraPriority.User,
+        IssueExtraFields? extras = null)
     {
         if (!IssueUrls.IsValidKey(key))
         {
@@ -25,15 +26,18 @@ public sealed class IssueClient(JiraTransport transport)
                 new JiraError(JiraErrorKind.NotFound, null, "Not found or no access."));
         }
 
-        var request = JiraRequest.Get($"{IssuePath}/{key}?fields={IssueFields.DetailQueryValue}")
+        var request = JiraRequest.Get($"{IssuePath}/{key}?fields={FieldList(extras)}")
             with { Priority = priority };
 
         var result = await transport.SendAsync(request, IssueJsonContext.Default.Issue, cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(IssueDetailMapper.Map(result.Value))
+            ? JiraResults.Success(IssueDetailMapper.Map(result.Value, extras))
             : JiraResults.Failure<IssueDetail>(result.Error);
     }
+
+    private static string FieldList(IssueExtraFields? extras) =>
+        extras is null ? IssueFields.DetailQueryValue : extras.QueryValue(IssueFields.Detail);
 
     /// <summary>
     /// Reads the current values of <paramref name="fields"/> (the editable fields of the edit metadata), asking Jira

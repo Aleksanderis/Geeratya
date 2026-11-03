@@ -112,7 +112,7 @@ public sealed class BoardClient(JiraTransport transport)
 
         var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
         var paging = $"startAt={Number(startAt)}&maxResults={Number(pageSize)}";
-        var url = $"{path}?fields={IssueFields.ListRowQueryValue}&{paging}";
+        var url = $"{path}?fields={query.Extras.QueryValue(IssueFields.ListRow)}&{paging}";
 
         if (!string.IsNullOrWhiteSpace(query.Jql))
         {
@@ -123,7 +123,7 @@ public sealed class BoardClient(JiraTransport transport)
         var result = await transport.SendAsync(request, BoardJsonContext.Default.IssuePage, cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(BoardMapper.MapIssues(result.Value))
+            ? JiraResults.Success(BoardMapper.MapIssues(result.Value, query.Extras))
             : JiraResults.Failure<IssuePage>(result.Error);
     }
 

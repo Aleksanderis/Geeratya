@@ -53,13 +53,16 @@ internal static class BoardMapper
             wire.Filter?.Id ?? string.Empty,
             string.IsNullOrWhiteSpace(query) ? null : query,
             wire.Ranking?.RankCustomFieldId is { } rank ? $"{RankFieldPrefix}{rank}" : null,
-            wire.ColumnConfig?.ConstraintType);
+            wire.ColumnConfig?.ConstraintType)
+        {
+            EstimationFieldId = wire.Estimation?.Field?.FieldId is { Length: > 0 } estimation ? estimation : null,
+        };
     }
 
     /// <summary>The agile API has no <c>isLast</c>: the page ends at <c>total</c> or when empty.</summary>
-    public static IssuePage MapIssues(BoardWire.IssuePage wire)
+    public static IssuePage MapIssues(BoardWire.IssuePage wire, IssueExtraFields? extras = null)
     {
-        var items = IssueSummaryMapper.MapIssues(wire.Issues);
+        var items = IssueSummaryMapper.MapIssues(wire.Issues, extras);
         var startAt = wire.StartAt ?? 0;
         var isLast = IsLast(startAt, items.Count, wire.Total, null);
         var next = isLast ? null : PageCursor.Offset(startAt + items.Count);

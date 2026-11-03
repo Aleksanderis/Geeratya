@@ -11,7 +11,7 @@ namespace Geeratya.Jira.Issues;
 /// </summary>
 internal static class IssueDetailMapper
 {
-    public static IssueDetail Map(IssueWire.Issue issue)
+    public static IssueDetail Map(IssueWire.Issue issue, IssueExtraFields? extras = null)
     {
         var fields = issue.Fields;
         var pool = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -33,7 +33,11 @@ internal static class IssueDetailMapper
             MapStub(fields?.Parent, pool),
             MapStubs(fields?.Subtasks, pool),
             MapLinks(fields?.IssueLinks, pool),
-            MapAttachments(fields?.Attachments, pool));
+            MapAttachments(fields?.Attachments, pool))
+        {
+            Sprints = IssueSummaryMapper.MapSprints(fields?.Extra, extras?.SprintFieldId),
+            Estimate = IssueSummaryMapper.MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
+        };
     }
 
     private static AdfDocument? MapDescription(JsonElement? description)

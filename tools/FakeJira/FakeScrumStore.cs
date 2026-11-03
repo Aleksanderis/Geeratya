@@ -13,6 +13,7 @@ namespace Geeratya.FakeJira;
 public sealed partial class FakeScrumStore
 {
     private const string AgilePrefix = "/rest/agile/1.0/";
+    private const string IssuePrefix = "/rest/api/3/issue/";
     private const string BoardPart = "board";
     private const string SprintPart = "sprint";
     private const string IssuePart = "issue";
@@ -118,6 +119,11 @@ public sealed partial class FakeScrumStore
     /// <summary>The reply for a request on a Scrum or sprint route, or null when the path is not one of them.</summary>
     public FakeReply? TryRoute(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
+        if (method == Get && path.StartsWith(IssuePrefix, StringComparison.Ordinal))
+        {
+            return TryIssue(path[IssuePrefix.Length..]);
+        }
+
         if (!path.StartsWith(AgilePrefix, StringComparison.Ordinal))
         {
             return null;
@@ -136,6 +142,17 @@ public sealed partial class FakeScrumStore
                 BacklogPart when method == Post && parts is [_, IssuePart] => MoveToBacklog(body),
                 _ => null,
             };
+        }
+    }
+
+    /// <summary>One Scrum issue with its current Sprint field; null for any other key (the other routes decide).</summary>
+    private FakeReply? TryIssue(string key)
+    {
+        lock (_gate)
+        {
+            Load();
+
+            return _issues.ContainsKey(key) ? Json(Ok, IssueView(key)) : null;
         }
     }
 

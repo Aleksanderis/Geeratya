@@ -4,6 +4,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.App;
@@ -19,6 +20,7 @@ public sealed class ViewLoadHandler
     private const string NoConnectionMessage =
         "Not connected to Jira: check the profile and its API token (:profile), then reload.";
 
+    private const string OpenSprintsJql = "sprint in openSprints()";
     private const string UnsupportedSourceMessage = "This kind of view cannot be loaded yet.";
     private const string InvalidBoardMessage = "The board id is not a number.";
 
@@ -164,6 +166,8 @@ public sealed class ViewLoadHandler
 
         try
         {
+            BoardConfiguration? loaded = null;
+
             if (NeedsConfiguration(effect))
             {
                 var configuration = await services.Boards.GetConfigurationAsync(id, token);
@@ -173,10 +177,14 @@ public sealed class ViewLoadHandler
                     return new ViewLoadFailed(effect.Tab, effect.RequestId, configuration.Error, _clock.GetUtcNow());
                 }
 
-                report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, configuration.Value));
+                loaded = configuration.Value;
+                services.Fields.RememberEstimate(id, loaded.EstimationFieldId);
+                report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, loaded));
             }
 
-            return await BoardPageAsync(services, effect, id, token);
+            var kind = await ResolveKindAsync(services, id, loaded, effect.Background, token);
+
+            return await BoardPageAsync(services, effect, id, kind, token);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -188,9 +196,15 @@ public sealed class ViewLoadHandler
         JiraServices services,
         LoadViewPageEffect effect,
         long id,
+        BoardKind? kind,
         CancellationToken token)
     {
         var query = new BoardIssueQuery();
+
+        if (kind == BoardKind.Scrum)
+        {
+            query = await ScrumQueryAsync(services, effect, id, query, token);
+        }
 
         if (effect.Background)
         {
@@ -204,6 +218,73 @@ public sealed class ViewLoadHandler
         return result.IsSuccess
             ? new ViewPageLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
             : new ViewLoadFailed(effect.Tab, effect.RequestId, result.Error, _clock.GetUtcNow());
+    }
+
+    /// <summary>
+    /// Scrum or Kanban for the board, from its type, the stored answer or one probe of the sprint list (remembered per
+    /// profile). Null when the probe failed: the board then loads as it did before sprints, and nothing is stored.
+    /// </summary>
+    private static async Task<BoardKind?> ResolveKindAsync(
+        JiraServices services,
+        long id,
+        BoardConfiguration? configuration,
+        bool background,
+        CancellationToken token)
+    {
+        var priority = background ? JiraPriority.Background : JiraPriority.User;
+        BoardSummary? board;
+
+        if (configuration is not null)
+        {
+            board = new BoardSummary(id, configuration.Name, configuration.Type, string.Empty);
+        }
+        else if (services.BoardKinds.Recall(id) is { } recalled)
+        {
+            return recalled;
+        }
+        else
+        {
+            var found = await services.Boards.GetBoardAsync(id, token, priority);
+            board = found.IsSuccess ? found.Value : null;
+        }
+
+        if (board is null)
+        {
+            return null;
+        }
+
+        var resolved = await services.BoardKinds.ResolveAsync(board, token, priority);
+
+        if (!resolved.IsSuccess)
+        {
+            return null;
+        }
+
+        // Kept in memory so later pages and refreshes of this board need neither the configuration nor a request.
+        services.BoardKinds.Remember(id, resolved.Value);
+
+        return resolved.Value;
+    }
+
+    /// <summary>
+    /// A Scrum board shows the open sprints (the board endpoint lists every sprint state and the backlog), with the
+    /// Sprint and estimate fields read onto the rows; the backlog source keeps what the backlog endpoint returns.
+    /// Without the field ids the rows simply carry no sprint or estimate.
+    /// </summary>
+    private static async Task<BoardIssueQuery> ScrumQueryAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        long id,
+        BoardIssueQuery query,
+        CancellationToken token)
+    {
+        var priority = effect.Background ? JiraPriority.Background : JiraPriority.User;
+        var fields = await services.Fields.GetForBoardAsync(id, token, priority);
+        var withFields = fields.IsSuccess ? query with { Extras = fields.Value } : query;
+
+        return effect.Definition.Source == ViewSourceKind.Board
+            ? withFields with { Jql = OpenSprintsJql }
+            : withFields;
     }
 
     /// <summary>

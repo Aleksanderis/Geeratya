@@ -12,6 +12,9 @@ public sealed record IssueSearchQuery(string Jql, int PageSize = IssueSearchQuer
     /// <summary>Who is waiting for the answer. Defaults to <see cref="JiraPriority.User"/>.</summary>
     public JiraPriority Priority { get; init; } = JiraPriority.User;
 
+    /// <summary>Site-specific fields (Sprint, estimate) to read onto the rows; none by default.</summary>
+    public IssueExtraFields Extras { get; init; } = IssueExtraFields.None;
+
     /// <summary>The same search as background work (refresh, prefetch): yields to user requests.</summary>
     public IssueSearchQuery AsBackground() => this with { Priority = JiraPriority.Background };
 }

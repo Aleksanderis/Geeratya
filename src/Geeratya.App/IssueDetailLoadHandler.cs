@@ -82,7 +82,10 @@ public sealed class IssueDetailLoadHandler
     {
         return async (services, token) =>
         {
-            var result = await services.Issues.GetIssueAsync(effect.Key, token);
+            // A failed field lookup only means the detail has no sprint or estimate; the issue still loads.
+            var fields = await services.Fields.GetAsync(token);
+            var extras = fields.IsSuccess ? fields.Value : null;
+            var result = await services.Issues.GetIssueAsync(effect.Key, token, extras: extras);
 
             if (!result.IsSuccess && result.Error.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden)
             {

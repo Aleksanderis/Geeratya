@@ -46,6 +46,22 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         Assert.True(epics.GetProperty("values").GetArrayLength() > 0);
     }
 
+    [Theory]
+    [InlineData("GTS-29", "/rest/api/3/issue/GTS-29", 2)]
+    [InlineData("GCS-8", "/rest/api/3/issue/GCS-8", 2)]
+    [InlineData("GCS-18", "/rest/api/3/issue/GCS-18", 0)]
+    public async Task GivenScrumIssue_WhenReadByKey_ThenItsSprintFieldListsTheCurrentSprints(
+        string key,
+        string path,
+        int sprintCount)
+    {
+        var issue = await Json(path);
+
+        Assert.Equal(key, issue.GetProperty("key").GetString());
+        var field = issue.GetProperty("fields").GetProperty("customfield_10020");
+        Assert.Equal(sprintCount, field.ValueKind == JsonValueKind.Null ? 0 : field.GetArrayLength());
+    }
+
     [Fact]
     public async Task GivenCompanyManagedBoard_WhenSprintsListed_ThenClosedActiveFutureOrderAndStateFilterApply()
     {

@@ -79,11 +79,12 @@ public sealed class IssueDetailFlowTests : IDisposable
     }
 
     [Fact]
-    public async Task GivenTeamManagedIssueWithRichAdf_WhenOpened_ThenDescriptionAndCommentsAreFormattedAndThreeRequestsWereMade()
+    public async Task GivenTeamManagedIssueWithRichAdf_WhenOpened_ThenDescriptionAndCommentsAreFormattedAndTheFieldListIsReadOnce()
     {
         _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json")
             .Fixture($"{Site}/GTM-5/comment", "adf/comments-gtm5.json")
-            .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json");
+            .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json")
+            .Fixture("/rest/api/3/field", "metadata/field-list.json");
         await ConnectAsync();
 
         var state = await OpenAsync("GTM-5");
@@ -99,8 +100,27 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Equal(LoadState.Idle, detail.LinksLoad);
         Assert.NotNull(detail.RemoteLinks);
         Assert.Equal(
-            [$"{Site}/GTM-5", $"{Site}/GTM-5/comment", $"{Site}/GTM-5/remotelink"],
+            ["/rest/api/3/field", $"{Site}/GTM-5", $"{Site}/GTM-5/comment", $"{Site}/GTM-5/remotelink"],
             _http.Requests.Select(uri => uri.AbsolutePath).Order());
+    }
+
+    [Fact]
+    public async Task GivenScrumIssue_WhenOpened_ThenDetailCarriesSprintsEstimateAndEpicFromTheSiteFields()
+    {
+        _http.Fixture($"{Site}/GCS-8", "scrum/issue-gcs-carried-over.json")
+            .Fixture($"{Site}/GCS-8/comment", "adf/comments-gtm5.json")
+            .Fixture($"{Site}/GCS-8/remotelink", "links/remotelink-list-gtm5.json")
+            .Fixture("/rest/api/3/field", "metadata/field-list.json");
+        await ConnectAsync();
+
+        var state = await OpenAsync("GCS-8");
+
+        var issue = Top(state).Issue!;
+        Assert.Equal(["Seed Sprint 1", "Seed Sprint 2"], issue.Sprints.Select(sprint => sprint.Name));
+        Assert.Equal("Seed Sprint 2", issue.CurrentSprint?.Name);
+        Assert.NotNull(issue.Estimate);
+        Assert.Equal("GCS-2", issue.Epic?.Key);
+        Assert.Contains(_http.Requests, uri => uri.Query.Contains("customfield_10020", StringComparison.Ordinal));
     }
 
     [Fact]

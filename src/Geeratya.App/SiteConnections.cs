@@ -2,6 +2,7 @@ using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Jira;
+using Geeratya.Jira.Fields;
 using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
@@ -31,6 +32,7 @@ public sealed class SiteConnections : IDisposable
     private Profile? _profile;
     private JiraTransport? _transport;
     private BoardKindResolver? _kinds;
+    private SiteFields? _fields;
     private Profile? _failedProfile;
     private int _failedProfileCount;
     private int _generation;
@@ -65,14 +67,14 @@ public sealed class SiteConnections : IDisposable
     }
 
     /// <summary>
-    /// The transport and the board-kind resolver of the active profile, read together so they belong to one
+    /// The transport, the board-kind resolver and the field ids of the active profile, read together so they belong to one
     /// connection. The resolver is seeded from the profile's stored answers and stores each new one.
     /// </summary>
-    internal (JiraTransport? Transport, BoardKindResolver? Kinds) Snapshot()
+    internal ConnectionParts Snapshot()
     {
         lock (_lock)
         {
-            return (_transport, _kinds);
+            return new ConnectionParts(_transport, _kinds, _fields);
         }
     }
 
@@ -235,6 +237,7 @@ public sealed class SiteConnections : IDisposable
             {
                 _transport = transport;
                 _kinds = CreateResolver(profile, transport);
+                _fields = new SiteFields(new FieldClient(transport));
                 transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
 
                 return null;
@@ -305,6 +308,7 @@ public sealed class SiteConnections : IDisposable
 
         _transport = null;
         _kinds = null;
+        _fields = null;
         _profile = profile;
         _failedProfile = null;
         _generation++;

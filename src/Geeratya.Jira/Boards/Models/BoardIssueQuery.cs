@@ -1,3 +1,4 @@
+using Geeratya.Jira.Search;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Jira.Boards.Models;
@@ -11,6 +12,9 @@ public sealed record BoardIssueQuery(int PageSize = BoardIssueQuery.DefaultPageS
 
     /// <summary>Who is waiting for the answer. Defaults to <see cref="JiraPriority.User"/>.</summary>
     public JiraPriority Priority { get; init; } = JiraPriority.User;
+
+    /// <summary>Site-specific fields (Sprint, estimate) to read onto the rows; none by default.</summary>
+    public IssueExtraFields Extras { get; init; } = IssueExtraFields.None;
 
     /// <summary>The same query as background work (refresh): yields to user requests.</summary>
     public BoardIssueQuery AsBackground() => this with { Priority = JiraPriority.Background };
