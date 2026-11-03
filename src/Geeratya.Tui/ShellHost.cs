@@ -531,6 +531,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             _application!.Invoke(() => Dispatch(failure));
         }
+
+        // After the connection exists, off the first-frame path: the first issue detail finds the field ids ready.
+        _connections.WarmFields();
     }
 
     /// <summary>Runs a profile effect off the UI thread and feeds its outcome back as a command.</summary>

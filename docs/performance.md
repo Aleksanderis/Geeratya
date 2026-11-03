@@ -133,3 +133,7 @@ Not re-measured here: JSON mapping of a 10k-issue search (the #66 row stands: 80
 No budget is missed. One defect found while measuring: cached rows draw a 3-character key column on a cache hit (#236).
 
 Scope note: the acceptance rows for the JSON mapping of a 10k-issue search and the ADF render were not re-taken here; the #66, #68 and #80 rows above stand because no Native AOT in-process harness exists, and the end-to-end rows include both. Add a console harness if an AOT figure is wanted.
+
+## First issue-detail open (#435)
+
+The detail used to await `GET /field` before `GET /issue` on the first open of a session, and again on every open while `/field` kept failing: one sequential round trip in front of the issue. Now `SiteFields.Warm()` starts the lookup at lowest priority once the connection exists (after the first frame), concurrent callers share the one request, and a failure is remembered for 30 s. The detail adds no sequential `/field` request once the warm-up has answered or failed; if it is still in flight the open waits for that same request instead of sending its own. Checked by request counts (`FieldClientTests`, `IssueDetailFlowTests`: a failing `/field` is asked once across two opens), not timed end to end: the saving is one round trip of site latency (about 50 ms at the harness setting `--latency-ms 50`) and the harness has no Enter-to-detail probe yet.

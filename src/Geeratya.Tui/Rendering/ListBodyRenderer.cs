@@ -5,6 +5,7 @@ using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Tui.Rendering;
@@ -20,6 +21,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string LoadingWords = "Loading";
     private const string NoIssuesText = "No issues match.";
     private const string NoBoardIssuesText = "The board has no issues.";
+    private const string NoOpenSprintText = "No open sprint on this board.";
+    private const string NoOpenSprintHint = "Plan or start one in the backlog (:backlog) or the board's Sprint view.";
     private const string RetryText = "<space>r to retry";
     private const string TruncatedText = "Load more stopped at 10 000 rows.";
     private const string CouldNotLoadMore = "Could not load more: ";
@@ -212,6 +215,15 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         if (tab.Cold)
         {
+            return;
+        }
+
+        // A Scrum board lists only the open sprints, so between sprints it is empty although the project has issues.
+        if (tab.Definition.Source == ViewSourceKind.Board && tab.Board is { Type: BoardType.Scrum })
+        {
+            lines.Add(Centered(NoOpenSprintText, width));
+            lines.Add(StyledLine.Of(Centered(NoOpenSprintHint, width).PlainText, TextRole.Muted));
+
             return;
         }
 
