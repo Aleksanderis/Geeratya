@@ -43,6 +43,7 @@ public static class DefaultMouseMap
         new(MouseTarget.Status, MouseGesture.RightClick, ActionIds.ViewMenuOpen, 1, 'V'),
         new(MouseTarget.StatusMessage, MouseGesture.RightClick, ActionIds.ViewMenuOpen, 1, 'V'),
         new(MouseTarget.NewTabButton, MouseGesture.Click, ActionIds.TabNew, 1, 'B'),
+        new(MouseTarget.JumpChip, MouseGesture.Click, ActionIds.IssueJump, 1, 'B'),
         new(MouseTarget.Banner, MouseGesture.Click, ActionIds.ViewRefresh, 1, 'B'),
         new(MouseTarget.StatusBadge, MouseGesture.Click, ActionIds.IssueTransition, 1, 'C'),
         new(MouseTarget.Assignee, MouseGesture.Click, ActionIds.IssueAssign, 1, 'C'),

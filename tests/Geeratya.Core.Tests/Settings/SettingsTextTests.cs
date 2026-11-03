@@ -25,6 +25,57 @@ public sealed class SettingsTextTests
     }
 
     [Fact]
+    public void GivenANestedPath_WhenChangingIt_ThenOnlyThatValueChanges()
+    {
+        const string text =
+            "{\n  \"hints\": {\n    // keep\n    \"statusBar\": \"full\",\n    \"whichKey\": true,\n  },\n}\n";
+
+        var edit = SettingsText.Set(text, ["hints", "whichKey"], "false");
+
+        Assert.Equal(text.Replace("true", "false"), edit.Text);
+    }
+
+    [Fact]
+    public void GivenAnObjectWithoutTheMember_WhenAddingNested_ThenItGoesLastWithTheMembersIndent()
+    {
+        const string text = "{\n  \"hints\": {\n    \"statusBar\": \"full\"\n  }\n}\n";
+
+        var edit = SettingsText.Set(text, ["hints", "whichKey"], "false");
+
+        Assert.Equal(
+            "{\n  \"hints\": {\n    \"statusBar\": \"full\",\n    \"whichKey\": false\n  }\n}\n",
+            edit.Text);
+    }
+
+    [Fact]
+    public void GivenNoParent_WhenAddingNested_ThenTheParentIsCreated()
+    {
+        var edit = SettingsText.Set("{\n  \"theme\": \"a\"\n}\n", ["hints", "whichKey"], "false");
+
+        Assert.Equal("{\n  \"theme\": \"a\",\n  \"hints\": { \"whichKey\": false }\n}\n", edit.Text);
+    }
+
+    [Fact]
+    public void GivenAnEmptyParent_WhenAddingNested_ThenTheMemberIsIndentedUnderIt()
+    {
+        var edit = SettingsText.Set("{\n  \"hints\": {\n  }\n}\n", ["hints", "whichKey"], "false");
+
+        Assert.Equal("{\n  \"hints\": {\n    \"whichKey\": false\n  }\n}\n", edit.Text);
+    }
+
+    [Theory]
+    [InlineData("{ \"hints\": 3 }")]
+    [InlineData("{ \"hints\": [1] }")]
+    [InlineData("{ \"hints\": null }")]
+    public void GivenAParentThatIsNotAnObject_WhenChangingNested_ThenItIsRefused(string text)
+    {
+        var edit = SettingsText.Set(text, ["hints", "whichKey"], "false");
+
+        Assert.Null(edit.Text);
+        Assert.Contains("\"hints\"", edit.Error);
+    }
+
+    [Fact]
     public void GivenADuplicateKey_WhenChangingIt_ThenTheLastOneChanges()
     {
         var edit = SettingsText.Set("""{ "theme": "a", "theme": "b" }""", "theme", "\"c\"");

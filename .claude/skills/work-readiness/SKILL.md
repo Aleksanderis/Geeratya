@@ -19,7 +19,7 @@ Invoke as `/work-readiness <milestone>` (for example `M<n>`; `<n>` is a placehol
 
 ## 2. Check
 
-1. **Issue quality:** each issue has a clear scope and an `Acceptance:` line that can be tested; a `Blocked by:` line that is consistent (every blocker exists, none is a cycle, closed blockers are not listed as open); correct labels (`spike`, `needs-review`); a milestone.
+1. **Issue quality:** each issue has a clear scope and an `Acceptance:` line that can be tested; a `Blocked by:` line that is consistent (every blocker exists, none is a cycle, closed blockers are not listed as open); correct labels (`spike`, `needs-review`); a milestone. Also list open issues of the whole repo that have none (`gh issue list --state open --json number,title,milestone --jq '.[]|select(.milestone==null)'`) and assign each to the milestone it belongs to.
 2. **Owner-gated work:** list issues that will stop at an open PR (`needs-review`) or never merge (`spike`), so the owner can plan reviews.
 3. **Questions:** answer every open issue labeled `question` in the issue itself (agent-marked comment, see `work-task` step 2), after checking the docs and the code; the report only links the answers.
    **Open decisions:** open issues labeled `needs-owner` (read the comments: if the owner answered, act and remove the label as `work-task` describes), open questions in `docs/roadmap.md` and unsettled choices in `docs/decisions.md` that this milestone depends on. For each, propose a default and say what changes if it is wrong, so agents are not blocked mid-run.

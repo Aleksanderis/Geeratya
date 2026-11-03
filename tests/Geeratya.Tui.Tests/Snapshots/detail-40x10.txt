@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +             
+ [1 JQL: My open issues]  +      [jump] 
                                         
 My open issues › GCM-12 · Top           
 ╭─ GCM-12 · Task ──────────────────────╮

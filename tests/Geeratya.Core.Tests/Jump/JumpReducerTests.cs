@@ -3,6 +3,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Issues.Models;
@@ -324,6 +325,34 @@ public class JumpReducerTests
 
         Assert.Equal("Space g", keymap.FindKeys(InputMode.Normal, ActionIds.IssueJump));
         Assert.NotNull(ActionCatalog.FindTitle(ActionIds.IssueJump));
+    }
+
+    [Fact]
+    public void GivenTheTabTarget_WhenJumping_ThenANewTabOpensWithTheIssueOnTopAndTheOldTabIsUntouched()
+    {
+        var state = WithList();
+        var before = Active(state);
+        state = state with { Settings = state.Settings with { JumpTarget = JumpTarget.Tab } };
+
+        var typed = Press(state, "Space", "g").State;
+        var result = Press(typed, "A", "-", "2", "Enter");
+
+        Assert.Equal(2, result.State.Session.Tabs.Count);
+        var created = Active(result.State);
+        Assert.NotEqual(before.Id, created.Id);
+        Assert.Equal("key = A-2", created.Definition.SourceValue);
+        Assert.Equal("A-2", Assert.Single(created.Detail).Key);
+        Assert.Empty(result.State.Session.Tabs.Single(tab => tab.Id == before.Id).Detail);
+    }
+
+    [Fact]
+    public void GivenTheCurrentTarget_WhenJumping_ThenNoTabIsAdded()
+    {
+        var state = Press(WithList(), "Space", "g").State;
+
+        var result = Press(state, "A", "-", "2", "Enter");
+
+        Assert.Single(result.State.Session.Tabs);
     }
 
     private ReduceResult Press(AppState state, params string[] keys)

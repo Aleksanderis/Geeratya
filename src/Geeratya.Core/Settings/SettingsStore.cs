@@ -77,7 +77,7 @@ public sealed class SettingsStore
 
             var edit = SettingsText.Set(
                 CurrentText(bytes),
-                setting.ConfigKey,
+                setting.ConfigPath,
                 SettingsRegistry.ToJson(setting, settings));
 
             if (edit.Text is not { } text)
@@ -179,19 +179,19 @@ public sealed class SettingsStore
 
         foreach (var setting in SettingsRegistry.All)
         {
-            var found = root.EnumerateObject().Where(member => member.NameEquals(setting.ConfigKey)).ToList();
+            var (value, key) = Lookup(root, setting);
 
-            if (found.Count == 0)
+            if (value is not { } found)
             {
                 continue;
             }
 
-            var applied = Apply(setting, settings, found[^1].Value);
+            var applied = Apply(setting, settings, found);
 
             if (applied is null)
             {
                 warnings.Add(
-                    $"settings.json: {setting.ConfigKey} must be {setting.Expected}; using {setting.Default}.");
+                    $"settings.json: {key} must be {setting.Expected}; using {setting.Default}.");
             }
             else
             {
@@ -200,6 +200,48 @@ public sealed class SettingsStore
         }
 
         return new SettingsLoad(settings, warnings);
+    }
+
+    /// <summary>
+    /// The value under the new nested path, else under the older flat key, with the key it was found at.
+    /// </summary>
+    private static SettingLookup Lookup(JsonElement root, SettingDefinition setting)
+    {
+        var current = root;
+
+        foreach (var segment in setting.ConfigPath)
+        {
+            if (current.ValueKind != JsonValueKind.Object || !TryGetLast(current, segment, out current))
+            {
+                return LookupLegacy(root, setting);
+            }
+        }
+
+        return new SettingLookup(current, setting.ConfigKey);
+    }
+
+    private static SettingLookup LookupLegacy(JsonElement root, SettingDefinition setting)
+    {
+        if (setting.LegacyConfigKey is { } legacy && TryGetLast(root, legacy, out var old))
+        {
+            return new SettingLookup(old, legacy);
+        }
+
+        return new SettingLookup(null, setting.ConfigKey);
+    }
+
+    private static bool TryGetLast(JsonElement element, string name, out JsonElement value)
+    {
+        value = default;
+        var found = false;
+
+        foreach (var member in element.EnumerateObject().Where(member => member.NameEquals(name)))
+        {
+            value = member.Value;
+            found = true;
+        }
+
+        return found;
     }
 
     private static AppSettings? Apply(SettingDefinition setting, AppSettings settings, JsonElement value)

@@ -18,7 +18,7 @@ public static class SettingsReducer
 
         if (parts.Length == 0)
         {
-            return Say(state, $"{SettingsRegistry.Describe(state.Settings)}. {Usage}");
+            return new ReduceResult(StatusMessages.OpenSettings(state), []);
         }
 
         if (parts.Length > 2 || SettingsRegistry.Find(parts[0]) is not { } setting)

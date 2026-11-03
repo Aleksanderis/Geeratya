@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -10,7 +11,8 @@ namespace Geeratya.Core.Jump;
 /// <summary>
 /// The jump prompt (<c>issue.jump</c>): type an issue key, choose a completion, open the issue. Read-only and pure.
 /// The issue opens on top of the active tab's issue stack (Esc goes back to where the user was); with no tab open a
-/// tab for <c>key = KEY</c> is opened first, so the issue has a view underneath.
+/// tab for <c>key = KEY</c> is opened first, so the issue has a view underneath. With <c>jump.target</c> set to
+/// <c>tab</c> that tab is opened every time.
 /// </summary>
 public static class JumpReducer
 {
@@ -117,7 +119,7 @@ public static class JumpReducer
         var effects = new List<Effect>();
         var shown = state;
 
-        if (state.Session.Active is null)
+        if (state.Session.Active is null || state.Settings.JumpTarget == JumpTarget.Tab)
         {
             var view = ViewReducer.Reduce(state, new ViewOpenRequested(KeyView(key)));
 

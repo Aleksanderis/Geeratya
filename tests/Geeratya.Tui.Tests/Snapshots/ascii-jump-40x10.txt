@@ -1,4 +1,4 @@
- [1 JQL: project = GCM .]  +            
+ [1 JQL: project = GCM .]  +     [jump] 
                                         
   +- Jump to an issue ---------------+  
   | > gcm_                           |  

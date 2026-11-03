@@ -1,4 +1,4 @@
- [1 JQL: project = GCM …]  +                                                    
+ [1 JQL: project = GCM …]  +                                             [jump] 
                                                                                 
 project = GCM · 4 issues                                                        
   Key T Summary                                                   Status        

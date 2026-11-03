@@ -11,6 +11,9 @@ public enum MouseTarget
     /// <summary>The <c>+</c> button after the last tab.</summary>
     NewTabButton,
 
+    /// <summary>The <c>[jump]</c> chip at the right end of the tab bar row (opens the jump prompt).</summary>
+    JumpChip,
+
     /// <summary>The network banner row under the tab bar.</summary>
     Banner,
 

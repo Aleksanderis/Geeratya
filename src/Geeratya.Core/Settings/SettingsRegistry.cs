@@ -19,6 +19,12 @@ public static class SettingsRegistry
 
     private const string ToggleExpected = "on or off";
 
+    private const string CurrentWord = "current";
+
+    private const string TabWord = "tab";
+
+    private const string JumpExpected = "current or tab";
+
     private const string ThemeExpected = "a theme name";
 
     private const string Everyday = "everyday";
@@ -30,23 +36,27 @@ public static class SettingsRegistry
     public static IReadOnlyList<SettingDefinition> All { get; } =
     [
         new SettingDefinition(
-            "hints",
-            "statusHints",
+            "hints.statusBar",
+            "hints.statusBar",
             SettingKind.Choice,
             Full,
             "How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none.",
             settings => HintWord(settings.StatusHints),
             ApplyHints,
-            HintsExpected),
+            HintsExpected,
+            "statusHints",
+            ["hints"]),
         new SettingDefinition(
-            "whichkey",
-            "whichKey",
+            "hints.whichKey",
+            "hints.whichKey",
             SettingKind.Toggle,
             On,
             "Show the popup of the next keys while a multi-key binding is half typed.",
             settings => Word(settings.WhichKey),
             (settings, text) => ParseToggle(text) is { } on ? settings with { WhichKey = on } : null,
-            ToggleExpected),
+            ToggleExpected,
+            "whichKey",
+            ["whichkey"]),
         new SettingDefinition(
             "commandlevel",
             "commandLevel",
@@ -65,11 +75,26 @@ public static class SettingsRegistry
             settings => settings.Theme,
             ApplyTheme,
             ThemeExpected),
+        new SettingDefinition(
+            "jump.target",
+            "jump.target",
+            SettingKind.Choice,
+            CurrentWord,
+            "Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab.",
+            settings => settings.JumpTarget == JumpTarget.Tab ? TabWord : CurrentWord,
+            ApplyJumpTarget,
+            JumpExpected),
     ];
 
     public static SettingDefinition? Find(string name)
     {
-        return All.FirstOrDefault(setting => setting.Name == name);
+        return All.FirstOrDefault(setting => Matches(setting, name));
+    }
+
+    private static bool Matches(SettingDefinition setting, string name)
+    {
+        return setting.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+            || setting.Aliases?.Any(alias => alias.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     /// <summary>The value of the setting as the file holds it: a boolean or a quoted string.</summary>
@@ -85,18 +110,16 @@ public static class SettingsRegistry
         return SettingsJson.Quote(value);
     }
 
-    /// <summary>Every setting with its value and default, for <c>:set</c> without an argument.</summary>
-    public static string Describe(AppSettings settings)
+    /// <summary>One line per setting (name, value, default, help), for the Messages overlay.</summary>
+    public static IReadOnlyList<string> ListLines(AppSettings settings)
     {
-        return string.Join(
-            ", ",
-            All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default})"));
+        return [.. All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default}) - {setting.Help}")];
     }
 
-    /// <summary>One setting with its value, default, accepted values and help, for <c>:set name</c>.</summary>
+    /// <summary>One setting with its value, default and accepted values, for <c>:set name</c> (the help text is in the <c>:set</c> overlay; the status line is one row).</summary>
     public static string Describe(SettingDefinition setting, AppSettings settings)
     {
-        return $"{setting.Name} {setting.Read(settings)} (default {setting.Default}; {setting.Expected}). {setting.Help}";
+        return $"{setting.Name} {setting.Read(settings)} (default {setting.Default}; {setting.Expected})";
     }
 
     /// <summary>The Markdown table in <c>docs/settings.md</c>.</summary>
@@ -159,6 +182,16 @@ public static class SettingsRegistry
         {
             On => true,
             Off => false,
+            _ => null,
+        };
+    }
+
+    private static AppSettings? ApplyJumpTarget(AppSettings settings, string text)
+    {
+        return text switch
+        {
+            CurrentWord => settings with { JumpTarget = JumpTarget.Current },
+            TabWord => settings with { JumpTarget = JumpTarget.Tab },
             _ => null,
         };
     }

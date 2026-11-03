@@ -194,6 +194,7 @@ public sealed class AppReducer
             PaletteSelected = 0,
             HelpScroll = 0,
             MessagesOpen = false,
+            MessagesShowSettings = false,
             Confirm = null,
             Form = null,
             Picker = null,
@@ -702,12 +703,9 @@ public sealed class AppReducer
 
     private int LineCount(AppState state)
     {
-        if (state.MessagesOpen)
-        {
-            return state.StatusHistory.Count;
-        }
-
-        return KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
+        return state.MessagesOpen
+            ? StatusMessages.OverlayRowCount(state)
+            : KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
     }
 
     private AppState ScrollHelp(AppState state, int delta)

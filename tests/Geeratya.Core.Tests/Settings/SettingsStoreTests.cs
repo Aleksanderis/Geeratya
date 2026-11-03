@@ -5,7 +5,7 @@ namespace Geeratya.Core.Tests.Settings;
 
 public sealed class SettingsStoreTests : IDisposable // Dispose removes the temporary settings folder
 {
-    private static readonly SettingDefinition _whichKey = SettingsRegistry.Find("whichkey")!;
+    private static readonly SettingDefinition _whichKey = SettingsRegistry.Find("hints.whichKey")!;
 
     private readonly string _directory = Path.Combine(Path.GetTempPath(), $"geeratya-store-{Guid.NewGuid():N}");
 
@@ -22,7 +22,8 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
     [Fact]
     public void GivenAFileWithCommentsAndUnknownKeys_WhenWriting_ThenOnlyTheValueChanges()
     {
-        const string text = "{\n  // my notes\n  \"extra\": [1, 2],\n  \"whichKey\": true,\n}\n";
+        const string text =
+            "{\n  // my notes\n  \"extra\": [1, 2],\n  \"hints\": { \"whichKey\": true },\n}\n";
 
         Create(text);
 
@@ -44,7 +45,7 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         store.Read();
         store.Write(_whichKey, new AppSettings(WhichKey: false));
 
-        Assert.Equal("{\n  \"whichKey\": false\n}\n", File.ReadAllText(FilePath));
+        Assert.Equal("{\n  \"hints\": { \"whichKey\": false }\n}\n", File.ReadAllText(FilePath));
         Assert.False(store.Load().WhichKey);
     }
 
@@ -57,7 +58,9 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
 
         store.Write(_whichKey, new AppSettings(WhichKey: false));
 
-        Assert.Equal("{\n  // hello\n  \"theme\": \"nord\",\n  \"whichKey\": false\n}\n", File.ReadAllText(FilePath));
+        Assert.Equal(
+            "{\n  // hello\n  \"theme\": \"nord\",\n  \"hints\": { \"whichKey\": false }\n}\n",
+            File.ReadAllText(FilePath));
     }
 
     [Fact]
@@ -106,6 +109,21 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
     }
 
     [Fact]
+    public void GivenANestedJumpTarget_WhenReading_ThenItLoads_AndABadValueWarnsAndKeepsTheDefault()
+    {
+        Create("{ \"jump\": { \"target\": \"tab\" } }");
+
+        Assert.Equal(JumpTarget.Tab, new SettingsStore(_directory).Read().Settings.JumpTarget);
+
+        Create("{ \"jump\": { \"target\": \"here\" } }");
+
+        var bad = new SettingsStore(_directory).Read();
+
+        Assert.Equal(JumpTarget.Current, bad.Settings.JumpTarget);
+        Assert.NotEmpty(bad.Warnings);
+    }
+
+    [Fact]
     public void GivenAnInvalidValue_WhenReading_ThenTheDefaultAndAWarningComeBack_AndWritingFixesIt()
     {
         Create("{ \"whichKey\": \"maybe\", \"statusHints\": false, \"unknown\": 1 }");
@@ -120,9 +138,80 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         store.Write(_whichKey, load.Settings);
 
         Assert.Equal(
-            "{ \"whichKey\": true, \"statusHints\": false, \"unknown\": 1 }",
+            "{ \"whichKey\": \"maybe\", \"statusHints\": false, \"unknown\": 1,\n  \"hints\": { \"whichKey\": true } }",
             File.ReadAllText(FilePath));
         Assert.Empty(store.Read().Warnings);
+    }
+
+    [Fact]
+    public void GivenOldFlatKeys_WhenReadingAndWriting_ThenTheyLoadAndTheNewKeyWinsAfterTheChange()
+    {
+        Create("{ \"statusHints\": \"minimal\", \"whichKey\": false }");
+
+        var store = new SettingsStore(_directory);
+        var load = store.Read();
+
+        Assert.Equal(HintLevel.Minimal, load.Settings.StatusHints);
+        Assert.False(load.Settings.WhichKey);
+        Assert.Empty(load.Warnings);
+
+        store.Write(_whichKey, new AppSettings(WhichKey: true));
+
+        var after = store.Read();
+
+        Assert.True(after.Settings.WhichKey);
+        Assert.Equal(HintLevel.Minimal, after.Settings.StatusHints);
+        Assert.Contains("\"hints\": { \"whichKey\": true }", File.ReadAllText(FilePath));
+    }
+
+    [Fact]
+    public void GivenBothTheGroupedAndTheFlatKey_WhenReading_ThenTheGroupedOneWins()
+    {
+        Create("{ \"whichKey\": false, \"hints\": { \"whichKey\": true } }");
+
+        Assert.True(new SettingsStore(_directory).Read().Settings.WhichKey);
+    }
+
+    [Fact]
+    public void GivenHintsWithoutTheMember_WhenReading_ThenTheFlatKeySuppliesIt()
+    {
+        Create("{ \"whichKey\": false, \"hints\": { \"statusBar\": \"minimal\" } }");
+
+        var settings = new SettingsStore(_directory).Read().Settings;
+
+        Assert.False(settings.WhichKey);
+        Assert.Equal(HintLevel.Minimal, settings.StatusHints);
+    }
+
+    [Theory]
+    [InlineData("hints.whichKey")]
+    [InlineData("HINTS.WHICHKEY")]
+    [InlineData("whichkey")]
+    public void GivenANameInAnyCaseOrOldSpelling_WhenFinding_ThenTheSettingIsFound(string name)
+    {
+        Assert.Equal("hints.whichKey", SettingsRegistry.Find(name)?.Name);
+    }
+
+    [Fact]
+    public void GivenAHintsParentThatIsNotAnObject_WhenWriting_ThenItIsRefusedAndUntouched()
+    {
+        Create("{ \"hints\": 3 }");
+
+        var result = new SettingsStore(_directory).Write(_whichKey, new AppSettings(WhichKey: false));
+
+        Assert.Equal(SettingsWriteOutcome.Refused, result.Outcome);
+        Assert.Contains("\"hints\"", result.Message);
+        Assert.Equal("{ \"hints\": 3 }", File.ReadAllText(FilePath));
+    }
+
+    [Fact]
+    public void GivenAnInvalidNestedValue_WhenReading_ThenTheWarningNamesTheNewKey()
+    {
+        Create("{ \"hints\": { \"statusBar\": 7 } }");
+
+        var load = new SettingsStore(_directory).Read();
+
+        Assert.Contains("hints.statusBar must be full, minimal or off", Assert.Single(load.Warnings));
     }
 
     [Fact]
@@ -140,14 +229,14 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
     public void GivenAByteOrderMark_WhenWriting_ThenItIsKept()
     {
         Directory.CreateDirectory(_directory);
-        File.WriteAllText(FilePath, "{ \"whichKey\": true }", new UTF8Encoding(true));
+        File.WriteAllText(FilePath, "{ \"hints\": { \"whichKey\": true } }", new UTF8Encoding(true));
 
         new SettingsStore(_directory).Write(_whichKey, new AppSettings(WhichKey: false));
 
         var bytes = File.ReadAllBytes(FilePath);
 
         Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes[..3]);
-        Assert.Equal("{ \"whichKey\": false }", File.ReadAllText(FilePath));
+        Assert.Equal("{ \"hints\": { \"whichKey\": false } }", File.ReadAllText(FilePath));
     }
 
     [Fact]
@@ -157,7 +246,7 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
 
         var target = Path.Combine(_directory, "real.json");
 
-        File.WriteAllText(target, "{ \"whichKey\": true }");
+        File.WriteAllText(target, "{ \"hints\": { \"whichKey\": true } }");
 
         try
         {
@@ -171,7 +260,7 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         new SettingsStore(_directory).Write(_whichKey, new AppSettings(WhichKey: false));
 
         Assert.NotNull(new FileInfo(FilePath).LinkTarget);
-        Assert.Equal("{ \"whichKey\": false }", File.ReadAllText(target));
+        Assert.Equal("{ \"hints\": { \"whichKey\": false } }", File.ReadAllText(target));
     }
 
     private void Create(string text)

@@ -28,6 +28,19 @@ public class StatusMessageSnapshotTests
         Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
     }
 
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    public void GivenTheSettingsList_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
+    {
+        var state = StatusMessages.OpenSettings(Posted());
+        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+        var actual = string.Join('\n', lines) + "\n";
+        var expected = SnapshotFile.Expect($"messages-settings-{width}x{height}.txt", actual);
+
+        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+    }
+
     private static AppState HistoryState()
     {
         var reducer = new AppReducer(_keymap);

@@ -8,10 +8,11 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 
 | `:set` name | File key | Values | Default | What it does |
 |---|---|---|---|---|
-| `hints` | `statusHints` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
-| `whichkey` | `whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
+| `hints.statusBar` | `hints.statusBar` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
+| `hints.whichKey` | `hints.whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
 | `commandlevel` | `commandLevel` | everyday or advanced | `everyday` | Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
+| `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
 
 ## Command level
 
@@ -19,8 +20,8 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 
 ## `:set`
 
-- `:set` lists every setting with its value and default.
-- `:set <name>` shows one setting with the values it accepts and what it does.
+- `:set` opens the Messages overlay (`<space>n`) with every setting, one line each with value, default and help.
+- `:set <name>` shows its value, default and accepted values on the status line (the help text is in the `:set` overlay); the message stays under 80 columns.
 - `:set <name> <value>` changes it at once and saves it. `:set theme <name>` is the same as `:theme <name>`.
 
 ## The file
@@ -29,13 +30,18 @@ The file is JSON; comments and trailing commas are allowed. Example:
 
 ```json
 {
-  // Hide the hints once I know the keys.
-  "statusHints": "off",
+  "hints": {
+    // Hide the hints once I know the keys.
+    "statusBar": "off",
+    "whichKey": true,
+  },
   "theme": "nord",
 }
 ```
 
 - A change replaces only the value of that key: comments, key order, indentation and trailing commas stay. A key the file lacks is added as its last member. A missing file is created with only that key.
+- Settings are grouped: `hints.statusBar` is the member `statusBar` of the object `hints`. A change creates a missing parent object; a parent that is not an object (`"hints": 3`) is never overwritten: the status line says so and nothing is written.
+- Older files with the flat names `statusHints` and `whichKey` still load (the grouped key wins when both exist). The flat key is not rewritten or removed; the next change to that setting writes the grouped key. The old `:set hints` and `:set whichkey` names still work.
 - Keys the app does not know are left alone.
 - A value that is not valid (wrong type or unknown value) is read as the default and the status line says so; changing that setting writes a valid value over it.
 - A file that does not parse is never written: the status line names the problem and its line, and the defaults are used for the session.

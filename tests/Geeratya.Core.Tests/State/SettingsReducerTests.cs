@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -48,27 +49,88 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var result = Run("set hints maybe");
 
         Assert.Empty(result.Effects);
-        Assert.Equal("hints takes full, minimal or off.", result.State.Message);
+        Assert.Equal("hints.statusBar takes full, minimal or off.", result.State.Message);
     }
 
     [Fact]
-    public void GivenNoArgument_WhenSubmittingThePalette_ThenEverySettingShowsWithItsDefault()
+    public void GivenNoArgument_WhenSubmittingThePalette_ThenTheMessagesOverlayOpensWithEverySettingOnItsOwnLine()
     {
-        var message = Run("set").State.Message;
+        var state = Run("set").State;
+        var lines = SettingsRegistry.ListLines(state.Settings);
+
+        Assert.True(state.MessagesOpen);
+        Assert.True(state.MessagesShowSettings);
+        Assert.Equal(InputMode.Help, state.Mode);
+        Assert.Null(state.Message);
+        Assert.Equal(SettingsRegistry.All.Count, lines.Count);
 
         foreach (var setting in SettingsRegistry.All)
         {
-            Assert.Contains($"{setting.Name} {setting.Default} (default {setting.Default})", message);
+            Assert.Contains(lines, line => line.StartsWith($"{setting.Name} {setting.Default} (default {setting.Default}) - {setting.Help}", StringComparison.Ordinal));
         }
     }
 
     [Fact]
-    public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndHelpShow()
+    public void GivenTheSettingsList_WhenClosingIt_ThenTheNextHistoryOverlayHasNoSettings()
     {
-        var message = Run("set whichkey").State.Message;
+        var closed = _reducer.Reduce(Run("set").State, new KeyPressed("Esc", DateTimeOffset.UnixEpoch)).State;
 
-        Assert.Contains("whichkey on (default on; on or off)", message);
-        Assert.Contains(SettingsRegistry.Find("whichkey")!.Help, message);
+        Assert.False(closed.MessagesOpen);
+        Assert.False(closed.MessagesShowSettings);
+    }
+
+    [Fact]
+    public void GivenSettingsWarnings_WhenStarting_ThenEachIsAWarningEntryAndTheStatusLineIsNotJoined()
+    {
+        var state = StatusMessages.Startup(AppState.Initial, null, ["a is bad.", "b is bad."]);
+        var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal(["2 problems in settings.json (see the Messages overlay)", "b is bad.", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+        Assert.Equal(StatusSeverity.Warning, settled.Status!.Severity);
+        Assert.DoesNotContain("a is bad", settled.Status.Text);
+        Assert.All(settled.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
+    }
+
+    [Fact]
+    public void GivenOneSettingsWarning_WhenStarting_ThenItIsTheStatusMessageAndRecordedOnce()
+    {
+        var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, null, ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal("Warning: a is bad.", settled.Status!.Line);
+        Assert.Single(settled.StatusHistory);
+    }
+
+    [Fact]
+    public void GivenANoticeAndWarnings_WhenStarting_ThenTheNoticeShowsAndTheWarningsAreInTheHistory()
+    {
+        var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, "Profiles corrupt", ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal("Profiles corrupt", settled.Status!.Text);
+        Assert.Equal(["Profiles corrupt", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+    }
+
+    [Fact]
+    public void GivenTheSettingsList_WhenScrolling_ThenItReachesTheLastHistoryRow()
+    {
+        var state = Run("set").State;
+        var rows = StatusMessages.OverlayRowCount(state);
+
+        Assert.Equal(SettingsRegistry.All.Count + 2, rows);
+
+        for (var step = 0; step < rows + 5; step++)
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j", DateTimeOffset.UnixEpoch)).State;
+        }
+
+        Assert.Equal(rows - 1, state.HelpScroll);
+    }
+
+    [Fact]
+    public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndAcceptedValuesShow()
+    {
+        var message = Run("set hints.whichKey").State.Message;
+
+        Assert.Contains("hints.whichKey on (default on; on or off)", message);
     }
 
     [Fact]
@@ -86,6 +148,29 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
 
         Assert.Equal(HintLevel.Minimal, result.State.Settings.StatusHints);
         Assert.Equal("\"minimal\"", SettingsRegistry.ToJson(SettingsRegistry.Find("hints")!, result.State.Settings));
+    }
+
+    [Fact]
+    public void GivenSetJumpTargetTab_WhenSubmittingThePalette_ThenTheTargetIsTabAndTheNameIsReported()
+    {
+        var result = Run("set jump.target tab");
+
+        Assert.Equal(JumpTarget.Tab, result.State.Settings.JumpTarget);
+        Assert.Equal("\"tab\"", SettingsRegistry.ToJson(SettingsRegistry.Find("jump.target")!, result.State.Settings));
+        Assert.Contains(result.Effects, effect => effect is SaveSettingsEffect);
+        Assert.Contains("jump.target tab", result.State.Message);
+    }
+
+    [Theory]
+    [InlineData("Tab ")]
+    [InlineData("here")]
+    public void GivenAnInvalidJumpTarget_WhenSubmittingThePalette_ThenNothingChangesOrIsSaved(string value)
+    {
+        var result = Run($"set jump.target {value}");
+
+        Assert.Equal(JumpTarget.Current, result.State.Settings.JumpTarget);
+        Assert.DoesNotContain(result.Effects, effect => effect is SaveSettingsEffect);
+        Assert.Contains("current or tab", result.State.Message);
     }
 
     [Fact]
@@ -165,6 +250,17 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
 
         Assert.Equal(AppSettings.DefaultTheme, settings.Theme);
         Assert.Equal(HintLevel.Off, settings.StatusHints);
+    }
+
+    [Fact]
+    public void GivenEverySetting_WhenAskingForOne_ThenTheStatusMessageFitsEightyColumns()
+    {
+        foreach (var setting in SettingsRegistry.All)
+        {
+            var message = Run($"set {setting.Name}").State.Message;
+
+            Assert.True(message is { Length: <= 80 }, $"{setting.Name}: {message.Length} columns: {message}");
+        }
     }
 
     private ReduceResult Run(string text)
