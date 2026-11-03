@@ -201,6 +201,9 @@ public sealed class ViewLoadHandler
                 if (effect.Definition.Source == ViewSourceKind.Sprint)
                 {
                     report(await FindSprintAsync(services, effect, id, token));
+
+                    // The future sprints let Complete offer the next one as the destination (#504).
+                    await ReportSprintsAsync(services, effect, id, report, token);
                 }
             }
 

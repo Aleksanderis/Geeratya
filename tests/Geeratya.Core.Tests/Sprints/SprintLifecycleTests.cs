@@ -109,6 +109,19 @@ public class SprintLifecycleTests
     }
 
     [Fact]
+    public void GivenASprintViewWithAFutureSprint_WhenCompleteIsPressed_ThenTheFormOffersItAsDestination()
+    {
+        var state = SprintView(BacklogFixtures.Active, BacklogFixtures.Active, BacklogFixtures.Future);
+
+        var asked = Press(state, "Space", "s", "c");
+
+        var form = Active(asked.State).Form!;
+        Assert.Equal(["backlog", "next"], Assert.Single(form.Fields).Options.Select(option => option.Id));
+        Assert.Contains("Sprint 2", form.Fields[0].Options[1].Label);
+        Assert.Equal(["backlog"], form.Fields[0].Value.Chosen);
+    }
+
+    [Fact]
     public void GivenAnActiveSprintWithNoOpenIssue_WhenCompleteIsPressed_ThenTheConfirmSaysThereIsNothingToMove()
     {
         var done = BacklogFixtures.Issue("A-9", BacklogFixtures.Active, 2) with
@@ -369,12 +382,13 @@ public class SprintLifecycleTests
         return _reducer.Reduce(withSprints, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
     }
 
-    private AppState SprintView(Sprint sprint)
+    private AppState SprintView(Sprint sprint, params Sprint[] boardSprints)
     {
         var definition = new ViewDefinition(ViewSourceKind.Sprint, $"6:{sprint.Id}", ViewLayout.List, sprint.Name);
         var opened = Open(definition);
         var tab = Active(opened);
-        var shown = _reducer.Reduce(opened, new SprintLoaded(tab.Id, tab.RequestId, sprint)).State;
+        var known = _reducer.Reduce(opened, new SprintsLoaded(tab.Id, tab.RequestId, boardSprints)).State;
+        var shown = _reducer.Reduce(known, new SprintLoaded(tab.Id, tab.RequestId, sprint)).State;
         IssueSummary[] rows = [BacklogFixtures.Issue("A-3", sprint, 5), BacklogFixtures.Issue("A-4", sprint, null)];
 
         return _reducer.Reduce(shown, new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(rows, null, null), _now))
