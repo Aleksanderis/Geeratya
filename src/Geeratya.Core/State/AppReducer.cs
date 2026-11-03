@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
+using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
@@ -161,6 +162,7 @@ public sealed class AppReducer
             PendingKeys = string.Empty,
             Count = 0,
             PaletteText = string.Empty,
+            PaletteSelected = 0,
             HelpScroll = 0,
             Confirm = null,
             Form = null,
@@ -193,6 +195,7 @@ public sealed class AppReducer
             MouseTarget.ContextMenu when cleared.ContextMenu is { } menu && clicked.Index < menu.Items.Count
                 => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
             MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),
+            MouseTarget.PaletteRow when state.Mode == InputMode.Command => ClickPaletteRow(cleared, clicked),
             MouseTarget.ConfirmYes when state.Mode == InputMode.Confirm => Confirmed(state, clicked.At),
             MouseTarget.ConfirmNo when state.Mode == InputMode.Confirm => DeclineConfirm(state),
             _ => Result(state),
@@ -382,7 +385,7 @@ public sealed class AppReducer
             return TypeInInsert(state, text);
         }
 
-        return state.Mode == InputMode.Command ? state with { PaletteText = $"{state.PaletteText}{text}" } : state;
+        return state.Mode == InputMode.Command ? Typed(state, $"{state.PaletteText}{text}") : state;
     }
 
     private static AppState TypeText(AppState state, string key)
@@ -399,7 +402,13 @@ public sealed class AppReducer
             return state;
         }
 
-        return state with { PaletteText = $"{state.PaletteText}{text}" };
+        return Typed(state, $"{state.PaletteText}{text}");
+    }
+
+    // The filter changed, so the highlight goes back to the first row.
+    private static AppState Typed(AppState state, string text)
+    {
+        return state with { PaletteText = text, PaletteSelected = 0 };
     }
 
     private static AppState TypeInInsert(AppState state, string text)
@@ -546,8 +555,13 @@ public sealed class AppReducer
     }
 
     /// <summary>Up and down in Insert mode: a row up or down in the editor, else the picker selection.</summary>
-    private static AppState MovePicker(AppState state, int direction)
+    private AppState MovePicker(AppState state, int direction)
     {
+        if (state.Mode == InputMode.Command)
+        {
+            return MovePalette(state, direction);
+        }
+
         if (state.Jump is not null)
         {
             return JumpReducer.Move(state, direction);
@@ -701,10 +715,78 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return state with { PaletteText = RemoveLastTextElement(state.PaletteText) };
+        return Typed(state, RemoveLastTextElement(state.PaletteText));
     }
 
-    private static ReduceResult SubmitPalette(AppState state, DateTimeOffset at)
+    private AppState MovePalette(AppState state, int delta)
+    {
+        var count = PaletteRows.Selectable(state, _keymap).Count;
+
+        return state with { PaletteSelected = Math.Clamp(state.PaletteSelected + delta, 0, Math.Max(0, count - 1)) };
+    }
+
+    /// <summary>
+    /// A click on a palette row chooses it and runs it like <c>Enter</c>; the wheel over the rows moves the
+    /// highlight (<see cref="DefaultMouseMap.WheelRows"/> rows) and runs nothing.
+    /// </summary>
+    private ReduceResult ClickPaletteRow(AppState state, OverlayRowClicked clicked)
+    {
+        if (clicked.Action == ActionIds.PickerNext)
+        {
+            return Result(MovePalette(state, DefaultMouseMap.WheelRows));
+        }
+
+        if (clicked.Action == ActionIds.PickerPrevious)
+        {
+            return Result(MovePalette(state, -DefaultMouseMap.WheelRows));
+        }
+
+        return RunPaletteRow(state with { PaletteSelected = clicked.Index }, clicked.At);
+    }
+
+    /// <summary>
+    /// Enter in the palette: text that starts with a command name runs as a command line (as it always did);
+    /// otherwise the highlighted row runs, after the palette closed, exactly as its key would. Text that matches no
+    /// row is an unknown command.
+    /// </summary>
+    private ReduceResult SubmitPalette(AppState state, DateTimeOffset at)
+    {
+        var text = state.PaletteText.Trim();
+
+        if (text.Length > 0 && (PaletteRows.IsCommandLine(text) || PaletteRows.Selectable(state, _keymap).Count == 0))
+        {
+            return RunCommandLine(state, at);
+        }
+
+        return RunPaletteRow(state, at);
+    }
+
+    private ReduceResult RunPaletteRow(AppState state, DateTimeOffset at)
+    {
+        var rows = PaletteRows.Selectable(state, _keymap);
+        var normal = ToNormal(state);
+
+        if (rows.Count == 0)
+        {
+            return Result(normal);
+        }
+
+        var row = rows[Math.Clamp(state.PaletteSelected, 0, rows.Count - 1)];
+
+        if (!row.Enabled)
+        {
+            return Result(normal with { Message = $"Not available yet: {row.Title}" });
+        }
+
+        if (row.Kind == PaletteRowKind.Command)
+        {
+            return RunCommandLine(state with { PaletteText = row.Id }, at);
+        }
+
+        return ReduceRequested(normal, new ActionRequested(row.Id, 1, at));
+    }
+
+    private static ReduceResult RunCommandLine(AppState state, DateTimeOffset at)
     {
         var text = state.PaletteText.Trim();
         var normal = ToNormal(state);

@@ -24,6 +24,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `PageUp` | Page up |
 | `?` | Show or hide help |
 | `:` | Open the command palette |
+| `Ctrl-p` | Open the command palette |
 | `q` | Quit |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Quit |
@@ -93,6 +94,10 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 |---|---|
 | `Enter` | Run the typed command |
 | `Backspace` | Delete the last character |
+| `Up` | Previous row in the picker |
+| `Ctrl-p` | Previous row in the picker |
+| `Down` | Next row in the picker |
+| `Ctrl-n` | Next row in the picker |
 | `Esc` | Cancel or close |
 | `Ctrl-c` | Quit |
 

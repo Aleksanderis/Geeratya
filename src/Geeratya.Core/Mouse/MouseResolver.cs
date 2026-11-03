@@ -111,7 +111,7 @@ public static class MouseResolver
     {
         return target is MouseTarget.PickerRow or MouseTarget.JumpRow or MouseTarget.ProfileRow
             or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice or MouseTarget.ContextMenu
-            or MouseTarget.ConfirmYes or MouseTarget.ConfirmNo;
+            or MouseTarget.ConfirmYes or MouseTarget.ConfirmNo or MouseTarget.PaletteRow;
     }
 
     private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture, DateTimeOffset at)
