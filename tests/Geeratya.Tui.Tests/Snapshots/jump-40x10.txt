@@ -1,4 +1,4 @@
- [1 JQL: project = GCM …]  +     [jump] 
+ 1 JQL project = GCM …   +              
                                         
   ┌─ Jump to an issue ───────────────┐  
   │ > gcm_                           │  
@@ -7,4 +7,4 @@
   │   GCM-7       A rather long summ │  
   │   GCM-4       recent             │  
   └──────────────────────────────────┘  
- INSERT jump to an issue                
+ INSERT  jump to an issue               

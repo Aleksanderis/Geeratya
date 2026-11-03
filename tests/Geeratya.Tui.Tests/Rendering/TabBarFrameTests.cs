@@ -23,7 +23,7 @@ public class TabBarFrameTests
         var lines = FrameBuilder.Build(State(3, 30), width, height, _keymap);
 
         Assert.Equal(height, lines.Count);
-        Assert.Contains("[3 JQL:", lines[0]);
+        Assert.Contains(" 3 JQL ", lines[0]);
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
 
@@ -49,11 +49,11 @@ public class TabBarFrameTests
     }
 
     [Fact]
-    public void GivenTabs_WhenBuildingStyledFrame_ThenTheActiveTabUsesTheSelectedRole()
+    public void GivenTabs_WhenBuildingStyledFrame_ThenTheActiveTabUsesTheTabActiveRole()
     {
         var frame = FrameBuilder.BuildStyled(State(2, 5), 80, 12, _keymap)!;
 
-        Assert.Contains(frame.Header[0].Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("[2 "));
+        Assert.Contains(frame.Header[0].Spans, span => span.Role == TextRole.TabActive && span.Text.StartsWith(" 2 "));
     }
 
     private static AppState State(int tabs, int rows)

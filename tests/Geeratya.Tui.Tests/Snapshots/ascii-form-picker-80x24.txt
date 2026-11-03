@@ -1,4 +1,4 @@
- [1 JQL: A]  +                                                           [jump] 
+[1 JQL A x]  +                                                    [Space g jump]
                                                                                 
 +- A ---------------------------------------------------------------- 1 issue -+
   +- Create issue in A ------------------------------------------------------+  
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
- INSERT Choose the issue type       Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+[INSERT] Choose the issue type      Tab/Shift-Tab field  Ctrl-s save  Esc cancel

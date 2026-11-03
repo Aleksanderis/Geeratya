@@ -1,4 +1,4 @@
- [1 JQL: My open issues !]  +                                            [jump] 
+[1 JQL My open issues ! x]  +                                     [Space g jump]
  OFFLINE  Cannot reach work.atlassian.net. Retrying in 8 s, <space>r retries now
 +- My open issues -------------------------------------------------- 3 issues -+
 |  Key    T Summary                                              Status        |
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
- NORMAL offline                 j/k move  Enter open  ? help  : commands  q quit
+[NORMAL] offline                j/k move  Enter open  ? help  : commands  q quit

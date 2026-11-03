@@ -33,4 +33,4 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
- INSERT API token (hidden)                                                            Enter save  Alt-t test  Esc cancel
+ INSERT  API token (hidden)                                                           Enter save  Alt-t test  Esc cancel

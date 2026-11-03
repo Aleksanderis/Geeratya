@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +                                              [jump] 
+ 1 JQL My open issues x   +                                        Space g jump 
                                                                                 
 ╭─ Description ────────────────────────────────────────────────────────────────╮
 │ ----------------------------------------                                     │
@@ -21,4 +21,4 @@
 │ Ola Nordmann · 5 min ago                                                     │
 │>See also café and 😀 in the second paragraph, which is long enough to wrap.  │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL My open issues › GCM-12 · Bot     j/k scroll  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Bot    j/k scroll  ? help  : commands  q quit

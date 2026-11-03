@@ -1,4 +1,4 @@
- [1 JQL: View]  +                                                                                                [jump] 
+ 1 JQL View x   +                                                                                          Space g jump 
                                                                                                                         
 ╭─ View ──────────────────────────────────────────────────────────────────────────────────────────────────── 0 issues ─╮
                     ┌─ Commands ───────────────────────────────────────────────────────────────────┐                    
@@ -33,4 +33,4 @@
                     │   Open a saved view in a new tab                                   Space v v │                    
                     │   Save this view under a name (opens :view save)                   Space v w │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
- COMMAND :                                                                           Up/Down move  Enter run  Esc cancel
+ COMMAND  :                                                                          Up/Down move  Enter run  Esc cancel

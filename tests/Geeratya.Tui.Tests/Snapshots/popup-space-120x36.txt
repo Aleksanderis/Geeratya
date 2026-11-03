@@ -33,4 +33,4 @@
                                                             │ s         +sprint (7)                                    │
                                                             │ v         +view (4)                                      │
                                                             └──────────────────────────────────────────────────────────┘
- NORMAL Space                                                                                 ? help  : commands  q quit
+ NORMAL  Space                                                                                ? help  : commands  q quit

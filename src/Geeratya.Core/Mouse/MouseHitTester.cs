@@ -82,6 +82,11 @@ public static class MouseHitTester
             return MouseTarget.JumpChip;
         }
 
+        if (context.TabClose is { } close && column >= close.Start && column < close.End)
+        {
+            return MouseTarget.TabClose;
+        }
+
         var button = context.NewTabButton;
 
         if (button is { } cells && column >= cells.Start && column < cells.End)

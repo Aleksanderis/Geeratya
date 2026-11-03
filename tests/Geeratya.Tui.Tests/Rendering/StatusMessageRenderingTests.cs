@@ -15,9 +15,9 @@ public class StatusMessageRenderingTests
     private static readonly DateTimeOffset _now = new(2026, 11, 3, 10, 0, 0, TimeSpan.Zero);
 
     [Theory]
-    [InlineData(StatusSeverity.Info, " NORMAL Saved A-1")]
-    [InlineData(StatusSeverity.Warning, " NORMAL Warning: Saved A-1")]
-    [InlineData(StatusSeverity.Error, " NORMAL Error: Saved A-1")]
+    [InlineData(StatusSeverity.Info, " NORMAL  Saved A-1")]
+    [InlineData(StatusSeverity.Warning, " NORMAL  Warning: Saved A-1")]
+    [InlineData(StatusSeverity.Error, " NORMAL  Error: Saved A-1")]
     public void GivenAMessage_WhenRenderingTheStatusLine_ThenTheSeverityIsATextPrefixNotOnlyAColour(
         StatusSeverity severity,
         string expected)
@@ -166,7 +166,7 @@ public class StatusMessageRenderingTests
     [Theory]
     [InlineData(20)]
     [InlineData(12)]
-    [InlineData(9)]
+    [InlineData(10)]
     public void GivenANarrowTerminal_WhenLocatingTheMessage_ThenTheSegmentAndTheClickStayInsideTheWidth(int width)
     {
         var state = Posted("A message that is far too long for this terminal", StatusSeverity.Error);

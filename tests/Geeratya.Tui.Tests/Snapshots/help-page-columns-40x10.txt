@@ -1,4 +1,4 @@
- [1 Board: Sample]  +            [jump] 
+ 1 Board Sample   +        Space g jump 
                                         
 ╭─ Issues 1 ───────────────────────────╮
   ┌─ Help ───────────────────────────┐  

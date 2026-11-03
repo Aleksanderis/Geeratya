@@ -1,4 +1,4 @@
- [1 JQL: View]  +                                                        [jump] 
+ 1 JQL View x   +                                                  Space g jump 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
   ┌─ Commands ───────────────────────────────────────────────────────────────┐  
@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND :jql project                        Up/Down move  Enter run  Esc cancel
+ COMMAND  :jql project                       Up/Down move  Enter run  Esc cancel

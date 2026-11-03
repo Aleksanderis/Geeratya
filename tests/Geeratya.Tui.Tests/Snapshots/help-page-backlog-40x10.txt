@@ -1,4 +1,4 @@
- [1 Backlog: Sample]  +          [jump] 
+ 1 Backlog Sample   +      Space g jump 
                                         
 ╭─ Sample ─────────────────── 1 issue ─╮
   ┌─ Help ───────────────────────────┐  

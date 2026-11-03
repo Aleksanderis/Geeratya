@@ -90,8 +90,8 @@ public class StatusBarTests
         var counted = AppState.Initial with { Count = 12 };
         var pending = counted with { PendingKeys = "Space k" };
 
-        Assert.Contains("NORMAL 12", StatusBar.Render(counted, 60, _keymap));
-        Assert.Contains("NORMAL 12 Space k", StatusBar.Render(pending, 60, _keymap));
+        Assert.Contains("NORMAL  12", StatusBar.Render(counted, 60, _keymap));
+        Assert.Contains("NORMAL  12 Space k", StatusBar.Render(pending, 60, _keymap));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class StatusBarTests
     {
         var state = AppState.Initial with { Mode = InputMode.Command, PaletteText = "quit" };
 
-        Assert.Contains("COMMAND :quit", StatusBar.Render(state, 60, _keymap));
+        Assert.Contains("COMMAND  :quit", StatusBar.Render(state, 60, _keymap));
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class StatusBarTests
 
         var line = StatusBar.Render(state, 80, _keymap);
 
-        Assert.Contains("INSERT [4/4] API token (hidden): ***_", line);
+        Assert.Contains("INSERT  [4/4] API token (hidden): ***_", line);
         Assert.DoesNotContain("abc", line);
         Assert.Contains("Enter save", line);
         Assert.DoesNotContain("Enter next", line);

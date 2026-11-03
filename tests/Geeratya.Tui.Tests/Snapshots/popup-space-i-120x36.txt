@@ -33,4 +33,4 @@
                                          │ c         Create an issue (type picker, then the form)                      │
                                          │ e         Edit fields of the issue (summary, labels, priority, description) │
                                          └─────────────────────────────────────────────────────────────────────────────┘
- NORMAL Space i                                                                               ? help  : commands  q quit
+ NORMAL  Space i                                                                              ? help  : commands  q quit

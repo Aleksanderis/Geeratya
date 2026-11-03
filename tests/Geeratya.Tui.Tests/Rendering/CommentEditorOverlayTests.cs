@@ -28,7 +28,7 @@ public class CommentEditorOverlayTests
         Assert.Contains("Ctrl-s send", text);
         Assert.Contains("Enter new line", text);
         Assert.Contains("Esc cancel", text);
-        Assert.Contains("INSERT Commenting on A-1", frame.StatusLine);
+        Assert.Contains("INSERT  Commenting on A-1", frame.StatusLine);
         Assert.EndsWith("Ctrl-s save  Esc cancel", frame.StatusLine);
     }
 
@@ -286,7 +286,7 @@ public class CommentEditorOverlayTests
 
         var text = string.Join('\n', frame.PlainLines());
 
-        Assert.Contains("CONFIRM Confirm  (y/n)", frame.StatusLine);
+        Assert.Contains("CONFIRM  Confirm  (y/n)", frame.StatusLine);
         Assert.Contains("Discard the unsent comment text?", text);
         Assert.Contains("draft", text);
     }

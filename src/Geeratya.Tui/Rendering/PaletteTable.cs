@@ -69,6 +69,35 @@ public static class PaletteTable
         [PaletteRole.TypeSubtask] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.FieldLabel] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Editable] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.BarMuted] = new(
+            ThemeColor.Muted,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse,
+            RoleGround.OnBlue),
+        [PaletteRole.BarKey] = new(
+            ThemeColor.Warn,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.OnBlue),
+        [PaletteRole.BarError] = new(
+            ThemeColor.Bad,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse | RoleStyle.Bold),
+        [PaletteRole.BarWarning] = new(
+            ThemeColor.Warn,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse | RoleStyle.Bold),
+        [PaletteRole.BarSuccess] = new(
+            ThemeColor.Good,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse | RoleStyle.Bold),
+        [PaletteRole.TabActive] = Chip(ThemeColor.Accent),
+        [PaletteRole.BadgeNormal] = Chip(ThemeColor.Accent),
+        [PaletteRole.BadgeVisual] = Chip(ThemeColor.Remote),
+        [PaletteRole.BadgeInsert] = Chip(ThemeColor.Good),
+        [PaletteRole.BadgeCommand] = Chip(ThemeColor.Warn),
+        [PaletteRole.BadgeConfirm] = Chip(ThemeColor.Bad),
+        [PaletteRole.BadgeHelp] = Chip(ThemeColor.Info),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -99,6 +128,21 @@ public static class PaletteTable
         [TextRole.Stale] = PaletteRole.Stale,
         [TextRole.FieldLabel] = PaletteRole.FieldLabel,
         [TextRole.Editable] = PaletteRole.Editable,
+        [TextRole.BarText] = PaletteRole.Status,
+        [TextRole.BarMuted] = PaletteRole.BarMuted,
+        [TextRole.TabDim] = PaletteRole.BarMuted,
+        [TextRole.BarKey] = PaletteRole.BarKey,
+        [TextRole.BarError] = PaletteRole.BarError,
+        [TextRole.BarWarning] = PaletteRole.BarWarning,
+        [TextRole.BarSuccess] = PaletteRole.BarSuccess,
+        [TextRole.BarSuccessChip] = PaletteRole.SuccessChip,
+        [TextRole.TabActive] = PaletteRole.TabActive,
+        [TextRole.BadgeNormal] = PaletteRole.BadgeNormal,
+        [TextRole.BadgeVisual] = PaletteRole.BadgeVisual,
+        [TextRole.BadgeInsert] = PaletteRole.BadgeInsert,
+        [TextRole.BadgeCommand] = PaletteRole.BadgeCommand,
+        [TextRole.BadgeConfirm] = PaletteRole.BadgeConfirm,
+        [TextRole.BadgeHelp] = PaletteRole.BadgeHelp,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();
@@ -131,6 +175,13 @@ public static class PaletteTable
         }
 
         return entries;
+    }
+
+    // A filled chip: the page colour in bold on the role's own colour. Bold only (no reverse): the bars are reversed
+    // without colour, so a chip that is not reverses back to normal and stands out of the bar.
+    private static RoleSpec Chip(ThemeColor fill)
+    {
+        return new RoleSpec(ThemeColor.BaseBackground, fill, RoleStyle.Bold, RoleGround.Chip);
     }
 
     private static Ansi16Color Foreground16(Theme theme, RoleSpec spec)

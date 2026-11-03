@@ -1,4 +1,4 @@
- [1 JQL: project = GCM .]  +                                             [jump] 
+[1 JQL project = GCM . x]  +                                      [Space g jump]
                                                                                 
 +- project = GCM --------------------------------------------------- 4 issues -+
 |  Key T Summary                                                 Status        |
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
- INSERT jump to an issue                      Down choose  Enter open  Esc close
+[INSERT] jump to an issue                     Down choose  Enter open  Esc close

@@ -10,6 +10,12 @@ public static class StyledLines
     /// </summary>
     public static StyledLine Fit(StyledLine line, int width)
     {
+        return Fit(line, width, TextRole.Body);
+    }
+
+    /// <summary>As <see cref="Fit(StyledLine, int)"/>, with the padding drawn in <paramref name="padding"/>.</summary>
+    public static StyledLine Fit(StyledLine line, int width, TextRole padding)
+    {
         var spans = new List<StyledSpan>();
         var used = 0;
 
@@ -31,7 +37,7 @@ public static class StyledLines
 
         if (used < width)
         {
-            spans.Add(new StyledSpan(new string(' ', width - used), TextRole.Body));
+            spans.Add(new StyledSpan(new string(' ', width - used), padding));
         }
 
         return new StyledLine(spans);

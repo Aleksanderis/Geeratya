@@ -21,4 +21,4 @@
                                                                                 
                                                                                 
                                                                                 
- CONFIRM Confirm  (y/n)                                              y yes  n no
+[CONFIRM] Confirm  (y/n)                                             y yes  n no
