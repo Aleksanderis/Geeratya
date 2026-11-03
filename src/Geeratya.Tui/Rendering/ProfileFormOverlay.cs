@@ -61,7 +61,7 @@ public static class ProfileFormOverlay
 
         lines.Add(OverlayBox.Wall(NoteLine(form), contentWidth));
         lines.Add(OverlayBox.Wall(ButtonLine(), contentWidth));
-        lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
+        lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var top = (height - lines.Count) / 2;

@@ -37,7 +37,7 @@ public sealed record CommentEditor(
     private const int DefaultColumns = 80;
     private const int NarrowColumns = 24;
     private const int Margin = 4;
-    private const int MaxBoxWidth = 100;
+    private const int MaxBoxWidth = 80;
     private const int WallsAndPadding = 4;
 
     public bool IsEdit => CommentId is not null;

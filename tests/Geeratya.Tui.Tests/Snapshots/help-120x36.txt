@@ -30,7 +30,7 @@
 │           │               │   <space>ic  Create an issue (type picker, then the form)                    │           │
 │           │               │   <space>g   Jump to an issue by key                                         │           │
 │           │               │   <space>n   Show the message history                                        │           │
-│           │               │   <space>x   Dismiss the status message                                      │           │
+│           │               │   <space>x   Dismiss the status message                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

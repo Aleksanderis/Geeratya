@@ -30,6 +30,18 @@ public class OverlayPolishTests
         Assert.Equal(expected, OverlayBox.ScrollMarker(row, area, first, total));
     }
 
+    [Theory]
+    [InlineData(0, "▼")]
+    [InlineData(3, "▲")]
+    public void GivenTheHelpPage_WhenBuildingTheFrame_ThenTheRightColumnShowsTheHiddenRowMarkers(int scroll, string marker)
+    {
+        var state = AppState.Initial with { Mode = InputMode.Help, HelpScroll = scroll };
+
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains($"{marker}│", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void GivenAFooterText_WhenBuildingHints_ThenKeysAreKeyRoleAndLabelsMutedWithTheGapsKept()
     {

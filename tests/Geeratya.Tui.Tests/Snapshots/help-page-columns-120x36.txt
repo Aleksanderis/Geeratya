@@ -30,7 +30,7 @@
 │           │               │   <space>is  Change the status of the issue                                  │           │
 │           │               │   Alt-l      Move the card to the next column                                │           │
 │           │               │   Alt-h      Move the card to the previous column                            │           │
-│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)          ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

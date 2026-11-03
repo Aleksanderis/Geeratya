@@ -23,6 +23,9 @@ public static class FormOverlay
     private const string ReadOnlyText = "not editable here";
     private const string EmptyText = "-";
     private const int MaxBoxWidth = 100;
+    private const int WantedBoxWidth = 90;
+    private const int WantedValueWidth = 40;
+    private const int ChipPadding = 8;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
     private const int MinimumBoxHeight = 5;
@@ -52,7 +55,7 @@ public static class FormOverlay
             return body;
         }
 
-        var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
+        var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, WantedWidth(form)) : width;
 
         if (boxWidth < 8 || height < MinimumBoxHeight)
         {
@@ -78,6 +81,18 @@ public static class FormOverlay
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The box width the form wants: wide enough for the title, its longest label and a value, never from what is
+    /// typed, so the box does not change width while the user types (at most the maximum width).
+    /// </summary>
+    private static int WantedWidth(FormState form)
+    {
+        var label = form.Fields.Count == 0 ? 0 : form.Fields.Max(field => TextWidth.Of(field.Label));
+        var wanted = Math.Max(WantedBoxWidth, label + Indent + WantedValueWidth);
+
+        return Math.Min(MaxBoxWidth, Math.Max(wanted, TextWidth.Of(form.Target.Title) + ChipPadding));
     }
 
     /// <summary>The one-line status text of the open form: the state, or the error of the focused field.</summary>
@@ -126,9 +141,13 @@ public static class FormOverlay
         var first = FirstVisible(content, area);
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, form.Target.Title) };
 
-        foreach (var line in content.Lines.Skip(first).Take(area))
+        var shown = content.Lines.Skip(first).Take(area).ToList();
+
+        for (var row = 0; row < shown.Count; row++)
         {
-            lines.Add(OverlayBox.Wall(line, contentWidth));
+            var marker = OverlayBox.ScrollMarker(row, area, first, content.Lines.Count);
+
+            lines.Add(OverlayBox.Wall(shown[row], contentWidth, marker));
         }
 
         while (lines.Count < inner + 1 - footer)

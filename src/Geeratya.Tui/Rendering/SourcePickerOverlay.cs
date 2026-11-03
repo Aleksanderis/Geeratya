@@ -26,7 +26,7 @@ public static class SourcePickerOverlay
     private const string ClosedHeading = "Closed";
     private const string LoadingText = "Loading…";
     private const string NothingText = "Nothing to choose from.";
-    private const int MaxBoxWidth = 100;
+    private const int MaxBoxWidth = 76;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
     private const int MinimumBoxHeight = 4;

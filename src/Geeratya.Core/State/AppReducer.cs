@@ -258,6 +258,15 @@ public sealed class AppReducer
     {
         var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
 
+        if (clicked.Target is MouseTarget.PickerRow or MouseTarget.JumpRow
+            && clicked.Action is ActionIds.PickerNext or ActionIds.PickerPrevious)
+        {
+            // The wheel over the rows moves the highlight and opens nothing.
+            var rows = clicked.Action == ActionIds.PickerNext ? DefaultMouseMap.WheelRows : -DefaultMouseMap.WheelRows;
+
+            return Result(MovePicker(cleared, rows));
+        }
+
         return clicked.Target switch
         {
             MouseTarget.PickerRow when cleared.Picker is { } picker

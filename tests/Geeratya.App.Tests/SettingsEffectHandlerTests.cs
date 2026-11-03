@@ -34,7 +34,7 @@ public sealed class SettingsEffectHandlerTests : IDisposable
     {
         var reducer = new AppReducer(DefaultKeymap.Load());
         var handler = new SettingsEffectHandler(new SettingsStore(_directory));
-        var state = reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.SettingsOpen, 1, default)).State;
+        var state = reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.SettingsOpen)).State;
 
         foreach (var name in new[] { "hints.whichKey", "startup.restore" })
         {
