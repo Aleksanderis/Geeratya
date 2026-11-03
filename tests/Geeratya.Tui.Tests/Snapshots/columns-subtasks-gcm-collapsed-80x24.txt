@@ -21,4 +21,4 @@
 │                          │                          │                        │
 │                          │                          │                        │
 ╰──────────────────────────┴──────────────────────────┴────────────────────────╯
- NORMAL  GCM board · 20 issues          za sub-tasks  ? help  : commands  q quit
+ NORMAL  col 2/3  card 3/4 · GCM board · 20 issues    ? help  : commands  q quit

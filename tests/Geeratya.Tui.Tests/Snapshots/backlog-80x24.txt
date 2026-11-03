@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q quit
+ NORMAL  1/5                    j/k move  Enter open  ? help  : commands  q quit

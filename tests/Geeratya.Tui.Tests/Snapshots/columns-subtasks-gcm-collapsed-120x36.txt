@@ -33,4 +33,4 @@
 │                                       │                                       │                                      │
 │                                       │                                       │                                      │
 ╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
- NORMAL  GCM board · 20 is…    za sub-tasks  h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+ NORMAL  col 2/3  card 3/4 · GCM board · 20 issues        za sub-tasks  h/l column  j/k card  ? help  : commands  q quit

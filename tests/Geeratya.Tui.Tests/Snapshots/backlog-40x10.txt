@@ -7,4 +7,4 @@
 │> GCS-3 S Fix login redirect after t ○│
 │  GCS-4 S As a user I can filter by  ○│
 ╰──────────────────────────────────────╯
- NORMAL       ? help  : commands  q quit
+ NORMAL  1/5  ? help  : commands  q quit

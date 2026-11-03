@@ -179,7 +179,9 @@ public static class StatusBar
         // The view text (source, count, filter and lane, breadcrumb, ruler) is state the user needs: up to
         // MaxViewReserve cells are kept for it and the screen hints drop from the end to make room (the global
         // hints stay while they fit).
-        var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
+        // The hint gap and, with no text yet, the space after the badge come on top of the view text.
+        var extra = wanted > 0 ? HintGap.Length + (text.TrimEnd().Length == 0 ? 1 : 0) : 0;
+        var reserve = Math.Min(Math.Max(0, wanted + extra), MaxViewReserve);
         var left = Left(state, text);
         var room = width - TextWidth.Of(left);
         var hints = ShownHints(state, keymap, room - reserve);
@@ -192,14 +194,16 @@ public static class StatusBar
         }
 
         var hintWidth = HintBar.Width(hints);
-        var spare = width - TextWidth.Of(left) - hintWidth - Separator.Length;
+        // With no text yet, the view text needs only the space after the badge; otherwise it also needs a separator.
+        var joint = text.TrimEnd().Length == 0 ? 1 : Separator.Length;
+        var spare = width - TextWidth.Of(left) - hintWidth - joint;
 
         if (hints.Count > 0)
         {
             spare -= HintGap.Length;
         }
 
-        var shown = wanted > 0 && spare >= MinViewRoom
+        var shown = wanted > 0 && spare >= Math.Min(MinViewRoom, wanted)
             ? Text(state, width, keymap, clock, confirmDialogShown, spare)
             : text;
 
@@ -712,12 +716,17 @@ public static class StatusBar
             return CardText.Shorten(DetailStatus.Text(tab, room), room);
         }
 
+        var position = CursorPosition.Text(tab);
+
         if (tab.Definition.Layout != ViewLayout.Columns)
         {
-            return string.Empty;
+            return position;
         }
 
-        return CardText.Shorten(ColumnsBodyRenderer.StatusText(tab, Glyphs.For(GlyphSet.Unicode), now), room);
+        var board = ColumnsBodyRenderer.StatusText(tab, Glyphs.For(GlyphSet.Unicode), now);
+        var text = position.Length == 0 ? board : $"{position}{Separator}{board}";
+
+        return CardText.Shorten(text, room);
     }
 
     private static string SelectedText(TabState tab)
