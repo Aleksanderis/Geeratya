@@ -8,12 +8,12 @@
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  loopback base URL printed by tools/FakeJira; written as the site of one active fake profile into
 #               a private configuration directory (token: GEERATYA_TOKEN=fake)
-# Prints median and p95 in milliseconds. psmux polls cost about 50 ms each (tmux: a few ms), so the numbers are only
+# Prints median and p95 in milliseconds. psmux polls are expected to cost far more than tmux's few ms (to be measured), so the numbers are only
 # comparable between runs of this script, never with measure.sh. Private XDG directories keep the owner's profiles,
-# tokens and cache unread. Exit 2 for bad arguments, 3 for a missing tool, 1 when a frame never appears.
+# tokens and cache unread (no `-f` equivalent for the psmux config is known: a user psmux config could still apply). Exit 2 for bad arguments, 3 for a missing tool, 1 when a frame never appears.
 param(
-    [Parameter(Mandatory, Position = 0)][string]$Binary,
-    [Parameter(Mandatory, Position = 1)][string]$FakeUrl,
+    [Parameter(Position = 0)][string]$Binary,
+    [Parameter(Position = 1)][string]$FakeUrl,
     [Parameter(Position = 2)][int]$Runs = 20,
     [int]$Keys = 5,
     [int]$TimeoutMs = 5000)
@@ -21,6 +21,7 @@ param(
 $ErrorActionPreference = 'Stop'
 function Write-Err([string]$text) { [Console]::Error.WriteLine($text) }
 
+if (-not $Binary -or -not $FakeUrl) { Write-Err 'usage: measure.ps1 <binary> <fake url> [runs] [-Keys N] [-TimeoutMs N]'; exit 2 }
 if ($env:SCENARIO) { Write-Err "SCENARIO=$($env:SCENARIO) is not ported to measure.ps1; use measure.sh"; exit 2 }
 if ($FakeUrl -notmatch '^http://(127\.0\.0\.1|localhost):') { Write-Err 'the fake url must be a loopback address'; exit 2 }
 if (-not (Test-Path -PathType Leaf $Binary)) { Write-Err "binary not found: $Binary"; exit 2 }
@@ -76,11 +77,14 @@ try {
     $profiles = [ordered]@{ activeName = 'fake'; profiles = @([ordered]@{ name = 'fake'; siteUrl = $FakeUrl; email = 'fake@example.com' }) }
     [System.IO.File]::WriteAllText((Join-Path $config 'geeratya/profiles.json'), ($profiles | ConvertTo-Json -Compress -Depth 4), [System.Text.UTF8Encoding]::new($false))
 
+    # Which shell psmux runs the command through is unverified: a path without spaces is passed bare so it works with
+    # cmd and pwsh alike; with spaces it is quoted, which pwsh would print instead of run (check on the first Windows run).
+    $appCommand = if ($Binary -match '\s') { "`"$Binary`"" } else { $Binary }
     $floor = @(); $cold = @(); $keyed = @()
-    # The floor: a shell command that prints one character, so the numbers can be read net of psmux and polling cost.
-    for ($run = 1; $run -le $Runs; $run++) { $floor += Start-Session "f$run" 'pwsh -NoProfile -Command "Write-Host -NoNewline x; Start-Sleep 30"' }
+    # The floor: a cmd.exe command that prints one character (cheap to start, unlike pwsh), so the numbers can be read net of psmux and polling cost.
+    for ($run = 1; $run -le $Runs; $run++) { $floor += Start-Session "f$run" 'cmd /c "echo x& ping -n 30 127.0.0.1 >nul"' }
     for ($run = 1; $run -le $Runs; $run++) {
-        $cold += Start-Session "c$run" "`"$Binary`""
+        $cold += Start-Session "c$run" $appCommand
         for ($press = 1; $press -le $Keys; $press++) {
             $before = Get-Frame
             T send-keys -t m '?' | Out-Null

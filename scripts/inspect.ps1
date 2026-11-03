@@ -1,3 +1,4 @@
+#requires -Version 7
 # Runs JetBrains inspectcode (the Rider inspections) over the solution and prints the warnings.
 # PowerShell twin of inspect.sh (Windows; also works with PowerShell 7 on Linux and macOS): same checks, same output
 # lines, exit code 1 when anything is found.
