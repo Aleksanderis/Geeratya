@@ -176,9 +176,15 @@ public sealed class SettingsStore
     {
         var settings = AppSettings.Default;
         List<string> warnings = [];
+        HashSet<string> reported = [];
 
         foreach (var setting in SettingsRegistry.All)
         {
+            if (BadParent(root, setting) is { } parent && reported.Add(parent))
+            {
+                warnings.Add($"settings.json: {parent} must be an object; its settings use their defaults.");
+            }
+
             var (value, key) = Lookup(root, setting);
 
             if (value is not { } found)
@@ -200,6 +206,28 @@ public sealed class SettingsStore
         }
 
         return new SettingsLoad(settings, warnings);
+    }
+
+    /// <summary>The dotted name of the first group on the setting's path that exists but is not an object, else null.</summary>
+    private static string? BadParent(JsonElement root, SettingDefinition setting)
+    {
+        var current = root;
+        var path = setting.ConfigPath;
+
+        for (var index = 0; index < path.Length - 1; index++)
+        {
+            if (!TryGetLast(current, path[index], out current))
+            {
+                return null;
+            }
+
+            if (current.ValueKind != JsonValueKind.Object)
+            {
+                return string.Join('.', path.Take(index + 1));
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

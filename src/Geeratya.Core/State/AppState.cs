@@ -92,6 +92,9 @@ public sealed record AppState(
     /// <summary>The last 50 messages, newest first.</summary>
     public IReadOnlyList<StatusMessage> StatusHistory { get; init; } = [];
 
+    /// <summary>The problems found while starting, in the order found; the status line shows the first with a count.</summary>
+    public IReadOnlyList<string> StartupProblems { get; init; } = [];
+
     /// <summary>The help overlay shows the message history instead of the key reference.</summary>
     public bool MessagesOpen { get; init; }
 

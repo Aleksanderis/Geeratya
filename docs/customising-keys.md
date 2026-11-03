@@ -40,7 +40,7 @@ Your rows come first, so the hints in the status bar and the help overlay show t
 
 ## What is checked
 
-When the file is read, every row is checked. A row that is wrong is skipped, the rest still applies, and the first problem is shown in the status line (with a count of the others) and every problem is kept in the Messages overlay (`<space>n`):
+When the file is read, every row is checked. A row that is wrong is skipped, the rest still applies, and the first problem is shown in the status line (with a count of the others, `(+N more, <space>n)`, shared with the settings and theme problems found at the same start) and every problem is kept in the Messages overlay (`<space>n`):
 
 - an unknown action id or a bad key spelling;
 - the same keys bound twice in one mode;
