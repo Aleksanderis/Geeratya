@@ -2,6 +2,7 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
+using Geeratya.Core.Selection;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
@@ -34,7 +35,11 @@ public class BacklogReducerTests
     [Fact]
     public void GivenASelection_WhenAnotherPageRegroupsTheRows_ThenTheSelectionFollowsItsIssue()
     {
-        var first = new[] { BacklogFixtures.Issue("A-1", null, 1), BacklogFixtures.Issue("A-2", BacklogFixtures.Future, 1) };
+        var first = new[]
+        {
+            BacklogFixtures.Issue("A-1", null, 1),
+            BacklogFixtures.Issue("A-2", BacklogFixtures.Future, 1),
+        };
         var state = Loaded(first, next: new PageCursor("2"));
         state = _reducer.Reduce(state, new KeyPressed("G", _now)).State;
         var tab = Tab(state);
@@ -43,7 +48,8 @@ public class BacklogReducerTests
         var more = new[] { BacklogFixtures.Issue("A-3", BacklogFixtures.Active, 1) };
         var next = _reducer.Reduce(state, new NextPageRequested(tab.Id)).State;
         var loading = Tab(next);
-        var appended = _reducer.Reduce(next, new ViewPageLoaded(tab.Id, loading.RequestId, new IssuePage(more, null, null), _now));
+        var page = new IssuePage(more, null, null);
+        var appended = _reducer.Reduce(next, new ViewPageLoaded(tab.Id, loading.RequestId, page, _now));
 
         var result = Tab(appended.State);
         Assert.Equal(["A-3", "A-2", "A-1"], result.Rows.Select(row => row.Key));
@@ -180,6 +186,40 @@ public class BacklogReducerTests
     }
 
     [Fact]
+    public void GivenAScrumBacklog_WhenRankKeysArePressed_ThenTheyAreRefusedAndTheRowsStayGrouped()
+    {
+        var state = Loaded(BacklogFixtures.RankedRows);
+        var before = Tab(state).Rows.Select(row => row.Key).ToArray();
+
+        foreach (var key in new[] { "Alt-j", "Alt-k" })
+        {
+            var result = _reducer.Reduce(state, new KeyPressed(key, _now));
+
+            Assert.Contains("#182", result.State.Message);
+            Assert.Empty(result.Effects);
+            Assert.Equal(before, Tab(result.State).Rows.Select(row => row.Key));
+        }
+    }
+
+    [Fact]
+    public void GivenAVisualRangeAcrossACollapsedSection_WhenTargetsAreTaken_ThenHiddenRowsAreLeftOut()
+    {
+        var state = Loaded(BacklogFixtures.RankedRows);
+        var tab = Tab(state) with
+        {
+            CollapsedSections = [BacklogSections.SprintKey(BacklogFixtures.FutureId)],
+            VisualAnchor = "A-3",
+            Selected = 5,
+            SelectedKey = "A-5",
+        };
+
+        var targets = RowSelection.Targets(tab);
+
+        Assert.Equal(["A-3", "A-4", "A-1", "A-5"], targets);
+        Assert.Equal(4, RowSelection.Count(tab));
+    }
+
+    [Fact]
     public void GivenAPlainList_WhenPressingTheToggleKey_ThenNothingChanges()
     {
         var plain = Loaded(BacklogFixtures.RankedRows, ViewSourceKind.Backlog);
@@ -213,7 +253,7 @@ public class BacklogReducerTests
     }
 
     [Fact]
-    public void GivenFiveThousandIssuesInTwentySprints_WhenLoadedAndMoved_ThenSectionsStayCorrectAndFast()
+    public void GivenFiveThousandIssuesInTwentySprints_WhenLoadedAndMoved_ThenSectionsStayCorrect()
     {
         var sprints = Enumerable.Range(1, 20)
             .Select(id => new Sprint(id, $"Sprint {id}", SprintState.Future, null, null, null, null, 6))
@@ -223,20 +263,16 @@ public class BacklogReducerTests
             .ToArray();
         var state = Loaded(rows);
 
-        var clock = System.Diagnostics.Stopwatch.StartNew();
-
         for (var press = 0; press < 50; press++)
         {
             state = Press(state, "j");
         }
 
-        clock.Stop();
         var layout = BacklogSections.Build(Tab(state));
 
         Assert.Equal(21, layout.Sections.Count);
         Assert.Equal(5000, layout.Sections.Sum(section => section.RowCount));
         Assert.Equal(50, Tab(state).Selected);
-        Assert.True(clock.ElapsedMilliseconds < 1000, $"50 motions took {clock.ElapsedMilliseconds} ms");
     }
 
     private static int ListLayoutRow(int line)

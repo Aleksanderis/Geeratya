@@ -14,6 +14,7 @@ public static class RankActions
 {
     private const string NotRankedText = "Ranking works in a board or backlog view";
     private const string InsideIssueText = "Ranking works on a list or a board, not inside an issue";
+    private const string SectionsText = "Ranking across sprint sections is not built yet (#182)";
     private const string NothingText = "Nothing to rank here";
     private const string IncompleteText =
         "Not every issue is loaded yet: wait for the rest before ranking to the bottom";
@@ -236,6 +237,13 @@ public static class RankActions
         if (!tab.Definition.Source.IsBoardBased())
         {
             refusal = NotRankedText;
+
+            return null;
+        }
+
+        if (tab.Definition.Source == ViewSourceKind.ScrumBacklog)
+        {
+            refusal = SectionsText;
 
             return null;
         }

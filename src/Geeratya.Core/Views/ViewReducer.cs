@@ -409,7 +409,7 @@ public static class ViewReducer
 
         if (BacklogSections.Applies(tab))
         {
-            return Reduce(state, new SelectionMoved(tab.Id, BacklogCursor.Move(tab, move).Selected));
+            return MovedInColumns(state, BacklogCursor.Move(tab, move));
         }
 
         var position = ListMotion.Move(

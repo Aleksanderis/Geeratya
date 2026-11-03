@@ -26,7 +26,9 @@ public static class BacklogCursor
         return Place(tab, layout, Math.Clamp(row, 0, tab.Rows.Count - 1), tab.VisibleRows);
     }
 
-    /// <summary>Keeps the cursor where it is but makes it valid for the layout and the viewport (after a resize or a reload).</summary>
+    /// <summary>
+    /// Keeps the cursor where it is but makes it valid for the layout and the viewport (after a resize or a reload).
+    /// </summary>
     public static TabState Settle(TabState tab, int viewport)
     {
         if (tab.Rows.Count == 0)

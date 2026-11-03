@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Selection;
@@ -35,7 +36,7 @@ public static class RowSelection
             return tab.Marks.Count;
         }
 
-        return VisualRange(tab) is { } range ? range.Length : 0;
+        return VisualRange(tab) is { } range ? RangeKeys(tab, range).Count : 0;
     }
 
     /// <summary>The issue keys a write acts on: the marks, else the Visual range, else the cursor row.</summary>
@@ -53,10 +54,26 @@ public static class RowSelection
 
         if (VisualRange(tab) is { } range)
         {
-            return [.. tab.Rows.Skip(range.First).Take(range.Length).Select(row => row.Key)];
+            return RangeKeys(tab, range);
         }
 
         return [tab.Rows[Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)].Key];
+    }
+
+    /// <summary>
+    /// The keys in the Visual range. On a Scrum backlog the hidden rows of collapsed sections are left out, so a write
+    /// never names an issue the user did not see.
+    /// </summary>
+    private static IReadOnlyList<string> RangeKeys(TabState tab, RowRange range)
+    {
+        var rows = tab.Rows.Skip(range.First).Take(range.Length);
+
+        if (BacklogSections.Applies(tab) && tab.CollapsedSections.Count > 0)
+        {
+            rows = rows.Where(row => !tab.CollapsedSections.Contains(BacklogSections.KeyOf(row)));
+        }
+
+        return [.. rows.Select(row => row.Key)];
     }
 
     /// <summary>True when a single-issue write must refuse: more than the cursor row is selected.</summary>

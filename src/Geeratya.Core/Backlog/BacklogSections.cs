@@ -39,12 +39,12 @@ public static class BacklogSections
 
         while (index < rows.Count)
         {
-            var key = KeyOf(rows[index]);
+            var id = IdOf(rows[index]);
             var start = index;
             var points = 0.0;
             var estimated = false;
 
-            while (index < rows.Count && KeyOf(rows[index]) == key)
+            while (index < rows.Count && IdOf(rows[index]) == id)
             {
                 if (rows[index].Estimate is { } estimate)
                 {
@@ -57,7 +57,9 @@ public static class BacklogSections
 
             var state = rows[start].CurrentSprint?.State;
 
-            sections.Add(new SectionDraft(key, NameOf(rows[start]), state, start, index - start, points, estimated));
+            var draft = new SectionDraft(KeyOfId(id), NameOf(rows[start]), state, start, index - start, points, estimated);
+
+            sections.Add(draft);
         }
 
         AddEmptySprints(sections, tab);
@@ -97,6 +99,17 @@ public static class BacklogSections
         return row.CurrentSprint is { State: SprintState.Active or SprintState.Future } sprint
             ? SprintKey(sprint.Id)
             : BacklogKey;
+    }
+
+    /// <summary>The sprint id of the section a row belongs to; 0 for the backlog. Allocates nothing.</summary>
+    private static long IdOf(IssueSummary row)
+    {
+        return row.CurrentSprint is { State: SprintState.Active or SprintState.Future } sprint ? sprint.Id : 0;
+    }
+
+    private static string KeyOfId(long id)
+    {
+        return id == 0 ? BacklogKey : SprintKey(id);
     }
 
     public static string SprintKey(long sprintId)
@@ -172,7 +185,7 @@ public static class BacklogSections
                 draft.Key,
                 sprint?.Name ?? draft.Name,
                 sprint,
-                sprint?.State ?? draft.State,
+                draft.RowCount > 0 ? draft.State : sprint?.State ?? draft.State,
                 draft.FirstRow,
                 draft.RowCount,
                 draft.Points,

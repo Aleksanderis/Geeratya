@@ -55,6 +55,7 @@ Nothing is read from the cache before the first frame: the cache is opened lazil
 
 | Path | Binary | Dataset | Median | p95 |
 |---|---|---|---|---|
+| Scrum backlog (#178): nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows in 21 sections in one tab, 2500 timed keys (`HotPathMeasurements`) | 0.41 ms | 0.83 ms |
 | Nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows loaded in one tab, 2000 timed keys | 0.20 ms | 1.0 ms |
 
 Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the terminal draw and tmux. The renderer produces only the viewport rows (a test builds a frame over 10 000 rows and checks it holds the window and nothing else); the work per key is the reducer's list copy of one tab and the visible rows. Real-binary check: `fakejira --issues 10000` with the Native AOT binary under tmux, `:jql`, then `j`, `G` and `Ctrl-d` moved the selection, the next page loaded when `G` came within one screen of the end, and `gg` returned to the top. RSS of a fully loaded 10k tab and AOT key-to-frame are in "M1 measurements (#91)".

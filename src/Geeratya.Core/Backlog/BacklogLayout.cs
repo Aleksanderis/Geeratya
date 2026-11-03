@@ -49,7 +49,9 @@ public sealed class BacklogLayout
         return section is { Collapsed: true } ? section.FirstRow : row;
     }
 
-    /// <summary>The index in <see cref="Stops"/> of the stop for <paramref name="row"/>; 0 when there are none.</summary>
+    /// <summary>
+    /// The index in <see cref="Stops"/> of the stop for <paramref name="row"/>; 0 when there are none.
+    /// </summary>
     public int StopIndexOf(int row)
     {
         var index = Array.BinarySearch(_stops, StopFor(row));
@@ -57,7 +59,9 @@ public sealed class BacklogLayout
         return index >= 0 ? index : Math.Max(0, Math.Min(~index, _stops.Length - 1));
     }
 
-    /// <summary>The display line the cursor shows on for <paramref name="row"/>: the header when it is collapsed.</summary>
+    /// <summary>
+    /// The display line the cursor shows on for <paramref name="row"/>: the header when it is collapsed.
+    /// </summary>
     public int LineOfRow(int row)
     {
         var section = SectionOfRow(row);

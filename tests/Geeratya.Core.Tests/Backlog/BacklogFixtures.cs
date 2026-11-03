@@ -4,7 +4,7 @@ using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Tests.Backlog;
 
-/// <summary>Rows and sprints for the backlog section tests: an active sprint, two future ones (one empty), the backlog.</summary>
+/// <summary>Rows and sprints for the backlog section tests: an active sprint, two future ones, the backlog.</summary>
 internal static class BacklogFixtures
 {
     public const long ActiveId = 7;
@@ -23,7 +23,8 @@ internal static class BacklogFixtures
 
     public static Sprint Future { get; } = new(FutureId, "Sprint 2", SprintState.Future, null, null, null, null, 6);
 
-    public static Sprint EmptyFuture { get; } = new(EmptyFutureId, "Sprint 3", SprintState.Future, null, null, null, null, 6);
+    public static Sprint EmptyFuture { get; } =
+        new(EmptyFutureId, "Sprint 3", SprintState.Future, null, null, null, null, 6);
 
     /// <summary>Rows as Jira ranks them: the sprints and the backlog mixed.</summary>
     public static IReadOnlyList<IssueSummary> RankedRows { get; } =
