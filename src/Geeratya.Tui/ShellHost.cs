@@ -18,6 +18,7 @@ using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 using Geeratya.Tui.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Input;
@@ -39,7 +40,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
+    private const int MaximumThemeReasons = 3;
+
     private readonly KeymapTable _keymap;
+    private readonly ThemeCatalog _themes;
     private readonly MouseDragTracker _dragTracker = new();
     private readonly string? _keymapNotice;
     private readonly KeymapTable _defaultBindings;
@@ -79,6 +83,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _keymap = keymap;
         _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
+        _themes = new ThemeCatalog(profiles.ThemesDirectory);
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
@@ -132,7 +137,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         application.Paste += OnPaste;
         application.Mouse.MouseEvent += OnMouse;
 
-        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
+        var startTheme = StartTheme();
+
+        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, startTheme, _glyphs);
 
         _screen = screen;
         screen.BodyRowsChanged += OnBodyRowsChanged;
@@ -287,6 +294,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         var checks = new List<CheckConnectionEffect>();
         KeymapReloaded? reloaded = null;
+        ThemeApplied? themed = null;
 
         foreach (var effect in result.Effects)
         {
@@ -357,6 +365,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 reloaded = ReloadKeymap();
             }
+            else if (effect is ApplyThemeEffect themeEffect)
+            {
+                themed = ApplyTheme(themeEffect.Name);
+            }
             else if (effect is CheckConnectionEffect check)
             {
                 checks.Add(check);
@@ -380,11 +392,90 @@ public sealed class ShellHost : ICommandSink, IDisposable
             Dispatch(reloaded);
         }
 
+        if (themed is not null)
+        {
+            Dispatch(themed);
+        }
+
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
             _ = _connectionChecks.StartAsync(check);
         }
+    }
+
+    /// <summary>
+    /// The theme saved in the settings; the default one, with a status line notice, when it cannot be used (a theme
+    /// file that is gone or invalid must never stop the start). Theme files that were not offered are reported too.
+    /// </summary>
+    private Theme StartTheme()
+    {
+        var name = _state.Settings.Theme;
+        var result = string.IsNullOrWhiteSpace(name) ? null : _themes.Find(name);
+        var problems = _themes.Problems;
+
+        if (problems.Count > 0)
+        {
+            _state = _state with { Message = JoinNotices(_state.Message, $"Theme files not used: {Reasons(problems)}") };
+        }
+
+        if (result?.Theme is { } theme)
+        {
+            return theme;
+        }
+
+        var reason = result is null ? "not found" : Reasons(result.Errors);
+        var notice = $"Theme {name}: {reason}; using {BuiltInThemes.DefaultDarkName}.";
+
+        _state = _state with { Message = JoinNotices(_state.Message, notice) };
+
+        return BuiltInThemes.Default;
+    }
+
+    /// <summary>Switches the screen to the named theme (or lists them) and reports the outcome for the reducer.</summary>
+    private ThemeApplied ApplyTheme(string name)
+    {
+        var current = _state.Settings.Theme;
+
+        if (name.Length == 0)
+        {
+            return new ThemeApplied(current, false, ListThemes(current));
+        }
+
+        var result = _themes.Find(name);
+
+        if (result is null)
+        {
+            return new ThemeApplied(name, false, $"Theme {name} not found. Available: {NamesOf(_themes.Names)}.");
+        }
+
+        if (result.Theme is not { } theme)
+        {
+            return new ThemeApplied(name, false, $"Theme {name} not used: {Reasons(result.Errors)}.");
+        }
+
+        _screen?.SetTheme(theme);
+
+        return new ThemeApplied(theme.Name, true, $"Theme {theme.Name}.");
+    }
+
+    private string ListThemes(string current)
+    {
+        var listing = $"Theme {current}. Available: {NamesOf(_themes.Names)}.";
+
+        return _themes.Problems.Count == 0 ? listing : $"{listing} Not used: {Reasons(_themes.Problems)}.";
+    }
+
+    private static string NamesOf(IReadOnlyList<string> names)
+    {
+        return string.Join(", ", names);
+    }
+
+    private static string Reasons(IReadOnlyList<string> reasons)
+    {
+        var shown = string.Join("; ", reasons.Take(MaximumThemeReasons));
+
+        return reasons.Count > MaximumThemeReasons ? $"{shown} (+{reasons.Count - MaximumThemeReasons} more)" : shown;
     }
 
     /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>

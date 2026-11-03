@@ -21,7 +21,8 @@ public sealed record ProfileServices(
     SiteCaches Caches,
     HistoryStore Histories,
     UserKeymapStore? Keymap = null,
-    SettingsStore? Settings = null)
+    SettingsStore? Settings = null,
+    string? ThemesDirectory = null)
 {
     /// <summary>
     /// Wires the services for the running process; throws <see cref="InvalidOperationException"/> with a readable
@@ -52,6 +53,7 @@ public sealed record ProfileServices(
             new SiteCaches(directories.CacheDirectory, permissions),
             new HistoryStore(directories.StateDirectory, permissions),
             new UserKeymapStore(directories.ConfigDirectory),
-            new SettingsStore(directories.ConfigDirectory));
+            new SettingsStore(directories.ConfigDirectory),
+            Path.Combine(directories.ConfigDirectory, "themes"));
     }
 }

@@ -5,6 +5,7 @@ using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
@@ -22,6 +23,7 @@ public sealed class ShellScreen : Window
 
     private readonly StyledBodyView _body;
     private readonly ColorSupport _colors;
+    private Theme _theme;
     private readonly GlyphSet _glyphs;
     private readonly Label _status;
     private IReadOnlyList<string> _helpLines;
@@ -31,8 +33,14 @@ public sealed class ShellScreen : Window
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
     private IReadOnlyList<OverlayRegion> _regions = [];
 
-    public ShellScreen(KeymapTable keymap, ColorSupport colors, Size initialSize, GlyphSet glyphs = GlyphSet.Unicode)
+    public ShellScreen(
+        KeymapTable keymap,
+        ColorSupport colors,
+        Size initialSize,
+        Theme theme,
+        GlyphSet glyphs = GlyphSet.Unicode)
     {
+        _theme = theme;
         _keymap = keymap;
         _colors = colors;
         _glyphs = glyphs;
@@ -41,12 +49,10 @@ public sealed class ShellScreen : Window
         BorderStyle = LineStyle.None;
         Width = Dim.Fill();
         Height = Dim.Fill();
-        SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
 
         _body = new StyledBodyView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1) };
         _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), HotKeySpecifier = _noHotKey };
-        _body.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Body)));
-        _status.SetScheme(CreateScheme(Palette.Resolve(colors, PaletteRole.Status)));
+        ApplySchemes();
 
         Add(_body, _status);
         ViewportChanged += OnViewportChanged;
@@ -73,6 +79,14 @@ public sealed class ShellScreen : Window
         _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     }
 
+    /// <summary>Draws with another theme, starting with the next frame (drawn now).</summary>
+    public void SetTheme(Theme theme)
+    {
+        _theme = theme;
+        ApplySchemes();
+        Render(_state, _now);
+    }
+
     public void Render(AppState state, DateTimeOffset now)
     {
         _state = state;
@@ -86,7 +100,7 @@ public sealed class ShellScreen : Window
         }
 
         _regions = frame.Regions;
-        _body.SetLines(frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _colors)).ToList());
+        _body.SetLines(frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors)).ToList());
         _status.Text = frame.StatusLine;
         SetNeedsDraw();
     }
@@ -103,6 +117,15 @@ public sealed class ShellScreen : Window
         _size = size;
         Render(_state, _now);
         BodyRowsChanged?.Invoke(BodyRows);
+    }
+
+    private void ApplySchemes()
+    {
+        var body = CreateScheme(Palette.Resolve(_theme, _colors, PaletteRole.Body));
+
+        SetScheme(body);
+        _body.SetScheme(body);
+        _status.SetScheme(CreateScheme(Palette.Resolve(_theme, _colors, PaletteRole.Status)));
     }
 
     private static Scheme CreateScheme(ResolvedStyle style)

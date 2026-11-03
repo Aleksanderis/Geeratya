@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "variant": "dark",
+  "colors": {
+    "accent": "#7aa2f7",
+    "good": "#9ece6a",
+    "bad": "#f7768e",
+    "remote": "#bb9af7",
+    "warn": "#e0af68",
+    "info": "#7dcfff",
+    "muted": "#9297b6",
+    "border": "#5d658e",
+    "barBackground": "#16161e",
+    "selection": "#292e42",
+    "baseForeground": "#c0caf5",
+    "baseBackground": "#1a1b26"
+  }
+}

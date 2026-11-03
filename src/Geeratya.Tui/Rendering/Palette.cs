@@ -1,13 +1,14 @@
 using Geeratya.Platform.Terminal;
+using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>Resolves roles for a colour tier.</summary>
+/// <summary>Resolves roles of a theme for a colour tier.</summary>
 public static class Palette
 {
-    public static ResolvedStyle Resolve(ColorSupport tier, PaletteRole role)
+    public static ResolvedStyle Resolve(Theme theme, ColorSupport tier, PaletteRole role)
     {
-        var entry = PaletteTable.Get(role);
+        var entry = theme.Entry(role);
 
         return tier switch
         {
@@ -18,8 +19,8 @@ public static class Palette
                 null,
                 ColourStyle(entry)),
             ColorSupport.Basic16 => new ResolvedStyle(
-                Ansi16.ToRgb(entry.Foreground16),
-                Ansi16.ToRgb(entry.Background16),
+                Ansi16.ToRgb(entry.Foreground16, theme.Variant),
+                Ansi16.ToRgb(entry.Background16, theme.Variant),
                 entry.Foreground16,
                 entry.Background16,
                 ColourStyle(entry)),

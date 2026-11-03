@@ -12,4 +12,7 @@
     <ProjectReference Include="..\Geeratya.Platform\Geeratya.Platform.csproj" />
     <ProjectReference Include="..\Geeratya.App\Geeratya.App.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Rendering\Themes\Files\*.json" LogicalName="themes/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

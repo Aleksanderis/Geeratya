@@ -1,4 +1,5 @@
 using Geeratya.Core.Text;
+using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -8,49 +9,59 @@ public static class PaletteTable
     private const double TextContrast = 4.5;
     private const double DividerContrast = 3.0;
 
-    private static readonly Rgb _ground = Rgb.FromHex(0x1E222A);
-    private static readonly Rgb _bar = Rgb.FromHex(0x3B4252);
-    private static readonly Rgb _selection = Rgb.FromHex(0x434C5E);
-
-    private static readonly Dictionary<PaletteRole, PaletteEntry> _entries = new()
+    private static readonly Dictionary<PaletteRole, RoleSpec> _specs = new()
     {
-        [PaletteRole.Body] = Create(0xD8DEE9, Ansi16Color.Gray, RoleStyle.None),
-        [PaletteRole.Status] = new PaletteEntry(
-            Rgb.FromHex(0xE5E9F0),
-            _bar,
-            Ansi16Color.White,
-            Ansi16Color.Blue,
-            RoleStyle.Reverse),
-        [PaletteRole.Muted] = Create(0x9AA5B8, Ansi16Color.DarkGray, RoleStyle.None),
-        [PaletteRole.Divider] = Create(0x6B7587, Ansi16Color.DarkGray, RoleStyle.None),
-        [PaletteRole.Error] = Create(0xFF8080, Ansi16Color.BrightRed, RoleStyle.Bold),
-        [PaletteRole.Loading] = Create(0xEBCB8B, Ansi16Color.Yellow, RoleStyle.Underline),
-        [PaletteRole.Offline] = Create(0xD08770, Ansi16Color.BrightMagenta, RoleStyle.Bold | RoleStyle.Underline),
-        [PaletteRole.RateLimited] = Create(0xE5C07B, Ansi16Color.BrightYellow, RoleStyle.Bold),
-        [PaletteRole.Stale] = Create(0xB48EAD, Ansi16Color.BrightCyan, RoleStyle.Underline | RoleStyle.Reverse),
-        [PaletteRole.Heading] = Create(0x88C0D0, Ansi16Color.BrightCyan, RoleStyle.Bold),
-        [PaletteRole.Strong] = Create(0xECEFF4, Ansi16Color.White, RoleStyle.Bold),
-        [PaletteRole.Emphasis] = Create(0xD8DEE9, Ansi16Color.Gray, RoleStyle.Italic),
-        [PaletteRole.Code] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Reverse),
-        [PaletteRole.Link] = Create(0x81A1C1, Ansi16Color.BrightCyan, RoleStyle.Underline),
-        [PaletteRole.Quote] = Create(0xA0AABE, Ansi16Color.DarkGray, RoleStyle.Italic | RoleStyle.Underline),
-        [PaletteRole.Selected] = new PaletteEntry(
-            Rgb.FromHex(0xECEFF4),
-            _selection,
-            Ansi16Color.White,
-            Ansi16Color.Blue,
-            RoleStyle.Reverse | RoleStyle.Bold),
-        [PaletteRole.Key] = Create(0xEBCB8B, Ansi16Color.BrightYellow, RoleStyle.Bold),
-        [PaletteRole.StatusToDo] = Create(0xE5E9F0, Ansi16Color.White, RoleStyle.None),
-        [PaletteRole.StatusInProgress] = Create(0x88C0D0, Ansi16Color.BrightCyan, RoleStyle.Bold),
-        [PaletteRole.StatusDone] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Bold | RoleStyle.Italic),
-        [PaletteRole.TypeEpic] = Create(0xB48EAD, Ansi16Color.BrightMagenta, RoleStyle.Bold),
-        [PaletteRole.TypeStory] = Create(0xA3BE8C, Ansi16Color.BrightGreen, RoleStyle.Bold),
-        [PaletteRole.TypeBug] = Create(0xE5848E, Ansi16Color.BrightRed, RoleStyle.Bold),
-        [PaletteRole.TypeTask] = Create(0x81A1C1, Ansi16Color.BrightCyan, RoleStyle.Bold),
-        [PaletteRole.TypeSubtask] = Create(0x8FBCBB, Ansi16Color.Gray, RoleStyle.Bold),
-        [PaletteRole.FieldLabel] = Create(0x81A1C1, Ansi16Color.Cyan, RoleStyle.None),
-        [PaletteRole.Editable] = Create(0xEBCB8B, Ansi16Color.BrightYellow, RoleStyle.None),
+        [PaletteRole.Body] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Status] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse,
+            RoleGround.OnBlue),
+        [PaletteRole.Muted] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Divider] = new(ThemeColor.Border, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Error] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Loading] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Underline),
+        [PaletteRole.Offline] = new(
+            ThemeColor.Warn,
+            ThemeColor.BaseBackground,
+            RoleStyle.Bold | RoleStyle.Underline),
+        [PaletteRole.RateLimited] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Stale] = new(
+            ThemeColor.Remote,
+            ThemeColor.BaseBackground,
+            RoleStyle.Underline | RoleStyle.Reverse),
+        [PaletteRole.Heading] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Strong] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.BaseBackground,
+            RoleStyle.Bold,
+            RoleGround.Strong),
+        [PaletteRole.Emphasis] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.Italic),
+        [PaletteRole.Code] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Reverse),
+        [PaletteRole.Link] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Underline),
+        [PaletteRole.Quote] = new(
+            ThemeColor.Muted,
+            ThemeColor.BaseBackground,
+            RoleStyle.Italic | RoleStyle.Underline),
+        [PaletteRole.Selected] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.Selection,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.OnBlue),
+        [PaletteRole.Key] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.StatusToDo] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.StatusInProgress] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.StatusDone] = new(
+            ThemeColor.Good,
+            ThemeColor.BaseBackground,
+            RoleStyle.Bold | RoleStyle.Italic),
+        [PaletteRole.TypeEpic] = new(ThemeColor.Remote, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.TypeStory] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.TypeBug] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.TypeTask] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.TypeSubtask] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.FieldLabel] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Editable] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -90,19 +101,99 @@ public static class PaletteTable
         return _textRoles[role];
     }
 
-    public static PaletteEntry Get(PaletteRole role)
-    {
-        return _entries[role];
-    }
-
     /// <summary>The contrast ratio a role must reach against its background: 3.0 for dividers, 4.5 for text.</summary>
     public static double RequiredContrast(PaletteRole role)
     {
         return role == PaletteRole.Divider ? DividerContrast : TextContrast;
     }
 
-    private static PaletteEntry Create(int foreground, Ansi16Color foreground16, RoleStyle style)
+    /// <summary>The entry of every role for a theme: its colours at 24 bits, the 16-colour table of its variant.</summary>
+    public static IReadOnlyDictionary<PaletteRole, PaletteEntry> Build(Theme theme)
     {
-        return new PaletteEntry(Rgb.FromHex(foreground), _ground, foreground16, Ansi16Color.Black, style);
+        var entries = new Dictionary<PaletteRole, PaletteEntry>();
+
+        foreach (var (role, spec) in _specs)
+        {
+            entries[role] = new PaletteEntry(
+                theme.Colors[spec.Foreground],
+                theme.Colors[spec.Background],
+                Foreground16(theme, spec),
+                Background16(theme.Variant, spec),
+                spec.Style);
+        }
+
+        return entries;
+    }
+
+    private static Ansi16Color Foreground16(Theme theme, RoleSpec spec)
+    {
+        if (spec.Ground == RoleGround.OnBlue)
+        {
+            return Ansi16Color.White;
+        }
+
+        var light = theme.Variant == ThemeVariant.Light;
+
+        if (spec.Foreground == ThemeColor.BaseForeground)
+        {
+            return BaseForeground16(light, spec.Ground == RoleGround.Strong);
+        }
+
+        if (theme.Ansi.TryGetValue(spec.Foreground, out var chosen))
+        {
+            return chosen;
+        }
+
+        return light ? LightDefault(spec.Foreground) : DarkDefault(spec.Foreground);
+    }
+
+    private static Ansi16Color Background16(ThemeVariant variant, RoleSpec spec)
+    {
+        if (spec.Ground == RoleGround.OnBlue)
+        {
+            return Ansi16Color.Blue;
+        }
+
+        return variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
+    }
+
+    private static Ansi16Color BaseForeground16(bool light, bool strong)
+    {
+        if (light)
+        {
+            return Ansi16Color.Black;
+        }
+
+        return strong ? Ansi16Color.White : Ansi16Color.Gray;
+    }
+
+    // Bright accents on a dark terminal. BrightBlue is left out: the xterm value does not reach 4.5 on black.
+    private static Ansi16Color DarkDefault(ThemeColor color)
+    {
+        return color switch
+        {
+            ThemeColor.Accent => Ansi16Color.BrightCyan,
+            ThemeColor.Good => Ansi16Color.BrightGreen,
+            ThemeColor.Bad => Ansi16Color.BrightRed,
+            ThemeColor.Remote => Ansi16Color.BrightMagenta,
+            ThemeColor.Warn => Ansi16Color.BrightYellow,
+            ThemeColor.Info => Ansi16Color.Cyan,
+            _ => Ansi16Color.DarkGray,
+        };
+    }
+
+    // Normal-intensity accents on a light terminal, which darkens them.
+    private static Ansi16Color LightDefault(ThemeColor color)
+    {
+        return color switch
+        {
+            ThemeColor.Accent => Ansi16Color.Blue,
+            ThemeColor.Good => Ansi16Color.Green,
+            ThemeColor.Bad => Ansi16Color.Red,
+            ThemeColor.Remote => Ansi16Color.Magenta,
+            ThemeColor.Warn => Ansi16Color.Yellow,
+            ThemeColor.Info => Ansi16Color.Cyan,
+            _ => Ansi16Color.DarkGray,
+        };
     }
 }
