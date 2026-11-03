@@ -24,8 +24,8 @@ Columns  Global  All actions  Commands
   Alt-h      Move the card to the previous column                                                                       
   Alt-k      Rank the issue up (a count moves it that many places)                                                      
   Alt-j      Rank the issue down (a count moves it that many places)                                                    
+  Alt-m      Mark or unmark the selected row and move down                                                              
   Space i C  Create a sub-task of the selected issue                                                                    
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

@@ -66,7 +66,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | CommentsAdd | Click | `comment.add` | C | Opens the comment editor |
 | Comment | Click | `comment.edit` | C | Edits the comment under the pointer |
 | Lists | Drag | `issue.transition-next` | M | Columns layout (a drag in the list or backlog layout is `Drag rows`): drag a card onto the next or previous column, same as `Alt-l` / `Alt-h` (a single matching transition is sent as the key does, otherwise the picker or form opens); further columns, the same column and a one-column window do nothing |
-| Lists | Ctrl-click | `selection.mark` | B | List or backlog layout: marks or unmarks the row under the pointer in place (the cursor moves there; unlike `Alt-m` it does not move down); marks may be scattered |
+| Lists | Ctrl-click | `selection.mark` | B | List, backlog or columns layout: marks or unmarks the row or card under the pointer in place (the cursor moves there; unlike `Alt-m` it does not move down); marks may be scattered |
 | Lists | Drag rows | `selection.visual` | B | List or backlog layout: drag over rows to select them, same as `v` and the motions (Visual mode from the row where the button went down to the row where it was released) |
 | ContextMenu | Click | `view.layout-toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
