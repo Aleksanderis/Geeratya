@@ -359,6 +359,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Settings | Done in #556: two-pane full-body screen like the profile manager (categories 20 columns, rows, help row, hint row), a `Settings` chip in the tab row, the open choice list under its row; under 60 columns one list with category headings | 7 (settings) | #556 |
 | Profiles | Done in #535: two-pane full-body manager with details pane and the `Profiles` chip; the form and the remove question draw over it | 7 (profile manager) | #528 (form and keys), #535 (two-pane screen) |
 | Start and messages | Done in #537: the start screen and the messages screen sit in the frame (chips `Geeratya` and `Messages`/`Settings`); the pane chips of the detail lost their parentheses (`Comments 50 of 120`, `Attachments 2`) | 2, 3 | #537 |
+| Loading, empty and error bodies | Done in #579: one `StateBody` helper; every note starts one column inside the frame, left aligned at the top (loading in the `Loading` role, errors in the `Error` role followed by `<retry key> to retry` from the keymap, empty notes muted); the board column's `no issues` already had the padding column | 2, 3 | #579 |
 
 ## 10. Reconciliation with the other parts, and what stays open
 

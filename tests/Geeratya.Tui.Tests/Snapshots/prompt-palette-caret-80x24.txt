@@ -3,7 +3,7 @@
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
 │ ╭─ Commands ───────────────────────────────────────────────────────────────╮ │
-│p│ : jql proj|ect                                                           │ │
+│ │ : jql proj|ect                                                           │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ jql [query]                                                              │ │
 │ │ Open a JQL query in a new tab (no query: pick from recent ones)          │ │
