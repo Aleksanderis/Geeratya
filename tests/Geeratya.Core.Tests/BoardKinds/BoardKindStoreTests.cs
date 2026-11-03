@@ -43,6 +43,47 @@ public sealed class BoardKindStoreTests : IDisposable
         Assert.Equal(content.Contains("10", StringComparison.Ordinal) ? 1 : 0, loaded.Count);
     }
 
+    [Fact]
+    public void GivenARemovedProfile_WhenALateAnswerIsSaved_ThenNoFileIsRecreated()
+    {
+        var store = new BoardKindStore(_directory);
+
+        store.Save(_work, 1, BoardKind.Scrum);
+        store.Delete(_work);
+        store.Save(_work, 2, BoardKind.Kanban);
+
+        Assert.Empty(Directory.GetFiles(_directory, "*", SearchOption.AllDirectories));
+        Assert.Empty(store.Load(_work));
+    }
+
+    [Fact]
+    public void GivenARemovedThenLoadedProfile_WhenSaving_ThenAnswersAreStoredAgain()
+    {
+        var store = new BoardKindStore(_directory);
+
+        store.Save(_work, 1, BoardKind.Scrum);
+        store.Delete(_work);
+        _ = store.Load(_work);
+        store.Save(_work, 2, BoardKind.Kanban);
+
+        Assert.Equal(BoardKind.Kanban, store.Load(_work)[2]);
+    }
+
+    [Fact]
+    public void GivenAStrayTemporaryFile_WhenDeleting_ThenTheFolderIsRemoved()
+    {
+        var store = new BoardKindStore(_directory);
+
+        store.Save(_work, 1, BoardKind.Scrum);
+
+        var path = Directory.GetFiles(_directory, BoardKindStore.FileName, SearchOption.AllDirectories).Single();
+
+        File.WriteAllText($"{path}.tmp", "half");
+        store.Delete(_work);
+
+        Assert.Empty(Directory.GetFileSystemEntries(_directory));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

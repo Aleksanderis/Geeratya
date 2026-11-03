@@ -22,6 +22,7 @@ public sealed class BoardKindStore
     private readonly string _root;
     private readonly FilePermissions _permissions;
     private readonly object _lock = new();
+    private readonly HashSet<string> _removed = [];
 
     public BoardKindStore(string root, FilePermissions? permissions = null)
     {
@@ -33,6 +34,9 @@ public sealed class BoardKindStore
     {
         lock (_lock)
         {
+            // Loading is the connection being (re)built, so a re-added profile stores answers again.
+            _removed.Remove(ProfileFolder.NameOf(profile));
+
             return Parse(Read(PathOf(profile)));
         }
     }
@@ -41,6 +45,12 @@ public sealed class BoardKindStore
     {
         lock (_lock)
         {
+            if (_removed.Contains(ProfileFolder.NameOf(profile)))
+            {
+                // A late probe reply of a removed profile must not bring its file back.
+                return;
+            }
+
             var path = PathOf(profile);
             var file = Read(path);
 
@@ -49,11 +59,16 @@ public sealed class BoardKindStore
         }
     }
 
-    /// <summary>Deletes the profile's file and its folder when that is left empty.</summary>
+    /// <summary>
+    /// Deletes the profile's file (and a stray temp file) and its folder when that is left empty. Later saves for the
+    /// profile are ignored until it is loaded again.
+    /// </summary>
     public void Delete(Profile profile)
     {
         lock (_lock)
         {
+            _removed.Add(ProfileFolder.NameOf(profile));
+
             var folder = Path.Combine(_root, ProfileFolder.NameOf(profile));
 
             if (!Directory.Exists(folder))
@@ -62,6 +77,7 @@ public sealed class BoardKindStore
             }
 
             File.Delete(PathOf(profile));
+            File.Delete($"{PathOf(profile)}{TemporarySuffix}");
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {
@@ -130,8 +146,18 @@ public sealed class BoardKindStore
         var temporary = $"{path}{TemporarySuffix}";
 
         _permissions.CreateDirectory(folder);
-        File.WriteAllText(temporary, JsonSerializer.Serialize(file, BoardKindJsonContext.Default.BoardKindFile));
-        _permissions.RestrictFile(temporary);
-        File.Move(temporary, path, overwrite: true);
+
+        try
+        {
+            File.WriteAllText(temporary, JsonSerializer.Serialize(file, BoardKindJsonContext.Default.BoardKindFile));
+            _permissions.RestrictFile(temporary);
+            File.Move(temporary, path, overwrite: true);
+        }
+        catch
+        {
+            File.Delete(temporary);
+
+            throw;
+        }
     }
 }
