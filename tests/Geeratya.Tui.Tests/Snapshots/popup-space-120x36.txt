@@ -31,6 +31,6 @@
                                                             │                                                          │
                                                             │ m         +comment (2)                                   │
                                                             │ i         +issue (6)                                     │
-                                                            │ s         +sprint (5)                                    │
+                                                            │ s         +sprint (7)                                    │
                                                             └──────────────────────────────────────────────────────────┘
  NORMAL Space                                                                                 ? help  : commands  q quit

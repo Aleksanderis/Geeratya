@@ -111,6 +111,12 @@ public sealed class AppReducer
         return Result(StatusMessages.Warn(closed, ConfirmClosedText));
     }
 
+    // A drop on another section of a Scrum backlog asks to move the issues; any other drag selects rows.
+    private static ReduceResult RowsDrag(AppState state, RowsDragged dragged)
+    {
+        return SprintMoveActions.Dropped(state, dragged, dragged.At) ?? SelectionActions.Dragged(state, dragged);
+    }
+
     private ReduceResult ReduceCommand(AppState state, Command command)
     {
         return command switch
@@ -118,7 +124,7 @@ public sealed class AppReducer
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
-            RowsDragged dragged => Followed(state, SelectionActions.Dragged(Unpended(state), dragged)),
+            RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
@@ -560,6 +566,8 @@ public sealed class AppReducer
             ActionIds.SprintMoveToBacklog => InNormal(state, () => SprintMoveActions.ToBacklog(state, at)),
             ActionIds.SprintCreate => InNormal(state, () => SprintForms.Create(state)),
             ActionIds.SprintEdit => InNormal(state, () => SprintForms.Edit(state)),
+            ActionIds.SprintStart => InNormal(state, () => SprintLifecycle.Start(state, at)),
+            ActionIds.SprintComplete => InNormal(state, () => SprintLifecycle.Complete(state, at)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),

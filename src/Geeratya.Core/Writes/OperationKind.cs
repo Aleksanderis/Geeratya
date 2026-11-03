@@ -19,4 +19,6 @@ public enum OperationKind
     CreateSprint,
     EditSprint,
     RankMove,
+    StartSprint,
+    CompleteSprint,
 }

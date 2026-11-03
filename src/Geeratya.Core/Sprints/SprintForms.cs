@@ -18,7 +18,7 @@ public static class SprintForms
     private const string NoSprintText = "No sprint here to edit.";
     private const string OnBacklogText = "The cursor is on the backlog: move it to an issue of a sprint to edit it.";
     private const string NotLoadedText = "The sprint's details are not loaded yet.";
-    private const string DetailText = "Close the issue first (Esc), then edit the sprint.";
+    internal const string DetailText = "Close the issue first (Esc), then edit the sprint.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -73,14 +73,14 @@ public static class SprintForms
         return FormReducer.OpenReady(state, tab.Id, target, SprintFormFields.From(sprint));
     }
 
-    private static TabState? ScrumTab(AppState state)
+    internal static TabState? ScrumTab(AppState state)
     {
         var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
 
         return tab is { Definition.Source: ViewSourceKind.ScrumBacklog or ViewSourceKind.Sprint } ? tab : null;
     }
 
-    private static SprintLookup SprintOf(TabState tab)
+    internal static SprintLookup SprintOf(TabState tab)
     {
         if (tab.Definition.Source == ViewSourceKind.Sprint)
         {
@@ -111,7 +111,7 @@ public static class SprintForms
         return section.Sprint is { } sprint ? new SprintLookup(sprint, string.Empty) : new SprintLookup(null, NotLoadedText);
     }
 
-    private static ReduceResult Say(AppState state, string message)
+    internal static ReduceResult Say(AppState state, string message)
     {
         return new ReduceResult(state with { Message = message }, _noEffects);
     }

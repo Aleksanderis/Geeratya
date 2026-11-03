@@ -4,7 +4,7 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
+# popup row, a row dragged onto another backlog section (asks first), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -94,6 +94,23 @@ drag() {
   echo "dragged '$text' by $shift_by columns from $col,$row"
 }
 
+# drag_to <from text> <to text>: press on the first cell of the line holding <from text>, release on the line holding
+# <to text> (SGR, with a motion event between), the way a terminal reports a row dragged to another section.
+drag_to() {
+  local from=$1 to=$2 line from_row to_row col prefix seq
+  line=$(frame | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
+  from_row=${line%%:*}
+  line=${line#*:}
+  prefix=${line%%"$from"*}
+  col=$((${#prefix} + 2))
+  to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1)
+  [ -n "$to_row" ] || fail "no line with '$to' to drop on"
+  printf -v seq '\033[<0;%d;%dM\033[<32;%d;%dM\033[<0;%d;%dm' "$col" "$from_row" "$col" "$to_row" "$col" "$to_row"
+  tmux -L "$socket" send-keys -t s -l "$seq"
+  sleep 0.4
+  echo "dragged '$from' to the line of '$to'"
+}
+
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
 dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
@@ -107,6 +124,7 @@ mkdir -p "$work/config/geeratya" "$work/state" "$work/cache"
 # two-profile session (profile list) has no usable token for the second one: switching ends in "No API token", enough to see it ran.
 start() {
   tmux -L "$socket" kill-server 2> /dev/null || true
+  sleep 0.5
   printf '{"activeName":"fake","profiles":[%s]}\n' "$1" > "$work/config/geeratya/profiles.json"
   tmux -L "$socket" -f /dev/null new-session -d -s s -x 120 -y 36 \
     "env -i HOME=$work PATH=$PATH COLORTERM=truecolor TERM=tmux-256color \
@@ -115,6 +133,17 @@ start() {
 one="{\"name\":\"fake\",\"siteUrl\":\"$fake_url\",\"email\":\"fake@example.com\"}"
 two="$one,{\"name\":\"second\",\"siteUrl\":\"$fake_url\",\"email\":\"second@example.com\"}"
 
+start "$one"
+wait_for "fake: fake@example.com"
+
+# Scrum backlog (#394): a row dragged onto another section asks first, nothing is sent before y; Esc keeps everything.
+send ":backlog GEN board|"
+wait_for "Generated Sprint 3"
+drag_to "GEN-14 " "Generated Sprint 3"
+wait_for "Jira has no undo"
+wait_for "Move GEN-14"
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Jira has no undo"
 start "$one"
 wait_for "fake: fake@example.com"
 

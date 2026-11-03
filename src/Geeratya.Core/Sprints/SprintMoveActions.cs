@@ -1,4 +1,6 @@
 using Geeratya.Core.Backlog;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -22,6 +24,8 @@ public static class SprintMoveActions
     private const string KanbanText = "This is a Kanban board: it has no sprints.";
     private const string NothingText = "Nothing to move here";
     private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
+    private const string SprintsNotLoadedText = "The sprints are still loading: drop again in a moment.";
+    private const string SprintUnavailableText = "That sprint is not available: refresh the view.";
     private const string BacklogText = "the backlog";
     private const int MaxPlacesNamed = 2;
 
@@ -60,11 +64,77 @@ public static class SprintMoveActions
         return Start(state, data.MoveKeys!, target, at);
     }
 
+    /// <summary>
+    /// A row dragged from one section of a Scrum backlog onto another (header, goal, note or row line): asks to move
+    /// the marks or Visual range when the pressed row belongs to them, else that row alone, to that sprint or the
+    /// backlog. Null when this is not such a drop (another layout, a drop inside one section, a press that is not on a
+    /// row), so the drag selects rows instead. Never writes: the request always asks first.
+    /// </summary>
+    public static ReduceResult? Dropped(AppState state, RowsDragged drag, DateTimeOffset at)
+    {
+        var tab = ActiveTab(state);
+
+        if (tab is null || state.Mode != InputMode.Normal || tab.Detail.Count > 0 || !BacklogSections.Applies(tab)
+            || tab.Board is { Type: BoardType.Kanban })
+        {
+            return null;
+        }
+
+        var layout = BacklogSections.Build(tab);
+        var from = layout.LineAt(LineOf(tab, drag.FromRow));
+        var to = layout.LineAt(LineOf(tab, drag.ToRow));
+
+        if (from is not { Row: { } row } || to is not { } target || target.Section.Key == from.Value.Section.Key
+            || !OnScreen(tab, drag.FromRow) || !OnScreen(tab, drag.ToRow))
+        {
+            return null;
+        }
+
+        if (target.Section.Sprint is null && !target.Section.IsBacklog)
+        {
+            return Say(state, tab.Sprints.Count == 0 ? SprintsNotLoadedText : SprintUnavailableText);
+        }
+
+        var keys = DraggedKeys(tab, row);
+        var sprint = target.Section.Sprint is { } found ? new IssueSprint(found.Id, found.Name, found.State) : null;
+
+        return Start(state, keys, sprint, at, dropped: true);
+    }
+
+    private static bool OnScreen(TabState tab, int screenRow)
+    {
+        return screenRow >= ListLayout.HeaderRows && screenRow - ListLayout.HeaderRows < tab.VisibleRows;
+    }
+
+    private static int LineOf(TabState tab, int screenRow)
+    {
+        return tab.Scroll + screenRow - ListLayout.HeaderRows;
+    }
+
+    // The set the pressed row belongs to: the marks or the Visual range when it is in them, else the row alone.
+    private static IReadOnlyList<string> DraggedKeys(TabState tab, int row)
+    {
+        var key = tab.Rows[row].Key;
+
+        if (tab.Marks.Contains(key, StringComparer.OrdinalIgnoreCase))
+        {
+            return RowSelection.Targets(tab);
+        }
+
+        if (RowSelection.VisualRange(tab) is { } range && row >= range.First && row <= range.Last)
+        {
+            return RowSelection.Targets(tab with { Marks = [] });
+        }
+
+        return [key];
+    }
+
     private static ReduceResult Start(
         AppState state,
         IReadOnlyList<string> keys,
         IssueSprint? target,
-        DateTimeOffset at)
+        DateTimeOffset at,
+        bool dropped = false)
     {
         var tab = ActiveTab(state);
 
@@ -73,7 +143,7 @@ public static class SprintMoveActions
             return Say(state, NothingText);
         }
 
-        var request = new SprintMoveRequest(keys, target, SourceOf(state, keys));
+        var request = new SprintMoveRequest(keys, target, SourceOf(state, keys), dropped);
 
         return WriteReducer.Reduce(state, new WriteRequested(tab.Id, request, at));
     }

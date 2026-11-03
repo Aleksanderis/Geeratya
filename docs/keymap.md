@@ -72,6 +72,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space s b` | Move the selected issues to the backlog | `sprint.move-to-backlog` | everyday |
 | `Space s n` | Create a sprint (name, goal, dates) | `sprint.create` | everyday |
 | `Space s e` | Edit the sprint (name, goal, dates) | `sprint.edit` | advanced |
+| `Space s s` | Start the sprint (confirms dates and issue count) | `sprint.start` | everyday |
+| `Space s c` | Complete the sprint (confirms where the open issues go) | `sprint.complete` | everyday |
 | `Space s g` | Show the full goal of the sprint | `sprint.goal` | everyday |
 | `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
 | `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
