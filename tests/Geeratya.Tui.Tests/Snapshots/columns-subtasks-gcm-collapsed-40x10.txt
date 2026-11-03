@@ -1,0 +1,10 @@
+ 1 Board GCM board   +    <space>g jump 
+                                        
+╭─‹ To Do 4  In Progress 4  Done 2 ›───╮
+│ E GCM-9 Seed: Reporting              │
+│ └T GCM-14 Pick a chart library       │
+│>S GCM-10 ↑GCM-8 Sign up with email   │
+│ B GCM-16 ↑GCM-8 App crashes on empty…│
+│                                      │
+╰──────────────────────────────────────╯
+ NORMAL       ? help  : commands  q quit

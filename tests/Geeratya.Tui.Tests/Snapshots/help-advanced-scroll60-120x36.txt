@@ -16,7 +16,8 @@
             │               │   $          Go to the last column                                           │            
             │               │   ]]         Next section of the issue or the Scrum backlog                  │            
             │               │   [[         Previous section of the issue or the Scrum backlog              │            
-            │               │   za         Fold a backlog section or the sub-tasks of a card               │            
+            │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
+            │               │              section                                                         │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
@@ -30,7 +31,6 @@
             │               │              screen)                                                         │            
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
-            │               │   /          Filter the help by key, title or action id                      │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

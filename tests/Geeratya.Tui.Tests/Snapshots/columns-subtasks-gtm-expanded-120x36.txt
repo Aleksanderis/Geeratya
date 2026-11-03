@@ -33,4 +33,4 @@
 │                             │ └─────────────────────────┘ │                             │                            │
 │                             │                             │                             │                            │
 ╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
- NORMAL  GTM board · 14 issues               h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+ NORMAL  GTM board · 14 is…    h/l column  j/k card  Enter open  za sub-tasks  <space>l list  ? help  : commands  q quit

@@ -4,7 +4,8 @@
             ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │   Global      │   ]]         Next section of the issue or the Scrum backlog                  │            
             │ > All actions │   [[         Previous section of the issue or the Scrum backlog              │            
-            │   Commands    │   za         Fold a backlog section or the sub-tasks of a card               │            
+            │   Commands    │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
+            │               │              section                                                         │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
@@ -30,7 +31,6 @@
             │               │   y          Confirm                                                         │            
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
-            │               │   Backspace  Delete the character before the caret                           │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
