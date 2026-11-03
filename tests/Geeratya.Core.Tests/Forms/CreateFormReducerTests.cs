@@ -438,10 +438,10 @@ public class CreateFormReducerTests
     {
         CreateField[] fields =
         [
-            new("summary", "Summary", true, false, CreateFieldKind.Text, [], null),
-            new("customfield_1", "Start", false, false, CreateFieldKind.DateTime, [], null),
-            new("duedate", "Due", false, false, CreateFieldKind.Date, [], null),
-            new("parent", "Parent", false, false, CreateFieldKind.Parent, [], null),
+            new("summary", "Summary", true, false, CreateFieldKind.Text, []),
+            new("customfield_1", "Start", false, false, CreateFieldKind.DateTime, []),
+            new("duedate", "Due", false, false, CreateFieldKind.Date, []),
+            new("parent", "Parent", false, false, CreateFieldKind.Parent, []),
         ];
 
         var mapped = FormFieldMapper.FromCreate(fields, "A-1");
@@ -506,8 +506,8 @@ public class CreateFormReducerTests
     {
         return
         [
-            new("summary", "Summary", true, false, CreateFieldKind.Text, [], null),
-            new("parent", "Parent", parentRequired, false, CreateFieldKind.Parent, [], null),
+            new("summary", "Summary", true, false, CreateFieldKind.Text, []),
+            new("parent", "Parent", parentRequired, false, CreateFieldKind.Parent, []),
         ];
     }
 
