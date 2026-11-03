@@ -7,6 +7,7 @@ using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
@@ -69,13 +70,13 @@ public class NetworkStateSnapshotTests
 
         foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16, ColorSupport.None })
         {
-            var run = StyledRuns.Resolve(frame.Header[1], tier)[0];
-            var body = Palette.Resolve(tier, PaletteRole.Body);
+            var run = StyledRuns.Resolve(frame.Header[1], BuiltInThemes.Default, tier)[0];
+            var body = Palette.Resolve(BuiltInThemes.Default, tier, PaletteRole.Body);
 
             Assert.NotEqual(body, run.Style);
         }
 
-        var plain = StyledRuns.Resolve(frame.Header[1], ColorSupport.None)[0].Style;
+        var plain = StyledRuns.Resolve(frame.Header[1], BuiltInThemes.Default, ColorSupport.None)[0].Style;
         Assert.NotEqual(RoleStyle.None, plain.Style);
         Assert.False(string.IsNullOrWhiteSpace(badge.Text));
     }

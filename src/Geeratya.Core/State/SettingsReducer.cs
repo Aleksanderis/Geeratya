@@ -7,6 +7,8 @@ public static class SettingsReducer
 {
     public const string Usage = "Usage: :set hints|whichkey on|off";
 
+    public const string ThemeUsage = "Usage: :theme [name]";
+
     private const string HintsName = "hints";
     private const string WhichKeyName = "whichkey";
 
@@ -33,6 +35,31 @@ public static class SettingsReducer
 
         return new ReduceResult(
             state with { Settings = changed, Message = $"{parts[0]} {Word(on)}." },
+            [new SaveSettingsEffect(changed)]);
+    }
+
+    /// <summary>
+    /// <c>:theme [name]</c>: asks the host to switch (or list); the choice is saved once the host confirms.
+    /// </summary>
+    public static ReduceResult Theme(AppState state, string name)
+    {
+        return name.Contains(' ')
+            ? Say(state, ThemeUsage)
+            : new ReduceResult(state, [new ApplyThemeEffect(name)]);
+    }
+
+    /// <summary>The host's answer: a theme that is drawn becomes the saved choice.</summary>
+    public static ReduceResult Applied(AppState state, ThemeApplied applied)
+    {
+        if (!applied.Applied)
+        {
+            return Say(state, applied.Message);
+        }
+
+        var changed = state.Settings with { Theme = applied.Name };
+
+        return new ReduceResult(
+            state with { Settings = changed, Message = applied.Message },
             [new SaveSettingsEffect(changed)]);
     }
 

@@ -72,6 +72,10 @@ all_scenarios=(
   "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
   "rank-board;120;36;dark;:board GCM|};Ranked"
   "rank-board-team;120;36;dark;:board GTM|};Ranked"
+  "theme-latte;120;36;light;:board GCM|:theme catppuccin-latte|;Theme catppuccin-latte."
+  "theme-high-contrast;120;36;dark;:board GCM|:theme high-contrast|;Theme high-contrast."
+  "theme-gruvbox;120;36;dark;:board GCM|:theme gruvbox-dark-medium|;Theme gruvbox-dark-medium."
+  "theme-list;120;36;dark;:theme|;Themes:"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )
 
