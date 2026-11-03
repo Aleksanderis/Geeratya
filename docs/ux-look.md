@@ -127,7 +127,7 @@ Chip kinds: the **focused** pane's chip is the filled accent chip (accent backgr
 
 ### Pane navigation (no new keys)
 
-Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `] ] pane` (detail and backlog, last of the screen hints) name the chord. The wheel scrolls the document as today.
+Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `]] pane` (detail and backlog, last of the screen hints) name the chord. The wheel scrolls the document as today.
 
 ## 5. Chrome: tab row, status bar, key hints (#527)
 
@@ -213,7 +213,7 @@ Mockups below show the box on a few rows of the muted view.
 ```
 
 - Title chip `Commands`; right-hand dim chip `shown/total` in the top edge. Query line directly under it: the prompt `:` in the accent colour, the typed text, a cursor cell. A rule below the query line.
-- Rows are grouped; each group has a **subheader** line (the group name, accent, bold, not selectable, not counted; shown only while the filter matches rows of the group). A row: title (plain), then the main key right-aligned in the muted accent (`Space i m`), nothing when unbound. Disabled actions (not applicable to the current view) are muted and skipped by selection. A title that does not fit is truncated with `…`, never the key.
+- Rows are grouped; each group has a **subheader** line (the group name, accent, bold, not selectable, not counted; shown only while the filter matches rows of the group). A row: title (plain), then the main key right-aligned in the muted accent (`<space>im`), nothing when unbound. Disabled actions (not applicable to the current view) are muted and skipped by selection. A title that does not fit is truncated with `…`, never the key.
 - The selected row is the tint; `Enter` runs it. A typed command line (`:jql ...`, `:board GEN`) shows its usage line as the single row, and `Enter` runs the command (unchanged behaviour, `ux.md` "Command palette").
 - No match: one muted row `No command matches "rank"`.
 

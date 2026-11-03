@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text;
 
 namespace Geeratya.Core.Keymap;
 
@@ -37,10 +38,11 @@ public static class KeyNotation
     }
 
     /// <summary>
-    /// The keys of a binding as the UI and the docs show them (the Gitunia labelling): the leader as <c>&lt;space&gt;</c>,
-    /// a plain character run joined (<c>gg</c>, <c>&lt;space&gt;is</c>), a space only next to a long key name
-    /// (<c>Ctrl-w c</c>, <c>g Esc</c>), and a named key inside a sequence in angle brackets (<c>&lt;space&gt;&lt;Tab&gt;</c>).
-    /// A single named key stays bare (<c>Esc</c>, <c>Enter</c>, <c>Down</c>). The config file keeps the stored spelling.
+    /// The keys of a binding as the UI and the docs show them (the Gitunia labelling): the leader as
+    /// <c>&lt;space&gt;</c>, a plain character run joined (<c>gg</c>, <c>&lt;space&gt;is</c>), a space only next to a
+    /// long key name (<c>Ctrl-w c</c>), and a named key inside a sequence in angle brackets
+    /// (<c>&lt;space&gt;&lt;Tab&gt;</c>). A single named key stays bare (<c>Esc</c>, <c>Enter</c>, <c>Down</c>).
+    /// The config file keeps the stored spelling.
     /// </summary>
     [return: NotNullIfNotNull(nameof(keys))]
     public static string? Display(string? keys)
@@ -52,7 +54,7 @@ public static class KeyNotation
 
         var parts = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var tokens = parts.Select(part => DisplayToken(part, parts.Length > 1)).ToList();
-        var builder = new System.Text.StringBuilder();
+        var builder = new StringBuilder();
 
         for (var index = 0; index < tokens.Count; index++)
         {
@@ -85,9 +87,9 @@ public static class KeyNotation
             return "<space>";
         }
 
-        var bare = key.StartsWith(CtrlPrefix, StringComparison.Ordinal) || key.StartsWith(AltPrefix, StringComparison.Ordinal)
-            ? string.Empty
-            : key;
+        var hasModifier = key.StartsWith(CtrlPrefix, StringComparison.Ordinal)
+            || key.StartsWith(AltPrefix, StringComparison.Ordinal);
+        var bare = hasModifier ? string.Empty : key;
 
         return inSequence && bare.Length > 1 && _keyNames.Contains(bare) ? $"<{bare}>" : key;
     }

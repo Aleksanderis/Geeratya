@@ -110,7 +110,7 @@ public sealed class KeymapTable
         return null;
     }
 
-    /// <summary>The first keys bound to the action as shown to the user (<see cref="KeyNotation.Display"/>), or null.</summary>
+    /// <summary>The first keys bound to the action, as shown to the user (<c>Display</c>), or null.</summary>
     public string? FindKeyLabel(InputMode mode, string action)
     {
         return KeyNotation.Display(FindKeys(mode, action));

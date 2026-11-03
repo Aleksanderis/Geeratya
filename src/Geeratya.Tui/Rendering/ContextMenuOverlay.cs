@@ -46,7 +46,7 @@ public static class ContextMenuOverlay
         for (var index = first; index < first + area; index++)
         {
             var item = menu.Items[index];
-            var keys = keymap.FindKeys(InputMode.Normal, item.Action) is { } found ? KeyNotation.Display(found) : string.Empty;
+            var keys = keymap.FindKeyLabel(InputMode.Normal, item.Action) ?? string.Empty;
 
             lines.Add(OverlayBox.Wall(RowLine(item.Title, keys, index == selected, boxWidth - 4), contentWidth));
         }
