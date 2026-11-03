@@ -68,7 +68,7 @@ Run from the repo root:
 
 Follow the `work-task` skill (`.claude/skills/work-task/`) for the procedure. To work a whole milestone or the backlog, follow the `work-orchestrator` skill (`.claude/skills/work-orchestrator/`); `work-readiness` prevalidates a milestone first. They hold the issue order, review, PR, merge, loose-end and owner-feedback procedure. Invariants that hold regardless:
 
-- `spike` and `needs-review` issues are never merged by an agent: spikes stay on unmerged `spike/` branches and close with findings; `needs-review` stops at an open PR for the owner.
+- `spike` issues are never merged by an agent: they stay on unmerged `spike/` branches and close with findings; `needs-review` issues are merged like any other once the reviewer has no open blockers, and the label only tells the owner what to look at afterwards (decision 2026-11-03: the owner reviews after merge and must never be the bottleneck; a stuck dependency is worked around, not waited on).
 - Merge commits only, never squash or rebase, never force-push.
 - Every issue has a milestone, with no exception: whoever creates an issue passes `-m "<milestone>"` (a follow-up stays in its feature's milestone, or goes to the next open one if that is closed). The orchestrator state script lists open issues without one.
 - Every PR carries the reviewer's findings as a PR comment; every owner comment gets an agent-marked reply; loose ends are registered as issues, not left in notes.

@@ -28,7 +28,7 @@ Run `.claude/skills/work-orchestrator/scripts/owner-feedback.sh sweep` (labels t
 
 - The `Blocked by:` line is the order; an issue with an OPEN blocker is not startable.
 - Issues listed as "owner answered last": act on the answer (see "Labels for the owner" in `work-task`: implement, log, or close) and reply with an agent-marked comment. Do not remove the label; do not list an answered issue as "waiting for the owner" in the status comment.
-- Skip `spike` and `needs-review` issues as `work-task` says, skip `windows-vm` issues (the owner runs them in separate Windows VM sessions; list them as waiting for the owner in the status comment), and never pick the `tracking` issue as work.
+- Skip `spike` issues as `work-task` says (`needs-review` issues are worked and merged normally), skip `windows-vm` issues (the owner runs them in separate Windows VM sessions; list them as waiting for the owner in the status comment), and never pick the `tracking` issue as work.
 
 If a worktree or feature branch exists for an issue with no merged PR, that issue is in flight: resume it (`work-task`'s rate-limit rules), do not start it over.
 
@@ -65,6 +65,8 @@ Before ending:
 3. Tell the owner: "start a new session with `work-orchestrator` to continue" and nothing else is needed, since GitHub holds the state.
 
 ## Rules
+
+- Be autonomous: the owner reviews everything after the fact and must never block progress. Never stop a milestone to wait for a review, a merge or an answer. If an issue depends on a PR that is still open, merge that PR yourself (reviewer clean, local build and tests green), or stack the work on its branch; if the PR conflicts, delegate the conflict resolution. Decide from the docs, log the decision, and tell the owner afterwards. Only a stop condition in step 4 (nothing unblocked, or the owner said stop) ends a session.
 
 - No long summaries of agent work in the conversation; link PRs instead.
 - Never implement an issue yourself in the orchestrator session unless it is a trivial fix to something an agent just merged.
