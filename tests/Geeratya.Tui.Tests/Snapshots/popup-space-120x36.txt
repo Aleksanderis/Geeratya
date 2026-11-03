@@ -11,10 +11,10 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
                                                             ┌─ Space ──────────────────────────────────────────────────┐
                                                             │ c         Close the tab                                  │
                                                             │ t         Open the source picker for a new tab           │
+                                                            │ Tab       Previously active tab                          │
                                                         Geer│                                                          │
                                               No profile yet│ x         Dismiss the status message                     │
                                               ? help   : com│ n         Show the message history                       │

@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   [ [        Previous section of the issue                                   │            
-            │ > All actions │ General                                                                      │            
-            │   Commands    │   ?          Show or hide help                                               │            
+            │   Global      │   ] ]        Next section of the issue                                       │            
+            │ > All actions │   [ [        Previous section of the issue                                   │            
+            │   Commands    │ General                                                                      │            
+            │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
             │               │   Esc        Cancel or close                                                 │            
             │               │   :          Open the command palette  (Ctrl-p)                              │            
@@ -20,17 +21,16 @@
             │               │   K          Scroll help up a line                                           │            
             │               │   D          Scroll help down half a page  (Ctrl-d)                          │            
             │               │   U          Scroll help up half a page  (Ctrl-u)                            │            
-            │               │   Enter      Run the typed command                                           │            
+            │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
             │               │   Backspace  Delete the last character                                       │            
             │               │   y          Confirm                                                         │            
             │               │   n          Decline  (Esc)                                                  │            
-            │               │   Enter      Accept the field and go to the next                             │            
+            │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
             │               │   Backspace  Delete the last character                                       │            
             │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
             │               │              is deleted)                                                     │            
-            │               │   Up         Previous row in the picker  (Ctrl-p)                            │            
-            │               │   Down       Next row in the picker  (Ctrl-n)                                │            
-            │               │   Left       Move the cursor left                                            │            
+            │               │   Up         Previous row in the picker  (Ctrl-p, Ctrl-k)                    │            
+            │               │   Down       Next row in the picker  (Ctrl-n, Ctrl-j)                        │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │ Navigate                                                                     │            
-            │ > All actions │   j          Move down  (Down)                                               │            
-            │   Commands    │   k          Move up  (Up)                                                   │            
+            │   Global      │   Space c    Close the tab                                                   │            
+            │ > All actions │ Navigate                                                                     │            
+            │   Commands    │   j          Move down  (Down)                                               │            
+            │               │   k          Move up  (Up)                                                   │            
             │               │   h          Move left  (Left)                                               │            
             │               │   l          Move right  (Right)                                             │            
             │               │   g g        Go to the top  (Home)                                           │            
@@ -30,7 +31,6 @@
             │               │   Tab        Next help section                                               │            
             │               │   Shift-Tab  Previous help section                                           │            
             │               │   J          Scroll help down a line                                         │            
-            │               │   K          Scroll help up a line                                           │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

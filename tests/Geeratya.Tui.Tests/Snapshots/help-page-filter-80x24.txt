@@ -8,6 +8,7 @@ Sample · 1 issue
   │   Commands    │ Tabs                                                     │  
   │               │   Tab        Next tab  (g t)                             │  
   │               │   Shift-Tab  Previous tab  (g T)                         │  
+  │               │   Ctrl-^     Previously active tab  (Space Tab)          │  
   │               │   Alt-1      Go to tab 1                                 │  
   │               │   Alt-2      Go to tab 2                                 │  
   │               │   Alt-3      Go to tab 3                                 │  
@@ -18,7 +19,6 @@ Sample · 1 issue
   │               │   Alt-8      Go to tab 8                                 │  
   │               │   Alt-9      Go to tab 9                                 │  
   │               │   Space t    Open the source picker for a new tab        │  
-  │               │   Space c    Close the tab                               │  
   └──────────────────────────────────────────────────────────────────────────┘  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close

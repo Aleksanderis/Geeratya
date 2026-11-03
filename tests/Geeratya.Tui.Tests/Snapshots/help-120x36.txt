@@ -9,6 +9,7 @@
             │               │   Space A    Open the actions menu of the tab and the view                   │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
+            │               │   Ctrl-^     Previously active tab  (Space Tab)                              │            
             │               │   Alt-1      Go to tab 1                                                     │            
             │               │   Alt-2      Go to tab 2                                                     │            
             │               │   Alt-3      Go to tab 3                                                     │            
@@ -26,7 +27,6 @@
             │               │   Space g    Jump to an issue by key                                         │            
             │               │   Space n    Show the message history                                        │            
             │               │   Space x    Dismiss the status message                                      │            
-            │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            

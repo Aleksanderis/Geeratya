@@ -565,6 +565,7 @@ public sealed class AppReducer
             ActionIds.IssueTransitionPrevious => InNormal(state, () => TransitionForms.MoveCard(state, -1)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
+            ActionIds.TabLastActive => ViewReducer.LastActiveTab(state),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),

@@ -18,6 +18,7 @@
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
+            │               │   Ctrl-^     Previously active tab  (Space Tab)                              │            
             │               │   Alt-1      Go to tab 1                                                     │            
             │               │   Alt-2      Go to tab 2                                                     │            
             │               │   Alt-3      Go to tab 3                                                     │            
@@ -30,7 +31,6 @@
             │               │   Space t    Open the source picker for a new tab                            │            
             │               │   Space c    Close the tab                                                   │            
             │               │ Navigate                                                                     │            
-            │               │   j          Move down  (Down)                                               │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

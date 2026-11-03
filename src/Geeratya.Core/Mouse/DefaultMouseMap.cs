@@ -122,6 +122,7 @@ public static class DefaultMouseMap
             [ActionIds.NavigateLastColumn] = pointing,
             [ActionIds.SectionNext] = "a click on a section title of the issue places the cursor there",
             [ActionIds.SectionPrevious] = "a click on a section title of the issue places the cursor there",
+            [ActionIds.TabLastActive] = "a click on the tab bar picks any tab directly; the menu of the tab and the view has no row for it",
             [ActionIds.TabGoTo1] = tabClick,
             [ActionIds.TabGoTo2] = tabClick,
             [ActionIds.TabGoTo3] = tabClick,
