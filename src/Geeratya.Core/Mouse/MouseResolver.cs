@@ -73,7 +73,8 @@ public static class MouseResolver
         int fromColumn,
         int fromRow,
         int toColumn,
-        int toRow)
+        int toRow,
+        DateTimeOffset at = default)
     {
         var gesture = context.ColumnsLayout ? MouseGesture.Drag : MouseGesture.DragRows;
 
@@ -88,7 +89,7 @@ public static class MouseResolver
 
         if (gesture == MouseGesture.DragRows)
         {
-            return [new RowsDragged(fromColumn, start.Row, end.Row, context.Width)];
+            return [new RowsDragged(fromColumn, start.Row, end.Row, context.Width, at)];
         }
 
         return [new CardDragged(fromColumn, start.Row, toColumn, context.Width)];

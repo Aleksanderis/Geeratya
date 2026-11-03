@@ -13,7 +13,7 @@ The input mode decides which keys act. It lives in `AppState.Mode`, except Visua
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|
 | Normal | start, or leaving any other mode | the Normal table in `keymap.md` | (home mode) |
-| Visual | `v` in a list or backlog view (or a drag over rows) | the Normal motions (`j k Ctrl-d Ctrl-u g g G`, the wheel) extend the range; the write keys act on it as a set (`Alt-m` marks the range); read-only itself, it writes nothing | `v`, `Esc` (a second `Esc` then clears the marks) |
+| Visual | `v` in a list or backlog view (or a drag over rows; on a Scrum backlog a drag that ends in another section asks to move the rows instead, see `ux-mouse.md`) | the Normal motions (`j k Ctrl-d Ctrl-u g g G`, the wheel) extend the range; the write keys act on it as a set (`Alt-m` marks the range); read-only itself, it writes nothing | `v`, `Esc` (a second `Esc` then clears the marks) |
 | Help | `?` | `j`/`k` or `Down`/`Up` and `Tab`/`Shift-Tab` move between sections; `J`/`K` scroll a line, `D`/`U` or `Ctrl-d`/`Ctrl-u` half a page (8 lines); `/` filters (printable keys are text until `Enter` or `Esc`); `?`, `q` and `Esc` close (with a filter set the first `Esc` or `q` clears it) | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n`, `Esc` and `Ctrl-c` (quit) act; every other key is swallowed, `Enter` never confirms; the two rows and the backdrop are clickable | `y` (runs the action), `n`, `Esc`, a click outside the box (cancel), `Ctrl-c` (quits; asks first while writes run) |

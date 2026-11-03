@@ -72,11 +72,13 @@ public class MouseResolverTests
     [Fact]
     public void GivenADragOverRowsInTheListLayout_WhenResolving_ThenRowsAreDragged()
     {
-        var commands = MouseResolver.ResolveDrag(_normal, 5, 10, 5, 13);
+        var at = new DateTimeOffset(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
+
+        var commands = MouseResolver.ResolveDrag(_normal, 5, 10, 5, 13, at);
 
         var dragged = Assert.IsType<RowsDragged>(Assert.Single(commands));
 
-        Assert.Equal(new RowsDragged(5, dragged.FromRow, dragged.ToRow, _normal.Width), dragged);
+        Assert.Equal(new RowsDragged(5, dragged.FromRow, dragged.ToRow, _normal.Width, at), dragged);
         Assert.True(dragged.ToRow > dragged.FromRow);
     }
 

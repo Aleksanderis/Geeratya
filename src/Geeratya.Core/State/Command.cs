@@ -49,8 +49,8 @@ public sealed record CardDragged(int FromColumn, int FromRow, int ToColumn, int 
 
 /// <summary>
 /// Rows dragged over with the pointer on the list or backlog layout (press, move, release): Visual mode from the
-/// first row to the last, the same as <c>v</c> and the motions. On a Scrum backlog a release inside another section asks to
-/// move the issues there instead.
+/// first row to the last, the same as <c>v</c> and the motions. On a Scrum backlog a release inside another section
+/// asks to move the issues there instead.
 /// </summary>
 /// <param name="Column">The screen column where the button went down.</param>
 /// <param name="FromRow">The body row where the button went down.</param>

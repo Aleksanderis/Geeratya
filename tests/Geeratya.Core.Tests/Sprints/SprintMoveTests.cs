@@ -322,7 +322,10 @@ public class SprintMoveTests
 
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.Empty(result.Effects);
-        Assert.Contains("Move A-3 from sprint \"Sprint 1\" to sprint \"Sprint 3\"? Jira has no undo.", result.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "Move A-3 from sprint \"Sprint 1\" to sprint \"Sprint 3\"? Jira has no undo.",
+            result.State.Confirm!.Message,
+            StringComparison.Ordinal);
         var yes = Press(result.State, "y");
         Assert.Equal(["A-3"], Request(yes).Keys);
         Assert.Equal(BacklogFixtures.EmptyFutureId, Request(yes).Target!.Id);
@@ -364,9 +367,10 @@ public class SprintMoveTests
         var rows = Enumerable.Range(section.FirstRow, section.RowCount).ToArray();
         Assert.True(rows.Length > 1);
 
-        var result = _reducer.Reduce(
-            state,
-            new RowsDragged(0, Screen(tab, layout.LineOfRow(rows[0])), Screen(tab, layout.LineOfRow(rows[1])), 80, _now));
+        var from = Screen(tab, layout.LineOfRow(rows[0]));
+        var to = Screen(tab, layout.LineOfRow(rows[1]));
+
+        var result = _reducer.Reduce(state, new RowsDragged(0, from, to, 80, _now));
 
         Assert.NotEqual(InputMode.Confirm, result.State.Mode);
         Assert.Empty(result.Effects);
@@ -394,12 +398,11 @@ public class SprintMoveTests
         return BacklogSections.Build(Tab(state)).Sections.Single(section => section.Key == key).FirstLine;
     }
 
-    private static AppState WithSprints(AppState state, params Sprint[] overrides)
+    private static AppState WithSprints(AppState state)
     {
         Sprint[] sprints = [BacklogFixtures.Active, BacklogFixtures.Future, BacklogFixtures.EmptyFuture];
-        var merged = sprints.Select(sprint => overrides.FirstOrDefault(over => over.Id == sprint.Id) ?? sprint).ToArray();
 
-        return Replace(state, Tab(state) with { Sprints = merged });
+        return Replace(state, Tab(state) with { Sprints = sprints });
     }
 
     private static Sprint Closed(long id)

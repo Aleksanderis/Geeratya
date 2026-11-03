@@ -25,6 +25,7 @@ public static class SprintMoveActions
     private const string NothingText = "Nothing to move here";
     private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
     private const string SprintsNotLoadedText = "The sprints are still loading: drop again in a moment.";
+    private const string SprintUnavailableText = "That sprint is not available: refresh the view.";
     private const string BacklogText = "the backlog";
     private const int MaxPlacesNamed = 2;
 
@@ -91,7 +92,7 @@ public static class SprintMoveActions
 
         if (target.Section.Sprint is null && !target.Section.IsBacklog)
         {
-            return Say(state, SprintsNotLoadedText);
+            return Say(state, tab.Sprints.Count == 0 ? SprintsNotLoadedText : SprintUnavailableText);
         }
 
         var keys = DraggedKeys(tab, row);
