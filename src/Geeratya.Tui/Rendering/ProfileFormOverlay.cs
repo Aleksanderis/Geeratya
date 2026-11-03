@@ -134,12 +134,14 @@ public static class ProfileFormOverlay
         return new StyledLine([new StyledSpan("> ", TextRole.Key), new StyledSpan($"{value}_", TextRole.Body)]);
     }
 
+    /// <summary>What Enter does on <paramref name="field"/>; the box footer and the status hint both use it.</summary>
+    internal static string AcceptVerb(ProfileFormField field) => field == ProfileFormField.Token ? "save" : "next";
+
     private static string FooterText(ProfileForm form, KeymapTable keymap)
     {
         var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
         var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
-        var verb = form.Field == ProfileFormField.Token ? "save" : "next";
 
-        return $"{accept} {verb}   {cancel} cancel";
+        return $"{accept} {AcceptVerb(form.Field)}   {cancel} cancel";
     }
 }

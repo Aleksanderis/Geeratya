@@ -222,8 +222,22 @@ public class StatusBarTests
 
         Assert.Contains("INSERT [4/4] API token (hidden): ***_", line);
         Assert.DoesNotContain("abc", line);
-        Assert.Contains("Enter next", line);
+        Assert.Contains("Enter save", line);
+        Assert.DoesNotContain("Enter next", line);
         Assert.Contains("Esc cancel", line);
+    }
+
+    [Theory]
+    [InlineData(ProfileFormField.Name, "Enter next")]
+    [InlineData(ProfileFormField.SiteUrl, "Enter next")]
+    [InlineData(ProfileFormField.Email, "Enter next")]
+    [InlineData(ProfileFormField.Token, "Enter save")]
+    public void GivenEachProfileStep_WhenRendering_ThenHintUsesTheSameVerbAsTheBoxFooter(ProfileFormField field, string expected)
+    {
+        var form = ProfileForm.Start with { Field = field };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        Assert.Contains(expected, StatusBar.Render(state, 100, _keymap));
     }
 
     [Fact]
