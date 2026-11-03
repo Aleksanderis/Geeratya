@@ -149,7 +149,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     /// count and points on a sprint board, else the title and count, then the view options and the loading note, and
     /// on a sprint board the goal last (the status bar cuts from the end).
     /// </summary>
-    public static string StatusText(TabState tab, Glyphs glyphs, DateTimeOffset now)
+    public static string StatusText(TabState tab, Glyphs glyphs, DateTimeOffset now, bool withGoal = true)
     {
         var parts = new List<string>();
 
@@ -173,12 +173,23 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             parts.Add(note.PlainText);
         }
 
-        if (tab is { Sprint.Goal: { } goal } && tab.Definition.Source == ViewSourceKind.Sprint)
+        if (withGoal)
         {
-            parts.Add(string.Join(' ', goal.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)));
+            parts.Add(GoalText(tab));
         }
 
         return string.Join(glyphs.Separator, parts.Where(part => part.Length > 0));
+    }
+
+    /// <summary>The goal of the sprint a Sprint view shows on one line, or empty when there is none.</summary>
+    public static string GoalText(TabState tab)
+    {
+        if (tab is not { Sprint.Goal: { } goal } || tab.Definition.Source != ViewSourceKind.Sprint)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(' ', goal.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     }
 
     /// <summary>A Sprint view of "the active sprint" whose lookup finished with none: say so instead of "empty".</summary>

@@ -5,6 +5,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -12,6 +13,9 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class StatusBarTests
 {
+    private const string Goal = "Ship the board and polish everything";
+
+    private static readonly DateTimeOffset _now = new(2026, 11, 1, 9, 0, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
 
     private static readonly string[] _columnsHints =
@@ -417,6 +421,30 @@ public class StatusBarTests
         Assert.EndsWith("? help  : commands  q quit", line);
     }
 
+    [Theory]
+    [InlineData(220, true)]
+    [InlineData(160, false)]
+    [InlineData(100, false)]
+    [InlineData(80, false)]
+    [InlineData(40, false)]
+    public void GivenASprintBoardWithAGoal_WhenRendering_ThenTheGoalShowsOnlyWholeAndHintsStayFirst(int width, bool shown)
+    {
+        var line = StatusBar.Render(SprintStateOf(Goal, 5), width, _keymap, now: _now);
+
+        Assert.True(shown == line.Contains(Goal, StringComparison.Ordinal), line);
+        Assert.DoesNotContain(shown ? "Ship the board and p…" : "Ship", line, StringComparison.Ordinal);
+        Assert.Equal(width, TextWidth.Of(line));
+        Assert.Contains(width >= 80 ? "q quit" : string.Empty, line, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenASprintWithoutAGoal_WhenRendering_ThenNothingIsAdded()
+    {
+        var line = StatusBar.Render(SprintStateOf(null, 1), 220, _keymap, now: _now);
+
+        Assert.DoesNotContain("Ship", line, StringComparison.Ordinal);
+    }
+
     private static AppState ActiveOf(TabState tab)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
@@ -447,5 +475,19 @@ public class StatusBarTests
             Session = session,
             Message = message,
         };
+    }
+
+    private static AppState SprintStateOf(string? goal, int rowCount)
+    {
+        var sprint = new Sprint(7, "Sprint 2", SprintState.Active, goal, null, null, null, rowCount);
+        var definition = new ViewDefinition(ViewSourceKind.Sprint, "4:active", ViewLayout.Columns, "Board");
+        var tab = TabState.Opened(new TabId(1), definition, 1, 1, 10) with
+        {
+            Load = LoadState.Idle,
+            Sprint = sprint,
+            SprintResolved = true,
+        };
+
+        return ActiveOf(tab);
     }
 }
