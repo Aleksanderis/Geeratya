@@ -10,8 +10,9 @@ namespace Geeratya.FakeJira;
 /// With <c>--issues n</c>: a read-only Scrum board (id 7, project <c>GEN</c>) over the generated issues. The first
 /// four fifths of the issues sit in consecutive blocks of 3 to 30 sprints (the last one future, the one before it
 /// active, the rest closed), the last fifth is in no sprint, and an unfinished issue of a closed sprint is also in
-/// the backlog, as on the real site. Every issue carries a story point estimate; <c>noActiveSprint</c> turns the
-/// active sprint into a closed one. Everything is computed from the issue number, so nothing is stored.
+/// the backlog, as on the real site. Sprint and backlog moves (<c>POST sprint/{id}/issue</c>, <c>POST backlog/issue</c>)
+/// are kept as per-issue overrides in memory, so later reads show them. Every issue carries a story point estimate; <c>noActiveSprint</c> turns the
+/// active sprint into a closed one. Everything else is computed from the issue number.
 /// </summary>
 public sealed partial class GeneratedScrum
 {
@@ -38,6 +39,8 @@ public sealed partial class GeneratedScrum
     private static readonly string[] _kinds = ["Task", "Bug", "Story"];
     private static readonly DateTime _firstStart = new(2026, 1, 5, 9, 0, 0, DateTimeKind.Utc);
 
+    private readonly Lock _gate = new();
+    private readonly Dictionary<int, int> _moved = [];
     private readonly bool _noActiveSprint;
     private readonly int _total;
     private readonly int _sprintCount;
@@ -101,6 +104,85 @@ public sealed partial class GeneratedScrum
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// <c>POST sprint/{id}/issue</c> into a generated open sprint or <c>POST backlog/issue</c> for generated issues;
+    /// null for any other request. A closed sprint and an unknown issue are 400, as on the recorded boards.
+    /// </summary>
+    public FakeReply? Move(string method, string[] parts, string body)
+    {
+        var toSprint = parts is ["sprint", _, "issue"] && int.TryParse(parts[1], out var id) && IsGenerated(id);
+        var toBacklog = parts is ["backlog", "issue"];
+
+        if (method != "POST" || !(toSprint || toBacklog))
+        {
+            return null;
+        }
+
+        var index = toSprint ? int.Parse(parts[1], CultureInfo.InvariantCulture) - FirstSprintId : -1;
+
+        if (toSprint && StateOfSprint(index) == Closed)
+        {
+            return new FakeReply(400, _readFixture("scrum/error-sprint-move-into-closed-400.json"));
+        }
+
+        var numbers = NumbersOf(body);
+
+        if (numbers is null)
+        {
+            return new FakeReply(400, _readFixture("boards/rank-400-missing-issue.json"));
+        }
+
+        lock (_gate)
+        {
+            foreach (var number in numbers)
+            {
+                _moved[number] = index;
+            }
+        }
+
+        return new FakeReply(204, []);
+    }
+
+    /// <summary>True for <c>GEN-n</c> with n within the dataset.</summary>
+    public bool Has(string key)
+    {
+        return key.StartsWith(Prefix, StringComparison.Ordinal)
+            && int.TryParse(key.AsSpan(Prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var number)
+            && number >= 1
+            && number <= _total;
+    }
+
+    private List<int>? NumbersOf(string body)
+    {
+        try
+        {
+            if (JsonNode.Parse(body)?["issues"] is not JsonArray { Count: > 0 } array)
+            {
+                return null;
+            }
+
+            var numbers = new List<int>();
+
+            foreach (var node in array)
+            {
+                var key = node is JsonValue value && value.TryGetValue<string>(out var text) ? text : string.Empty;
+
+                if (!Has(key))
+                {
+                    return null;
+                }
+
+                numbers.Add(int.Parse(key.AsSpan(Prefix.Length), CultureInfo.InvariantCulture));
+            }
+
+            return numbers;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static bool IsFinished(int number) => number % _statuses.Length == 3;
@@ -215,6 +297,14 @@ public sealed partial class GeneratedScrum
     /// <summary>The sprint index (0-based) an issue number sits in, or -1 for none.</summary>
     private int SprintIndexOf(int number)
     {
+        lock (_gate)
+        {
+            if (_moved.TryGetValue(number, out var moved))
+            {
+                return moved;
+            }
+        }
+
         return number > _inSprints ? -1 : (number - 1) / _block;
     }
 

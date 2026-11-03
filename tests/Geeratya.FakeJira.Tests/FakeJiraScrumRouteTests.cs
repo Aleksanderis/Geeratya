@@ -249,6 +249,30 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         Assert.Contains("GTS-22", backlog);
     }
 
+    [Theory]
+    [InlineData(6, 7)]
+    [InlineData(5, 10)]
+    public async Task GivenBacklogIssue_WhenMovedIntoActiveSprintThenRankedBeforeItsFirstIssue_ThenSprintServesItFirst(
+        int board,
+        int activeSprint)
+    {
+        var key = Keys(await Json($"{Agile}/board/{board}/backlog"))[0];
+        var reference = Keys(await Json($"{Agile}/sprint/{activeSprint}/issue"))[0];
+
+        var move = await Send(HttpMethod.Post, $"{Agile}/sprint/{activeSprint}/issue", $$"""{"issues":["{{key}}"]}""");
+        var rank = await Send(
+            HttpMethod.Put,
+            $"{Agile}/issue/rank",
+            $$"""{"issues":["{{key}}"],"rankBeforeIssue":"{{reference}}"}""");
+        var sprint = Keys(await Json($"{Agile}/sprint/{activeSprint}/issue"));
+        var backlog = Keys(await Json($"{Agile}/board/{board}/backlog"));
+
+        Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, rank.StatusCode);
+        Assert.Equal([key, reference], sprint.Take(2));
+        Assert.DoesNotContain(key, backlog);
+    }
+
     [Fact]
     public async Task GivenUnknownIssueAmongKeys_WhenMoved_ThenBadRequestAndNoneMoves()
     {
