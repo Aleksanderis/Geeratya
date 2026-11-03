@@ -30,6 +30,11 @@ public static class SprintForms
             return Say(state, NotScrumText);
         }
 
+        if (tab.Detail.Count > 0)
+        {
+            return Say(state, DetailText.Replace("edit", "create", StringComparison.Ordinal));
+        }
+
         var target = new SprintFormTarget(board, null);
 
         return FormReducer.OpenReady(state, tab.Id, target, SprintFormFields.From(null));

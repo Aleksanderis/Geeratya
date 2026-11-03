@@ -277,6 +277,21 @@ public class SprintFormTests
         Assert.DoesNotContain(jql.Items, item => item.Action == ActionIds.SprintCreate);
     }
 
+    [Theory]
+    [InlineData(5)]
+    [InlineData(6)]
+    public void GivenEitherScrumBoard_WhenCreating_ThenTheWriteNamesThatBoard(long board)
+    {
+        var definition = new ViewDefinition(ViewSourceKind.Sprint, $"{board}:active", ViewLayout.List, "Sprint");
+        var state = Type(Press(Open(definition), "Space", "s", "n").State, "S");
+
+        var submitted = Press(state, "Ctrl-s");
+
+        var request = Assert.IsType<CreateSprintRequest>(
+            Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects)).Request);
+        Assert.Equal(board, request.BoardId);
+    }
+
     private AppState SubmittedCreate()
     {
         var state = Type(Press(Backlog(), "Space", "s", "n").State, "Sprint 9");
