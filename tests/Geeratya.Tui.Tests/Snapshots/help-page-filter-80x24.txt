@@ -1,15 +1,15 @@
- 1 JQL Sample x   +                                                Space g jump 
+ 1 JQL Sample x   +                                               <space>g jump 
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help  / tab ────────────────────────────────────────────────────────────╮ │
 │>│   List        │ View                                                     │ │
-│ │   Global      │   Space A    Open the actions menu of the tab and the    │ │
+│ │   Global      │   <space>A   Open the actions menu of the tab and the    │ │
 │ │ > All actions │              view                                        │ │
-│ │   Commands    │   Space v v  Open a saved view in a new tab              │ │
+│ │   Commands    │   <space>vv  Open a saved view in a new tab              │ │
 │ │               │ Tabs                                                     │ │
-│ │               │   Tab        Next tab  (g t)                             │ │
-│ │               │   Shift-Tab  Previous tab  (g T)                         │ │
-│ │               │   Ctrl-^     Previously active tab  (Space Tab)          │ │
+│ │               │   Tab        Next tab  (gt)                              │ │
+│ │               │   Shift-Tab  Previous tab  (gT)                          │ │
+│ │               │   Ctrl-^     Previously active tab  (<space><Tab>)       │ │
 │ │               │   Alt-1      Go to tab 1                                 │ │
 │ │               │   Alt-2      Go to tab 2                                 │ │
 │ │               │   Alt-3      Go to tab 3                                 │ │

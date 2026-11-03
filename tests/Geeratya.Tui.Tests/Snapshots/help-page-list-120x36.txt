@@ -1,32 +1,32 @@
- 1 JQL Sample x   +                                                                                        Space g jump 
+ 1 JQL Sample x   +                                                                                       <space>g jump 
                                                                                                                         
 ╭─ Sample ─────────────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
 │  Key T Sum╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮nee        │
 │> A-1 T Sum│ > List        │   j          Move down  (Down)                                               │           │
 │           │   Global      │   k          Move up  (Up)                                                   │           │
-│           │   All actions │   g g        Go to the top  (Home)                                           │           │
+│           │   All actions │   gg         Go to the top  (Home)                                           │           │
 │           │   Commands    │   G          Go to the bottom  (End)                                         │           │
 │           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
 │           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
-│           │               │   Space a    Open the actions menu of the selected issue                     │           │
+│           │               │   <space>a   Open the actions menu of the selected issue                     │           │
 │           │               │   Enter      Open the selected item                                          │           │
-│           │               │   Space l    Switch between list and columns                                 │           │
-│           │               │   Space o    Open the issue in the browser                                   │           │
-│           │               │   Space i e  Edit fields of the issue (summary, labels, priority,            │           │
+│           │               │   <space>l   Switch between list and columns                                 │           │
+│           │               │   <space>o   Open the issue in the browser                                   │           │
+│           │               │   <space>ie  Edit fields of the issue (summary, labels, priority,            │           │
 │           │               │              description)                                                    │           │
-│           │               │   Space i a  Assign the issue: search people, or unassign                    │           │
-│           │               │   Space i m  Assign the issue to me                                          │           │
-│           │               │   Space i s  Change the status of the issue                                  │           │
+│           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
+│           │               │   <space>im  Assign the issue to me                                          │           │
+│           │               │   <space>is  Change the status of the issue                                  │           │
 │           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │   v          Start or end Visual mode (a range of rows)                      │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
-│           │               │   Space i C  Create a sub-task of the selected issue                         │           │
-│           │               │   Space s m  Move the selected issues to a sprint                            │           │
-│           │               │   Space s b  Move the selected issues to the backlog                         │           │
-│           │               │   Space s n  Create a sprint (name, goal, dates)                             │           │
-│           │               │   Space s s  Start the sprint (confirms dates and issue count)               │           │
-│           │               │   Space s c  Complete the sprint (confirms where the open issues go)         │           │
+│           │               │   <space>iC  Create a sub-task of the selected issue                         │           │
+│           │               │   <space>sm  Move the selected issues to a sprint                            │           │
+│           │               │   <space>sb  Move the selected issues to the backlog                         │           │
+│           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
+│           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
+│           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
 │           │               │                                                                              │           │
 │           │               │                                                                              │           │
 │           │               │                                                                              │           │

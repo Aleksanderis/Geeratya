@@ -27,13 +27,13 @@ public static class WhichKeyBuilder
             {
                 var noun = Noun(keymap, mode, $"{pending} {next.Key}", level);
 
-                groups.Add(new WhichKeyRow(next.Key, $"{GroupMarker}{noun} ({next.Count})"));
+                groups.Add(new WhichKeyRow(KeyNotation.Display(next.Key), $"{GroupMarker}{noun} ({next.Count})"));
             }
             else
             {
                 var title = ActionCatalog.FindTitle(next.Action) ?? next.Action;
 
-                plain.Add((PrefixOf(next.Action), new WhichKeyRow(next.Key, title)));
+                plain.Add((PrefixOf(next.Action), new WhichKeyRow(KeyNotation.Display(next.Key), title)));
             }
         }
 

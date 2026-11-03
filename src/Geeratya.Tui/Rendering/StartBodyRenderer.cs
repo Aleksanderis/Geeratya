@@ -64,7 +64,7 @@ public sealed class StartBodyRenderer : IBodyRenderer
             return $"{active.Name}: {active.Email} on {active.SiteUrl}";
         }
 
-        var palette = keymap.FindKeys(InputMode.Normal, ActionIds.PaletteOpen);
+        var palette = keymap.FindKeyLabel(InputMode.Normal, ActionIds.PaletteOpen);
 
         return $"No profile yet: {palette}profile add";
     }

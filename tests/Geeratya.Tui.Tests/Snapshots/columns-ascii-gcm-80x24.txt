@@ -1,4 +1,4 @@
-[1 Board GCM board x]  +                                          [Space g jump]
+[1 Board GCM board x]  +                                         [<space>g jump]
                                                                                 
 +- To Do 5 ----------------+- In Progress 4 ----------+- Done 3 ---------------+
 | +----------------------+ | +----------------------+ | +- ^ GCM-10 Sign u. -+ |

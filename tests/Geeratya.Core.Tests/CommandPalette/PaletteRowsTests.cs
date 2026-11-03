@@ -30,7 +30,7 @@ public class PaletteRowsTests
             .Select(definition => definition.Id);
 
         Assert.Equal(expected.Order(), rows.Select(row => row.Id).Order());
-        Assert.Equal("Space i s", rows.Single(row => row.Id == ActionIds.IssueTransition).Keys);
+        Assert.Equal("<space>is", rows.Single(row => row.Id == ActionIds.IssueTransition).Keys);
         Assert.Equal("j, Down", rows.Single(row => row.Id == ActionIds.NavigateDown).Keys);
     }
 

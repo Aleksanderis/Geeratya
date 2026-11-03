@@ -193,33 +193,33 @@ public static class FormOverlay
 
     private static string FooterText(FormState form, KeymapTable keymap)
     {
-        var next = keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext);
-        var previous = keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldPrevious);
-        var submit = keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit);
-        var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+        var next = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
+        var previous = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldPrevious);
+        var submit = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormSubmit);
+        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
 
         if (form.DiscardPending)
         {
-            var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
-            var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
+            var yes = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmYes);
+            var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo);
 
             return $"{yes} discard   {no}/{cancel} keep editing";
         }
 
         if (form.IsChoosingType)
         {
-            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-            var choose = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+            var choose = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
 
             return $"{down}/{up} type   {choose} choose   {cancel} cancel";
         }
 
         if (form.Suggest is { Source.Kind: SuggestionKind.Options, Items.Count: > 0 } choice)
         {
-            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-            var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
             var escape = choice.Query.Length == 0 ? "cancel" : "clear filter";
 
             return $"{down}/{up} choose   {accept} accept   {next}/{previous} field   {cancel} {escape}";
@@ -227,15 +227,15 @@ public static class FormOverlay
 
         if (form.Suggest is { Items.Count: > 0 })
         {
-            var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-            var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
 
             return $"{down}/{up} choose   {next}/{accept} accept   {cancel} close list";
         }
 
         var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
-            ? $"   {keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
+            ? $"   {keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
             : string.Empty;
         var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
 
@@ -244,7 +244,7 @@ public static class FormOverlay
             return text;
         }
 
-        var open = keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter);
+        var open = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenAfter);
         var state = create.OpenAfter ? OpenAfterOnText : OpenAfterOffText;
 
         return $"{text}   {open} open after: {state}";

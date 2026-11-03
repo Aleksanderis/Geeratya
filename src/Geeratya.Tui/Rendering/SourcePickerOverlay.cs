@@ -146,10 +146,10 @@ public static class SourcePickerOverlay
 
     private static string FooterText(KeymapTable keymap, SourcePickerState picker)
     {
-        var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-        var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-        var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
-        var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
+        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
 
         if (picker.Scope == PickerScope.Sprints)
         {
@@ -158,7 +158,7 @@ public static class SourcePickerOverlay
                 return $"{up}/{down} choose   {accept} move   {cancel} close";
             }
 
-            var newTab = keymap.FindKeys(InputMode.Insert, ActionIds.PickerOpenNewTab);
+            var newTab = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerOpenNewTab);
 
             return $"{up}/{down} choose   {accept} open   {newTab} new tab   {cancel} close";
         }

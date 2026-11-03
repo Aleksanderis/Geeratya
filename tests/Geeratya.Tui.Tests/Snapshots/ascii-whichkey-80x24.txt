@@ -2,7 +2,7 @@
                                                                                 
                                                                                 
                                                                                 
-                    +- Space --------------------------------------------------+
+                    +- <space> ------------------------------------------------+
                     | c         Close the tab                                  |
                     | t         Open the source picker for a new tab           |
                     | Tab       Previously active tab                          |
@@ -21,4 +21,4 @@
                     | s         +sprint (7)                                    |
                     | v         +view (4)                                      |
                     +----------------------------------------------------------+
-[NORMAL] Space                                        ? help  : commands  q quit
+[NORMAL] <space>                                      ? help  : commands  q quit

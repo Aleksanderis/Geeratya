@@ -229,7 +229,7 @@ public class TabBarTests
         var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80);
 
         Assert.Equal(80, DisplayWidth.Of(line.PlainText));
-        Assert.EndsWith(" Space g jump ", line.PlainText);
+        Assert.EndsWith(" <space>g jump ", line.PlainText);
         Assert.Equal(TextRole.TabDim, line.Spans[^1].Role);
         Assert.Equal(80, DisplayWidth.Of(TabBar.BuildWithJumpChip([], null, 80).PlainText));
     }

@@ -2,17 +2,17 @@
                                                                                                                         
                                                                                                                         
             ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │   ] ]        Next section of the issue or the Scrum backlog                  │            
-            │ > All actions │   [ [        Previous section of the issue or the Scrum backlog              │            
-            │   Commands    │   z a        Fold a backlog section or the sub-tasks of a card               │            
+            │   Global      │   ]]         Next section of the issue or the Scrum backlog                  │            
+            │ > All actions │   [[         Previous section of the issue or the Scrum backlog              │            
+            │   Commands    │   za         Fold a backlog section or the sub-tasks of a card               │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
             │               │   Esc        Cancel or close                                                 │            
             │               │   :          Open the command palette  (Ctrl-p)                              │            
-            │               │   Space a    Open the actions menu of the selected issue                     │            
-            │               │   Space n    Show the message history                                        │            
-            │               │   Space x    Dismiss the status message                                      │            
+            │               │   <space>a   Open the actions menu of the selected issue                     │            
+            │               │   <space>n   Show the message history                                        │            
+            │               │   <space>x   Dismiss the status message                                      │            
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
             │               │   /          Filter the help by key, title or action id                      │            

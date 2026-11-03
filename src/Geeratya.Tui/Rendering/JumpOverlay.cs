@@ -166,10 +166,10 @@ public static class JumpOverlay
 
     private static string FooterText(KeymapTable keymap)
     {
-        var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-        var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-        var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
-        var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
+        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
 
         return $"{up}/{down} choose   {accept} open   {cancel} close";
     }

@@ -1,4 +1,4 @@
- 1 Board GTM board   +     Space g jump 
+ 1 Board GTM board   +    <space>g jump 
                                         
 ╭─To Do 5  In Progress 4 ›─────────────╮
 │>E GTM-9 Seed: Onboarding flow        │

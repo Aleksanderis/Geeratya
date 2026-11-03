@@ -1,10 +1,10 @@
                                         
                                         
-+- Space ------------------------------+
++- <space> ----------------------------+
 | c         Close the tab              |
 | t         Open the source picker for |
 | Tab       Previously active tab      |
 | x         Dismiss the status message |
 | n         Show the message history   |
 +--------------------------------------+
-[NORMAL] Space                          
+[NORMAL] <space>                        

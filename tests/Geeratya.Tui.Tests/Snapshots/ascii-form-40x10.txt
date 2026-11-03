@@ -1,4 +1,4 @@
-[1 JQL A]  +              [Space g jump]
+[1 JQL A]  +             [<space>g jump]
                                         
 +- A ------------------------ 1 issue -+
 | +- Edit A-1 -----------------------+S|

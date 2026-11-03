@@ -2,35 +2,35 @@
                                                                                                                         
                                                                                                                         
             ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │   Space m d  Delete the comment under the cursor                             │            
+            │   Global      │   <space>md  Delete the comment under the cursor                             │            
             │ > All actions │ Rank                                                                         │            
             │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │            
             │               │   Alt-j      Rank the issue down (a count moves it that many places)         │            
-            │               │   Space k t  Rank the issue to the top of the list or column                 │            
-            │               │   Space k b  Rank the issue to the bottom of the list or column              │            
-            │               │   Space k k  Pick up the issue, then drop it at the issue under the cursor   │            
+            │               │   <space>kt  Rank the issue to the top of the list or column                 │            
+            │               │   <space>kb  Rank the issue to the bottom of the list or column              │            
+            │               │   <space>kk  Pick up the issue, then drop it at the issue under the cursor   │            
             │               │ Selection                                                                    │            
             │               │   v          Start or end Visual mode (a range of rows)                      │            
             │               │   Alt-m      Mark or unmark the selected row and move down                   │            
             │               │ View                                                                         │            
-            │               │   Space A    Open the actions menu of the tab and the view                   │            
-            │               │   Space r    Refresh the view (also retries after an error)                  │            
-            │               │   Space l    Switch between list and columns                                 │            
-            │               │   Space v f  Cycle the quick filter of the board (off, then each filter in   │            
+            │               │   <space>A   Open the actions menu of the tab and the view                   │            
+            │               │   <space>r   Refresh the view (also retries after an error)                  │            
+            │               │   <space>l   Switch between list and columns                                 │            
+            │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │            
             │               │              turn)                                                           │            
-            │               │   Space v s  Group the board columns into lanes (none, assignee, epic)       │            
-            │               │   Space v v  Open a saved view in a new tab                                  │            
-            │               │   Space v w  Save this view under a name (opens :view save)                  │            
-            │               │   Space *    Switch the command level for the session                        │            
-            │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
-            │               │   Space s n  Create a sprint (name, goal, dates)                             │            
-            │               │   Space s e  Edit the sprint (name, goal, dates)                             │            
-            │               │   Space s s  Start the sprint (confirms dates and issue count)               │            
-            │               │   Space s c  Complete the sprint (confirms where the open issues go)         │            
-            │               │   Space s g  Show the full goal of the sprint                                │            
+            │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │            
+            │               │   <space>vv  Open a saved view in a new tab                                  │            
+            │               │   <space>vw  Save this view under a name (opens :view save)                  │            
+            │               │   <space>*   Switch the command level for the session                        │            
+            │               │   <space>sv  Switch the sprint shown (active, future, closed)                │            
+            │               │   <space>sn  Create a sprint (name, goal, dates)                             │            
+            │               │   <space>se  Edit the sprint (name, goal, dates)                             │            
+            │               │   <space>ss  Start the sprint (confirms dates and issue count)               │            
+            │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │            
+            │               │   <space>sg  Show the full goal of the sprint                                │            
             │               │ Tabs                                                                         │            
-            │               │   Tab        Next tab  (g t)                                                 │            
-            │               │   Shift-Tab  Previous tab  (g T)                                             │            
+            │               │   Tab        Next tab  (gt)                                                  │            
+            │               │   Shift-Tab  Previous tab  (gT)                                              │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
