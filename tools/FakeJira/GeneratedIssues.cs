@@ -56,7 +56,7 @@ public static class GeneratedIssues
         var json = $$$"""
             {"id":"{{{10000 + number}}}","key":"GEN-{{{number}}}","fields":{
             "summary":"Generated issue {{{number}}}",
-            "status":{"name":"{{{status}}}","statusCategory":{"key":"{{{CategoryOf(status)}}}"}},
+            "status":{"id":"{{{StatusIdOf(status)}}}","name":"{{{status}}}","statusCategory":{"key":"{{{CategoryOf(status)}}}"}},
             "issuetype":{"name":"{{{kind}}}","subtask":false},
             "priority":{"name":"Medium"},
             "assignee":null,
@@ -114,6 +114,18 @@ public static class GeneratedIssues
 
     public static byte[] Count(int total) => Encoding.UTF8.GetBytes($"{{\"count\":{total}}}");
 
+    /// <summary>The status id of a generated status: the ids the recorded board configuration maps to its columns (Backlog has none).</summary>
+    internal static string StatusIdOf(string status)
+    {
+        return status switch
+        {
+            "To Do" => "10004",
+            "In Progress" => "3",
+            "Done" => "10005",
+            _ => "10000",
+        };
+    }
+
     internal static string CategoryOf(string status)
     {
         return status switch
@@ -136,6 +148,7 @@ public static class GeneratedIssues
         writer.WriteBoolean("subtask", false);
         writer.WriteEndObject();
         writer.WriteStartObject("status");
+        writer.WriteString("id", StatusIdOf(_statuses[number % _statuses.Length]));
         writer.WriteString("name", _statuses[number % _statuses.Length]);
         writer.WriteEndObject();
         writer.WriteNull("assignee");
@@ -191,6 +204,7 @@ public static class GeneratedIssues
             writer.WriteStartObject("fields");
             writer.WriteString("summary", $"Generated sub-task {index} of {number}");
             writer.WriteStartObject("status");
+            writer.WriteString("id", StatusIdOf(status));
             writer.WriteString("name", status);
             writer.WriteStartObject("statusCategory");
             writer.WriteString("key", CategoryOf(status));

@@ -67,6 +67,25 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedSprint_WhenIssuesRead_ThenEveryStatusIdMatchesABoardColumnStatus()
+    {
+        var configuration = await Json($"{Agile}/board/7/configuration");
+        var mapped = configuration.GetProperty("columnConfig").GetProperty("columns").EnumerateArray()
+            .SelectMany(column => column.GetProperty("statuses").EnumerateArray())
+            .Select(status => status.GetProperty("id").GetString()!)
+            .ToHashSet();
+        var page = await Json($"{Agile}/sprint/5009/issue?maxResults=50&fields=status");
+        var byName = page.GetProperty("issues").EnumerateArray()
+            .Select(issue => issue.GetProperty("fields").GetProperty("status"))
+            .GroupBy(status => status.GetProperty("name").GetString()!)
+            .ToDictionary(group => group.Key, group => group.Select(status => status.GetProperty("id").GetString()!).Distinct().ToList());
+
+        Assert.All(byName, pair => Assert.Single(pair.Value));
+        Assert.All(byName.Where(pair => pair.Key != "Backlog"), pair => Assert.Contains(pair.Value[0], mapped));
+        Assert.True(byName.ContainsKey("Done") && byName.ContainsKey("To Do") && byName.ContainsKey("In Progress"));
+    }
+
+    [Fact]
     public async Task GivenGeneratedBacklog_WhenIssuesRead_ThenSubtaskStubsFollowTheNumberModuloFour()
     {
         var page = await Json($"{Agile}/board/7/backlog?maxResults=1000&fields=summary,subtasks");
