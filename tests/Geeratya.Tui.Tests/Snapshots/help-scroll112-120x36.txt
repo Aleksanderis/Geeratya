@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Alt-Enter  Save the form                                                                                              
   Left       Move the cursor left                                                                                       
   Right      Move the cursor right                                                                                      
   Home       Move the cursor to the start of the row                                                                    
@@ -32,5 +33,4 @@ Palette commands
   :labels                                                                                                               
       Edit the labels of the selected or shown issue (field form)                                                       
   :create [subtask]                                                                                                     
-      Create an issue, or a sub-task of the selected issue (field form)                                                 
  HELP                                                                                            j down  k up  Esc close

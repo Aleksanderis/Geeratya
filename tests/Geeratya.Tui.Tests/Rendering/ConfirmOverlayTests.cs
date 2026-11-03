@@ -160,7 +160,6 @@ public class ConfirmOverlayTests
     [InlineData("j")]
     [InlineData("q")]
     [InlineData(":")]
-    [InlineData("Ctrl-c")]
     public void GivenTheDialog_WhenPressingAnyOtherKey_ThenItStaysOpenAndNothingRuns(string key)
     {
         var state = Open();

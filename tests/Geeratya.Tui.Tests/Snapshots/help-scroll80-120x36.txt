@@ -17,6 +17,7 @@ Confirm mode
   y          Confirm                                                                                                    
   n          Decline                                                                                                    
   Esc        Decline                                                                                                    
+  Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Insert mode                                                                                                             
   Enter      Accept the field and go to the next                                                                        
@@ -32,5 +33,4 @@ Insert mode
   Shift-Tab  Previous field of the form                                                                                 
   Ctrl-s     Save the form                                                                                              
   Ctrl-g     Open the new issue after it is created (on or off)                                                         
-  Alt-Enter  Save the form                                                                                              
  HELP                                                                                            j down  k up  Esc close

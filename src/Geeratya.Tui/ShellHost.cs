@@ -170,6 +170,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
 
         _quitting = true;
+        _network.CancelReads();
 
         if (_writes.HasRunning)
         {

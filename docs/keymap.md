@@ -110,6 +110,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `y` | Confirm |
 | `n` | Decline |
 | `Esc` | Decline |
+| `Ctrl-c` | Quit |
 
 ## Insert mode
 

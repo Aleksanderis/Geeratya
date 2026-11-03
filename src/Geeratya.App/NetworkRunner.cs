@@ -92,6 +92,26 @@ public sealed class NetworkRunner : IDisposable
     }
 
     /// <summary>
+    /// Cancels the in-flight reads of every tab (quit). Detached work, that is writes that were sent, is left alone:
+    /// quitting asks about writes first and then waits for them.
+    /// </summary>
+    public void CancelReads()
+    {
+        CancellationTokenSource[] sources;
+
+        lock (_lock)
+        {
+            sources = [.. _scopes.Values];
+            _scopes.Clear();
+        }
+
+        foreach (var source in sources)
+        {
+            Cancel(source);
+        }
+    }
+
+    /// <summary>
     /// Like <see cref="Start"/>, for work that belongs to no tab and that closing a tab must never cancel (a write
     /// that was sent). Only <see cref="CancelAll"/> (a profile drop) and the shutdown cancel it. Nothing is kept
     /// after it ends, so a long session of writes does not pile up scopes.
