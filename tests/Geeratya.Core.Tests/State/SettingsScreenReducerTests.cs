@@ -38,8 +38,8 @@ public sealed class SettingsScreenReducerTests
     [Fact]
     public void GivenTheKey_WhenPressingItTwice_ThenTheScreenOpensAndCloses()
     {
-        var opened = _reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.SettingsOpen, 1, default));
-        var closed = _reducer.Reduce(opened.State, new ActionRequested(ActionIds.SettingsOpen, 1, default));
+        var opened = _reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.SettingsOpen));
+        var closed = _reducer.Reduce(opened.State, new ActionRequested(ActionIds.SettingsOpen));
 
         Assert.NotNull(opened.State.SettingsScreen);
         Assert.Null(closed.State.SettingsScreen);
@@ -172,7 +172,7 @@ public sealed class SettingsScreenReducerTests
     {
         var state = SelectRow(Opened(new AppSettings(StatusHints: HintLevel.Off)).State, "hints.statusBar");
 
-        var result = _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsReset, 1, default));
+        var result = _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsReset));
 
         Assert.Equal(HintLevel.Full, result.State.Settings.StatusHints);
         Assert.IsType<SaveSettingsEffect>(Assert.Single(result.Effects));
@@ -183,7 +183,7 @@ public sealed class SettingsScreenReducerTests
     {
         var state = SelectRow(Opened().State, "hints.statusBar");
 
-        var result = _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsReset, 1, default));
+        var result = _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsReset));
 
         Assert.Empty(result.Effects);
         Assert.Contains("already the default", result.State.Message, StringComparison.Ordinal);
@@ -261,7 +261,7 @@ public sealed class SettingsScreenReducerTests
     {
         var state = AppState.Initial with { Settings = settings ?? AppSettings.Default, ThemeNames = _themes };
 
-        return _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsOpen, 1, default));
+        return _reducer.Reduce(state, new ActionRequested(ActionIds.SettingsOpen));
     }
 
     private ReduceResult Press(AppState state, string keys)
