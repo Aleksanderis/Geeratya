@@ -229,6 +229,29 @@ public class PaletteRowsTests
     }
 
     [Fact]
+    public void GivenThemeNamesAndNoFilter_WhenListing_ThenNoThemeRowShowsAndANoteCountsThemes()
+    {
+        var state = Palette(string.Empty) with { ThemeNames = ["dracula", "nord"] };
+
+        var rows = PaletteRows.For(state, _keymap);
+
+        Assert.DoesNotContain(rows, row => row.Id.StartsWith("theme ", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.Kind == PaletteRowKind.Note && row.Title == "2 themes hidden; type \"theme\" to pick one");
+        Assert.Equal(PaletteRowKind.Note, rows[^1].Kind);
+    }
+
+    [Fact]
+    public void GivenThemeNamesAndAFilter_WhenListing_ThenNoThemeNoteShows()
+    {
+        var state = Palette("nord") with { ThemeNames = ["dracula", "nord"] };
+
+        var rows = PaletteRows.For(state, _keymap);
+
+        Assert.Contains(rows, row => row.Id == "theme nord");
+        Assert.DoesNotContain(rows, row => row.Title.Contains("themes hidden", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenNoThemeNames_WhenListing_ThenNoThemeRowShows()
     {
         var rows = PaletteRows.For(Palette("Theme:"), _keymap);

@@ -8,7 +8,7 @@ namespace Geeratya.Core.CommandPalette;
 /// <summary>
 /// The lines of the command palette (<c>docs/ux.md</c>, "Command palette"): every action that is not modal-only,
 /// under group subheaders, filtered and ranked by the text typed after <c>:</c>. At the everyday command level the
-/// unfiltered list leaves the advanced actions out and ends with a note counting them. When the text starts with a
+/// unfiltered list leaves the advanced actions and the theme rows out and ends with a note for each. When the text starts with a
 /// command name and a space it is a command line instead and the list is that command's usage. Pure.
 /// </summary>
 public static class PaletteRows
@@ -76,7 +76,11 @@ public static class PaletteRows
             AddCandidate(candidates, filter, row, only.Group, focused.Contains(ActionIds.IssueEdit));
         }
 
-        foreach (var name in state.ThemeNames)
+        // The unfiltered list carries no theme rows (about 20 would push the notes below the fold); a typed filter
+        // finds them and a note says so.
+        var hideThemes = filter.Length == 0 && state.ThemeNames.Count > 0;
+
+        foreach (var name in hideThemes ? [] : state.ThemeNames)
         {
             var row = new PaletteRow(PaletteRowKind.Command, $"theme {name}", $"Theme: {name}", string.Empty);
 
@@ -88,6 +92,11 @@ public static class PaletteRows
         if (hidden > 0)
         {
             rows.Add(new PaletteRow(PaletteRowKind.Note, string.Empty, HiddenText(hidden), string.Empty));
+        }
+
+        if (hideThemes)
+        {
+            rows.Add(new PaletteRow(PaletteRowKind.Note, string.Empty, $"{state.ThemeNames.Count} themes hidden; type \"theme\" to pick one", string.Empty));
         }
 
         return rows;
