@@ -86,8 +86,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
 
         Assert.Equal("Warning: a is bad. (+1 more, <space>n)", settled.Status!.Line);
-        Assert.Contains(settled.StatusHistory, message => message.Text == "a is bad.");
-        Assert.Contains(settled.StatusHistory, message => message.Text == "b is bad.");
+        Assert.Equal(["b is bad.", "a is bad."], settled.StatusHistory.Select(message => message.Text).ToList());
         Assert.All(settled.StatusHistory, message => Assert.Equal(StatusSeverity.Warning, message.Severity));
     }
 
@@ -106,8 +105,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, "Profiles corrupt", ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
 
         Assert.Equal("Profiles corrupt (+1 more, <space>n)", settled.Status!.Text);
-        Assert.Contains(settled.StatusHistory, message => message.Text == "Profiles corrupt");
-        Assert.Contains(settled.StatusHistory, message => message.Text == "a is bad.");
+        Assert.Equal(["a is bad.", "Profiles corrupt"], settled.StatusHistory.Select(message => message.Text).ToList());
     }
 
     [Fact]
@@ -122,9 +120,10 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         Assert.Equal(
             "Warning: settings.json: hints must be an object; its settings use their defaults. (+2 more, <space>n)",
             settled.Status!.Line);
-        Assert.Contains(settled.StatusHistory, message => message.Text.StartsWith("keymap.json: row 1", StringComparison.Ordinal));
-        Assert.Contains(settled.StatusHistory, message => message.Text.StartsWith("Theme nosuch", StringComparison.Ordinal));
-        Assert.Contains(settled.StatusHistory, message => message.Text.StartsWith("settings.json: hints", StringComparison.Ordinal));
+        Assert.Equal(3, settled.StatusHistory.Count);
+        Assert.StartsWith("Theme nosuch", settled.StatusHistory[0].Text, StringComparison.Ordinal);
+        Assert.StartsWith("keymap.json: row 1", settled.StatusHistory[1].Text, StringComparison.Ordinal);
+        Assert.StartsWith("settings.json: hints", settled.StatusHistory[2].Text, StringComparison.Ordinal);
     }
 
     [Fact]

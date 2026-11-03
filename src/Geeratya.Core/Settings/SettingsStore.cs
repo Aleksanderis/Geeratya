@@ -180,7 +180,7 @@ public sealed class SettingsStore
 
         foreach (var setting in SettingsRegistry.All)
         {
-            if (BadParent(root, setting) is { } parent && reported.Add(parent))
+            if (BadParent(root, setting) is { } parent && !HasLegacy(root, setting) && reported.Add(parent))
             {
                 warnings.Add($"settings.json: {parent} must be an object; its settings use their defaults.");
             }
@@ -206,6 +206,11 @@ public sealed class SettingsStore
         }
 
         return new SettingsLoad(settings, warnings);
+    }
+
+    private static bool HasLegacy(JsonElement root, SettingDefinition setting)
+    {
+        return setting.LegacyConfigKey is { } legacy && TryGetLast(root, legacy, out _);
     }
 
     /// <summary>The dotted name of the first group on the setting's path that exists but is not an object, else null.</summary>

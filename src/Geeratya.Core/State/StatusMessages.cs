@@ -196,17 +196,15 @@ public static class StatusMessages
         var all = (IReadOnlyList<string>)[.. state.StartupProblems, .. problems];
         var more = all.Count > 1 ? $" (+{all.Count - 1} more, <space>n)" : string.Empty;
 
-        // A lone problem is the status message itself and enters the history when it is settled; once a second one
-        // arrives, the first needs its own entry.
-        IEnumerable<string> listed = all.Count == 1 ? [] : state.StartupProblems.Count == 1 ? all : problems;
-        var added = listed.Select(problem => new StatusMessage(problem, StatusSeverity.Warning)).Reverse();
+        // The status is set directly, not through Message, so the settle step does not post it a second time.
+        var added = problems.Select(problem => new StatusMessage(problem, StatusSeverity.Warning)).Reverse();
 
         return state with
         {
             StartupProblems = all,
             StatusHistory = [.. added, .. state.StatusHistory],
-            Message = all[0] + more,
-            MessageSeverity = StatusSeverity.Warning,
+            Message = null,
+            Status = new StatusMessage(all[0] + more, StatusSeverity.Warning),
         };
     }
 
