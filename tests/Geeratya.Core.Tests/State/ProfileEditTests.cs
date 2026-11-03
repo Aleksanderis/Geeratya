@@ -369,6 +369,125 @@ public class ProfileEditTests
         return AppState.Initial with { Profiles = catalog };
     }
 
+    [Fact]
+    public void GivenEachProfileField_WhenMovingTheCaretAndTyping_ThenTextGoesInAtTheCaret()
+    {
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = ProfileForm.Start };
+
+        foreach (var field in new[] { ProfileFormField.Name, ProfileFormField.SiteUrl, ProfileFormField.Email })
+        {
+            state = state with { Form = state.Form! with { Field = field, Back = 0 } };
+            state = Type(state, "ac").State;
+            state = Press(state, "Left").State;
+            state = Type(state, "b").State;
+        }
+
+        Assert.Equal("abc", state.Form!.Name);
+        Assert.Equal("abc", state.Form.SiteUrl);
+        Assert.Equal("abc", state.Form.Email);
+        Assert.Equal(1, state.Form.Back);
+    }
+
+    [Fact]
+    public void GivenAField_WhenUsingWordAndLineKeys_ThenTheyEditLikeThePrompt()
+    {
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = ProfileForm.Start };
+
+        state = Type(state, "one two").State;
+        state = Press(state, "Ctrl-w").State;
+        state = Press(state, "Home").State;
+        state = Press(state, "Delete").State;
+        state = Press(state, "End").State;
+
+        Assert.Equal("ne ", state.Form!.Name);
+        Assert.Equal(0, state.Form.Back);
+    }
+
+    [Fact]
+    public void GivenTheTokenField_WhenEditingInTheMiddle_ThenTheSecretChangesAndNothingPrintsIt()
+    {
+        var state = AppState.Initial with
+        {
+            Mode = InputMode.Insert,
+            Form = ProfileForm.Start with { Field = ProfileFormField.Token },
+        };
+
+        state = Type(state, "abcd").State;
+        state = Press(state, "Left").State;
+        state = Press(state, "Left").State;
+        state = Type(state, "XY").State;
+        state = Press(state, "Delete").State;
+        state = Press(state, "Backspace").State;
+
+        var form = state.Form!;
+
+        Assert.Equal("abXd", form.Token.Reveal());
+        Assert.Equal(1, form.Back);
+        Assert.Equal(1, form.Token.ElementsAfter(form.Back));
+        Assert.DoesNotContain("abXd", form.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheCaretMidToken_WhenSavingWithABadSite_ThenFocusMovesAndTheCaretIsAtTheEnd()
+    {
+        var form = ProfileForm.Start with
+        {
+            Field = ProfileFormField.Token,
+            Name = "dev",
+            SiteUrl = "http://x",
+            Email = "a@b.test",
+            Token = new SecretText("abcdef"),
+            Back = 3,
+        };
+
+        var saved = _reducer.Reduce(AppState.Initial with { Mode = InputMode.Insert, Form = form }, new KeyPressed("Ctrl-s"));
+
+        Assert.Equal(ProfileFormField.SiteUrl, saved.State.Form!.Field);
+        Assert.Equal(0, saved.State.Form.Back);
+    }
+
+    [Fact]
+    public void GivenATokenWithAnEmojiAndKeys_WhenMovingTheCaret_ThenTheMaskCaretStepsByLetter()
+    {
+        var state = AppState.Initial with
+        {
+            Mode = InputMode.Insert,
+            Form = ProfileForm.Start with { Field = ProfileFormField.Token },
+        };
+
+        state = Type(state, "a\U0001F600b").State;
+        state = Press(state, "Left").State;
+        state = Press(state, "Left").State;
+
+        Assert.Equal(2, state.Form!.Token.ElementsAfter(state.Form.Back));
+        Assert.Equal(3, state.Form.Back);
+    }
+
+    [Fact]
+    public void GivenANote_WhenOnlyMovingTheCaret_ThenTheNoteStays()
+    {
+        var form = ProfileForm.Start with { Name = "ab", Error = "bad", TestResult = "ok" };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var moved = Press(state, "Left").State.Form!;
+
+        Assert.Equal("bad", moved.Error);
+        Assert.Equal("ok", moved.TestResult);
+        Assert.Equal(1, moved.Back);
+    }
+
+    [Fact]
+    public void GivenACaretInTheMiddle_WhenMovingToTheNextField_ThenTheCaretIsAtTheEnd()
+    {
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = ProfileForm.Start };
+
+        state = Type(state, "dev").State;
+        state = Press(state, "Left").State;
+        state = Press(state, "Tab").State;
+
+        Assert.Equal(0, state.Form!.Back);
+    }
+
     private ReduceResult Press(AppState state, string key)
     {
         return _reducer.Reduce(state, new KeyPressed(key));

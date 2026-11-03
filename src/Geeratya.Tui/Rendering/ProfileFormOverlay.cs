@@ -98,12 +98,6 @@ public static class ProfileFormOverlay
         };
     }
 
-    /// <summary>What the typed value of the focused field is shown as: the text, or one <c>*</c> per token letter.</summary>
-    public static string Shown(ProfileForm form)
-    {
-        return ShownOf(form, form.Field);
-    }
-
     private static string ShownOf(ProfileForm form, ProfileFormField field)
     {
         return field switch
@@ -132,30 +126,51 @@ public static class ProfileFormOverlay
     private static StyledLine FieldLine(ProfileForm form, ProfileFormField field, int width)
     {
         var focused = field == form.Field;
-        var value = ShownOf(form, field);
         var spans = new List<StyledSpan>
         {
             new(focused ? "> " : "  ", TextRole.Key),
             new(TextWidth.Pad(LabelOf(field), LabelWidth), TextRole.Muted),
         };
+        var room = Math.Max(0, width - 2 - LabelWidth - 1);
 
-        if (field == ProfileFormField.Token && value.Length == 0 && form.IsEdit)
+        if (field == ProfileFormField.Token && form.Token.IsEmpty && form.IsEdit)
         {
-            spans.Add(new StyledSpan(focused ? $"{KeptText}_" : KeptText, TextRole.Muted));
+            spans.Add(new StyledSpan(focused ? $"{KeptText}{PromptWindow.EndMark}" : KeptText, TextRole.Muted));
 
             return StyledLines.Fit(new StyledLine(spans), width);
         }
 
-        var room = Math.Max(0, width - 2 - LabelWidth - 1);
+        var prompt = PromptOf(form, field);
 
-        spans.Add(new StyledSpan(StatusBar.Tail(value, room), focused ? TextRole.Strong : TextRole.Body));
-
-        if (focused)
+        if (!focused)
         {
-            spans.Add(new StyledSpan("_", TextRole.Key));
+            spans.Add(new StyledSpan(StatusBar.Tail(prompt.Text, room), TextRole.Body));
+
+            return StyledLines.Fit(new StyledLine(spans), width);
         }
 
+        var window = PromptWindow.Of(prompt, room);
+
+        spans.Add(new StyledSpan(window.Before, TextRole.Strong));
+        spans.Add(new StyledSpan(window.Caret, TextRole.Key));
+        spans.Add(new StyledSpan(window.After, TextRole.Strong));
+
         return StyledLines.Fit(new StyledLine(spans), width);
+    }
+
+    // The text of a field with its caret; the token is one mask character per letter with the caret in the same place.
+    internal static PromptText PromptOf(ProfileForm form, ProfileFormField field)
+    {
+        if (field == ProfileFormField.Token)
+        {
+            var masked = new string(MaskChar, form.Token.Length);
+
+            return new PromptText(masked, form.Token.ElementsAfter(form.Back));
+        }
+
+        var text = ShownOf(form, field);
+
+        return field == form.Field ? new PromptText(text, form.Back) : PromptText.Of(text);
     }
 
     private static StyledLine NoteLine(ProfileForm form)
