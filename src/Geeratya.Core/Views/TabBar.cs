@@ -22,6 +22,7 @@ public static class TabBar
     public const int MinimumTitleWidth = 8;
 
     private const string NewTabText = "+";
+    private const string JumpChipText = "[jump]";
     private const string Separator = "  ";
     private const string Lead = " ";
     private const string LoadingMark = " …";
@@ -52,6 +53,38 @@ public static class TabBar
     public static TabButton? NewTabButton(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
         return Layout(tabs, active, width).NewTab;
+    }
+
+    /// <summary>
+    /// The cells of the jump chip at the right end of the bar, null when there are no tabs or the bar leaves no room
+    /// (two spare cells between the last tab item or <c>+</c> and the chip). A click on it opens the jump prompt.
+    /// </summary>
+    public static TabButton? JumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width)
+    {
+        if (tabs.Count == 0)
+        {
+            return null;
+        }
+
+        var (line, _, _) = Layout(tabs, active, width);
+        var start = width - JumpChipText.Length - 1;
+
+        return start >= DisplayWidth.Of(line.PlainText) + Separator.Length ? new TabButton(start, start + JumpChipText.Length) : null;
+    }
+
+    /// <summary>The bar with the jump chip right-aligned in the spare cells (the bar itself when there is no room).</summary>
+    public static StyledLine BuildWithJumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width)
+    {
+        var line = Build(tabs, active, width);
+
+        if (JumpChip(tabs, active, width) is not { } chip)
+        {
+            return line;
+        }
+
+        var gap = chip.Start - DisplayWidth.Of(line.PlainText);
+
+        return new StyledLine([.. line.Spans, new StyledSpan(new string(' ', gap), TextRole.Body), new StyledSpan(JumpChipText, TextRole.Muted)]);
     }
 
     private static (StyledLine Line, IReadOnlyList<TabArea> Areas, TabButton? NewTab) Layout(

@@ -171,7 +171,7 @@ public static class FrameBuilder
 
         if (rows > 0)
         {
-            lines.Add(TabBar.Build(state.Session.Tabs, state.Session.Active, width));
+            lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width));
         }
 
         if (rows > 1)

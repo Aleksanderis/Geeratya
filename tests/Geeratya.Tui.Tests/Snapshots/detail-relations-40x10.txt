@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +             
+ [1 JQL: My open issues]  +      [jump] 
                                         
 My open issues › GCM-12 · Bot           
 │ screenshot.png · image/png · 3.3 MiB │

@@ -57,6 +57,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Status | Right-click | `menu.view` | V | Opens the same menu of the tab and the view (the command palette stays on a click) |
 | StatusMessage | Right-click | `menu.view` | V | Same as a right-click on the rest of the line |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
+| JumpChip | Click | `issue.jump` | B | Opens the jump prompt, same as `<space>g`; the `[jump]` chip at the right end of the tab bar row, drawn when the bar has room (at least two spare cells after the last tab or the `+`) |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
 | Assignee | Click | `issue.assign` | C | Opens the people picker |

@@ -1,4 +1,4 @@
- [1 JQL: My open issues !]  +           
+ [1 JQL: My open issues !]  +    [jump] 
  OFFLINE  Data 23 min old               
 My open issues - 3 issues               
   Key    T Summary                     S

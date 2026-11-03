@@ -411,6 +411,40 @@ public class MousePlacementTests
     }
 
     [Fact]
+    public void GivenWideTabBar_WhenClickingTheJumpChip_ThenTheJumpPromptOpens()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
+
+        var (result, _) = Resolve(state, 80, 24, chip.Start, 0, MouseGesture.Click);
+
+        Assert.NotNull(result.Jump);
+        Assert.EndsWith("[jump] ", TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 80).PlainText + " ");
+        Assert.Equal(79, chip.End);
+    }
+
+    [Fact]
+    public void GivenNarrowTabBar_WhenBuilding_ThenThereIsNoJumpChipAndNoOverflow()
+    {
+        var state = TwoTabs(80);
+
+        Assert.Null(TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 20));
+        Assert.True(DisplayWidth.Of(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 20).PlainText) <= 20);
+    }
+
+    [Fact]
+    public void GivenOpenJumpPrompt_WhenClickingWhereTheChipWas_ThenItDoesNotReopenTheChipAction()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
+        var (opened, _) = Resolve(state, 80, 24, chip.Start, 0, MouseGesture.Click);
+
+        var (result, _) = Resolve(opened, 80, 24, chip.Start, 0, MouseGesture.Click);
+
+        Assert.Null(result.Jump);
+    }
+
+    [Fact]
     public void GivenTabBarWithoutRoomForThePlus_WhenBuilding_ThenThereIsNoButtonAndNoOverflow()
     {
         var state = TwoTabs(80);
