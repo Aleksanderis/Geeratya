@@ -8,8 +8,30 @@ namespace Geeratya.Core.Lists;
 /// <param name="Summary">Width of the summary column (the remaining space).</param>
 /// <param name="Status">Width of the status column: <see cref="FullStatus"/> or 1 (category glyph only).</param>
 /// <param name="Assignee">Width of the assignee column, 0 when dropped.</param>
-public readonly record struct ListColumns(int Key, int Summary, int Status, int Assignee)
+/// <param name="Sprint">Width of the optional sprint column, 0 when absent or dropped.</param>
+/// <param name="Points">Width of the optional estimate column, 0 when absent or dropped.</param>
+/// <param name="Epic">Width of the optional epic column, 0 when absent or dropped.</param>
+public readonly record struct ListColumns(
+    int Key,
+    int Summary,
+    int Status,
+    int Assignee,
+    int Sprint = 0,
+    int Points = 0,
+    int Epic = 0)
 {
+    /// <summary>Width of the sprint column.</summary>
+    public const int SprintWidth = 16;
+
+    /// <summary>Width of the estimate column.</summary>
+    public const int PointsWidth = 5;
+
+    /// <summary>Width of the epic column.</summary>
+    public const int EpicWidth = 14;
+
+    /// <summary>The summary column keeps at least this many cells; an optional column that would squeeze it is dropped.</summary>
+    public const int MinSummaryWidth = 30;
+
     /// <summary>Selection mark and its gap in front of the key.</summary>
     public const int MarkWidth = 2;
 
@@ -46,5 +68,32 @@ public readonly record struct ListColumns(int Key, int Summary, int Status, int 
         var summary = width - MarkWidth - key - MarkerWidth - status - assignee - gaps;
 
         return new ListColumns(key, Math.Max(0, summary), status, assignee);
+    }
+
+    /// <summary>
+    /// The columns plus the optional ones the rows in view have data for (sprint, estimate, epic; in that order of
+    /// priority). An optional column is added only while the summary keeps <see cref="MinSummaryWidth"/> cells.
+    /// </summary>
+    public static ListColumns For(int width, int loadedKeyWidth, bool wantSprint, bool wantPoints, bool wantEpic)
+    {
+        var columns = For(width, loadedKeyWidth);
+        var summary = columns.Summary;
+        var sprint = Fit(wantSprint, SprintWidth, ref summary);
+        var points = Fit(wantPoints, PointsWidth, ref summary);
+        var epic = Fit(wantEpic, EpicWidth, ref summary);
+
+        return columns with { Summary = summary, Sprint = sprint, Points = points, Epic = epic };
+    }
+
+    private static int Fit(bool wanted, int columnWidth, ref int summary)
+    {
+        if (!wanted || summary - columnWidth - 1 < MinSummaryWidth)
+        {
+            return 0;
+        }
+
+        summary -= columnWidth + 1;
+
+        return columnWidth;
     }
 }

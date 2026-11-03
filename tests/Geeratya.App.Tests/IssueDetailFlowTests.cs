@@ -250,7 +250,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var state = await OpenAsync(key);
 
         var text = Text(Top(state));
-        Assert.Contains($"Parent    {parent}", text);
+        Assert.Contains($"Epic      {parent}", text);
         Assert.Contains("Sub-tasks (2)", text);
         Assert.Contains(firstSubtask, text);
         Assert.Contains("Linked issues (2)", text);

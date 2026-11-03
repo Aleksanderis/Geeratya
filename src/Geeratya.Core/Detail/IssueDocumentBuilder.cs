@@ -4,6 +4,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
@@ -116,6 +117,9 @@ public static class IssueDocumentBuilder
         AddField(fields, "Reporter", header.Reporter);
         AddField(fields, "Labels", header.Labels.Count == 0 ? null : string.Join(", ", header.Labels), true);
         AddField(fields, "Parent", header.Parent);
+        AddField(fields, "Epic", header.Epic);
+        AddField(fields, "Sprint", header.Sprint);
+        AddField(fields, "Estimate", header.Estimate);
 
         if (header.Updated is { } updated && reference is { } now)
         {
@@ -405,7 +409,10 @@ public static class IssueDocumentBuilder
         string? Reporter,
         IReadOnlyList<string> Labels,
         string? Parent,
-        DateTimeOffset? Updated)
+        DateTimeOffset? Updated,
+        string? Epic = null,
+        string? Sprint = null,
+        string? Estimate = null)
     {
         private static readonly HeaderFields _empty =
             new(string.Empty, string.Empty, null, null, null, null, [], null, null);
@@ -422,7 +429,8 @@ public static class IssueDocumentBuilder
 
         private static HeaderFields FromIssue(IssueDetail issue)
         {
-            var parent = issue.Parent is { } stub ? $"{stub.Key} {stub.Summary}" : null;
+            var parent = issue.Parent is { } stub ? $"{stub.Key} {stub.Summary}".TrimEnd() : null;
+            var isEpic = issue.Epic is not null;
 
             return new HeaderFields(
                 issue.IssueType.Name,
@@ -432,8 +440,11 @@ public static class IssueDocumentBuilder
                 issue.Assignee?.DisplayName,
                 issue.Reporter?.DisplayName,
                 issue.Labels,
-                parent,
-                issue.Updated);
+                isEpic ? null : parent,
+                issue.Updated,
+                isEpic ? parent : null,
+                SprintText(issue.Sprints),
+                issue.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
         }
 
         private static HeaderFields FromRow(IssueSummary row)
@@ -448,8 +459,28 @@ public static class IssueDocumentBuilder
                 row.Assignee?.DisplayName,
                 null,
                 row.Labels,
-                parent,
-                row.Updated);
+                row.Epic is null ? parent : null,
+                row.Updated,
+                row.Epic is null ? null : parent,
+                SprintText(row.Sprints),
+                row.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
+        }
+
+        /// <summary>The current sprint with its state, then the earlier sprints the issue was carried through.</summary>
+        private static string? SprintText(IReadOnlyList<IssueSprint> sprints)
+        {
+            if (IssueSprint.Current(sprints) is not { } current)
+            {
+                return null;
+            }
+
+            var text = $"{current.Name} ({current.State.ToString().ToLowerInvariant()})";
+            var earlier = sprints
+                .Where(sprint => sprint.Id != current.Id && sprint.State == SprintState.Closed)
+                .Select(sprint => sprint.Name)
+                .ToList();
+
+            return earlier.Count == 0 ? text : $"{text}; earlier: {string.Join(", ", earlier)}";
         }
     }
 }

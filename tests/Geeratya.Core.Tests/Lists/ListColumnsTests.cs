@@ -22,6 +22,29 @@ public class ListColumnsTests
         Assert.Equal(6, columns.Key);
     }
 
+    [Fact]
+    public void GivenOptionalColumns_WhenSummaryWouldShrinkBelowTheMinimum_ThenLaterColumnsDropFirst()
+    {
+        var base120 = ListColumns.For(100, 6);
+        var columns = ListColumns.For(100, 6, true, true, true);
+
+        Assert.True(columns.Summary >= ListColumns.MinSummaryWidth);
+        Assert.Equal(ListColumns.SprintWidth, columns.Sprint);
+        Assert.Equal(ListColumns.PointsWidth, columns.Points);
+        Assert.Equal(0, columns.Epic);
+        Assert.Equal(base120.Summary - ListColumns.SprintWidth - ListColumns.PointsWidth - 2, columns.Summary);
+    }
+
+    [Fact]
+    public void GivenATightWidth_WhenSprintDoesNotFitButPointsDoes_ThenOnlyPointsShow()
+    {
+        // Width 80 leaves 57 summary cells: sprint (17) fits, so shrink further to find the boundary.
+        var columns = ListColumns.For(55 + ListColumns.PointsWidth + 1 + 9, 6, true, true, false);
+
+        Assert.Equal(0, columns.Sprint);
+        Assert.Equal(ListColumns.PointsWidth, columns.Points);
+    }
+
     [Theory]
     [InlineData(120)]
     [InlineData(80)]

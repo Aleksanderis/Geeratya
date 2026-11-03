@@ -44,4 +44,12 @@ public static class TextWidth
 
         return $"{fitted}{new string(' ', Math.Max(0, width - Of(fitted)))}";
     }
+
+    /// <summary>Cuts or pads on the left with spaces to exactly <paramref name="width"/> columns (right-aligned).</summary>
+    public static string PadLeft(string text, int width)
+    {
+        var fitted = Fit(text, width);
+
+        return $"{new string(' ', Math.Max(0, width - Of(fitted)))}{fitted}";
+    }
 }

@@ -7,6 +7,7 @@ using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Tests.Detail;
@@ -88,6 +89,61 @@ public class IssueDocumentBuilderTests
         Assert.Contains(wide, line => line.Contains("Status    In Progress") && line.Contains("Priority  High"));
         Assert.Contains("Status    In Progress ▾", narrow);
         Assert.Contains("Priority  High ▾", narrow);
+    }
+
+    [Fact]
+    public void GivenSprintsEstimateAndEpic_WhenBuilding_ThenDetailShowsCurrentSprintEarlierOnesPointsAndEpic()
+    {
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with
+            {
+                Parent = new IssueStub("A-0", "Onboarding", _status, new IssueTypeSummary("11", "Epic", 1, false)),
+                Sprints =
+                [
+                    new IssueSprint(1, "Sprint 1", SprintState.Closed),
+                    new IssueSprint(2, "Sprint 2", SprintState.Active),
+                ],
+                Estimate = 5,
+            },
+        };
+
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 140));
+
+        Assert.Contains(lines, line => line.Contains("Sprint    Sprint 2 (active); earlier: Sprint 1"));
+        Assert.Contains(lines, line => line.Contains("Estimate  5"));
+        Assert.Contains(lines, line => line.Contains("Epic      A-0 Onboarding"));
+        Assert.DoesNotContain(lines, line => line.Contains("Parent"));
+    }
+
+    [Fact]
+    public void GivenActiveAndFutureSprints_WhenBuilding_ThenOnlyClosedSprintsAreEarlier()
+    {
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with
+            {
+                Sprints =
+                [
+                    new IssueSprint(2, "Sprint 2", SprintState.Active),
+                    new IssueSprint(3, "Sprint 3", SprintState.Future),
+                ],
+            },
+        };
+
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 140));
+
+        Assert.Contains(lines, line => line.Contains("Sprint 2 (active)") && !line.Contains("earlier"));
+    }
+
+    [Fact]
+    public void GivenNoSprintEstimateOrEpic_WhenBuilding_ThenThoseFieldsAreQuiet()
+    {
+        var text = string.Join('\n', Texts(IssueDocumentBuilder.Build(Loaded(null, []), 140)));
+
+        Assert.DoesNotContain("Sprint", text);
+        Assert.DoesNotContain("Estimate", text);
+        Assert.DoesNotContain("Epic", text);
     }
 
     [Fact]

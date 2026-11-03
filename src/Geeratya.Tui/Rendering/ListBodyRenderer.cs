@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
@@ -28,6 +29,9 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string StatusTitle = "Status";
     private const string StatusGlyphTitle = "S";
     private const string AssigneeTitle = "Assignee";
+    private const string SprintTitle = "Sprint";
+    private const string PointsTitle = "Pts";
+    private const string EpicTitle = "Epic";
     private const string Unassigned = "-";
     private const string UnknownGlyph = "?";
 
@@ -43,7 +47,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var tab = ActiveTab(state)!;
         var glyphs = Glyphs.For(context.Glyphs);
         var area = Math.Max(0, height - ListLayout.HeaderRows);
-        var columns = ListColumns.For(width, tab.KeyWidth);
+        var columns = OptionalColumns(tab, width, area);
         var footer = FooterLine(tab, glyphs);
         var shown = tab.Rows.Count == 0 ? 0 : Math.Min(area, tab.Rows.Count - FirstRow(tab));
         var footerFits = footer is not null && tab.Rows.Count > 0 && shown < area && LastRowShown(tab, shown);
@@ -79,6 +83,24 @@ public sealed class ListBodyRenderer : IBodyRenderer
         }
 
         return lines;
+    }
+
+    // Sprint, estimate and epic columns show only while a row in view has the value, so a Kanban list stays as before.
+    private static ListColumns OptionalColumns(TabState tab, int width, int area)
+    {
+        bool sprint = false, points = false, epic = false;
+        var first = FirstRow(tab);
+        var end = Math.Min(tab.Rows.Count, first + area);
+
+        for (var index = first; index < end; index++)
+        {
+            var row = tab.Rows[index];
+            sprint |= row.CurrentSprint is not null;
+            points |= row.Estimate is not null;
+            epic |= row.Epic is not null;
+        }
+
+        return ListColumns.For(width, tab.KeyWidth, sprint, points, epic);
     }
 
     internal static TabState? ActiveTab(AppState state)
@@ -144,7 +166,10 @@ public sealed class ListBodyRenderer : IBodyRenderer
             TextWidth.Pad(SummaryTitle, columns.Summary),
             " ",
             TextWidth.Pad(statusTitle, columns.Status),
-            columns.Assignee > 0 ? $" {AssigneeTitle}" : string.Empty);
+            columns.Assignee > 0 ? $" {TextWidth.Pad(AssigneeTitle, columns.Assignee)}" : string.Empty,
+            columns.Sprint > 0 ? $" {TextWidth.Pad(SprintTitle, columns.Sprint)}" : string.Empty,
+            columns.Points > 0 ? $" {TextWidth.Pad(PointsTitle, columns.Points)}" : string.Empty,
+            columns.Epic > 0 ? $" {TextWidth.Pad(EpicTitle, columns.Epic)}" : string.Empty);
 
         return StyledLine.Of(text, TextRole.Muted);
     }
@@ -221,6 +246,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var status = StatusText(row.Status, columns.Status, glyphs);
         var assignee = TextWidth.Pad(row.Assignee?.DisplayName ?? Unassigned, columns.Assignee);
 
+        var extras = ExtraColumns(row, columns);
+
         // The first cell is the cursor, the second the set: `*` marked, `+` in the Visual range (never colour alone).
         var setGlyph = set switch
         {
@@ -232,7 +259,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         if (selected || set == SetMark.InRange)
         {
             var assigneePart = columns.Assignee > 0 ? $" {assignee}" : string.Empty;
-            var text = $"{(selected ? ">" : " ")}{setGlyph}{key} {marker} {summary} {status}{assigneePart}";
+            var text = $"{(selected ? ">" : " ")}{setGlyph}{key} {marker} {summary} {status}{assigneePart}{extras}";
 
             return StyledLine.Of(TextWidth.Pad(text, width), TextRole.Selected);
         }
@@ -249,7 +276,35 @@ public sealed class ListBodyRenderer : IBodyRenderer
             spans.Add(new StyledSpan($" {assignee}", TextRole.Muted));
         }
 
+        if (extras.Length > 0)
+        {
+            spans.Add(new StyledSpan(extras, TextRole.Muted));
+        }
+
         return new StyledLine(spans);
+    }
+
+    private static string ExtraColumns(IssueSummary row, ListColumns columns)
+    {
+        var text = string.Empty;
+
+        if (columns.Sprint > 0)
+        {
+            text += $" {TextWidth.Pad(row.CurrentSprint?.Name ?? string.Empty, columns.Sprint)}";
+        }
+
+        if (columns.Points > 0)
+        {
+            var points = row.Estimate is { } estimate ? EstimateText.Format(estimate) : string.Empty;
+            text += $" {TextWidth.PadLeft(points, columns.Points)}";
+        }
+
+        if (columns.Epic > 0)
+        {
+            text += $" {TextWidth.Pad(row.Epic?.Key ?? string.Empty, columns.Epic)}";
+        }
+
+        return text;
     }
 
     private static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
