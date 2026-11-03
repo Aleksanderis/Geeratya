@@ -204,8 +204,8 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         SearchProjectListAsync(projectKey, VersionsSegment, query, cancellationToken);
 
     /// <summary>
-    /// A custom picker's own source (<see cref="CreateField.AutoCompleteUrl"/>). Only a URL on the connection's own
-    /// scheme and host under <c>/rest/api/</c> is requested; anything else (including a site URL with a path prefix,
+    /// A custom picker's own source (the <c>autoCompleteUrl</c> of a field in the edit metadata). Only a URL on the
+    /// connection's own scheme and host under <c>/rest/api/</c> is requested; anything else (including a site URL with a path prefix,
     /// such as the scoped-token gateway) is refused with no request. The query is appended to the URL, so the URL
     /// must end where the query text goes (<c>...?query=</c>). The reply is read in the <c>suggestions</c> shape
     /// (label, value); other shapes give an empty list.

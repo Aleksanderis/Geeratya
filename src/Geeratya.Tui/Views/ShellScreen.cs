@@ -1,5 +1,4 @@
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -61,9 +60,7 @@ public sealed class ShellScreen : Window
     /// The issue rows a list can show: the window height without the tab bar, the status line and the list's own frame rows
     /// (top edge with the title, column titles, bottom edge).
     /// </summary>
-    public int BodyRows => Math.Max(
-        0,
-        _size.Height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows);
+    public int BodyRows => FrameBuilder.ListRows(_size.Height);
 
     /// <summary>The rows the frame gives the body: where overlays (the Confirm dialog) are placed.</summary>
     public int BodyHeight => FrameBuilder.BodyHeight(_size.Height);

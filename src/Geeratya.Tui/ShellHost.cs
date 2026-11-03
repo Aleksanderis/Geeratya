@@ -597,11 +597,22 @@ public sealed class ShellHost : ICommandSink, IDisposable
                 ThemeNames = _themes.Names,
                 SettingsInfo = new SettingsInfo(
                     _profiles.Settings?.FilePath ?? string.Empty,
-                    _profiles.Keymap?.FilePath ?? string.Empty),
+                    _profiles.Keymap?.FilePath ?? string.Empty,
+                    TierOf(_colors)),
             },
             start.Notice is null ? [] : [start.Notice]);
 
         return start.Theme;
+    }
+
+    private static ColourTier TierOf(ColorSupport colors)
+    {
+        return colors switch
+        {
+            ColorSupport.None => ColourTier.None,
+            ColorSupport.Basic16 => ColourTier.Basic16,
+            _ => ColourTier.TrueColour,
+        };
     }
 
     /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>

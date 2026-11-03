@@ -1,13 +1,13 @@
 using Geeratya.App;
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
+using Geeratya.Platform;
 using Geeratya.Platform.Terminal;
-using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui;
 
 /// <summary>Entry logic behind <c>Main</c>, testable without a process.</summary>
-public sealed class ApplicationRunner
+public sealed partial class ApplicationRunner
 {
     private const string VersionFlag = "--version";
     private const string PrintKeymapFlag = "--print-keymap-doc";
@@ -17,15 +17,21 @@ public sealed class ApplicationRunner
     private const string HelpScrollFlag = "--help-scroll";
     private const string HelpPageFlag = "--help-page";
     private const string LevelFlag = "--command-level";
+    private const string ColorsFlag = "--colors";
+    private const string SourceFlag = "--source";
+    private const string LayoutFlag = "--layout";
+    private const string ProfileFlag = "--profile";
+    private const string LightFlag = "--light";
+    private const string AsciiFlag = "--ascii";
 
     private const string HelpFlag = "--help";
     private const string ShortHelpFlag = "-h";
 
     private static readonly string[] _bareFlags =
-        [VersionFlag, PrintKeymapFlag, PrintFrameFlag, HelpFlag, ShortHelpFlag];
+        [VersionFlag, PrintKeymapFlag, PrintFrameFlag, LightFlag, AsciiFlag, HelpFlag, ShortHelpFlag];
 
     private static readonly string[] _valueFlags =
-        [SizeFlag, ModeFlag, HelpScrollFlag, HelpPageFlag, LevelFlag];
+        [SizeFlag, ModeFlag, HelpScrollFlag, HelpPageFlag, LevelFlag, ColorsFlag, SourceFlag, LayoutFlag, ProfileFlag];
 
     /// <summary>The single usage text; docs quote it and <c>--help</c> prints it.</summary>
     public static readonly string Usage = string.Join(
@@ -40,7 +46,12 @@ public sealed class ApplicationRunner
         $"      [{SizeFlag} <width>x<height>]                  default 80x24",
         $"      [{ModeFlag} normal|help|command|confirm|insert]",
         $"      [{HelpPageFlag} <page>] [{HelpScrollFlag} <line>]   need {ModeFlag} help",
-        $"      [{LevelFlag} everyday|advanced]");
+        $"      [{LevelFlag} everyday|advanced]",
+        $"      [{ColorsFlag} truecolor|16|none] [{LightFlag}] [{AsciiFlag}]",
+        "          write ANSI colours (none: attributes only); --light needs theme auto or no theme",
+        $"      [{SourceFlag} board:<name>|jql:<query>|issue:<KEY>] [{LayoutFlag} list|columns] [{ProfileFlag} <name>]",
+        "          draw a real screen from a profile (a fake Jira); its site must be in GEERATYA_LIVE_HOSTS;",
+        $"          {ProfileFlag} and {LayoutFlag} need {SourceFlag}");
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
@@ -49,6 +60,8 @@ public sealed class ApplicationRunner
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly TerminalBackgroundDetector? _background;
+    private readonly EnvironmentReader _environment;
+    private readonly ITransportFactory? _transports;
 
     public ApplicationRunner(
         TextWriter output,
@@ -57,8 +70,12 @@ public sealed class ApplicationRunner
         TextWriter? error = null,
         Func<ProfileServices>? createProfiles = null,
         GlyphSet glyphs = GlyphSet.Unicode,
-        TerminalBackgroundDetector? background = null)
+        TerminalBackgroundDetector? background = null,
+        EnvironmentReader? environment = null,
+        ITransportFactory? transports = null)
     {
+        _environment = environment ?? EnvironmentReader.ForProcess();
+        _transports = transports;
         _background = background;
         _output = output;
         _error = error ?? Console.Error;
@@ -136,46 +153,6 @@ public sealed class ApplicationRunner
         using var host = new ShellHost(keymap, _colors, profiles, _glyphs, _background);
 
         return host.Run();
-    }
-
-    private int PrintFrame(string[] arguments, KeymapTable keymap)
-    {
-        var size = FrameOptions.ParseSize(ValueOf(arguments, SizeFlag));
-        var mode = FrameOptions.ParseMode(ValueOf(arguments, ModeFlag));
-
-        if (size is null || mode is null)
-        {
-            _error.WriteLine(Usage);
-
-            return 2;
-        }
-
-        var scroll = FrameOptions.ParseScroll(ValueOf(arguments, HelpScrollFlag));
-        var page = FrameOptions.ParseScroll(ValueOf(arguments, HelpPageFlag));
-        var level = FrameOptions.ParseLevel(ValueOf(arguments, LevelFlag));
-
-        if (scroll is null || page is null || level is null)
-        {
-            _error.WriteLine(Usage);
-
-            return 2;
-        }
-
-        var sample = FrameOptions.SampleState(mode.Value);
-        var state = sample with
-        {
-            HelpScroll = scroll.Value,
-            HelpPage = page.Value,
-            Settings = sample.Settings with { CommandLevel = level.Value },
-        };
-        var lines = FrameBuilder.Build(state, size.Width, size.Height, keymap, null, _glyphs);
-
-        foreach (var line in lines)
-        {
-            _output.WriteLine(line);
-        }
-
-        return 0;
     }
 
     private static string? FindUnknownArgument(string[] arguments)

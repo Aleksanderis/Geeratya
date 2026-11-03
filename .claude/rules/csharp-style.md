@@ -33,7 +33,7 @@ Applies to every new and touched C# file, tests included. The build enforces `_f
 
 ## Disposal and lambdas
 
-These are quality inspections, not style, so neither the compiler nor `.editorconfig` reports them: `scripts/inspect.sh` does (Rider's own engine). Not on every edit: `--changed` (~10 s) once a change touching lambdas, events or `using` is done, the full run (~40 s) before a PR.
+These are quality inspections, not style, so neither the compiler nor `.editorconfig` reports them: `scripts/inspect.sh` (Windows: `scripts/inspect.ps1`) does (Rider's own engine). Not on every edit: `--changed` (~10 s) once a change touching lambdas, events or `using` is done, the full run (~40 s) before a PR.
 
 - A lambda or method group never captures a variable that a `using` disposes in the enclosing scope (Rider: "captured variable is disposed in the outer scope"). Pass it as state (`token.Register(KillQuietly, process)`) or keep the object in a field and call through a private method.
 - A captured local is not reassigned after the lambda is created ("captured variable is modified in the outer scope"): use a field, a `StrongBox<T>` or restructure so the lambda reads an object whose state changes. A `using` local read by a callback or fake in a test becomes a field disposed in `Dispose()`; a `ManualResetEventSlim` whose `WaitHandle` is never used needs no disposal.

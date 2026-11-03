@@ -63,7 +63,7 @@ Run from the repo root:
 - Test: `dotnet test` (offline; live dev-site tests are opt-in, see the `testing` skill)
 - AOT publish (fails on any `IL*` warning): `dotnet publish src/Geeratya.Tui -c Release -o <outdir>`; smoke run: `<outdir>/geeratya`
 - Formatting is enforced by `.editorconfig` during build (`EnforceCodeStyleInBuild`).
-- Quality inspections the build cannot see (captured disposed or modified variables, unused members, redundant arguments): `scripts/inspect.sh` (JetBrains inspectcode, the same engine as Rider). Run `scripts/inspect.sh --changed` (~10 s) after finishing a change that touches lambdas, events or `using`, and the full run once before opening a PR (the reviewer does the same). The tool is pinned in `dotnet-tools.json`.
+- Quality inspections the build cannot see (captured disposed or modified variables, unused members, redundant arguments): `scripts/inspect.sh` (Windows: `scripts/inspect.ps1`, same arguments; JetBrains inspectcode, the same engine as Rider). Run `scripts/inspect.sh --changed` (~10 s) after finishing a change that touches lambdas, events or `using`, and the full run once before opening a PR (the reviewer does the same). The tool is pinned in `dotnet-tools.json`.
 
 ## Working autonomously
 
