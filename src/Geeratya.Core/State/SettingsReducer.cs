@@ -62,7 +62,7 @@ public static class SettingsReducer
     /// <summary>The host found the settings file changed: its values apply and the change must be repeated.</summary>
     public static ReduceResult Reloaded(AppState state, SettingsReloaded reloaded)
     {
-        return Say(state with { Settings = reloaded.Settings }, reloaded.Message);
+        return Say(state with { Settings = reloaded.Settings with { Theme = state.Settings.Theme } }, reloaded.Message);
     }
 
     private static ReduceResult Change(AppState state, SettingDefinition setting, string value)

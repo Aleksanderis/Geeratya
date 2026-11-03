@@ -237,9 +237,18 @@ public sealed class SettingsStore
 
         var temporary = $"{target}{TemporarySuffix}";
 
-        File.WriteAllBytes(temporary, content);
-        KeepPermissions(target, temporary);
-        File.Move(temporary, target, overwrite: true);
+        try
+        {
+            File.WriteAllBytes(temporary, content);
+            KeepPermissions(target, temporary);
+            File.Move(temporary, target, overwrite: true);
+        }
+        catch
+        {
+            File.Delete(temporary);
+
+            throw;
+        }
     }
 
     /// <summary>Best effort: the new file gets the mode of the one it replaces (Unix only).</summary>

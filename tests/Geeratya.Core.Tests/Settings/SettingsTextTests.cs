@@ -3,8 +3,11 @@ using Geeratya.Core.Settings;
 
 namespace Geeratya.Core.Tests.Settings;
 
+[Trait("Os", "Independent")]
 public sealed class SettingsTextTests
 {
+    private const string WindowsNewline = "\u000d\u000a";
+
     private static readonly JsonDocumentOptions _lenientOptions = new()
     {
         CommentHandling = JsonCommentHandling.Skip,
@@ -59,9 +62,12 @@ public sealed class SettingsTextTests
     [Fact]
     public void GivenWindowsLineEndings_WhenAddingAKey_ThenTheInsertedLineUsesThem()
     {
-        var edit = SettingsText.Set("{\r\n  \"theme\": \"auto\"\r\n}\r\n", "whichKey", "false");
+        var source = "{\n  \"theme\": \"auto\"\n}\n".Replace("\n", WindowsNewline);
+        var expected = "{\n  \"theme\": \"auto\",\n  \"whichKey\": false\n}\n".Replace("\n", WindowsNewline);
 
-        Assert.Equal("{\r\n  \"theme\": \"auto\",\r\n  \"whichKey\": false\r\n}\r\n", edit.Text);
+        var edit = SettingsText.Set(source, "whichKey", "false");
+
+        Assert.Equal(expected, edit.Text);
     }
 
     [Theory]
