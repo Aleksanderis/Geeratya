@@ -12,25 +12,25 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-┌─ Space ────────────────────────────────────────┐                                                                      
-│ c         Close the tab                        │                                                                      
-│ t         Open the source picker for a new tab │                                                                      
-│                                                │                                                                      
-│ x         Dismiss the status message           │                                                                      
-│ n         Show the message history             │                                                                      
-│                                                │                                                                      
-│ g         Jump to an issue by key              │                                                                      
-│ o         Open the issue in the browser        │                                                                      
-│ p         Open the parent issue                │                                                                      
-│                                                │                                                                      
-│ a         Open the actions menu of the selecte │                                                                      
-│ A         Open the actions menu of the tab and │                                                                      
-│                                                │                                                                      
-│ r         Refresh the view (also retries after │                                                                      
-│ l         Switch between list and columns      │                                                                      
-│ *         Switch the command level for the ses │                                                                      
-│                                                │                                                                      
-│ m         +comment (2)                         │                                                                      
-│ i         +issue (6)                           │                                                                      
-└────────────────────────────────────────────────┘                                                                      
+                                                                      ┌─ Space ────────────────────────────────────────┐
+                                                                      │ c         Close the tab                        │
+                                                                      │ t         Open the source picker for a new tab │
+                                                        Geeratya      │                                                │
+                                              No profile yet: :profile│ x         Dismiss the status message           │
+                                              ? help   : commands   q │ n         Show the message history             │
+                                                                      │                                                │
+                                                                      │ g         Jump to an issue by key              │
+                                                                      │ o         Open the issue in the browser        │
+                                                                      │ p         Open the parent issue                │
+                                                                      │                                                │
+                                                                      │ a         Open the actions menu of the selecte │
+                                                                      │ A         Open the actions menu of the tab and │
+                                                                      │                                                │
+                                                                      │ r         Refresh the view (also retries after │
+                                                                      │ l         Switch between list and columns      │
+                                                                      │ *         Switch the command level for the ses │
+                                                                      │                                                │
+                                                                      │ m         +comment (2)                         │
+                                                                      │ i         +issue (6)                           │
+                                                                      └────────────────────────────────────────────────┘
  NORMAL Space                                                                                 ? help  : commands  q quit
