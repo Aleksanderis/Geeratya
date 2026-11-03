@@ -17,8 +17,6 @@
                                                                                                                         
                                                         Geeratya                                                        
                                               No profile yet: :profile add                                              
-                                              ? help   : command   q quit                                               
-                                                                                                                        
 ┌─ Space ────────────────────────────────────────┐                                                                      
 │ t         Open the source picker for a new tab │                                                                      
 │ c         Close the tab                        │                                                                      
@@ -32,5 +30,7 @@
 │ i         +issue (9)                           │                                                                      
 │ k         +rank (3)                            │                                                                      
 │ g         Jump to an issue by key              │                                                                      
+│ n         Show the message history             │                                                                      
+│ x         Dismiss the status message           │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space                                                                                  ? help  : command  q quit

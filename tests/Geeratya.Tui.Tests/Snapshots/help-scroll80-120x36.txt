@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+                                                                                                                        
+Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
   Esc        Cancel or close                                                                                            
@@ -31,6 +33,4 @@ Insert mode
   Home       Move the cursor to the start of the row                                                                    
   End        Move the cursor to the end of the row                                                                      
   Delete     Delete the character under the cursor                                                                      
-  PageUp     Move the cursor up half a screen                                                                           
-  PageDown   Move the cursor down half a screen                                                                         
  HELP                                                                                            j down  k up  Esc close

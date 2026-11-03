@@ -419,7 +419,7 @@ public static class WriteReducer
         // A detail reply that landed during the write may hold the optimistic value: read the issue again.
         var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
-        return new ReduceResult(reloaded with { Message = text }, effects);
+        return new ReduceResult(StatusMessages.Fail(reloaded, text), effects);
     }
 
     /// <summary>The reply was lost: keep the optimistic rows and read the issue to find out what happened.</summary>

@@ -38,6 +38,9 @@ public enum MouseTarget
     /// <summary>The status line.</summary>
     Status,
 
+    /// <summary>The text of the status message inside the status line.</summary>
+    StatusMessage,
+
     /// <summary>Everything outside an open overlay or prompt.</summary>
     Backdrop,
 

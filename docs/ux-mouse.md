@@ -34,6 +34,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Detail | Wheel up | `nav.up` | A | Moves the cursor up 3 lines in the opened issue (like `3k`) |
 | Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the opened issue (like `3j`) |
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
+| StatusMessage | Click | `status.history` | A | A click on the message itself (not the rest of the line) opens the message history, same as `<space>n` |
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed). With the Confirm dialog open the whole screen outside its box counts, the body and the status line too, and the click cancels like `n`; a click inside the box but not on a row does nothing |
 | PickerRow | Click | `form.next` | O | Source picker: opens the clicked board, filter or query, same as `Enter` on it |
 | JumpRow | Click | `form.next` | O | Jump prompt: opens the clicked issue, same as `Enter` on it |
@@ -51,6 +52,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Tabs | Click | `tab.next` | B | Switches to the clicked tab (the same switch as `Alt-N`, also for tabs past nine; the separators do nothing). The `‹n` and `+n ›` marks of a scrolled bar step to the neighbouring hidden tab |
 | Tabs | Right-click | `menu.view` | V | Switches to the clicked tab and opens the menu of the tab and the view: close tab, previous tab (with several tabs), toggle layout, jump to an issue, help, quit; same as `<space>A` |
 | Status | Right-click | `menu.view` | V | Opens the same menu of the tab and the view (the command palette stays on a click) |
+| StatusMessage | Right-click | `menu.view` | V | Same as a right-click on the rest of the line |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
@@ -71,6 +73,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `issue.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `status.history` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `status.dismiss` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `rank.up` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.down` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.top` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |

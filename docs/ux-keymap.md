@@ -39,7 +39,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `Ctrl-p` (planned, M6) | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up) |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
-| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key |
+| `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key, `<space>n` the message history, `<space>x` dismiss the status message |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `v` (planned, M4) | Visual mode | Visual mode over rows |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
@@ -72,6 +72,8 @@ The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M6 #194 (bound), #300 |
+| `<space>n` | `status.history` | Show the status message history (last 50, newest first; `j`/`k`, `Esc`/`q`) | E | click the message, context menu | M6 #369 |
+| `<space>x` | `status.dismiss` | Dismiss the status message (`Esc` does too when nothing else claims it) | E | context menu | M6 #369 |
 | `<space>id` | `issue.delete` | Delete the issue (Confirm names the key and its sub-tasks; no undo) | A | context menu | M2 #165 (bound) |
 | `<space>il` | `issue.link` | Link to another issue (form: type and side in one picker, then the issue key; searching by text arrives with the suggestion popup) | A | context menu | M5 #190 (bound) |
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | right-click menu on the link row (offered only there) | M5 #190 (bound) |

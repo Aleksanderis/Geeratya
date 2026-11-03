@@ -107,7 +107,15 @@ public static class ContextMenus
             actions.Add(ActionIds.TabPrevious);
         }
 
-        actions.AddRange([ActionIds.ViewLayoutToggle, ActionIds.IssueJump, ActionIds.HelpToggle, ActionIds.Quit]);
+        actions.AddRange(
+        [
+            ActionIds.ViewLayoutToggle,
+            ActionIds.IssueJump,
+            ActionIds.StatusHistory,
+            ActionIds.StatusDismiss,
+            ActionIds.HelpToggle,
+            ActionIds.Quit,
+        ]);
 
         return new ContextMenuState(actions.Select(Item).ToList(), 0);
     }

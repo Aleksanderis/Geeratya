@@ -47,7 +47,24 @@ public sealed class AppReducer
 
     public ReduceResult Reduce(AppState state, Command command)
     {
-        return GuardConfirm(state, ReduceCommand(state, command));
+        var result = GuardConfirm(state, ReduceCommand(state, command));
+        var settled = StatusMessages.Settle(result.State, TimeOf(command));
+
+        return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
+    }
+
+    // The time a command carries (a default time means the sender had none), used to stamp and expire the notice.
+    private static DateTimeOffset? TimeOf(Command command)
+    {
+        var at = command switch
+        {
+            Tick tick => tick.Now,
+            KeyPressed pressed => pressed.At,
+            ActionRequested requested => requested.At,
+            _ => default,
+        };
+
+        return at == default ? null : at;
     }
 
     /// <summary>
@@ -66,12 +83,12 @@ public sealed class AppReducer
 
         if (before.Mode != InputMode.Confirm)
         {
-            return Result(before with { Message = ConfirmTooSmallText });
+            return Result(StatusMessages.Warn(before, ConfirmTooSmallText));
         }
 
         var closed = after.Editor is not null
-            ? CommentEditing.KeepEditing(after) with { Message = ConfirmClosedText }
-            : ToNormal(after) with { Message = ConfirmClosedText };
+            ? StatusMessages.Warn(CommentEditing.KeepEditing(after), ConfirmClosedText)
+            : StatusMessages.Warn(ToNormal(after), ConfirmClosedText);
 
         return Result(closed);
     }
@@ -99,7 +116,7 @@ public sealed class AppReducer
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
-            CacheWriteFailed failed => Result(state with { Message = failed.Message }),
+            CacheWriteFailed failed => Result(StatusMessages.Warn(state, failed.Message)),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             ConnectionCheckRequested => ProfileReducer.CheckConnection(state, announce: false),
             ConnectionChecked connected => ProfileReducer.ConnectionChecked(state, connected),
@@ -162,6 +179,7 @@ public sealed class AppReducer
             Count = 0,
             PaletteText = string.Empty,
             HelpScroll = 0,
+            MessagesOpen = false,
             Confirm = null,
             Form = null,
             Picker = null,
@@ -280,6 +298,11 @@ public sealed class AppReducer
             return ViewReducer.Reduce(state, new IssueDetailBackRequested(state.Session.Active!.Value));
         }
 
+        if (IsDismiss(state, resolution))
+        {
+            return Result(StatusMessages.Dismiss(state));
+        }
+
         var cleared = state with { PendingKeys = string.Empty, Count = 0 };
 
         if (resolution.Action == ActionIds.IssueUnlink)
@@ -345,6 +368,21 @@ public sealed class AppReducer
         return current;
     }
 
+    /// <summary>Esc in Normal mode with nothing typed, no rank pickup and a notice showing ends the notice.</summary>
+    private static bool IsDismiss(AppState state, KeyResolution resolution)
+    {
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
+
+        return resolution.Kind == KeyResolutionKind.Action
+            && resolution.Action == ActionIds.Cancel
+            && state.Mode == InputMode.Normal
+            && state.PendingKeys.Length == 0
+            && state.Count == 0
+            && state.Editor is null
+            && (state.Status is not null || state.Message is not null)
+            && tab?.RankPickup is null;
+    }
+
     /// <summary>
     /// Esc in Normal mode with nothing typed and no notice to clear pops the issue stack of the active tab
     /// (<c>docs/ux.md</c>, "Focus model and key style").
@@ -355,6 +393,7 @@ public sealed class AppReducer
             && resolution.Action == ActionIds.Cancel
             && state.Mode == InputMode.Normal
             && state.PendingKeys.Length == 0
+            && state.Status is null
             && state.Message is null
             && ViewReducer.CanGoBack(state);
     }
@@ -435,6 +474,8 @@ public sealed class AppReducer
             ActionIds.Quit => Quit(state),
             ActionIds.HelpToggle => Result(ToggleHelp(state)),
             ActionIds.HelpClose => Result(ToNormal(state)),
+            ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
+            ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
@@ -656,6 +697,11 @@ public sealed class AppReducer
         return ToNormal(state) with { Mode = InputMode.Help };
     }
 
+    private int LineCount(AppState state)
+    {
+        return state.MessagesOpen ? state.StatusHistory.Count : KeymapDocument.RenderHelpLines(_keymap).Count;
+    }
+
     private AppState ScrollHelp(AppState state, int delta)
     {
         if (state.Mode != InputMode.Help)
@@ -663,7 +709,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, KeymapDocument.RenderHelpLines(_keymap).Count - 1)) };
+        return state with { HelpScroll = Math.Clamp(state.HelpScroll + delta, 0, Math.Max(0, LineCount(state) - 1)) };
     }
 
     /// <summary>Opens the right-click menu for the cursor; says so when there is no issue under it.</summary>
@@ -733,7 +779,7 @@ public sealed class AppReducer
             _ when IsThemeCommand(text) => SettingsReducer.Theme(normal, text[PaletteCommands.Theme.Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
-            _ => Result(normal with { Message = $"Unknown command: {text}" }),
+            _ => Result(normal with { Message = $"Unknown command: {text}", MessageSeverity = StatusSeverity.Warning }),
         };
     }
 

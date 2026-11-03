@@ -100,7 +100,7 @@ public static class StatusBar
         }
 
         var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
-        var left = $" {Badge(state.Mode)} {text}".TrimEnd();
+        var left = $" {Badge(state)} {text}".TrimEnd();
         var hints = state.Settings.StatusHints
             ? Fit(HintTexts(state, keymap), width - TextWidth.Of(left))
             : string.Empty;
@@ -257,6 +257,28 @@ public static class StatusBar
         return second is null ? null : $"{keys}/{second}";
     }
 
+    /// <summary>
+    /// The message to paint in its severity colour inside the bar (warnings and errors; an info message keeps the bar's
+    /// own colours), or null.
+    /// </summary>
+    public static StatusSegment? MessageSegment(AppState state, int width)
+    {
+        if (StatusMessages.Cells(state) is not { } cells || state.Status is not { } status
+            || status.Severity == StatusSeverity.Info || cells.Start >= width)
+        {
+            return null;
+        }
+
+        var role = status.Severity == StatusSeverity.Error ? PaletteRole.Error : PaletteRole.Warning;
+
+        return new StatusSegment(cells.Start, Math.Min(cells.End, width) - cells.Start, status.Line, role);
+    }
+
+    private static string Badge(AppState state)
+    {
+        return state.MessagesOpen && state.Mode == InputMode.Help ? "MESSAGES" : Badge(state.Mode);
+    }
+
     private static string Badge(InputMode mode)
     {
         return mode switch
@@ -308,6 +330,11 @@ public static class StatusBar
     /// </summary>
     private static string NormalText(AppState state, DateTimeOffset now)
     {
+        if (state.Status is { } status)
+        {
+            return status.Line;
+        }
+
         if (state.Message is not null)
         {
             return state.Message;

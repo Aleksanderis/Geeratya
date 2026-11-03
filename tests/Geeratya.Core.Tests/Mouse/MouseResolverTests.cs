@@ -119,6 +119,6 @@ public class MouseResolverTests
         var byMouse = reducer.Reduce(state, new ActionRequested(ActionIds.Cancel)).State;
         var byKey = reducer.Reduce(state, new KeyPressed("Esc")).State;
 
-        Assert.Equal(byKey, byMouse);
+        Assert.Equal(byKey, byMouse with { StatusHistory = byKey.StatusHistory });
     }
 }

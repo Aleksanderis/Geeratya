@@ -13,7 +13,7 @@ namespace Geeratya.Core.State;
 /// <param name="PendingKeys">Keys typed so far of a multi-key binding such as <c>g g</c>, empty otherwise.</param>
 /// <param name="PaletteText">The text typed after <c>:</c> in Command mode.</param>
 /// <param name="HelpScroll">The first visible line of the help overlay.</param>
-/// <param name="Message">A one-line notice for the status line, or null.</param>
+/// <param name="Message">The text of the notice the status line shows, or null; writing a new text posts it (<see cref="StatusMessages"/>).</param>
 /// <param name="Confirm">The open confirmation in Confirm mode, otherwise null.</param>
 /// <param name="Profiles">The saved profiles and the active one.</param>
 /// <param name="Form">The add-profile form in Insert mode, otherwise null.</param>
@@ -62,6 +62,21 @@ public sealed record AppState(
 
     /// <summary>The open right-click menu (Insert mode), otherwise null.</summary>
     public ContextMenuState? ContextMenu { get; init; }
+
+    /// <summary>
+    /// The notice the status line shows, with its severity and lifetime; null when none. <see cref="Message"/> mirrors its
+    /// text (see <see cref="StatusMessages"/>).
+    /// </summary>
+    public StatusMessage? Status { get; init; }
+
+    /// <summary>The severity the next text written to <see cref="Message"/> is posted with; reset once it is posted.</summary>
+    public StatusSeverity MessageSeverity { get; init; }
+
+    /// <summary>The last 50 messages, newest first.</summary>
+    public IReadOnlyList<StatusMessage> StatusHistory { get; init; } = [];
+
+    /// <summary>The help overlay shows the message history instead of the key reference.</summary>
+    public bool MessagesOpen { get; init; }
 
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }

@@ -65,6 +65,8 @@ public static class ActionCatalog
         new(ActionIds.IssueLink, "Link the issue to another issue"),
         new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)"),
         new(ActionIds.IssueJump, "Jump to an issue by key"),
+        new(ActionIds.StatusHistory, "Show the message history"),
+        new(ActionIds.StatusDismiss, "Dismiss the status message"),
         new(ActionIds.ProfileRemove, "Remove the highlighted profile (asks first; the stored token is deleted)"),
         new(ActionIds.PickerPrevious, "Previous row in the picker"),
         new(ActionIds.PickerNext, "Next row in the picker"),

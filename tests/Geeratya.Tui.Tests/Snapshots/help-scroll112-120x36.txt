@@ -1,6 +1,8 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  PageUp     Move the cursor up half a screen                                                                           
+  PageDown   Move the cursor down half a screen                                                                         
   Ctrl-Left  Move the cursor to the start of the word                                                                   
   Ctrl-Right Move the cursor to the end of the word                                                                     
   Ctrl-o     Open the issue page in the browser from the form                                                           
@@ -31,6 +33,4 @@ Palette commands
   :assign                                                                                                               
       Assign the selected or shown issue: search people, or unassign                                                    
   :assign-me                                                                                                            
-      Assign the selected or shown issue to me                                                                          
-  :profile add|list|switch <name>|remove <name>|check                                                                   
  HELP                                                                                            j down  k up  Esc close
