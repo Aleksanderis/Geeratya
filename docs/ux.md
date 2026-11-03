@@ -8,7 +8,7 @@ The shell is one full-screen window with a body, a one-line status line at the b
 
 ## Modes
 
-The input mode decides which keys act. It lives in `AppState.Mode`, except Visual: it is a state of the tab (`TabState.VisualAnchor`) over Normal mode, so every Normal key still works and the badge reads `VISUAL`; Help, Command and Insert show their prompt in the status bar; Confirm shows a centred dialog and only the short `Confirm  (y/n)` in the status bar.
+The input mode decides which keys act. It lives in `AppState.Mode`, except Visual: it is a state of the tab (`TabState.VisualAnchor`) over Normal mode, so every Normal key still works and the badge reads `VISUAL`; Help and Command show their prompt in the status bar; Insert shows the `:profile add` steps as a centred box (title with the step `[n/4]`, what the answer is for, `> text_` with the token masked, the keys) and keeps only `[n/4] label` in the status bar, falling back to the whole prompt there when the screen is too small (`ProfileFormOverlay`); Confirm shows a centred dialog and only the short `Confirm  (y/n)` in the status bar.
 
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|

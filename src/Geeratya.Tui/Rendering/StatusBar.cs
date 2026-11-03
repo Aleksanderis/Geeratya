@@ -15,7 +15,6 @@ public static class StatusBar
 {
     private const string HintGap = "  ";
     private const string Separator = " · ";
-    private const int FieldCount = 4;
     private const string PickerPrompt = "open a view";
     private const string JumpPrompt = "jump to an issue";
 
@@ -365,6 +364,7 @@ public static class StatusBar
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
+            InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };
@@ -455,7 +455,7 @@ public static class StatusBar
             return string.Empty;
         }
 
-        var step = $"[{(int)form.Field + 1}/{FieldCount}]";
+        var step = $"[{(int)form.Field + 1}/{ProfileFormOverlay.FieldCount}]";
 
         if (form.Error is not null)
         {
@@ -476,7 +476,7 @@ public static class StatusBar
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>
-    private static string Tail(string text, int width)
+    internal static string Tail(string text, int width)
     {
         var starts = StringInfo.ParseCombiningCharacters(text);
         var used = 0;

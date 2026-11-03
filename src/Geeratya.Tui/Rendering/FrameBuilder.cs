@@ -129,6 +129,15 @@ public static class FrameBuilder
             body = Fit(composed ?? body, width, bodyHeight);
         }
 
+        if (state is { Mode: InputMode.Insert, Picker: null, Editor: null, Jump: null, Form: { } profileForm }
+            && !FormReducer.IsOpen(state))
+        {
+            var composed = ProfileFormOverlay.Compose(body, profileForm, keymap, width, bodyHeight);
+
+            confirmShown = composed is not null;
+            body = Fit(composed ?? body, width, bodyHeight);
+        }
+
         if (WhichKeyOverlay.Applies(state) && state.Picker is null)
         {
             body = Fit(WhichKeyOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);

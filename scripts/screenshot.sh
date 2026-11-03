@@ -61,6 +61,7 @@ all_scenarios=(
   "picker;120;36;dark; t;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"
+  "profile-add;120;36;dark;:profile add|work|https://example.atlassian.net|me@example.com|hidden-token;Add profile"
   "form;120;36;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-narrow;64;24;dark;:jql project = GEN|:labels|urgent;Edit GEN-"
   "form-suggest;120;36;dark;:jql project = GEN|:labels|geer;geeratya-seed"
