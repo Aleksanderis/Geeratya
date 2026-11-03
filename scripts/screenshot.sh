@@ -36,7 +36,7 @@ all_scenarios=(
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
-  "sprint-columns;120;36;dark;:board GEN| sv|;days left"
+  "sprint-columns;120;36;dark;:board GEN| sv|;Generated goal"
   "sprint-goal;120;36;dark;:board GEN| sv| sg;Sprint goal"
   "list-selection;120;36;dark;:jql project = GCM|^^jvjj;2 selected"
   "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
