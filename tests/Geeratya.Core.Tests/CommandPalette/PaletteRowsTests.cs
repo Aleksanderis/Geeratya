@@ -236,8 +236,28 @@ public class PaletteRowsTests
         var rows = PaletteRows.For(state, _keymap);
 
         Assert.DoesNotContain(rows, row => row.Id.StartsWith("theme ", StringComparison.Ordinal));
-        Assert.Contains(rows, row => row.Kind == PaletteRowKind.Note && row.Title == "2 themes hidden; type \"theme\" to pick one");
+        Assert.Contains(rows, row => row.Kind == PaletteRowKind.Note && row.Title == "2 themes hidden; type \"Theme:\" to pick one");
         Assert.Equal(PaletteRowKind.Note, rows[^1].Kind);
+    }
+
+    [Fact]
+    public void GivenTheNoteExampleText_WhenListing_ThenThemeRowsShow()
+    {
+        var state = Palette("Theme:") with { ThemeNames = ["dracula", "nord"] };
+
+        var rows = PaletteRows.For(state, _keymap);
+
+        Assert.Equal(2, rows.Count(row => row.Id.StartsWith("theme ", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void GivenOneThemeAndAdvancedLevel_WhenListing_ThenOnlyTheSingularThemeNoteShows()
+    {
+        var state = Palette(string.Empty, CommandLevel.Advanced) with { ThemeNames = ["nord"] };
+
+        var notes = PaletteRows.For(state, _keymap).Where(row => row.Kind == PaletteRowKind.Note).ToList();
+
+        Assert.Equal("1 theme hidden; type \"Theme:\" to pick it", Assert.Single(notes).Title);
     }
 
     [Fact]

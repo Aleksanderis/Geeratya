@@ -8,7 +8,8 @@ namespace Geeratya.Core.CommandPalette;
 /// <summary>
 /// The lines of the command palette (<c>docs/ux.md</c>, "Command palette"): every action that is not modal-only,
 /// under group subheaders, filtered and ranked by the text typed after <c>:</c>. At the everyday command level the
-/// unfiltered list leaves the advanced actions and the theme rows out and ends with a note for each. When the text starts with a
+/// unfiltered list leaves the advanced actions out (at the everyday level) and the theme rows out (at every level)
+/// and ends with a note for each. When the text starts with a
 /// command name and a space it is a command line instead and the list is that command's usage. Pure.
 /// </summary>
 public static class PaletteRows
@@ -96,7 +97,11 @@ public static class PaletteRows
 
         if (hideThemes)
         {
-            rows.Add(new PaletteRow(PaletteRowKind.Note, string.Empty, $"{state.ThemeNames.Count} themes hidden; type \"theme\" to pick one", string.Empty));
+            rows.Add(new PaletteRow(
+                PaletteRowKind.Note,
+                string.Empty,
+                ThemesHiddenText(state.ThemeNames.Count),
+                string.Empty));
         }
 
         return rows;
@@ -125,6 +130,14 @@ public static class PaletteRows
         var noun = hidden == 1 ? "advanced command" : "advanced commands";
 
         return $"{hidden} {noun} hidden; type to find {(hidden == 1 ? "it" : "them")}";
+    }
+
+    // "theme" alone is a command line (usage, no rows), so the note names text that is not a command word.
+    private static string ThemesHiddenText(int hidden)
+    {
+        return hidden == 1
+            ? "1 theme hidden; type \"Theme:\" to pick it"
+            : $"{hidden} themes hidden; type \"Theme:\" to pick one";
     }
 
     private static List<PaletteRow>? UsageOf(string text)
