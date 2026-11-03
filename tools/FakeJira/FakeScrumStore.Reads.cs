@@ -198,17 +198,6 @@ public sealed partial class FakeScrumStore
     /// The detail of a recorded Scrum board issue (<c>GCS-n</c>, <c>GTS-n</c>) as JSON bytes, with the
     /// <c>Sprint</c> field following the current memberships; null for any other key.
     /// </summary>
-    public bool Has(string key)
-    {
-        lock (_gate)
-        {
-            Load();
-
-            return _issues.ContainsKey(key);
-        }
-    }
-
-    /// <summary>The detail of a Scrum board issue; see <see cref="Has"/>.</summary>
     public byte[]? IssueDetail(string key)
     {
         lock (_gate)

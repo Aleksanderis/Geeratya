@@ -340,7 +340,7 @@ public sealed partial class FakeJiraRouter
             return new FakeReply(200, scrumIssue);
         }
 
-        if (parts.Length == 2 && _scrum.Has(key) && !_writes.Knows(key))
+        if (parts.Length == 2 && _scrum.IssueDetail(key) is not null && !_writes.Knows(key))
         {
             if (parts[1] == CommentPart)
             {
