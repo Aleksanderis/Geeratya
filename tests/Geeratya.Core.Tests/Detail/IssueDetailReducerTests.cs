@@ -7,6 +7,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Adf;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Paging;
@@ -757,6 +758,30 @@ public class IssueDetailReducerTests
         childrenRequest = Assert.Single(result.Effects.OfType<LoadIssueChildrenEffect>()).RequestId;
 
         return result.State;
+    }
+
+    [Fact]
+    public void GivenBoardWithEstimationFieldName_WhenOpeningAnIssue_ThenDetailLabelsTheEstimateWithThatName()
+    {
+        var state = Move(ListState(), 0);
+        var board = new BoardConfiguration(1, "Board", BoardType.Scrum, [], "10001", null, null, null)
+        {
+            EstimationFieldName = "Story Points",
+        };
+        state = state with
+        {
+            Session = state.Session with { Tabs = [Active(state) with { Board = board }] },
+        };
+
+        var opened = Press(state, "Enter");
+        var tab = Active(opened.State);
+        var loaded = Deliver(
+            opened.State,
+            new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, Detailed("A-1") with { Estimate = 5 }, _now));
+
+        var text = Text(Active(loaded).Detail[0]);
+        Assert.Contains("Story Points", text);
+        Assert.DoesNotContain("Estimate", text);
     }
 
     private static AppState Start()
