@@ -103,6 +103,22 @@ public class HelpPageSnapshotTests
         }
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void GivenANarrowFrame_WhenAPageIsSelected_ThenItsNameIsFullyVisibleAndClickable(int page)
+    {
+        var state = StateFor("list") with { HelpPage = page };
+        var names = HelpPages.Names(state, _keymap);
+        var frame = FrameBuilder.BuildStyled(state, 40, 10, _keymap)!;
+        var region = frame.Regions.Single(candidate => candidate.Target == MouseTarget.HelpPage && candidate.Index == page);
+        var row = frame.Body[1].PlainText;
+
+        Assert.Equal(names[page], row.Substring(region.Left, region.Width));
+        Assert.True(region.Left + region.Width <= 40);
+    }
+
     [Fact]
     public void GivenAClickOnAPageName_WhenResolvingAndReducing_ThenThatPageShows()
     {
