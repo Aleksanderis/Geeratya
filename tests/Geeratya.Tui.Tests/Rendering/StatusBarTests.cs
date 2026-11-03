@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
@@ -213,7 +214,7 @@ public class StatusBarTests
         var line = StatusBar.Render(With(ViewLayout.Columns), 120, _keymap);
 
         Assert.Contains("h/l column  j/k card  Enter open  Space l list  Space o browser", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
         Assert.Equal(120, line.Length);
     }
 
@@ -230,13 +231,29 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenMinimalHintsAndColumnsLayout_WhenRendering_ThenOnlyTheThreeGlobalHintsShow()
+    {
+        var full = With(ViewLayout.Columns);
+        var minimal = full with { Settings = new AppSettings(StatusHints: HintLevel.Minimal) };
+
+        Assert.Contains("h/l column", StatusBar.Render(full, 120, _keymap));
+
+        var line = StatusBar.Render(minimal, 120, _keymap);
+
+        Assert.DoesNotContain("column", line);
+        Assert.DoesNotContain("browser", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.Equal(120, line.Length);
+    }
+
+    [Fact]
     public void GivenColumnsLayout_WhenRendering50WideWithoutAMessage_ThenScreenHintsDropAndGlobalOnesStay()
     {
         var line = StatusBar.Render(With(ViewLayout.Columns), 50, _keymap);
 
         Assert.DoesNotContain("column", line);
         Assert.DoesNotContain("card", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
     }
 
     [Fact]
@@ -299,7 +316,7 @@ public class StatusBarTests
         var line = StatusBar.Render(AppState.Initial, 120, _keymap);
 
         Assert.DoesNotContain("browser", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
     }
 
     private static AppState With(

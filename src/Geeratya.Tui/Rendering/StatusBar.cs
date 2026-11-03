@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -20,7 +21,7 @@ public static class StatusBar
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
         new(InputMode.Normal, ActionIds.HelpToggle, "help"),
-        new(InputMode.Normal, ActionIds.PaletteOpen, "command"),
+        new(InputMode.Normal, ActionIds.PaletteOpen, "commands"),
         new(InputMode.Normal, ActionIds.Quit, "quit"),
         new(InputMode.Help, ActionIds.NavigateDown, "down"),
         new(InputMode.Help, ActionIds.NavigateUp, "up"),
@@ -102,9 +103,7 @@ public static class StatusBar
 
         var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
         var left = $" {Badge(state)} {text}".TrimEnd();
-        var hints = state.Settings.StatusHints
-            ? Fit(HintTexts(state, keymap), width - TextWidth.Of(left))
-            : string.Empty;
+        var hints = ShownHints(state, keymap, width - TextWidth.Of(left));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -146,6 +145,27 @@ public static class StatusBar
         }
 
         return string.Join(HintGap, screen.Append(global));
+    }
+
+    private static string ShownHints(AppState state, KeymapTable keymap, int room)
+    {
+        if (state.Settings.StatusHints == HintLevel.Off)
+        {
+            return string.Empty;
+        }
+
+        return Fit(Leveled(HintTexts(state, keymap), state), room);
+    }
+
+    /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q quit</c>).</summary>
+    private static HintList Leveled(HintList hints, AppState state)
+    {
+        if (state.Settings.StatusHints != HintLevel.Minimal || state.Mode != InputMode.Normal)
+        {
+            return hints;
+        }
+
+        return new HintList([], hints.Global);
     }
 
     private readonly record struct HintList(IReadOnlyList<string> Screen, IReadOnlyList<string> Global);

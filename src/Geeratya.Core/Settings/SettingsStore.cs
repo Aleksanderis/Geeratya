@@ -208,6 +208,9 @@ public sealed class SettingsStore
         {
             (SettingKind.Toggle, JsonValueKind.True) => SettingsRegistry.On,
             (SettingKind.Toggle, JsonValueKind.False) => SettingsRegistry.Off,
+            (SettingKind.Choice, JsonValueKind.True) => SettingsRegistry.On,
+            (SettingKind.Choice, JsonValueKind.False) => SettingsRegistry.Off,
+            (SettingKind.Choice, JsonValueKind.String) => value.GetString(),
             (SettingKind.Text, JsonValueKind.String) => value.GetString(),
             _ => null,
         };

@@ -67,7 +67,7 @@ My open issues · 10 of about 340
 
 
 
- NORMAL  j/k move  Enter open  Space o browser  ? help  : command  q quit
+ NORMAL  j/k move  Enter open  Space o browser  ? help  : commands  q quit
 ```
 
 - **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII on a classic console (Linux `TERM=linux`, Windows console host; `docs/architecture.md`, "Cross-platform"), when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. The list and the detail panel borders draw them (with the ASCII set the finished frame is passed through `Glyphs.ToAscii`, which swaps every shell-drawn character one cell for one cell: box lines to `+ - |`, `‹ › ↑ ▾ … ·` to `< > ^ v . -`, so the tab bar, banner, status bar, overlays and board are covered and widths do not change; the same characters inside issue text are swapped too, and a cut text ends with `.` instead of `…` to keep one cell; in the detail, the `›` of the breadcrumb becomes `>`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
@@ -92,7 +92,7 @@ My open issues · 10 of about 340
   GCM-23   T Document the release checklist                       Done
 
 
- NORMAL  j/k move  Enter open  Space o browser  ? help  : command  q quit
+ NORMAL  j/k move  Enter open  Space o browser  ? help  : commands  q quit
 ```
 
   At 40 columns (and 10 rows):
@@ -107,7 +107,7 @@ My open issues · 10+
   GCM-18   s Write the CSV exporter    ●
   GCM-21   T Upgrade the build image   ○
   GCM-22   B Tooltip overlaps the hea… ○
- NORMAL  ? help  : command  q quit
+ NORMAL  ? help  : commands  q quit
 ```
 
   Below 40 columns the type marker drops too. The column-title row drops below 12 rows (as in this 40x10 sketch), so at 10 rows seven issues show.
@@ -140,7 +140,7 @@ GTM board · 16 issues
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
 └───────────────────┴───────────────────┴───────────────────┴──────────────────┘
- NORMAL              h/l column  j/k card  Enter open  ? help  : command  q quit
+ NORMAL              h/l column  j/k card  Enter open  ? help  : commands  q quit
 ```
 
 The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third); the cursor is on the first card.
@@ -167,7 +167,7 @@ GCM board · 24 issues                 3›
 │ T GCM-4 Survey task four             │
 │ S GCM-3 Survey story three with unic…│
 └──────────────────────────────────────┘
- NORMAL        ? help  : command  q quit
+ NORMAL        ? help  : commands  q quit
 ```
 
 ## Issue detail
@@ -217,7 +217,7 @@ GCM board › GCM-12                                                            
 │                                                                                                  │
 │ Load more comments (Enter)                                                                       │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : command  q quit
+ NORMAL  j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : commands  q quit
 ```
 
 - **Panels.** A rounded frame (`╭ ╮ ╰ ╯ ─ │`, `+ - |` on terminals without Unicode, one cell for one cell) with one column of padding inside the sides and the title in the top edge. Borders are `Muted`, titles `Heading` (the header panel's title is the key in `Key` and the type in `Muted`). Panels follow each other without a gap. Below 12 columns the frames are dropped and the titles stay as plain lines. Content never touches the border: it wraps at the inner width, and a title that does not fit is cut with `…`.
@@ -254,7 +254,7 @@ GCM board › GCM-12 · Top
 │ refresh                              │
 │                                      │
 │ Status    In Progress ▾              │
- NORMAL  ? help  : command  q quit
+ NORMAL  ? help  : commands  q quit
 ```
 
 ## Tab bar

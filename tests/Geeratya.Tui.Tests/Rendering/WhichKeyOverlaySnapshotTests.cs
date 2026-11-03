@@ -1,5 +1,4 @@
 using Geeratya.Core.Keymap;
-using Geeratya.Core.State;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -14,7 +13,7 @@ public class WhichKeyOverlaySnapshotTests
     [InlineData("Space i", "popup-space-i-120x36.txt")]
     public void GivenKeysPending_WhenBuilding_ThenTheFrameMatchesTheSnapshot(string keys, string name)
     {
-        var state = AppState.Initial with { PendingKeys = keys };
+        var state = WhichKeyOverlayTests.Opened(keys);
         var actual = string.Join('\n', FrameBuilder.Build(state, 120, 36, _helpLines, _keymap));
         var expected = SnapshotFile.Expect(name, actual + "\n");
 

@@ -33,4 +33,4 @@ My open issues › GCM-12 · Top
 │ var x = 1;                                                                                                           │
 │ Console.WriteLine(x);                                                                                                │
 │ ```                                                                                                                  │
- NORMAL  j/k scroll  Enter open  Esc back  Space o browser  Space p parent  Space m a comment  ? help  : command  q quit
+ NORMAL                    j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : commands  q quit

@@ -19,7 +19,7 @@ public sealed class SettingsEffectHandlerTests : IDisposable
     public void GivenSaveEffect_WhenRunning_ThenTheFileHoldsTheSettingsAndNothingIsReported()
     {
         var store = new SettingsStore(_directory);
-        var settings = new AppSettings(StatusHints: false);
+        var settings = new AppSettings(StatusHints: HintLevel.Off);
 
         var outcome = new SettingsEffectHandler(store).Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, settings));
 
@@ -55,12 +55,12 @@ public sealed class SettingsEffectHandlerTests : IDisposable
         File.WriteAllText(path, """{ "whichKey": false }""");
 
         var outcome = new SettingsEffectHandler(store)
-            .Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, new AppSettings(StatusHints: false)));
+            .Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, new AppSettings(StatusHints: HintLevel.Off)));
 
         var reloaded = Assert.IsType<SettingsReloaded>(outcome);
 
         Assert.False(reloaded.Settings.WhichKey);
-        Assert.True(reloaded.Settings.StatusHints);
+        Assert.Equal(HintLevel.Full, reloaded.Settings.StatusHints);
         Assert.Equal("""{ "whichKey": false }""", File.ReadAllText(path));
     }
 

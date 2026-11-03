@@ -1,24 +1,24 @@
                                                                                 
                                                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
 +- Space ----------------------------------------+                              
-| t         Open the source picker for a new tab |                              
 | c         Close the tab                        |                              
-| r         Refresh the view (also retries after |                              
-| l         Switch between list and columns      |                              
+| t         Open the source picker for a new tab |                              
+|                                                |                              
+| x         Dismiss the status message           |                              
+| n         Show the message history             |                              
+|                                                |                              
+| g         Jump to an issue by key              |                              
 | o         Open the issue in the browser        |                              
 | p         Open the parent issue                |                              
+|                                                |                              
 | a         Open the actions menu of the selecte |                              
 | A         Open the actions menu of the tab and |                              
+|                                                |                              
+| r         Refresh the view (also retries after |                              
+| l         Switch between list and columns      |                              
+|                                                |                              
 | m         +comment (3)                         |                              
 | i         +issue (9)                           |                              
 | k         +rank (3)                            |                              
-| g         Jump to an issue by key              |                              
-| n         Show the message history             |                              
-| x         Dismiss the status message           |                              
 +------------------------------------------------+                              
- NORMAL Space                                          ? help  : command  q quit
+ NORMAL Space                                         ? help  : commands  q quit

@@ -11,7 +11,7 @@
                                                                                 
                                     Geeratya                                    
                 work: me@work.test on https://work.atlassian.net                
-                          ? help   : command   q quit                           
+                          ? help   : commands   q quit                          
                                                                                 
                                                                                 
                                                                                 

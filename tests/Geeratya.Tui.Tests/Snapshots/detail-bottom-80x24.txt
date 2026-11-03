@@ -21,4 +21,4 @@ My open issues › GCM-12 · Bot
 │ Ola Nordmann · 5 min ago                                                     │
 > See also café and 😀 in the second paragraph, which is long enough to wrap.  │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL              j/k scroll  Enter open  Esc back  ? help  : command  q quit
+ NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit

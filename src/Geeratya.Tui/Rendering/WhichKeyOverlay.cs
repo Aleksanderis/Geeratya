@@ -7,7 +7,8 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>
 /// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
-/// text of its own. Rows beyond the box height are cut. Pure. Switched off by <c>:set whichkey off</c>.
+/// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by
+/// <c>:set whichkey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
@@ -15,20 +16,29 @@ public static class WhichKeyOverlay
     private const int MinimumBoxWidth = 16;
     private const int MinimumBoxHeight = 3;
     private const int KeyColumn = 10;
-    private const string GroupMarker = "+";
 
-    /// <summary>True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, switch on.</summary>
+    /// <summary>
+    /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
+    /// </summary>
     public static bool Applies(AppState state)
     {
-        return state is { Mode: InputMode.Normal, Settings.WhichKey: true } && state.PendingKeys.Length > 0;
+        return WhichKeyDelay.IsOpen(state);
     }
 
-    /// <summary>The text rows of the popup (<c>key  label</c>), one per next key; empty when nothing continues.</summary>
-    public static IReadOnlyList<string> Rows(string pending, KeymapTable keymap)
+    /// <summary>
+    /// The text rows of the popup (<c>key  label</c>, blank rows between clusters); empty when nothing continues.
+    /// The blank rows are dropped when the popup would not fit with them (<paramref name="room"/> rows).
+    /// </summary>
+    public static IReadOnlyList<string> Rows(string pending, KeymapTable keymap, int room = int.MaxValue)
     {
-        return keymap.NextKeys(InputMode.Normal, pending)
-            .Select(next => $"{next.Key.PadRight(KeyColumn)}{Label(next, pending, keymap)}")
-            .ToList();
+        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, pending);
+
+        if (rows.Count > room)
+        {
+            rows = WhichKeyBuilder.WithoutBlanks(rows);
+        }
+
+        return rows.Select(row => row.IsBlank ? string.Empty : $"{row.Key.PadRight(KeyColumn)}{row.Label}").ToList();
     }
 
     public static IReadOnlyList<StyledLine> Compose(
@@ -38,7 +48,7 @@ public static class WhichKeyOverlay
         int width,
         int height)
     {
-        var rows = Rows(state.PendingKeys, keymap);
+        var rows = Rows(state.PendingKeys, keymap, height - 2);
         var boxWidth = Math.Min(width, MaxBoxWidth);
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)
@@ -62,34 +72,5 @@ public static class WhichKeyOverlay
         }
 
         return result;
-    }
-
-    private static string Label(NextKey next, string pending, KeymapTable keymap)
-    {
-        if (next.Action is not null)
-        {
-            return ActionCatalog.FindTitle(next.Action) ?? next.Action;
-        }
-
-        return $"{GroupMarker}{GroupName(keymap, $"{pending} {next.Key}")} ({next.Count})";
-    }
-
-    /// <summary>
-    /// The namespace of the first action below <paramref name="pending"/> (<c>issue</c> of <c>issue.delete</c>).
-    /// </summary>
-    private static string GroupName(KeymapTable keymap, string pending)
-    {
-        var next = keymap.NextKeys(InputMode.Normal, pending);
-
-        while (next.Count > 0 && next[0].Action is null)
-        {
-            pending = $"{pending} {next[0].Key}";
-            next = keymap.NextKeys(InputMode.Normal, pending);
-        }
-
-        var action = next.Count > 0 ? next[0].Action! : "keys";
-        var dot = action.IndexOf('.');
-
-        return dot < 0 ? action : action[..dot];
     }
 }

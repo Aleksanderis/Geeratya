@@ -7,4 +7,4 @@ My open issues › GCM-12 · Bot
 ╭─ Comments ───────────────────────────╮
 > No comments.                         │
 ╰──────────────────────────────────────╯
- NORMAL        ? help  : command  q quit
+ NORMAL       ? help  : commands  q quit

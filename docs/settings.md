@@ -8,7 +8,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 
 | `:set` name | File key | Values | Default | What it does |
 |---|---|---|---|---|
-| `hints` | `statusHints` | on or off | `on` | Show the key hints on the right of the status bar. |
+| `hints` | `statusHints` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
 | `whichkey` | `whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
 
@@ -25,7 +25,7 @@ The file is JSON; comments and trailing commas are allowed. Example:
 ```json
 {
   // Hide the hints once I know the keys.
-  "statusHints": false,
+  "statusHints": "off",
   "theme": "nord",
 }
 ```

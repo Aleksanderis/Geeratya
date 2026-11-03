@@ -7,4 +7,4 @@ GTM board · 16 issues                 3›
 │ └T GTM-14 Review onboarding copy     │
 │ B GTM-18 ↑GTM-10 Wrong date format i…│
 └──────────────────────────────────────┘
- NORMAL        ? help  : command  q quit
+ NORMAL       ? help  : commands  q quit
