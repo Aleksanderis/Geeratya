@@ -55,13 +55,15 @@ public static class ContextMenuOverlay
 
         var top = Math.Min(TopGap, height - lines.Count);
         var left = (width - boxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
+
+        OverlayBox.Cover(regions, top, left, boxWidth, lines.Count);
 
         OverlayBox.Mark(regions, MouseTarget.ContextMenu, top, left, boxWidth, 1, Enumerable.Range(first, area));
 
         for (var index = 0; index < lines.Count && top + index < result.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(lines[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], lines[index], left, width);
         }
 
         return result;

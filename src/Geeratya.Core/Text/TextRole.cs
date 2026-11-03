@@ -74,4 +74,22 @@ public enum TextRole
 
     /// <summary>The Help mode (and Messages) badge.</summary>
     BadgeHelp,
+
+    /// <summary>An overlay's frame in the accent colour.</summary>
+    OverlayFrame,
+
+    /// <summary>The frame of a confirm for an action that changes something (warn colour).</summary>
+    OverlayFrameWarn,
+
+    /// <summary>The frame of a confirm for a destructive action (bad colour).</summary>
+    OverlayFrameBad,
+
+    /// <summary>An overlay's title: the filled accent chip.</summary>
+    OverlayChip,
+
+    /// <summary>The title chip of a warn confirm.</summary>
+    OverlayChipWarn,
+
+    /// <summary>The title chip of a destructive confirm.</summary>
+    OverlayChipBad,
 }

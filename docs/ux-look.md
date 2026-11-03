@@ -187,6 +187,8 @@ Every overlay is one component, `OverlayBox`, with the same look; palette, help,
 - **Footer.** The last interior row is a hint line of dim chips (`Up/Down move  Enter run  Esc cancel`), separated from the rows by a `─` rule across the box; the same hints also show on the status bar.
 - **Selected row** in lists: the focus tint, with the marker `>` in the first padding column in the no-colour and ASCII tiers.
 
+**As implemented by #525.** One `OverlayBox` (rounded accent frame, title as the filled accent chip, `Backdrop` for the dimmed view, `Over` to splice the box into the view rows, `Cover` for the mouse box) draws the field form, comment editor, suggestion rows, palette, help, confirm, jump, source picker, context menu, profile list and profile form, and the which-key popup (frame and chip only: it keeps the view undimmed and flush right, as no Backdrop is specified for it). The view is `SpanGround.Dim` (24-bit: text blended towards the page by `Theme.DimAmount`; 16 colours: faint, or bright black when the glyph set is ASCII, which marks a classic console; no colour: unchanged), the box is `SpanGround.Surface` (24-bit: `Theme.Surface`; other tiers keep the default background); a box under another overlay is both. Confirm frames use `bad` for requests marked `Destructive` (delete issue, delete comment, remove profile), `warn` otherwise and the accent for notices. A click on the body outside the reported box is the Backdrop. Deviations kept on purpose or left open: the form, editor and picker keep their present widths (up to the limits above) instead of shrinking to content, so a box does not change width while the user types; the palette keeps the height of its unfiltered list (up to 18 rows) while filtering; the form and the comment editor stay anchored one row below the top of the body (their height changes while suggestions open, so centring would move the field being typed in); the source picker, jump prompt and profile list have no 18-row cap yet (only the palette has); the footer hint line is still muted text under a rule (dim chips come with the shared hint bar), there is no right-hand count chip yet (palette `12/87`: #527) and no `▲`/`▼` scroll marker in the right padding column; the confirm chip keeps the title `Confirm` (the question and the `y` label name the action).
+
 Mockups below show the box on a few rows of the muted view.
 
 ### Command palette (`:`; #527)
@@ -348,10 +350,10 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Open: filled and focus chips (#525) | 2, 3 | #524, #525 |
 | Tab row | Done in #527: chips on the bar background, filled accent for the active one, `x`, ` + `, dim jump chip with the keys. Open: middle-click, hover `x`, `+N` tab list (#547) | 5 | #527, #547 |
 | Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |
-| Palette | Square-cornered grey box, rows blanked left and right of it, no subheader styling, no count | 7 | #526, #548 (content, after the floating popups of #525) |
-| Help | Square corners, grey frame, view rows below the box visible but not muted | 7 | #526 |
-| Confirm | Square corners, grey frame, view rows left and right of it blanked | 7 | #526 |
-| Forms and pickers | Square corners, grey frame, box placed 2 columns from the left rather than centred | 7 | #526 |
+| Palette | Done in #525: rounded accent frame and chip over the dimmed view. Open: subheader styling, count chip | 7 | #525, #548 (subheaders and count) |
+| Help | Done in #525: rounded accent frame over the dimmed view | 7 | #525 |
+| Confirm | Done in #525: rounded frame (`bad`, `warn` or accent), view dimmed around it | 7 | #525 |
+| Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box | 7 | #525 |
 | Profiles | `:profile list` is a small box over the start screen; add is a four-step one-field wizard; no edit | 7 (profile manager) | #528 (form and keys done; two-pane screen open) |
 
 ## 10. Reconciliation with the other parts, and what stays open

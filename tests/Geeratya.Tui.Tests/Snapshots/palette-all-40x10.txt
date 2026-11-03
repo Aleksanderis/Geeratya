@@ -1,10 +1,10 @@
  1 JQL View   +            Space g jump 
                                         
 ╭─ View ──────────────────── 0 issues ─╮
-  ┌─ Commands ───────────────────────┐  
-  │ Issue                            │  
-  │ > Jump to an issue by k  Space g │  
-  │   Open the issue in the  Space o │  
-  │   Open the parent issue  Space p │  
-  └──────────────────────────────────┘  
+│  Key T Summary                      S│
+│ ╭─ Commands ───────────────────────╮ │
+│p│ Issue                            │ │
+│ │ > Jump to an issue by k  Space g │ │
+│ │   Open the issue in the  Space o │ │
+╰─╰──────────────────────────────────╯─╯
  COMMAND  :                             

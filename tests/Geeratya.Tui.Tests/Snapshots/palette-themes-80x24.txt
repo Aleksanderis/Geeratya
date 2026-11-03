@@ -1,24 +1,24 @@
  1 JQL View x   +                                                  Space g jump 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
-  ┌─ Commands ───────────────────────────────────────────────────────────────┐  
-  │ General                                                                  │  
-  │ > Theme: catppuccin-mocha                                                │  
-  │   Theme: dracula                                                         │  
-  │   Theme: nord                                                            │  
-  │                                                                          │  
-  │ View                                                                     │  
-  │   Save this view under a name (opens :view save)               Space v w │  
-  └──────────────────────────────────────────────────────────────────────────┘  
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
+│  Key T Summary                                                 Status        │
+│ ╭─ Commands ───────────────────────────────────────────────────────────────╮ │
+│p│ General                                                                  │ │
+│ │ > Theme: catppuccin-mocha                                                │ │
+│ │   Theme: dracula                                                         │ │
+│ │   Theme: nord                                                            │ │
+│ │                                                                          │ │
+│ │ View                                                                     │ │
+│ │   Save this view under a name (opens :view save)               Space v w │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ │                                                                          │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND  :theme:                            Up/Down move  Enter run  Esc cancel

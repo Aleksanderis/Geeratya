@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -7,6 +8,8 @@ namespace Geeratya.FakeJira;
 public static class GeneratedIssues
 {
     private const int LinkedIssueNumber = 2;
+    private const int SubtaskKeyBase = 100000;
+    private const int IdBase = 900000; // Sub-task keys and ids sit above the generated range (they overlap it only beyond --issues 10000).
 
     private static readonly string[] _statuses = ["Backlog", "To Do", "In Progress", "Done"];
     private const int LongThreadEvery = 5;
@@ -53,7 +56,7 @@ public static class GeneratedIssues
         var json = $$$"""
             {"id":"{{{10000 + number}}}","key":"GEN-{{{number}}}","fields":{
             "summary":"Generated issue {{{number}}}",
-            "status":{"name":"{{{status}}}","statusCategory":{"key":"{{{CategoryOf(status)}}}"}},
+            "status":{"id":"{{{StatusIdOf(status)}}}","name":"{{{status}}}","statusCategory":{"key":"{{{CategoryOf(status)}}}"}},
             "issuetype":{"name":"{{{kind}}}","subtask":false},
             "priority":{"name":"Medium"},
             "assignee":null,
@@ -68,7 +71,7 @@ public static class GeneratedIssues
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"First generated step"}]}]},
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Second generated step"}]}]}]},
               {"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":"generated --issue {{{number}}}"}]}]},
-            "subtasks":[],"issuelinks":[],"attachment":[]}}
+            "subtasks":{{{SubtasksJson(number)}}},"issuelinks":[],"attachment":[]}}
             """;
 
         return Encoding.UTF8.GetBytes(json.ReplaceLineEndings(string.Empty));
@@ -111,6 +114,21 @@ public static class GeneratedIssues
 
     public static byte[] Count(int total) => Encoding.UTF8.GetBytes($"{{\"count\":{total}}}");
 
+    /// <summary>
+    /// The status id of a generated status: the ids the recorded board configuration maps to its columns
+    /// (Backlog has none, so its cards show in the Unmapped column).
+    /// </summary>
+    internal static string StatusIdOf(string status)
+    {
+        return status switch
+        {
+            "To Do" => "10004",
+            "In Progress" => "3",
+            "Done" => "10005",
+            _ => "10000",
+        };
+    }
+
     internal static string CategoryOf(string status)
     {
         return status switch
@@ -133,10 +151,76 @@ public static class GeneratedIssues
         writer.WriteBoolean("subtask", false);
         writer.WriteEndObject();
         writer.WriteStartObject("status");
+        writer.WriteString("id", StatusIdOf(_statuses[number % _statuses.Length]));
         writer.WriteString("name", _statuses[number % _statuses.Length]);
         writer.WriteEndObject();
         writer.WriteNull("assignee");
+        WriteSubtasks(writer, "GEN-", number);
         writer.WriteEndObject();
         writer.WriteEndObject();
+    }
+
+    /// <summary>How many sub-task stubs generated issue <paramref name="number"/> has: 3, 1, 2 or none by number modulo 4.</summary>
+    internal static int SubtaskCount(int number)
+    {
+        return (number % 4) switch
+        {
+            1 => 3,
+            2 => 1,
+            3 => 2,
+            _ => 0,
+        };
+    }
+
+    /// <summary>
+    /// Writes the <c>subtasks</c> stubs of a generated issue (key, summary, status and type only, like Jira's stub).
+    /// The sub-tasks have keys above the generated range and mix the statuses, so a card shows done and open ones.
+    /// </summary>
+    internal static void WriteSubtasks(Utf8JsonWriter writer, string prefix, int number)
+    {
+        writer.WritePropertyName("subtasks");
+        WriteSubtaskArray(writer, prefix, number);
+    }
+
+    private static string SubtasksJson(int number)
+    {
+        var buffer = new MemoryStream();
+
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            WriteSubtaskArray(writer, "GEN-", number);
+        }
+
+        return Encoding.UTF8.GetString(buffer.ToArray());
+    }
+
+    private static void WriteSubtaskArray(Utf8JsonWriter writer, string prefix, int number)
+    {
+        writer.WriteStartArray();
+
+        for (var index = 1; index <= SubtaskCount(number); index++)
+        {
+            var status = _statuses[(number + index) % _statuses.Length];
+            writer.WriteStartObject();
+            writer.WriteString("id", (IdBase + number * 10 + index).ToString(CultureInfo.InvariantCulture));
+            writer.WriteString("key", $"{prefix}{SubtaskKeyBase + number * 10 + index}");
+            writer.WriteStartObject("fields");
+            writer.WriteString("summary", $"Generated sub-task {index} of {number}");
+            writer.WriteStartObject("status");
+            writer.WriteString("id", StatusIdOf(status));
+            writer.WriteString("name", status);
+            writer.WriteStartObject("statusCategory");
+            writer.WriteString("key", CategoryOf(status));
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteStartObject("issuetype");
+            writer.WriteString("name", "Sub-task");
+            writer.WriteBoolean("subtask", true);
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
     }
 }

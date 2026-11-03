@@ -1,25 +1,25 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                    ┌─ Commands ───────────────────────────────────────────────────────────────────┐                    
+                                                                                                                        
+                    ╭─ Commands ───────────────────────────────────────────────────────────────────╮                    
                     │ Issue                                                                        │                    
                     │ > Assign the issue: search people, or unassign                     Space i a │                    
                     │                                                                              │                    
-                    │ Navigate                                                                     │                    
-                    │   Collapse or expand the sprint section of the Scrum backlog             z a │                    
-                    └──────────────────────────────────────────────────────────────────────────────┘                    
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                        Geeratya                                                        
-                                              No profile yet: :profile add                                              
-                                              ? help   : commands   q quit                                              
-                                                                                                                        
-                                                                                                                        
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    │                                                                              │                    
+                    ╰──────────────────────────────────────────────────────────────────────────────╯                    
                                                                                                                         
                                                                                                                         
                                                                                                                         

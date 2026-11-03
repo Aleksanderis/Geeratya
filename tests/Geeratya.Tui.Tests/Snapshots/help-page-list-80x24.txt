@@ -1,24 +1,24 @@
  1 JQL Sample x   +                                                Space g jump 
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
-  ┌─ Help ───────────────────────────────────────────────────────────────────┐  
-  │ > List        │   j          Move down  (Down)                           │  
-  │   Global      │   k          Move up  (Up)                               │  
-  │   All actions │   g g        Go to the top  (Home)                       │  
-  │   Commands    │   G          Go to the bottom  (End)                     │  
-  │               │   Ctrl-d     Page down  (PageDown)                       │  
-  │               │   Ctrl-u     Page up  (PageUp)                           │  
-  │               │   Space a    Open the actions menu of the selected issue │  
-  │               │   Enter      Open the selected item                      │  
-  │               │   Space l    Switch between list and columns             │  
-  │               │   Space o    Open the issue in the browser               │  
-  │               │   Space i e  Edit fields of the issue (summary, labels,  │  
-  │               │              priority, description)                      │  
-  │               │   Space i a  Assign the issue: search people, or         │  
-  │               │              unassign                                    │  
-  │               │   Space i m  Assign the issue to me                      │  
-  │               │   Space i s  Change the status of the issue              │  
-  │               │   Alt-k      Rank the issue up (a count moves it that    │  
-  └──────────────────────────────────────────────────────────────────────────┘  
+│ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
+│>│ > List        │   j          Move down  (Down)                           │ │
+│ │   Global      │   k          Move up  (Up)                               │ │
+│ │   All actions │   g g        Go to the top  (Home)                       │ │
+│ │   Commands    │   G          Go to the bottom  (End)                     │ │
+│ │               │   Ctrl-d     Page down  (PageDown)                       │ │
+│ │               │   Ctrl-u     Page up  (PageUp)                           │ │
+│ │               │   Space a    Open the actions menu of the selected issue │ │
+│ │               │   Enter      Open the selected item                      │ │
+│ │               │   Space l    Switch between list and columns             │ │
+│ │               │   Space o    Open the issue in the browser               │ │
+│ │               │   Space i e  Edit fields of the issue (summary, labels,  │ │
+│ │               │              priority, description)                      │ │
+│ │               │   Space i a  Assign the issue: search people, or         │ │
+│ │               │              unassign                                    │ │
+│ │               │   Space i m  Assign the issue to me                      │ │
+│ │               │   Space i s  Change the status of the issue              │ │
+│ │               │   Alt-k      Rank the issue up (a count moves it that    │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

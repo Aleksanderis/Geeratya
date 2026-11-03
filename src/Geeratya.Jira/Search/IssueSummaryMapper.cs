@@ -18,6 +18,8 @@ internal static class IssueSummaryMapper
     public const string UndefinedCategoryKey = "undefined";
 
     private const string IdProperty = "id";
+    private const string KeyProperty = "key";
+    private const string StatusCategoryProperty = "statusCategory";
     private const string NameProperty = "name";
     private const string StateProperty = "state";
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
@@ -71,6 +73,7 @@ internal static class IssueSummaryMapper
         {
             Sprints = MapSprints(fields?.Extra, extras?.SprintFieldId),
             Estimate = MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
+            Subtasks = MapSubtasks(fields?.Extra, pool),
         };
     }
 
@@ -102,6 +105,55 @@ internal static class IssueSummaryMapper
         return result;
     }
 
+    /// <summary>
+    /// The sub-task stubs of the <c>subtasks</c> field; entries without a key are skipped and a missing or odd field
+    /// gives an empty list.
+    /// </summary>
+    internal static List<IssueSubtask> MapSubtasks(
+        Dictionary<string, JsonElement>? extra,
+        Dictionary<string, string> pool)
+    {
+        var result = new List<IssueSubtask>();
+
+        if (extra is null || !extra.TryGetValue(IssueFields.Subtasks, out var field)
+            || field.ValueKind != JsonValueKind.Array)
+        {
+            return result;
+        }
+
+        foreach (var entry in field.EnumerateArray())
+        {
+            if (entry.ValueKind == JsonValueKind.Object && TextOf(entry, KeyProperty) is { Length: > 0 } key)
+            {
+                result.Add(MapSubtask(entry, key, pool));
+            }
+        }
+
+        return result;
+    }
+
+    private static IssueSubtask MapSubtask(JsonElement entry, string key, Dictionary<string, string> pool)
+    {
+        var stub = ObjectOf(entry, IssueFields.FieldsProperty);
+        var status = ObjectOf(stub, IssueFields.Status);
+        var category = TextOf(ObjectOf(status, StatusCategoryProperty), KeyProperty);
+
+        return new IssueSubtask(
+            key,
+            TextOf(stub, IssueFields.Summary),
+            new IssueStatus(
+                TextOf(status, IdProperty),
+                Share(TextOf(status, NameProperty), pool) ?? string.Empty,
+                category.Length > 0 ? category : UndefinedCategoryKey),
+            TextOf(ObjectOf(stub, IssueFields.IssueType), NameProperty));
+    }
+
+    private static JsonElement ObjectOf(JsonElement element, string property) =>
+        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value)
+            && value.ValueKind == JsonValueKind.Object
+            ? value
+            : default;
+
     /// <summary>The first candidate estimate field that holds a number; null when none does.</summary>
     internal static double? MapEstimate(Dictionary<string, JsonElement>? extra, IReadOnlyList<string>? fieldIds)
     {
@@ -123,7 +175,8 @@ internal static class IssueSummaryMapper
     }
 
     private static string TextOf(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
+        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value)
+            && value.ValueKind == JsonValueKind.String
             ? value.GetString() ?? string.Empty
             : string.Empty;
 

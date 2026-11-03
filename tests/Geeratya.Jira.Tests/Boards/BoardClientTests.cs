@@ -123,6 +123,67 @@ public sealed class BoardClientTests
         Assert.Equal("GCM-1", subtask.Parent?.Key);
     }
 
+    [Theory]
+    [InlineData("gcm", 4, "GCM-10", 2, 1)]
+    [InlineData("gtm", 3, "GTM-11", 2, 1)]
+    public async Task GivenASubtaskExtra_WhenLoadingIssues_ThenTheFieldIsRequestedAndTheStubsMapPerKind(
+        string kind,
+        int boardId,
+        string parentKey,
+        int total,
+        int done)
+    {
+        using var fixture = Serving(
+            $"/rest/agile/1.0/board/{boardId}/issue",
+            $"boards/rows-{kind}-issues-subtasks-filtered.json");
+        var query = new BoardIssueQuery { Extras = IssueExtraFields.None with { IncludeSubtasks = true } };
+
+        var result = await new BoardClient(fixture.Transport).GetIssuesAsync(
+            boardId,
+            query,
+            null,
+            CancellationToken.None);
+
+        Assert.Contains("subtasks", QueryOf(Assert.Single(fixture.Handler.Requests))["fields"]);
+        var parent = result.Value.Items.Single(issue => issue.Key == parentKey);
+        Assert.Equal(total, parent.Subtasks.Count);
+        Assert.Equal(done, parent.Subtasks.Count(subtask => subtask.IsDone));
+        Assert.All(parent.Subtasks, subtask => Assert.NotEmpty(subtask.Summary));
+        Assert.DoesNotContain(result.Value.Items, issue => issue.IssueType.IsSubtask);
+    }
+
+    [Fact]
+    public async Task GivenOddSubtaskJson_WhenMapping_ThenBadEntriesAreSkippedAndMissingPartsAreNeutral()
+    {
+        const string json = """
+            {"startAt":0,"maxResults":50,"total":1,"issues":[{"id":"1","key":"A-1","fields":{"summary":"p",
+            "subtasks":[{"key":"A-2"},{"id":"9"},"x",{"key":"A-3","fields":{"summary":"s",
+            "status":{"id":"5","name":"Done","statusCategory":{"key":"done"}},"issuetype":{"name":"Sub-task"}}}]}}]}
+            """;
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, GcmIssuesPath, FakeResponse.Ok(json));
+        var query = new BoardIssueQuery { Extras = IssueExtraFields.None with { IncludeSubtasks = true } };
+
+        var result = await new BoardClient(fixture.Transport).GetIssuesAsync(4, query, null, CancellationToken.None);
+
+        var subtasks = result.Value.Items.Single().Subtasks;
+        Assert.Equal(["A-2", "A-3"], subtasks.Select(subtask => subtask.Key));
+        Assert.False(subtasks[0].IsDone);
+        Assert.Equal("undefined", subtasks[0].Status.CategoryKey);
+        Assert.True(subtasks[1].IsDone);
+        Assert.Equal("Sub-task", subtasks[1].TypeName);
+    }
+
+    [Fact]
+    public async Task GivenNoSubtaskExtra_WhenLoadingIssues_ThenTheFieldIsNotRequested()
+    {
+        using var fixture = Serving(GcmIssuesPath, "boards/rows-gcm-issues.json");
+
+        await Issues(fixture, 4, null);
+
+        Assert.DoesNotContain("subtasks", QueryOf(Assert.Single(fixture.Handler.Requests))["fields"]);
+    }
+
     [Fact]
     public async Task GivenTeamManagedBoard_WhenLoadingIssuesAndBacklog_ThenBacklogIsTheEndpointsAnswerNotAColumn()
     {

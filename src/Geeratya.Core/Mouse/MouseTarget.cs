@@ -100,4 +100,9 @@ public enum MouseTarget
 
     /// <summary>The rest of the Confirm dialog's box: a click there does nothing (outside it cancels).</summary>
     ConfirmBox,
+
+    /// <summary>
+    /// The rest of any other overlay's box: a click there does nothing (outside it is the backdrop and closes it).
+    /// </summary>
+    OverlayBox,
 }

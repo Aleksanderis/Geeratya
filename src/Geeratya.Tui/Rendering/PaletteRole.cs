@@ -45,4 +45,10 @@ public enum PaletteRole
     BadgeCommand,
     BadgeConfirm,
     BadgeHelp,
+    OverlayFrame,
+    OverlayFrameWarn,
+    OverlayFrameBad,
+    OverlayChip,
+    OverlayChipWarn,
+    OverlayChipBad,
 }

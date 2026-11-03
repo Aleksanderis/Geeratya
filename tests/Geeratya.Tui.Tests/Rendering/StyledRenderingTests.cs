@@ -155,7 +155,7 @@ public class StyledRenderingTests
         var help = FrameBuilder.BuildStyled(AppState.Initial with { Mode = InputMode.Help }, 40, 10, _keymap)!;
         var start = FrameBuilder.BuildStyled(AppState.Initial, 40, 10, _keymap)!;
 
-        Assert.Contains(help.Body, line => line.PlainText.Contains("┌─ Help"));
+        Assert.Contains(help.Body, line => line.PlainText.Contains("╭─ Help"));
         Assert.Contains(start.Body, line => line.PlainText.Contains("Geeratya"));
     }
 

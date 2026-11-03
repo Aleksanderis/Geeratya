@@ -118,8 +118,11 @@ public sealed class SavedViewStoreTests : IDisposable
 
         Directory.CreateDirectory(path);
 
-        Assert.ThrowsAny<IOException>(
+        var error = Record.Exception(
             () => store.Update(_work, views => views.Saved(new SavedView("A", "Jql", "a", "List"))));
+
+        // Windows reports a directory in the way as UnauthorizedAccessException, Linux as IOException.
+        Assert.True(error is IOException or UnauthorizedAccessException, $"Unexpected: {error}");
         Assert.True(Directory.Exists(path));
         Assert.Empty(store.Load(_work).Items);
     }

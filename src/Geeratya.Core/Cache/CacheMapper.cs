@@ -57,7 +57,8 @@ public static class CacheMapper
             row.Updated,
             row.ProjectKey,
             [.. row.Sprints.Select(ToSprint)],
-            row.Estimate);
+            row.Estimate,
+            [.. row.Subtasks.Select(ToSubtask)]);
     }
 
     private static IssueSummary FromRow(CachedIssueRow row)
@@ -81,7 +82,26 @@ public static class CacheMapper
         {
             Sprints = [.. row.Sprints.Select(FromSprint)],
             Estimate = row.Estimate,
+            Subtasks = [.. (row.Subtasks ?? []).Select(FromSubtask)],
         };
+    }
+
+    private static CachedSubtask ToSubtask(IssueSubtask subtask)
+    {
+        return new CachedSubtask(
+            subtask.Key,
+            subtask.Summary,
+            new CachedStatus(subtask.Status.Id, subtask.Status.Name, subtask.Status.CategoryKey),
+            subtask.TypeName);
+    }
+
+    private static IssueSubtask FromSubtask(CachedSubtask subtask)
+    {
+        return new IssueSubtask(
+            subtask.Key,
+            subtask.Summary,
+            new IssueStatus(subtask.Status.Id, subtask.Status.Name, subtask.Status.CategoryKey),
+            subtask.TypeName);
     }
 
     /// <summary>Converts a sprint to its DTO. Shared with <see cref="IssueCacheMapper"/>.</summary>

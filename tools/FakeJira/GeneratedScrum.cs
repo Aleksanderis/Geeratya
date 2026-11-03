@@ -407,6 +407,7 @@ public sealed partial class GeneratedScrum
         writer.WriteBoolean("subtask", false);
         writer.WriteEndObject();
         writer.WriteStartObject("status");
+        writer.WriteString("id", GeneratedIssues.StatusIdOf(status));
         writer.WriteString("name", status);
         writer.WriteStartObject("statusCategory");
         writer.WriteString("key", GeneratedIssues.CategoryOf(status));
@@ -414,6 +415,7 @@ public sealed partial class GeneratedScrum
         writer.WriteEndObject();
         writer.WriteNull("assignee");
         writer.WriteNumber(EstimateField, _estimates[number % _estimates.Length]);
+        GeneratedIssues.WriteSubtasks(writer, Prefix, number);
 
         if (index < 0)
         {

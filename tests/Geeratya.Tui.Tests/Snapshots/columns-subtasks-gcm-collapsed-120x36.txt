@@ -1,0 +1,36 @@
+ 1 Board GCM board x   +                                                                                   Space g jump 
+                                                                                                                        
+╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 2 ─────────────────────────────╮
+│ ┌───────────────────────────────────┐ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │
+│ │ Epic GCM-8                        │ │ │ Epic GCM-9                        │ │ │ Story GCM-12                     │ │
+│ │ Seed: Onboarding flow             │ │ │ Seed: Reporting                   │ │ │ Export report as CSV             │ │
+│ │                                   │ │ │                                   │ │ │                                  │ │
+│ ├───────────────────────────────────┤ │ ├───────────────────────────────────┤ │ └──────────────────────────────────┘ │
+│ │   Story GCM-11                    │ │ │   Task GCM-14                     │ │ ┌──────────────────────────────────┐ │
+│ │   Welcome screen                  │ │ │   Pick a chart library            │ │ │ Task GCM-15                      │ │
+│ │                                   │ │ │                                   │ │ │ Write the setup guide            │ │
+│ │                                   │ │ │                                   │ │ │                                  │ │
+│ ├───────────────────────────────────┤ │ └───────────────────────────────────┘ │ └──────────────────────────────────┘ │
+│ │   Task GCM-13                     │ │ ┏━ ↑ GCM-8 Seed: Onboarding flow ━━━┓ │                                      │
+│ │   Review onboarding copy          │ │ ┃ Story GCM-10                      ┃ │                                      │
+│ │                                   │ │ ┃ Sign up with email                ┃ │                                      │
+│ │                                   │ │ ┃ ▸ Sub-tasks 1/2 ━━━───            ┃ │                                      │
+│ └───────────────────────────────────┘ │ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │                                      │
+│ ┌─ ↑ GCM-9 Seed: Reporting ─────────┐ │ ┌─ ↑ GCM-8 Seed: Onboarding flow ───┐ │                                      │
+│ │ Bug GCM-17                        │ │ │ Bug GCM-16                        │ │                                      │
+│ │ Wrong date format in report       │ │ │ App crashes on empty profile      │ │                                      │
+│ │                                   │ │ │                                   │ │                                      │
+│ └───────────────────────────────────┘ │ └───────────────────────────────────┘ │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+│                                       │                                       │                                      │
+╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
+ NORMAL  GCM board · 20 issues                h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit

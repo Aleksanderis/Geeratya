@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │   Global      │   :jql [query]                                                               │            
             │   All actions │       Open a JQL query in a new tab (no query: pick from recent ones)        │            
             │ > Commands    │   :filter [name]                                                             │            
@@ -31,6 +31,6 @@
             │               │       Change the estimate (story points) of the selected or shown issue      │            
             │               │              (field form)                                                    │            
             │               │   :assign                                                                    │            
-            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -98,6 +98,24 @@ public static class PaletteTable
         [PaletteRole.BadgeCommand] = Chip(ThemeColor.Warn),
         [PaletteRole.BadgeConfirm] = Chip(ThemeColor.Bad),
         [PaletteRole.BadgeHelp] = Chip(ThemeColor.Info),
+        [PaletteRole.OverlayFrame] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayFrameWarn] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayFrameBad] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayChip] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Accent,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
+        [PaletteRole.OverlayChipWarn] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Warn,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
+        [PaletteRole.OverlayChipBad] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Bad,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -143,6 +161,12 @@ public static class PaletteTable
         [TextRole.BadgeCommand] = PaletteRole.BadgeCommand,
         [TextRole.BadgeConfirm] = PaletteRole.BadgeConfirm,
         [TextRole.BadgeHelp] = PaletteRole.BadgeHelp,
+        [TextRole.OverlayFrame] = PaletteRole.OverlayFrame,
+        [TextRole.OverlayFrameWarn] = PaletteRole.OverlayFrameWarn,
+        [TextRole.OverlayFrameBad] = PaletteRole.OverlayFrameBad,
+        [TextRole.OverlayChip] = PaletteRole.OverlayChip,
+        [TextRole.OverlayChipWarn] = PaletteRole.OverlayChipWarn,
+        [TextRole.OverlayChipBad] = PaletteRole.OverlayChipBad,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();

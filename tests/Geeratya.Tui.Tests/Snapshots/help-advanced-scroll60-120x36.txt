@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │   Global      │ Navigate                                                                     │            
             │ > All actions │   j          Move down  (Down)                                               │            
             │   Commands    │   k          Move up  (Up)                                                   │            
@@ -16,7 +16,7 @@
             │               │   $          Go to the last column                                           │            
             │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
             │               │   [ [        Previous section of the issue or the Scrum backlog              │            
-            │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
+            │               │   z a        Fold a backlog section or the sub-tasks of a card               │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
@@ -31,6 +31,6 @@
             │               │   Tab        Next help section                                               │            
             │               │   Shift-Tab  Previous help section                                           │            
             │               │   J          Scroll help down a line                                         │            
-            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
