@@ -159,7 +159,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |
-| `:set [hints.statusBar|hints.whichKey|theme] [value]` | List the settings, show one, or change one (saved) |
+| `:set [hints.statusBar|hints.whichKey|theme|jump.target] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |

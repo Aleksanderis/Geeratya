@@ -152,6 +152,29 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
+    public void GivenSetJumpTargetTab_WhenSubmittingThePalette_ThenTheTargetIsTabAndTheNameIsReported()
+    {
+        var result = Run("set jump.target tab");
+
+        Assert.Equal(JumpTarget.Tab, result.State.Settings.JumpTarget);
+        Assert.Equal("\"tab\"", SettingsRegistry.ToJson(SettingsRegistry.Find("jump.target")!, result.State.Settings));
+        Assert.Contains(result.Effects, effect => effect is SaveSettingsEffect);
+        Assert.Contains("jump.target tab", result.State.Message);
+    }
+
+    [Theory]
+    [InlineData("Tab ")]
+    [InlineData("here")]
+    public void GivenAnInvalidJumpTarget_WhenSubmittingThePalette_ThenNothingChangesOrIsSaved(string value)
+    {
+        var result = Run($"set jump.target {value}");
+
+        Assert.Equal(JumpTarget.Current, result.State.Settings.JumpTarget);
+        Assert.DoesNotContain(result.Effects, effect => effect is SaveSettingsEffect);
+        Assert.Contains("current or tab", result.State.Message);
+    }
+
+    [Fact]
     public void GivenAReloadedFile_WhenTheHostAnswers_ThenItsValuesApplyAndTheMessageShows()
     {
         var result = _reducer.Reduce(

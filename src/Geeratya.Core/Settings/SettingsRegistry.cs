@@ -17,6 +17,12 @@ public static class SettingsRegistry
 
     private const string ToggleExpected = "on or off";
 
+    private const string CurrentWord = "current";
+
+    private const string TabWord = "tab";
+
+    private const string JumpExpected = "current or tab";
+
     private const string ThemeExpected = "a theme name";
 
     public static IReadOnlyList<SettingDefinition> All { get; } =
@@ -52,6 +58,15 @@ public static class SettingsRegistry
             settings => settings.Theme,
             ApplyTheme,
             ThemeExpected),
+        new SettingDefinition(
+            "jump.target",
+            "jump.target",
+            SettingKind.Choice,
+            CurrentWord,
+            "Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab.",
+            settings => settings.JumpTarget == JumpTarget.Tab ? TabWord : CurrentWord,
+            ApplyJumpTarget,
+            JumpExpected),
     ];
 
     public static SettingDefinition? Find(string name)
@@ -138,6 +153,16 @@ public static class SettingsRegistry
         {
             On => true,
             Off => false,
+            _ => null,
+        };
+    }
+
+    private static AppSettings? ApplyJumpTarget(AppSettings settings, string text)
+    {
+        return text switch
+        {
+            CurrentWord => settings with { JumpTarget = JumpTarget.Current },
+            TabWord => settings with { JumpTarget = JumpTarget.Tab },
             _ => null,
         };
     }

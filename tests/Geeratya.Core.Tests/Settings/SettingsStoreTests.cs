@@ -109,6 +109,21 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
     }
 
     [Fact]
+    public void GivenANestedJumpTarget_WhenReading_ThenItLoads_AndABadValueWarnsAndKeepsTheDefault()
+    {
+        Create("{ \"jump\": { \"target\": \"tab\" } }");
+
+        Assert.Equal(JumpTarget.Tab, new SettingsStore(_directory).Read().Settings.JumpTarget);
+
+        Create("{ \"jump\": { \"target\": \"here\" } }");
+
+        var bad = new SettingsStore(_directory).Read();
+
+        Assert.Equal(JumpTarget.Current, bad.Settings.JumpTarget);
+        Assert.NotEmpty(bad.Warnings);
+    }
+
+    [Fact]
     public void GivenAnInvalidValue_WhenReading_ThenTheDefaultAndAWarningComeBack_AndWritingFixesIt()
     {
         Create("{ \"whichKey\": \"maybe\", \"statusHints\": false, \"unknown\": 1 }");

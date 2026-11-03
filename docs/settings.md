@@ -11,6 +11,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 | `hints.statusBar` | `hints.statusBar` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
 | `hints.whichKey` | `hints.whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
+| `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
 
 ## `:set`
 
