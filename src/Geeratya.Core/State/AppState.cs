@@ -51,6 +51,12 @@ public sealed record AppState(
     /// <summary>The user's switches (hints, which-key); the defaults until the host loads the file.</summary>
     public AppSettings Settings { get; init; } = AppSettings.Default;
 
+    /// <summary>
+    /// The theme names the host offers (the palette lists one row for each); Core knows no themes, so the host sets
+    /// them at start. Empty until then.
+    /// </summary>
+    public IReadOnlyList<string> ThemeNames { get; init; } = [];
+
     /// <summary>The open comment editor (Insert mode, or Confirm while it asks to discard), otherwise null.</summary>
     public CommentEditor? Editor { get; init; }
 

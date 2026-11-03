@@ -460,7 +460,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
-        _state = WithNotice(_state, JoinNotices(_state.Message, start.Notice));
+        _state = WithNotice(_state with { ThemeNames = _themes.Names }, JoinNotices(_state.Message, start.Notice));
 
         return start.Theme;
     }

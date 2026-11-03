@@ -9,6 +9,9 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
     private const int MaximumReasons = 3;
     private const char FamilySeparator = '-';
 
+    /// <summary>The theme names on offer (built-in and the user's files).</summary>
+    public IReadOnlyList<string> Names => catalog.Names;
+
     /// <summary>
     /// The theme for the start: the saved one, or the default dark one with a notice when the name is gone or its
     /// file is invalid (a theme must never stop the start). Theme files that were not offered are reported as well.
