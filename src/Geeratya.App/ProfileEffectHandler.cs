@@ -45,6 +45,7 @@ public sealed class ProfileEffectHandler
                 SaveProfilesEffect save => Save(save),
                 UpdateProfileEffect update => await UpdateAsync(update, cancellationToken),
                 TestProfileEffect test => await TestAsync(test, cancellationToken),
+                LoadTokenSourcesEffect sources => await TokenSourcesAsync(sources, cancellationToken),
                 _ => null,
             };
         }
@@ -77,6 +78,46 @@ public sealed class ProfileEffectHandler
         _services.Store.Save(add.Catalog);
 
         return new ProfilesChanged(add.Catalog, AddedMessage(add, stored));
+    }
+
+    /// <summary>
+    /// Finds where each profile's token comes from for the profile manager. The token is read and dropped here: only
+    /// its source goes back. The environment variable counts for a single profile only, as for the connection.
+    /// </summary>
+    private async Task<Command> TokenSourcesAsync(LoadTokenSourcesEffect effect, CancellationToken cancellationToken)
+    {
+        var allowEnvironment = effect.Profiles.Count == 1;
+        var sources = new Dictionary<string, TokenSourceKind>();
+
+        foreach (var profile in effect.Profiles)
+        {
+            sources[profile.CredentialKey] = await SourceOfAsync(profile, allowEnvironment, cancellationToken);
+        }
+
+        return new TokenSourcesLoaded(sources);
+    }
+
+    /// <summary>A failing secret store is not a failed profile operation: the pane says the source is unavailable.</summary>
+    private async Task<TokenSourceKind> SourceOfAsync(
+        Profile profile,
+        bool allowEnvironment,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var resolved = await _services.Tokens.ResolveAsync(profile.CredentialKey, allowEnvironment, cancellationToken);
+
+            return resolved.Source switch
+            {
+                TokenSource.SecretStore => TokenSourceKind.SecretStore,
+                TokenSource.EnvironmentVariable => TokenSourceKind.EnvironmentVariable,
+                _ => TokenSourceKind.None,
+            };
+        }
+        catch (SecretStoreException)
+        {
+            return TokenSourceKind.Unavailable;
+        }
     }
 
     private async Task<Command> RemoveAsync(RemoveProfileEffect remove, CancellationToken cancellationToken)

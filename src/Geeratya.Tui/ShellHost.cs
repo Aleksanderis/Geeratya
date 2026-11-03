@@ -621,7 +621,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             var loaded = _profiles.Store.Load();
             var notice = loaded.Status == ProfileLoadStatus.Corrupt ? CorruptNotice : null;
 
-            return StatusMessages.Startup(
+            var started = StatusMessages.Startup(
                 AppState.Initial with
                 {
                     Settings = settings,
@@ -630,6 +630,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
                 },
                 notice,
                 settingsLoad.Warnings);
+
+            // With no profile the profile manager is the first screen.
+            return ProfileReducer.FirstRun(started);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

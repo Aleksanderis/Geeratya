@@ -80,7 +80,7 @@ public class AsciiScreenSnapshotTests
             "form-picker" => FormOverlaySnapshotTests.WithForm(FormOverlaySnapshotTests.PickerForm()),
             "editor" => CommentEditorOverlayTests.StateWith(CommentEditorOverlayTests.Editor("hi there\nsecond line")),
             "contextmenu" => ContextMenuOverlayTests.Sample(),
-            "profiles" => ProfileListOverlayTests.Sample(),
+            "profiles" => ProfileManagerScreenTests.Sample(),
             "confirm" => ConfirmOverlayTests.Open(),
             _ => NetworkStateSnapshotTests.Sample(name["network-".Length..]),
         };

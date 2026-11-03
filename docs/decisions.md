@@ -136,7 +136,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-03 (profile manager, #528)
 
-**UI:** The profile manager (#528) is the existing profile list overlay plus one four-field add/edit form (`Tab` between fields, `Ctrl-s` save, `Alt-t` test connection); no token source row. Why: popup and form components are restyled by #524 to #527, so the two-pane full-body screen waits for them; the token is always the OS secret store (`GEERATYA_TOKEN` is process-wide and works with one profile only), so there is no per-profile choice to show. `Alt-t` because `Ctrl-t` is the picker's open-in-new-tab key. Details: `ux.md`, "Profiles".
+**UI:** The profile manager (#528) was first the profile list overlay plus one four-field (the two-pane screen came with #535) add/edit form (`Tab` between fields, `Ctrl-s` save, `Alt-t` test connection); no token source row. Why: popup and form components were restyled first (#524 to #527), the two-pane screen followed in #535; the token is always the OS secret store (`GEERATYA_TOKEN` is process-wide and works with one profile only), so there is no per-profile choice to show. `Alt-t` because `Ctrl-t` is the picker's open-in-new-tab key. Details: `ux.md`, "Profiles".
 
 ## 2026-11-03 (quick filters and swimlanes, #192)
 
@@ -145,3 +145,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (start on a board, #542)
 
 **UI:** A start reopens the profile's remembered tabs (definitions only, `tabs.json`); with none, the board picker opens (the board itself when there is one) once the connection works. Overrides roadmap question 3 (default "no"). Why: the owner wants a useful first screen. `startup.restore off` skips the file and always opens the picker; closing every tab also counts as nothing remembered. Details: `ux-workflows.md`, workflow 0.
+
+## 2026-11-03 (profile manager screen, #535)
+
+**UI:** The profile manager stays open under the profile form and the remove question and is the first screen when no profile exists; its details pane shows the token source only (looked up by the host, never the token) and, for inactive profiles, no connection status (no request goes to an inactive site). Why: a screen that vanishes on Ctrl-a loses the list the user is editing; the first run needs one place to add a profile.

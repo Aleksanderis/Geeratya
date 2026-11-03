@@ -75,18 +75,14 @@ public static class FrameBuilder
         var viewState = helpOpen ? HelpOverlay.Underlying(state) : state;
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(viewState))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
-        var body = Fit(renderer.Render(viewState, context, width, bodyHeight), width, bodyHeight);
-
         var regions = new List<OverlayRegion>();
+        var body = state.ProfileList is not null
+            ? ManagerBody(state, context, width, bodyHeight, regions)
+            : Fit(renderer.Render(viewState, context, width, bodyHeight), width, bodyHeight);
 
         if (helpOpen)
         {
             body = Fit(HelpOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
-        }
-
-        if (state.ProfileList is not null)
-        {
-            body = Fit(ProfileListOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (state.ContextMenu is not null)
@@ -159,6 +155,20 @@ public static class FrameBuilder
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
     }
 
+    // The profile manager is the whole body. Its rows and buttons take the mouse only while no form or question is on
+    // top of it.
+    private static List<StyledLine> ManagerBody(
+        AppState state,
+        BodyContext context,
+        int width,
+        int height,
+        List<OverlayRegion> regions)
+    {
+        var interactive = state.Form is null && state.Mode != InputMode.Confirm;
+
+        return Fit(ProfileManagerScreen.Render(state, context, width, height, interactive ? regions : null), width, height);
+    }
+
     private static StyledFrame Asciified(StyledFrame frame)
     {
         var status = Asciified(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine));
@@ -209,7 +219,11 @@ public static class FrameBuilder
     {
         var lines = new List<StyledLine>(HeaderRows);
 
-        if (rows > 0)
+        if (rows > 0 && state.ProfileList is not null)
+        {
+            lines.Add(ProfilesChip(width));
+        }
+        else if (rows > 0)
         {
             lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width, keymap));
         }
@@ -220,6 +234,12 @@ public static class FrameBuilder
         }
 
         return lines;
+    }
+
+    // The one chip of the tab row while the profile manager is open: it is not a tab of the active site.
+    private static StyledLine ProfilesChip(int width)
+    {
+        return StyledLines.Fit(new StyledLine([new StyledSpan(" Profiles ", TextRole.TabActive)]), width, TextRole.BarText);
     }
 
     private static List<StyledLine> Fit(IEnumerable<StyledLine> lines, int width, int height)

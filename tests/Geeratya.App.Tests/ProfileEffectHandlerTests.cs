@@ -218,11 +218,49 @@ public sealed class ProfileEffectHandlerTests : IDisposable
         Assert.Null(await handler.RunAsync(new QuitEffect(), CancellationToken.None));
     }
 
-    private Fixture Create(FakeSecretStore store)
+    [Fact]
+    public async Task GivenStoredAndEnvironmentTokens_WhenLoadingTheSources_ThenOnlyTheSourceComesBack()
+    {
+        var store = new FakeSecretStore();
+
+        await store.SetAsync(_work.CredentialKey, "stored-secret", CancellationToken.None);
+
+        var handler = Create(store, Environment("env-secret")).Handler;
+
+        var single = await handler.RunAsync(new LoadTokenSourcesEffect([_dev]), CancellationToken.None);
+        var several = await handler.RunAsync(new LoadTokenSourcesEffect([_work, _dev]), CancellationToken.None);
+
+        var one = Assert.IsType<TokenSourcesLoaded>(single);
+        var two = Assert.IsType<TokenSourcesLoaded>(several);
+
+        Assert.Equal(TokenSourceKind.EnvironmentVariable, one.Sources[_dev.CredentialKey]);
+        Assert.Equal(TokenSourceKind.SecretStore, two.Sources[_work.CredentialKey]);
+        Assert.Equal(TokenSourceKind.None, two.Sources[_dev.CredentialKey]);
+        Assert.DoesNotContain("secret", two.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenAFailingStore_WhenLoadingTheSources_ThenTheSourceIsUnavailableNotAFailedOperation()
+    {
+        var handler = Create(new FakeSecretStore(failsOnGet: true)).Handler;
+
+        var outcome = await handler.RunAsync(new LoadTokenSourcesEffect([_work]), CancellationToken.None);
+
+        var loaded = Assert.IsType<TokenSourcesLoaded>(outcome);
+
+        Assert.Equal(TokenSourceKind.Unavailable, loaded.Sources[_work.CredentialKey]);
+    }
+
+    private static EnvironmentReader Environment(string value)
+    {
+        return new EnvironmentReader(name => name == TokenProvider.EnvironmentVariable ? value : null);
+    }
+
+    private Fixture Create(FakeSecretStore store, EnvironmentReader? environment = null)
     {
         var profiles = new ProfileServices(
             new ProfileStore(_directory),
-            new TokenProvider(store, new EnvironmentReader(_ => null)),
+            new TokenProvider(store, environment ?? new EnvironmentReader(_ => null)),
             new SiteCaches(Path.Combine(_directory, "cache")),
             new HistoryStore(Path.Combine(_directory, "state")),
             new BoardKindStore(Path.Combine(_directory, "state")));

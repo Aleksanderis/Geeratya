@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -235,9 +236,96 @@ public class ProfileReducerTests
 
         Assert.Equal(InputMode.Insert, some.State.Mode);
         Assert.Equal(1, some.State.ProfileList!.Selected);
-        Assert.Null(none.State.ProfileList);
-        Assert.NotNull(none.State.Form);
-        Assert.False(none.State.Form.IsEdit);
+        Assert.NotNull(none.State.ProfileList);
+        Assert.Null(none.State.Form);
+        Assert.Empty(none.Effects);
+        Assert.IsType<LoadTokenSourcesEffect>(Assert.Single(some.Effects));
+    }
+
+    [Fact]
+    public void GivenBareProfileCommand_WhenSubmittingFromTheCommandLine_ThenTheManagerOpensAtOnce()
+    {
+        var typed = Type(WithProfiles(_work, _dev) with { Mode = InputMode.Command }, "profile").State;
+
+        var result = Press(typed, "Enter");
+
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+        Assert.NotNull(result.State.ProfileList);
+        Assert.Null(result.State.Form);
+    }
+
+    [Fact]
+    public void GivenNoProfile_WhenStarting_ThenTheManagerIsTheFirstScreenAndAProfileKeepsTheBoardStart()
+    {
+        var first = ProfileReducer.FirstRun(AppState.Initial with { Message = "A notice." });
+        var withProfile = ProfileReducer.FirstRun(WithProfiles(_work));
+
+        Assert.NotNull(first.ProfileList);
+        Assert.Equal(InputMode.Insert, first.Mode);
+        Assert.Equal("A notice.", first.Message);
+        Assert.Null(withProfile.ProfileList);
+        Assert.Equal(InputMode.Normal, withProfile.Mode);
+    }
+
+    [Fact]
+    public void GivenTheManager_WhenAddingThenCancelling_ThenTheManagerIsStillOpen()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile").State;
+
+        var form = Press(opened, "Ctrl-a").State;
+        var up = Press(form, "Up").State;
+        var back = Press(form, "Esc").State;
+
+        Assert.NotNull(form.Form);
+        Assert.NotNull(form.ProfileList);
+        Assert.Equal(0, up.ProfileList!.Selected);
+        Assert.Null(back.Form);
+        Assert.NotNull(back.ProfileList);
+        Assert.Equal(InputMode.Insert, back.Mode);
+    }
+
+    [Fact]
+    public void GivenTheManager_WhenDecliningARemoval_ThenTheManagerIsStillOpen()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile").State;
+
+        var asked = Press(opened, "Ctrl-x").State;
+        var declined = Press(asked, "n").State;
+
+        Assert.Equal(InputMode.Confirm, asked.Mode);
+        Assert.NotNull(asked.ProfileList);
+        Assert.Equal(InputMode.Insert, declined.Mode);
+        Assert.NotNull(declined.ProfileList);
+    }
+
+    [Fact]
+    public void GivenTheManager_WhenPressingEnterOnTheActiveProfile_ThenItClosesWithoutSwitching()
+    {
+        var opened = Palette(WithProfiles(_work, _dev), "profile").State;
+
+        var result = Press(opened, "Enter");
+
+        Assert.Null(result.State.ProfileList);
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenTheManager_WhenProfilesChange_ThenTheTokenSourcesAreLookedUpAgain()
+    {
+        var opened = Palette(WithProfiles(_work), "profile").State;
+        var catalog = opened.Profiles.With(_dev);
+
+        var result = _reducer.Reduce(opened, new ProfilesChanged(catalog, "Added."));
+        var loaded = _reducer.Reduce(
+            result.State,
+            new TokenSourcesLoaded(new Dictionary<string, TokenSourceKind> { [_dev.CredentialKey] = TokenSourceKind.None }));
+
+        var lookup = result.Effects.OfType<LoadTokenSourcesEffect>().Single();
+
+        Assert.Equal(2, lookup.Profiles.Count);
+        Assert.NotNull(result.State.ProfileList);
+        Assert.Equal(TokenSourceKind.None, loaded.State.TokenSources[_dev.CredentialKey]);
     }
 
     [Fact]
@@ -495,6 +583,44 @@ public class ProfileReducerTests
         var session = state with { Session = SiteSession.Empty(_work) };
 
         return reducer.Reduce(session, new ViewOpenRequested(definition)).State;
+    }
+
+    [Fact]
+    public void GivenAConnectedStartWithNoTab_WhenClosingTheManager_ThenTheBoardPickerOpensOnce()
+    {
+        var state = WithProfiles(_work);
+        var started = state with
+        {
+            Session = SiteSession.Empty(_work) with { Startup = StartupPhase.Done, Connection = new Connected("Me") },
+        };
+        var opened = Palette(started, "profile").State;
+
+        var closed = Press(opened, "Esc");
+        var again = Press(closed.State, "Esc");
+
+        Assert.NotNull(closed.State.Picker);
+        Assert.Null(closed.State.ProfileList);
+        Assert.Equal(InputMode.Insert, closed.State.Mode);
+        Assert.Null(again.State.Picker);
+    }
+
+    [Fact]
+    public void GivenAnUnfinishedStartOrASwitch_WhenClosingTheManager_ThenNoPickerOpens()
+    {
+        var checking = WithProfiles(_work) with { Session = SiteSession.Empty(_work) };
+        var connected = checking with
+        {
+            Session = checking.Session with { Startup = StartupPhase.Done, Connection = new Connected("Me") },
+        };
+        var other = WithProfiles(_work, _dev) with { Session = connected.Session };
+        var switching = Press(Palette(other, "profile").State, "Down");
+
+        var early = Press(Palette(checking, "profile").State, "Esc");
+        var switched = Press(switching.State, "Enter");
+
+        Assert.Null(early.State.Picker);
+        Assert.Null(switched.State.Picker);
+        Assert.Single(switched.Effects);
     }
 
     private static AppState WithProfiles(params Profile[] profiles)

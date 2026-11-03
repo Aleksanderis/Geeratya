@@ -50,7 +50,7 @@ public static class PaletteCommands
         new(Estimate, "estimate", "Change the estimate (story points) of the selected or shown issue (field form)"),
         new(Assign, "assign", "Assign the selected or shown issue: search people, or unassign"),
         new(AssignMe, "assign-me", "Assign the selected or shown issue to me"),
-        new(Profile, "profile add|edit [name]|list|switch <name>|remove <name>|check", "Manage Jira profiles"),
+        new(Profile, "profile [list]|add|edit [name]|switch <name>|remove <name>|check", "Open the profile manager, or add, edit, switch, remove or check a profile"),
         new(Set, SetUsage(), "List the settings, show one, or change one (saved)"),
         new(Theme, "theme [name]", "Switch the colour theme (no name: list the families); saved"),
         new(Keys, "keys reload", "Read keymap.json again and apply it"),

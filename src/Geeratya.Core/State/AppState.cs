@@ -63,8 +63,17 @@ public sealed record AppState(
     /// <summary>The open jump-to-issue prompt (Insert mode), otherwise null.</summary>
     public JumpState? Jump { get; init; }
 
-    /// <summary>The open profile list (Insert mode), otherwise null.</summary>
+    /// <summary>
+    /// The open profile manager, the full-body screen (Insert mode; it stays open under the profile form and the
+    /// remove question), otherwise null.
+    /// </summary>
     public ProfileListState? ProfileList { get; init; }
+
+    /// <summary>
+    /// Where each profile's token comes from, by <see cref="Profile.CredentialKey"/>; filled by the host when the
+    /// profile manager opens or the profiles change. A profile missing here is still being looked up.
+    /// </summary>
+    public IReadOnlyDictionary<string, TokenSourceKind> TokenSources { get; init; } = new Dictionary<string, TokenSourceKind>();
 
     /// <summary>The open right-click menu (Insert mode), otherwise null.</summary>
     public ContextMenuState? ContextMenu { get; init; }
