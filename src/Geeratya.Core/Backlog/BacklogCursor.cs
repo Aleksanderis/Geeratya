@@ -59,22 +59,22 @@ public static class BacklogCursor
     public static TabState Move(TabState tab, ListMove move)
     {
         var layout = BacklogSections.Build(tab);
-        var items = layout.Items;
+        var count = layout.ItemCount;
 
-        if (items.Count == 0)
+        if (count == 0)
         {
             return tab;
         }
 
-        if (tab.Rows.Count == 0 && tab.FocusedSprintId is null && items[0].SprintId is { } first
+        if (tab.Rows.Count == 0 && tab.FocusedSprintId is null && layout.ItemAt(0).SprintId is { } first
             && layout.EmptySprint(first) is { } entered)
         {
             return Focus(tab, layout, entered, tab.VisibleRows);
         }
 
         var current = CurrentItem(tab, layout);
-        var moved = ListMotion.Move(new ListPosition(current, 0), move, 1, items.Count, tab.VisibleRows);
-        var target = items[moved.Selected];
+        var moved = ListMotion.Move(new ListPosition(current, 0), move, 1, count, tab.VisibleRows);
+        var target = layout.ItemAt(moved.Selected);
 
         if (target.SprintId is { } sprintId && layout.EmptySprint(sprintId) is { } section)
         {
@@ -208,17 +208,9 @@ public static class BacklogCursor
 
     private static int CurrentItem(TabState tab, BacklogLayout layout)
     {
-        var items = layout.Items;
-
-        if (tab.FocusedSprintId is { } focused)
+        if (tab.FocusedSprintId is { } focused && layout.ItemIndexOfSprint(focused) is >= 0 and var index)
         {
-            for (var index = 0; index < items.Count; index++)
-            {
-                if (items[index].SprintId == focused)
-                {
-                    return index;
-                }
-            }
+            return index;
         }
 
         if (tab.Rows.Count == 0)
@@ -226,17 +218,7 @@ public static class BacklogCursor
             return 0;
         }
 
-        var stop = layout.StopFor(Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1));
-
-        for (var index = 0; index < items.Count; index++)
-        {
-            if (items[index].SprintId is null && items[index].Row == stop)
-            {
-                return index;
-            }
-        }
-
-        return 0;
+        return layout.ItemIndexOfRow(Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1));
     }
 
     private static TabState Focus(TabState tab, BacklogLayout layout, BacklogSection section, int viewport)
