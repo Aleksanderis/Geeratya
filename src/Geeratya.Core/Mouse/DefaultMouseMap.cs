@@ -71,6 +71,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.RankDown),
         ContextMenuRow(ActionIds.RankTop),
         ContextMenuRow(ActionIds.RankBottom),
+        ContextMenuRow(ActionIds.RankTo),
         ContextMenuRow(ActionIds.CommentDelete),
         ContextMenuRow(ActionIds.TabClose, 'V'),
         ContextMenuRow(ActionIds.TabPrevious, 'V'),
@@ -138,7 +139,6 @@ public static class DefaultMouseMap
             [ActionIds.HelpHalfPageDown] = helpScroll,
             [ActionIds.HelpHalfPageUp] = helpScroll,
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
-            [ActionIds.RankTo] = "no pointer path yet: Ctrl-click marks rows; dragging a row to its place comes with #182",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
 

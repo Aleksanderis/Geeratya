@@ -233,7 +233,7 @@ public static class RankActions
 
             return Say(
                 picked,
-                $"Picked up {selected.Key}: move to its new place and press {dropKeys} to drop it (Esc cancels)");
+                $"Picked up {selected.Key}: move to its new place and press {dropKeys} or pick the same right-click entry to drop it (Esc cancels)");
         }
 
         var from = IndexOf(universe.Rows, tab.RankPickup);
