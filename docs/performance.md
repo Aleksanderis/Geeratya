@@ -146,3 +146,25 @@ The detail used to await `GET /field` before `GET /issue` on the first open of a
 | `main` at `84388ae` (with the #435 follow-up fix `2c6db35`), earlier alternating runs | 167, 156 (before: 210, 215) | 295, 170 (before: 346, 275) |
 
 Environment: fake `--issues 200 --latency-ms 50`, 15 sessions per run, Linux x86_64 with load 30 to 36 on 14 cores (other agents building), so absolute values are upper bounds, p95 is nearly the maximum sample and the comparison rests on the medians. `763bc62` also carries the no-open-sprint empty state, which the detail path does not touch; the `main` row differs from `763bc62^` by more than the warm-up. Across the runs the median drops by roughly 40 to 55 ms, consistent with the one `/field` round trip at 50 ms latency. The probe presses Enter once the list header shows (about 160 ms after `:jql`), so the warm-up has already answered and the saving is the whole round trip; a user who opens a detail sooner, while the warm-up is in flight, waits for that same request and saves less. The figure is higher than the "Enter to issue detail loaded" row of the M1 table (153) because that scenario waits 0.5 s before Enter; both rows stay valid for what they time.
+
+## Scrum paths (#187)
+
+Environment: Linux x86_64, 14 cores, load average 13 to 16 (other agents building; every figure is an upper bound), tmux 120x40, Native AOT `geeratya` from `dotnet publish src/Geeratya.Tui -c Release` (no `IL*` warning). Fake: `fakejira --issues 5000 --latency-ms 50`, which serves the generated Scrum board `GEN` (board 7): 5000 issues in 30 sprints (the generator clamps the count to 3..30, so 20 sprints would be 2000 issues), the last sprint future, the one before it active, the backlog view holding 1248 rows (the active and future sprints plus the issues in no sprint; closed sprints are not part of it). Command: `SCENARIO=scrum scripts/measure.sh <binary> <fake url> 12`. Per run two sessions share one private cache: the first has none, the second starts with the cache the first wrote (flushed after 2 s). The switcher step types `28` (a closed sprint of 134 issues) and presses `Enter`.
+
+| Path | Binary | Dataset, latency | Median (ms) | p95 (ms) | Budget |
+|---|---|---|---|---|---|
+| Cold start to first frame, no cache | AOT | 12 sessions | 43 | 80 | under 100: met (unchanged from M1: 35 to 43) |
+| Cold start to first frame, cache present | AOT | 12 sessions | 41 | 98 | under 100: met |
+| `:backlog GEN` to first rows, no cache | AOT | 5000 issues, 50 ms | 370 | 408 | network bound (board lookup, sprints, backlog search, approximate count) |
+| `:backlog GEN` to first rows, cache present | AOT | same | 204 | 251 | cached rows drawn without the search: met (370 without) |
+| `<space>sv` to the switcher drawn | AOT | 30 sprints | 43 | 91 | next frame: met |
+| Switcher `Enter` to the rows of a closed sprint, no cache | AOT | 134-issue sprint, 50 ms | 235 | 280 | network bound |
+| same, cache present | AOT | same | 74 | 107 | cached rows without the network: met (235 without) |
+| `j` key to frame in the loaded backlog | AOT | 1248 rows | 53 | 91 | next frame: met (the `?` key of the same load reads 82, so the tmux and polling floor) |
+| `za` (fold a section) to frame | AOT | same | 69 | 85 | next frame: met (two keys) |
+| RSS with the backlog and a sprint tab loaded | AOT | 5000-issue site | 47 MB | 47 MB | bounded: met |
+| Nav key + frame, Scrum backlog | JIT, in process | 10 000 rows in 21 sections | 0.41 | 0.83 | met (`HotPathMeasurements`, from #178) |
+
+Reading it: the first frame is unchanged by the Scrum code (the backlog and the sprint list are only requested after a view is opened). The cold-start and `j` rows were taken at load 13 to 16, so they sit above the quiet-machine M1 figures (35 and 37); a back-to-back `?` key run at the same load read 82 ms median, so the differences are load, not the Scrum paths. A sprint switch with the cache present draws the sprint's rows in 74 ms against 235 without; the sprint list in the switcher is loaded once per open and is not part of the timed rows. Not measured: a 5000-row backlog on the board (the fake's board backlog holds 1248 of the 5000 issues; the 10 000-row in-process row above covers the render size) and the Windows console.
+
+No budget is missed, so no performance issue was registered.
