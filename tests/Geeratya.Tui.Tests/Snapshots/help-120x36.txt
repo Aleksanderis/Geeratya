@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │ > Global      │   ?          Show or hide help                                               │            
             │   All actions │   q          Quit  (Ctrl-c)                                                  │            
             │   Commands    │   Esc        Cancel or close                                                 │            
@@ -31,6 +31,6 @@
             │               │   Space x    Dismiss the status message                                      │            
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │   Space s g  Show the full goal of the sprint                                │            
-            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

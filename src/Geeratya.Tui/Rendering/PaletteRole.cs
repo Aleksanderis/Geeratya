@@ -33,4 +33,10 @@ public enum PaletteRole
     TypeSubtask,
     FieldLabel,
     Editable,
+    OverlayFrame,
+    OverlayFrameWarn,
+    OverlayFrameBad,
+    OverlayChip,
+    OverlayChipWarn,
+    OverlayChipBad,
 }

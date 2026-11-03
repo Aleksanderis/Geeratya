@@ -4,40 +4,100 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The frame of a centred box over the body, shared by the overlays (source picker, field form). Every box row
-/// replaces the whole body row it sits on, so nothing of the screen behind shows through at its sides.
+/// How serious the action an overlay asks about is; it picks the frame colour (<c>docs/ux-look.md</c>, section 7).
+/// </summary>
+public enum OverlayKind
+{
+    /// <summary>The accent frame of every overlay.</summary>
+    Normal,
+
+    /// <summary>A confirm that changes something: the warn colour.</summary>
+    Warn,
+
+    /// <summary>A confirm for a destructive action: the bad colour.</summary>
+    Destructive,
+}
+
+/// <summary>
+/// The one floating box of every overlay (source picker, field form, palette, help, confirm, jump, menus): a rounded
+/// accent frame with the title as a filled accent chip in the top edge, a raised surface inside, drawn over the
+/// still-visible view, which is dimmed (<see cref="Backdrop"/>) and keeps showing around the box (<see cref="Over"/>).
 /// </summary>
 public static class OverlayBox
 {
     public const char Horizontal = '─';
 
-    private const string Corner = "┌┐└┘";
+    private const string Corner = "╭╮╰╯";
     private const string Vertical = "│";
+    private const int ChipChrome = 3;
 
-    /// <summary>The top edge with <paramref name="title"/> after the first rule character.</summary>
-    public static StyledLine Top(int boxWidth, string title)
+    /// <summary>The top edge: one rule, the title as a filled chip, the rest of the rule.</summary>
+    public static StyledLine Top(int boxWidth, string title, OverlayKind kind = OverlayKind.Normal)
     {
-        var text = $" {title} ";
-        var fill = Math.Max(0, boxWidth - 3 - TextWidth.Of(text));
+        var frame = FrameRole(kind);
+        var chip = TextWidth.Fit($" {title} ", Math.Max(0, boxWidth - ChipChrome));
+        var fill = Math.Max(0, boxWidth - ChipChrome - TextWidth.Of(chip));
 
-        return StyledLine.Of($"{Corner[0]}{Horizontal}{text}{new string(Horizontal, fill)}{Corner[1]}", TextRole.Muted);
+        return new StyledLine(
+        [
+            new StyledSpan($"{Corner[0]}{Horizontal}", frame),
+            new StyledSpan(chip, ChipRole(kind)),
+            new StyledSpan($"{new string(Horizontal, fill)}{Corner[1]}", frame),
+        ]);
     }
 
-    public static StyledLine Bottom(int boxWidth)
+    public static StyledLine Bottom(int boxWidth, OverlayKind kind = OverlayKind.Normal)
     {
-        return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", TextRole.Muted);
+        return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", FrameRole(kind));
     }
 
     /// <summary>A box row: the content padded to the inner width between two walls and a space.</summary>
-    public static StyledLine Wall(StyledLine content, int contentWidth)
+    public static StyledLine Wall(StyledLine content, int contentWidth, OverlayKind kind = OverlayKind.Normal)
     {
-        var spans = new List<StyledSpan> { new(Vertical, TextRole.Muted), new(" ", TextRole.Body) };
+        var frame = FrameRole(kind);
+        var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
 
         spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
         spans.Add(new StyledSpan(" ", TextRole.Body));
-        spans.Add(new StyledSpan(Vertical, TextRole.Muted));
+        spans.Add(new StyledSpan(Vertical, frame));
 
         return new StyledLine(spans);
+    }
+
+    /// <summary>
+    /// The view behind an overlay: every cell muted (the same lines, spans marked <see cref="SpanGround.Dim"/>), so the
+    /// box stands out and the view stays readable. A body that is already dim stays as it is.
+    /// </summary>
+    public static List<StyledLine> Backdrop(IReadOnlyList<StyledLine> body)
+    {
+        return [.. body.Select(static line => Grounded(line, SpanGround.Dim))];
+    }
+
+    /// <summary>
+    /// <paramref name="box"/> drawn over <paramref name="under"/> from column <paramref name="left"/>: the box cells on
+    /// the raised surface, the cells of the row to the left and right of it as they were. Exactly
+    /// <paramref name="width"/> columns; a wide character cut by the box edge becomes a space.
+    /// </summary>
+    public static StyledLine Over(StyledLine under, StyledLine box, int left, int width)
+    {
+        var boxWidth = TextWidth.Of(box.PlainText);
+        var fitted = StyledLines.Fit(under, width);
+        var spans = new List<StyledSpan>(StyledLines.Slice(fitted, 0, left).Spans);
+
+        spans.AddRange(Grounded(box, SpanGround.Surface).Spans);
+        spans.AddRange(StyledLines.Slice(fitted, left + boxWidth, width).Spans);
+
+        return StyledLines.Fit(new StyledLine(spans), width);
+    }
+
+    /// <summary>
+    /// Notes the whole box in <paramref name="regions"/> (when not null) as <see cref="MouseTarget.OverlayBox"/>: a click
+    /// on a part of it that is no row does nothing, and a click outside every box is the backdrop and closes the
+    /// overlay. Call it before marking the rows, which then sit on top of it.
+    /// </summary>
+    public static void Cover(List<OverlayRegion>? regions, int top, int left, int boxWidth, int rows)
+    {
+        regions?.Add(new OverlayRegion(MouseTarget.OverlayBox, top, left, boxWidth, rows, 0));
     }
 
     /// <summary>
@@ -72,13 +132,28 @@ public static class OverlayBox
         }
     }
 
-    /// <summary>The box row between blank margins, exactly <paramref name="width"/> columns.</summary>
-    public static StyledLine Place(StyledLine box, int left, int width)
+    private static StyledLine Grounded(StyledLine line, SpanGround ground)
     {
-        var spans = new List<StyledSpan> { new(new string(' ', left), TextRole.Body) };
+        return new StyledLine([.. line.Spans.Select(span => span with { Ground = span.Ground | ground })]);
+    }
 
-        spans.AddRange(box.Spans);
+    private static TextRole FrameRole(OverlayKind kind)
+    {
+        return kind switch
+        {
+            OverlayKind.Warn => TextRole.OverlayFrameWarn,
+            OverlayKind.Destructive => TextRole.OverlayFrameBad,
+            _ => TextRole.OverlayFrame,
+        };
+    }
 
-        return StyledLines.Fit(new StyledLine(spans), width);
+    private static TextRole ChipRole(OverlayKind kind)
+    {
+        return kind switch
+        {
+            OverlayKind.Warn => TextRole.OverlayChipWarn,
+            OverlayKind.Destructive => TextRole.OverlayChipBad,
+            _ => TextRole.OverlayChip,
+        };
     }
 }

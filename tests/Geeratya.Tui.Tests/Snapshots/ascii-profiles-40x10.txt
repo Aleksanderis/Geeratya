@@ -3,7 +3,7 @@
                                         
                                         
   +- Profiles -----------------------+  
-  | > work            me@work.test o |  
+wo| > work            me@work.test o |as
   |   dev             me@dev.test on |  
   +----------------------------------+  
                                         

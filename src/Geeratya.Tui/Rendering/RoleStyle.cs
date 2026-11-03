@@ -9,4 +9,7 @@ public enum RoleStyle
     Underline = 2,
     Reverse = 4,
     Italic = 8,
+
+    /// <summary>Dimmed text (SGR 2): the view behind an overlay at 16 colours.</summary>
+    Faint = 16,
 }

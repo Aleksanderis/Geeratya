@@ -164,10 +164,16 @@ public class PaletteOverlayTests
     // The text between the walls of each row of the box, between its top and bottom edges.
     private static List<string> BoxInner(IReadOnlyList<string> lines)
     {
-        var top = lines.ToList().FindIndex(line => line.Contains('┌', StringComparison.Ordinal));
-        var bottom = lines.ToList().FindIndex(line => line.Contains('└', StringComparison.Ordinal));
+        var all = lines.ToList();
+        var top = all.FindIndex(line => line.Contains("╭─ Commands", StringComparison.Ordinal));
+        var bottom = all.FindIndex(top + 1, line => line.Contains('╰', StringComparison.Ordinal));
+        var left = all[top].IndexOf('╭', StringComparison.Ordinal);
+        var right = all[bottom].IndexOf('╯', StringComparison.Ordinal);
 
-        return [.. lines.Skip(top + 1).Take(bottom - top - 1).Select(line => line.Trim().Trim('│').Trim())];
+        // The text between the walls of the box; the view and its frame show around it.
+        var rows = all.Skip(top + 1).Take(bottom - top - 1);
+
+        return [.. rows.Select(line => line[(left + 1)..right].Trim().Trim('│').Trim())];
     }
 
     private static string Slug(string text)
@@ -175,7 +181,7 @@ public class PaletteOverlayTests
         return text.Length == 0 ? "all" : text.Replace(' ', '-');
     }
 
-    private static AppState Sample(string text)
+    internal static AppState Sample(string text)
     {
         var reducer = new AppReducer(_keymap);
         var start = AppState.Initial with

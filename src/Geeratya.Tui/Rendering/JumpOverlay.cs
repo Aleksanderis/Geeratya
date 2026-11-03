@@ -49,7 +49,10 @@ public static class JumpOverlay
         var box = BoxLines(jump, lines, selected, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
+
+        OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
+
         var area = Math.Max(0, inner - 1 - footer);
 
         if (rows.Count > 0)
@@ -62,7 +65,7 @@ public static class JumpOverlay
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(box[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], box[index], left, width);
         }
 
         return result;

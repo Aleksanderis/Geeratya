@@ -3,8 +3,9 @@ namespace Geeratya.Core.Mouse;
 /// <summary>
 /// Turns a screen cell into an area. Pure: the same context and cell always give the same answer. The areas are rows of
 /// the frame (tab bar, banner, body, status line); finer targets (a tab, a badge) are resolved by their own parts.
-/// While an overlay is open only the rows outside the body count as the backdrop: the overlay's own rectangle is not
-/// known here, so a click in the body then does nothing rather than closing what the user clicked on.
+/// While an overlay is open the rectangle its renderer reports (<see cref="MouseTarget.OverlayBox"/>, or
+/// <see cref="MouseTarget.ConfirmBox"/>) is its box and everything else in the body is the backdrop; an overlay without
+/// a reported box keeps only the rows outside the body as backdrop, so a click in the body does nothing.
 /// </summary>
 public static class MouseHitTester
 {
@@ -66,8 +67,11 @@ public static class MouseHitTester
             }
         }
 
-        // Outside the Confirm box a click answers no: the dialog covers the question, so the body is only a backdrop.
-        return context.ConfirmOpen ? new MouseHit(MouseTarget.Backdrop, row, column) : null;
+        // Outside the box of the overlay a click is the backdrop: the confirm dialog answers no, any other overlay
+        // closes as Esc does. An overlay that reports no box keeps the old rule: the body does nothing.
+        var hasBox = context.ConfirmOpen || regions.Any(static region => region.Target == MouseTarget.OverlayBox);
+
+        return hasBox ? new MouseHit(MouseTarget.Backdrop, row, column) : null;
     }
 
     private static MouseTarget HeaderTarget(MouseContext context, int row, int column)
