@@ -187,6 +187,40 @@ public sealed class ViewLoadHandlerScrumTests
     }
 
     [Fact]
+    public async Task GivenSprintSourceOfAClosedSprint_WhenOpened_ThenTheSprintListIsNotAsked()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, """{"id":9,"state":"closed","name":"Old","originBoardId":6}""")
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Sprint, "6:9");
+
+        Assert.Equal(4, fixture.Http.Requests.Count);
+        Assert.Empty(state.Session.Tabs[0].Sprints);
+    }
+
+    [Fact]
+    public async Task GivenSprintSource_WhenTheSprintListFails_ThenTheIssuesStillLoad()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/sprint-gcs-active.json"))
+                .Reply(HttpStatusCode.Forbidden, "{}")
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Sprint, "6:7");
+
+        Assert.Equal(LoadState.Idle, state.Session.Tabs[0].Load);
+        Assert.NotEmpty(state.Session.Tabs[0].Rows);
+        Assert.Empty(state.Session.Tabs[0].Sprints);
+    }
+
+    [Fact]
     public async Task GivenScrumBacklogSource_WhenOpened_ThenOnlyOpenAndFutureSprintsAndTheBacklogAreAsked()
     {
         using var fixture = await ConnectedAsync(
