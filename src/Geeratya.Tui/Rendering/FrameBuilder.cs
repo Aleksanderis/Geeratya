@@ -120,13 +120,22 @@ public static class FrameBuilder
             body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
-        var confirmShown = false;
+        var dialogShown = false;
 
         if (state.Mode == InputMode.Confirm && state.Confirm is not null)
         {
             var composed = ConfirmOverlay.Compose(body, state.Confirm, keymap, width, bodyHeight, regions);
 
-            confirmShown = composed is not null;
+            dialogShown = composed is not null;
+            body = Fit(composed ?? body, width, bodyHeight);
+        }
+
+        if (state is { Mode: InputMode.Insert, Picker: null, Editor: null, Jump: null, Form: { } profileForm }
+            && !FormReducer.IsOpen(state))
+        {
+            var composed = ProfileFormOverlay.Compose(body, profileForm, keymap, width, bodyHeight);
+
+            dialogShown = composed is not null;
             body = Fit(composed ?? body, width, bodyHeight);
         }
 
@@ -138,7 +147,7 @@ public static class FrameBuilder
         var frame = new StyledFrame(
             Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),
-            StatusBar.Render(state, width, keymap, clock, confirmShown))
+            StatusBar.Render(state, width, keymap, clock, dialogShown))
         {
             Regions = [.. regions.Select(region => region.Shifted(header))],
             StatusSegment = StatusBar.MessageSegment(state, width),
