@@ -19,7 +19,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// </summary>
 public class NetworkStateSnapshotTests
 {
-    private static readonly DateTimeOffset _now = new(2026, 11, 2, 12, 5, 0, TimeSpan.Zero);
+    internal static readonly DateTimeOffset Now = new(2026, 11, 2, 12, 5, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
@@ -45,7 +45,7 @@ public class NetworkStateSnapshotTests
     [MemberData(nameof(Snapshots))]
     public void GivenANetworkState_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(string name, int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, _now);
+        var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, Now);
         var actual = string.Join('\n', lines) + "\n";
         var file = $"network-{name}-{width}x{height}.txt";
 
@@ -63,7 +63,7 @@ public class NetworkStateSnapshotTests
         string name,
         TextRole role)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(name), 120, 36, _helpLines, _keymap, null, _now)!;
+        var frame = FrameBuilder.BuildStyled(Sample(name), 120, 36, _helpLines, _keymap, null, Now)!;
         var badge = frame.Header[1].Spans[0];
 
         Assert.Equal(role, badge.Role);
@@ -84,11 +84,11 @@ public class NetworkStateSnapshotTests
     [Fact]
     public void GivenNetworkStates_WhenRenderingTheStatusLine_ThenItMirrorsTheStateInWords()
     {
-        Assert.Contains("offline", StatusBar.Render(Sample("offline"), 80, _keymap, _now));
-        Assert.Contains("rate limited 25s", StatusBar.Render(Sample("ratelimited"), 80, _keymap, _now));
-        Assert.Contains("stale", StatusBar.Render(Sample("stale"), 80, _keymap, _now));
-        Assert.Contains("error", StatusBar.Render(Sample("error"), 80, _keymap, _now));
-        Assert.Contains("loading", StatusBar.Render(Sample("loading"), 80, _keymap, _now));
+        Assert.Contains("offline", StatusBar.Render(Sample("offline"), 80, _keymap, Now));
+        Assert.Contains("rate limited 25s", StatusBar.Render(Sample("ratelimited"), 80, _keymap, Now));
+        Assert.Contains("stale", StatusBar.Render(Sample("stale"), 80, _keymap, Now));
+        Assert.Contains("error", StatusBar.Render(Sample("error"), 80, _keymap, Now));
+        Assert.Contains("loading", StatusBar.Render(Sample("loading"), 80, _keymap, Now));
     }
 
     [Fact]
@@ -97,8 +97,8 @@ public class NetworkStateSnapshotTests
         var withKeys = Sample("offline") with { PendingKeys = "g" };
         var withNotice = Sample("offline") with { Message = "Switched." };
 
-        Assert.DoesNotContain("offline", StatusBar.Render(withKeys, 80, _keymap, _now));
-        Assert.DoesNotContain("offline", StatusBar.Render(withNotice, 80, _keymap, _now));
+        Assert.DoesNotContain("offline", StatusBar.Render(withKeys, 80, _keymap, Now));
+        Assert.DoesNotContain("offline", StatusBar.Render(withNotice, 80, _keymap, Now));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class NetworkStateSnapshotTests
             {
                 for (var height = 0; height <= 12; height++)
                 {
-                    var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, _now);
+                    var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, Now);
 
                     Assert.Equal(width == 0 ? 0 : height, lines.Count);
                     Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
@@ -122,15 +122,15 @@ public class NetworkStateSnapshotTests
     [Fact]
     public void GivenAFrameWithAndWithoutABanner_WhenBuildingBoth_ThenTheBodyKeepsItsHeight()
     {
-        var fresh = FrameBuilder.BuildStyled(Sample("fresh"), 80, 24, _helpLines, _keymap, null, _now)!;
-        var offline = FrameBuilder.BuildStyled(Sample("offline"), 80, 24, _helpLines, _keymap, null, _now)!;
+        var fresh = FrameBuilder.BuildStyled(Sample("fresh"), 80, 24, _helpLines, _keymap, null, Now)!;
+        var offline = FrameBuilder.BuildStyled(Sample("offline"), 80, 24, _helpLines, _keymap, null, Now)!;
 
         Assert.Equal(fresh.Body.Count, offline.Body.Count);
         Assert.Equal(string.Empty, fresh.Header[1].PlainText.Trim());
         Assert.NotEqual(string.Empty, offline.Header[1].PlainText.Trim());
     }
 
-    private static AppState Sample(string name)
+    internal static AppState Sample(string name)
     {
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = GCM", ViewLayout.List, "My open issues");
         var rows = new[]
@@ -139,7 +139,7 @@ public class NetworkStateSnapshotTests
             Row("GCM-14", "Crash when the board has no columns", "To Do", "new"),
             Row("GCM-15", "As a user I can filter by label", "Done", "done"),
         };
-        var loaded = _now - TimeSpan.FromMinutes(23);
+        var loaded = Now - TimeSpan.FromMinutes(23);
         var tab = TabState.Opened(new TabId(1), definition, 1, 1, 10) with
         {
             Rows = rows,
@@ -148,7 +148,7 @@ public class NetworkStateSnapshotTests
             Load = LoadState.Idle,
             RequestId = 0,
             LoadedAt = loaded,
-            NextRefreshAt = _now + TimeSpan.FromSeconds(8),
+            NextRefreshAt = Now + TimeSpan.FromSeconds(8),
         };
         var link = new Online() as SiteLink;
 
@@ -156,11 +156,11 @@ public class NetworkStateSnapshotTests
         {
             case "offline":
                 tab = tab with { IsStale = true, Load = new Failed(JiraErrorKind.Network, "Cannot reach Jira.") };
-                link = new Offline(_now);
+                link = new Offline(Now);
 
                 break;
             case "ratelimited":
-                link = new RateLimited(_now + TimeSpan.FromSeconds(25));
+                link = new RateLimited(Now + TimeSpan.FromSeconds(25));
 
                 break;
             case "stale":

@@ -1,0 +1,10 @@
+ [1 JQL: A]  +                          
+                                        
+A - 1 issue                             
+  +- Create issue in A --------------+  
+  | > Task                           |  
+  |   Epic                           |  
+  +----------------------------------+  
+                                        
+                                        
+ INSERT Choose the issue type           

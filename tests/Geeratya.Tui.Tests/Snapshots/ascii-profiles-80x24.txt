@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+  +- Profiles ---------------------------------------------------------------+  
+  | > work            me@work.test on https://work.atlassian.net (active)    |  
+  |   dev             me@dev.test on https://dev.atlassian.net               |  
+  | ------------------------------------------------------------------------ |  
+  | Up/Down choose   Enter switch   Ctrl-x remove   Esc close                |  
+  +--------------------------------------------------------------------------+  
+                                                                                
+                                    Geeratya                                    
+                work: me@work.test on https://work.atlassian.net                
+                          ? help   : command   q quit                           
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ INSERT                                                   Enter next  Esc cancel

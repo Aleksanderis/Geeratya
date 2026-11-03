@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+          +- Actions ------------------------------------------------+          
+          | > Show or hide help                                    ? |          
+          |   Edit the issue                               Space i e |          
+          |   Quit                                                 q |          
+          +----------------------------------------------------------+          
+                                                                                
+                                                                                
+                                    Geeratya                                    
+                work: me@work.test on https://work.atlassian.net                
+                          ? help   : command   q quit                           
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ INSERT                                       Down choose  Enter open  Esc close

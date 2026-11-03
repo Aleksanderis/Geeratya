@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+Help                                                                            
+Normal mode                                                                     
+  j          Move down                                                          
+  Down       Move down                                                          
+  k          Move up                                                            
+  Up         Move up                                                            
+  h          Move left                                                          
+  Left       Move left                                                          
+  l          Move right                                                         
+  Right      Move right                                                         
+  g g        Go to the top                                                      
+  Home       Go to the top                                                      
+  G          Go to the bottom                                                   
+  End        Go to the bottom                                                   
+  Ctrl-d     Page down                                                          
+  PageDown   Page down                                                          
+  Ctrl-u     Page up                                                            
+  PageUp     Page up                                                            
+  ?          Show or hide help                                                  
+  :          Open the command palette                                           
+  q          Quit                                                               
+ HELP                                                    j down  k up  Esc close

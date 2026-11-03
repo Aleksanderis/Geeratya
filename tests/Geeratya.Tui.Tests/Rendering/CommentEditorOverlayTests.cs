@@ -309,12 +309,12 @@ public class CommentEditorOverlayTests
         return FrameBuilder.BuildStyled(StateWith(editor), width, height, [], _keymap)!;
     }
 
-    private static AppState StateWith(CommentEditor editor)
+    internal static AppState StateWith(CommentEditor editor)
     {
         return AppState.Initial with { Mode = InputMode.Insert, Editor = editor };
     }
 
-    private static CommentEditor Editor(string text)
+    internal static CommentEditor Editor(string text)
     {
         return new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of(text), string.Empty);
     }
