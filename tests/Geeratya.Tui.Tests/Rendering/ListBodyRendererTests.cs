@@ -8,6 +8,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -37,6 +38,52 @@ public class ListBodyRendererTests
         Assert.Matches(@"^  A-1 +T Summary +To Do +-", lines[2]);
         Assert.Matches(@"^> A-2 +T Summary +To Do +-", lines[3]);
         Assert.StartsWith("  A-3", lines[4]);
+    }
+
+    [Fact]
+    public void GivenRowsWithSprintPointsAndEpic_WhenWide_ThenOptionalColumnsShowAndAbsentValuesStayBlank()
+    {
+        var tab = Tab(LoadState.Idle, 2);
+        tab = tab with
+        {
+            Rows =
+            [
+                tab.Rows[0] with
+                {
+                    Sprints = [new IssueSprint(7, "Sprint 7", SprintState.Active)],
+                    Estimate = 3.5,
+                    Parent = new IssueParent("A-9", "Epic", true),
+                },
+                tab.Rows[1],
+            ],
+        };
+
+        var lines = Frame(tab, 160);
+
+        Assert.Matches(@"Assignee +Sprint +Pts +Epic", lines[1]);
+        Assert.Matches(@"Sprint 7 +3\.5 A-9", lines[2]);
+        Assert.DoesNotContain("Sprint", lines[3]);
+    }
+
+    [Fact]
+    public void GivenRowsWithoutOptionalValues_WhenWide_ThenNoOptionalColumnShows()
+    {
+        var lines = Frame(Tab(LoadState.Idle, 2), 160);
+
+        Assert.DoesNotContain("Sprint", lines[1]);
+        Assert.DoesNotContain("Pts", lines[1]);
+        Assert.DoesNotContain("Epic", lines[1]);
+    }
+
+    [Fact]
+    public void GivenANarrowTerminal_WhenRowsHaveSprints_ThenTheSummaryKeepsItsSpace()
+    {
+        var tab = Tab(LoadState.Idle, 1);
+        tab = tab with { Rows = [tab.Rows[0] with { Sprints = [new IssueSprint(7, "Sprint 7", SprintState.Active)] }] };
+
+        var lines = Frame(tab, 60);
+
+        Assert.DoesNotContain("Sprint", lines[1]);
     }
 
     [Fact]
