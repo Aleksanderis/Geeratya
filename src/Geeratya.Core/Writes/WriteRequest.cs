@@ -72,6 +72,16 @@ public abstract record WriteRequest
     public virtual string AskLabel => "Confirm";
 
     /// <summary>
+    /// The title chip of the Confirm dialog: the action and its target ("Move GCM-8"), or null for "Confirm".
+    /// </summary>
+    public virtual string? AskHeading => null;
+
+    /// <summary>
+    /// True when the question is about something hard to undo (side effects, many issues): the bad frame colour.
+    /// </summary>
+    public virtual bool AskSevere => false;
+
+    /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or
     /// the write is not optimistic).
     /// </summary>

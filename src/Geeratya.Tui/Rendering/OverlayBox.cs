@@ -46,6 +46,38 @@ public static class OverlayBox
         ]);
     }
 
+    /// <summary>
+    /// The top edge with a dim count chip at the right (<paramref name="count"/>, for example <c>12/87</c>), a rule
+    /// cell between it and the corner. The count is left out when the title and it do not fit.
+    /// </summary>
+    public static StyledLine Top(int boxWidth, string title, string count, OverlayKind kind = OverlayKind.Normal)
+    {
+        var frame = FrameRole(kind);
+        var chip = TextWidth.Fit($" {title} ", Math.Max(0, boxWidth - ChipChrome));
+        var tag = $" {count} ";
+        var fill = boxWidth - ChipChrome - TextWidth.Of(chip) - TextWidth.Of(tag) - 1;
+
+        if (count.Length == 0 || fill < 1)
+        {
+            return Top(boxWidth, title, kind);
+        }
+
+        return new StyledLine(
+        [
+            new StyledSpan($"{Corner[0]}{Horizontal}", frame),
+            new StyledSpan(chip, ChipRole(kind)),
+            new StyledSpan(new string(Horizontal, fill), frame),
+            new StyledSpan(tag, TextRole.OverlayCount),
+            new StyledSpan($"{Horizontal}{Corner[1]}", frame),
+        ]);
+    }
+
+    /// <summary>A rule across the box that joins both walls (<c>├───┤</c>), under the query line and above the footer.</summary>
+    public static StyledLine Divider(int boxWidth, OverlayKind kind = OverlayKind.Normal)
+    {
+        return StyledLine.Of($"├{new string(Horizontal, boxWidth - 2)}┤", FrameRole(kind));
+    }
+
     public static StyledLine Bottom(int boxWidth, OverlayKind kind = OverlayKind.Normal)
     {
         return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", FrameRole(kind));
@@ -60,6 +92,83 @@ public static class OverlayBox
         spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
         spans.Add(new StyledSpan(" ", TextRole.Body));
         spans.Add(new StyledSpan(Vertical, frame));
+
+        return new StyledLine(spans);
+    }
+
+    /// <summary>
+    /// A box row whose right padding column carries <paramref name="marker"/> (a scroll marker from
+    /// <see cref="ScrollMarker"/>) in the muted role.
+    /// </summary>
+    public static StyledLine Wall(
+        StyledLine content,
+        int contentWidth,
+        string marker,
+        OverlayKind kind = OverlayKind.Normal)
+    {
+        var frame = FrameRole(kind);
+        var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
+
+        spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
+        spans.Add(new StyledSpan(marker, TextRole.Muted));
+        spans.Add(new StyledSpan(Vertical, frame));
+
+        return new StyledLine(spans);
+    }
+
+    /// <summary>
+    /// The marker for row <paramref name="row"/> of <paramref name="area"/> visible rows out of
+    /// <paramref name="total"/>, starting at <paramref name="first"/>: <c>▲</c> on the first row when rows are hidden
+    /// above, <c>▼</c> on the last row when rows are hidden below, else a space (ASCII <c>^</c> and <c>v</c> follow
+    /// from the glyph set).
+    /// </summary>
+    public static string ScrollMarker(int row, int area, int first, int total)
+    {
+        if (row == 0 && first > 0)
+        {
+            return "▲";
+        }
+
+        return row == area - 1 && first + area < total ? "▼" : " ";
+    }
+
+    /// <summary>
+    /// A footer hint line as chips: each run of text separated by two or more spaces is a key (its first word, bold
+    /// accent) and a label (muted), as <see cref="HintBar"/> draws them.
+    /// </summary>
+    public static StyledLine Hints(string text)
+    {
+        var spans = new List<StyledSpan>();
+        var position = 0;
+
+        while (position < text.Length)
+        {
+            var end = ChipEnd(text, position);
+            var chip = text[position..end];
+            var split = chip.IndexOf(' ', StringComparison.Ordinal);
+
+            if (split < 0)
+            {
+                spans.Add(new StyledSpan(chip, TextRole.Muted));
+            }
+            else
+            {
+                spans.Add(new StyledSpan(chip[..split], TextRole.Key));
+                spans.Add(new StyledSpan(chip[split..], TextRole.Muted));
+            }
+
+            position = end;
+
+            while (position < text.Length && text[position] == ' ')
+            {
+                position++;
+            }
+
+            if (position < text.Length)
+            {
+                spans.Add(new StyledSpan(text[end..position], TextRole.Muted));
+            }
+        }
 
         return new StyledLine(spans);
     }
@@ -130,6 +239,14 @@ public static class OverlayBox
 
             row++;
         }
+    }
+
+    // The end of the chip that starts at start: the first run of two or more spaces, or the end of the text.
+    private static int ChipEnd(string text, int start)
+    {
+        var index = text.IndexOf("  ", start, StringComparison.Ordinal);
+
+        return index < 0 ? text.Length : index;
     }
 
     private static StyledLine Grounded(StyledLine line, SpanGround ground)

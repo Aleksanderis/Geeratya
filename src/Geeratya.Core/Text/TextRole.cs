@@ -104,4 +104,7 @@ public enum TextRole
 
     /// <summary>The selected card of a pane without focus: a quieter tint (underlined without a tint).</summary>
     SelectedDim,
+
+    /// <summary>The dim chip at the right of an overlay's top edge (the palette's <c>12/87</c>): quiet, never the accent.</summary>
+    OverlayCount,
 }
