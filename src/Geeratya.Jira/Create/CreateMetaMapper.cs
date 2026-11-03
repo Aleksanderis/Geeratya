@@ -63,7 +63,6 @@ internal static class CreateMetaMapper
                 field.HasDefaultValue ?? false,
                 kind,
                 MapAllowedValues(field.AllowedValues),
-                field.AutoCompleteUrl,
                 LookupOf(kind, field.Schema)));
         }
 

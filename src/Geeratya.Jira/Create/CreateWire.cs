@@ -17,8 +17,7 @@ internal static class CreateWire
         bool? Required,
         bool? HasDefaultValue,
         Schema? Schema,
-        List<JsonElement>? AllowedValues,
-        string? AutoCompleteUrl);
+        List<JsonElement>? AllowedValues);
 
     internal sealed record Schema(string? Type, string? Items, string? System, string? Custom);
 
