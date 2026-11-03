@@ -96,8 +96,6 @@ The `<space>v` rows (M5) are provisional; nothing else depends on them. Level: E
 | `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M4 #181 |
 | `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M4 #181 |
 | `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | none (the setting is `:set`) | M6 #196 |
-| `<space>n` | `messages.open` | Open the status message history (`<space>m` is the comment group, so Gitunia's `<space>m` is not reused) | E | click the message in the status line | M6 #369 |
-| `<space>x` | `messages.dismiss` | Dismiss the status message | E | none | M6 #369 |
 | `Ctrl-p` | `palette.open` | A second key for the command palette (`:` stays); vim's `Ctrl-p` (up a line) is not needed, the arrow keys and `k` do that | E | click the status line | M6 #368 |
 
 The estimate has no key of its own: the `<space>ie` field picker offers the board's estimation field (#183). Deleting a sprint is not planned (sprints are completed; the web UI does the rest).

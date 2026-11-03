@@ -421,8 +421,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return _background?.IsLight(allowQuery: false);
     }
 
-    /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
-    // Startup notices are problems the user must read (a corrupt file, a bad key row, a fallback theme): warnings.
+    /// <summary>Startup notices are problems the user must read (a corrupt file, a bad key row, a fallback theme): warnings.</summary>
     private static AppState WithNotice(AppState state, string? notice)
     {
         return notice is null
@@ -430,6 +429,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
     }
 
+    /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
     private Theme StartTheme()
     {
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);

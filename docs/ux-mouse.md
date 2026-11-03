@@ -91,7 +91,7 @@ Actions with no row of their own, each with the reason (a test checks this list 
 
 ## Planned paths
 
-Not in the table until built, each with its issue: a click on a command palette row and the wheel in it (#368); a click on the status message to open the history (#369); a click on a help page name (#371).
+Not in the table until built, each with its issue: a click on a command palette row and the wheel in it (#368); a click on a help page name (#371).
 
 ## Checks and terminal selection
 

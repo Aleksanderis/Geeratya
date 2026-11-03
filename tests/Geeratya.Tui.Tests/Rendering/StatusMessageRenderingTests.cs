@@ -91,6 +91,15 @@ public class StatusMessageRenderingTests
     }
 
     [Fact]
+    public void GivenAnErrorAndPendingKeys_WhenAskingForTheSegmentAndCells_ThenNeitherCoversTheKeyEcho()
+    {
+        var state = Posted("Saved A-1", StatusSeverity.Error) with { PendingKeys = "Space" };
+
+        Assert.Null(StatusBar.MessageSegment(state, 100));
+        Assert.Null(StatusMessages.Cells(state));
+    }
+
+    [Fact]
     public void GivenAMessageAndPendingKeys_WhenRenderingTheStatusLine_ThenTheKeysEchoInsteadOfTheMessage()
     {
         var state = Posted("Saved A-1", StatusSeverity.Error) with { PendingKeys = "Space" };

@@ -22,12 +22,23 @@ public static class StatusMessages
     /// <summary>The cells of the showing message in the status line (Normal mode only), null when none shows.</summary>
     public static TabButton? Cells(AppState state)
     {
-        if (state.Mode != InputMode.Normal || state.Status is not { } status)
+        if (state.Mode != InputMode.Normal || state.Status is not { } status || Echoing(state))
         {
             return null;
         }
 
         return new TabButton(TextStart, TextStart + DisplayWidth.Of(status.Line));
+    }
+
+    /// <summary>True while the status line echoes what the user types (pending keys, a count, a rank pickup) instead of the message.</summary>
+    public static bool Echoing(AppState state)
+    {
+        if (state.PendingKeys.Length > 0 || state.Count > 0)
+        {
+            return true;
+        }
+
+        return state.Session.Active is { } id && state.Session.Tabs.Any(tab => tab.Id == id && tab.RankPickup is not null);
     }
 
     public static TimeSpan LifetimeOf(StatusSeverity severity)
