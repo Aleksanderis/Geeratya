@@ -441,9 +441,9 @@ public class SourceReducerTests
     [Fact]
     public void GivenUnknownCommand_WhenRun_ThenTheMessageIsKept()
     {
-        var result = Run(Start(), "boards");
+        var result = Run(Start(), "xyzzy");
 
-        Assert.Equal("Unknown command: boards", result.State.Message);
+        Assert.Equal("Unknown command: xyzzy", result.State.Message);
     }
 
     [Fact]

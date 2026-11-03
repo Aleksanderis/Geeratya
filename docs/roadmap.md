@@ -78,7 +78,7 @@ Goal: views beyond boards, as new sources and layouts.
 
 - Creating and removing issue links.
 - Saved views: the owner's own combinations of source and layout.
-- Quick filters and swimlanes of a board; JQL history.
+- Quick filters and swimlanes of a board (built, #192); JQL history.
 
 ## M7 - Release and going public
 

@@ -8,4 +8,5 @@ namespace Geeratya.Jira.Boards;
 [JsonSerializable(typeof(BoardWire.Board))]
 [JsonSerializable(typeof(BoardWire.Configuration))]
 [JsonSerializable(typeof(BoardWire.IssuePage))]
+[JsonSerializable(typeof(BoardWire.QuickFilterList))]
 internal sealed partial class BoardJsonContext : JsonSerializerContext;

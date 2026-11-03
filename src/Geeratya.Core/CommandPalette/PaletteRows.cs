@@ -20,7 +20,7 @@ public static class PaletteRows
     private const string IssueGroup = "Issue";
     private const string KeySeparator = ", ";
 
-    private static readonly string[] _extraCommandWords = ["q", "h", "browse", "layout"];
+    private static readonly string[] _extraCommandWords = ["q", "h", "browse", "layout", "quickfilter"];
 
     // Actions that never belong in the list: the palette's own opener and the Esc action.
     private static readonly string[] _hiddenActions = [ActionIds.PaletteOpen, ActionIds.Cancel];

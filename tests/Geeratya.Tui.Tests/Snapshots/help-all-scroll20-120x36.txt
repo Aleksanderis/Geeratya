@@ -9,6 +9,9 @@
             │               │   Space A    Open the actions menu of the tab and the view                   │            
             │               │   Space r    Refresh the view (also retries after an error)                  │            
             │               │   Space l    Switch between list and columns                                 │            
+            │               │   Space v f  Cycle the quick filter of the board (off, then each filter in   │            
+            │               │              turn)                                                           │            
+            │               │   Space v s  Group the board columns into lanes (none, assignee, epic)       │            
             │               │   Space *    Switch the command level for the session                        │            
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │   Space s n  Create a sprint (name, goal, dates)                             │            
@@ -28,9 +31,6 @@
             │               │   Alt-7      Go to tab 7                                                     │            
             │               │   Alt-8      Go to tab 8                                                     │            
             │               │   Alt-9      Go to tab 9                                                     │            
-            │               │   Space t    Open the source picker for a new tab                            │            
-            │               │   Space c    Close the tab                                                   │            
-            │               │ Navigate                                                                     │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

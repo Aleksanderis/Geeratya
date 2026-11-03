@@ -26,6 +26,28 @@ internal static class BoardMapper
         return new OffsetPage<BoardSummary>(items, startAt, wire.MaxResults ?? values.Count, wire.Total, isLast);
     }
 
+    /// <summary>The quick filters of a page; one with no id or no JQL cannot be applied and is left out.</summary>
+    public static OffsetPage<QuickFilter> MapQuickFilters(BoardWire.QuickFilterList wire)
+    {
+        var values = wire.Values ?? [];
+        var items = new List<QuickFilter>(values.Count);
+
+        foreach (var item in values)
+        {
+            if (item.Id is not { } id || string.IsNullOrWhiteSpace(item.Jql))
+            {
+                continue;
+            }
+
+            items.Add(new QuickFilter(id, item.Name ?? string.Empty, item.Jql, item.Position ?? 0));
+        }
+
+        var startAt = wire.StartAt ?? 0;
+        var isLast = IsLast(startAt, values.Count, wire.Total, wire.IsLast);
+
+        return new OffsetPage<QuickFilter>(items, startAt, wire.MaxResults ?? values.Count, wire.Total, isLast);
+    }
+
     public static BoardSummary MapBoard(BoardWire.Board board) =>
         new(
             board.Id ?? 0,

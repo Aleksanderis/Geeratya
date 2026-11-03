@@ -432,6 +432,36 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         Assert.Contains("GCS-15", Keys(backlog));
     }
 
+    [Theory]
+    [InlineData(4, 2)]
+    [InlineData(6, 2)]
+    [InlineData(3, 0)]
+    [InlineData(5, 0)]
+    public async Task GivenBoard_WhenQuickFiltersAreRead_ThenTheRecordedOnesAreServed(int board, int count)
+    {
+        var filters = await Json($"{Agile}/board/{board}/quickfilter");
+
+        Assert.Equal(count, filters.GetProperty("values").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task GivenQuickFilterJql_WhenReadingBoardIssues_ThenTheNarrowedListComesBackOnBothBoardKinds()
+    {
+        var kanbanAll = await Json($"{Agile}/board/4/issue");
+        var kanbanMine = await Json($"{Agile}/board/4/issue?jql={Uri.EscapeDataString("(assignee = currentUser())")}");
+        var scrumAll = await Json($"{Agile}/board/6/issue");
+        var scrumMine = await Json($"{Agile}/board/6/issue?jql={Uri.EscapeDataString("(assignee = currentUser())")}");
+        var scrumRecent = await Json($"{Agile}/board/6/issue?jql={Uri.EscapeDataString("(updatedDate >= -1d)")}");
+
+        // Every recorded issue is unassigned and older than a day, so each clause narrows to nothing.
+        Assert.True(kanbanAll.GetProperty("issues").GetArrayLength() > 0);
+        Assert.Equal(0, kanbanMine.GetProperty("total").GetInt32());
+        Assert.Empty(Keys(kanbanMine));
+        Assert.True(scrumAll.GetProperty("issues").GetArrayLength() > 0);
+        Assert.Empty(Keys(scrumMine));
+        Assert.Empty(Keys(scrumRecent));
+    }
+
     public void Dispose()
     {
         _server.Dispose();

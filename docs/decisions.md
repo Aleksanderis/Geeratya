@@ -129,3 +129,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **Scope:** In-view find (`/`, `n`/`N`) and copy are not included (#467). Why: filtering is done with JQL and README Features does not list them. Revisit only with a README Features line first.
 
 **UI:** The actions menu stays `<space>a` (issue) and `<space>A` (tab and view) (#468), not Gitunia's `<space>.`. Why: already built, documented and taught in hints. No code.
+
+## 2026-11-03 (quick filters and swimlanes, #192)
+
+**UI:** Swimlanes are back in the columns layout, as Geeratya's own grouping (assignee, epic) shown one lane at a time, and quick filters are the board's own, applied as extra JQL (overrides the 2026-11-02 "no swimlanes" entry and #143 feedback; the later #192 comment kept both). Why: the agile API gives no swimlane definition, and one lane at a time keeps the card-pitch viewport maths. Epics are neither hidden nor added: the board endpoint already follows each board's own rule. Details: `ux-screens.md`, "Columns layout".

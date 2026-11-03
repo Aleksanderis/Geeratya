@@ -14,7 +14,12 @@ Sample · 1 issue
             │               │   Enter      Open the selected item                                          │            
             │               │   0          Go to the first column                                          │            
             │               │   $          Go to the last column                                           │            
+            │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
+            │               │   [ [        Previous section of the issue or the Scrum backlog              │            
             │               │   Space l    Switch between list and columns                                 │            
+            │               │   Space v f  Cycle the quick filter of the board (off, then each filter in   │            
+            │               │              turn)                                                           │            
+            │               │   Space v s  Group the board columns into lanes (none, assignee, epic)       │            
             │               │   Space o    Open the issue in the browser                                   │            
             │               │   Space i e  Edit fields of the issue (summary, labels, priority,            │            
             │               │              description)                                                    │            
@@ -26,11 +31,6 @@ Sample · 1 issue
             │               │   Alt-k      Rank the issue up (a count moves it that many places)           │            
             │               │   Alt-j      Rank the issue down (a count moves it that many places)         │            
             │               │   Alt-m      Mark or unmark the selected row and move down                   │            
-            │               │   Space i C  Create a sub-task of the selected issue                         │            
-            │               │   Space s m  Move the selected issues to a sprint                            │            
-            │               │   Space s b  Move the selected issues to the backlog                         │            
-            │               │                                                                              │            
-            │               │                                                                              │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
  HELP                                                                           j section  J scroll  / filter  Esc close
