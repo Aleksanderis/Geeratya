@@ -1,18 +1,18 @@
  [1 Backlog: Scrum board]  +                                                                                     [jump] 
                                                                                                                         
 Scrum board · 5 issues                                                                                                  
-  Key   T Summary                                                                        Status         Assignee        
+  Key   T Summary                                                                  Status         Assignee         Pts  
   - Sprint 1 · active · 2 Nov - 16 Nov · 2 issues · 8 pts                                                               
     Goal: Ship the login 日本語                                                                                         
-> GCS-3 S Fix login redirect after token refresh                                         To Do          Jane Doe        
-  GCS-4 S As a user I can filter by label 日本語ラベル                                   To Do          Jane Doe        
+> GCS-3 S Fix login redirect after token refresh                                   To Do          Jane Doe             5
+  GCS-4 S As a user I can filter by label 日本語ラベル                             To Do          Jane Doe             3
   - Sprint 2 · no dates · 2 issues · 3 pts                                                                              
-  GCS-2 S Reporting overhaul with a very long summary that never fits on one line        To Do          Jane Doe        
-  GCS-6 S Crash when the board has no columns                                            To Do          Jane Doe        
+  GCS-2 S Reporting overhaul with a very long summary that never fits on one line  To Do          Jane Doe             3
+  GCS-6 S Crash when the board has no columns                                      To Do          Jane Doe              
   - Sprint 3 · no dates · 0 issues                                                                                      
     No issues in this sprint.                                                                                           
   - Backlog · 1 issue · 1.5 pts                                                                                         
-  GCS-5 S Tidy the release notes                                                         To Do          Jane Doe        
+  GCS-5 S Tidy the release notes                                                   To Do          Jane Doe           1.5
                                                                                                                         
                                                                                                                         
                                                                                                                         

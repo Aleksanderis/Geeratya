@@ -133,7 +133,7 @@ Scrum board · 5 issues
 - **Cursor.** `j`/`k` and the other motions step over the rows of all sections; headers are not stops. `] ]` and `[ [` jump to the first row of the next section, or of this one and then the previous (sections with no issues are skipped).
 - **Collapse.** `z a` (`section.toggle`, also in the right-click menu) collapses the section under the cursor or expands it. A collapsed section shows its header only, and its first row stands in for it: the cursor stops on the header (`> + Sprint 1`), `Enter` there expands the section instead of opening an issue, and `z a` does too. Hidden rows are not reachable by the cursor but still belong to the tab; collapsing is refused in Visual mode so no hidden issue joins the range. The collapsed sections are kept per tab across reloads.
 - **Scroll.** The window scrolls by display lines (headers, goal lines and notes count), and the header comes into view with the first row of its section. A click on a header or goal line places the cursor on the section's first row.
-- **Limits.** The tab holds at most 10 000 rows (roadmap, open question 5); one tab with 5 000 issues over 20 sprints is measured in the PR. Epics as a column or filter come with the list columns (#179). Moving issues between sections and ranking across them come with #181 and #182.
+- **Limits.** The tab holds at most 10 000 rows (roadmap, open question 5); one tab with 5 000 issues over 20 sprints is measured in the PR. The points and epic columns of the list (#179) show as everywhere, for the whole backlog so they do not jump while scrolling; the sprint column is left out because the header says it. Moving issues between sections and ranking across them come with #181 and #182.
 
 ## Columns layout (Kanban)
 
