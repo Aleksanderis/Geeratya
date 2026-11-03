@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Detail;
+using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -23,14 +24,21 @@ public static class JumpReducer
 
     public static ReduceResult Open(AppState state)
     {
-        if (state.Profiles.Active is null)
+        if (state.Profiles.Active is not { } profile)
         {
             return Plain(state with { Message = NoProfileMessage });
         }
 
         var prompt = new JumpState(string.Empty, 0, null);
 
-        return Plain(Close(state) with { Mode = InputMode.Insert, Jump = prompt, Message = null });
+        var opened = Close(state) with { Mode = InputMode.Insert, Jump = prompt, Message = null };
+
+        if (opened.Session.Sources.History is null)
+        {
+            return new ReduceResult(opened, [new LoadHistoryEffect(profile)]);
+        }
+
+        return Plain(opened);
     }
 
     public static AppState Type(AppState state, string text)

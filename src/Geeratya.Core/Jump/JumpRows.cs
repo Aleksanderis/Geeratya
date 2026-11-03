@@ -19,7 +19,7 @@ public static class JumpRows
     {
         var parse = JumpKey.Parse(jump.Text, DefaultProject(state));
         var needle = jump.Text.Trim().ToUpperInvariant();
-        var candidates = Candidates(state);
+        var candidates = Candidates(state, needle.Length == 0);
         var rows = new List<JumpRow>();
         var seen = new HashSet<string>();
 
@@ -68,7 +68,22 @@ public static class JumpRows
         return state.Session.RecentKeys.Count > 0 ? JumpKey.ProjectOf(state.Session.RecentKeys[0]) : null;
     }
 
-    private static List<JumpRow> Candidates(AppState state)
+    private static List<JumpRow> Candidates(AppState state, bool recentFirst)
+    {
+        var tabRows = TabRows(state);
+        var titles = new Dictionary<string, string>();
+
+        foreach (var row in tabRows.Where(row => row.Title.Length > 0))
+        {
+            titles.TryAdd(row.Key, row.Title);
+        }
+
+        var recent = RecentRows(state, titles);
+
+        return recentFirst ? [.. recent, .. tabRows] : [.. tabRows, .. recent];
+    }
+
+    private static List<JumpRow> TabRows(AppState state)
     {
         var rows = new List<JumpRow>();
 
@@ -84,9 +99,17 @@ public static class JumpRows
             rows.AddRange(tab.Rows.Select(row => new JumpRow(row.Key, row.Summary, JumpOrigin.Tab)));
         }
 
-        rows.AddRange(state.Session.RecentKeys.Select(key => new JumpRow(key, string.Empty, JumpOrigin.Recent)));
-
         return rows;
+    }
+
+    /// <summary>The keys opened in this session, then those remembered for the profile (newest first, no repeats).</summary>
+    private static List<JumpRow> RecentRows(AppState state, Dictionary<string, string> titles)
+    {
+        var remembered = state.Session.Sources.History?.Issues ?? [];
+
+        return [.. state.Session.RecentKeys.Concat(remembered)
+            .Distinct(StringComparer.Ordinal)
+            .Select(key => new JumpRow(key, titles.GetValueOrDefault(key, string.Empty), JumpOrigin.Recent))];
     }
 
     private static TabState? ActiveTab(AppState state)

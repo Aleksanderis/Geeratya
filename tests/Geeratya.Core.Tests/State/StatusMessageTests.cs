@@ -1,6 +1,8 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -196,6 +198,62 @@ public sealed class StatusMessageTests
         var settled = StatusMessages.Settle(state, null);
 
         Assert.Equal(StatusSeverity.Info, settled.MessageSeverity);
+    }
+
+    [Fact]
+    public void GivenAnErrorAtItsLifetime_WhenTheSameTextIsPostedAgain_ThenItShowsAgainAndIsRecorded()
+    {
+        var posted = Post("Failed", StatusSeverity.Error);
+        var repeat = StatusMessages.Fail(posted, "Failed");
+
+        var settled = _reducer.Reduce(repeat, new Tick(_start.AddSeconds(30))).State;
+
+        Assert.Equal("Failed", settled.Status!.Text);
+        Assert.Equal(_start.AddSeconds(30), settled.Status.PostedAt);
+        Assert.Equal(2, settled.StatusHistory.Count);
+    }
+
+    [Fact]
+    public void GivenAnErrorBeforeItsLifetime_WhenTheSameTextIsPostedAgain_ThenItIsStillIgnored()
+    {
+        var posted = Post("Failed", StatusSeverity.Error);
+        var repeat = StatusMessages.Fail(posted, "Failed");
+
+        var settled = _reducer.Reduce(repeat, new Tick(_start.AddSeconds(29))).State;
+
+        Assert.Equal(_start, settled.Status!.PostedAt);
+        Assert.Single(settled.StatusHistory);
+    }
+
+    [Fact]
+    public void GivenAMessageOverAnOpenedIssue_WhenEscIsPressedTwice_ThenTheMessageEndsFirstAndThenTheIssueCloses()
+    {
+        var state = WithOpenedIssue();
+        var posted = _reducer.Reduce(state with { Message = "Notice" }, new Tick(_start)).State;
+
+        var first = _reducer.Reduce(posted, new KeyPressed("Esc", _start.AddSeconds(1))).State;
+        var second = _reducer.Reduce(first, new KeyPressed("Esc", _start.AddSeconds(2))).State;
+
+        Assert.Null(first.Status);
+        Assert.Single(first.Session.Tabs[0].Detail);
+        Assert.Empty(second.Session.Tabs[0].Detail);
+    }
+
+    private AppState WithOpenedIssue()
+    {
+        var profiles = ProfileCatalog.Empty.With(new Profile("work", "https://work.atlassian.net", "me@work.test"));
+        var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
+        var sized = _reducer.Reduce(start, new ViewportChanged(12, 80)).State;
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
+        var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition)).State;
+        var tab = opened.Session.Tabs[0];
+        var status = new IssueStatus("1", "To Do", "new");
+        var type = new IssueTypeSummary("10", "Story", 0, false);
+        var row = new IssueSummary("1", "A-1", "Issue 1", status, type, null, null, [], null, null, "A");
+        var page = new IssuePage([row], null, null);
+        var loaded = _reducer.Reduce(opened, new ViewPageLoaded(tab.Id, tab.RequestId, page, _start)).State;
+
+        return _reducer.Reduce(loaded, new KeyPressed("Enter", _start)).State;
     }
 
     private AppState Post(string text, StatusSeverity severity)

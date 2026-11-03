@@ -1,0 +1,10 @@
+                                        
+                                        
+Messages                                
+Error: Could not save テスト            
+Warning: Rate limited, retrying         
+Saved A-1                               
+                                        
+                                        
+                                        
+ MESSAGES        j down  k up  Esc close
