@@ -75,10 +75,10 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
-    /// <summary>The hints of the profile-add prompt on its last step, where Enter saves (same verb as the box footer).</summary>
-    public static IReadOnlyList<StatusHint> ProfileSaveHints { get; } =
+    /// <summary>The hints of the profile-add prompt on <paramref name="field"/>; Enter's verb is the box footer's.</summary>
+    public static IReadOnlyList<StatusHint> ProfileHints(ProfileFormField field) =>
     [
-        new(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(ProfileFormField.Token)),
+        new(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(field)),
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
@@ -210,9 +210,9 @@ public static class StatusBar
             return new HintList([], TextsOf(HelpHints, state.Mode, HintScope.Global, keymap, level));
         }
 
-        if (state is { Mode: InputMode.Insert, Form.Field: ProfileFormField.Token })
+        if (state is { Mode: InputMode.Insert, Form: { } profile })
         {
-            return new HintList([], TextsOf(ProfileSaveHints, state.Mode, HintScope.Global, keymap, level));
+            return new HintList([], TextsOf(ProfileHints(profile.Field), state.Mode, HintScope.Global, keymap, level));
         }
 
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
