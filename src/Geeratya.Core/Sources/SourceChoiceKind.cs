@@ -10,4 +10,10 @@ public enum SourceChoiceKind
 
     /// <summary>A JQL string opened before (history).</summary>
     Recent,
+
+    /// <summary>A sprint of the board (<see cref="SourceChoice.Sprint"/>).</summary>
+    Sprint,
+
+    /// <summary>The row that lists more closed sprints; it opens nothing.</summary>
+    MoreClosed,
 }

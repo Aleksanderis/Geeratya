@@ -17,4 +17,7 @@ public enum PickerScope
 
     /// <summary>Recent JQL strings and the typed query (<c>:jql</c> without a query).</summary>
     Jql,
+
+    /// <summary>The sprints of the active tab's Scrum board (<c>&lt;space&gt;sv</c>).</summary>
+    Sprints,
 }

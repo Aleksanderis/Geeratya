@@ -1,6 +1,7 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -101,6 +102,12 @@ public static class ContextMenus
         }
 
         var actions = new List<string> { ActionIds.TabClose };
+        var active = state.Session.Tabs.FirstOrDefault(tab => tab.Id == state.Session.Active);
+
+        if (active is not null && SprintBoards.BoardOf(active.Definition) is not null)
+        {
+            actions.Add(ActionIds.SprintSwitch);
+        }
 
         if (state.Session.Tabs.Count > 1)
         {

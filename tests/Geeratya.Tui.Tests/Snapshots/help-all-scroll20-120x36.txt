@@ -8,6 +8,7 @@ View
   Space r    Refresh the view (also retries after an error)                                                             
   Space l    Switch between list and columns                                                                            
   Space *    Switch the command level for the session                                                                   
+  Space s v  Switch the sprint shown (active, future, closed)                                                           
 Tabs                                                                                                                    
   Tab        Next tab  (g t)                                                                                            
   Shift-Tab  Previous tab  (g T)                                                                                        
@@ -32,5 +33,4 @@ Navigate
   Ctrl-d     Page down  (PageDown)                                                                                      
   Ctrl-u     Page up  (PageUp)                                                                                          
   Enter      Open the selected item                                                                                     
-  0          Go to the first column                                                                                     
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -15,6 +16,7 @@ public static class SourceReducer
 {
     private const string NoProfileMessage = "No profile yet: add one with :profile add.";
     private const string NothingToOpenMessage = "Nothing to open: type JQL, or press Esc.";
+    private const string NoBoardMessage = "No board here: open a Scrum board first (:board).";
     private const string LoadingMessage = "Still loading: wait a moment, or press Esc.";
     private const char DoubleQuote = '"';
     private const char SingleQuote = '\'';
@@ -23,6 +25,11 @@ public static class SourceReducer
 
     public static ReduceResult Reduce(AppState state, SourceCommand command)
     {
+        if (command is SprintsLoaded or SprintsFailed)
+        {
+            return Plain(SprintsArrived(state, command));
+        }
+
         var lists = state.Session.Sources;
 
         var next = command switch
@@ -155,7 +162,44 @@ public static class SourceReducer
         return state with { Picker = picker with { Selected = selected, AutoOpen = false, Notice = null } };
     }
 
-    /// <summary>Opens the highlighted row in a new tab and closes the picker.</summary>
+    /// <summary>
+    /// Opens the sprint switcher for the board of the active tab and asks the host for the board's sprints. The list is
+    /// loaded on every open, because sprints are started and completed in between.
+    /// </summary>
+    public static ReduceResult OpenSprintPicker(AppState state)
+    {
+        if (state.Profiles.Active is null)
+        {
+            return Plain(state with { Message = NoProfileMessage });
+        }
+
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
+
+        if (tab is null || SprintBoards.BoardOf(tab.Definition) is not { } board)
+        {
+            return Plain(state with { Message = NoBoardMessage });
+        }
+
+        var picker = new SourcePickerState(string.Empty, 0, PickerScope.Sprints, false, null)
+        {
+            Sprint = new SprintPickerData(board, tab.Id, null, null, SprintChoices.ClosedPage),
+        };
+
+        var opened = Close(state) with { Mode = InputMode.Insert, Picker = picker, Message = null };
+
+        return new ReduceResult(opened, [new LoadSprintsEffect(board)]);
+    }
+
+    /// <summary>Like <see cref="Accept"/>, but a sprint always opens in a new tab.</summary>
+    public static ReduceResult AcceptInNewTab(AppState state)
+    {
+        return state.Picker is { Scope: PickerScope.Sprints } ? AcceptSprint(state, true) : Accept(state);
+    }
+
+    /// <summary>
+    /// Opens the highlighted row in a new tab and closes the picker. In the sprint switcher the row replaces the sprint
+    /// of the tab it was opened from when that is a Sprint view, else it opens in a new tab.
+    /// </summary>
     public static ReduceResult Accept(AppState state)
     {
         var picker = state.Picker;
@@ -163,6 +207,11 @@ public static class SourceReducer
         if (picker is null)
         {
             return Plain(state);
+        }
+
+        if (picker.Scope == PickerScope.Sprints)
+        {
+            return AcceptSprint(state, false);
         }
 
         var choices = SourceChoices.For(picker, state.Session.Sources);
@@ -187,6 +236,67 @@ public static class SourceReducer
             PendingKeys = string.Empty,
             PaletteText = string.Empty,
         };
+    }
+
+    private static ReduceResult AcceptSprint(AppState state, bool newTab)
+    {
+        var picker = state.Picker!;
+        var choices = SourceChoices.For(picker, state.Session.Sources);
+
+        if (choices.Count == 0)
+        {
+            return Plain(state with { Picker = picker with { Notice = SprintEmptyNotice(picker) } });
+        }
+
+        var choice = choices[Math.Clamp(picker.Selected, 0, choices.Count - 1)];
+        var data = picker.Sprint!;
+
+        if (choice.Kind == SourceChoiceKind.MoreClosed)
+        {
+            var more = data with { ClosedShown = data.ClosedShown + SprintChoices.ClosedPage };
+
+            return Plain(state with { Picker = picker with { Sprint = more, Notice = null } });
+        }
+
+        var origin = state.Session.Tabs.FirstOrDefault(tab => tab.Id == data.Origin);
+
+        if (!newTab && origin is { Definition.Source: ViewSourceKind.Sprint }
+            && SprintSource.TryParse(choice.Definition.SourceValue, out var source))
+        {
+            return ViewReducer.Reduce(Close(state), new SprintSwitched(origin.Id, source, choice.Name));
+        }
+
+        return OpenView(state, choice.Definition);
+    }
+
+    private static string SprintEmptyNotice(SourcePickerState picker)
+    {
+        var data = picker.Sprint!;
+
+        if (data.Error is { } error)
+        {
+            return error;
+        }
+
+        return data.Sprints is null ? LoadingMessage : NothingToOpenMessage;
+    }
+
+    /// <summary>The sprints (or the failure) of the board the open switcher asked for; a reply for another board is dropped.</summary>
+    private static AppState SprintsArrived(AppState state, SourceCommand command)
+    {
+        if (state.Picker is not { Scope: PickerScope.Sprints, Sprint: { } data } picker)
+        {
+            return state;
+        }
+
+        var updated = command switch
+        {
+            SprintsLoaded loaded when loaded.BoardId == data.BoardId => data with { Sprints = loaded.Sprints, Error = null },
+            SprintsFailed failed when failed.BoardId == data.BoardId => data with { Error = LoadErrorText.For(failed.Error) },
+            _ => data,
+        };
+
+        return state with { Picker = picker with { Sprint = updated } };
     }
 
     private static bool IsFresh(HistoryLoaded loaded, AppState state)

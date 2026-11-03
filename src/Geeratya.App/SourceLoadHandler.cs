@@ -1,6 +1,8 @@
 using Geeratya.Core.Sources;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.App;
@@ -16,6 +18,7 @@ public sealed class SourceLoadHandler
     public const long Scope = -1;
 
     private const int MaxBoardPages = 20;
+    private const string KanbanMessage = "This is a Kanban board: it has no sprints.";
 
     private const string NoConnectionMessage =
         "Not connected to Jira: check the profile and its API token (:profile), then reopen the picker.";
@@ -43,6 +46,51 @@ public sealed class SourceLoadHandler
         }
 
         return Task.WhenAll(tasks);
+    }
+
+    /// <summary>
+    /// Loads every sprint of a Scrum board for the sprint switcher. A board known to be Kanban is refused without a
+    /// request (Jira answers 400 for its sprint list).
+    /// </summary>
+    public Task StartSprintsAsync(LoadSprintsEffect effect)
+    {
+        var board = effect.BoardId;
+
+        return _runner.Start(
+            Scope,
+            (services, token) => SprintsAsync(services, board, token),
+            () => SprintsUnavailable(board));
+    }
+
+    private static SprintsFailed SprintsUnavailable(long board)
+    {
+        return new SprintsFailed(board, new JiraError(JiraErrorKind.Unexpected, null, NoConnectionMessage));
+    }
+
+    private static async Task<Command?> SprintsAsync(JiraServices services, long board, CancellationToken token)
+    {
+        if (services.BoardKinds.Recall(board) == BoardKind.Kanban)
+        {
+            return new SprintsFailed(board, new JiraError(JiraErrorKind.BadRequest, null, KanbanMessage));
+        }
+
+        try
+        {
+            var result = await services.Sprints.ListAllSprintsAsync(board, token);
+
+            if (!result.IsSuccess)
+            {
+                return new SprintsFailed(board, result.Error);
+            }
+
+            return new SprintsLoaded(board, result.Value);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            var message = $"Loading failed unexpectedly ({exception.GetType().Name}).";
+
+            return new SprintsFailed(board, new JiraError(JiraErrorKind.Unexpected, null, message));
+        }
     }
 
     private static Command UnavailableBoards()

@@ -8,6 +8,7 @@ using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
@@ -353,6 +354,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             else if (effect is LoadSourcesEffect sources)
             {
                 _ = _sourceLoads.StartAsync(sources);
+            }
+            else if (effect is LoadSprintsEffect sprints)
+            {
+                _ = _sourceLoads.StartSprintsAsync(sprints);
             }
             else if (effect is ExecuteWriteEffect or VerifyWriteEffect or CountSubtasksEffect)
             {

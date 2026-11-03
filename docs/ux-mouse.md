@@ -79,6 +79,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `issue.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `sprint.switch` | V | Item of the menu of the tab and the view, shown on a board, backlog or sprint view: opens the sprint switcher, same as `<space>sv` |
 | ContextMenu | Click | `status.history` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `status.dismiss` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `rank.up` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
@@ -93,7 +94,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 
 ## Without a path
 
-Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), `help.page-previous` (a click on the page name), `help.filter` (the filter is typed text; the page names are the mouse path) and `view.cycle-command-level` (its palette row: click the status line, then the row). `rank.to` has no pointer path yet: `Ctrl`-click now marks rows (`selection.mark`), and dragging a row to its place comes with #182.
+Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), `help.page-previous` (a click on the page name), `help.filter` (the filter is typed text; the page names are the mouse path) `picker.open-new-tab` (sprint switcher only: a click on a row opens it like `Enter`; the key adds the new tab) and `view.cycle-command-level` (its palette row: click the status line, then the row). `rank.to` has no pointer path yet: `Ctrl`-click now marks rows (`selection.mark`), and dragging a row to its place comes with #182.
 
 ## Checks and terminal selection
 

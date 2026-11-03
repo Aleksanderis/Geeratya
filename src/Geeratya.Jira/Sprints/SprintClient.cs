@@ -72,12 +72,32 @@ public sealed class SprintClient(JiraTransport transport)
     /// invalid-response error after 20 pages, so a reply that never ends cannot loop forever. A failure on any page
     /// fails the whole call.
     /// </summary>
-    public async Task<JiraResult<IReadOnlyList<Sprint>>> GetActiveSprintsAsync(
+    public Task<JiraResult<IReadOnlyList<Sprint>>> GetActiveSprintsAsync(
         long boardId,
         CancellationToken cancellationToken,
         JiraPriority priority = JiraPriority.User)
     {
-        var query = new SprintQuery([SprintState.Active]) { Priority = priority };
+        return WalkAsync(boardId, new SprintQuery([SprintState.Active]) { Priority = priority }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Every sprint of a Scrum board in every state, in Jira's order (oldest first). Pages are walked like
+    /// <see cref="GetActiveSprintsAsync"/>: from the offsets sent, at most 20 pages (1000 sprints), a failure on any page
+    /// fails the whole call.
+    /// </summary>
+    public Task<JiraResult<IReadOnlyList<Sprint>>> ListAllSprintsAsync(
+        long boardId,
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
+    {
+        return WalkAsync(boardId, new SprintQuery { Priority = priority }, cancellationToken);
+    }
+
+    private async Task<JiraResult<IReadOnlyList<Sprint>>> WalkAsync(
+        long boardId,
+        SprintQuery query,
+        CancellationToken cancellationToken)
+    {
         var sprints = new List<Sprint>();
         var startAt = 0;
 
@@ -101,7 +121,7 @@ public sealed class SprintClient(JiraTransport transport)
         }
 
         return JiraResults.Failure<IReadOnlyList<Sprint>>(
-            new JiraError(JiraErrorKind.InvalidResponse, null, "The active sprint list did not end."));
+            new JiraError(JiraErrorKind.InvalidResponse, null, "The sprint list did not end."));
     }
 
     /// <summary>

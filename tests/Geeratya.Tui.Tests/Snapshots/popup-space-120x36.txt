@@ -11,7 +11,6 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
 ┌─ Space ────────────────────────────────────────┐                                                                      
 │ c         Close the tab                        │                                                                      
 │ t         Open the source picker for a new tab │                                                                      
@@ -32,5 +31,6 @@
 │                                                │                                                                      
 │ m         +comment (2)                         │                                                                      
 │ i         +issue (6)                           │                                                                      
+│ s         +sprint (1)                          │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space                                                                                 ? help  : commands  q quit

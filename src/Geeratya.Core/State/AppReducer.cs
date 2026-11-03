@@ -7,6 +7,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Jump;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Links;
@@ -481,6 +482,11 @@ public sealed class AppReducer
 
     private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
+        if (ClosedSprintGate.Refuses(state, action))
+        {
+            return Result(state with { Message = ClosedSprintGate.Refusal });
+        }
+
         return action switch
         {
             ActionIds.Quit => Quit(state),
@@ -512,6 +518,8 @@ public sealed class AppReducer
             ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state),
+            ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
