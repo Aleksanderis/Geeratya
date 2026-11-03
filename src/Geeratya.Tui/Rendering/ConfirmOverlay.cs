@@ -56,7 +56,7 @@ public static class ConfirmOverlay
 
         foreach (var text in layout.Question)
         {
-            lines.Add(OverlayBox.Wall(StyledLine.Of(text, TextRole.Body), contentWidth));
+            lines.Add(OverlayBox.Wall(StyledLine.Of(text), contentWidth));
         }
 
         if (layout.Warning.Count > 0)
