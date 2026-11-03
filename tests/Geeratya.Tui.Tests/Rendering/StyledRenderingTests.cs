@@ -3,6 +3,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 using Geeratya.Tui.Tests.Fakes;
 using Geeratya.Tui.Views;
 using Terminal.Gui.Drawing;
@@ -48,7 +49,7 @@ public class StyledRenderingTests
     [InlineData(ColorSupport.None)]
     public void GivenAnyTier_WhenResolvingTextStylingRoles_ThenEachDiffersFromBody(ColorSupport tier)
     {
-        var body = Palette.Resolve(tier, PaletteRole.Body);
+        var body = Resolve(tier, PaletteRole.Body);
         PaletteRole[] roles =
         [
             PaletteRole.Heading,
@@ -65,7 +66,7 @@ public class StyledRenderingTests
 
         foreach (var role in roles)
         {
-            Assert.NotEqual(body, Palette.Resolve(tier, role));
+            Assert.NotEqual(body, Resolve(tier, role));
         }
     }
 
@@ -74,34 +75,34 @@ public class StyledRenderingTests
     [InlineData(ColorSupport.Basic16)]
     public void GivenColourTier_WhenResolvingStrongEmphasisAndLink_ThenTheirAttributesAreKept(ColorSupport tier)
     {
-        Assert.True(Palette.Resolve(tier, PaletteRole.Strong).Style.HasFlag(RoleStyle.Bold));
-        Assert.True(Palette.Resolve(tier, PaletteRole.Emphasis).Style.HasFlag(RoleStyle.Italic));
-        Assert.True(Palette.Resolve(tier, PaletteRole.Link).Style.HasFlag(RoleStyle.Underline));
-        Assert.False(Palette.Resolve(tier, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
+        Assert.True(Resolve(tier, PaletteRole.Strong).Style.HasFlag(RoleStyle.Bold));
+        Assert.True(Resolve(tier, PaletteRole.Emphasis).Style.HasFlag(RoleStyle.Italic));
+        Assert.True(Resolve(tier, PaletteRole.Link).Style.HasFlag(RoleStyle.Underline));
+        Assert.False(Resolve(tier, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
     }
 
     [Fact]
     public void GivenSelectedAndDoneStyles_WhenCreatingAttributes_ThenTextStyleAndColoursCarryOver()
     {
-        var selected = AttributeFactory.Create(Palette.Resolve(ColorSupport.None, PaletteRole.Selected));
-        var done = AttributeFactory.Create(Palette.Resolve(ColorSupport.TrueColor, PaletteRole.StatusDone));
+        var selected = AttributeFactory.Create(Resolve(ColorSupport.None, PaletteRole.Selected));
+        var done = AttributeFactory.Create(Resolve(ColorSupport.TrueColor, PaletteRole.StatusDone));
 
         Assert.True(selected.Style.HasFlag(TextStyle.Reverse));
         Assert.True(selected.Style.HasFlag(TextStyle.Bold));
         Assert.True(done.Style.HasFlag(TextStyle.Italic));
-        Assert.Equal(new Color(0xA3, 0xBE, 0x8C), done.Foreground);
+        Assert.Equal(new Color(0xA6, 0xE3, 0xA1), done.Foreground);
     }
 
     [Fact]
     public void GivenNoColourTier_WhenResolvingSelectedAndCategories_ThenAttributesDifferFromBody()
     {
-        var body = Palette.Resolve(ColorSupport.None, PaletteRole.Body).Style;
+        var body = Resolve(ColorSupport.None, PaletteRole.Body).Style;
 
-        Assert.True(Palette.Resolve(ColorSupport.None, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
-        Assert.NotEqual(body, Palette.Resolve(ColorSupport.None, PaletteRole.StatusInProgress).Style);
-        Assert.NotEqual(body, Palette.Resolve(ColorSupport.None, PaletteRole.StatusDone).Style);
-        Assert.NotEqual(body, Palette.Resolve(ColorSupport.None, PaletteRole.Heading).Style);
-        Assert.NotEqual(body, Palette.Resolve(ColorSupport.None, PaletteRole.Link).Style);
+        Assert.True(Resolve(ColorSupport.None, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
+        Assert.NotEqual(body, Resolve(ColorSupport.None, PaletteRole.StatusInProgress).Style);
+        Assert.NotEqual(body, Resolve(ColorSupport.None, PaletteRole.StatusDone).Style);
+        Assert.NotEqual(body, Resolve(ColorSupport.None, PaletteRole.Heading).Style);
+        Assert.NotEqual(body, Resolve(ColorSupport.None, PaletteRole.Link).Style);
     }
 
     [Theory]
@@ -117,11 +118,11 @@ public class StyledRenderingTests
             new StyledSpan(" c", TextRole.StatusDone),
         ]);
 
-        var runs = StyledRuns.Resolve(line, tier);
+        var runs = StyledRuns.Resolve(line, BuiltInThemes.Default, tier);
 
         Assert.Equal(["a ", "b", " c"], runs.Select(run => run.Text));
-        Assert.Equal(Palette.Resolve(tier, PaletteRole.Selected), runs[1].Style);
-        Assert.Equal(Palette.Resolve(tier, PaletteRole.StatusDone), runs[2].Style);
+        Assert.Equal(Resolve(tier, PaletteRole.Selected), runs[1].Style);
+        Assert.Equal(Resolve(tier, PaletteRole.StatusDone), runs[2].Style);
     }
 
     [Fact]
@@ -168,5 +169,10 @@ public class StyledRenderingTests
         Assert.Equal(8 - 1 - FrameBuilder.HeaderRows, frame.Body.Count);
         Assert.Equal(8, frame.PlainLines().Count);
         Assert.All(frame.Header, line => Assert.Equal(new string(' ', 30), line.PlainText));
+    }
+
+    private static ResolvedStyle Resolve(ColorSupport tier, PaletteRole role)
+    {
+        return Palette.Resolve(BuiltInThemes.Default, tier, role);
     }
 }

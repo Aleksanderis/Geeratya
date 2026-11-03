@@ -106,6 +106,7 @@ public sealed class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            ThemeApplied applied => SettingsReducer.Applied(state, applied),
             KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
             _ => Result(state),
         };
@@ -729,6 +730,7 @@ public sealed class AppReducer
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
             _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
+            _ when IsThemeCommand(text) => SettingsReducer.Theme(normal, text[PaletteCommands.Theme.Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),
             _ when IsKeysCommand(text) => KeysCommand(normal, text[PaletteCommands.Keys.Length..].Trim()),
             _ => Result(normal with { Message = $"Unknown command: {text}" }),
@@ -807,6 +809,11 @@ public sealed class AppReducer
         }
 
         return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+    }
+
+    private static bool IsThemeCommand(string text)
+    {
+        return text == PaletteCommands.Theme || text.StartsWith($"{PaletteCommands.Theme} ", StringComparison.Ordinal);
     }
 
     private static bool IsSetCommand(string text)

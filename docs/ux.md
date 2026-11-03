@@ -69,7 +69,7 @@ The start screen shows the active profile, or `:profile add` when there is none.
 
 ## Command palette
 
-`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...`, `history clear`, `keys reload` (read the user's `keymap.json` again) and the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
+`:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...`, `history clear`, `theme [name]` (switch the colour theme, see "Colour tiers"), `keys reload` (read the user's `keymap.json` again) and the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
 
 **Planned (#368, from Gitunia):** `:` and `Ctrl-p` open a fuzzy list of every action (title or action id, with its keys, grouped by `ActionCatalog.GroupOf`, the level filter of #196 applied); `Enter` or a click runs the action as its key would. Typed commands with arguments (`jql <query>`, `tab ...`, `profile ...`, `set`) keep working as a command line when the first word is a command name followed by a space.
 
@@ -87,7 +87,28 @@ The bottom line is a bar of exactly the terminal width. It starts at column 0 wi
 
 ## Colour tiers
 
-Colours are decided by roles (`PaletteRole`) in `PaletteTable`; views never name a colour. Three tiers, picked from `ConsoleCapabilities`: 24-bit (`COLORTERM=truecolor` or `24bit`), 16-colour (forces Terminal.Gui's 16-colour output) and no colour (`NO_COLOR` set, `TERM=dumb`, redirected output). In the no-colour tier meaning rests on text attributes (the status bar is reversed, error and network roles are bold or underlined), so nothing relies on colour alone. Text roles must reach contrast 4.5 against their background, the divider role 3.0, in both colour tiers (tested; the 16-colour check uses typical xterm values). Network-state roles (error, loading, offline, rate limited, stale) tag the network banner and its badge (`TextRole.Offline`, `RateLimited`, `Stale`, `Error`); see [ux-screens.md](ux-screens.md), "Connection check and network states".
+Colours are decided by roles (`PaletteRole`) in `PaletteTable`, from the colours of the active theme ("Themes" below); views never name a colour. Three tiers, picked from `ConsoleCapabilities`: 24-bit (`COLORTERM=truecolor` or `24bit`), 16-colour (forces Terminal.Gui's 16-colour output) and no colour (`NO_COLOR` set, `TERM=dumb`, redirected output). In the no-colour tier meaning rests on text attributes (the status bar is reversed, error and network roles are bold or underlined), so nothing relies on colour alone. Text roles must reach contrast 4.5 against their background, the divider role 3.0, in both colour tiers, for every built-in theme (tested; the 16-colour check uses typical xterm values on a dark terminal and a table with darker normal colours on a light one). Network-state roles (error, loading, offline, rate limited, stale) tag the network banner and its badge (`TextRole.Offline`, `RateLimited`, `Stale`, `Error`); see [ux-screens.md](ux-screens.md), "Connection check and network states".
+
+**Themes (#198, shaped by Gitunia).** A theme is a JSON file (comments and trailing commas allowed). Built-in themes are the same files, embedded in the binary: `catppuccin-mocha` (default), `catppuccin-macchiato`, `catppuccin-frappe`, `catppuccin-latte`, `high-contrast` (text at 7:1 or better at 24 bits), `tokyo-night` (and `-storm`, `-moon`, `-day`), `gruvbox-dark-hard|medium|soft` and `gruvbox-light-hard|medium|soft`, `dracula`, `nord`, `solarized-dark`, `solarized-light`, `rose-pine` (and `-moon`, `-dawn`). Published palettes (all MIT) with only the colours that must pass contrast nudged. `dark` and `light` are accepted names for `catppuccin-mocha` and `catppuccin-latte` (there is no separate generic palette); `auto` is reserved for later detection of the terminal background. The colour modes stay 24-bit, 16 colours and none; there is no 256-colour tier. `:theme [name]` switches live (no name: lists the theme families and any files that were not used, because the status line is one row; `:theme tokyo` lists the names that contain the word when it is not a theme itself) and saves the name in `settings.json` (`theme`). A saved theme that cannot be used starts as `catppuccin-mocha` with a status line notice.
+
+Your own themes are `themes/<name>.json` in the configuration directory; the lower-case file name is the theme name and a user file wins over a built-in of the same name (`dark`, `light` and `auto` and names with a space cannot be used). The folder is read once at startup, so edits show after a restart; a file that cannot be read or is invalid is not offered and the reasons show on the status line at startup and in `:theme`. User themes are not checked for contrast.
+
+```jsonc
+{
+  "version": 1,            // optional; the only format there is
+  "variant": "dark",       // required: dark or light, the side of the terminal the theme is made for
+  "colors": {              // all required, "#rrggbb" only
+    "accent": "#89b4fa", "good": "#a6e3a1", "bad": "#f38ba8", "remote": "#cba6f7", "warn": "#f9e2af",
+    "info": "#89dceb", "muted": "#979db5", "border": "#6c7086", "barBackground": "#181825",
+    "selection": "#45475a", "baseForeground": "#cdd6f4", "baseBackground": "#1e1e2e"
+  },
+  "ansi": { "accent": "brightBlue" }   // optional 16-colour overrides, see below
+}
+```
+
+`PaletteTable` builds every role from these colours (headings, links and in-progress statuses use `accent`; done, stories and code `good`; errors and bugs `bad`; epics and stale `remote`; keys, editable fields and rate limits `warn`; loading, field labels and sub-tasks `info`; the status bar sits on `barBackground`, the selected row on `selection`). An unknown key is ignored; a missing or malformed colour, an unknown `variant` or `version` or a bad `ansi` entry refuses the file, one reason each.
+
+**The 16-colour rule.** At 16 colours the terminal's own palette decides what the named colours look like, so a theme cannot carry its hex values there. The `variant` picks the built-in 16-colour table (dark: bright accents on black; light: normal-intensity accents on white; selection and status bar are white on blue in both) and the optional `ansi` object overrides single colours (`accent`, `good`, `bad`, `remote`, `warn`, `info`, `muted`, `border`) with one of `black blue green cyan red magenta yellow gray darkGray brightBlue brightGreen brightCyan brightRed brightMagenta brightYellow white` (case-insensitive). Selection stays reversed without colour in every theme.
 
 Screens produce styled text, not colours: Core's `TextRole` (body, muted, heading, strong, emphasis, code, link, quote, selected, key, the three status categories, the five issue-type colours, error) tags each `StyledSpan`, and `PaletteTable.For` maps it to a `PaletteRole`. Selection is reversed and bold in the no-colour tier, so it never rests on colour alone; emphasis and quotes use italics there, links underline, strong and headings bold. The colour tiers apply the same bold, italic and underline as the no-colour tier (so emphasis shows everywhere) but never reverse, since a role there has its own background.
 

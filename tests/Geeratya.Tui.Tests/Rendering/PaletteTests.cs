@@ -1,5 +1,6 @@
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 using Terminal.Gui.Drawing;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -7,22 +8,104 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class PaletteTests
 {
+    public static TheoryData<string, ColorSupport> ThemesAndTiers
+    {
+        get
+        {
+            var data = new TheoryData<string, ColorSupport>();
+
+            foreach (var name in BuiltInThemes.Names)
+            {
+                data.Add(name, ColorSupport.TrueColor);
+                data.Add(name, ColorSupport.Basic16);
+            }
+
+            return data;
+        }
+    }
+
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
 
     [Theory]
-    [MemberData(nameof(ColorTiers))]
-    public void GivenColourTier_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(ColorSupport tier)
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(
+        string name,
+        ColorSupport tier)
     {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
         foreach (var role in PaletteTable.Roles)
         {
-            var style = Palette.Resolve(tier, role);
+            var style = Palette.Resolve(theme, tier, role);
 
             var ratio = Contrast.Ratio(style.Foreground!.Value, style.Background!.Value);
 
             Assert.True(
                 ratio >= PaletteTable.RequiredContrast(role),
-                $"{role} in {tier} has contrast {ratio:F2}");
+                $"{name}: {role} in {tier} has contrast {ratio:F2}");
         }
+    }
+
+    [Fact]
+    public void GivenHighContrastTheme_WhenResolvingEveryRoleAtTrueColour_ThenTextReachesSevenToOne()
+    {
+        var theme = BuiltInThemes.Find("high-contrast")!.Theme!;
+
+        foreach (var role in PaletteTable.Roles)
+        {
+            var style = Palette.Resolve(theme, ColorSupport.TrueColor, role);
+
+            var ratio = Contrast.Ratio(style.Foreground!.Value, style.Background!.Value);
+
+            Assert.True(ratio >= 7.0, $"{role} has contrast {ratio:F2}");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingEveryRole_ThenForegroundDiffersFromBackground(
+        string name,
+        ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        foreach (var role in PaletteTable.Roles)
+        {
+            var style = Palette.Resolve(theme, tier, role);
+
+            Assert.NotEqual(style.Foreground, style.Background);
+        }
+    }
+
+    [Fact]
+    public void GivenDarkAndLightVariants_WhenResolvingBodyAtSixteenColours_ThenTheVariantPicksBlackOrWhiteGround()
+    {
+        var dark = Palette.Resolve(BuiltInThemes.Default, ColorSupport.Basic16, PaletteRole.Body);
+        var light = Palette.Resolve(
+            BuiltInThemes.Find(BuiltInThemes.DefaultLightName)!.Theme!,
+            ColorSupport.Basic16,
+            PaletteRole.Body);
+
+        Assert.Equal(Ansi16Color.Black, dark.Background16);
+        Assert.Equal(Ansi16Color.White, light.Background16);
+        Assert.Equal(Ansi16Color.Black, light.Foreground16);
+    }
+
+    [Fact]
+    public void GivenAnsiOverride_WhenResolvingAtSixteenColours_ThenOnlyThatColourChanges()
+    {
+        var theme = ThemeFileParser.Parse("mine", MochaFile(string.Empty)).Theme!;
+        var overridden = ThemeFileParser.Parse("mine", MochaFile("\"ansi\": { \"accent\": \"yellow\" },")).Theme!;
+
+        Assert.Equal(
+            Ansi16Color.Yellow,
+            Palette.Resolve(overridden, ColorSupport.Basic16, PaletteRole.Heading).Foreground16);
+        Assert.NotEqual(
+            Ansi16Color.Yellow,
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Heading).Foreground16);
+        Assert.Equal(
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Error),
+            Palette.Resolve(overridden, ColorSupport.Basic16, PaletteRole.Error));
     }
 
     [Fact]
@@ -30,7 +113,7 @@ public class PaletteTests
     {
         foreach (var role in PaletteTable.Roles)
         {
-            var style = Palette.Resolve(ColorSupport.None, role);
+            var style = Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, role);
 
             Assert.Null(style.Foreground);
             Assert.Null(style.Background);
@@ -40,7 +123,7 @@ public class PaletteTests
     [Fact]
     public void GivenNoColourTier_WhenComparingRoles_ThenStatusAndNetworkStatesDifferFromBodyWithoutColour()
     {
-        var body = Palette.Resolve(ColorSupport.None, PaletteRole.Body).Style;
+        var body = Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, PaletteRole.Body).Style;
         PaletteRole[] distinct =
         [
             PaletteRole.Status,
@@ -53,7 +136,7 @@ public class PaletteTests
 
         foreach (var role in distinct)
         {
-            Assert.NotEqual(body, Palette.Resolve(ColorSupport.None, role).Style);
+            Assert.NotEqual(body, Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, role).Style);
         }
     }
 
@@ -74,20 +157,20 @@ public class PaletteTests
         Assert.Equal(21.0, ratio, 1);
     }
 
-    [Theory]
-    [InlineData(ColorSupport.TrueColor)]
-    [InlineData(ColorSupport.Basic16)]
-    [InlineData(ColorSupport.None)]
-    public void GivenAnyTier_WhenResolvingEveryRole_ThenForegroundDiffersFromBackground(ColorSupport tier)
+    private static string MochaFile(string extra)
     {
-        foreach (var role in PaletteTable.Roles)
-        {
-            var style = Palette.Resolve(tier, role);
-
-            var foreground = style.Foreground ?? Ansi16.ToRgb(style.Foreground16!.Value);
-            var background = style.Background ?? Ansi16.ToRgb(style.Background16!.Value);
-
-            Assert.NotEqual(foreground, background);
-        }
+        return $$"""
+            {
+              "version": 1,
+              "variant": "dark",
+              {{extra}}
+              "colors": {
+                "accent": "#89b4fa", "good": "#a6e3a1", "bad": "#f38ba8", "remote": "#cba6f7",
+                "warn": "#f9e2af", "info": "#89dceb", "muted": "#979db5", "border": "#6c7086",
+                "barBackground": "#181825", "selection": "#45475a",
+                "baseForeground": "#cdd6f4", "baseBackground": "#1e1e2e"
+              }
+            }
+            """;
     }
 }

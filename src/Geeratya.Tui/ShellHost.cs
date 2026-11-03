@@ -18,6 +18,7 @@ using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 using Geeratya.Tui.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Input;
@@ -40,6 +41,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
+    private readonly ThemeSwitcher _themes;
     private readonly MouseDragTracker _dragTracker = new();
     private readonly string? _keymapNotice;
     private readonly KeymapTable _defaultBindings;
@@ -79,6 +81,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _keymap = keymap;
         _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
+        _themes = new ThemeSwitcher(new ThemeCatalog(profiles.ThemesDirectory));
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
@@ -132,7 +135,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         application.Paste += OnPaste;
         application.Mouse.MouseEvent += OnMouse;
 
-        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, _glyphs);
+        var startTheme = StartTheme();
+
+        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, startTheme, _glyphs);
 
         _screen = screen;
         screen.BodyRowsChanged += OnBodyRowsChanged;
@@ -287,6 +292,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         var checks = new List<CheckConnectionEffect>();
         KeymapReloaded? reloaded = null;
+        ThemeApplied? themed = null;
 
         foreach (var effect in result.Effects)
         {
@@ -357,6 +363,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 reloaded = ReloadKeymap();
             }
+            else if (effect is ApplyThemeEffect themeEffect)
+            {
+                themed = ApplyTheme(themeEffect.Name);
+            }
             else if (effect is CheckConnectionEffect check)
             {
                 checks.Add(check);
@@ -380,11 +390,39 @@ public sealed class ShellHost : ICommandSink, IDisposable
             Dispatch(reloaded);
         }
 
+        if (themed is not null)
+        {
+            Dispatch(themed);
+        }
+
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
             _ = _connectionChecks.StartAsync(check);
         }
+    }
+
+    /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
+    private Theme StartTheme()
+    {
+        var start = _themes.Start(_state.Settings.Theme);
+
+        _state = _state with { Message = JoinNotices(_state.Message, start.Notice) };
+
+        return start.Theme;
+    }
+
+    /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>
+    private ThemeApplied ApplyTheme(string name)
+    {
+        var choice = _themes.Choose(name, _state.Settings.Theme);
+
+        if (choice.Theme is not null)
+        {
+            _screen?.SetTheme(choice.Theme);
+        }
+
+        return new ThemeApplied(choice.Name, choice.Theme is not null, choice.Message);
     }
 
     /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>
