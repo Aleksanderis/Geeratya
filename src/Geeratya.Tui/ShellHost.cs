@@ -74,6 +74,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private ITimer? _tickTimer;
     private ITimer? _whichKeyTimer;
     private DateTimeOffset? _whichKeyTimedFor;
+    private bool _chipShown;
     private bool _quitting;
 
     public ShellHost(
@@ -312,13 +313,18 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         // An idle tick changes nothing: no redraw, unless the banner counts time (a wait, the age of the data).
         if (command is Tick tick && ReferenceEquals(result.State, _state) && result.Effects.Count == 0
-            && !TabStatus.Of(_state.Session, tick.Now).ShowsTime)
+            && !TabStatus.Of(_state.Session, tick.Now).ShowsTime
+            && StatusMessages.IsFresh(_state, tick.Now) == _chipShown)
         {
             return;
         }
 
         _state = result.State;
-        _screen!.Render(_state, TimeProvider.System.GetUtcNow());
+
+        var renderedAt = TimeProvider.System.GetUtcNow();
+
+        _chipShown = StatusMessages.IsFresh(_state, renderedAt);
+        _screen!.Render(_state, renderedAt);
         ScheduleWhichKey();
 
         var checks = new List<CheckConnectionEffect>();
@@ -531,6 +537,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             _application!.Invoke(() => Dispatch(failure));
         }
+
+        // After the connection exists, off the first-frame path: the first issue detail finds the field ids ready.
+        _connections.WarmFields();
     }
 
     /// <summary>Runs a profile effect off the UI thread and feeds its outcome back as a command.</summary>

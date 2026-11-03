@@ -99,8 +99,8 @@ public sealed class FormMetadataHandler
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, completed));
     }
 
-    // The estimate is a custom field whose id differs per site and board: take the first candidate the issue's own
-    // screen can edit. None means a board without estimation (or by time tracking), or a type without the field.
+    // The estimate is a custom field whose id differs per site and board: take the tab's board field, else the first
+    // candidate the issue's own screen can edit. None means a board without estimation (or by time tracking), or a type without the field.
     private static async Task<EstimatePick> PickEstimateAsync(
         JiraServices services,
         EditFormTarget edit,
@@ -114,7 +114,10 @@ public sealed class FormMetadataHandler
             return new EstimatePick(null, MessageOf(candidates.Error, edit.Key));
         }
 
-        foreach (var id in candidates.Value)
+        // The board the tab shows names its field: offer that one or none, never another field the board ignores.
+        var ids = edit.EstimateFieldId is { } own ? [own] : candidates.Value;
+
+        foreach (var id in ids)
         {
             var field = fields.FirstOrDefault(candidate => candidate.FieldId == id);
 

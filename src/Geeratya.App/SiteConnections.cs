@@ -139,6 +139,22 @@ public sealed class SiteConnections : IDisposable
     }
 
     /// <summary>
+    /// Starts the site field lookup in the background for the connected profile so the first issue detail does not
+    /// wait on it. Does nothing without a connection or when the ids are known; never blocks the caller.
+    /// </summary>
+    public void WarmFields()
+    {
+        SiteFields? fields;
+
+        lock (_lock)
+        {
+            fields = _fields;
+        }
+
+        fields?.Warm();
+    }
+
+    /// <summary>
     /// Ends when the connection being built (token lookup, transport) is ready or has failed; already complete when
     /// none is being built. A check waits on this so it never runs before the transport exists.
     /// </summary>

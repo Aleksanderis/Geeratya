@@ -34,6 +34,7 @@ public static class ContextMenus
         ActionIds.RankDown,
         ActionIds.RankTop,
         ActionIds.RankBottom,
+        ActionIds.RankTo,
     ];
 
     /// <summary>The menu for the cursor of the active tab, null when there is no issue under it.</summary>

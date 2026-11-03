@@ -13,16 +13,13 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                        Geeratya                                                        
-                                              No profile yet: :profile add                                              
-                                              ? help   : commands   q quit                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
+                              ┌─ Add profile  [4/4] ─────────────────────────────────────┐                              
+                              │ Your Jira API token (hidden).                            │                              
+                              │                                                          │                              
+                              │ > ************_                                          │                              
+                              │                                                          │                              
+                              │ Enter save   Esc cancel                                  │                              
+                              └──────────────────────────────────────────────────────────┘                              
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -33,4 +30,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
- INSERT [4/4] API token (hidden): ************_                                                   Enter next  Esc cancel
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ INSERT [4/4] API token (hidden)                                                                  Enter save  Esc cancel

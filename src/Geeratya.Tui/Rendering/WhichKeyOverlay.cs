@@ -5,17 +5,18 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body
+/// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom right of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
 /// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by
 /// <c>:set hints.whichKey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
-    private const int MaxBoxWidth = 50;
+    private const int MaxBoxWidth = 96;
     private const int MinimumBoxWidth = 16;
     private const int MinimumBoxHeight = 3;
     private const int KeyColumn = 10;
+    private const int ChromeColumns = 4;
 
     /// <summary>
     /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
@@ -53,7 +54,8 @@ public static class WhichKeyOverlay
         int height)
     {
         var rows = Rows(state.PendingKeys, keymap, height - 2, state.Settings.CommandLevel);
-        var boxWidth = Math.Min(width, MaxBoxWidth);
+        var wanted = rows.Count == 0 ? 0 : rows.Max(TextWidth.Of) + ChromeColumns;
+        var boxWidth = Math.Min(width, Math.Min(MaxBoxWidth, wanted));
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)
         {
@@ -72,9 +74,19 @@ public static class WhichKeyOverlay
 
         for (var index = 0; index < lines.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(lines[index], 0, width);
+            result[top + index] = DockRight(result[top + index], lines[index], width - boxWidth, width);
         }
 
         return result;
+    }
+
+    /// <summary>The body row cut to <paramref name="left"/> columns, then the box row: the popup sits flush right, as in Gitunia.</summary>
+    private static StyledLine DockRight(StyledLine bodyRow, StyledLine box, int left, int width)
+    {
+        var spans = new List<StyledSpan>(StyledLines.Fit(bodyRow, left).Spans);
+
+        spans.AddRange(box.Spans);
+
+        return StyledLines.Fit(new StyledLine(spans), width);
     }
 }

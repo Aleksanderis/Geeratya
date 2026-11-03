@@ -6,13 +6,39 @@ namespace Geeratya.Jira.Fields;
 
 /// <summary>
 /// The Sprint and estimate field ids of one connection, read once and kept for the life of the connection (a
-/// profile switch builds a new instance). Only a successful answer is kept; a failure is returned and the next call
-/// asks again. A board's estimation field, read from its configuration, is remembered per board.
+/// profile switch builds a new instance). A successful answer is kept for good. A failure is kept for
+/// <see cref="FailureMemory"/> so that callers that can do without the ids (issue detail) do not pay a failing
+/// request on every open; after that the next call asks again. Callers that start together, or while a warm-up
+/// from <see cref="Warm"/> is running, share one request. A board's estimation field, read from its configuration,
+/// is remembered per board.
 /// </summary>
-public sealed class SiteFields(FieldClient client)
+public sealed class SiteFields(FieldClient client, TimeProvider? clock = null)
 {
+    /// <summary>How long a failed lookup is answered again without a request.</summary>
+    public static readonly TimeSpan FailureMemory = TimeSpan.FromSeconds(30);
+
+    private readonly TimeProvider _clock = clock ?? TimeProvider.System;
     private readonly ConcurrentDictionary<long, string> _boardEstimates = new();
+    private readonly object _lock = new();
     private volatile IssueExtraFields? _known;
+    private Task<JiraResult<IssueExtraFields>>? _inflight;
+    private JiraResult<IssueExtraFields>? _failure;
+    private DateTimeOffset _failedAt;
+    private int _warmed;
+
+    /// <summary>
+    /// Starts the lookup in the background (lowest priority) so the first issue detail finds the ids ready. Only the
+    /// first call per connection does anything.
+    /// </summary>
+    public void Warm()
+    {
+        if (Interlocked.Exchange(ref _warmed, 1) == 1)
+        {
+            return;
+        }
+
+        _ = AskAsync(JiraPriority.Background);
+    }
 
     /// <summary>The site-wide ids; one request the first time, none afterwards.</summary>
     public async Task<JiraResult<IssueExtraFields>> GetAsync(
@@ -24,15 +50,70 @@ public sealed class SiteFields(FieldClient client)
             return JiraResults.Success(known);
         }
 
-        // Two callers that start together may both ask; the answer is the same and the request is a cheap GET.
-        var result = await client.GetExtraFieldsAsync(cancellationToken, priority);
+        return await AskAsync(priority).WaitAsync(cancellationToken);
+    }
 
-        if (result.IsSuccess)
+    private Task<JiraResult<IssueExtraFields>> AskAsync(JiraPriority priority)
+    {
+        lock (_lock)
         {
-            _known = result.Value;
-        }
+            if (_known is { } known)
+            {
+                return Task.FromResult(JiraResults.Success(known));
+            }
 
-        return result;
+            if (_inflight is not null)
+            {
+                return _inflight;
+            }
+
+            if (_failure is { } failure && _clock.GetUtcNow() - _failedAt < FailureMemory)
+            {
+                return Task.FromResult(failure);
+            }
+
+            // The request belongs to the connection, not to the first caller: one caller leaving does not cancel it.
+            var fetch = FetchAsync(priority);
+
+            // A reply that completed synchronously has already stored its answer; keeping it here would stick.
+            if (!fetch.IsCompleted)
+            {
+                _inflight = fetch;
+            }
+
+            return fetch;
+        }
+    }
+
+    private async Task<JiraResult<IssueExtraFields>> FetchAsync(JiraPriority priority)
+    {
+        JiraResult<IssueExtraFields>? result = null;
+
+        try
+        {
+            result = await client.GetExtraFieldsAsync(CancellationToken.None, priority);
+
+            return result;
+        }
+        finally
+        {
+            // One step: a caller arriving now sees the answer, never an empty gap that would start a second request.
+            lock (_lock)
+            {
+                _inflight = null;
+
+                if (result is { IsSuccess: true })
+                {
+                    _known = result.Value;
+                    _failure = null;
+                }
+                else if (result is not null)
+                {
+                    _failure = result;
+                    _failedAt = _clock.GetUtcNow();
+                }
+            }
+        }
     }
 
     /// <summary>Keeps the estimation field of a board's configuration; a null or blank id is ignored.</summary>

@@ -27,6 +27,12 @@ public static class PaletteTable
             RoleStyle.Bold | RoleStyle.Underline),
         [PaletteRole.RateLimited] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.Warning] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Success] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.SuccessChip] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Good,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
         [PaletteRole.Stale] = new(
             ThemeColor.Remote,
             ThemeColor.BaseBackground,
@@ -120,7 +126,7 @@ public static class PaletteTable
                 theme.Colors[spec.Foreground],
                 theme.Colors[spec.Background],
                 Foreground16(theme, spec),
-                Background16(theme.Variant, spec),
+                Background16(theme, spec),
                 spec.Style);
         }
 
@@ -129,6 +135,11 @@ public static class PaletteTable
 
     private static Ansi16Color Foreground16(Theme theme, RoleSpec spec)
     {
+        if (spec.Ground == RoleGround.Chip)
+        {
+            return theme.Variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
+        }
+
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.White;
@@ -149,8 +160,17 @@ public static class PaletteTable
         return light ? LightDefault(spec.Foreground) : DarkDefault(spec.Foreground);
     }
 
-    private static Ansi16Color Background16(ThemeVariant variant, RoleSpec spec)
+    private static Ansi16Color Background16(Theme theme, RoleSpec spec)
     {
+        var variant = theme.Variant;
+
+        if (spec.Ground == RoleGround.Chip)
+        {
+            return theme.Ansi.TryGetValue(spec.Background, out var fill)
+                ? fill
+                : variant == ThemeVariant.Light ? LightDefault(spec.Background) : DarkDefault(spec.Background);
+        }
+
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.Blue;

@@ -7,6 +7,7 @@ using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
+using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
@@ -248,7 +249,7 @@ public sealed class WriteHandler
         _createSubmitted.TryRemove(effect.OperationId, out _);
 
         var key = result.Value.Key;
-        var rows = await ReadKeysAsync(services, [key], token);
+        var rows = await ReadKeysAsync(services, [key], [], token);
         var shown = rows is null ? [] : rows.Where(row => row.Key == key).ToArray();
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown, CreatedKey: key);
@@ -327,6 +328,11 @@ public sealed class WriteHandler
             return await services.Edits.AssignAsync(assign.Key, change, token);
         }
 
+        if (request is RankBlockRequest block)
+        {
+            return await RankBlockAsync(services, block, token);
+        }
+
         if (request is RankRequest rank)
         {
             return await RankAsync(services, rank, token);
@@ -384,15 +390,33 @@ public sealed class WriteHandler
         return await services.Transitions.PerformAsync(transition.Key, transition.Choice.Id, fields, null, token);
     }
 
-    private static async Task<WriteResult<WriteAccepted>> RankAsync(
+    private static Task<WriteResult<WriteAccepted>> RankAsync(
         JiraServices services,
         RankRequest rank,
         CancellationToken token)
     {
-        IReadOnlyList<string> keys = [rank.Key];
-        var result = rank.Before
-            ? await services.Ranks.RankBeforeAsync(keys, rank.ReferenceKey, rank.RankFieldId, token)
-            : await services.Ranks.RankAfterAsync(keys, rank.ReferenceKey, rank.RankFieldId, token);
+        return RankKeysAsync(services, [rank.Key], rank.ReferenceKey, rank.Before, rank.RankFieldId, token);
+    }
+
+    private static Task<WriteResult<WriteAccepted>> RankBlockAsync(
+        JiraServices services,
+        RankBlockRequest block,
+        CancellationToken token)
+    {
+        return RankKeysAsync(services, block.Keys, block.ReferenceKey, block.Before, block.RankFieldId, token);
+    }
+
+    private static async Task<WriteResult<WriteAccepted>> RankKeysAsync(
+        JiraServices services,
+        IReadOnlyList<string> keys,
+        string referenceKey,
+        bool before,
+        string? rankFieldId,
+        CancellationToken token)
+    {
+        var result = before
+            ? await services.Ranks.RankBeforeAsync(keys, referenceKey, rankFieldId, token)
+            : await services.Ranks.RankAfterAsync(keys, referenceKey, rankFieldId, token);
 
         if (!result.IsSuccess)
         {
@@ -405,8 +429,17 @@ public sealed class WriteHandler
         }
 
         // A 207 that names the issue as not moved: Jira refused it, so nothing was applied.
-        var messages = result.Value.Failed.SelectMany(item => item.Errors).ToArray();
+        var failed = result.Value.Failed.ToArray();
+        var messages = failed.SelectMany(item => item.Errors).ToArray();
         var message = messages.Length > 0 ? messages[0] : "Jira did not move the issue";
+
+        if (keys.Count > 1)
+        {
+            var names = string.Join(", ", failed.Select(item => item.Key));
+
+            message = $"{failed.Length} of {keys.Count} not ranked ({names}): {message}";
+            messages = [message, .. messages];
+        }
 
         return WriteResults.Failure<WriteAccepted>(
             new WriteError(WriteErrorKind.Validation, null, message, [], messages));
@@ -448,7 +481,7 @@ public sealed class WriteHandler
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
 
-        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, effect.Request.ReadBackFieldIds, token);
         var shown = rows is null ? [] : rows.Where(effect.Request.IsShownBy).ToArray();
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown);
@@ -487,7 +520,7 @@ public sealed class WriteHandler
             return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
         }
 
-        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, effect.Request.ReadBackFieldIds, token);
         var outcome = OutcomeOf(effect.Request, rows);
 
         return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, rows ?? []);
@@ -570,11 +603,15 @@ public sealed class WriteHandler
     private static async Task<IReadOnlyList<IssueSummary>?> ReadKeysAsync(
         JiraServices services,
         IReadOnlyList<string> keys,
+        IReadOnlyList<string> extraFieldIds,
         CancellationToken token)
     {
         try
         {
-            var query = new IssueSearchQuery(JqlBuilder.KeyIn(keys), keys.Count);
+            var query = new IssueSearchQuery(JqlBuilder.KeyIn(keys), keys.Count)
+            {
+                Extras = new IssueExtraFields(null, extraFieldIds),
+            };
             var result = await services.Search.SearchAsync(query, null, token);
 
             return result.IsSuccess ? result.Value.Items : null;

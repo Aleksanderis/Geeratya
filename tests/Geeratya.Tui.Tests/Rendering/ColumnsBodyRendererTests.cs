@@ -37,6 +37,20 @@ public class ColumnsBodyRendererTests
         null);
 
     [Fact]
+    public void GivenAMarkedCard_WhenRendering_ThenOnlyThatCardShowsAStarBeforeItsTypeNameInBothCardSizes()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2")) with { Marks = ["A-2"] };
+
+        var full = Render(tab, 120, 30);
+        var compact = Render(tab, 120, 8);
+
+        Assert.Single(full, line => line.PlainText.Contains('*'));
+        Assert.Contains("*Task", full.Single(line => line.PlainText.Contains('*')).PlainText);
+        Assert.Single(compact, line => line.PlainText.Contains("*A-2", StringComparison.Ordinal));
+        Assert.DoesNotContain(compact, line => line.PlainText.Contains("*A-1", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenColumnsLayout_WhenAskingWhoDraws_ThenOnlyTheColumnsRendererAppliesAndHelpWinsOverIt()
     {
         var tab = Tab(Issue("1", "A-1"));
@@ -400,6 +414,18 @@ public class ColumnsBodyRendererTests
         var body = RenderSprint(SprintTab(Issue("1", "A-1")), 100, 20);
 
         Assert.StartsWith("Board · 1 issue", body[0].PlainText);
+    }
+
+    [Fact]
+    public void GivenAnEmptyScrumBoard_WhenRendering_ThenItSaysThereIsNoOpenSprintAndNamesTheBacklog()
+    {
+        var tab = Tab() with { Board = _configuration with { Type = BoardType.Scrum } };
+
+        var body = Render(tab, 100, 20);
+
+        Assert.Contains(body, line => line.PlainText.Contains("No open sprint on this board.", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.Contains(":backlog", StringComparison.Ordinal));
+        Assert.DoesNotContain(body, line => line.PlainText.Contains("The board has no issues.", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -409,6 +410,22 @@ public class RankKeysTests
     }
 
     [Fact]
+    public void GivenTheContextMenu_WhenChoosingRankToOnTwoRows_ThenItPicksUpAndDropsLikeTheKey()
+    {
+        var state = Loaded(ViewSourceKind.Backlog, ViewLayout.List, "1:A-1", "1:A-2", "1:A-3");
+
+        var picked = ChooseRankToInMenu(state);
+        var moved = Press(Press(picked.State, "j").State, "j").State;
+        var dropped = ChooseRankToInMenu(moved);
+
+        Assert.Equal("A-1", Tab(picked.State).RankPickup);
+        Assert.Empty(picked.Effects);
+        Assert.Equal(["A-2", "A-3", "A-1"], Keys(dropped.State));
+        Assert.Null(Tab(dropped.State).RankPickup);
+        Assert.NotNull(RequestOf(dropped));
+    }
+
+    [Fact]
     public void GivenRankTo_WhenDroppingAboveThePickedUpIssue_ThenItGoesBeforeTheTarget()
     {
         var state = Press(Press(Loaded(ViewSourceKind.Backlog, ViewLayout.List, "1:A-1", "1:A-2", "1:A-3"), "j").State, "j").State;
@@ -519,6 +536,20 @@ public class RankKeysTests
     private ReduceResult Press(AppState state, string key)
     {
         return _reducer.Reduce(state, new KeyPressed(key, _now));
+    }
+
+    private ReduceResult ChooseRankToInMenu(AppState state)
+    {
+        var menu = ContextMenus.For(state)!;
+        var index = menu.Items.ToList().FindIndex(item => item.Action == ActionIds.RankTo);
+        var open = state with { Mode = InputMode.Insert, ContextMenu = menu };
+
+        for (var step = 0; step < index; step++)
+        {
+            open = Press(open, "j").State;
+        }
+
+        return Press(open, "Enter");
     }
 
     private ReduceResult RankTo(AppState state)

@@ -38,6 +38,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `g t` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |
 | `g T` | Previous tab | `tab.previous` | everyday |
+| `Ctrl-^` | Previously active tab | `tab.last-active` | everyday |
+| `Space Tab` | Previously active tab | `tab.last-active` | everyday |
 | `Alt-1` | Go to tab 1 | `tab.go-to.1` | everyday |
 | `Alt-2` | Go to tab 2 | `tab.go-to.2` | everyday |
 | `Alt-3` | Go to tab 3 | `tab.go-to.3` | everyday |
@@ -91,8 +93,14 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Up` | Move up | `nav.up` | everyday |
 | `?` | Show or hide help | `help.toggle` | everyday |
 | `/` | Filter the help by key, title or action id | `help.filter` | everyday |
-| `Tab` | Next help page | `help.page-next` | everyday |
-| `Shift-Tab` | Previous help page | `help.page-previous` | everyday |
+| `J` | Scroll help down a line | `help.scroll-down` | everyday |
+| `K` | Scroll help up a line | `help.scroll-up` | everyday |
+| `D` | Scroll help down half a page | `help.half-page-down` | everyday |
+| `Ctrl-d` | Scroll help down half a page | `help.half-page-down` | everyday |
+| `U` | Scroll help up half a page | `help.half-page-up` | everyday |
+| `Ctrl-u` | Scroll help up half a page | `help.half-page-up` | everyday |
+| `Tab` | Next help section | `help.page-next` | everyday |
+| `Shift-Tab` | Previous help section | `help.page-previous` | everyday |
 | `Space *` | Switch the command level for the session | `view.cycle-command-level` | everyday |
 | `Esc` | Close help | `help.close` | everyday |
 | `q` | Close help | `help.close` | everyday |
@@ -108,6 +116,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-n` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-j` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
+| `Ctrl-l` | Run the typed command | `palette.submit` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
 
@@ -132,6 +143,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-n` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-j` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
+| `Ctrl-l` | Accept the field and go to the next | `form.next` | everyday |
 | `Ctrl-x` | Remove the highlighted profile (asks first; the stored token is deleted) | `profile.remove` | everyday |
 | `Tab` | Next field of the form | `form.field-next` | everyday |
 | `Shift-Tab` | Previous field of the form | `form.field-previous` | everyday |

@@ -7,7 +7,7 @@ namespace Geeratya.Core.Cache;
 public static class IssueCacheMapper
 {
     /// <summary>The issue file format version.</summary>
-    public const int Schema = 1;
+    public const int Schema = 2;
 
     public static CachedIssueFile ToFile(CachedIssue issue)
     {
@@ -32,7 +32,9 @@ public static class IssueCacheMapper
             detail.Parent is null ? null : ToStub(detail.Parent),
             [.. detail.Subtasks.Select(ToStub)],
             [.. detail.Links.Select(ToLink)],
-            [.. detail.Attachments.Select(ToAttachment)]);
+            [.. detail.Attachments.Select(ToAttachment)],
+            [.. detail.Sprints.Select(CacheMapper.ToSprint)],
+            detail.Estimate);
     }
 
     /// <summary>
@@ -75,7 +77,11 @@ public static class IssueCacheMapper
             file.Parent is null ? null : FromStub(file.Parent),
             [.. file.Subtasks.Select(FromStub)],
             links,
-            [.. file.Attachments.Select(FromAttachment)]);
+            [.. file.Attachments.Select(FromAttachment)])
+        {
+            Sprints = [.. file.Sprints.Select(CacheMapper.FromSprint)],
+            Estimate = file.Estimate,
+        };
 
         return new CachedIssue(detail, file.SavedAt);
     }
@@ -160,7 +166,8 @@ public static class IssueCacheMapper
     private static bool IsComplete(CachedIssueFile file)
     {
         return file is { Status: not null, IssueType: not null, Labels: not null, Subtasks: not null }
-            && file is { Links: not null, Attachments: not null }
+            && file is { Links: not null, Attachments: not null, Sprints: not null }
+            && file.Sprints.All(sprint => sprint is { Name: not null })
             && file.Id is not null
             && file.Key is not null
             && file.Summary is not null

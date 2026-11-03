@@ -16,6 +16,10 @@ public static class ActionIds
     public const string HelpFilter = "help.filter";
     public const string HelpPageNext = "help.page-next";
     public const string HelpPagePrevious = "help.page-previous";
+    public const string HelpScrollDown = "help.scroll-down";
+    public const string HelpScrollUp = "help.scroll-up";
+    public const string HelpHalfPageDown = "help.half-page-down";
+    public const string HelpHalfPageUp = "help.half-page-up";
     public const string Quit = "app.quit";
     public const string Cancel = "mode.cancel";
     public const string PaletteOpen = "palette.open";
@@ -35,6 +39,7 @@ public static class ActionIds
     public const string SectionToggle = "section.toggle";
     public const string TabNext = "tab.next";
     public const string TabPrevious = "tab.previous";
+    public const string TabLastActive = "tab.last-active";
     public const string TabGoTo1 = "tab.go-to.1";
     public const string TabGoTo2 = "tab.go-to.2";
     public const string TabGoTo3 = "tab.go-to.3";

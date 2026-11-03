@@ -320,6 +320,36 @@ public sealed class WriteHandlerTests
     }
 
     [Fact]
+    public async Task GivenABlockRank_WhenExecuting_ThenOneRankWriteListsTheIssuesInOrder()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+        var block = new RankBlockRequest(["A-3", "A-1"], "A-2", true, "customfield_10019", ["A-1", "A-2", "A-3"]);
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, block));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["PUT"], fixture.Http.Methods);
+        var body = Assert.Single(fixture.Http.Bodies);
+        Assert.Contains("\"issues\":[\"A-3\",\"A-1\"]", body);
+        Assert.Contains("\"rankBeforeIssue\":\"A-2\"", body);
+    }
+
+    [Fact]
+    public async Task GivenABlockRankThatJiraPartlyRefuses_WhenExecuting_ThenTheFailureNamesTheIssuesNotRanked()
+    {
+        const string reply =
+            """{"entries":[{"issueKey":"A-1","status":200},{"issueKey":"A-3","status":400,"errors":["Not ranked"]}]}""";
+        using var fixture = await ConnectedAsync(h => h.Reply((HttpStatusCode)207, reply));
+        var block = new RankBlockRequest(["A-1", "A-3"], "A-2", true, null, ["A-1", "A-2", "A-3"]);
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, block));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.Validation, failed.Error.Kind);
+        Assert.Equal("1 of 2 not ranked (A-3): Not ranked", failed.Error.Message);
+    }
+
+    [Fact]
     public async Task GivenRankAbove_WhenExecuting_ThenTheBodyNamesTheBeforeIssue()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));

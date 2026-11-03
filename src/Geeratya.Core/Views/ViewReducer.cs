@@ -311,7 +311,9 @@ public static class ViewReducer
             return state;
         }
 
-        return Replace(state, tab with { Board = configured.Configuration });
+        return Replace(
+            state,
+            DetailReducer.WithEstimateLabel(tab with { Board = configured.Configuration }, state.ViewportColumns));
     }
 
     /// <summary>The sprint of a Sprint view: kept in the tab while the request is the tab's current one.</summary>
@@ -572,6 +574,25 @@ public static class ViewReducer
         var target = (((current + delta) % tabs.Count) + tabs.Count) % tabs.Count;
 
         return Reduce(state, new TabActivated(tabs[target].Id));
+    }
+
+    /// <summary>
+    /// Flips to the tab that was active before the current one (the other tab with the newest
+    /// <see cref="TabState.LastActiveSeq"/>); a closed tab is gone, so it is never picked. With no other tab the
+    /// status line says so.
+    /// </summary>
+    public static ReduceResult LastActiveTab(AppState state)
+    {
+        var previous = state.Session.Tabs
+            .Where(tab => tab.Id != state.Session.Active)
+            .MaxBy(tab => tab.LastActiveSeq);
+
+        if (previous is null || state.Session.Active is null)
+        {
+            return new ReduceResult(state with { Message = "No previous tab." }, _noEffects);
+        }
+
+        return Reduce(state, new TabActivated(previous.Id));
     }
 
     /// <summary>Makes the tab with the 1-based <paramref name="number"/> active; a missing number says so.</summary>

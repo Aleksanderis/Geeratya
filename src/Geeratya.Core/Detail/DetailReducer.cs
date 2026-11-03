@@ -70,7 +70,10 @@ internal static class DetailReducer
         var issueRequest = ++sequence;
         var commentsRequest = ++sequence;
         var linksRequest = ++sequence;
-        var opened = DetailState.Opened(key, row, issueRequest, commentsRequest, linksRequest);
+        var opened = DetailState.Opened(key, row, issueRequest, commentsRequest, linksRequest) with
+        {
+            EstimateLabel = tab.Board?.EstimationFieldName,
+        };
         var detail = Layout(opened, state.ViewportColumns, tab.VisibleRows);
 
         effects.Add(new LoadIssueDetailEffect(id, key, issueRequest));
@@ -555,6 +558,28 @@ internal static class DetailReducer
         }
 
         return state;
+    }
+
+    /// <summary>
+    /// The board configuration arrived after issues were opened: the open details that fell back to the generic
+    /// estimate label take the board's name for it, without reopening (#470).
+    /// </summary>
+    public static TabState WithEstimateLabel(TabState tab, int columns)
+    {
+        var label = tab.Board?.EstimationFieldName;
+
+        if (label is null || tab.Detail.All(detail => detail.EstimateLabel is not null))
+        {
+            return tab;
+        }
+
+        var stack = tab.Detail
+            .Select(detail => detail.EstimateLabel is null
+                ? Layout(detail with { EstimateLabel = label }, columns, tab.VisibleRows)
+                : detail)
+            .ToArray();
+
+        return tab with { Detail = stack };
     }
 
     private static DetailState Layout(DetailState detail, int columns, int listRows)

@@ -177,7 +177,7 @@ public class SelectionTests
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var marked = Press(Press(state, "Alt-m").State, "Alt-m").State;
 
-        foreach (var keys in new[] { "Space i d", "Space i a", "Space i s", "Alt-j", "Space i e" })
+        foreach (var keys in new[] { "Space i d", "Space i a", "Space i s", "Space k t", "Space i e" })
         {
             var result = Chord(marked, keys);
 
@@ -199,12 +199,12 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenAVisualRangeOfSeveralRows_WhenPressingARankKey_ThenItRefusesWithoutAWrite()
+    public void GivenAVisualRangeOfSeveralRows_WhenPressingARankToKey_ThenItRefusesWithoutAWrite()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var ranged = Press(Press(state, "v").State, "j").State;
 
-        var result = Press(ranged, "Alt-j");
+        var result = Chord(ranged, "Space k b");
 
         Assert.Equal("2 issues selected; clear the selection first", result.State.Message);
         Assert.Empty(result.Effects);
@@ -212,12 +212,12 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenARefusalWithACount_WhenPressingARankKey_ThenTheSetIsStillRefused()
+    public void GivenAMarkWithACount_WhenPressingAWriteKey_ThenTheSetIsStillRefused()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var marked = Press(state, "Alt-m").State;
 
-        var result = Press(Press(marked, "2").State, "Alt-j");
+        var result = Chord(Press(marked, "2").State, "Space i d");
 
         Assert.Equal("1 issue selected; clear the selection first", result.State.Message);
         Assert.Empty(result.Effects);
@@ -259,16 +259,37 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenTheColumnsLayout_WhenPressingVOrAltM_ThenItIsRefusedWithAReason()
+    public void GivenTheColumnsLayout_WhenPressingV_ThenItIsRefusedWithAReason()
     {
         var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
 
         var visual = Press(state, "v");
-        var mark = Press(state, "Alt-m");
 
-        Assert.Equal("Visual mode and marks work in the list and backlog layouts", visual.State.Message);
-        Assert.Equal("Visual mode and marks work in the list and backlog layouts", mark.State.Message);
-        Assert.Empty(Tab(mark.State).Marks);
+        Assert.Equal("Visual mode works in the list and backlog layouts; mark cards with Alt-m", visual.State.Message);
+        Assert.Null(Tab(visual.State).VisualAnchor);
+    }
+
+    [Fact]
+    public void GivenTheColumnsLayout_WhenPressingAltM_ThenTheCardIsMarkedAndTheCursorMovesDownTheColumn()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+
+        var first = Press(state, "Alt-m");
+        var second = Press(first.State, "Alt-m");
+
+        Assert.Equal(["A-1", "A-2"], Tab(second.State).Marks);
+        Assert.Equal("A-2", ColumnsNavigation.SelectedIssue(Tab(first.State))?.Key);
+    }
+
+    [Fact]
+    public void GivenAMarkedCardInTheColumnsLayout_WhenAWriteIsPressed_ThenItRefuses()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var marked = Press(state, "Alt-m").State;
+
+        var result = Press(marked, "Alt-l");
+
+        Assert.Equal("1 issue selected; clear the selection first", result.State.Message);
     }
 
     [Fact]
@@ -316,6 +337,29 @@ public class SelectionTests
 
         Assert.Equal(["A-2"], Tab(result).Marks);
         Assert.Equal("A-2", Tab(result).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenTheColumnsLayout_WhenCtrlClickingACard_ThenOnlyThatCardIsMarkedInPlace()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var placed = new PointerPlaced(5, 3, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+
+        var result = _reducer.Reduce(state, placed).State;
+
+        Assert.Equal(["A-1"], Tab(result).Marks);
+        Assert.Equal("A-1", ColumnsNavigation.SelectedIssue(Tab(result))?.Key);
+    }
+
+    [Fact]
+    public void GivenTheColumnsLayout_WhenCtrlClickingAColumnHeader_ThenNothingIsMarked()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var placed = new PointerPlaced(5, 1, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+
+        var result = _reducer.Reduce(state, placed).State;
+
+        Assert.Empty(Tab(result).Marks);
     }
 
     [Fact]

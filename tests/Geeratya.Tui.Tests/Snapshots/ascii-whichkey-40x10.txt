@@ -3,8 +3,8 @@
 +- Space ------------------------------+
 | c         Close the tab              |
 | t         Open the source picker for |
+| Tab       Previously active tab      |
 | x         Dismiss the status message |
 | n         Show the message history   |
-| g         Jump to an issue by key    |
 +--------------------------------------+
  NORMAL Space                           

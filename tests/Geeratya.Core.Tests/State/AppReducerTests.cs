@@ -51,8 +51,8 @@ public class AppReducerTests
     {
         var help = Press(AppState.Initial, "?").State;
 
-        var top = Press(help, "k").State;
-        var down = Press(help, "j").State;
+        var top = Press(help, "K").State;
+        var down = Press(help, "J").State;
 
         Assert.Equal(0, top.HelpScroll);
         Assert.Equal(1, down.HelpScroll);
@@ -66,7 +66,7 @@ public class AppReducerTests
 
         for (var step = 0; step < lineCount + 10; step++)
         {
-            state = Press(state, "j").State;
+            state = Press(state, "J").State;
         }
 
         Assert.Equal(lineCount - 1, state.HelpScroll);

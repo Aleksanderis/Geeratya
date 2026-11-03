@@ -24,4 +24,16 @@ public sealed record BoardConfiguration(
 {
     /// <summary>The estimation field (story points) as a field id; null for a board without field estimation.</summary>
     public string? EstimationFieldId { get; init; }
+
+    /// <summary>The estimation field's name on the board (for example "Story Points"); null when Jira sent none.</summary>
+    public string? EstimationFieldName { get; init; }
+
+    /// <summary>
+    /// True when this configuration came from Jira, so a missing <see cref="EstimationFieldId"/> means the board has
+    /// no field estimation. False for a cached board, which does not keep the estimation: nothing is known then.
+    /// </summary>
+    public bool EstimationRead { get; init; }
+
+    /// <summary>True when Jira said the board has no field estimation (none or time tracking).</summary>
+    public bool HasNoEstimation => EstimationRead && EstimationFieldId is null;
 }
