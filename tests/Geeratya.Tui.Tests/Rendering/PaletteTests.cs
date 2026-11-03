@@ -8,7 +8,8 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class PaletteTests
 {
-    private const double MinimumSelectionBarRatio = 1.1;
+    // Empirical floor, not a WCAG rule: the faintest shipped bar is about 1.27.
+    private const double MinimumSelectionBarRatio = 1.2;
 
     public static TheoryData<string, ColorSupport> ThemesAndTiers
     {
