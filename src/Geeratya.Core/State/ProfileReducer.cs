@@ -24,7 +24,7 @@ public static class ProfileReducer
     private const string CheckVerb = "check";
     private const string EditVerb = "edit";
     private const string BusyMessage = "Still saving the previous profile change; try again in a moment.";
-    private const string Usage = "Usage: profile add | edit [name] | list | switch <name> | remove <name> | check";
+    private const string Usage = "Usage: profile [list] | add | edit [name] | switch <name> | remove <name> | check";
 
     private const string TokenMissing = "The API token cannot be empty.";
 
@@ -71,7 +71,13 @@ public static class ProfileReducer
             return Plain(Say(state, BusyMessage));
         }
 
-        return Plain(Closed(state) with { Mode = InputMode.Insert, Form = ProfileForm.Start, Message = null });
+        return Plain(state with
+        {
+            Mode = InputMode.Insert,
+            PendingKeys = string.Empty,
+            Form = ProfileForm.Start,
+            Message = null,
+        });
     }
 
     /// <summary>Ctrl-e in the profile list: edits the highlighted profile.</summary>
@@ -100,7 +106,7 @@ public static class ProfileReducer
 
         var form = ProfileForm.For(profile);
 
-        return Plain(Closed(state) with { Mode = InputMode.Insert, Form = form, Message = null });
+        return Plain(state with { Mode = InputMode.Insert, PendingKeys = string.Empty, Form = form, Message = null });
     }
 
     /// <summary>Tab and Shift-Tab: moves the focus one field, wrapping around.</summary>
@@ -213,7 +219,13 @@ public static class ProfileReducer
             return Plain(Say(state, BusyMessage));
         }
 
-        return Highlighted(state, row) is { } profile ? Switch(Closed(state), profile.Name) : Plain(state);
+        if (Highlighted(state, row) is not { } profile)
+        {
+            return Plain(state);
+        }
+
+        // The active profile needs no switch: Enter on it leaves the manager.
+        return state.Profiles.ActiveName == profile.Name ? Plain(Closed(state)) : Switch(Closed(state), profile.Name);
     }
 
     /// <summary>Ctrl-x in the profile list: asks to remove the highlighted profile (as the palette command does).</summary>
@@ -224,7 +236,7 @@ public static class ProfileReducer
             return Plain(Say(state, BusyMessage));
         }
 
-        return Highlighted(state, row) is { } profile ? AskRemove(Closed(state), profile.Name) : Plain(state);
+        return Highlighted(state, row) is { } profile ? AskRemove(state, profile.Name) : Plain(state);
     }
 
     /// <summary>Closes the profile list and leaves Insert mode.</summary>
@@ -304,7 +316,7 @@ public static class ProfileReducer
         var original = form.EditingName is null ? null : state.Profiles.Find(form.EditingName);
         var busy = state with
         {
-            Mode = InputMode.Normal,
+            Mode = state.ProfileList is null ? InputMode.Normal : InputMode.Insert,
             Form = null,
             Message = $"Saving profile {profile.Name}...",
             ProfileBusy = true,
@@ -328,14 +340,19 @@ public static class ProfileReducer
 
         var previous = state.Profiles.Active;
         var current = changed.Catalog.Active;
+        var effects = new List<Effect>();
+
+        if (next.ProfileList is not null)
+        {
+            effects.AddRange(TokenSourceEffects(next));
+        }
 
         if (previous == current && !changed.Reconnect)
         {
-            return Plain(next);
+            return new ReduceResult(next, effects);
         }
 
         var replaced = next with { Session = SiteSession.Empty(current) };
-        var effects = new List<Effect>();
 
         if (previous is not null)
         {
@@ -522,21 +539,47 @@ public static class ProfileReducer
         return next is null ? " No profile will be active." : $" {next} becomes the active profile.";
     }
 
-    private static ReduceResult OpenList(AppState state)
+    /// <summary>
+    /// Opens the profile manager screen (also with no profile: the first-run screen) and asks the host where each
+    /// token comes from.
+    /// </summary>
+    public static ReduceResult OpenManager(AppState state)
     {
-        if (state.Profiles.Profiles.Count == 0)
-        {
-            return Add(state);
-        }
-
         var active = state.Profiles.Profiles.ToList().FindIndex(profile => profile.Name == state.Profiles.ActiveName);
-
-        return Plain(state with
+        var opened = state with
         {
             Mode = InputMode.Insert,
+            PendingKeys = string.Empty,
             ProfileList = new ProfileListState(Math.Max(0, active)),
             Message = null,
-        });
+        };
+
+        return new ReduceResult(opened, TokenSourceEffects(opened));
+    }
+
+    /// <summary>The state at start when there is no profile: the manager is the first screen. Keeps any notice.</summary>
+    public static AppState FirstRun(AppState state)
+    {
+        if (state.Profiles.Profiles.Count > 0)
+        {
+            return state;
+        }
+
+        return state with
+        {
+            Mode = InputMode.Insert,
+            ProfileList = new ProfileListState(0),
+        };
+    }
+
+    private static ReduceResult OpenList(AppState state)
+    {
+        return OpenManager(state);
+    }
+
+    private static IReadOnlyList<Effect> TokenSourceEffects(AppState state)
+    {
+        return state.Profiles.Profiles.Count == 0 ? _noEffects : [new LoadTokenSourcesEffect(state.Profiles.Profiles)];
     }
 
     private static Profile? Highlighted(AppState state, int? row)

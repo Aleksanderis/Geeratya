@@ -30,7 +30,7 @@ public class ProfileEditTests
         Assert.Equal("https://dev.atlassian.net", form.SiteUrl);
         Assert.Equal("me@dev.test", form.Email);
         Assert.True(form.Token.IsEmpty);
-        Assert.Null(result.State.ProfileList);
+        Assert.NotNull(result.State.ProfileList);
         Assert.Equal(InputMode.Insert, result.State.Mode);
     }
 
@@ -43,7 +43,7 @@ public class ProfileEditTests
 
         Assert.False(result.State.Form!.IsEdit);
         Assert.Equal(string.Empty, result.State.Form.Name);
-        Assert.Null(result.State.ProfileList);
+        Assert.NotNull(result.State.ProfileList);
     }
 
     [Fact]

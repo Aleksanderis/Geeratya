@@ -74,6 +74,16 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
+    /// <summary>The hints shown while the profile manager is open (Insert mode, <see cref="AppState.ProfileList"/>).</summary>
+    public static readonly IReadOnlyList<StatusHint> ManagerHints =
+    [
+        new(InputMode.Insert, ActionIds.FormNext, "switch"),
+        new(InputMode.Insert, ActionIds.ProfileAdd, "add"),
+        new(InputMode.Insert, ActionIds.ProfileEdit, "edit"),
+        new(InputMode.Insert, ActionIds.ProfileRemove, "remove"),
+        new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
     /// <summary>The hints shown while the comment editor is open (Insert mode, <see cref="AppState.Editor"/>).</summary>
     public static IReadOnlyList<StatusHint> EditorHints { get; } =
     [
@@ -304,6 +314,11 @@ public static class StatusBar
         if (state is { Mode: InputMode.Insert, Form: { } profile })
         {
             return new HintList([], TextsOf(ProfileHints(profile.Field), state.Mode, HintScope.Global, keymap, level));
+        }
+
+        if (state is { Mode: InputMode.Insert, ProfileList: not null })
+        {
+            return new HintList([], TextsOf(ManagerHints, state.Mode, HintScope.Global, keymap, level));
         }
 
         if (state.Confirm?.Title is not null)
@@ -543,9 +558,36 @@ public static class StatusBar
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
+            InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now, viewRoom),
         };
+    }
+
+    /// <summary>
+    /// The profile manager's line: the notice when there is one, else only what is known for the active profile (its
+    /// name and the result of its connection check); no request goes to an inactive site.
+    /// </summary>
+    private static string ManagerText(AppState state)
+    {
+        if (state.Status is { } status)
+        {
+            return status.Line;
+        }
+
+        if (state.Message is not null)
+        {
+            return state.Message;
+        }
+
+        if (state.Profiles.Active is not { } active)
+        {
+            return "No active profile";
+        }
+
+        var connection = ConnectionText.Line(state.Session);
+
+        return connection.Length == 0 ? $"Active: {active.Name}" : $"Active: {active.Name}{Separator}{connection}";
     }
 
     private static string EditorText(CommentEditor editor)

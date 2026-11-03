@@ -41,7 +41,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | PaletteRow | Click | `form.next` | O | Command palette: runs the clicked action, same as `Enter` on it (the palette closes first, so a form or Confirm opens as usual); a click on a subheader or a gap does nothing |
 | PaletteRow | Wheel up | `picker.previous` | O | Command palette: moves the highlight up 3 rows over the list (runs nothing) |
 | PaletteRow | Wheel down | `picker.next` | O | Command palette: moves the highlight down 3 rows over the list (runs nothing) |
-| ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
+| ProfileRow | Click | `form.next` | O | Profile manager: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
 | ProfileRow | Right-click | `profile.remove` | O | Profile list: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
 | ProfileAddButton | Click | `profile.add` | O | Profile list: opens the empty profile form, same as `Ctrl-a` |
 | ProfileEditButton | Click | `profile.edit` | O | Profile list: opens the form of the highlighted profile, same as `Ctrl-e` |

@@ -19,7 +19,7 @@ public class OverlayLookTests
 
     private static readonly string[] _names =
     [
-        "help", "jump", "form", "form-picker", "editor", "contextmenu", "profiles", "confirm", "palette", "picker",
+        "help", "jump", "form", "form-picker", "editor", "contextmenu", "confirm", "palette", "picker",
     ];
 
     public static TheoryData<string, int, int> Screens

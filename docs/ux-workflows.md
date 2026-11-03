@@ -5,7 +5,7 @@ The flows of Milestone 1 (read your board), step by step. Screens and their stat
 ## 0. Start, connection check, first view
 
 1. The shell draws its first frame before any network reply: tab bar, empty body with the hint line, status bar.
-2. With an active profile the status line shows `Checking <host>…` and the body stays as it is (cached views are shown with the `STALE` banner once the cache issue stores them). Without a profile the start screen says `:profile add`.
+2. With an active profile the status line shows `Checking <host>…` and the body stays as it is (cached views are shown with the `STALE` banner once the cache issue stores them). Without a profile the profile manager is the first screen.
 3. The check is `GET /myself`. Success: `Connected as <name>`. 401: the banner explains the token was rejected (screens, "Errors"). Network failure: `OFFLINE`, cached views stay usable.
 4. After the first frame the shell reads the active profile's remembered tabs (`tabs.json`, definitions only). Remembered tabs reopen as they were (source, layout, quick filters, swimlane and lane, the active tab); only the active one loads at once, the others when first shown, each from the disk cache with the `STALE` banner until the refresh arrives. A tab whose board or filter is gone (404) is dropped with a status note. With nothing remembered (first start, or all tabs closed) the board picker opens once the connection check succeeds, or the board itself when the site has exactly one; the empty start screen only shows without a profile, while offline, or when the picker was dismissed. `:set startup.restore off` skips the file and always starts on the board picker. Switching profile reads that profile's tabs.
 
@@ -47,7 +47,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 
 `:profile switch <name>` replaces the connection; every tab, stack and cache of the old profile is dropped (`ux.md` "Profiles"). The new profile starts with no tabs, and the check line runs again. A reply that arrives for the old profile is ignored.
 
-Add, edit and remove profiles: the profile list (`:profile list`, or `:profile` with a profile saved) is the manager. `Ctrl-a` adds, `Ctrl-e` edits the highlighted profile, `Ctrl-x` removes it after a confirm that names what is deleted (the profile entry and its stored token; Jira data is untouched and Jira cannot undo anything here). The form tests the connection on demand (`Alt-t`) and an edit never asks for the token again unless it should change (`ux.md`, "Profiles"). First run: the start screen says `:profile add`; `:profile` with no profile opens the add form.
+Add, edit and remove profiles: the profile list (`:profile list`, or `:profile` with a profile saved) is the manager. `Ctrl-a` adds, `Ctrl-e` edits the highlighted profile, `Ctrl-x` removes it after a confirm that names what is deleted (the profile entry and its stored token; Jira data is untouched and Jira cannot undo anything here). The form tests the connection on demand (`Alt-t`) and an edit never asks for the token again unless it should change (`ux.md`, "Profiles"). First run: with no profile the manager screen opens at start (empty list, `Ctrl-a` adds one); `:profile` with no profile opens it too, and `:profile add` opens the form directly. The manager stays open under the form and under the remove question and shows the new list after a save.
 
 ## 8. Write something (M2)
 

@@ -7,7 +7,7 @@ using Geeratya.Tui.Rendering;
 namespace Geeratya.Tui.Tests.Rendering;
 
 [Trait("Os", "Independent")]
-public class ProfileListOverlayTests
+public class ProfileManagerScreenTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
@@ -32,9 +32,74 @@ public class ProfileListOverlayTests
     {
         var text = string.Join('\n', FrameBuilder.BuildStyled(Sample(), 100, 24, _keymap)!.PlainLines());
 
-        Assert.Contains("(active)", text, StringComparison.Ordinal);
+        Assert.Contains("●", text, StringComparison.Ordinal);
         Assert.Contains("Ctrl-x remove", text, StringComparison.Ordinal);
         Assert.Contains("Enter switch", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheOpenManager_WhenBuildingTheFrame_ThenItIsTheWholeBodyWithTheProfilesChipAndNoTabs()
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(), 100, 24, _keymap)!;
+        var lines = frame.PlainLines();
+
+        Assert.Contains("Profiles", frame.Header[0].PlainText, StringComparison.Ordinal);
+        Assert.StartsWith("╭", frame.Body[0].PlainText, StringComparison.Ordinal);
+        Assert.Contains("Profiles 2", lines[2], StringComparison.Ordinal);
+        Assert.Contains("Details", lines[2], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAKnownTokenSource_WhenBuildingTheFrame_ThenTheDetailsNameTheSourceAndNeverTheToken()
+    {
+        var state = Sample() with
+        {
+            TokenSources = new Dictionary<string, TokenSourceKind> { [_work.CredentialKey] = TokenSourceKind.SecretStore },
+        };
+        var text = string.Join('\n', FrameBuilder.BuildStyled(state, 100, 24, _keymap)!.PlainLines());
+        var other = Sample() with { ProfileList = new ProfileListState(1) };
+        var otherText = string.Join('\n', FrameBuilder.BuildStyled(other, 100, 24, _keymap)!.PlainLines());
+
+        Assert.Contains("Token    OS secret store", text, StringComparison.Ordinal);
+        Assert.Contains("https://work.atlassian.net", text, StringComparison.Ordinal);
+        Assert.Contains("looking up", otherText, StringComparison.Ordinal);
+        Assert.Contains("not checked", otherText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAnEnvironmentTokenAndNone_WhenReadingTheTokenText_ThenTheSourceIsNamed()
+    {
+        var sources = new Dictionary<string, TokenSourceKind>
+        {
+            [_work.CredentialKey] = TokenSourceKind.EnvironmentVariable,
+            [_dev.CredentialKey] = TokenSourceKind.None,
+        };
+        var state = Sample() with { TokenSources = sources };
+
+        Assert.Equal("env GEERATYA_TOKEN", ProfileManagerScreen.TokenText(state, _work));
+        Assert.Equal("not set", ProfileManagerScreen.TokenText(state, _dev));
+    }
+
+    [Fact]
+    public void GivenNoProfile_WhenBuildingTheFrame_ThenTheFirstRunScreenOffersToAddOne()
+    {
+        var state = ProfileReducer.FirstRun(AppState.Initial);
+        var text = string.Join('\n', FrameBuilder.BuildStyled(state, 100, 24, _keymap)!.PlainLines());
+
+        Assert.NotNull(state.ProfileList);
+        Assert.Equal(InputMode.Insert, state.Mode);
+        Assert.Contains("No profile yet.", text, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-a adds one.", text, StringComparison.Ordinal);
+        Assert.Contains("API token", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenANarrowTerminal_WhenBuildingTheFrame_ThenTheListShowsWithoutTheDetailsPane()
+    {
+        var text = string.Join('\n', FrameBuilder.BuildStyled(Sample(), 50, 14, _keymap)!.PlainLines());
+
+        Assert.DoesNotContain("Details", text, StringComparison.Ordinal);
+        Assert.Contains("work", text, StringComparison.Ordinal);
     }
 
     [Fact]
