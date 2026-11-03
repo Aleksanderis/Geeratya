@@ -31,6 +31,9 @@ public sealed class SiteCaches : IDisposable
     /// <summary>Raised with a one-line notice when a profile's cache could not be written.</summary>
     public event Action<string>? WriteFailed;
 
+    /// <summary>Raised with a one-line notice when a cache file of a profile could not be read.</summary>
+    public event Action<string>? ReadProblem;
+
     /// <summary>The folder of a profile's cache (it may not exist yet).</summary>
     public string FolderOf(Profile profile)
     {
@@ -52,6 +55,7 @@ public sealed class SiteCaches : IDisposable
             var created = new SiteCache(folder, _permissions, _debounce, _maxDiskBytes);
 
             created.WriteFailed += OnWriteFailed;
+            created.ReadProblem += OnReadProblem;
             _open[folder] = created;
 
             return created;
@@ -143,5 +147,10 @@ public sealed class SiteCaches : IDisposable
     private void OnWriteFailed(string notice)
     {
         WriteFailed?.Invoke(notice);
+    }
+
+    private void OnReadProblem(string notice)
+    {
+        ReadProblem?.Invoke(notice);
     }
 }

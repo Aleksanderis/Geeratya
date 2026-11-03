@@ -170,8 +170,20 @@ public class ViewCacheReducerTests
     [Fact]
     public void GivenWriteFailureNotice_WhenReduced_ThenTheStatusLineShowsIt()
     {
-        var result = _reducer.Reduce(AppState.Initial, new CacheWriteFailed("cache broke"));
+        var result = _reducer.Reduce(AppState.Initial, new CacheProblem("cache broke"));
 
+        Assert.Equal("cache broke", result.State.Message);
+        Assert.Equal(["cache broke"], result.State.StartupProblems);
+    }
+
+    [Fact]
+    public void GivenStartupProblem_WhenCacheProblemArrives_ThenBothAreListedAndTheNewOneShows()
+    {
+        var state = StatusMessages.AddStartupProblems(AppState.Initial, ["Keymap: bad"]);
+
+        var result = _reducer.Reduce(state, new CacheProblem("cache broke"));
+
+        Assert.Equal(["Keymap: bad", "cache broke"], result.State.StartupProblems);
         Assert.Equal("cache broke", result.State.Message);
     }
 

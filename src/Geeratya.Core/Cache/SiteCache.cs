@@ -60,6 +60,7 @@ public sealed class SiteCache : IDisposable
     private bool _viewsRemoved;
     private int _viewsRemovedEpoch;
     private bool _failureReported;
+    private bool _readProblemReported;
 
     public SiteCache(
         string folder,
@@ -76,6 +77,13 @@ public sealed class SiteCache : IDisposable
 
     /// <summary>Raised (on a background thread) with a one-line notice when a write failed; once per cache.</summary>
     public event Action<string>? WriteFailed;
+
+    /// <summary>
+    /// Raised (on a background thread) with a one-line notice when a cache file could not be read (unreadable or
+    /// corrupt; a corrupt one is deleted); once per cache. Found while a view or issue is read, so no extra disk scan.
+    /// Raised while the disk lock is held: a subscriber must not call back into the cache.
+    /// </summary>
+    public event Action<string>? ReadProblem;
 
     /// <summary>The file name of a view: a hash of the key, so no JQL or site data appears in it.</summary>
     public static string ViewFileName(CacheKey key)
@@ -516,11 +524,14 @@ public sealed class SiteCache : IDisposable
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
+                ReportReadProblem(exception);
+
                 return null;
             }
             catch (Exception exception) when (exception is JsonException or NotSupportedException or ArgumentException)
             {
-                // Corrupt or foreign content: fall through to the delete below.
+                // Corrupt or foreign content: report it, then fall through to the delete below.
+                ReportReadProblem(exception);
             }
 
             DeleteQuietly(path);
@@ -553,11 +564,14 @@ public sealed class SiteCache : IDisposable
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
+                ReportReadProblem(exception);
+
                 return null;
             }
             catch (Exception exception) when (exception is JsonException or NotSupportedException or ArgumentException)
             {
-                // Corrupt or foreign content: fall through to the delete below.
+                // Corrupt or foreign content: report it, then fall through to the delete below.
+                ReportReadProblem(exception);
             }
 
             DeleteQuietly(path);
@@ -637,6 +651,22 @@ public sealed class SiteCache : IDisposable
             total -= file.Length;
             DeleteQuietly(file.FullName);
         }
+    }
+
+    private void ReportReadProblem(Exception exception)
+    {
+        lock (_memoryLock)
+        {
+            if (_readProblemReported)
+            {
+                return;
+            }
+
+            _readProblemReported = true;
+        }
+
+        ReadProblem?.Invoke(
+            $"A local cache file could not be read ({exception.GetType().Name}); the data is loaded from Jira again.");
     }
 
     private void ReportFailure(Exception exception)

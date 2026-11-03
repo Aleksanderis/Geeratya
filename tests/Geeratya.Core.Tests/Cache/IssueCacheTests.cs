@@ -24,6 +24,23 @@ public sealed class IssueCacheTests : IDisposable
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"geeratya-issue-cache-{Guid.NewGuid():N}");
 
     [Fact]
+    public void GivenCorruptIssueFile_WhenReading_ThenOneReadProblemIsRaisedAndTheFileDeleted()
+    {
+        var folder = Path.Combine(_root, "p");
+        var path = Path.Combine(folder, SiteCache.IssueFileName("A-1"));
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(path, "not json at all");
+        var notices = new List<string>();
+        using var cache = new SiteCache(folder);
+        cache.ReadProblem += notices.Add;
+
+        Assert.Null(cache.GetIssue("A-1"));
+
+        Assert.Single(notices);
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
     public void GivenIssueWithRichDescription_WhenReadByANewCache_ThenTheWholeFileRoundTripsAndRendersTheSame()
     {
         var detail = Detail("GTM-5", AdfTestSupport.FixtureDescription(AdfTestSupport.RichDescription));
