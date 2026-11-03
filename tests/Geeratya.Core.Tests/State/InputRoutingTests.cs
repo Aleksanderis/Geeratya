@@ -1,5 +1,9 @@
+using Geeratya.Core.Comments;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -131,6 +135,107 @@ public class InputRoutingTests
 
         Assert.Equal(byKey.State, byGesture.State);
         Assert.Equal(byKey.Effects, byGesture.Effects);
+    }
+
+    [Theory]
+    [InlineData("q")]
+    [InlineData("g")]
+    [InlineData(":")]
+    public void GivenTheProfileForm_WhenAnyKeyArrives_ThenItIsTextAndNoBodyActionRuns(string key)
+    {
+        var form = TypeAndSubmit("profile add");
+
+        var route = InputRouting.Route(form, key, _keymap);
+        var result = Press(form, key);
+
+        Assert.Equal(KeyRouteKind.Text, route.Kind);
+        Assert.Empty(result.Effects);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+    }
+
+    [Theory]
+    [InlineData("q")]
+    [InlineData("g")]
+    [InlineData(":")]
+    [InlineData("Enter")]
+    public void GivenConfirmOpen_WhenAnyOtherKeyArrives_ThenItIsSwallowedAndTheDialogStays(string key)
+    {
+        var confirm = _reducer.Reduce(
+            AppState.Initial,
+            new ConfirmRequested(new ConfirmRequest("Do it?", ActionIds.Quit))).State;
+
+        var route = InputRouting.Route(confirm, key, _keymap);
+        var result = Press(confirm, key);
+
+        Assert.NotEqual(KeyRouteKind.Count, route.Kind);
+        Assert.Empty(result.Effects);
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.NotNull(result.State.Confirm);
+    }
+
+    [Fact]
+    public void GivenTheEditorWithAPopup_WhenPressingEsc_ThenThePopupClosesBeforeTheEditor()
+    {
+        var editing = Editing();
+        var typed = Press(Press(Press(editing, "h").State, KeyNotation.Space).State, "@").State;
+        var route = InputRouting.Route(typed, "Esc", _keymap);
+
+        var result = Press(typed, "Esc");
+
+        Assert.Equal(KeyRouteKind.SuggestionPopup, route.Kind);
+        Assert.NotNull(result.State.Editor);
+        Assert.Null(result.State.Editor!.Suggest);
+    }
+
+    [Fact]
+    public void GivenTheEditorWithoutAPopup_WhenTypingAKey_ThenItIsTextForTheEditor()
+    {
+        var route = InputRouting.Route(Editing(), "x", _keymap);
+
+        Assert.Equal(KeyRouteKind.Text, route.Kind);
+    }
+
+    [Fact]
+    public void GivenTheSameAction_WhenRunFromThePaletteAndByKey_ThenTheOutcomeMatches()
+    {
+        var byKey = Press(AppState.Initial, "q");
+        var byPalette = Press(TypeAndSubmitState("quit"), "Enter");
+        var byGesture = _reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.Quit));
+
+        Assert.Single(byKey.Effects.OfType<QuitEffect>());
+        Assert.Single(byPalette.Effects.OfType<QuitEffect>());
+        Assert.Single(byGesture.Effects.OfType<QuitEffect>());
+    }
+
+    private AppState TypeAndSubmit(string text)
+    {
+        return Press(TypeAndSubmitState(text), "Enter").State;
+    }
+
+    private AppState TypeAndSubmitState(string text)
+    {
+        var state = Press(AppState.Initial, ":").State;
+
+        foreach (var character in text)
+        {
+            state = Press(state, character == ' ' ? KeyNotation.Space : character.ToString()).State;
+        }
+
+        return state;
+    }
+
+    private static AppState Editing()
+    {
+        var profiles = ProfileCatalog.Empty.With(new Profile("work", "https://work.atlassian.net", "me@work.test"));
+        var editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Empty, string.Empty);
+
+        return AppState.Initial with
+        {
+            Profiles = profiles,
+            Session = SiteSession.Empty(profiles.Active),
+            Mode = InputMode.Insert,
+            Editor = editor,
+        };
     }
 
     private ReduceResult Press(AppState state, string key)

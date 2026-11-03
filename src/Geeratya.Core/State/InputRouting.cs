@@ -42,8 +42,8 @@ public sealed record KeyRoute(KeyRouteKind Kind, KeyResolution? Resolution = nul
 /// <summary>
 /// The one ordered list of who is asked first when a key arrives (<c>docs/architecture.md</c>, "Input routing").
 /// Overlays and editors come before global actions and the body, so an overlay swallows every key. Mouse gestures
-/// and palette entries do not come through here: they end in an action request that runs the same handler a key
-/// binding does.
+/// and palette entries do not choose a layer: they end in an action request that runs the same handler a key
+/// binding does (<c>Cancel</c> is the one that goes back through the Esc key path).
 /// </summary>
 public static class InputRouting
 {
@@ -108,6 +108,7 @@ public static class InputRouting
             && resolution.Action == ActionIds.Cancel
             && state.Mode == InputMode.Normal
             && state.PendingKeys.Length == 0
+            && state.Count == 0
             && state.Status is null
             && state.Message is null
             && ViewReducer.CanGoBack(state);

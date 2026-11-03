@@ -172,6 +172,23 @@ public class FormOpenerTests
         Assert.Null(saved.State.Session.Tabs[0].Rows[0].Assignee);
     }
 
+    [Theory]
+    [InlineData("q")]
+    [InlineData("g")]
+    [InlineData(":")]
+    public void GivenAnOpenFieldForm_WhenAnyKeyArrives_ThenTheFormRouteTakesItAndTheBodyNeverSeesIt(string key)
+    {
+        var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
+
+        var route = InputRouting.Route(opened, key, DefaultKeymap.Load());
+        var result = Press(opened, key);
+
+        Assert.Equal(KeyRouteKind.Form, route.Kind);
+        Assert.Empty(result.Effects.OfType<QuitEffect>());
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+        Assert.NotNull(result.State.Session.Tabs[0].Form);
+    }
+
     [Fact]
     public void GivenTheCurrentAssignee_WhenEnterIsPressedAtOnce_ThenNothingIsWrittenAndTheyStayAssigned()
     {

@@ -309,18 +309,18 @@ Reducer tests drive `WriteRequested`, `WriteSucceeded`, `WriteFailed` and `Write
 
 ## Input routing
 
-Every way into the app ends in one action: a key resolves against the keymap to an action id, a mouse gesture comes as an `ActionRequested` (or `PointerPlaced` with the action that came with it), and a palette entry runs the same action id. All of them reach `AppReducer.Apply`, so the same action runs the same handler whatever the input. Only keys need an ordering, because a key can mean different things depending on what is open. `InputRouting` (`Core/State`) holds that order; `AppReducer.ReduceKey` switches on its answer (`KeyRouteKind`). The first layer that takes the key wins:
+Every way into the app ends in one action: a key resolves against the keymap to an action id, a mouse gesture comes as an `ActionRequested` (or `PointerPlaced` with the action that came with it), and a palette entry runs the same action id. All of them end in `AppReducer.Apply` (`Cancel` goes back through the `Esc` key path, which is the same handler), so the same action runs the same handler whatever the input. Only keys need an ordering, because a key can mean different things depending on what is open. `InputRouting` (`Core/State`) holds that order; `AppReducer.ReduceKey` switches on its answer (`KeyRouteKind`). The first layer that takes the key wins:
 
 1. Suggestion popup of the comment editor (move, accept, close), only for the keys it uses.
 2. An open field form (create, edit, link, profile add): it takes every key.
 3. Count digit (`1`-`9`, then `0`), Normal mode with no half-typed chord only.
 4. Chord prefix (`g`, `<space>`): the key is held in `PendingKeys`, nothing runs.
-5. Back out: `Esc` in Normal mode with nothing typed and no notice pops the issue stack.
+5. Back out: `Esc` in Normal mode with no chord or count typed and no notice pops the issue stack.
 6. Dismiss: `Esc` in Normal mode with a notice showing ends the notice (nothing is popped in the same press).
 7. Action: the key completes a binding of the current mode (overlays have their own modes, so an open overlay or prompt owns its keys and nothing falls through to the body).
 8. Text: no binding. Insert and Command mode type it (so text never fires chords or `q`); other modes ignore it.
 
-`InputRoutingTests` has a test per rule. A new overlay or editor is a mode (or a layer above) in this list, never a check added inside a body action.
+`InputRoutingTests` has a test per rule (the back-out and field-form cases sit in `IssueDetailReducerTests` and `FormOpenerTests`, where those states are built). A new overlay or editor is a mode (or a layer above) in this list, never a check added inside a body action.
 
 ## Cross-platform
 
