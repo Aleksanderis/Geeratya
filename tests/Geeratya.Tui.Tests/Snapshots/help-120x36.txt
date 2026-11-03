@@ -1,36 +1,36 @@
                                                                                                                         
                                                                                                                         
-Help                                                                                                                    
-Global  All actions  Commands                                                                                           
-  ?          Show or hide help                                                                                          
-  q          Quit  (Ctrl-c)                                                                                             
-  Esc        Cancel or close                                                                                            
-  :          Open the command palette  (Ctrl-p)                                                                         
-  Space A    Open the actions menu of the tab and the view                                                              
-  Tab        Next tab  (g t)                                                                                            
-  Shift-Tab  Previous tab  (g T)                                                                                        
-  Alt-1      Go to tab 1                                                                                                
-  Alt-2      Go to tab 2                                                                                                
-  Alt-3      Go to tab 3                                                                                                
-  Alt-4      Go to tab 4                                                                                                
-  Alt-5      Go to tab 5                                                                                                
-  Alt-6      Go to tab 6                                                                                                
-  Alt-7      Go to tab 7                                                                                                
-  Alt-8      Go to tab 8                                                                                                
-  Alt-9      Go to tab 9                                                                                                
-  Space t    Open the source picker for a new tab                                                                       
-  Space c    Close the tab                                                                                              
-  Space r    Refresh the view (also retries after an error)                                                             
-  Space *    Switch the command level for the session                                                                   
-  Space i c  Create an issue (type picker, then the form)                                                               
-  Space g    Jump to an issue by key                                                                                    
-  Space n    Show the message history                                                                                   
-  Space x    Dismiss the status message                                                                                 
                                                                                                                         
+            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            │ > Global      │   ?          Show or hide help                                               │            
+            │   All actions │   q          Quit  (Ctrl-c)                                                  │            
+            │   Commands    │   Esc        Cancel or close                                                 │            
+            │               │   :          Open the command palette  (Ctrl-p)                              │            
+            │               │   Space A    Open the actions menu of the tab and the view                   │            
+            │               │   Tab        Next tab  (g t)                                                 │            
+            │               │   Shift-Tab  Previous tab  (g T)                                             │            
+            │               │   Alt-1      Go to tab 1                                                     │            
+            │               │   Alt-2      Go to tab 2                                                     │            
+            │               │   Alt-3      Go to tab 3                                                     │            
+            │               │   Alt-4      Go to tab 4                                                     │            
+            │               │   Alt-5      Go to tab 5                                                     │            
+            │               │   Alt-6      Go to tab 6                                                     │            
+            │               │   Alt-7      Go to tab 7                                                     │            
+            │               │   Alt-8      Go to tab 8                                                     │            
+            │               │   Alt-9      Go to tab 9                                                     │            
+            │               │   Space t    Open the source picker for a new tab                            │            
+            │               │   Space c    Close the tab                                                   │            
+            │               │   Space r    Refresh the view (also retries after an error)                  │            
+            │               │   Space *    Switch the command level for the session                        │            
+            │               │   Space i c  Create an issue (type picker, then the form)                    │            
+            │               │   Space g    Jump to an issue by key                                         │            
+            │               │   Space n    Show the message history                                        │            
+            │               │   Space x    Dismiss the status message                                      │            
+            │               │                                                                              │            
+            │               │                                                                              │            
+            │               │                                                                              │            
+            │               │                                                                              │            
+            │               │                                                                              │            
+            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
- HELP                                                                        Tab page  / filter  j down  k up  Esc close
+ HELP                                                                           j section  J scroll  / filter  Esc close

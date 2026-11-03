@@ -60,7 +60,7 @@ public class HelpPageSnapshotTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.StartsWith("/mo_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("┌─ Help  / mo_"));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class HelpPageSnapshotTests
     }
 
     [Fact]
-    public void GivenTheFrame_WhenBuildingTheHelp_ThenEachPageNameIsAClickableRegionInTheRowUnderTheTitle()
+    public void GivenTheFrame_WhenBuildingTheHelp_ThenEachSectionNameIsAClickableRegionInTheMenu()
     {
         var frame = FrameBuilder.BuildStyled(StateFor("list"), 80, 24, _keymap)!;
 
@@ -92,22 +92,23 @@ public class HelpPageSnapshotTests
         var regions = frame.Regions.Where(region => region.Target == MouseTarget.HelpPage).ToList();
 
         Assert.Equal(names.Count, regions.Count);
-        Assert.All(regions, region => Assert.Equal(FrameBuilder.HeaderRows + 1, region.Top));
-
-        var row = frame.Body[1].PlainText;
 
         for (var index = 0; index < names.Count; index++)
         {
-            Assert.Equal(names[index], row.Substring(regions[index].Left, regions[index].Width));
+            var row = frame.Body[regions[index].Top - FrameBuilder.HeaderRows].PlainText;
+
+            Assert.Contains(names[index], row.Substring(regions[index].Left, regions[index].Width));
             Assert.Equal(index, regions[index].Index);
         }
+
+        Assert.Contains("> ", frame.Body[regions[0].Top - FrameBuilder.HeaderRows].PlainText);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(2)]
     [InlineData(4)]
-    public void GivenANarrowFrame_WhenAPageIsSelected_ThenItsNameIsFullyVisibleAndClickable(int page)
+    public void GivenANarrowFrame_WhenASectionIsSelected_ThenItsMenuEntryIsMarkedAndClickable(int page)
     {
         const string json = """
             { "bindings": [ { "mode": "normal", "keys": "Ctrl-q", "action": "app.quit" } ] }
@@ -118,19 +119,12 @@ public class HelpPageSnapshotTests
         custom.Replace(result.Bindings, result.Custom);
 
         var state = StateFor("detail") with { HelpPage = page };
-        var names = HelpPages.Names(state, custom);
         var frame = FrameBuilder.BuildStyled(state, 40, 10, custom)!;
         var region = frame.Regions.Single(candidate => candidate.Target == MouseTarget.HelpPage && candidate.Index == page);
-        var row = frame.Body[1].PlainText;
+        var row = frame.Body[region.Top - FrameBuilder.HeaderRows].PlainText;
 
-        Assert.True(names.Sum(name => name.Length) + (names.Count - 1) * 2 > 40);
-        Assert.Equal(names[page], row.Substring(region.Left, region.Width));
+        Assert.StartsWith("> ", row.Substring(region.Left, region.Width));
         Assert.True(region.Left + region.Width <= 40);
-
-        if (page == names.Count - 1)
-        {
-            Assert.DoesNotContain(frame.Regions, candidate => candidate.Target == MouseTarget.HelpPage && candidate.Index == 0);
-        }
     }
 
     [Fact]

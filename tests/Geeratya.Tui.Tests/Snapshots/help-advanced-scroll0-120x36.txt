@@ -1,36 +1,36 @@
                                                                                                                         
                                                                                                                         
-Help                                                                                                                    
-Global  All actions  Commands                                                                                           
-Issue                                                                                                                   
-  Space o    Open the issue in the browser                                                                              
-  Space p    Open the parent issue                                                                                      
-  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
-  Space i a  Assign the issue: search people, or unassign                                                               
-  Space i m  Assign the issue to me                                                                                     
-  Space i s  Change the status of the issue                                                                             
-  Alt-l      Move the card to the next column                                                                           
-  Alt-h      Move the card to the previous column                                                                       
-  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
-  Space i c  Create an issue (type picker, then the form)                                                               
-  Space i C  Create a sub-task of the selected issue                                                                    
-  Space i l  Link the issue to another issue                                                                            
-  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
-  Space g    Jump to an issue by key                                                                                    
-Comment                                                                                                                 
-  Space m a  Add a comment to the issue                                                                                 
-  Space m e  Edit the comment under the cursor                                                                          
-  Space m d  Delete the comment under the cursor                                                                        
-Rank                                                                                                                    
-  Alt-k      Rank the issue up (a count moves it that many places)                                                      
-  Alt-j      Rank the issue down (a count moves it that many places)                                                    
-  Space k t  Rank the issue to the top of the list or column                                                            
-  Space k b  Rank the issue to the bottom of the list or column                                                         
-  Space k k  Pick up the issue, then drop it at the issue under the cursor                                              
-Selection                                                                                                               
-  v          Start or end Visual mode (a range of rows)                                                                 
-  Alt-m      Mark or unmark the selected row and move down                                                              
-View                                                                                                                    
-  Space A    Open the actions menu of the tab and the view                                                              
-  Space r    Refresh the view (also retries after an error)                                                             
- HELP                                                                        Tab page  / filter  j down  k up  Esc close
+                                                                                                                        
+            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            │   Global      │ Issue                                                                        │            
+            │ > All actions │   Space o    Open the issue in the browser                                   │            
+            │   Commands    │   Space p    Open the parent issue                                           │            
+            │               │   Space i e  Edit fields of the issue (summary, labels, priority, descriptio │            
+            │               │   Space i a  Assign the issue: search people, or unassign                    │            
+            │               │   Space i m  Assign the issue to me                                          │            
+            │               │   Space i s  Change the status of the issue                                  │            
+            │               │   Alt-l      Move the card to the next column                                │            
+            │               │   Alt-h      Move the card to the previous column                            │            
+            │               │   Space i d  Delete the issue (asks first; Jira cannot undo it)              │            
+            │               │   Space i c  Create an issue (type picker, then the form)                    │            
+            │               │   Space i C  Create a sub-task of the selected issue                         │            
+            │               │   Space i l  Link the issue to another issue                                 │            
+            │               │   Space i u  Remove the link under the cursor (asks first; Jira cannot undo  │            
+            │               │   Space g    Jump to an issue by key                                         │            
+            │               │ Comment                                                                      │            
+            │               │   Space m a  Add a comment to the issue                                      │            
+            │               │   Space m e  Edit the comment under the cursor                               │            
+            │               │   Space m d  Delete the comment under the cursor                             │            
+            │               │ Rank                                                                         │            
+            │               │   Alt-k      Rank the issue up (a count moves it that many places)           │            
+            │               │   Alt-j      Rank the issue down (a count moves it that many places)         │            
+            │               │   Space k t  Rank the issue to the top of the list or column                 │            
+            │               │   Space k b  Rank the issue to the bottom of the list or column              │            
+            │               │   Space k k  Pick up the issue, then drop it at the issue under the cursor   │            
+            │               │ Selection                                                                    │            
+            │               │   v          Start or end Visual mode (a range of rows)                      │            
+            │               │   Alt-m      Mark or unmark the selected row and move down                   │            
+            │               │ View                                                                         │            
+            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+                                                                                                                        
+ HELP                                                                           j section  J scroll  / filter  Esc close

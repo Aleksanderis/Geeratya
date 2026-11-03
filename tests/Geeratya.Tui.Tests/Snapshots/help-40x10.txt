@@ -1,10 +1,10 @@
                                         
                                         
-Help                                    
-Global  All actions  Commands           
-  ?          Show or hide help          
-  q          Quit  (Ctrl-c)             
-  Esc        Cancel or close            
-  :          Open the command palette  (
-  Space A    Open the actions menu of th
+                                        
+  ┌─ Help ───────────────────────────┐  
+  │ > Global      │   ?          Sho │  
+  │   All actions │   q          Qui │  
+  │   Commands    │   Esc        Can │  
+  └──────────────────────────────────┘  
+                                        
  HELP                                   

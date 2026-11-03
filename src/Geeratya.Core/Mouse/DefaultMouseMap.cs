@@ -105,6 +105,7 @@ public static class DefaultMouseMap
     private static ReadOnlyDictionary<string, string> BuildExclusions()
     {
         const string pointing = "motion: the pointer places the cursor and the wheel scrolls";
+        const string helpScroll = "scrolls the help page; the wheel does nothing while help is open (the section names are clickable)";
         const string tabClick = "a click on tab N (Tabs row)";
 
         var exclusions = new Dictionary<string, string>
@@ -130,8 +131,12 @@ public static class DefaultMouseMap
             [ActionIds.TabGoTo7] = tabClick,
             [ActionIds.TabGoTo8] = tabClick,
             [ActionIds.TabGoTo9] = tabClick,
-            [ActionIds.HelpPagePrevious] = "a click on the page name shows that page",
-            [ActionIds.HelpFilter] = "the filter is typed text; the page names are the mouse path",
+            [ActionIds.HelpPagePrevious] = "a click on the section name shows that section",
+            [ActionIds.HelpScrollDown] = helpScroll,
+            [ActionIds.HelpScrollUp] = helpScroll,
+            [ActionIds.HelpHalfPageDown] = helpScroll,
+            [ActionIds.HelpHalfPageUp] = helpScroll,
+            [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
             [ActionIds.RankTo] = "no pointer path yet: Ctrl-click marks rows; dragging a row to its place comes with #182",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
