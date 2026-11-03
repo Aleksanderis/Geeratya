@@ -21,4 +21,4 @@ My open issues › GCM-12 · Top
 │ Colored H_2 underlined 2026-01-01 [READY]                                    │
 │                                                                              │
 │ - bullet one                                                                 │
- NORMAL              j/k scroll  Enter open  Esc back  ? help  : command  q quit
+ NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit

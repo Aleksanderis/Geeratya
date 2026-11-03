@@ -66,6 +66,15 @@ public sealed record AppState(
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 
+    /// <summary>When the first key of the pending multi-key binding was typed; the which-key delay counts from it.</summary>
+    public DateTimeOffset? PendingSince { get; init; }
+
+    /// <summary>
+    /// The <see cref="PendingSince"/> of the chord whose which-key popup is open (set by a tick once the delay has
+    /// passed); the popup shows while it equals <see cref="PendingSince"/>, so a new chord starts closed.
+    /// </summary>
+    public DateTimeOffset? WhichKeyOpenFor { get; init; }
+
     public static AppState Initial { get; } =
         new(
             InputMode.Normal,

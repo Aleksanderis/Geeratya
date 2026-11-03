@@ -9,6 +9,12 @@ public static class SettingsRegistry
 
     public const string ThemeName = "theme";
 
+    public const string Full = "full";
+
+    public const string Minimal = "minimal";
+
+    private const string HintsExpected = "full, minimal or off";
+
     private const string ToggleExpected = "on or off";
 
     private const string ThemeExpected = "a theme name";
@@ -18,12 +24,12 @@ public static class SettingsRegistry
         new SettingDefinition(
             "hints",
             "statusHints",
-            SettingKind.Toggle,
-            On,
-            "Show the key hints on the right of the status bar.",
-            settings => Word(settings.StatusHints),
-            (settings, text) => ParseToggle(text) is { } on ? settings with { StatusHints = on } : null,
-            ToggleExpected),
+            SettingKind.Choice,
+            Full,
+            "How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none.",
+            settings => HintWord(settings.StatusHints),
+            ApplyHints,
+            HintsExpected),
         new SettingDefinition(
             "whichkey",
             "whichKey",
@@ -85,6 +91,30 @@ public static class SettingsRegistry
         return string.Join(
             "\n",
             ["| `:set` name | File key | Values | Default | What it does |", "|---|---|---|---|---|", .. rows]);
+    }
+
+    private static string HintWord(HintLevel level)
+    {
+        return level switch
+        {
+            HintLevel.Minimal => Minimal,
+            HintLevel.Off => Off,
+            _ => Full,
+        };
+    }
+
+    /// <summary><c>on</c> is accepted as <c>full</c>, so files and habits from before the levels keep working.</summary>
+    private static AppSettings? ApplyHints(AppSettings settings, string text)
+    {
+        HintLevel? level = text switch
+        {
+            Full or On => HintLevel.Full,
+            Minimal => HintLevel.Minimal,
+            Off => HintLevel.Off,
+            _ => null,
+        };
+
+        return level is { } value ? settings with { StatusHints = value } : null;
     }
 
     private static string Word(bool on)

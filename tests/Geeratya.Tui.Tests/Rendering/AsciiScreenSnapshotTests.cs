@@ -75,7 +75,7 @@ public class AsciiScreenSnapshotTests
         return name switch
         {
             "help" => AppState.Initial with { Mode = InputMode.Help },
-            "whichkey" => AppState.Initial with { PendingKeys = "Space" },
+            "whichkey" => WhichKeyOverlayTests.Opened("Space"),
             "jump" => JumpOverlaySnapshotTests.Sample("gcm"),
             "form" => FormOverlaySnapshotTests.Sample(),
             "form-picker" => FormOverlaySnapshotTests.WithForm(FormOverlaySnapshotTests.PickerForm()),

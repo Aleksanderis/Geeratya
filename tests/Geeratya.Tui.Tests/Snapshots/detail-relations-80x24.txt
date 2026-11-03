@@ -21,4 +21,4 @@ My open issues › GCM-12 · Bot
 ╭─ Comments ───────────────────────────────────────────────────────────────────╮
 > No comments.                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL              j/k scroll  Enter open  Esc back  ? help  : command  q quit
+ NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit

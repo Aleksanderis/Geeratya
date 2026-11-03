@@ -4,7 +4,7 @@
                                         
                 Geeratya                
       No profile yet: :profile add      
-      ? help   : command   q quit       
+      ? help   : commands   q quit      
                                         
                                         
  CONFIRM Delete PROJ-1? Jira canno (y/n)

@@ -99,7 +99,7 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         var load = store.Read();
 
         Assert.True(load.Settings.WhichKey);
-        Assert.False(load.Settings.StatusHints);
+        Assert.Equal(HintLevel.Off, load.Settings.StatusHints);
         Assert.Contains("whichKey must be on or off", Assert.Single(load.Warnings));
 
         store.Write(_whichKey, load.Settings);

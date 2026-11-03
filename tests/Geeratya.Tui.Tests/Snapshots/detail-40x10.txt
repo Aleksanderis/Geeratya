@@ -7,4 +7,4 @@ My open issues › GCM-12 · Top
 │                                      │
 │ Status    In Progress ▾              │
 │ Priority  High ▾                     │
- NORMAL        ? help  : command  q quit
+ NORMAL       ? help  : commands  q quit

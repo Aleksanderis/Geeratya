@@ -27,9 +27,93 @@ public class WhichKeyOverlayTests
     }
 
     [Fact]
+    public void GivenSpaceI_WhenBuildingRows_ThenIssueActionsFormOneClusterInAlphabeticalOrder()
+    {
+        var labels = WhichKeyBuilder.Build(_keymap, InputMode.Normal, "Space i").Select(row => row.Label).ToList();
+
+        Assert.DoesNotContain(string.Empty, labels);
+        Assert.Equal(labels.OrderBy(label => label, StringComparer.OrdinalIgnoreCase), labels);
+    }
+
+    [Fact]
+    public void GivenSpace_WhenBuildingRows_ThenPlainClustersComeBeforeGroupsAndLoneActionsAreLast()
+    {
+        var rows = WhichKeyBuilder.Build(_keymap, InputMode.Normal, "Space");
+        var firstGroup = rows.ToList().FindIndex(row => row.Label.StartsWith('+'));
+        var lastBlank = rows.ToList().FindLastIndex(row => row.IsBlank);
+
+        Assert.True(firstGroup > 0);
+        Assert.True(rows.Take(firstGroup).All(row => !row.Label.StartsWith('+')));
+        Assert.True(rows[firstGroup - 1].IsBlank);
+        Assert.True(lastBlank < rows.Count - 1);
+        Assert.Contains(rows, row => row.Label == "+issue (" + _keymap.NextKeys(InputMode.Normal, "Space").First(next => next.Key == "i").Count + ")");
+        Assert.Contains(rows, row => row.Label.StartsWith("+comment (", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.Label.StartsWith("+rank (", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAnActionListWithSharedPrefixes_WhenBuilding_ThenClustersAreSeparatedByABlankRow()
+    {
+        var keymap = new KeymapTable(
+        [
+            new KeyBinding(InputMode.Normal, "Space b", "rank.top"),
+            new KeyBinding(InputMode.Normal, "Space a", "rank.bottom"),
+            new KeyBinding(InputMode.Normal, "Space c", "issue.delete"),
+            new KeyBinding(InputMode.Normal, "Space d", "issue.create"),
+            new KeyBinding(InputMode.Normal, "Space z", "tab.new"),
+        ]);
+        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, "Space");
+
+        Assert.Equal(["d", "c", "", "a", "b", "", "z"], rows.Select(row => row.Key));
+    }
+
+    [Fact]
+    public void GivenAPopupTooShortForBlankRows_WhenBuilding_ThenTheBlankRowsAreDropped()
+    {
+        var full = WhichKeyOverlay.Rows("Space", _keymap);
+        var tight = WhichKeyOverlay.Rows("Space", _keymap, full.Count - 1);
+
+        Assert.Contains(string.Empty, full);
+        Assert.DoesNotContain(string.Empty, tight);
+    }
+
+    [Fact]
+    public void GivenPendingKeys_WhenTheDelayHasNotPassed_ThenNoPopupShowsAndAfterItTheOneSharedRowsDo()
+    {
+        var since = DateTimeOffset.UnixEpoch;
+        var pending = AppState.Initial with { PendingKeys = "Space", PendingSince = since };
+
+        Assert.False(WhichKeyOverlay.Applies(pending));
+        Assert.Same(pending, WhichKeyDelay.Opened(pending, since + TimeSpan.FromMilliseconds(249)));
+        Assert.True(WhichKeyOverlay.Applies(WhichKeyDelay.Opened(pending, since + TimeSpan.FromMilliseconds(250))));
+        Assert.DoesNotContain("┌", string.Join('\n', Build(pending, 80, 24)));
+    }
+
+    [Fact]
+    public void GivenAnOpenPopup_WhenANewChordStarts_ThenItStartsClosed()
+    {
+        var opened = Opened("Space");
+        var later = DateTimeOffset.UnixEpoch + TimeSpan.FromSeconds(5);
+        var next = opened with { PendingKeys = "g", PendingSince = later };
+
+        Assert.False(WhichKeyOverlay.Applies(next));
+    }
+
+    [Fact]
+    public void GivenMinimalHints_WhenRendering_ThenOnlyHelpCommandsAndQuitShow()
+    {
+        var minimal = AppState.Initial with { Settings = new AppSettings(StatusHints: HintLevel.Minimal) };
+        var line = StatusBar.Render(minimal, 100, _keymap);
+
+        Assert.EndsWith("? help  : commands  q quit", line.TrimEnd());
+        Assert.Equal(100, line.Length);
+        Assert.Contains("? help  : commands  q quit", StatusBar.Render(AppState.Initial, 100, _keymap));
+    }
+
+    [Fact]
     public void GivenWhichKeyOff_WhenBuilding_ThenNoPopupShows()
     {
-        var state = Pending("Space") with { Settings = new AppSettings(true, false) };
+        var state = Pending("Space") with { Settings = new AppSettings(HintLevel.Full, false) };
 
         Assert.DoesNotContain("┌", string.Join('\n', Build(state, 80, 24)));
     }
@@ -58,7 +142,7 @@ public class WhichKeyOverlayTests
     [Fact]
     public void GivenHintsOff_WhenRenderingTheStatusBar_ThenNoHintsShow()
     {
-        var off = AppState.Initial with { Settings = new AppSettings(StatusHints: false) };
+        var off = AppState.Initial with { Settings = new AppSettings(StatusHints: HintLevel.Off) };
 
         Assert.Contains("q quit", StatusBar.Render(AppState.Initial, 80, _keymap));
         Assert.DoesNotContain("quit", StatusBar.Render(off, 80, _keymap));
@@ -82,9 +166,17 @@ public class WhichKeyOverlayTests
         }
     }
 
+    /// <summary>A state with <paramref name="keys"/> pending and the popup open (the delay has passed).</summary>
+    public static AppState Opened(string keys)
+    {
+        var since = DateTimeOffset.UnixEpoch;
+
+        return AppState.Initial with { PendingKeys = keys, PendingSince = since, WhichKeyOpenFor = since };
+    }
+
     private static AppState Pending(string keys)
     {
-        return AppState.Initial with { PendingKeys = keys };
+        return Opened(keys);
     }
 
     private static IReadOnlyList<string> Build(AppState state, int width, int height)

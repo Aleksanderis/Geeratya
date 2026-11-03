@@ -18,11 +18,11 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Theory]
-    [InlineData("hints off", false, true)]
-    [InlineData("whichkey off", true, false)]
+    [InlineData("hints off", HintLevel.Off, true)]
+    [InlineData("whichkey off", HintLevel.Full, false)]
     public void GivenSetOff_WhenSubmittingThePalette_ThenTheSwitchFlipsAndTheFileIsSaved(
         string text,
-        bool hints,
+        HintLevel hints,
         bool whichKey)
     {
         var result = Run($"set {text}");
@@ -48,7 +48,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var result = Run("set hints maybe");
 
         Assert.Empty(result.Effects);
-        Assert.Equal("hints takes on or off.", result.State.Message);
+        Assert.Equal("hints takes full, minimal or off.", result.State.Message);
     }
 
     [Fact]
@@ -80,13 +80,22 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
+    public void GivenSetMinimal_WhenSubmittingThePalette_ThenTheHintLevelIsMinimalAndSaved()
+    {
+        var result = Run("set hints minimal");
+
+        Assert.Equal(HintLevel.Minimal, result.State.Settings.StatusHints);
+        Assert.Equal("\"minimal\"", SettingsRegistry.ToJson(SettingsRegistry.Find("hints")!, result.State.Settings));
+    }
+
+    [Fact]
     public void GivenAReloadedFile_WhenTheHostAnswers_ThenItsValuesApplyAndTheMessageShows()
     {
         var result = _reducer.Reduce(
             AppState.Initial,
-            new SettingsReloaded(new AppSettings(StatusHints: false), "changed"));
+            new SettingsReloaded(new AppSettings(StatusHints: HintLevel.Off), "changed"));
 
-        Assert.False(result.State.Settings.StatusHints);
+        Assert.Equal(HintLevel.Off, result.State.Settings.StatusHints);
         Assert.Equal("changed", result.State.Message);
     }
 
@@ -155,7 +164,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var settings = new SettingsStore(_directory).Load();
 
         Assert.Equal(AppSettings.DefaultTheme, settings.Theme);
-        Assert.False(settings.StatusHints);
+        Assert.Equal(HintLevel.Off, settings.StatusHints);
     }
 
     private ReduceResult Run(string text)

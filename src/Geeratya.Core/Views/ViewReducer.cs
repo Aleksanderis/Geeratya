@@ -27,7 +27,7 @@ public static class ViewReducer
     {
         if (command is Tick tick)
         {
-            return Ticked(state, tick.Now);
+            return Ticked(WhichKeyDelay.Opened(state, tick.Now), tick.Now);
         }
 
         var effects = new List<Effect>();

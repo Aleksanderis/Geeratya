@@ -33,4 +33,4 @@ Loading more…
                                                                                                                         
                                                                                                                         
                                                                                                                         
- NORMAL loading                       j/k move  Enter open  Space o browser  Space i c create  ? help  : command  q quit
+ NORMAL loading                      j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit

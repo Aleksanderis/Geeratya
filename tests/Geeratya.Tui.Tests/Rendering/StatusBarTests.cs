@@ -213,7 +213,7 @@ public class StatusBarTests
         var line = StatusBar.Render(With(ViewLayout.Columns), 120, _keymap);
 
         Assert.Contains("h/l column  j/k card  Enter open  Space l list  Space o browser", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
         Assert.Equal(120, line.Length);
     }
 
@@ -236,7 +236,7 @@ public class StatusBarTests
 
         Assert.DoesNotContain("column", line);
         Assert.DoesNotContain("card", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class StatusBarTests
         var line = StatusBar.Render(AppState.Initial, 120, _keymap);
 
         Assert.DoesNotContain("browser", line);
-        Assert.EndsWith("? help  : command  q quit", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
     }
 
     private static AppState With(

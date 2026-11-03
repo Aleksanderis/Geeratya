@@ -47,7 +47,20 @@ public sealed class AppReducer
 
     public ReduceResult Reduce(AppState state, Command command)
     {
-        return GuardConfirm(state, ReduceCommand(state, command));
+        return ChordEnded(GuardConfirm(state, ReduceCommand(state, command)));
+    }
+
+    /// <summary>Forgets the which-key timing once no keys are pending, so a finished chord leaves no trace.</summary>
+    private static ReduceResult ChordEnded(ReduceResult result)
+    {
+        var state = result.State;
+
+        if (state.PendingKeys.Length > 0 || (state.PendingSince is null && state.WhichKeyOpenFor is null))
+        {
+            return result;
+        }
+
+        return result with { State = state with { PendingSince = null, WhichKeyOpenFor = null } };
     }
 
     /// <summary>
@@ -273,7 +286,9 @@ public sealed class AppReducer
 
         if (resolution.Kind == KeyResolutionKind.Prefix)
         {
-            return Result(state with { PendingKeys = Join(state.PendingKeys, key), Message = null });
+            var since = state.PendingKeys.Length == 0 ? at : state.PendingSince;
+
+            return Result(state with { PendingKeys = Join(state.PendingKeys, key), PendingSince = since, Message = null });
         }
 
         if (IsBackOut(state, resolution))

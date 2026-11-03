@@ -7,4 +7,4 @@ GCM board · 24 issues                 3›
 │ T GCM-4 Survey task four             │
 │ S GCM-3 Survey story three with unic…│
 └──────────────────────────────────────┘
- NORMAL        ? help  : command  q quit
+ NORMAL       ? help  : commands  q quit

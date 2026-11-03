@@ -1,10 +1,10 @@
                                         
                                         
 +- Space ------------------------------+
-| t         Open the source picker for |
 | c         Close the tab              |
-| r         Refresh the view (also ret |
-| l         Switch between list and co |
+| t         Open the source picker for |
+| g         Jump to an issue by key    |
 | o         Open the issue in the brow |
+| p         Open the parent issue      |
 +--------------------------------------+
- NORMAL Space  ? help  : command  q quit
+ NORMAL Space                           

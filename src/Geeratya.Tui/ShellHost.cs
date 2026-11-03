@@ -33,6 +33,7 @@ namespace Geeratya.Tui;
 /// </summary>
 public sealed class ShellHost : ICommandSink, IDisposable
 {
+    private static readonly TimeSpan _whichKeyMargin = TimeSpan.FromMilliseconds(5);
     private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
 
     private const string CorruptNotice =
@@ -71,6 +72,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private ShellScreen? _screen;
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
+    private ITimer? _whichKeyTimer;
+    private DateTimeOffset? _whichKeyTimedFor;
     private bool _quitting;
 
     public ShellHost(
@@ -114,6 +117,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
         _connections.RateLimitChanged -= OnRateLimitChanged;
         _tickTimer?.Dispose();
+        _whichKeyTimer?.Dispose();
         _profiles.Caches.Dispose();
         _network.Dispose();
         _connections.Dispose();
@@ -198,6 +202,26 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private void PostTick(object? timerState)
     {
         Post(new Tick(TimeProvider.System.GetUtcNow()));
+    }
+
+    /// <summary>
+    /// Wakes the reducer once when the which-key delay of a new pending chord has passed (the state layer has no
+    /// timer), so the popup opens on time instead of at the next one-second tick.
+    /// </summary>
+    private void ScheduleWhichKey()
+    {
+        if (_state.PendingKeys.Length == 0 || _state.PendingSince == _whichKeyTimedFor)
+        {
+            return;
+        }
+
+        _whichKeyTimedFor = _state.PendingSince;
+        _whichKeyTimer?.Dispose();
+        _whichKeyTimer = TimeProvider.System.CreateTimer(
+            PostTick,
+            null,
+            WhichKeyDelay.Delay + _whichKeyMargin,
+            System.Threading.Timeout.InfiniteTimeSpan);
     }
 
     /// <summary>The transport's rate-limit wait started or ended (not the UI thread).</summary>
@@ -294,6 +318,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         _state = result.State;
         _screen!.Render(_state, TimeProvider.System.GetUtcNow());
+        ScheduleWhichKey();
 
         var checks = new List<CheckConnectionEffect>();
         KeymapReloaded? reloaded = null;
