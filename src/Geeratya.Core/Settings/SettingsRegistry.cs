@@ -91,6 +91,16 @@ public static class SettingsRegistry
             ThemeExpected,
             Category: AppearanceCategory),
         new SettingDefinition(
+            "transparent",
+            "transparent",
+            SettingKind.Toggle,
+            Off,
+            "Keep the terminal's own background instead of the theme's page colour; text colours stay.",
+            settings => Word(settings.TransparentBackground),
+            (settings, text) => ParseToggle(text) is { } on ? settings with { TransparentBackground = on } : null,
+            ToggleExpected,
+            Category: AppearanceCategory),
+        new SettingDefinition(
             "jump.target",
             "jump.target",
             SettingKind.Choice,

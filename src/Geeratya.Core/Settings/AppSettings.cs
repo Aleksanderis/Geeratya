@@ -12,13 +12,15 @@ namespace Geeratya.Core.Settings;
 /// <param name="Theme">The name of the colour theme: a built-in one or a file in the <c>themes</c> folder.</param>
 /// <param name="RestoreTabs">Reopen the tabs of the last run on start, and remember them while running.</param>
 /// <param name="JumpTarget">Whether the jump prompt opens an issue in the current tab or in a new one.</param>
+/// <param name="TransparentBackground">Keep the terminal's own background under the page instead of the theme's.</param>
 public sealed record AppSettings(
     HintLevel StatusHints = HintLevel.Full,
     bool WhichKey = true,
     CommandLevel CommandLevel = CommandLevel.Everyday,
     string Theme = AppSettings.DefaultTheme,
     JumpTarget JumpTarget = JumpTarget.Current,
-    bool RestoreTabs = true)
+    bool RestoreTabs = true,
+    bool TransparentBackground = false)
 {
     public const string DefaultTheme = "auto";
 

@@ -13,6 +13,7 @@ public static class AnsiFrameWriter
 {
     private const string Escape = "\u001b[";
     private const string Reset = "\u001b[0m";
+    private const string DefaultBackgroundCode = "49";
     private const int EightColors = 8;
     private const int ForegroundBase = 30;
     private const int BrightForegroundBase = 90;
@@ -66,15 +67,23 @@ public static class AnsiFrameWriter
         if (tier == ColorSupport.TrueColor && style.Foreground is { } foreground && style.Background is { } background)
         {
             codes.Add($"38;2;{foreground.Red};{foreground.Green};{foreground.Blue}");
-            codes.Add($"48;2;{background.Red};{background.Green};{background.Blue}");
+            codes.Add(style.DefaultBackground ? DefaultBackgroundCode : TrueBackground(background));
         }
         else if (tier == ColorSupport.Basic16 && style.Foreground16 is { } named && style.Background16 is { } ground)
         {
             codes.Add(Code(_terminalIndex[(int)named], ForegroundBase, BrightForegroundBase));
-            codes.Add(Code(_terminalIndex[(int)ground], BackgroundBase, BrightBackgroundBase));
+            codes.Add(
+                style.DefaultBackground
+                    ? DefaultBackgroundCode
+                    : Code(_terminalIndex[(int)ground], BackgroundBase, BrightBackgroundBase));
         }
 
         return codes.Count == 0 ? string.Empty : $"{Escape}{string.Join(';', codes)}m";
+    }
+
+    private static string TrueBackground(Rgb background)
+    {
+        return $"48;2;{background.Red};{background.Green};{background.Blue}";
     }
 
     private static void AddAttributes(List<string> codes, RoleStyle style)

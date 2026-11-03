@@ -50,8 +50,9 @@ public static class Palette
             case ColorSupport.TrueColor:
                 var foreground = dim ? theme.Dimmed(entry.TrueForeground) : entry.TrueForeground;
                 var background = PageBackground(theme, entry, ground);
+                var keep = KeepsTerminal(theme, entry) && !ground.HasFlag(SpanGround.Surface);
 
-                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry, true));
+                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry, true), keep);
             case ColorSupport.Basic16:
                 var plain = entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
                 var faint = dim && plain && faintSupported;
@@ -62,9 +63,16 @@ public static class Palette
                     Ansi16.ToRgb(entry.Background16, theme.Variant),
                     named,
                     entry.Background16,
-                    faint ? ColourStyle(entry) | RoleStyle.Faint : ColourStyle(entry));
+                    faint ? ColourStyle(entry) | RoleStyle.Faint : ColourStyle(entry),
+                    KeepsTerminal(theme, entry));
             default:
-                return new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, LowTier(entry.NoColorStyle));
+                return new ResolvedStyle(
+                    null,
+                    null,
+                    Ansi16Color.Gray,
+                    Ansi16Color.Black,
+                    LowTier(entry.NoColorStyle),
+                    KeepsTerminal(theme, entry));
         }
     }
 
@@ -125,6 +133,13 @@ public static class Palette
         var ratio = Contrast.Ratio(Ansi16.ToRgb(value, theme.Variant), Ansi16.ToRgb(ground, theme.Variant));
 
         return ratio >= TintContrast ? value : fallback;
+    }
+
+    // A role on the page keeps the terminal's own background when the theme is drawn transparent; the overlay box
+    // (Surface ground, 24 bits) stays painted so it is told apart from the view behind it.
+    private static bool KeepsTerminal(Theme theme, PaletteEntry entry)
+    {
+        return theme.KeepTerminalBackground && entry.OnPage;
     }
 
     // The page colour of a role becomes the scrim behind an overlay or the overlay's own fill; a fill of its own stays.

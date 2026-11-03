@@ -34,6 +34,17 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
+    public void GivenSetTransparent_WhenSubmittingThePalette_ThenTheTerminalBackgroundIsKeptAndSaved()
+    {
+        Assert.False(AppSettings.Default.TransparentBackground);
+
+        var result = Run("set transparent on");
+
+        Assert.True(result.State.Settings.TransparentBackground);
+        Assert.True(Assert.IsType<SaveSettingsEffect>(Assert.Single(result.Effects)).Settings.TransparentBackground);
+    }
+
+    [Fact]
     public void GivenAnUnknownSetting_WhenSubmittingThePalette_ThenUsageShowsAndNothingChanges()
     {
         var result = Run("set colour on");
