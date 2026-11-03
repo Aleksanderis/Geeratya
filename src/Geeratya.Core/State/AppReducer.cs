@@ -58,7 +58,7 @@ public sealed class AppReducer
     {
         var result = StartupReducer.Persisted(
             state,
-            ChordEnded(GuardConfirm(state, ReduceCommand(state, command))));
+            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, ReduceCommand(state, command)))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
         return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);

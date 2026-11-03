@@ -85,6 +85,7 @@ public static class ProfileManagerScreen
         {
             TokenSourceKind.SecretStore => StoreText,
             TokenSourceKind.EnvironmentVariable => $"env {TokenProvider.EnvironmentVariable}",
+            TokenSourceKind.Unavailable => "secret store unavailable",
             _ => NotSetText,
         };
     }

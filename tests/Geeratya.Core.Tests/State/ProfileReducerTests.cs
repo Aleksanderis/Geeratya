@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -582,6 +583,44 @@ public class ProfileReducerTests
         var session = state with { Session = SiteSession.Empty(_work) };
 
         return reducer.Reduce(session, new ViewOpenRequested(definition)).State;
+    }
+
+    [Fact]
+    public void GivenAConnectedStartWithNoTab_WhenClosingTheManager_ThenTheBoardPickerOpensOnce()
+    {
+        var state = WithProfiles(_work);
+        var started = state with
+        {
+            Session = SiteSession.Empty(_work) with { Startup = StartupPhase.Done, Connection = new Connected("Me") },
+        };
+        var opened = Palette(started, "profile").State;
+
+        var closed = Press(opened, "Esc");
+        var again = Press(closed.State, "Esc");
+
+        Assert.NotNull(closed.State.Picker);
+        Assert.Null(closed.State.ProfileList);
+        Assert.Equal(InputMode.Insert, closed.State.Mode);
+        Assert.Null(again.State.Picker);
+    }
+
+    [Fact]
+    public void GivenAnUnfinishedStartOrASwitch_WhenClosingTheManager_ThenNoPickerOpens()
+    {
+        var checking = WithProfiles(_work) with { Session = SiteSession.Empty(_work) };
+        var connected = checking with
+        {
+            Session = checking.Session with { Startup = StartupPhase.Done, Connection = new Connected("Me") },
+        };
+        var other = WithProfiles(_work, _dev) with { Session = connected.Session };
+        var switching = Press(Palette(other, "profile").State, "Down");
+
+        var early = Press(Palette(checking, "profile").State, "Esc");
+        var switched = Press(switching.State, "Enter");
+
+        Assert.Null(early.State.Picker);
+        Assert.Null(switched.State.Picker);
+        Assert.Single(switched.Effects);
     }
 
     private static AppState WithProfiles(params Profile[] profiles)

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Sources;
 using Geeratya.Core.Startup;
 using Geeratya.Core.Writes;
 
@@ -55,7 +56,7 @@ public static class ProfileReducer
         {
             AddVerb => Add(state),
             EditVerb => Edit(state, name.Length == 0 ? state.Profiles.ActiveName : name),
-            "" or ListVerb => OpenList(state),
+            "" or ListVerb => OpenManager(state),
             SwitchVerb => Switch(state, name),
             RemoveVerb => AskRemove(state, name),
             CheckVerb => CheckConnection(state, announce: true),
@@ -572,9 +573,24 @@ public static class ProfileReducer
         };
     }
 
-    private static ReduceResult OpenList(AppState state)
+    /// <summary>
+    /// The start does not open the board picker while the profile manager is open (it would sit on top of it). When the
+    /// manager closes after the start is over, with nothing open, a connected profile and no tab, the picker opens now.
+    /// </summary>
+    public static ReduceResult ManagerClosed(AppState before, ReduceResult result)
     {
-        return OpenManager(state);
+        var after = result.State;
+
+        if (before.ProfileList is null || after.ProfileList is not null || after.Mode != InputMode.Normal
+            || after.Session.Startup != StartupPhase.Done || after.Session.Tabs.Count > 0
+            || after.ProfileBusy || after.Profiles.Active is null || after.Session.Connection is not Connected)
+        {
+            return result;
+        }
+
+        var opened = SourceReducer.OpenFirstBoard(after);
+
+        return new ReduceResult(opened.State, [.. result.Effects, .. opened.Effects]);
     }
 
     private static IReadOnlyList<Effect> TokenSourceEffects(AppState state)

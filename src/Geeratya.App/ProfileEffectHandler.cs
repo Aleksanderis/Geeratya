@@ -91,17 +91,33 @@ public sealed class ProfileEffectHandler
 
         foreach (var profile in effect.Profiles)
         {
+            sources[profile.CredentialKey] = await SourceOfAsync(profile, allowEnvironment, cancellationToken);
+        }
+
+        return new TokenSourcesLoaded(sources);
+    }
+
+    /// <summary>A failing secret store is not a failed profile operation: the pane says the source is unavailable.</summary>
+    private async Task<TokenSourceKind> SourceOfAsync(
+        Profile profile,
+        bool allowEnvironment,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
             var resolved = await _services.Tokens.ResolveAsync(profile.CredentialKey, allowEnvironment, cancellationToken);
 
-            sources[profile.CredentialKey] = resolved.Source switch
+            return resolved.Source switch
             {
                 TokenSource.SecretStore => TokenSourceKind.SecretStore,
                 TokenSource.EnvironmentVariable => TokenSourceKind.EnvironmentVariable,
                 _ => TokenSourceKind.None,
             };
         }
-
-        return new TokenSourcesLoaded(sources);
+        catch (SecretStoreException)
+        {
+            return TokenSourceKind.Unavailable;
+        }
     }
 
     private async Task<Command> RemoveAsync(RemoveProfileEffect remove, CancellationToken cancellationToken)

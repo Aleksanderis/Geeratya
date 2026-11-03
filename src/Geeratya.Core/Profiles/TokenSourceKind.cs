@@ -11,4 +11,7 @@ public enum TokenSourceKind
 
     /// <summary><c>GEERATYA_TOKEN</c> supplies it (only for a single profile without a stored token).</summary>
     EnvironmentVariable,
+
+    /// <summary>The secret store could not be read (locked or missing), so the source is not known.</summary>
+    Unavailable,
 }
