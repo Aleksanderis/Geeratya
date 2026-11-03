@@ -43,6 +43,7 @@ These are quality inspections, not style, so neither the compiler nor `.editorco
 
 ## Files and folders
 
+- No `.cs` file over about 500 lines in `src/`: split by responsibility (focused types, or `Type.Part.cs` partial files for one large stateful type).
 - One type per file, named after the type. Models (records, enums, plain data) and classes with logic live in separate files; unrelated models get separate files too, unless they are closely related or inherited from each other.
 - Folders group by domain first (`Issues/`, `Search/`, `Boards/`), technical kind second (`Models/` for records and enums); namespaces follow folders; a test file sits in the same relative folder as the type it tests. Don't leave dozens of files in one folder.
 - Member order: private methods come after all public/protected methods (fields, constructors and properties stay on top). Test classes too: test methods first, private helpers last.
@@ -54,6 +55,14 @@ These are quality inspections, not style, so neither the compiler nor `.editorco
 - Interface: only where another layer consumes the class and tests need a fake (a fake lives in the `Fakes` folder of the matching test project, for example `tests/Geeratya.App.Tests/Fakes`).
 - Composition root: dependencies are wired by hand in `Program.Main` and `JiraServices.Create`. No DI container (it needs reflection or codegen and costs startup). Tests build the same `JiraServices` record, or swap one part with `with` and a fake. No `IHttpClientFactory` from the DI stack: one `HttpClient` per connection, owned by its `JiraTransport`; the composition root only builds the transport.
 - Jira clients take only a `JiraTransport` (bound to one connection); one client instance per transport, shared by every tab of that site. Switching profiles builds a new transport and clients.
+
+## Dependencies are objects
+
+- A class gets its collaborators as objects: an interface it calls (`ICommandSink`, `ITransportFactory`), a store or a context record. No `Func<>`/`Action<>` constructor parameters, no settable delegate properties to reach another object, no `null!` fields filled in later.
+- Delegates are a last resort, for a decorator whose job is to call the function it wraps. Fine: C# events, and a lambda passed as a plain call argument (LINQ, a comparer, `token.Register(KillQuietly, process)`) that is not stored as a dependency.
+- More than five constructor parameters means the class does too much: split it or group what travels together into a context record.
+- Allowed seams, not counted against the five: an optional trailing parameter with a production default for an OS or environment seam in a leaf class (env lookup, clock, key reader), and a lambda the owner passes to its own framework call.
+- Where logic goes: decisions in `Geeratya.Core` reducers, Jira and file work in `Geeratya.App` effect handlers, views and input translation in `Geeratya.Tui`. A feature adds one line each to the root command, state, reducer and runner switch (`docs/architecture.md`).
 
 ## Testability
 
