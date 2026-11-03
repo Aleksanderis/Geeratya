@@ -87,15 +87,7 @@ public static class PaletteRows
 
     private static List<PaletteRow>? UsageOf(string text)
     {
-        var trimmed = text.TrimStart();
-        var space = trimmed.IndexOf(' ', StringComparison.Ordinal);
-
-        if (space <= 0)
-        {
-            return null;
-        }
-
-        var name = trimmed[..space];
+        var name = FirstWord(text.Trim());
         var command = PaletteCommands.All.FirstOrDefault(candidate => candidate.Name == name);
 
         if (command is null)

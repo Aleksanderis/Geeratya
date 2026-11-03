@@ -114,7 +114,7 @@ public class PaletteRowsTests
     [Fact]
     public void GivenPaletteOnlyCommands_WhenListing_ThenTheyRunAsTheirCommandLine()
     {
-        var labels = PaletteRows.For(Palette("labels"), _keymap).Single(row => row.Kind == PaletteRowKind.Command);
+        var labels = PaletteRows.For(Palette("Edit the labels"), _keymap).Single(row => row.Kind == PaletteRowKind.Command);
 
         Assert.Equal(PaletteCommands.Labels, labels.Id);
         Assert.Equal(string.Empty, labels.Keys);
@@ -132,6 +132,7 @@ public class PaletteRowsTests
     }
 
     [Theory]
+    [InlineData("jql")]
     [InlineData("jql project = A")]
     [InlineData("tab next")]
     [InlineData("profile list")]

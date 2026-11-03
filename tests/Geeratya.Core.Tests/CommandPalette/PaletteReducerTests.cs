@@ -124,7 +124,7 @@ public class PaletteReducerTests
     [Fact]
     public void GivenAPaletteOnlyRow_WhenPressingEnter_ThenItRunsAsItsCommandLine()
     {
-        var typed = Typed("labels");
+        var typed = Typed("Edit the labels");
 
         var result = Press(typed, "Enter");
 
@@ -152,12 +152,16 @@ public class PaletteReducerTests
     [Fact]
     public void GivenAnEmptyFilter_WhenPressingEnter_ThenTheHighlightedFirstRowRuns()
     {
-        var first = PaletteRows.Selectable(Open(), _keymap)[0];
+        var first = PaletteRows.Selectable(Open(WithRow()), _keymap)[0];
 
-        var result = Press(Open(), "Enter");
+        var result = Press(Open(WithRow()), "Enter");
 
+        var viaKey = _reducer.Reduce(WithRow(), new ActionRequested(first.Id, 1, _now));
+
+        Assert.Equal(ActionIds.IssueOpenInBrowser, first.Id);
         Assert.Equal(InputMode.Normal, result.State.Mode);
-        Assert.False(string.IsNullOrEmpty(first.Id));
+        Assert.Equal(viaKey.Effects.Select(effect => effect.GetType()), result.Effects.Select(effect => effect.GetType()));
+        Assert.NotEmpty(result.Effects);
     }
 
     [Fact]
@@ -172,12 +176,16 @@ public class PaletteReducerTests
     [Fact]
     public void GivenOpenPalette_WhenClickingARow_ThenThatRowRunsNotTheHighlightedOne()
     {
-        var state = Typed("hide help");
-        var clicked = new OverlayRowClicked(MouseTarget.PaletteRow, 0, ActionIds.FormNext, _now);
+        var state = Typed("the tab", WithRow());
+        var rows = PaletteRows.Selectable(state, _keymap);
+        var clicked = new OverlayRowClicked(MouseTarget.PaletteRow, 1, ActionIds.FormNext, _now);
 
         var result = _reducer.Reduce(state, clicked);
 
-        Assert.Equal(InputMode.Help, result.State.Mode);
+        Assert.Equal(0, state.PaletteSelected);
+        Assert.Equal(ActionIds.TabNew, rows[1].Id);
+        Assert.NotNull(result.State.Picker);
+        Assert.Single(result.State.Session.Tabs);
     }
 
     [Fact]

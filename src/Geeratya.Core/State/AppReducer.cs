@@ -386,7 +386,7 @@ public sealed class AppReducer
             return TypeInInsert(state, text);
         }
 
-        return state.Mode == InputMode.Command ? Typed(state, $"{state.PaletteText}{text}") : state;
+        return state.Mode == InputMode.Command ? WithPaletteText(state, $"{state.PaletteText}{text}") : state;
     }
 
     private static AppState TypeText(AppState state, string key)
@@ -403,11 +403,11 @@ public sealed class AppReducer
             return state;
         }
 
-        return Typed(state, $"{state.PaletteText}{text}");
+        return WithPaletteText(state, $"{state.PaletteText}{text}");
     }
 
     // The filter changed, so the highlight goes back to the first row.
-    private static AppState Typed(AppState state, string text)
+    private static AppState WithPaletteText(AppState state, string text)
     {
         return state with { PaletteText = text, PaletteSelected = 0 };
     }
@@ -716,7 +716,7 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return Typed(state, RemoveLastTextElement(state.PaletteText));
+        return WithPaletteText(state, RemoveLastTextElement(state.PaletteText));
     }
 
     private AppState MovePalette(AppState state, int delta)
