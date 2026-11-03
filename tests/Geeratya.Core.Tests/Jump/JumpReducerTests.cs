@@ -236,6 +236,18 @@ public class JumpReducerTests
     }
 
     [Fact]
+    public void GivenARecentKeyTheTabKnows_WhenThePromptIsEmpty_ThenTheRowKeepsTheTabTitle()
+    {
+        var state = WithHistory(WithList(), "A-2");
+
+        var rows = Rows(Press(state, "Space", "g").State);
+
+        Assert.Equal(["A-2", "A-1"], rows.Select(row => row.Key));
+        Assert.NotEmpty(rows[0].Title);
+        Assert.Equal(JumpOrigin.Recent, rows[0].Origin);
+    }
+
+    [Fact]
     public void GivenProfileHistoryAndSessionKeys_WhenTyping_ThenTheyFilterWithoutRepeats()
     {
         var state = WithHistory(Remember(WithList(), "H-2"), "H-2", "H-10", "B-1");
