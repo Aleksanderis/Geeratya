@@ -110,9 +110,12 @@ public sealed partial class FakeScrumStore
     private bool _loaded;
     private int _nextSprintId = FirstCreatedSprintId;
 
-    public FakeScrumStore(Func<string, byte[]> readFixture)
+    private readonly GeneratedScrum? _generated;
+
+    public FakeScrumStore(Func<string, byte[]> readFixture, int generatedIssues = 0)
     {
         _readFixture = readFixture;
+        _generated = generatedIssues > 0 ? new GeneratedScrum(generatedIssues, readFixture) : null;
     }
 
     /// <summary>The reply for a request on a Scrum or sprint route, or null when the path is not one of them.</summary>
@@ -124,6 +127,11 @@ public sealed partial class FakeScrumStore
         }
 
         var parts = path[AgilePrefix.Length..].Split('/');
+
+        if (method == Get && _generated?.Route(parts, query) is { } generated)
+        {
+            return generated;
+        }
 
         lock (_gate)
         {
