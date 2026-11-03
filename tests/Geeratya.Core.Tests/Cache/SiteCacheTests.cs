@@ -3,6 +3,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Tests.Cache;
 
@@ -110,10 +111,12 @@ public sealed class SiteCacheTests : IDisposable
     [InlineData("not json at all")]
     [InlineData("")]
     [InlineData("null")]
-    [InlineData("""{"schema":1}""")]
-    [InlineData("""{"schema":1,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
-    [InlineData("""{"schema":1,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
-    [InlineData("""{"schema":1,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
+    [InlineData("""{"schema":2}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":null}]}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":[null]}]}""")]
+    [InlineData("""{"schema":2,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
     public void GivenCorruptFile_WhenReading_ThenItIsIgnoredAndDeleted(string content)
     {
         var folder = Path.Combine(_root, "p");
@@ -409,6 +412,69 @@ public sealed class SiteCacheTests : IDisposable
         {
             _shared.Flush();
         }
+    }
+
+    [Fact]
+    public void GivenScrumRowsWithSprintsEstimateAndEpic_WhenReadByANewCache_ThenTheyRoundTrip()
+    {
+        var folder = Path.Combine(_root, "p");
+        var row = Issue(1, true) with { Parent = new IssueParent("A-100", "Epic", true) };
+        var scrum = new IssueSummary(
+            row.Id, row.Key, row.Summary, row.Status, row.IssueType, row.Priority, row.Assignee, row.Labels,
+            row.Parent, row.Updated, row.ProjectKey)
+        {
+            Sprints =
+            [
+                new IssueSprint(7, "Sprint 7", SprintState.Closed),
+                new IssueSprint(8, "Sprint 8", SprintState.Active),
+            ],
+            Estimate = 2.5,
+        };
+        using (var writer = new SiteCache(folder))
+        {
+            writer.Put(_key, new CachedView([scrum], null, _saved));
+            writer.Flush();
+        }
+
+        using var reader = new SiteCache(folder);
+        var read = reader.Get(_key)!.Rows[0];
+
+        Assert.Equal(scrum.Sprints, read.Sprints);
+        Assert.Equal("Sprint 8", read.CurrentSprint!.Name);
+        Assert.Equal(2.5, read.Estimate);
+        Assert.True(read.Parent!.IsEpic);
+        Assert.Equal("A-100", read.Epic!.Key);
+    }
+
+    [Fact]
+    public void GivenRowWithoutSprintsOrEstimate_WhenReadByANewCache_ThenNoneAppear()
+    {
+        var folder = Path.Combine(_root, "p");
+        using (var writer = new SiteCache(folder))
+        {
+            writer.Put(_key, new CachedView([Issue(1, true)], null, _saved));
+            writer.Flush();
+        }
+
+        using var reader = new SiteCache(folder);
+        var read = reader.Get(_key)!.Rows[0];
+
+        Assert.Empty(read.Sprints);
+        Assert.Null(read.Estimate);
+        Assert.Null(read.Epic);
+    }
+
+    [Fact]
+    public void GivenSchemaOneFile_WhenReading_ThenItIsIgnoredAndDeleted()
+    {
+        var folder = Path.Combine(_root, "p");
+        var path = Path.Combine(folder, SiteCache.ViewFileName(_key));
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(path, """{"schema":1,"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
+        using var cache = new SiteCache(folder);
+
+        Assert.Null(cache.Get(_key));
+        Assert.False(File.Exists(path));
     }
 
     private static IssueSummary Issue(int number, bool full = false)
