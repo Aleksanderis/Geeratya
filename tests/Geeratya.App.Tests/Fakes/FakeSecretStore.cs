@@ -9,14 +9,17 @@ public sealed class FakeSecretStore : ISecretStore
     private readonly bool _throwsCancellation;
     private readonly bool _throwsUnexpected;
     private readonly bool _failsOnDelete;
+    private readonly bool _failsOnGet;
 
     public FakeSecretStore(
         bool isAvailable = true,
         bool fails = false,
         bool throwsCancellation = false,
         bool throwsUnexpected = false,
-        bool failsOnDelete = false)
+        bool failsOnDelete = false,
+        bool failsOnGet = false)
     {
+        _failsOnGet = failsOnGet;
         _failsOnDelete = failsOnDelete;
         _throwsCancellation = throwsCancellation;
         _throwsUnexpected = throwsUnexpected;
@@ -32,6 +35,11 @@ public sealed class FakeSecretStore : ISecretStore
 
     public Task<string?> GetAsync(string key, CancellationToken cancellationToken)
     {
+        if (_failsOnGet)
+        {
+            throw new SecretStoreException("keyring locked");
+        }
+
         return Task.FromResult(_secrets.GetValueOrDefault(key));
     }
 

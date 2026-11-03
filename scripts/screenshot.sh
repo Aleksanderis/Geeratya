@@ -50,7 +50,7 @@ all_scenarios=(
   "palette;120;36;dark;:jql project = GCM|:;Commands"
   "palette-filtered;80;24;dark;:jql project = GCM|:rank;Rank"
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
-  "profile-list;120;36;dark;:profile list|;Ctrl-x remove"
+  "profile-list;120;36;dark;:profile|;Details"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"
@@ -178,6 +178,9 @@ capture_scenario() {
   local name columns rows theme keys waitfor socket key
   IFS=";" read -r name columns rows theme keys waitfor <<< "$spec"
   socket=geeratya-shot-$$-$name
+  # Remembered tabs (#542) must not carry over from the previous scenario.
+  rm -rf "$work/state" "$work/cache"
+  mkdir -p "$work/state" "$work/cache"
   tmux -L "$socket" -f /dev/null new-session -d -s s -x "$columns" -y "$rows" \
     "env -u GEERATYA_LIVE_HOSTS COLORTERM=truecolor TERM=tmux-256color \
       GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state \
@@ -185,6 +188,12 @@ capture_scenario() {
   sockets+=("$socket")
   wait_for_text "$socket" "$profile_ready"
   settled_capture "$socket" > /dev/null
+  # With no remembered tabs the board picker opens once the connection check succeeds (#542) and would take the
+  # scenario's keys as filter text: close it first (it never shows within 3 s only on a site that fails to connect).
+  if (timeout_ms=3000; wait_for_text "$socket" "Open a view" 2> /dev/null); then
+    tmux -L "$socket" send-keys -t s Escape
+    sleep 0.3
+  fi
   for ((index = 0; index < ${#keys}; index++)); do
     key=${keys:index:1}
     if [ "$key" = "|" ]; then

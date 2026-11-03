@@ -65,13 +65,13 @@ public enum MouseTarget
     /// <summary>An action row of the command palette (a click runs it, the wheel moves the highlight).</summary>
     PaletteRow,
 
-    /// <summary>A profile row of the profile list overlay.</summary>
+    /// <summary>A profile row of the profile manager screen.</summary>
     ProfileRow,
 
-    /// <summary>The Add button of the profile list overlay.</summary>
+    /// <summary>The Add button of the profile manager screen.</summary>
     ProfileAddButton,
 
-    /// <summary>The Edit button of the profile list overlay (edits the highlighted profile).</summary>
+    /// <summary>The Edit button of the profile manager screen (edits the highlighted profile).</summary>
     ProfileEditButton,
 
     /// <summary>The Test connection button of the profile form.</summary>

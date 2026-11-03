@@ -1,10 +1,10 @@
+[Profiles]                              
                                         
-                                        
-                                        
-                                        
-  +- Profiles -----------------------+  
-wo| > work            me@work.test o |as
-  |   dev             me@dev.test on |  
-  +----------------------------------+  
-                                        
-[INSERT]          Enter next  Esc cancel
++- Profiles 2 -------------------------+
+| >* work          me@work.test        |
+|    dev           me@dev.test         |
+|                                      |
+|                                      |
+| Add   Edit                           |
++--------------------------------------+
+[INSERT] Active: work                   

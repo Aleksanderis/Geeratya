@@ -1,24 +1,24 @@
+[Profiles]                                                                      
                                                                                 
-                                                                                
-                                                                                
-                                                                                
-  +- Profiles ---------------------------------------------------------------+  
-  | > work            me@work.test on https://work.atlassian.net (active)    |  
-  |   dev             me@dev.test on https://dev.atlassian.net               |  
-  | ------------------------------------------------------------------------ |  
-  | Add   Edit                                                               |  
-  | Enter switch  Ctrl-a add  Ctrl-e edit  Ctrl-x remove  Esc close          |  
-  +--------------------------------------------------------------------------+  
-                                    Geeratya                                    
-                work: me@work.test on https://work.atlassian.net                
-                          ? help   : commands   q quit                          
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-[INSERT]                                                  Enter next  Esc cancel
++- Profiles 2 -----------------+- Details -------------------------------------+
+| >* work          me@work.test| Name     work                                 |
+|    dev           me@dev.test | Site     https://work.atlassian.net           |
+|                              | Account  me@work.test                         |
+|                              | Token    looking up...                        |
+|                              | Status   active                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+|                              |                                               |
+| Add   Edit                   |                                               |
++------------------------------+-----------------------------------------------+
+[INSERT] Active: work                                                           

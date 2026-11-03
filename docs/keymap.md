@@ -198,7 +198,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:estimate` | Change the estimate (story points) of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
-| `:profile add|edit [name]|list|switch <name>|remove <name>|check` | Manage Jira profiles |
+| `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
 | `:set [hints.statusBar|hints.whichKey|commandlevel|theme|jump.target|startup.restore] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |

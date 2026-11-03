@@ -58,7 +58,7 @@ public sealed class AppReducer
     {
         var result = StartupReducer.Persisted(
             state,
-            ChordEnded(GuardConfirm(state, ReduceCommand(state, command))));
+            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, ReduceCommand(state, command)))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
         return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
@@ -150,6 +150,7 @@ public sealed class AppReducer
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             ProfileTested tested => ProfileReducer.Tested(state, tested),
+            TokenSourcesLoaded sources => Result(state with { TokenSources = sources.Sources }),
             CacheWriteFailed failed => Result(StatusMessages.Warn(state, failed.Message)),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             ConnectionCheckRequested => ProfileReducer.CheckConnection(state, announce: false),
@@ -213,9 +214,12 @@ public sealed class AppReducer
 
     private static AppState ToNormal(AppState state)
     {
+        // The profile manager is a screen: closing the form or the remove question on top of it returns to it.
+        var toManager = state.ProfileList is not null && (state.Form is not null || state.Confirm is not null);
+
         return state with
         {
-            Mode = InputMode.Normal,
+            Mode = toManager ? InputMode.Insert : InputMode.Normal,
             PendingKeys = string.Empty,
             Count = 0,
             PaletteText = string.Empty,
@@ -231,7 +235,7 @@ public sealed class AppReducer
             Picker = null,
             Jump = null,
             Editor = null,
-            ProfileList = null,
+            ProfileList = toManager ? state.ProfileList : null,
             ContextMenu = null,
         };
     }
@@ -674,7 +678,7 @@ public sealed class AppReducer
 
     private static ReduceResult InProfileList(AppState state, Func<AppState, ReduceResult> action)
     {
-        return state.ProfileList is not null ? action(state) : Result(state);
+        return state is { ProfileList: not null, Form: null } ? action(state) : Result(state);
     }
 
     /// <summary>Enter in Insert mode: a new line in the editor, else accepts the form field or picker row.</summary>
@@ -695,7 +699,7 @@ public sealed class AppReducer
             return RunMenuItem(state, menu.Items[Math.Clamp(menu.Selected, 0, menu.Items.Count - 1)], at);
         }
 
-        if (state.ProfileList is not null)
+        if (state is { ProfileList: not null, Form: null })
         {
             return ProfileReducer.SwitchHighlighted(state);
         }
@@ -721,7 +725,7 @@ public sealed class AppReducer
             return state with { ContextMenu = ContextMenus.Move(menu, direction) };
         }
 
-        if (state.ProfileList is not null)
+        if (state is { ProfileList: not null, Form: null })
         {
             return ProfileReducer.MoveList(state, direction);
         }
