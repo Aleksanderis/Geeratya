@@ -10,6 +10,7 @@ namespace Geeratya.FakeJira;
 public sealed partial class FakeJiraRouter
 {
     private const string SearchPath = "/rest/api/3/search/jql";
+    private const string SprintPrefix = "/rest/agile/1.0/sprint/";
     private const string BoardPrefix = "/rest/agile/1.0/board/";
     private const string BoardIssuesPath = "/rest/agile/1.0/board/4/issue";
     private const string StartAtName = "startAt";
@@ -154,7 +155,7 @@ public sealed partial class FakeJiraRouter
 
         if (_scrum.TryRoute(method, path, query, body) is { } scrum)
         {
-            return scrum;
+            return method == Get && IsScrumIssueList(path) ? _writes.Ranked(scrum) : scrum;
         }
 
         if (TryWrite(method, path, body) is { } written)
@@ -200,6 +201,15 @@ public sealed partial class FakeJiraRouter
         }
 
         return new FakeReply(404, ReadFixture(NotFoundFixture));
+    }
+
+    /// <summary>The Scrum lists whose order is the rank: a sprint's issues and the board lists.</summary>
+    private static bool IsScrumIssueList(string path)
+    {
+        var sprintIssues = path.StartsWith(SprintPrefix, StringComparison.Ordinal)
+            && path.EndsWith("/issue", StringComparison.Ordinal);
+
+        return IsIssueList(path) || sprintIssues;
     }
 
     /// <summary>The agile lists whose order is the rank: a board's backlog and issues.</summary>
@@ -414,7 +424,7 @@ public sealed partial class FakeJiraRouter
         {
             _listedKeys ??= ReadListedKeys();
 
-            return _listedKeys.Contains(key);
+            return _listedKeys.Contains(key) || _scrum.Knows(key);
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 
 namespace Geeratya.FakeJira.Tests;
@@ -63,6 +64,61 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
 
         Assert.Equal(5, estimates.Count);
         Assert.All(estimates, estimate => Assert.InRange(estimate, 1, 8));
+    }
+
+    [Fact]
+    public async Task GivenGeneratedBacklogIssue_WhenMovedIntoActiveSprintAndRanked_ThenSprintListsItAtThatPosition()
+    {
+        var backlogKey = Keys(await Json($"{Agile}/board/7/backlog?maxResults=1000"))[^1];
+        var reference = Keys(await Json($"{Agile}/sprint/5009/issue"))[0];
+
+        var move = await Send(HttpMethod.Post, $"{Agile}/sprint/5009/issue", $$"""{"issues":["{{backlogKey}}"]}""");
+        var rank = await Send(
+            HttpMethod.Put,
+            $"{Agile}/issue/rank",
+            $$"""{"issues":["{{backlogKey}}"],"rankBeforeIssue":"{{reference}}"}""");
+        var sprint = await Json($"{Agile}/sprint/5009/issue?maxResults=100");
+        var backlog = Keys(await Json($"{Agile}/board/7/backlog?maxResults=1000"));
+        var keys = Keys(sprint);
+
+        Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, rank.StatusCode);
+        Assert.Equal([backlogKey, reference], keys.Take(2));
+        Assert.DoesNotContain(backlogKey, backlog);
+        Assert.Equal(5009, SprintIds(sprint.GetProperty("issues")[0])[0]);
+    }
+
+    [Fact]
+    public async Task GivenGeneratedSprintIssue_WhenMovedToBacklog_ThenItLeavesTheSprintAndHasNoSprintField()
+    {
+        var key = Keys(await Json($"{Agile}/sprint/5009/issue"))[0];
+
+        var move = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", $$"""{"issues":["{{key}}"]}""");
+        var sprint = Keys(await Json($"{Agile}/sprint/5009/issue?maxResults=100"));
+        var board = await Json($"{Agile}/board/7/issue?maxResults=1000");
+        var entry = board.GetProperty("issues").EnumerateArray()
+            .First(issue => issue.GetProperty("key").GetString() == key);
+
+        Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
+        Assert.DoesNotContain(key, sprint);
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("fields").GetProperty("customfield_10020").ValueKind);
+    }
+
+    [Fact]
+    public async Task GivenGeneratedBoard_WhenMovedIntoClosedSprintOrWithUnknownIssue_ThenBadRequestAndNothingMoves()
+    {
+        var closed = await Send(HttpMethod.Post, $"{Agile}/sprint/5001/issue", """{"issues":["GEN-801"]}""");
+        var unknown = await Send(
+            HttpMethod.Post,
+            $"{Agile}/sprint/5009/issue",
+            """{"issues":["GEN-801","GEN-99999"]}""");
+        var malformed = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", "{");
+        var sprint = Keys(await Json($"{Agile}/sprint/5009/issue?maxResults=100"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, closed.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, malformed.StatusCode);
+        Assert.DoesNotContain("GEN-801", sprint);
     }
 
     [Fact]
@@ -138,6 +194,16 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedMode_WhenRecordedIssueMovedToBacklog_ThenRecordedBoardServesIt()
+    {
+        var move = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", """{"issues":["GCS-15"]}""");
+        var backlog = Keys(await Json($"{Agile}/board/6/backlog"));
+
+        Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
+        Assert.Contains("GCS-15", backlog);
+    }
+
+    [Fact]
     public async Task GivenGeneratedMode_WhenRecordedOrUnknownScrumRoutesAsked_ThenBehaviourIsUnchanged()
     {
         var recorded = await Json($"{Agile}/board/6/sprint");
@@ -163,6 +229,16 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     private static int[] SprintIds(JsonElement issue)
     {
         return [.. issue.GetProperty("fields").GetProperty("customfield_10020").EnumerateArray().Select(IdOf)];
+    }
+
+    private Task<HttpResponseMessage> Send(HttpMethod method, string path, string body)
+    {
+        var request = new HttpRequestMessage(method, $"{_baseUrl}{path}")
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json"),
+        };
+
+        return _client.SendAsync(request);
     }
 
     private async Task<JsonElement> Json(string path)

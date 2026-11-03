@@ -139,6 +139,11 @@ public sealed partial class FakeScrumStore
             return generated;
         }
 
+        if (method == Post && _generated?.Move(method, parts, body) is { } moved)
+        {
+            return moved;
+        }
+
         lock (_gate)
         {
             Load();
@@ -150,6 +155,22 @@ public sealed partial class FakeScrumStore
                 BacklogPart when method == Post && parts is [_, IssuePart] => MoveToBacklog(body),
                 _ => null,
             };
+        }
+    }
+
+    /// <summary>True for an issue on a Scrum board (recorded or generated), so it can be ranked.</summary>
+    public bool Knows(string key)
+    {
+        if (_generated?.Has(key) == true)
+        {
+            return true;
+        }
+
+        lock (_gate)
+        {
+            Load();
+
+            return _issues.ContainsKey(key);
         }
     }
 
@@ -194,7 +215,12 @@ public sealed partial class FakeScrumStore
         return DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
     }
 
-    private FakeReply Raw(int status, string fixture) => new(status, _readFixture(fixture));
+    private FakeReply Raw(int status, string fixture)
+    {
+        // The reader is readonly and thread-safe, so reading it inside and outside the gate is fine.
+        // ReSharper disable once InconsistentlySynchronizedField
+        return new FakeReply(status, _readFixture(fixture));
+    }
 
     private JsonObject ParseFixture(string fixture) => JsonNode.Parse(_readFixture(fixture))!.AsObject();
 
