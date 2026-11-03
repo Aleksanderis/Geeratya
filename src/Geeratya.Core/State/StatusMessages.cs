@@ -17,6 +17,8 @@ public static class StatusMessages
     /// <summary>How many messages the history keeps.</summary>
     public const int HistoryLimit = 50;
 
+    private const string KeymapPrefix = "keymap.json: ";
+
     /// <summary>The column where the status line's text starts in Normal mode: the badge <c> NORMAL </c> before it.</summary>
     public const int TextStart = 8;
 
@@ -118,14 +120,51 @@ public static class StatusMessages
     {
         var problems = reloaded.Problems ?? [];
 
+        // A reload replaces the earlier report: the old keymap.json entries go, so reloading twice lists each
+        // problem once. A status that shows one of them is cleared too, so the same text is posted (and kept) again.
+        state = state with
+        {
+            StatusHistory = [.. state.StatusHistory.Where(message => !IsKeymapProblem(message))],
+            Status = state.Status is { } shown && IsKeymapProblem(shown) ? null : state.Status,
+        };
+
         if (problems.Count == 0)
         {
             return state with { Message = reloaded.Message };
         }
 
-        return AddWarnings(
-            Warn(state, reloaded.Message),
-            problems.Count > 1 ? problems.Select(problem => $"keymap.json: {problem}").ToList() : []);
+        return AddWarnings(Warn(state, reloaded.Message), KeymapWarnings(problems));
+    }
+
+    /// <summary>
+    /// The startup report of loading <c>keymap.json</c>: the notice joins <see cref="AppState.Message"/> (after what is
+    /// already there) and several problems each become a history warning. Does nothing for a null load.
+    /// </summary>
+    public static AppState KeymapStartup(AppState state, KeymapLoadResult? load)
+    {
+        var notice = JoinNotices(state.Message, load?.Notice);
+        var withNotice = notice is null
+            ? state with { Message = null }
+            : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
+
+        return AddWarnings(withNotice, KeymapWarnings(load?.Problems ?? []));
+    }
+
+    /// <summary>Two notices on one status line, separated by a bar; either may be null.</summary>
+    public static string? JoinNotices(string? first, string? second)
+    {
+        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
+    }
+
+    private static List<string> KeymapWarnings(IReadOnlyList<string> problems)
+    {
+        return problems.Count > 1 ? [.. problems.Select(problem => KeymapPrefix + problem)] : [];
+    }
+
+    private static bool IsKeymapProblem(StatusMessage message)
+    {
+        return message.Severity == StatusSeverity.Warning
+            && message.Text.StartsWith(KeymapPrefix, StringComparison.Ordinal);
     }
 
     /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the history is newest first, so the last one listed shows first.</summary>

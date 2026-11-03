@@ -239,6 +239,65 @@ public sealed class StatusMessageTests
         Assert.Empty(second.Session.Tabs[0].Detail);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void GivenKeymapProblems_WhenReloadingTwiceWithTheSameResult_ThenTheHistoryHoldsEachEntryOnce(int count)
+    {
+        string[] problems = count == 1 ? ["a"] : ["a", "b"];
+        var message = count == 1 ? "keymap.json: a" : "keymap.json: a (and 1 more; see the Messages overlay)";
+        var reloaded = new KeymapReloaded(message, problems);
+
+        var first = _reducer.Reduce(AppState.Initial, reloaded).State;
+        var second = _reducer.Reduce(first, reloaded).State;
+
+        Assert.Equal(
+            first.StatusHistory.Select(entry => entry.Text).Order(),
+            second.StatusHistory.Select(entry => entry.Text).Order());
+        Assert.Equal(count == 1 ? 1 : 3, second.StatusHistory.Count);
+    }
+
+    [Fact]
+    public void GivenKeymapProblemsInTheHistory_WhenReloadingCleanly_ThenTheOldProblemsAreGone()
+    {
+        var bad = _reducer.Reduce(AppState.Initial, new KeymapReloaded("keymap.json: a", ["a", "b"])).State;
+
+        var clean = _reducer.Reduce(bad, new KeymapReloaded("Keymap reloaded")).State;
+
+        Assert.DoesNotContain(clean.StatusHistory, message => message.Text == "keymap.json: b");
+    }
+
+    [Fact]
+    public void GivenSeveralKeymapProblemsAtStartup_WhenReporting_ThenTheNoticeJoinsAndEachProblemIsAWarning()
+    {
+        var load = new KeymapLoadResult([], ["a", "b"]);
+        var start = AppState.Initial with { Message = "Settings problem" };
+
+        var state = StatusMessages.KeymapStartup(start, load);
+
+        Assert.Equal("Settings problem | keymap.json: a (and 1 more; see the Messages overlay)", state.Message);
+        Assert.Equal(StatusSeverity.Warning, state.MessageSeverity);
+        Assert.Equal(["keymap.json: a", "keymap.json: b"], [.. state.StatusHistory.Select(message => message.Text).Order()]);
+    }
+
+    [Fact]
+    public void GivenASingleKeymapProblemAtStartup_WhenReporting_ThenOnlyTheNoticeShows()
+    {
+        var state = StatusMessages.KeymapStartup(AppState.Initial, new KeymapLoadResult([], ["a"]));
+
+        Assert.Equal("keymap.json: a", state.Message);
+        Assert.Empty(state.StatusHistory);
+    }
+
+    [Fact]
+    public void GivenNoKeymapLoadAtStartup_WhenReporting_ThenTheMessageIsUntouchedOrCleared()
+    {
+        Assert.Null(StatusMessages.KeymapStartup(AppState.Initial, null).Message);
+        var kept = StatusMessages.KeymapStartup(AppState.Initial with { Message = "x" }, new KeymapLoadResult([], []));
+
+        Assert.Equal("x", kept.Message);
+    }
+
     private AppState WithOpenedIssue()
     {
         var profiles = ProfileCatalog.Empty.With(new Profile("work", "https://work.atlassian.net", "me@work.test"));

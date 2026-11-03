@@ -129,8 +129,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
-        _state = WithNotice(_state, JoinNotices(_state.Message, _keymapLoad?.Notice));
-        _state = StatusMessages.AddWarnings(_state, _keymapLoad?.Problems.Count > 1 ? _keymapLoad.Problems : []);
+        _state = StatusMessages.KeymapStartup(_state, _keymapLoad);
         _application = application;
         DetectBackground();
         application.Init();
@@ -461,7 +460,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
-        _state = WithNotice(_state with { ThemeNames = _themes.Names }, JoinNotices(_state.Message, start.Notice));
+        _state = WithNotice(
+            _state with { ThemeNames = _themes.Names },
+            StatusMessages.JoinNotices(_state.Message, start.Notice));
 
         return start.Theme;
     }
@@ -563,10 +564,6 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
     }
 
-    private static string? JoinNotices(string? first, string? second)
-    {
-        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
-    }
 
     private AppState LoadProfiles()
     {
