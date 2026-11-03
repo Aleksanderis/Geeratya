@@ -518,15 +518,15 @@ public sealed class ShellHost : ICommandSink, IDisposable
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
     }
 
-    private AppSettings LoadSettings()
+    private SettingsLoad LoadSettings()
     {
         try
         {
-            return _profiles.Settings?.Load() ?? AppSettings.Default;
+            return _profiles.Settings?.Read() ?? new SettingsLoad(AppSettings.Default, []);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppSettings.Default;
+            return new SettingsLoad(AppSettings.Default, []);
         }
     }
 
@@ -537,19 +537,21 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private AppState LoadProfiles()
     {
-        var settings = LoadSettings();
+        var settingsLoad = LoadSettings();
+        var settings = settingsLoad.Settings;
 
         try
         {
             var loaded = _profiles.Store.Load();
             var notice = loaded.Status == ProfileLoadStatus.Corrupt ? CorruptNotice : null;
+            var warning = settingsLoad.Warnings.Count > 0 ? string.Join(" ", settingsLoad.Warnings) : null;
 
             return AppState.Initial with
             {
                 Settings = settings,
                 Profiles = loaded.Catalog,
                 Session = SiteSession.Empty(loaded.Catalog.Active),
-                Message = notice,
+                Message = JoinNotices(notice, warning),
             };
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

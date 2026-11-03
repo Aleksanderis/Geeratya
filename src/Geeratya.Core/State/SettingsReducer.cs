@@ -2,15 +2,15 @@ using Geeratya.Core.Settings;
 
 namespace Geeratya.Core.State;
 
-/// <summary><c>:set hints|whichkey on|off</c>: flips a switch and asks for the settings file to be written.</summary>
+/// <summary>
+/// <c>:set</c> lists every setting, <c>:set name</c> shows one and <c>:set name value</c> changes it. The names, values
+/// and help come from <see cref="SettingsRegistry"/>.
+/// </summary>
 public static class SettingsReducer
 {
-    public const string Usage = "Usage: :set hints|whichkey on|off";
+    public const string Usage = "Usage: :set [name [value]]";
 
     public const string ThemeUsage = "Usage: :theme [name]";
-
-    private const string HintsName = "hints";
-    private const string WhichKeyName = "whichkey";
 
     public static ReduceResult Palette(AppState state, string argument)
     {
@@ -18,24 +18,20 @@ public static class SettingsReducer
 
         if (parts.Length == 0)
         {
-            return Say(state, Describe(state.Settings));
+            return Say(state, $"{SettingsRegistry.Describe(state.Settings)}. {Usage}");
         }
 
-        if (parts.Length != 2 || ParseSwitch(parts[1]) is not { } on)
+        if (parts.Length > 2 || SettingsRegistry.Find(parts[0]) is not { } setting)
         {
             return Say(state, Usage);
         }
 
-        var changed = Change(state.Settings, parts[0], on);
-
-        if (changed is null)
+        if (parts.Length == 1)
         {
-            return Say(state, Usage);
+            return Say(state, SettingsRegistry.Describe(setting, state.Settings));
         }
 
-        return new ReduceResult(
-            state with { Settings = changed, Message = $"{parts[0]} {Word(on)}." },
-            [new SaveSettingsEffect(changed)]);
+        return Change(state, setting, parts[1]);
     }
 
     /// <summary>
@@ -60,37 +56,30 @@ public static class SettingsReducer
 
         return new ReduceResult(
             state with { Settings = changed, Message = applied.Message },
-            [new SaveSettingsEffect(changed)]);
+            [new SaveSettingsEffect(SettingsRegistry.Find(SettingsRegistry.ThemeName)!, changed)]);
     }
 
-    private static AppSettings? Change(AppSettings settings, string name, bool on)
+    /// <summary>The host found the settings file changed: its values apply and the change must be repeated.</summary>
+    public static ReduceResult Reloaded(AppState state, SettingsReloaded reloaded)
     {
-        return name switch
+        return Say(state with { Settings = reloaded.Settings }, reloaded.Message);
+    }
+
+    private static ReduceResult Change(AppState state, SettingDefinition setting, string value)
+    {
+        if (setting.Name == SettingsRegistry.ThemeName)
         {
-            HintsName => settings with { StatusHints = on },
-            WhichKeyName => settings with { WhichKey = on },
-            _ => null,
-        };
-    }
+            return Theme(state, value);
+        }
 
-    private static bool? ParseSwitch(string text)
-    {
-        return text switch
+        if (setting.Apply(state.Settings, value) is not { } changed)
         {
-            "on" => true,
-            "off" => false,
-            _ => null,
-        };
-    }
+            return Say(state, $"{setting.Name} takes {setting.Expected}.");
+        }
 
-    private static string Describe(AppSettings settings)
-    {
-        return $"hints {Word(settings.StatusHints)}, whichkey {Word(settings.WhichKey)}. {Usage}";
-    }
-
-    private static string Word(bool on)
-    {
-        return on ? "on" : "off";
+        return new ReduceResult(
+            state with { Settings = changed, Message = $"{setting.Name} {setting.Read(changed)}." },
+            [new SaveSettingsEffect(setting, changed)]);
     }
 
     private static ReduceResult Say(AppState state, string message)

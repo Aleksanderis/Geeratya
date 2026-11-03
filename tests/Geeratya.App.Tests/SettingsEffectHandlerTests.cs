@@ -21,7 +21,7 @@ public sealed class SettingsEffectHandlerTests : IDisposable
         var store = new SettingsStore(_directory);
         var settings = new AppSettings(StatusHints: false);
 
-        var outcome = new SettingsEffectHandler(store).Run(new SaveSettingsEffect(settings));
+        var outcome = new SettingsEffectHandler(store).Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, settings));
 
         Assert.Null(outcome);
         Assert.Equal(settings, store.Load());
@@ -38,9 +38,46 @@ public sealed class SettingsEffectHandlerTests : IDisposable
 
         var handler = new SettingsEffectHandler(new SettingsStore(blocker));
 
-        var outcome = handler.Run(new SaveSettingsEffect(AppSettings.Default));
+        var outcome = handler.Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, AppSettings.Default));
 
         Assert.Contains("settings.json", Assert.IsType<ProfileOperationFailed>(outcome).Message);
+    }
+
+    [Fact]
+    public void GivenAFileChangedSinceItWasRead_WhenRunning_ThenTheNewValuesComeBackAndNothingIsWritten()
+    {
+        var store = new SettingsStore(_directory);
+        var path = Path.Combine(_directory, SettingsStore.FileName);
+
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, """{ "whichKey": true }""");
+        store.Read();
+        File.WriteAllText(path, """{ "whichKey": false }""");
+
+        var outcome = new SettingsEffectHandler(store)
+            .Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, new AppSettings(StatusHints: false)));
+
+        var reloaded = Assert.IsType<SettingsReloaded>(outcome);
+
+        Assert.False(reloaded.Settings.WhichKey);
+        Assert.True(reloaded.Settings.StatusHints);
+        Assert.Equal("""{ "whichKey": false }""", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void GivenAFileThatDoesNotParse_WhenRunning_ThenTheWriteIsRefusedAndTheFileStays()
+    {
+        Directory.CreateDirectory(_directory);
+
+        var path = Path.Combine(_directory, SettingsStore.FileName);
+
+        File.WriteAllText(path, "{ not json");
+
+        var outcome = new SettingsEffectHandler(new SettingsStore(_directory))
+            .Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, AppSettings.Default));
+
+        Assert.Contains("not valid JSON", Assert.IsType<ProfileOperationFailed>(outcome).Message);
+        Assert.Equal("{ not json", File.ReadAllText(path));
     }
 
     [Fact]
