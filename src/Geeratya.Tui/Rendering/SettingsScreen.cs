@@ -293,7 +293,9 @@ public static class SettingsScreen
     {
         if (state.SettingsScreen?.Preview is { } preview)
         {
-            return $"Previewing {preview}: Enter keeps it, Esc restores {state.Settings.Theme}.";
+            var previewing = $"Previewing {preview}: Enter keeps it, Esc restores {state.Settings.Theme}.";
+
+            return $"{TierNote(state, row)}{previewing}";
         }
 
         if (row.Setting is not { } setting)
@@ -302,9 +304,31 @@ public static class SettingsScreen
         }
 
         var words = SettingsRows.ChoicesOf(state, setting);
-        var values = words.Count is > 0 and <= 6 ? $" Values: {string.Join(", ", words)}." : string.Empty;
+        var note = TierNote(state, row);
 
-        return $"{setting.Help} Default: {setting.Default}.{values}";
+        // With the note the help row has no room for the values; the open list shows them anyway.
+        var values = words.Count is > 0 and <= 6 && note.Length == 0
+            ? $" Values: {string.Join(", ", words)}."
+            : string.Empty;
+
+        return $"{note}{setting.Help} Default: {setting.Default}.{values}";
+    }
+
+    // The theme row leads with why a theme may look different here (first, so a narrow help row keeps it); other
+    // rows and full colour have no note.
+    private static string TierNote(AppState state, SettingsRow row)
+    {
+        if (row.Setting?.Name != SettingsRegistry.ThemeName)
+        {
+            return string.Empty;
+        }
+
+        return state.SettingsInfo.Tier switch
+        {
+            ColourTier.Basic16 => "16 colours here: themes are approximated. ",
+            ColourTier.None => "No colour here: themes change nothing. ",
+            _ => string.Empty,
+        };
     }
 
     private static List<HintChip> Hints(AppState state, BodyContext context)
