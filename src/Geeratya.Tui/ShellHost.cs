@@ -96,7 +96,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _historyEffects = new HistoryEffectHandler(profiles.Histories);
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
-        _connections = new SiteConnections(profiles.Tokens);
+        _connections = new SiteConnections(profiles.Tokens, boardKinds: profiles.BoardKinds);
         _reducer = new AppReducer(keymap);
         _shutdownToken = _shutdown.Token;
         _network = new NetworkRunner(_connections, this, _shutdownToken);
