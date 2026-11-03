@@ -349,10 +349,11 @@ public sealed class ViewLoadHandlerScrumTests
         Assert.Null(fixture.Services.BoardKinds.Recall(5));
 
         fixture.Posted.Clear();
-        var refresh = new LoadViewPageEffect(tab.Id, tab.Definition, null, tab.RequestId + 1, LoadReason.Refresh, true);
+        var refresh = new LoadViewPageEffect(tab.Id, tab.Definition, null, tab.RequestId + 1, LoadReason.Refresh, Background: true);
         await fixture.Handler.StartAsync(refresh);
 
         Assert.Contains(fixture.Posted, command => command is BacklogBecameScrum);
+        Assert.Contains(fixture.Posted, command => command is SprintsLoaded);
         Assert.Equal(BoardKind.Scrum, fixture.Services.BoardKinds.Recall(5));
         Assert.Equal("/rest/agile/1.0/board/5/issue", fixture.Path(7));
     }

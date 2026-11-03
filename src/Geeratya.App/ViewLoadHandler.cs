@@ -238,6 +238,10 @@ public sealed class ViewLoadHandler
             {
                 kind = BoardKind.Scrum;
             }
+            else if (effect.Cursor is not null)
+            {
+                kind = services.BoardKinds.Recall(id);
+            }
             else if (!probeTried)
             {
                 kind = await ResolveKindAsync(services, id, loaded, effect.Background, token);
@@ -455,18 +459,18 @@ public sealed class ViewLoadHandler
     }
 
     /// <summary>
-    /// Only an opening (or restarting) load and a refresh by hand fetch the configuration; a refresh by the clock
-    /// keeps the one in the tab.
-    /// </summary>
-    /// <summary>
     /// A plain backlog whose board kind is still unknown (the probe failed earlier) probes again on a refresh, so a
-    /// team-managed Scrum board swaps to the Scrum backlog once Jira answers. Later pages never probe.
+    /// team-managed Scrum board swaps to the Scrum backlog once Jira answers. Later pages (with a cursor) never probe.
     /// </summary>
     private static bool NeedsRetriedProbe(JiraServices services, LoadViewPageEffect effect, long id)
     {
         return effect.Cursor is null && services.BoardKinds.Recall(id) is null;
     }
 
+    /// <summary>
+    /// Only an opening (or restarting) load and a refresh by hand fetch the configuration; a refresh by the clock
+    /// keeps the one in the tab.
+    /// </summary>
     private static bool NeedsConfiguration(LoadViewPageEffect effect)
     {
         if (effect.Cursor is not null)
