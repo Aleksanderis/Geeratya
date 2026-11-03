@@ -6,6 +6,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Tests.Views;
 
@@ -116,6 +117,35 @@ public class SprintSourceTests
 
         Assert.Equal(2, done.State.Session.Tabs[0].Rows.Count);
         Assert.Equal("7:active", done.State.Session.Tabs[0].Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenSprintReply_WhenItsRequestIsCurrent_ThenTheSprintIsKeptAndAStaleReplyIsIgnored()
+    {
+        var opened = _reducer.Reduce(Start(), new ViewOpenRequested(Definition(ViewSourceKind.Sprint, "7:active")));
+        var tab = opened.State.Session.Tabs[0];
+        var sprint = new Sprint(7, "Sprint 7", SprintState.Active, null, null, null, null, 7);
+
+        var stale = _reducer.Reduce(opened.State, new SprintLoaded(tab.Id, tab.RequestId + 1, sprint));
+        var current = _reducer.Reduce(opened.State, new SprintLoaded(tab.Id, tab.RequestId, sprint));
+
+        Assert.False(stale.State.Session.Tabs[0].SprintResolved);
+        Assert.Equal(sprint, current.State.Session.Tabs[0].Sprint);
+        Assert.True(current.State.Session.Tabs[0].SprintResolved);
+    }
+
+    [Fact]
+    public void GivenLoadedSprint_WhenSwitchingSprint_ThenTheOldSprintIsForgotten()
+    {
+        var opened = _reducer.Reduce(Start(), new ViewOpenRequested(Definition(ViewSourceKind.Sprint, "7:42")));
+        var tab = opened.State.Session.Tabs[0];
+        var sprint = new Sprint(42, "Old", SprintState.Closed, null, null, null, null, 7);
+        var loaded = _reducer.Reduce(opened.State, new SprintLoaded(tab.Id, tab.RequestId, sprint));
+
+        var switched = _reducer.Reduce(loaded.State, new SprintSwitched(tab.Id, new SprintSource(7, 43), "S43"));
+
+        Assert.Null(switched.State.Session.Tabs[0].Sprint);
+        Assert.False(switched.State.Session.Tabs[0].SprintResolved);
     }
 
     [Fact]

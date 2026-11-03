@@ -1,6 +1,7 @@
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Views;
@@ -54,6 +55,12 @@ public sealed record ViewLoadFailed(TabId Tab, long RequestId, JiraError Error, 
 /// </summary>
 public sealed record BoardConfigurationLoaded(TabId Tab, long RequestId, BoardConfiguration Configuration)
     : ViewCommand;
+
+/// <summary>
+/// The sprint a Sprint view shows arrived (null: the board has no active sprint, or the lookup failed), after the
+/// board configuration; applied only while <paramref name="RequestId"/> is the tab's current request.
+/// </summary>
+public sealed record SprintLoaded(TabId Tab, long RequestId, Sprint? Sprint) : ViewCommand;
 
 /// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab

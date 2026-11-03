@@ -70,7 +70,7 @@ public static class FrameBuilder
         var header = Math.Min(HeaderRows, height - 1);
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var bodyHeight = BodyHeight(height);
-        var context = new BodyContext(keymap, glyphs);
+        var context = new BodyContext(keymap, glyphs, clock);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
         var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);

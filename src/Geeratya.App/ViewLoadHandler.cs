@@ -184,6 +184,11 @@ public sealed class ViewLoadHandler
                 loaded = configuration.Value;
                 services.Fields.RememberEstimate(id, loaded.EstimationFieldId);
                 report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, loaded));
+
+                if (effect.Definition.Source == ViewSourceKind.Sprint)
+                {
+                    report(new SprintLoaded(effect.Tab, effect.RequestId, await FindSprintAsync(services, effect, id, token)));
+                }
             }
 
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
@@ -197,6 +202,35 @@ public sealed class ViewLoadHandler
         {
             return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
         }
+    }
+
+    /// <summary>
+    /// The sprint of a Sprint view: the named one, or the first active sprint of the board. Null for no active
+    /// sprint or a failed lookup (the header is then missing, the issues still load).
+    /// </summary>
+    private static async Task<Sprint?> FindSprintAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        long boardId,
+        CancellationToken token)
+    {
+        if (!SprintSource.TryParse(effect.Definition.SourceValue, out var source))
+        {
+            return null;
+        }
+
+        var priority = effect.Background ? JiraPriority.Background : JiraPriority.User;
+
+        if (source.SprintId is { } sprintId)
+        {
+            var one = await services.Sprints.GetSprintAsync(sprintId, token, priority);
+
+            return one.IsSuccess ? one.Value : null;
+        }
+
+        var active = await services.Sprints.GetActiveSprintsAsync(boardId, token, priority);
+
+        return active.IsSuccess && active.Value.Count > 0 ? active.Value[0] : null;
     }
 
     private async Task<Command?> BoardPageAsync(
