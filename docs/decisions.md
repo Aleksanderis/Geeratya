@@ -141,3 +141,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (quick filters and swimlanes, #192)
 
 **UI:** Swimlanes are back in the columns layout, as Geeratya's own grouping (assignee, epic) shown one lane at a time, and quick filters are the board's own, applied as extra JQL (overrides the 2026-11-02 "no swimlanes" entry and #143 feedback; the later #192 comment kept both). Why: the agile API gives no swimlane definition, and one lane at a time keeps the card-pitch viewport maths. Epics are neither hidden nor added: the board endpoint already follows each board's own rule. Details: `ux-screens.md`, "Columns layout".
+
+## 2026-11-03 (start on a board, #542)
+
+**UI:** A start reopens the profile's remembered tabs (definitions only, `tabs.json`); with none, the board picker opens (the board itself when there is one) once the connection works. Overrides roadmap question 3 (default "no"). Why: the owner wants a useful first screen. `startup.restore off` skips the file and always opens the picker; closing every tab also counts as nothing remembered. Details: `ux-workflows.md`, workflow 0.

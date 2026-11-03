@@ -5,6 +5,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Settings;
+using Geeratya.Core.Startup;
 using Geeratya.Platform;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Files;
@@ -26,7 +27,8 @@ public sealed record ProfileServices(
     UserKeymapStore? Keymap = null,
     SettingsStore? Settings = null,
     string? ThemesDirectory = null,
-    SavedViewStore? SavedViews = null)
+    SavedViewStore? SavedViews = null,
+    RememberedTabsStore? Tabs = null)
 {
     /// <summary>
     /// Wires the services for the running process; throws <see cref="InvalidOperationException"/> with a readable
@@ -60,6 +62,7 @@ public sealed record ProfileServices(
             new UserKeymapStore(directories.ConfigDirectory),
             new SettingsStore(directories.ConfigDirectory),
             Path.Combine(directories.ConfigDirectory, "themes"),
-            new SavedViewStore(directories.StateDirectory, permissions));
+            new SavedViewStore(directories.StateDirectory, permissions),
+            new RememberedTabsStore(directories.StateDirectory, permissions));
     }
 }

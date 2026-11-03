@@ -56,7 +56,7 @@ Design for M1 (#64). The code issues build on the names below; a name in a table
 
 **Memory bound across tabs.** At most 10 000 rows per tab (about 5 MB of `IssueSummary`, roughly 500 bytes each) and 50 000 across tabs, counting `PendingRows` too (a refresh gathers at most the tab cap again, so a board tab can briefly hold twice its rows). When an append or an activation exceeds the total, the hidden tabs with the lowest `LastActiveSeq` go `Cold` until it fits. Going cold drops `Rows`, `Next` and `PendingRows`, sets `RequestId = 0` and `Load = Idle`, and emits `CancelTabEffect`, so a reply still on its way finds no matching id. Definition, layout, selection key and scroll are kept; activation reloads the first page (`LoadReason.Open`: cache first, then network). A cold tab cannot restore a position deeper than its first page: the key is kept, the scroll falls back to the top. This is the cap #81 left to #64.
 
-**Tabs are not persisted in M1.** A start begins with no tabs; opening a view then hits the disk cache. Restoring last session's tabs is an open question in `docs/roadmap.md`.
+**Remembered tabs (#542).** The tab definitions (source, layout, quick filters, swimlane, lane, active tab; never rows or tokens) are kept per profile in `tabs.json` in the profile's state folder (`RememberedTabsStore`, same file handling as saved views). The reducer drives it: `StartupRequested` after the first frame emits `LoadTabsEffect`; `TabsLoaded` reopens the tabs (`SiteSession.Startup` tracks the phase, and nothing is saved while the file is still being read); every reduction whose tabs differ in definition emits `SaveTabsEffect`, written latest-wins off the UI thread. Nothing waits for the network.
 
 **New types by issue** (plain records, `Command` or `Effect` subtypes unless noted):
 
@@ -135,7 +135,7 @@ Flow: key or `Tick` -> reducer -> `(state, effects)` -> the host draws the state
 
 `TabStatus.Of` and `NetworkBanner` (Core, `Views/`) are pure; the frame builder takes the `now` of the host, so the banner (blank row under the tab bar, `FrameBuilder.HeaderRows`) and the status word count down without any state change. `TabStatus.ShowsTime` tells the host to redraw on a tick. The rate-limit wait reaches the reducer as `LinkChanged(SiteLink.FromRateLimit(until))`, posted from the transport's event through `ShellHost.Post` (never a UI call from that thread).
 
-**Cold start.** The first frame comes from a state with no tabs. Opening a view issues the load; the handler answers from the cache first (memory, then disk, off the UI thread) with `ViewCacheLoaded`, then asks Jira ("Cache and refresh").
+**Cold start.** The first frame comes from a state with no tabs; the remembered tabs reopen right after it (see "Remembered tabs"). Opening a view issues the load; the handler answers from the cache first (memory, then disk, off the UI thread) with `ViewCacheLoaded`, then asks Jira ("Cache and refresh").
 
 ## Cache and refresh
 

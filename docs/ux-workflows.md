@@ -7,7 +7,7 @@ The flows of Milestone 1 (read your board), step by step. Screens and their stat
 1. The shell draws its first frame before any network reply: tab bar, empty body with the hint line, status bar.
 2. With an active profile the status line shows `Checking <host>…` and the body stays as it is (cached views are shown with the `STALE` banner once the cache issue stores them). Without a profile the start screen says `:profile add`.
 3. The check is `GET /myself`. Success: `Connected as <name>`. 401: the banner explains the token was rejected (screens, "Errors"). Network failure: `OFFLINE`, cached views stay usable.
-4. With no views yet, `<space>t` opens the source picker (workflow 1). The previous session's tabs are restored from the cache in M1's cache issue; until then the shell starts with no tab.
+4. After the first frame the shell reads the active profile's remembered tabs (`tabs.json`, definitions only). Remembered tabs reopen as they were (source, layout, quick filters, swimlane and lane, the active tab); only the active one loads at once, the others when first shown, each from the disk cache with the `STALE` banner until the refresh arrives. A tab whose board or filter is gone (404) is dropped with a status note. With nothing remembered (first start, or all tabs closed) the board picker opens once the connection check succeeds, or the board itself when the site has exactly one; the empty start screen only shows without a profile, while offline, or when the picker was dismissed. `:set startup.restore off` skips the file and always starts on the board picker. Switching profile reads that profile's tabs.
 
 ## 1. Open a view
 
@@ -34,7 +34,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 
 ## 5. Tabs
 
-`Tab`/`Shift-Tab` (or `g t`/`g T`) next and previous, wrapping around; `Alt-1` to `Alt-9` go to a tab by number (a missing number does nothing); `<space>c` closes (the right neighbour becomes active); `<space>t` opens a new one. State (view, layout, selection, scroll, issue stack) is per tab. Tabs are not saved across runs until the cache issue stores them.
+`Tab`/`Shift-Tab` (or `g t`/`g T`) next and previous, wrapping around; `Alt-1` to `Alt-9` go to a tab by number (a missing number does nothing); `<space>c` closes (the right neighbour becomes active); `<space>t` opens a new one. State (view, layout, selection, scroll, issue stack) is per tab. The tabs of the active profile are saved as they change (see workflow 0).
 
 ## 6. Refresh, offline, rate limits
 

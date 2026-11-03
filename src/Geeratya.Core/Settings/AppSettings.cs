@@ -10,13 +10,15 @@ namespace Geeratya.Core.Settings;
 /// <param name="WhichKey">Show the popup of the next keys while a multi-key binding is half typed.</param>
 /// <param name="CommandLevel">Which actions help, the palette, which-key and hints list: everyday or advanced.</param>
 /// <param name="Theme">The name of the colour theme: a built-in one or a file in the <c>themes</c> folder.</param>
+/// <param name="RestoreTabs">Reopen the tabs of the last run on start, and remember them while running.</param>
 /// <param name="JumpTarget">Whether the jump prompt opens an issue in the current tab or in a new one.</param>
 public sealed record AppSettings(
     HintLevel StatusHints = HintLevel.Full,
     bool WhichKey = true,
     CommandLevel CommandLevel = CommandLevel.Everyday,
     string Theme = AppSettings.DefaultTheme,
-    JumpTarget JumpTarget = JumpTarget.Current)
+    JumpTarget JumpTarget = JumpTarget.Current,
+    bool RestoreTabs = true)
 {
     public const string DefaultTheme = "auto";
 

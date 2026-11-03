@@ -6,9 +6,9 @@ hints.whichKey on (default on) - Show the popup of the next keys while a multi-k
 commandlevel everyday (default everyday) - Which actions help, the palette, which-key and the hints list: everyday ones…
 theme auto (default auto) - The colour theme: a built-in one or a file in the themes folder.                            
 jump.target current (default current) - Where the jump prompt (<space>g) opens an issue: on top of the current tab, or …
+startup.restore on (default on) - Reopen the tabs of the last run on start; off starts on the board picker every time.  
 Messages                                                                                                                
 Saved A-1                                                                                                               
-                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

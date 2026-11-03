@@ -9,6 +9,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
+using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
@@ -54,6 +55,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly ProfileEffectHandler _profileEffects;
     private readonly HistoryEffectHandler _historyEffects;
     private readonly SavedViewEffectHandler? _savedViewEffects;
+    private readonly StartupEffectHandler? _startupEffects;
     private readonly BrowserEffectHandler _browserEffects;
     private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
@@ -98,6 +100,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
         _historyEffects = new HistoryEffectHandler(profiles.Histories);
         _savedViewEffects = profiles.SavedViews is { } savedViews ? new SavedViewEffectHandler(savedViews) : null;
+        _startupEffects = profiles.Tabs is { } tabs ? new StartupEffectHandler(tabs) : null;
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens, boardKinds: profiles.BoardKinds);
@@ -113,12 +116,18 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _mentionCheck = new MentionCheckHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
+
+        _startupEffects?.SaveFailed += OnTabsSaveFailed;
+
         _connections.RateLimitChanged += OnRateLimitChanged;
     }
 
     public void Dispose()
     {
         _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+
+        _startupEffects?.SaveFailed -= OnTabsSaveFailed;
+
         _connections.RateLimitChanged -= OnRateLimitChanged;
         _tickTimer?.Dispose();
         _whichKeyTimer?.Dispose();
@@ -157,10 +166,12 @@ public sealed class ShellHost : ICommandSink, IDisposable
         screen.Render(_state, TimeProvider.System.GetUtcNow());
         Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns, screen.BodyHeight));
         Dispatch(new ConnectionCheckRequested());
+        Dispatch(new StartupRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
         _shutdown.Cancel();
         _profiles.Caches.FlushAll();
+        _startupEffects?.Flush();
 
         return 0;
     }
@@ -408,6 +419,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 ActiveCache()?.PutIssue(writeIssue.Issue);
             }
+            else if (effect is SaveTabsEffect saveTabs)
+            {
+                _startupEffects?.Queue(saveTabs);
+            }
             else if (effect is ReloadKeymapEffect)
             {
                 reloaded = ReloadKeymap();
@@ -532,6 +547,11 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return profile is null ? null : _profiles.Caches.For(profile);
     }
 
+    private void OnTabsSaveFailed(string notice)
+    {
+        Post(new TabsSaveFailed(notice));
+    }
+
     private void OnCacheWriteFailed(string notice)
     {
         Post(new CacheWriteFailed(notice));
@@ -571,6 +591,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             ?? await _profileEffects.RunAsync(effect, _shutdownToken)
             ?? _historyEffects.Run(effect)
             ?? _savedViewEffects?.Run(effect)
+            ?? _startupEffects?.Run(effect)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
     }
 
