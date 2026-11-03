@@ -136,6 +136,8 @@ public class PaletteTests
             PaletteRole.Offline,
             PaletteRole.RateLimited,
             PaletteRole.Warning,
+            PaletteRole.Success,
+            PaletteRole.SuccessChip,
             PaletteRole.Stale,
         ];
 

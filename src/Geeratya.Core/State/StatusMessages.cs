@@ -44,6 +44,15 @@ public static class StatusMessages
         return state.Session.Active is { } id && state.Session.Tabs.Any(tab => tab.Id == id && tab.RankPickup is not null);
     }
 
+    /// <summary>How long a new message is a filled chip to catch the eye before it settles to coloured text.</summary>
+    public static readonly TimeSpan FreshFor = TimeSpan.FromMilliseconds(1500);
+
+    /// <summary>True while the showing message is within <see cref="FreshFor"/> of its first stamped time.</summary>
+    public static bool IsFresh(AppState state, DateTimeOffset now)
+    {
+        return state.Status is { PostedAt: { } posted } && now - posted < FreshFor;
+    }
+
     public static TimeSpan LifetimeOf(StatusSeverity severity)
     {
         return severity switch

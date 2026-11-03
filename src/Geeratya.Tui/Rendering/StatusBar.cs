@@ -309,18 +309,23 @@ public static class StatusBar
     }
 
     /// <summary>
-    /// The message to paint in its severity colour inside the bar (warnings and errors; an info message keeps the bar's
-    /// own colours), or null.
+    /// The message to paint in its severity role inside the bar, or null. Info is drawn in the success role and, for the
+    /// first <see cref="StatusMessages.FreshFor"/> after it was posted, as a filled chip (bold reverse, so the
+    /// no-colour tier shows it too); warnings and errors keep their roles.
     /// </summary>
-    public static StatusSegment? MessageSegment(AppState state, int width)
+    public static StatusSegment? MessageSegment(AppState state, int width, DateTimeOffset? now = null)
     {
-        if (StatusMessages.Cells(state) is not { } cells || state.Status is not { } status
-            || status.Severity == StatusSeverity.Info || cells.Start >= width)
+        if (StatusMessages.Cells(state) is not { } cells || state.Status is not { } status || cells.Start >= width)
         {
             return null;
         }
 
-        var role = status.Severity == StatusSeverity.Error ? PaletteRole.Error : PaletteRole.Warning;
+        var role = status.Severity switch
+        {
+            StatusSeverity.Error => PaletteRole.Error,
+            StatusSeverity.Warning => PaletteRole.Warning,
+            _ => now is { } at && StatusMessages.IsFresh(state, at) ? PaletteRole.SuccessChip : PaletteRole.Success,
+        };
 
         return new StatusSegment(cells.Start, Math.Min(cells.End, width) - cells.Start, status.Line, role);
     }

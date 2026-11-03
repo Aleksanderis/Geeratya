@@ -27,6 +27,8 @@ public static class PaletteTable
             RoleStyle.Bold | RoleStyle.Underline),
         [PaletteRole.RateLimited] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.Warning] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Success] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.SuccessChip] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Reverse | RoleStyle.Bold),
         [PaletteRole.Stale] = new(
             ThemeColor.Remote,
             ThemeColor.BaseBackground,

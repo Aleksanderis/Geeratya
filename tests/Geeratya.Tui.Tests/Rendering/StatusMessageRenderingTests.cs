@@ -2,7 +2,9 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
@@ -27,16 +29,66 @@ public class StatusMessageRenderingTests
     }
 
     [Theory]
-    [InlineData(StatusSeverity.Info, null)]
-    [InlineData(StatusSeverity.Warning, PaletteRole.Warning)]
-    [InlineData(StatusSeverity.Error, PaletteRole.Error)]
-    public void GivenAMessage_WhenBuildingTheFrame_ThenOnlyWarningsAndErrorsGetTheirOwnRole(
+    [InlineData(StatusSeverity.Info, 1600, PaletteRole.Success)]
+    [InlineData(StatusSeverity.Info, 1499, PaletteRole.SuccessChip)]
+    [InlineData(StatusSeverity.Info, 0, PaletteRole.SuccessChip)]
+    [InlineData(StatusSeverity.Warning, 0, PaletteRole.Warning)]
+    [InlineData(StatusSeverity.Warning, 1600, PaletteRole.Warning)]
+    [InlineData(StatusSeverity.Error, 0, PaletteRole.Error)]
+    [InlineData(StatusSeverity.Error, 1600, PaletteRole.Error)]
+    public void GivenAMessage_WhenBuildingTheFrame_ThenTheRoleFollowsSeverityAndFreshness(
         StatusSeverity severity,
-        PaletteRole? role)
+        int ageMs,
+        PaletteRole role)
     {
-        var segment = StatusBar.MessageSegment(Posted("Saved A-1", severity), 100);
+        var segment = StatusBar.MessageSegment(Posted("Saved A-1", severity), 100, _now.AddMilliseconds(ageMs));
 
         Assert.Equal(role, segment?.Role);
+    }
+
+    [Fact]
+    public void GivenAnInfoMessage_WhenBuildingTheFrameWithoutAClock_ThenItIsTheSettledSuccessRole()
+    {
+        Assert.Equal(PaletteRole.Success, StatusBar.MessageSegment(Posted("Saved A-1", StatusSeverity.Info), 100)?.Role);
+    }
+
+    [Theory]
+    [InlineData(StatusSeverity.Info, 0)]
+    [InlineData(StatusSeverity.Info, 2000)]
+    [InlineData(StatusSeverity.Warning, 0)]
+    [InlineData(StatusSeverity.Error, 2000)]
+    public void GivenAMessage_WhenBuildingTheStyledFrame_ThenTheSegmentCarriesItsRoleAndText(
+        StatusSeverity severity,
+        int ageMs)
+    {
+        var now = _now.AddMilliseconds(ageMs);
+        var frame = FrameBuilder.BuildStyled(Posted("Saved A-1", severity), 80, 24, _keymap, null, now);
+
+        Assert.NotNull(frame?.StatusSegment);
+        Assert.EndsWith("Saved A-1", frame.StatusSegment.Text);
+        Assert.StartsWith(StatusMessages.PrefixOf(severity), frame.StatusSegment.Text);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1499, true)]
+    [InlineData(1500, false)]
+    public void GivenAPostedMessage_WhenAskingIfItIsFresh_ThenItIsFreshForOneAndAHalfSeconds(int ageMs, bool fresh)
+    {
+        Assert.Equal(fresh, StatusMessages.IsFresh(Posted("x", StatusSeverity.Info), _now.AddMilliseconds(ageMs)));
+        Assert.False(StatusMessages.IsFresh(AppState.Initial, _now));
+    }
+
+    [Fact]
+    public void GivenTheChipAndTheSuccessRole_WhenResolvingWithoutColour_ThenBothDifferFromBodyAndEachOther()
+    {
+        var body = Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, PaletteRole.Body).Style;
+        var chip = Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, PaletteRole.SuccessChip).Style;
+        var success = Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, PaletteRole.Success).Style;
+
+        Assert.NotEqual(body, chip);
+        Assert.NotEqual(body, success);
+        Assert.NotEqual(success, chip);
     }
 
     [Fact]
