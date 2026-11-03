@@ -5,7 +5,9 @@ namespace Geeratya.Core.Settings;
 /// file, its type, default and help. The reader, the writer, <c>:set</c> and the documentation table all use it.
 /// </summary>
 /// <param name="Name">The name in <c>:set</c>.</param>
-/// <param name="ConfigKey">The dotted path in <c>settings.json</c>: <c>hints.statusBar</c> is member <c>statusBar</c> of object <c>hints</c>.</param>
+/// <param name="ConfigKey">
+/// The dotted path in <c>settings.json</c>: <c>hints.statusBar</c> is member <c>statusBar</c> of object <c>hints</c>.
+/// </param>
 /// <param name="Kind">The type of the value.</param>
 /// <param name="Default">The default, spelled as <c>:set</c> shows it.</param>
 /// <param name="Help">What the setting does, one sentence.</param>

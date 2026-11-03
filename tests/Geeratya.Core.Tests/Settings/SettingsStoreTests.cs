@@ -58,7 +58,9 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
 
         store.Write(_whichKey, new AppSettings(WhichKey: false));
 
-        Assert.Equal("{\n  // hello\n  \"theme\": \"nord\",\n  \"hints\": { \"whichKey\": false }\n}\n", File.ReadAllText(FilePath));
+        Assert.Equal(
+            "{\n  // hello\n  \"theme\": \"nord\",\n  \"hints\": { \"whichKey\": false }\n}\n",
+            File.ReadAllText(FilePath));
     }
 
     [Fact]
@@ -145,6 +147,34 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         Assert.True(after.Settings.WhichKey);
         Assert.Equal(HintLevel.Minimal, after.Settings.StatusHints);
         Assert.Contains("\"hints\": { \"whichKey\": true }", File.ReadAllText(FilePath));
+    }
+
+    [Fact]
+    public void GivenBothTheGroupedAndTheFlatKey_WhenReading_ThenTheGroupedOneWins()
+    {
+        Create("{ \"whichKey\": false, \"hints\": { \"whichKey\": true } }");
+
+        Assert.True(new SettingsStore(_directory).Read().Settings.WhichKey);
+    }
+
+    [Fact]
+    public void GivenHintsWithoutTheMember_WhenReading_ThenTheFlatKeySuppliesIt()
+    {
+        Create("{ \"whichKey\": false, \"hints\": { \"statusBar\": \"minimal\" } }");
+
+        var settings = new SettingsStore(_directory).Read().Settings;
+
+        Assert.False(settings.WhichKey);
+        Assert.Equal(HintLevel.Minimal, settings.StatusHints);
+    }
+
+    [Theory]
+    [InlineData("hints.whichKey")]
+    [InlineData("HINTS.WHICHKEY")]
+    [InlineData("whichkey")]
+    public void GivenANameInAnyCaseOrOldSpelling_WhenFinding_ThenTheSettingIsFound(string name)
+    {
+        Assert.Equal("hints.whichKey", SettingsRegistry.Find(name)?.Name);
     }
 
     [Fact]

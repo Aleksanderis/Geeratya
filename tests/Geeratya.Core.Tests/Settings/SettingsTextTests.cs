@@ -27,7 +27,8 @@ public sealed class SettingsTextTests
     [Fact]
     public void GivenANestedPath_WhenChangingIt_ThenOnlyThatValueChanges()
     {
-        const string text = "{\n  \"hints\": {\n    // keep\n    \"statusBar\": \"full\",\n    \"whichKey\": true,\n  },\n}\n";
+        const string text =
+            "{\n  \"hints\": {\n    // keep\n    \"statusBar\": \"full\",\n    \"whichKey\": true,\n  },\n}\n";
 
         var edit = SettingsText.Set(text, ["hints", "whichKey"], "false");
 
@@ -37,7 +38,9 @@ public sealed class SettingsTextTests
     [Fact]
     public void GivenAnObjectWithoutTheMember_WhenAddingNested_ThenItGoesLastWithTheMembersIndent()
     {
-        var edit = SettingsText.Set("{\n  \"hints\": {\n    \"statusBar\": \"full\"\n  }\n}\n", ["hints", "whichKey"], "false");
+        const string text = "{\n  \"hints\": {\n    \"statusBar\": \"full\"\n  }\n}\n";
+
+        var edit = SettingsText.Set(text, ["hints", "whichKey"], "false");
 
         Assert.Equal(
             "{\n  \"hints\": {\n    \"statusBar\": \"full\",\n    \"whichKey\": false\n  }\n}\n",

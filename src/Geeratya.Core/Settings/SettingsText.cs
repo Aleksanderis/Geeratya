@@ -127,15 +127,20 @@ public static class SettingsText
         return layout;
     }
 
-    private static void ReadValue(ref Utf8JsonReader reader, ObjectLayout layout, int offset, int memberStart, bool matches)
+    private static void ReadValue(
+        ref Utf8JsonReader reader,
+        ObjectLayout layout,
+        int offset,
+        int memberStart,
+        bool matches)
     {
         var valueStart = offset + (int)reader.TokenStartIndex;
 
         reader.Skip();
 
-        var valueEnd = offset + (reader.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray
-            ? (int)reader.TokenStartIndex + 1
-            : (int)reader.BytesConsumed);
+        var closes = reader.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray;
+        var relativeEnd = closes ? (int)reader.TokenStartIndex + 1 : (int)reader.BytesConsumed;
+        var valueEnd = offset + relativeEnd;
 
         if (layout.FirstMemberStart < 0)
         {

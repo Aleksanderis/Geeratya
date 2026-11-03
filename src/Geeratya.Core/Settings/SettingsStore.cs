@@ -179,7 +179,7 @@ public sealed class SettingsStore
 
         foreach (var setting in SettingsRegistry.All)
         {
-            var (value, key) = Find(root, setting);
+            var (value, key) = Lookup(root, setting);
 
             if (value is not { } found)
             {
@@ -202,8 +202,10 @@ public sealed class SettingsStore
         return new SettingsLoad(settings, warnings);
     }
 
-    /// <summary>The value under the new nested path, else under the older flat key, with the key it was found at.</summary>
-    private static (JsonElement? Value, string Key) Find(JsonElement root, SettingDefinition setting)
+    /// <summary>
+    /// The value under the new nested path, else under the older flat key, with the key it was found at.
+    /// </summary>
+    private static SettingLookup Lookup(JsonElement root, SettingDefinition setting)
     {
         var current = root;
 
@@ -211,13 +213,21 @@ public sealed class SettingsStore
         {
             if (current.ValueKind != JsonValueKind.Object || !TryGetLast(current, segment, out current))
             {
-                return setting.LegacyConfigKey is { } legacy && TryGetLast(root, legacy, out var old)
-                    ? (old, legacy)
-                    : (null, setting.ConfigKey);
+                return LookupLegacy(root, setting);
             }
         }
 
-        return (current, setting.ConfigKey);
+        return new SettingLookup(current, setting.ConfigKey);
+    }
+
+    private static SettingLookup LookupLegacy(JsonElement root, SettingDefinition setting)
+    {
+        if (setting.LegacyConfigKey is { } legacy && TryGetLast(root, legacy, out var old))
+        {
+            return new SettingLookup(old, legacy);
+        }
+
+        return new SettingLookup(null, setting.ConfigKey);
     }
 
     private static bool TryGetLast(JsonElement element, string name, out JsonElement value)
