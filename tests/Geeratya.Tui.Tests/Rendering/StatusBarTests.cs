@@ -390,6 +390,16 @@ public class StatusBarTests
         Assert.DoesNotContain("card", line);
     }
 
+    [Theory]
+    [InlineData(HintScope.Detail)]
+    [InlineData(HintScope.Backlog)]
+    public void GivenAScreenWithPanes_WhenListingItsHints_ThenTheNextPaneChordIsNamed(HintScope scope)
+    {
+        Assert.Contains("] ] pane", StatusBar.ScreenHintsFor(scope, _keymap));
+        Assert.DoesNotContain("] ] pane", StatusBar.ScreenHintsFor(HintScope.Columns, _keymap));
+        Assert.DoesNotContain("] ] pane", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
+    }
+
     [Fact]
     public void GivenARemappedBrowserKey_WhenRendering_ThenTheHintShowsTheNewKey()
     {

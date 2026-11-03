@@ -15,7 +15,8 @@ public static class PaneFrame
         IReadOnlyList<StyledSpan>? left,
         IReadOnlyList<StyledSpan>? right,
         IReadOnlyList<StyledLine> content,
-        IReadOnlyList<PaneDivider> dividers)
+        IReadOnlyList<PaneDivider> dividers,
+        int focusContentIndex = -1)
     {
         if (!FrameGrid.CanFrame(width, height))
         {
@@ -28,7 +29,8 @@ public static class PaneFrame
             .DistinctBy(divider => divider.ContentIndex)
             .ToList();
         var panes = Panes(width, height, edges);
-        var grid = new FrameGrid(width, height, panes);
+        var focused = FocusedPane(panes, focusContentIndex + 1);
+        var grid = new FrameGrid(width, height, panes, focused);
         var edgeRows = edges.ToDictionary(divider => divider.ContentIndex + 1);
         var lines = new List<StyledLine>(height);
 
@@ -36,13 +38,16 @@ public static class PaneFrame
         {
             if (row == 0)
             {
-                lines.Add(Edge(grid, row, FrameGrid.Chips(panes[0], left, right)));
+                lines.Add(Edge(grid, row, FrameGrid.Chips(panes[0], left, right, focused == 0)));
             }
             else if (edgeRows.TryGetValue(row, out var divider))
             {
-                var pane = panes.First(candidate => candidate.Row == row);
+                var paneIndex = panes.FindIndex(candidate => candidate.Row == row);
 
-                lines.Add(Edge(grid, row, FrameGrid.Chips(pane, divider.Left, divider.Right)));
+                lines.Add(Edge(
+                    grid,
+                    row,
+                    FrameGrid.Chips(panes[paneIndex], divider.Left, divider.Right, focused == paneIndex)));
             }
             else if (row == height - 1)
             {
@@ -59,6 +64,12 @@ public static class PaneFrame
         return lines;
     }
 
+    /// <summary>The pane that holds the frame row (the last one starting at or above it); the first when none is given.</summary>
+    private static int FocusedPane(List<PaneRect> panes, int frameRow)
+    {
+        return Math.Max(0, panes.FindLastIndex(pane => pane.Row <= frameRow));
+    }
+
     /// <summary>
     /// The top or the bottom edge of a frame around lines the caller has already put between side borders (the issue
     /// detail document draws its own sides and shared edges).
@@ -68,12 +79,13 @@ public static class PaneFrame
         int height,
         bool top,
         IReadOnlyList<StyledSpan>? left,
-        IReadOnlyList<StyledSpan>? right)
+        IReadOnlyList<StyledSpan>? right,
+        bool focused = true)
     {
         var pane = new PaneRect(0, 0, height, width);
-        var grid = new FrameGrid(width, height, [pane]);
+        var grid = new FrameGrid(width, height, [pane], focused ? 0 : -1);
 
-        return top ? Edge(grid, 0, FrameGrid.Chips(pane, left, right)) : Edge(grid, height - 1, []);
+        return top ? Edge(grid, 0, FrameGrid.Chips(pane, left, right, focused)) : Edge(grid, height - 1, []);
     }
 
     private static StyledLine Edge(FrameGrid grid, int row, IReadOnlyList<EdgeChip> chips)

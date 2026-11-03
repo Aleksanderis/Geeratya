@@ -86,7 +86,11 @@ public static class Panel
     private static StyledLine Divider(IReadOnlyList<StyledSpan> title, int width)
     {
         var room = width - TitleChrome;
-        var spans = new List<StyledSpan> { new($"{JoinLeft}{Horizontal} ", TextRole.Muted) };
+        var spans = new List<StyledSpan>
+        {
+            new($"{JoinLeft}{Horizontal}", TextRole.Border),
+            new(" ", TextRole.Muted),
+        };
         var used = 0;
 
         foreach (var span in title)
@@ -102,7 +106,8 @@ public static class Panel
 
         var fill = room - used;
 
-        spans.Add(new StyledSpan($" {Repeat(Horizontal, fill)}{Horizontal}{JoinRight}", TextRole.Muted));
+        spans.Add(new StyledSpan(" ", TextRole.Muted));
+        spans.Add(new StyledSpan($"{Repeat(Horizontal, fill)}{Horizontal}{JoinRight}", TextRole.Border));
 
         return new StyledLine(spans);
     }
@@ -110,11 +115,11 @@ public static class Panel
     private static StyledLine Side(StyledLine content, int width)
     {
         var padding = Math.Max(0, width - Chrome - DisplayWidth.Of(content.PlainText));
-        var spans = new List<StyledSpan>(content.Spans.Count + 3) { new($"{Vertical} ", TextRole.Muted) };
+        var spans = new List<StyledSpan>(content.Spans.Count + 3) { new($"{Vertical} ", TextRole.Border) };
 
         spans.AddRange(content.Spans);
         spans.Add(new StyledSpan(new string(' ', padding), TextRole.Body));
-        spans.Add(new StyledSpan($" {Vertical}", TextRole.Muted));
+        spans.Add(new StyledSpan($" {Vertical}", TextRole.Border));
 
         return new StyledLine(spans);
     }

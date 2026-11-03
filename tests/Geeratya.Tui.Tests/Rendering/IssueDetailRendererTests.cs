@@ -321,6 +321,57 @@ public class IssueDetailRendererTests
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [remote], _now)).State;
     }
 
+    [Fact]
+    public void GivenTheCursorInTheFirstPane_WhenBuilding_ThenItsBoxIsFocusedAndTheNextEdgeChipIsDim()
+    {
+        var body = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!.Body;
+
+        var top = body[0].Spans;
+        var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ Description"));
+        var side = body.First(line => line.PlainText.StartsWith('│'));
+
+        Assert.Contains(top, span => span.Role == TextRole.ChipFocus);
+        Assert.Contains(top, span => span.Role == TextRole.FrameFocus);
+        Assert.Equal(TextRole.FrameFocus, side.Spans[0].Role);
+        Assert.Equal(TextRole.FrameFocus, edge.Spans[0].Role);
+        Assert.DoesNotContain(edge.Spans, span => span.Role == TextRole.ChipFocus);
+        Assert.Contains(edge.Spans, span => span.Role == TextRole.Muted && span.Text.Contains("Description"));
+    }
+
+    [Fact]
+    public void GivenTheCursorMovedToTheNextPane_WhenBuilding_ThenTheFocusFollowsIntoThatPaneAndItsTitleChip()
+    {
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("]")).State;
+
+        state = _reducer.Reduce(state, new KeyPressed("]")).State;
+
+        var body = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body;
+
+        Assert.Contains(body[0].Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Description"));
+        Assert.Equal(TextRole.FrameFocus, body[0].Spans[0].Role);
+        Assert.DoesNotContain(
+            body,
+            line => line.Spans.Any(span => span.Role == TextRole.Border && span.Text.Contains('│')));
+    }
+
+    [Fact]
+    public void GivenTheCursorInLowerPanes_WhenBuilding_ThenAtMostOnePaneHasAFilledChipAndTheTopEdgeAgreesWithIt()
+    {
+        var state = Loaded(80, 12);
+
+        for (var step = 0; step < 9; step++)
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j")).State;
+        }
+
+        var body = FrameBuilder.BuildStyled(state, 80, 12, _keymap)!.Body;
+
+        Assert.True(body.Count(line => line.Spans.Any(span => span.Role == TextRole.ChipFocus)) <= 1);
+        Assert.Equal(
+            body[0].Spans.Any(span => span.Role == TextRole.ChipFocus),
+            body[0].Spans[0].Role == TextRole.FrameFocus);
+    }
+
     private static DetailState Active(AppState state)
     {
         return state.Session.Tabs[0].Detail[0];

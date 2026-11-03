@@ -36,7 +36,7 @@ public static class Palette
                 var foreground = dim ? theme.Dimmed(entry.TrueForeground) : entry.TrueForeground;
                 var background = onPage && ground.HasFlag(SpanGround.Surface) ? theme.Surface : entry.TrueBackground;
 
-                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry));
+                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry, true));
             case ColorSupport.Basic16:
                 var plain = entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
                 var faint = dim && plain && faintSupported;
@@ -49,14 +49,24 @@ public static class Palette
                     entry.Background16,
                     faint ? ColourStyle(entry) | RoleStyle.Faint : ColourStyle(entry));
             default:
-                return new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, entry.NoColorStyle);
+                return new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, LowTier(entry.NoColorStyle));
         }
     }
 
     // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because
     // the colour tiers already give a role its own background.
-    private static RoleStyle ColourStyle(PaletteEntry entry)
+    private static RoleStyle ColourStyle(PaletteEntry entry, bool truecolor = false)
     {
-        return entry.NoColorStyle & ~RoleStyle.Reverse;
+        var style = entry.NoColorStyle & ~RoleStyle.Reverse;
+
+        return truecolor ? style & ~RoleStyle.UnderlineWithoutTint : LowTier(style);
+    }
+
+    // A role that is a tint at 24 bits is an underline where there is no tint to draw.
+    private static RoleStyle LowTier(RoleStyle style)
+    {
+        return style.HasFlag(RoleStyle.UnderlineWithoutTint)
+            ? (style & ~RoleStyle.UnderlineWithoutTint) | RoleStyle.Underline
+            : style;
     }
 }

@@ -47,9 +47,15 @@ public sealed class FrameGrid
     private const string Ellipsis = "…";
 
     private readonly byte[] _lines;
+    private readonly PaneRect? _focused;
 
-    public FrameGrid(int width, int height, IReadOnlyList<PaneRect> panes)
+    /// <param name="width">The columns of the body.</param>
+    /// <param name="height">The rows of the body.</param>
+    /// <param name="panes">The boxes that tile the body.</param>
+    /// <param name="focused">The index of the focused pane, whose whole box takes the focus role; none by default.</param>
+    public FrameGrid(int width, int height, IReadOnlyList<PaneRect> panes, int focused = -1)
     {
+        _focused = focused >= 0 && focused < panes.Count ? panes[focused] : null;
         Width = Math.Max(0, width);
         Height = Math.Max(0, height);
         _lines = new byte[Width * Height];
@@ -76,6 +82,19 @@ public sealed class FrameGrid
     public bool IsBorder(int row, int column)
     {
         return InRange(row, column) && _lines[(row * Width) + column] != 0;
+    }
+
+    /// <summary>
+    /// The role of a border cell: the focus role on the box of the focused pane (shared edges included, the focused pane
+    /// wins), else the quiet border role.
+    /// </summary>
+    public TextRole BorderRole(int row, int column)
+    {
+        return _focused is { } pane && pane.Width >= 2 && pane.Height >= 2
+            && row >= pane.Row && row <= pane.Bottom && column >= pane.Column && column <= pane.Right
+            && (row == pane.Row || row == pane.Bottom || column == pane.Column || column == pane.Right)
+            ? TextRole.FrameFocus
+            : TextRole.Border;
     }
 
     /// <summary>The border glyph of a cell (Unicode; the ASCII tier swaps it later), empty for an interior cell.</summary>
@@ -110,8 +129,8 @@ public sealed class FrameGrid
     }
 
     /// <summary>
-    /// One row as spans of exactly <see cref="Width"/> cells: border runs in the muted role, the interior runs between
-    /// them from <paramref name="interior"/> (start column, cell count), and <paramref name="chips"/> written over the
+    /// One row as spans of exactly <see cref="Width"/> cells: border runs in the border or focus role, the interior
+    /// runs between them from <paramref name="interior"/> (start column, cell count), and <paramref name="chips"/> written over the
     /// border cells they start on.
     /// </summary>
     public IReadOnlyList<StyledSpan> Row(
@@ -121,6 +140,7 @@ public sealed class FrameGrid
     {
         var spans = new List<StyledSpan>();
         var border = new StringBuilder();
+        var borderRole = TextRole.Border;
         var column = 0;
 
         while (column < Width)
@@ -128,7 +148,7 @@ public sealed class FrameGrid
             if (chips?.FirstOrDefault(candidate => candidate.Column == column && candidate.Spans.Count > 0) is { Spans.Count: > 0 } chip
                 && IsBorder(row, column))
             {
-                Flush(spans, border);
+                Flush(spans, border, borderRole);
                 spans.AddRange(chip.Spans);
                 column += Math.Max(1, chip.Width);
 
@@ -137,13 +157,21 @@ public sealed class FrameGrid
 
             if (IsBorder(row, column))
             {
+                var role = BorderRole(row, column);
+
+                if (role != borderRole)
+                {
+                    Flush(spans, border, borderRole);
+                    borderRole = role;
+                }
+
                 border.Append(Glyph(row, column));
                 column++;
 
                 continue;
             }
 
-            Flush(spans, border);
+            Flush(spans, border, borderRole);
 
             var start = column;
 
@@ -155,7 +183,7 @@ public sealed class FrameGrid
             spans.AddRange(interior(start, column - start));
         }
 
-        Flush(spans, border);
+        Flush(spans, border, borderRole);
 
         return spans;
     }
@@ -163,12 +191,14 @@ public sealed class FrameGrid
     /// <summary>
     /// The chips of a top edge of <paramref name="pane"/>: <paramref name="left"/> after the corner and the rule,
     /// <paramref name="right"/> ending before the last rule. Text is cut with <c>…</c> to what fits and a chip is dropped
-    /// in a pane narrower than <see cref="MinChipPane"/>; the right chip yields to the left one.
+    /// in a pane narrower than <see cref="MinChipPane"/>; the right chip yields to the left one. The left chip is the
+    /// filled accent chip when <paramref name="focused"/>, else a dim chip; the right chip is always dim.
     /// </summary>
     public static IReadOnlyList<EdgeChip> Chips(
         PaneRect pane,
         IReadOnlyList<StyledSpan>? left,
-        IReadOnlyList<StyledSpan>? right = null)
+        IReadOnlyList<StyledSpan>? right = null,
+        bool focused = false)
     {
         var chips = new List<EdgeChip>(2);
 
@@ -182,7 +212,7 @@ public sealed class FrameGrid
 
         if (left is { Count: > 0 })
         {
-            var spans = Padded(Fit(left, room - 2));
+            var spans = Padded(Fit(focused ? ChipStyle.Focused(left) : ChipStyle.Dim(left), room - 2));
 
             if (spans.Count > 0)
             {
@@ -194,7 +224,7 @@ public sealed class FrameGrid
         if (right is { Count: > 0 })
         {
             var available = pane.Right - 1 - leftEnd - 1;
-            var spans = Padded(Fit(right, Math.Min(room, available) - 2));
+            var spans = Padded(Fit(ChipStyle.Dim(right), Math.Min(room, available) - 2));
 
             if (spans.Count > 0)
             {
@@ -257,11 +287,11 @@ public sealed class FrameGrid
         return spans;
     }
 
-    private static void Flush(List<StyledSpan> spans, StringBuilder border)
+    private static void Flush(List<StyledSpan> spans, StringBuilder border, TextRole role)
     {
         if (border.Length > 0)
         {
-            spans.Add(new StyledSpan(border.ToString(), TextRole.Muted));
+            spans.Add(new StyledSpan(border.ToString(), role));
             border.Clear();
         }
     }
