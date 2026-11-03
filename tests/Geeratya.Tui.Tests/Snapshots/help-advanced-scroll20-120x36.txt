@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>md  Delete the comment under the cursor                             │           │
+│           │   Global      │   <space>md  Delete the comment under the cursor                            ▲│           │
 │           │ > All actions │ Rank                                                                         │           │
 │           │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
@@ -30,7 +30,7 @@
 │           │               │   <space>sg  Show the full goal of the sprint                                │           │
 │           │               │ Tabs                                                                         │           │
 │           │               │   Tab        Next tab  (gt)                                                  │           │
-│           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
+│           │               │   Shift-Tab  Previous tab  (gT)                                             ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

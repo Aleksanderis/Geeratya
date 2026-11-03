@@ -30,7 +30,7 @@
 │           │               │   <space>g   Jump to an issue by key                                         │           │
 │           │               │   <space>n   Show the message history                                        │           │
 │           │               │   <space>x   Dismiss the status message                                      │           │
-│           │               │   <space>,   Open or close the settings screen                               │           │
+│           │               │   <space>,   Open or close the settings screen                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

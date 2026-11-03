@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>T   Show a list of open tabs                                        │           │
+│           │   Global      │   <space>T   Show a list of open tabs                                       ▲│           │
 │           │ > All actions │ Navigate                                                                     │           │
 │           │   Commands    │   j          Move down  (Down)                                               │           │
 │           │               │   k          Move up  (Up)                                                   │           │
@@ -30,7 +30,7 @@
 │           │               │   <space>,   Open or close the settings screen                               │           │
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
-│           │               │ Dialogs                                                                      │           │
+│           │               │ Dialogs                                                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

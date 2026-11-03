@@ -18,7 +18,7 @@
 │ │               │              unassign                                    │ │
 │ │               │   <space>im  Assign the issue to me                      │ │
 │ │               │   <space>is  Change the status of the issue              │ │
-│ │               │   Alt-k      Rank the issue up (a count moves it that    │ │
+│ │               │   Alt-k      Rank the issue up (a count moves it that   ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

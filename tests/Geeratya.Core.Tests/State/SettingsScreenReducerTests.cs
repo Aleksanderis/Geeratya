@@ -136,7 +136,7 @@ public sealed class SettingsScreenReducerTests
         var previewed = Press(Press(SelectRow(Opened().State, "theme"), "Enter").State, "j").State;
 
         var result = SettingsScreenReducer.Clicked(previewed, 1, ActionIds.ItemOpen);
-        var restored = _reducer.Reduce(previewed, new OverlayRowClicked(MouseTarget.SettingsRow, 1, ActionIds.ItemOpen, default));
+        var restored = _reducer.Reduce(previewed, new OverlayRowClicked(MouseTarget.SettingsRow, 1, ActionIds.ItemOpen));
 
         Assert.Null(result.State.SettingsScreen!.Preview);
         Assert.Equal("auto", Assert.IsType<ApplyThemeEffect>(restored.Effects.OfType<ApplyThemeEffect>().Last()).Name);

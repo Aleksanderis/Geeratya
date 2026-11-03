@@ -18,7 +18,7 @@
 │ │               │              fold a backlog section                      │ │
 │ │               │   <space>l   Switch between list and columns             │ │
 │ │               │   <space>vf  Cycle the quick filter of the board (off,   │ │
-│ │               │              then each filter in turn)                   │ │
+│ │               │              then each filter in turn)                  ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close
