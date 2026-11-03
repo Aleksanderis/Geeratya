@@ -374,6 +374,82 @@ public class SelectionTests
     }
 
     [Fact]
+    public void GivenHeldButton_WhenMovingOverRows_ThenTheRangeGrowsAndShrinksWithThePointer()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3", "A-4", "A-5");
+
+        var first = _reducer.Reduce(state, new RowsDragging(5, 3, 3, 80, true)).State;
+        var grown = _reducer.Reduce(first, new RowsDragging(5, 3, 5, 80, false)).State;
+        var shrunk = _reducer.Reduce(grown, new RowsDragging(5, 3, 4, 80, false)).State;
+
+        Assert.Equal(["A-2"], RowSelection.Targets(Tab(first)));
+        Assert.Equal(["A-2", "A-3", "A-4"], RowSelection.Targets(Tab(grown)));
+        Assert.Equal(["A-2", "A-3"], RowSelection.Targets(Tab(shrunk)));
+    }
+
+    [Fact]
+    public void GivenTheFirstMoveAlreadyOnAnotherRow_WhenDragging_ThenTheRangeStartsOnThePressedRow()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3", "A-4");
+
+        var result = _reducer.Reduce(state, new RowsDragging(5, 3, 5, 80, true)).State;
+
+        Assert.Equal("A-2", Tab(result).VisualAnchor);
+        Assert.Equal("A-4", Tab(result).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenALiveRangeScrolledAwayFromThePress_WhenReleasing_ThenTheRangeKeepsItsAnchor()
+    {
+        var keys = Enumerable.Range(1, 40).Select(number => $"A-{number}").ToArray();
+        var state = Loaded(ViewLayout.List, keys);
+        var started = _reducer.Reduce(state, new RowsDragging(5, 3, 3, 80, true)).State;
+        var scrolled = _reducer.Reduce(started, new RowsDragScrolled(6)).State;
+        var again = _reducer.Reduce(scrolled, new RowsDragScrolled(6)).State;
+
+        var released = _reducer.Reduce(again, new RowsDragged(5, 3, 20, 80, _now, true)).State;
+
+        Assert.Equal("A-2", Tab(released).VisualAnchor);
+        Assert.Equal("A-14", Tab(again).SelectedKey);
+        Assert.Equal(13, RowSelection.Count(Tab(again)));
+        Assert.True(RowSelection.Count(Tab(released)) >= 13);
+    }
+
+    [Fact]
+    public void GivenAutoScrollAtTheEndsOfTheList_WhenStepping_ThenTheCursorStopsAtTheFirstAndLastRow()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
+        var started = _reducer.Reduce(state, new RowsDragging(5, 3, 3, 80, true)).State;
+
+        var down = _reducer.Reduce(started, new RowsDragScrolled(6)).State;
+        var up = _reducer.Reduce(down, new RowsDragScrolled(-6)).State;
+
+        Assert.Equal("A-3", Tab(down).SelectedKey);
+        Assert.Equal("A-1", Tab(up).SelectedKey);
+        Assert.Equal("A-2", Tab(up).VisualAnchor);
+    }
+
+    [Fact]
+    public void GivenNoVisualRange_WhenAnAutoScrollStepArrives_ThenNothingMoves()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
+
+        var result = _reducer.Reduce(state, new RowsDragScrolled(2));
+
+        Assert.Same(state, result.State);
+    }
+
+    [Fact]
+    public void GivenAReleaseWithoutALiveRange_WhenFlaggedLive_ThenItSelectsFromPressToRelease()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3", "A-4");
+
+        var result = _reducer.Reduce(state, new RowsDragged(5, 3, 4, 80, _now, true)).State;
+
+        Assert.Equal(["A-2", "A-3"], RowSelection.Targets(Tab(result)));
+    }
+
+    [Fact]
     public void GivenAMarkedRow_WhenCountingTheSelection_ThenTheStatusTextHasSomethingToShow()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");

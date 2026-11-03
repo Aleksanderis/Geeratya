@@ -380,6 +380,40 @@ public class SprintMoveTests
     }
 
     [Fact]
+    public void GivenALiveRangeOnABacklog_WhenThePointerCrossesIntoAnotherSection_ThenTheRangeStaysAndTheDropAsks()
+    {
+        var state = WithSprints(Loaded());
+        var tab = Tab(state);
+        var layout = BacklogSections.Build(tab);
+        var fromLine = layout.LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3"));
+        var from = Screen(tab, fromLine);
+        var other = Screen(tab, SectionLine(state, BacklogFixtures.FutureId));
+
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+        var crossed = _reducer.Reduce(started, new RowsDragging(0, from, other, 80, false)).State;
+        var dropped = _reducer.Reduce(crossed, new RowsDragged(0, from, other, 80, _now, true));
+
+        Assert.Equal(Tab(started).SelectedKey, Tab(crossed).SelectedKey);
+        Assert.Equal(InputMode.Confirm, dropped.State.Mode);
+        Assert.Contains("Move A-3 from", dropped.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Empty(dropped.Effects);
+    }
+
+    [Fact]
+    public void GivenALiveRangeOnABacklog_WhenAnAutoScrollStepArrives_ThenTheCursorStaysInItsSection()
+    {
+        var state = WithSprints(Loaded());
+        var tab = Tab(state);
+        var line = BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3"));
+        var from = Screen(tab, line);
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+
+        var result = _reducer.Reduce(started, new RowsDragScrolled(3));
+
+        Assert.Same(started, result.State);
+    }
+
+    [Fact]
     public void GivenMarksSpanningTheTargetSection_WhenDropped_ThenIssuesAlreadyThereAreLeftOutOfTheQuestionAndRequest()
     {
         var state = WithSprints(Marked(Loaded(), "A-2", "A-3"));
