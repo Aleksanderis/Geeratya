@@ -558,6 +558,8 @@ public sealed class AppReducer
             ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
             ActionIds.SprintCreate => InNormal(state, () => SprintForms.Create(state)),
             ActionIds.SprintEdit => InNormal(state, () => SprintForms.Edit(state)),
+            ActionIds.SprintStart => InNormal(state, () => SprintLifecycle.Start(state, at)),
+            ActionIds.SprintComplete => InNormal(state, () => SprintLifecycle.Complete(state, at)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),

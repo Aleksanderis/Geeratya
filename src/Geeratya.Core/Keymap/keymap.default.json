@@ -64,6 +64,8 @@
     { "mode": "normal", "keys": "Space s v", "action": "sprint.switch" },
     { "mode": "normal", "keys": "Space s n", "action": "sprint.create" },
     { "mode": "normal", "keys": "Space s e", "action": "sprint.edit" },
+    { "mode": "normal", "keys": "Space s s", "action": "sprint.start" },
+    { "mode": "normal", "keys": "Space s c", "action": "sprint.complete" },
     { "mode": "normal", "keys": "Space s g", "action": "sprint.goal" },
     { "mode": "normal", "keys": "Space k t", "action": "rank.top" },
     { "mode": "normal", "keys": "Space k b", "action": "rank.bottom" },

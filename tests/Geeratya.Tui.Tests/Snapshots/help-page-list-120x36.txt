@@ -23,8 +23,8 @@ Sample · 1 issue
             │               │   Alt-m      Mark or unmark the selected row and move down                   │            
             │               │   Space i C  Create a sub-task of the selected issue                         │            
             │               │   Space s n  Create a sprint (name, goal, dates)                             │            
-            │               │                                                                              │            
-            │               │                                                                              │            
+            │               │   Space s s  Start the sprint (confirms dates and issue count)               │            
+            │               │   Space s c  Complete the sprint (confirms where the open issues go)         │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            

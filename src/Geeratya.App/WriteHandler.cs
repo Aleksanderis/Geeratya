@@ -10,6 +10,7 @@ using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
@@ -327,6 +328,11 @@ public sealed class WriteHandler
         SprintWriteRequest request,
         CancellationToken token)
     {
+        if (request is CompleteSprintRequest complete)
+        {
+            return await CompleteSprintAsync(services, effect, complete, token);
+        }
+
         var result = request switch
         {
             CreateSprintRequest create => await services.SprintWrites.CreateAsync(
@@ -339,6 +345,11 @@ public sealed class WriteHandler
             EditSprintRequest { Edit.ClearsDate: true } clear
                 => await services.SprintWrites.ReplaceAsync(clear.Before, clear.Edit, token),
             EditSprintRequest edit => await services.SprintWrites.UpdateAsync(edit.Before.Id, edit.Edit, token),
+            StartSprintRequest start => await services.SprintWrites.StartAsync(
+                start.Sprint.Id,
+                start.Start,
+                start.End,
+                token),
             _ => throw new NotSupportedException($"No handler for {request.GetType().Name}."),
         };
 
@@ -366,13 +377,13 @@ public sealed class WriteHandler
 
         try
         {
-            if (request is EditSprintRequest edit)
+            if (SprintOf(request) is { } id)
             {
-                var result = await services.Sprints.GetSprintAsync(edit.Before.Id, token);
+                var result = await services.Sprints.GetSprintAsync(id, token);
 
                 if (result.IsSuccess)
                 {
-                    outcome = edit.IsShownBy(result.Value) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
+                    outcome = IsShown(request, result.Value) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
                 }
             }
         }
@@ -382,6 +393,86 @@ public sealed class WriteHandler
         }
 
         return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, []);
+    }
+
+    /// <summary>
+    /// Complete is two calls: the sprint is completed, then its open issues are moved (Jira's complete does not move
+    /// them). A refusal or lost reply of the first is the outcome of the write; when only the move goes wrong the
+    /// sprint is closed, so the write counts as done with a warning that says which issues were not moved.
+    /// </summary>
+    private async Task<Command> CompleteSprintAsync(
+        JiraServices services,
+        ExecuteWriteEffect effect,
+        CompleteSprintRequest request,
+        CancellationToken token)
+    {
+        var result = await services.SprintWrites.CompleteAsync(request.Sprint.Id, token);
+
+        if (!result.IsSuccess)
+        {
+            return result.Error.IsOutcomeUnknown
+                ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), result.Error)
+                : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), result.Error);
+        }
+
+        if (request.OpenKeys.Count == 0)
+        {
+            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
+        }
+
+        var moved = request.MoveTo is { } next
+            ? await services.SprintMoves.MoveToSprintAsync(next.Id, request.OpenKeys, token)
+            : await services.SprintMoves.MoveToBacklogAsync(request.OpenKeys, token);
+
+        return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], Warning: MoveWarning(request, moved));
+    }
+
+    private static string? MoveWarning(CompleteSprintRequest request, WriteResult<SprintMoveOutcome> moved)
+    {
+        var total = request.OpenKeys.Count;
+        var name = request.Sprint.Name;
+
+        if (!moved.IsSuccess)
+        {
+            return $"Completed \"{name}\", but its {SprintTally.Issues(total)} were not moved to {request.Destination}: "
+                + $"{moved.Error.Message}. They stay in the closed sprint.";
+        }
+
+        var outcome = moved.Value;
+
+        if (outcome.AllMoved)
+        {
+            return null;
+        }
+
+        var left = total - outcome.Moved.Count;
+        var lost = outcome.Unknown.Count > 0 ? " (some replies were lost: reload to see where they are)" : string.Empty;
+        var reason = outcome.Error?.Message ?? "Jira refused them";
+
+        return $"Completed \"{name}\", but {left} of {total} open issues were not moved to {request.Destination}"
+            + $"{lost}: {reason}. They stay in the closed sprint.";
+    }
+
+    private static long? SprintOf(SprintWriteRequest request)
+    {
+        return request switch
+        {
+            EditSprintRequest edit => edit.Before.Id,
+            StartSprintRequest start => start.Sprint.Id,
+            CompleteSprintRequest complete => complete.Sprint.Id,
+            _ => null,
+        };
+    }
+
+    private static bool IsShown(SprintWriteRequest request, Sprint sprint)
+    {
+        return request switch
+        {
+            EditSprintRequest edit => edit.IsShownBy(sprint),
+            StartSprintRequest => StartSprintRequest.IsShownBy(sprint),
+            CompleteSprintRequest => CompleteSprintRequest.IsShownBy(sprint),
+            _ => false,
+        };
     }
 
     private static async Task<WriteResult<WriteAccepted>> SendAsync(

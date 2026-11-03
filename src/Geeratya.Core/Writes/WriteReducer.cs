@@ -164,6 +164,13 @@ public static class WriteReducer
     {
         foreach (var operation in operations)
         {
+            if (write is SprintWriteRequest sprint
+                && operation.Request is SprintWriteRequest running
+                && running.BoardId == sprint.BoardId)
+            {
+                return $"The board is busy ({running.BusyText})";
+            }
+
             foreach (var key in write.Keys)
             {
                 if (operation.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
@@ -226,7 +233,12 @@ public static class WriteReducer
 
         return operation is null
             ? new ReduceResult(state, _noEffects)
-            : Complete(state, operation, succeeded.Rows, succeeded.CreatedKey);
+            : Warned(Complete(state, operation, succeeded.Rows, succeeded.CreatedKey), succeeded.Warning);
+    }
+
+    private static ReduceResult Warned(ReduceResult result, string? warning)
+    {
+        return warning is null ? result : result with { State = StatusMessages.Warn(result.State, warning) };
     }
 
     private static ReduceResult Verified(AppState state, WriteVerified verified)
@@ -379,6 +391,13 @@ public static class WriteReducer
     private static ReduceResult CompleteSprint(AppState state, Operation operation, SprintWriteRequest request)
     {
         var effects = new List<Effect>();
+
+        if (operation.Keys.Count > 0)
+        {
+            // A completed sprint moved its open issues: what the caches hold of them is old.
+            effects.Add(new InvalidateCacheEffect(operation.Keys));
+        }
+
         var next = Finish(state, operation, false, effects);
 
         foreach (var tab in next.Session.Tabs.Where(candidate => ShowsSprintsOf(candidate, request.BoardId)).ToArray())

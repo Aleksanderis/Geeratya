@@ -138,6 +138,149 @@ public sealed class WriteHandlerSprintTests
         Assert.Empty(fixture.Http.Requests);
     }
 
+    [Fact]
+    public async Task GivenAStartRequest_WhenExecuting_ThenOnePostCarriesTheStateAndBothDates()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-start-parallel-active.json")));
+        var request = new StartSprintRequest(6, Before(), _start, _end, 3, 8, false);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, request));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.EndsWith("/rest/agile/1.0/sprint/12", Assert.Single(fixture.Http.Requests).AbsolutePath);
+        using var body = JsonDocument.Parse(Assert.Single(fixture.Http.Bodies));
+        Assert.Equal("active", body.RootElement.GetProperty("state").GetString());
+        Assert.Equal("2026-11-02T10:00:00.000Z", body.RootElement.GetProperty("startDate").GetString());
+    }
+
+    [Fact]
+    public async Task GivenACompleteWithOpenIssues_WhenExecuting_ThenTheSprintIsClosedThenTheIssuesGoToTheBacklog()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-complete.json"))
+                .Reply(HttpStatusCode.NoContent, string.Empty));
+        var request = new CompleteSprintRequest(6, Before(), ["A-3", "A-4"], 1, null);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, request));
+
+        var succeeded = Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Null(succeeded.Warning);
+        Assert.Equal(["POST", "POST"], fixture.Http.Methods);
+        Assert.EndsWith("/rest/agile/1.0/sprint/12", fixture.Http.Requests.ElementAt(0).AbsolutePath);
+        Assert.EndsWith("/rest/agile/1.0/backlog/issue", fixture.Http.Requests.ElementAt(1).AbsolutePath);
+        using var moved = JsonDocument.Parse(fixture.Http.Bodies.ElementAt(1));
+        Assert.Equal(["A-3", "A-4"], moved.RootElement.GetProperty("issues").EnumerateArray().Select(item => item.GetString()));
+    }
+
+    [Fact]
+    public async Task GivenACompleteToTheNextSprint_WhenExecuting_ThenTheIssuesAreMovedIntoThatSprint()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-complete.json"))
+                .Reply(HttpStatusCode.NoContent, string.Empty));
+        var next = Before() with { Id = 13, Name = "Next" };
+        var request = new CompleteSprintRequest(6, Before(), ["A-3"], 0, next);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, request));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.EndsWith("/rest/agile/1.0/sprint/13/issue", fixture.Http.Requests.ElementAt(1).AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenACompleteWithNoOpenIssue_WhenExecuting_ThenOnlyTheCompleteCallIsMade()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-complete.json")));
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, new CompleteSprintRequest(6, Before(), [], 3, null)));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenTheMoveIsRefused_WhenCompleting_ThenTheSprintIsDoneAndTheWarningSaysTheyStayInIt()
+    {
+        const string refusal = """{"errorMessages":["No permission to move."],"errors":{}}""";
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-complete.json"))
+                .Reply(HttpStatusCode.Forbidden, refusal));
+
+        await fixture.Writes.StartAsync(
+            new ExecuteWriteEffect(41, new CompleteSprintRequest(6, Before(), ["A-3", "A-4"], 0, null)));
+
+        var succeeded = Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Contains("2 of 2 open issues were not moved to the backlog", succeeded.Warning);
+        Assert.Contains("stay in the closed sprint", succeeded.Warning);
+        Assert.Equal(2, fixture.Http.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenJiraRefusesTheComplete_WhenExecuting_ThenItFailsAndNoIssueIsMoved()
+    {
+        using var fixture = await ConnectedAsync(handler => handler.Reply(
+            HttpStatusCode.BadRequest,
+            RecordedFixtures.Read("scrum/error-sprint-complete-future-no-start-400.json")));
+
+        await fixture.Writes.StartAsync(
+            new ExecuteWriteEffect(41, new CompleteSprintRequest(6, Before(), ["A-3"], 0, null)));
+
+        Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenALostCompleteReply_WhenExecuting_ThenItIsNotRepeatedAndNoIssueIsMoved()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.BadGateway, string.Empty).Reply(HttpStatusCode.OK, "{}"),
+            3);
+
+        await fixture.Writes.StartAsync(
+            new ExecuteWriteEffect(41, new CompleteSprintRequest(6, Before(), ["A-3"], 0, null)));
+
+        Assert.IsType<WriteOutcomeUnknown>(Assert.Single(fixture.Posted));
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenALostStartReply_WhenVerifying_ThenAnActiveSprintMeansItWasApplied()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("sprint-gcs-active.json")));
+        var request = new StartSprintRequest(6, Before(), _start, _end, 1, 0, false);
+
+        await fixture.Writes.StartAsync(new VerifyWriteEffect(41, request));
+
+        Assert.Equal(VerifyOutcome.Applied, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
+    [Fact]
+    public async Task GivenALostCompleteReply_WhenVerifying_ThenAnActiveSprintMeansItWasNotApplied()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("sprint-gcs-active.json")));
+        var request = new CompleteSprintRequest(6, Before(), ["A-3"], 0, null);
+
+        await fixture.Writes.StartAsync(new VerifyWriteEffect(41, request));
+
+        Assert.Equal(VerifyOutcome.NotApplied, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
+    [Fact]
+    public async Task GivenALostCompleteReply_WhenVerifying_ThenAClosedSprintMeansItWasApplied()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("sprint-gcs-closed.json")));
+        var request = new CompleteSprintRequest(6, Before(), ["A-3"], 0, null);
+
+        await fixture.Writes.StartAsync(new VerifyWriteEffect(41, request));
+
+        Assert.Equal(VerifyOutcome.Applied, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
     private static Sprint Before()
     {
         return new Sprint(12, "s172 tmp 6", SprintState.Future, null, null, null, null, 6);

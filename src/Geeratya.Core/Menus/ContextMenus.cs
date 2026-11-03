@@ -120,6 +120,8 @@ public static class ContextMenus
         {
             actions.Add(ActionIds.SprintCreate);
             actions.Add(ActionIds.SprintEdit);
+            actions.Add(ActionIds.SprintStart);
+            actions.Add(ActionIds.SprintComplete);
         }
 
         if (active is { Sprint.Goal: { } goal } && !string.IsNullOrWhiteSpace(goal))
