@@ -8,5 +8,4 @@ namespace Geeratya.Jira.Suggestions;
 [JsonSerializable(typeof(SuggestionWire.LabelPage))]
 [JsonSerializable(typeof(SuggestionWire.Picker))]
 [JsonSerializable(typeof(List<SuggestionWire.Named?>))]
-[JsonSerializable(typeof(SuggestionWire.AutoComplete))]
 internal sealed partial class SuggestionJsonContext : JsonSerializerContext;

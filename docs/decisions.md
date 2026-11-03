@@ -167,3 +167,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (code structure rules, #580)
 
 **Code structure:** Dependencies are objects (no `Func<>`/`Action<>` collaborators, at most five constructor parameters), no `.cs` file over about 500 lines in `src/`, and fixed places for logic (#580). Why: agents kept growing files and wiring delegates. Source: Gitunia's rules from the owner's code review of 2026-11-01. Rules: `.claude/rules/csharp-style.md`.
+
+## 2026-11-04
+
+**Jira layer:** The field `autoCompleteUrl` is not mapped and `SuggestionClient.SearchByAutoCompleteUrlAsync` is removed (#627). Why: no form used them; the pickers for people, labels, issues, components and versions use their own endpoints, and custom pickers (`autoCompleteUrl` of non-standard fields) are Unsupported/read-only with a browser link, which is outside the feature list. Re-add with a concrete picker when one is needed.

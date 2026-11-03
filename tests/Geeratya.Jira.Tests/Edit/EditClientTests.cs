@@ -39,7 +39,6 @@ public sealed class EditClientTests
         Assert.Equal(EditFieldKind.Parent, fields["parent"].Kind);
         Assert.Equal(["add", "set", "remove"], fields["labels"].Operations);
         Assert.Equal(5, fields["priority"].AllowedValues.Count);
-        Assert.Contains("assignable/search", fields["assignee"].AutoCompleteUrl);
         var request = Assert.Single(fixture.Handler.Requests);
         Assert.Equal(HttpMethod.Get, request.Method);
         Assert.Equal(GcmMetaPath, request.PathAndQuery);

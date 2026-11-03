@@ -388,7 +388,7 @@ public sealed class IssueClientTests
 
     private static EditField Field(string id, EditFieldKind kind)
     {
-        return new EditField(id, id, false, "t", string.Empty, ["set"], [], false, null, kind);
+        return new EditField(id, id, false, "t", string.Empty, ["set"], [], false, kind);
     }
 
     private static TransportFixture Serving(string key, string fixtureOrJson, bool isJson = false)
