@@ -58,7 +58,8 @@ public static class SourceChoices
 
     /// <summary>
     /// The view that opens a board (Columns) or its backlog (List); the backlog of a Scrum board is the sprint sections.
-    /// A team-managed board reports <c>simple</c> and opens the plain backlog; the load swaps it to the Scrum backlog when the sprint probe says Scrum.
+    /// A team-managed board reports <c>simple</c> and opens the plain backlog; the load swaps it to the Scrum backlog
+    /// when the sprint probe says Scrum.
     /// </summary>
     public static ViewDefinition BoardView(BoardSummary board, bool backlog)
     {

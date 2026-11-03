@@ -92,6 +92,15 @@ public sealed class ViewLoadHandler
 
         var view = cache.Get(CacheKey.For(effect.Definition));
 
+        if (view is null && effect.Definition.Source == ViewSourceKind.Backlog)
+        {
+            // A team-managed Scrum backlog opens as a plain backlog and is cached under the Scrum key.
+            var scrumKey = CacheKey.For(effect.Definition with { Source = ViewSourceKind.ScrumBacklog });
+            var scrum = cache.Get(scrumKey);
+
+            return scrum is null ? null : new ViewCacheLoaded(effect.Tab, effect.RequestId, scrum, true);
+        }
+
         return view is null ? null : new ViewCacheLoaded(effect.Tab, effect.RequestId, view);
     }
 
@@ -205,7 +214,8 @@ public sealed class ViewLoadHandler
                 if (probed == BoardKind.Scrum)
                 {
                     report(new BacklogBecameScrum(effect.Tab, effect.RequestId));
-                    effect = effect with { Definition = effect.Definition with { Source = ViewSourceKind.ScrumBacklog } };
+                    var scrumDefinition = effect.Definition with { Source = ViewSourceKind.ScrumBacklog };
+                    effect = effect with { Definition = scrumDefinition };
                 }
             }
 

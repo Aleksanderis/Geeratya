@@ -962,6 +962,11 @@ public static class ViewReducer
             return state;
         }
 
+        if (cached.FromScrumBacklog && tab.Definition.Source == ViewSourceKind.Backlog)
+        {
+            tab = tab with { Definition = tab.Definition with { Source = ViewSourceKind.ScrumBacklog } };
+        }
+
         var rows = BacklogSections.Applies(tab) ? BacklogSections.Order(cached.View.Rows) : cached.View.Rows;
 
         if (rows.Count == 0)

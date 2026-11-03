@@ -292,7 +292,7 @@ public sealed class ViewLoadHandlerScrumTests
     }
 
     [Fact]
-    public async Task GivenTeamManagedScrumBoard_WhenBacklogIsOpened_ThenTheTabBecomesTheScrumBacklogWithSprintSections()
+    public async Task GivenTeamManagedScrumBoard_WhenBacklogIsOpened_ThenTabBecomesScrumBacklogWithSections()
     {
         using var fixture = await ConnectedAsync(
             http => http
