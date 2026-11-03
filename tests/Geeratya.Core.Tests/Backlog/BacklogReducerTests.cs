@@ -160,11 +160,13 @@ public class BacklogReducerTests
     }
 
     [Fact]
-    public void GivenAClickOnTheNoteOfAnEmptySection_WhenPlacingTheCursor_ThenNothingIsPlaced()
+    public void GivenAClickOnTheNoteOfAnEmptySection_WhenPlacingTheCursor_ThenTheEmptySprintTakesTheCursor()
     {
         var state = WithSprints(Loaded(BacklogFixtures.RankedRows));
 
-        Assert.Null(ViewReducer.PlaceCursor(state, new PointerPlaced(1, ListLayoutRow(8), 80)));
+        var placed = ViewReducer.PlaceCursor(state, new PointerPlaced(1, ListLayoutRow(8), 80));
+
+        Assert.Equal(BacklogFixtures.EmptyFutureId, Tab(placed!.State).FocusedSprintId);
     }
 
     [Fact]

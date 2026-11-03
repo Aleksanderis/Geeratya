@@ -138,6 +138,13 @@ public sealed record TabState(
     /// </summary>
     public IReadOnlyList<string> CollapsedSections { get; init; } = [];
 
+    /// <summary>
+    /// The id of the empty sprint section of a Scrum backlog the cursor stands on (it has no row to stand on), null
+    /// when the cursor is on a row. <see cref="Selected"/> keeps the row after the section, but no row action targets
+    /// it while this is set (<c>EmptySprintFocus</c>).
+    /// </summary>
+    public long? FocusedSprintId { get; init; }
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

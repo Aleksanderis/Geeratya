@@ -2,9 +2,12 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Enter      Open the selected item                                          │            
-            │ > All actions │   0          Go to the first column                                          │            
-            │   Commands    │   $          Go to the last column                                           │            
+            │   Global      │   G          Go to the bottom  (End)                                         │            
+            │ > All actions │   Ctrl-d     Page down  (PageDown)                                           │            
+            │   Commands    │   Ctrl-u     Page up  (PageUp)                                               │            
+            │               │   Enter      Open the selected item                                          │            
+            │               │   0          Go to the first column                                          │            
+            │               │   $          Go to the last column                                           │            
             │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
             │               │   [ [        Previous section of the issue or the Scrum backlog              │            
             │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
@@ -28,9 +31,6 @@
             │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
             │               │   Backspace  Delete the last character                                       │            
             │               │   y          Confirm                                                         │            
-            │               │   n          Decline  (Esc)                                                  │            
-            │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
-            │               │   Backspace  Delete the last character                                       │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

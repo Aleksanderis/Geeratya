@@ -54,6 +54,35 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedSprint_WhenIssuesRead_ThenEveryIssueCarriesAStoryPointEstimate()
+    {
+        var page = await Json($"{Agile}/sprint/5009/issue?maxResults=5");
+        var estimates = page.GetProperty("issues").EnumerateArray()
+            .Select(issue => issue.GetProperty("fields").GetProperty("customfield_10047").GetDouble())
+            .ToList();
+
+        Assert.Equal(5, estimates.Count);
+        Assert.All(estimates, estimate => Assert.InRange(estimate, 1, 8));
+    }
+
+    [Fact]
+    public async Task GivenNoActiveSprintFlag_WhenSprintsListed_ThenNoSprintIsActive()
+    {
+        var options = FakeJiraOptionsParser.TryParse(
+            [FakeJiraOptionsParser.IssuesFlag, Issues.ToString(), FakeJiraOptionsParser.NoActiveSprintFlag],
+            out var error);
+        Assert.True(options is not null, error);
+        using var server = new FakeJiraServer(options);
+        var baseUrl = server.Start();
+        using var stream = await _client.GetStreamAsync($"{baseUrl}{Agile}/board/7/sprint");
+        using var document = await JsonDocument.ParseAsync(stream);
+        var states = document.RootElement.GetProperty("values").EnumerateArray()
+            .Select(sprint => sprint.GetProperty("state").GetString());
+
+        Assert.Equal([.. Enumerable.Repeat("closed", 9), "future"], states);
+    }
+
+    [Fact]
     public async Task GivenGeneratedSprint_WhenRead_ThenSprintAndItsPagedIssuesAreServed()
     {
         var sprint = await Json($"{Agile}/sprint/5009");

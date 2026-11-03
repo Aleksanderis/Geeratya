@@ -19,6 +19,8 @@ public static class ActionCatalog
         [ActionIds.SectionNext] = ActionScope.Detail | ActionScope.Backlog,
         [ActionIds.SectionPrevious] = ActionScope.Detail | ActionScope.Backlog,
         [ActionIds.SectionToggle] = ActionScope.Backlog,
+        [ActionIds.SprintCreate] = ActionScope.Backlog | ActionScope.List,
+        [ActionIds.SprintEdit] = ActionScope.Backlog | ActionScope.List,
         [ActionIds.ContextMenuOpen] = ActionScope.Views,
         [ActionIds.ViewLayoutToggle] = ActionScope.Lists,
         [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
@@ -136,6 +138,9 @@ public static class ActionCatalog
         new(ActionIds.SprintSwitch, "Switch the sprint shown (active, future, closed)"),
         new(ActionIds.SprintMoveIssues, "Move the selected issues to a sprint"),
         new(ActionIds.SprintMoveToBacklog, "Move the selected issues to the backlog"),
+        new(ActionIds.SprintCreate, "Create a sprint (name, goal, dates)"),
+        new(ActionIds.SprintEdit, "Edit the sprint (name, goal, dates)", CommandLevel.Advanced),
+        new(ActionIds.SprintGoal, "Show the full goal of the sprint"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
@@ -225,9 +230,14 @@ public static class ActionCatalog
     /// </summary>
     public static string? GroupOf(string id)
     {
-        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id.StartsWith("view.", StringComparison.Ordinal))
+        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id == ActionIds.SprintGoal || id.StartsWith("view.", StringComparison.Ordinal))
         {
             return "View";
+        }
+
+        if (id == ActionIds.SprintMoveIssues || id == ActionIds.SprintMoveToBacklog)
+        {
+            return "Issue";
         }
 
         if (id == ActionIds.ContextMenuOpen)
@@ -239,11 +249,12 @@ public static class ActionCatalog
 
         return (dot < 0 ? id : id[..dot]) switch
         {
-            "issue" or "sprint" => "Issue",
+            "issue" => "Issue",
             "comment" => "Comment",
             "rank" => "Rank",
             "selection" => "Selection",
             "tab" => "Tabs",
+            "sprint" => "View",
             "nav" or "item" or "detail" or "section" => "Navigate",
             "help" or "app" or "palette" or "mode" or "status" => "General",
             _ => null,

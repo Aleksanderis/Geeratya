@@ -197,6 +197,37 @@ public static partial class FormReducer
         return Result(next);
     }
 
+    /// <summary>
+    /// Opens a form whose fields the caller already knows (the sprint form): nothing is fetched and the first
+    /// editable field has the focus.
+    /// </summary>
+    internal static ReduceResult OpenReady(
+        AppState state,
+        TabId tabId,
+        FormTarget target,
+        IReadOnlyList<FormField> fields)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, tabId);
+
+        if (tab is null)
+        {
+            return Result(state);
+        }
+
+        var requestId = state.Sequence + 1;
+        var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
+        var form = opened with { Fields = fields, IsLoading = false };
+        var next = ViewReducer.Replace(state, tab with { Form = form with { Focus = Step(form, 0) } }) with
+        {
+            Mode = InputMode.Insert,
+            Sequence = requestId,
+            Message = null,
+            PendingKeys = string.Empty,
+        };
+
+        return Result(next);
+    }
+
     // The assignee is a person field like any other: typing opens the suggestion popup, which searches the people who
     // can be assigned. Backspace on an empty buffer clears it (unassigned).
     private static FormField AssigneeField(AssignFormTarget target)

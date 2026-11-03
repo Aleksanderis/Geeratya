@@ -70,6 +70,12 @@ public sealed record SprintLoaded(TabId Tab, long RequestId, Sprint? Sprint, boo
 public sealed record SprintsLoaded(TabId Tab, long RequestId, IReadOnlyList<Sprint> Sprints) : ViewCommand;
 
 /// <summary>
+/// The sprint probe found that a plain backlog (a team-managed board, typed <c>simple</c>) is a Scrum board: the tab
+/// becomes the Scrum backlog (sprint sections). Applied only while <paramref name="RequestId"/> is the tab's current request.
+/// </summary>
+public sealed record BacklogBecameScrum(TabId Tab, long RequestId) : ViewCommand;
+
+/// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab
 /// refreshes; time is only ever read from here and from the replies.
 /// </summary>

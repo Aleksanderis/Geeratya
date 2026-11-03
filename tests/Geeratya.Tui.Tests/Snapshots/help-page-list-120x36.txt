@@ -24,7 +24,7 @@ Sample · 1 issue
             │               │   Space i C  Create a sub-task of the selected issue                         │            
             │               │   Space s m  Move the selected issues to a sprint                            │            
             │               │   Space s b  Move the selected issues to the backlog                         │            
-            │               │                                                                              │            
+            │               │   Space s n  Create a sprint (name, goal, dates)                             │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            

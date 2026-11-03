@@ -18,6 +18,9 @@
             │               │   Space l    Switch between list and columns                                 │            
             │               │   Space *    Switch the command level for the session                        │            
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
+            │               │   Space s n  Create a sprint (name, goal, dates)                             │            
+            │               │   Space s e  Edit the sprint (name, goal, dates)                             │            
+            │               │   Space s g  Show the full goal of the sprint                                │            
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
@@ -28,9 +31,6 @@
             │               │   Alt-4      Go to tab 4                                                     │            
             │               │   Alt-5      Go to tab 5                                                     │            
             │               │   Alt-6      Go to tab 6                                                     │            
-            │               │   Alt-7      Go to tab 7                                                     │            
-            │               │   Alt-8      Go to tab 8                                                     │            
-            │               │   Alt-9      Go to tab 9                                                     │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

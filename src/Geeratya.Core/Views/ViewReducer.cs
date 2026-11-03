@@ -48,6 +48,7 @@ public static class ViewReducer
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
             SprintLoaded sprint => SprintArrived(state, sprint),
             SprintsLoaded sprints => SprintsReceived(state, sprints),
+            BacklogBecameScrum scrum => BecameScrum(state, scrum),
             ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
@@ -347,6 +348,22 @@ public static class ViewReducer
         return Replace(state, tab.Rows.Count == 0 ? withSprints : KeepSelection(withSprints));
     }
 
+    /// <summary>A plain backlog proved to be a Scrum board: the tab takes the Scrum backlog source while its load runs.</summary>
+    private static AppState BecameScrum(AppState state, BacklogBecameScrum scrum)
+    {
+        var tab = Find(state.Session.Tabs, scrum.Tab);
+
+        if (tab is null
+            || tab.RequestId != scrum.RequestId
+            || tab.Load is not Loading
+            || tab.Definition.Source != ViewSourceKind.Backlog)
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { Definition = tab.Definition with { Source = ViewSourceKind.ScrumBacklog } });
+    }
+
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>
     private static AppState TotalLoaded(AppState state, ViewTotalLoaded counted)
     {
@@ -399,7 +416,7 @@ public static class ViewReducer
             return new ReduceResult(DetailReducer.MoveCursor(state, tab, move), _noEffects);
         }
 
-        if (tab is null || tab.Rows.Count == 0)
+        if (tab is null || (tab.Rows.Count == 0 && !BacklogSections.Applies(tab)))
         {
             return new ReduceResult(state, _noEffects);
         }
@@ -445,7 +462,7 @@ public static class ViewReducer
             return placedLine is null ? null : new ReduceResult(placedLine, _noEffects);
         }
 
-        if (tab.Rows.Count == 0)
+        if (tab.Rows.Count == 0 && !BacklogSections.Applies(tab))
         {
             return null;
         }
@@ -460,11 +477,22 @@ public static class ViewReducer
         if (BacklogSections.Applies(tab))
         {
             var line = tab.Scroll + placed.Row - ListLayout.HeaderRows;
-            var row = placed.Row < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows
-                ? null
-                : BacklogCursor.RowAtLine(BacklogSections.Build(tab), line);
 
-            return row is { } found ? Reduce(state, new SelectionMoved(tab.Id, found)) : null;
+            if (placed.Row < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows)
+            {
+                return null;
+            }
+
+            var layout = BacklogSections.Build(tab);
+
+            if (BacklogCursor.EmptySprintAtLine(layout, line) is { } sprintId)
+            {
+                return new ReduceResult(Replace(state, BacklogCursor.FocusSprint(tab, sprintId)), _noEffects);
+            }
+
+            return BacklogCursor.RowAtLine(layout, line) is { } found
+                ? Reduce(state, new SelectionMoved(tab.Id, found))
+                : null;
         }
 
         var index = tab.Scroll + placed.Row - ListLayout.HeaderRows;
@@ -945,6 +973,11 @@ public static class ViewReducer
             return state;
         }
 
+        if (cached.FromScrumBacklog && tab.Definition.Source == ViewSourceKind.Backlog)
+        {
+            tab = tab with { Definition = tab.Definition with { Source = ViewSourceKind.ScrumBacklog } };
+        }
+
         var rows = BacklogSections.Applies(tab) ? BacklogSections.Order(cached.View.Rows) : cached.View.Rows;
 
         if (rows.Count == 0)
@@ -1125,6 +1158,17 @@ public static class ViewReducer
 
         if (BacklogSections.Applies(tab))
         {
+            // The cursor stays on an empty sprint it stands on, however the rows moved.
+            if (tab.FocusedSprintId is { } focused)
+            {
+                var refocused = BacklogCursor.FocusSprint(tab with { Selected = selected }, focused);
+
+                if (refocused.FocusedSprintId is not null)
+                {
+                    return RowSelection.Pruned(refocused);
+                }
+            }
+
             return RowSelection.Pruned(BacklogCursor.Place(tab with { Selected = selected }, selected));
         }
 

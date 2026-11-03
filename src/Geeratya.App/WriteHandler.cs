@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
 using Geeratya.Core.Links;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Core.Writes.Comments;
@@ -184,6 +185,11 @@ public sealed class WriteHandler
                 return await ExecuteCommentAsync(services, effect, comment, token);
             }
 
+            if (effect.Request is SprintWriteRequest sprint)
+            {
+                return await ExecuteSprintAsync(services, effect, sprint, token);
+            }
+
             var result = await SendAsync(services, effect.Request, token);
 
             if (result.IsSuccess)
@@ -315,6 +321,70 @@ public sealed class WriteHandler
         return error.IsOutcomeUnknown
             ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), error)
             : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), error);
+    }
+
+    /// <summary>A sprint write: no issue is read afterwards, the tabs of the board reload when it succeeded.</summary>
+    private async Task<Command> ExecuteSprintAsync(
+        JiraServices services,
+        ExecuteWriteEffect effect,
+        SprintWriteRequest request,
+        CancellationToken token)
+    {
+        var result = request switch
+        {
+            CreateSprintRequest create => await services.SprintWrites.CreateAsync(
+                create.Name,
+                create.BoardId,
+                create.Goal,
+                create.StartDate,
+                create.EndDate,
+                token),
+            EditSprintRequest { Edit.ClearsDate: true } clear
+                => await services.SprintWrites.ReplaceAsync(clear.Before, clear.Edit, token),
+            EditSprintRequest edit => await services.SprintWrites.UpdateAsync(edit.Before.Id, edit.Edit, token),
+            _ => throw new NotSupportedException($"No handler for {request.GetType().Name}."),
+        };
+
+        if (result.IsSuccess)
+        {
+            return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
+        }
+
+        return result.Error.IsOutcomeUnknown
+            ? new WriteOutcomeUnknown(effect.OperationId, _clock.GetUtcNow(), result.Error)
+            : new WriteFailed(effect.OperationId, _clock.GetUtcNow(), result.Error);
+    }
+
+    /// <summary>
+    /// A lost reply of a sprint edit: the sprint is read by id and compared. A create has no id to read, so it stays
+    /// unknown and the status line tells the user to look before creating it again.
+    /// </summary>
+    private async Task<Command?> VerifySprintAsync(
+        JiraServices services,
+        VerifyWriteEffect effect,
+        SprintWriteRequest request,
+        CancellationToken token)
+    {
+        var outcome = VerifyOutcome.Unreachable;
+
+        try
+        {
+            if (request is EditSprintRequest edit)
+            {
+                var result = await services.Sprints.GetSprintAsync(edit.Before.Id, token);
+
+                if (result.IsSuccess)
+                {
+                    outcome = edit.IsShownBy(result.Value) ? VerifyOutcome.Applied : VerifyOutcome.NotApplied;
+                }
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // A read that breaks is a read that failed: it never changes what is known about the write.
+        }
+
+        return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, []);
     }
 
     private static async Task<WriteResult<WriteAccepted>> SendAsync(
@@ -574,6 +644,11 @@ public sealed class WriteHandler
         if (effect.Request is CreateRequest create)
         {
             return await VerifyCreateAsync(services, effect, create, token);
+        }
+
+        if (effect.Request is SprintWriteRequest sprintRequest)
+        {
+            return await VerifySprintAsync(services, effect, sprintRequest, token);
         }
 
         if (effect.Request is LinkWriteRequest linkRequest)

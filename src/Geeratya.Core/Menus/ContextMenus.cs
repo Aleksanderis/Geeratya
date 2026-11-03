@@ -45,7 +45,7 @@ public static class ContextMenus
             ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id)
             : null;
 
-        if (tab is null)
+        if (tab is null || (tab.FocusedSprintId is not null && tab.Detail.Count == 0))
         {
             return null;
         }
@@ -120,6 +120,17 @@ public static class ContextMenus
         if (active is not null && SprintBoards.BoardOf(active.Definition) is not null)
         {
             actions.Add(ActionIds.SprintSwitch);
+        }
+
+        if (active is { Definition.Source: ViewSourceKind.ScrumBacklog or ViewSourceKind.Sprint })
+        {
+            actions.Add(ActionIds.SprintCreate);
+            actions.Add(ActionIds.SprintEdit);
+        }
+
+        if (active is { Sprint.Goal: { } goal } && !string.IsNullOrWhiteSpace(goal))
+        {
+            actions.Add(ActionIds.SprintGoal);
         }
 
         if (state.Session.Tabs.Count > 1)
