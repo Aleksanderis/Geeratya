@@ -16,7 +16,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Jira layer:** Remote link URLs keep any scheme in `RemoteLinkMapper`; the scheme check lives in `BrowserUrlCheck` (Core), the single gate before anything reaches the system browser: https only (stricter than http/https), no control characters, no user info; remote links may point at any host. Why: one gate for every open path; the UI and ADF link callers must go through `OpenUrlRequested` (only the issue-key path is wired so far). Issue #118.
 
-**Scope:** Scrum boards and sprints are in (milestone M4, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
+**Scope:** Scrum boards and sprints are in (milestone M5, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
 
 **Jira layer:** Project configuration is dynamic: issue types, fields (including custom ones), required fields, allowed values, transitions, statuses and link types are read per connection and project from Jira metadata, never hard-coded from the dev projects; unsupported field types degrade to read-only with a browser link. Why: every site and project differs (custom fields, custom issue types, team-managed vs company-managed). Rule in `.claude/rules/jira-layer.md`.
 
@@ -107,3 +107,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 **Stack:** Settings registry (#373, as in Gitunia): `settings.json` first kept flat keys (`statusHints`, `whichKey`, `theme`); superseded by #391: the keys are now grouped as in Gitunia (`hints.statusBar`, `hints.whichKey`; `theme` stays), the writer edits nested members, and the flat names are still read. `:set` without an argument lists every setting (value, default, help) in the Messages overlay (#385); `:set <name>` shows one with its default and accepted values on the status line (under 80 columns, #402). Details: `settings.md`.
 
 **UI:** Quit and cancel keys (#390, Gitunia rules adopted unless writes or typed text are at stake): `Ctrl-c` now also quits from Confirm and a quit cancels running read loads at once, but it still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` keeps its Normal-only quit and does nothing in Confirm, so a stray key never answers a destructive question; `Esc` rules unchanged.
+
+## 2026-11-03 (later)
+
+**Process:** Milestones renumbered again (owner decision): Keymap and discoverability is now M4 and runs first, so the Gitunia-aligned palette, status messages, help and levels exist before Scrum; Scrum and sprints is M5, More views M6, Release M7. Issue and PR numbers are unchanged. Text that says "M4" before this date meant Scrum (now M5) and "M6" meant Keymap (now M4); the 2026-11-02 entry about the earlier reorder is kept as written.
