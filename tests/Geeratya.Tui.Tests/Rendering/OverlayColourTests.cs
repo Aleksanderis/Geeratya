@@ -70,6 +70,23 @@ public class OverlayColourTests
 
     [Theory]
     [MemberData(nameof(Themes))]
+    public void GivenABoxUnderAnotherOverlay_WhenResolving_ThenItKeepsTheSurfaceFillAndDimsOnlyTheText(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var lower = Palette.Resolve(
+            theme,
+            ColorSupport.TrueColor,
+            PaletteRole.Body,
+            SpanGround.Surface | SpanGround.Dim,
+            true);
+        var upper = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body, SpanGround.Surface, true);
+
+        Assert.Equal(theme.Surface, lower.Background);
+        Assert.NotEqual(upper.Foreground, lower.Foreground);
+    }
+
+    [Theory]
+    [MemberData(nameof(Themes))]
     public void GivenATheme_WhenResolvingTheOverlayRoles_ThenFramesAndChipsKeepTheirContrastInBothTiers(
         string name)
     {

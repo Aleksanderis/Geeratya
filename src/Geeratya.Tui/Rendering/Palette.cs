@@ -14,10 +14,10 @@ public static class Palette
 
     /// <summary>
     /// Resolves a role where it sits: on the page, on an overlay's raised surface (the page background of the role
-    /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (text blended
-    /// towards the page at 24 bits; faint, or bright black when <paramref name="faintSupported"/> is false, at 16
-    /// colours;
-    /// unchanged without colour). The ground never changes the page background at 16 colours or without colour.
+    /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (the page
+    /// background becomes the scrim and text is blended towards it at 24 bits; a box under another overlay keeps its
+    /// surface and only its text is dimmed; faint, or bright black when <paramref name="faintSupported"/> is false,
+    /// at 16 colours; unchanged without colour). The ground never changes the page background at 16 colours or without colour.
     /// </summary>
     public static ResolvedStyle Resolve(
         Theme theme,
@@ -60,12 +60,12 @@ public static class Palette
             return entry.TrueBackground;
         }
 
-        if (ground.HasFlag(SpanGround.Dim))
+        if (ground.HasFlag(SpanGround.Surface))
         {
-            return theme.ScrimBackground;
+            return theme.Surface;
         }
 
-        return ground.HasFlag(SpanGround.Surface) ? theme.Surface : entry.TrueBackground;
+        return ground.HasFlag(SpanGround.Dim) ? theme.ScrimBackground : entry.TrueBackground;
     }
 
     // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because
