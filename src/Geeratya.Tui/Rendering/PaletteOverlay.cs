@@ -21,7 +21,8 @@ public static class PaletteOverlay
     private const int Margin = 4;
     private const int MinimumBoxHeight = 4;
     private const int KeyGap = 2;
-    private const int TopGap = 1;
+    private const int TopGap = 2;
+    private const int MaxBoxHeight = 18;
 
     /// <summary>Draws the palette of <paramref name="state"/> over <paramref name="body"/> (<paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -42,7 +43,7 @@ public static class PaletteOverlay
         var rows = PaletteRows.For(state, keymap);
         var count = rows.Count(row => row.IsSelectable);
         var selected = Math.Clamp(state.PaletteSelected, 0, Math.Max(0, count - 1));
-        var area = height - 2 - TopGap;
+        var area = Math.Min(height - 2 - TopGap, MaxBoxHeight - 2);
         var lines = ListLines(rows, selected, boxWidth - 4, gaps: true);
 
         if (lines.Count > area)
@@ -52,13 +53,22 @@ public static class PaletteOverlay
 
         var first = FirstVisible(lines, area);
         var shown = lines.Skip(first).Take(area).ToList();
+        var stable = StableRows(state, keymap, boxWidth - 4, area);
+
+        while (shown.Count < stable)
+        {
+            shown.Add(new ListLine(StyledLine.Empty, -1, false));
+        }
+
         var box = new List<StyledLine> { OverlayBox.Top(boxWidth, Title) };
 
         box.AddRange(shown.Select(line => OverlayBox.Wall(line.Text, boxWidth - 2)));
         box.Add(OverlayBox.Bottom(boxWidth));
 
         var left = (width - boxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
+
+        OverlayBox.Cover(regions, TopGap, left, boxWidth, box.Count);
 
         for (var index = 0; index < shown.Count; index++)
         {
@@ -70,10 +80,24 @@ public static class PaletteOverlay
 
         for (var index = 0; index < box.Count && TopGap + index < result.Count; index++)
         {
-            result[TopGap + index] = OverlayBox.Place(box[index], left, width);
+            result[TopGap + index] = OverlayBox.Over(result[TopGap + index], box[index], left, width);
         }
 
         return result;
+    }
+
+    // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the filter narrows.
+    private static int StableRows(AppState state, KeymapTable keymap, int width, int area)
+    {
+        if (state.PaletteText.Length == 0)
+        {
+            return 0;
+        }
+
+        var all = PaletteRows.For(state with { PaletteText = string.Empty }, keymap);
+        var count = ListLines(all, 0, width, gaps: true).Count;
+
+        return Math.Min(count, area);
     }
 
     // The first line to draw: the highlighted row stays in view and, near the top, the first subheader shows.

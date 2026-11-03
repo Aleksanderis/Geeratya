@@ -74,7 +74,8 @@ public static class DeleteReducer
             ActionIds.IssueDelete,
             pending.Key,
             confirmed,
-            "Delete issue");
+            "Delete issue",
+            Destructive: true);
 
         return new ReduceResult(
             cleared with { Mode = InputMode.Confirm, Confirm = confirm, PendingKeys = string.Empty, Message = null },

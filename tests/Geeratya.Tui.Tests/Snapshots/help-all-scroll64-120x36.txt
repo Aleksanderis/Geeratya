@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │   Global      │   ] ]        Next section of the issue or the Scrum backlog                  │            
             │ > All actions │   [ [        Previous section of the issue or the Scrum backlog              │            
             │   Commands    │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
@@ -31,6 +31,6 @@
             │               │   Ctrl-a     Add a profile (site, account and token in one form)             │            
             │               │   Ctrl-e     Edit the highlighted profile (the stored token is kept unless   │            
             │               │              replaced)                                                       │            
-            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

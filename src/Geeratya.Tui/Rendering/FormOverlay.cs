@@ -66,15 +66,17 @@ public static class FormOverlay
         var footer = room >= FooterMinimumInner ? FooterHeight : 0;
         var inner = Math.Min(room, content.Lines.Count + footer);
         var box = BoxLines(form, content, keymap, boxWidth, inner, footer);
-        var top = Math.Min(TopGap, height - box.Count);
+        var top = OverlayBox.CentredTop(height, box.Count);
         var left = (width - boxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
+
+        OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         MarkRows(regions, content, top, left, boxWidth, inner - footer);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(box[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], box[index], left, width);
         }
 
         return result;

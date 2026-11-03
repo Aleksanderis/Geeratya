@@ -64,13 +64,16 @@ public class SourcePickerSnapshotTests
     }
 
     [Fact]
-    public void GivenAnOpenPicker_WhenClickingOutsideTheRows_ThenNothingIsResolved()
+    public void GivenAnOpenPicker_WhenClickingOutsideTheBox_ThenTheBackdropCancelsAndInsideTheBoxNothingHappens()
     {
         var state = Sample(string.Empty);
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, default, frame.Regions);
 
-        Assert.Empty(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
+        var box = frame.Regions.First(region => region.Target == MouseTarget.OverlayBox);
+
+        Assert.Single(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
+        Assert.Empty(MouseResolver.Resolve(context, box.Left + 2, box.Top, MouseGesture.Click, default));
     }
 
     [Fact]
@@ -136,7 +139,7 @@ public class SourcePickerSnapshotTests
         Assert.DoesNotContain("GCM board", onlyText);
     }
 
-    private static AppState Sample(string text)
+    internal static AppState Sample(string text)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var lists = SourceLists.Empty with

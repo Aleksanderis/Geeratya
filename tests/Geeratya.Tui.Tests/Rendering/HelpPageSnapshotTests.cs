@@ -60,7 +60,7 @@ public class HelpPageSnapshotTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("┌─ Help  / mo_"));
+        Assert.Contains(lines, line => line.Contains("╭─ Help  / mo_"));
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class HelpPageSnapshotTests
     {
         var state = StateFor("list");
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
-        var region = frame.Regions.Single(candidate => candidate.Index == 2);
+        var region = frame.Regions.Single(candidate => candidate.Target == MouseTarget.HelpPage && candidate.Index == 2);
         var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, _now, frame.Regions);
 
         var commands = MouseResolver.Resolve(context, region.Left, region.Top, MouseGesture.Click, _now);

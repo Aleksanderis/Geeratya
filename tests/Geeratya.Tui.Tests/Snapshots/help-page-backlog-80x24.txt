@@ -1,24 +1,24 @@
  [1 Backlog: Sample]  +                                                  [jump] 
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
-  ┌─ Help ───────────────────────────────────────────────────────────────────┐  
-  │ > Backlog     │   j          Move down  (Down)                           │  
-  │   Global      │   k          Move up  (Up)                               │  
-  │   All actions │   g g        Go to the top  (Home)                       │  
-  │   Commands    │   G          Go to the bottom  (End)                     │  
-  │               │   Ctrl-d     Page down  (PageDown)                       │  
-  │               │   Ctrl-u     Page up  (PageUp)                           │  
-  │               │   Space a    Open the actions menu of the selected issue │  
-  │               │   Enter      Open the selected item                      │  
-  │               │   ] ]        Next section of the issue or the Scrum      │  
-  │               │              backlog                                     │  
-  │               │   [ [        Previous section of the issue or the Scrum  │  
-  │               │              backlog                                     │  
-  │               │   z a        Collapse or expand the sprint section of    │  
-  │               │              the Scrum backlog                           │  
-  │               │   Space l    Switch between list and columns             │  
-  │               │   Space v f  Cycle the quick filter of the board (off,   │  
-  │               │              then each filter in turn)                   │  
-  └──────────────────────────────────────────────────────────────────────────┘  
+│ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
+│>│ > Backlog     │   j          Move down  (Down)                           │ │
+│ │   Global      │   k          Move up  (Up)                               │ │
+│ │   All actions │   g g        Go to the top  (Home)                       │ │
+│ │   Commands    │   G          Go to the bottom  (End)                     │ │
+│ │               │   Ctrl-d     Page down  (PageDown)                       │ │
+│ │               │   Ctrl-u     Page up  (PageUp)                           │ │
+│ │               │   Space a    Open the actions menu of the selected issue │ │
+│ │               │   Enter      Open the selected item                      │ │
+│ │               │   ] ]        Next section of the issue or the Scrum      │ │
+│ │               │              backlog                                     │ │
+│ │               │   [ [        Previous section of the issue or the Scrum  │ │
+│ │               │              backlog                                     │ │
+│ │               │   z a        Collapse or expand the sprint section of    │ │
+│ │               │              the Scrum backlog                           │ │
+│ │               │   Space l    Switch between list and columns             │ │
+│ │               │   Space v f  Cycle the quick filter of the board (off,   │ │
+│ │               │              then each filter in turn)                   │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

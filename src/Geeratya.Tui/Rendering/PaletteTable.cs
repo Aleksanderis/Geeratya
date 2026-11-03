@@ -69,6 +69,24 @@ public static class PaletteTable
         [PaletteRole.TypeSubtask] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.FieldLabel] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Editable] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.OverlayFrame] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayFrameWarn] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayFrameBad] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.OverlayChip] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Accent,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
+        [PaletteRole.OverlayChipWarn] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Warn,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
+        [PaletteRole.OverlayChipBad] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Bad,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -99,6 +117,12 @@ public static class PaletteTable
         [TextRole.Stale] = PaletteRole.Stale,
         [TextRole.FieldLabel] = PaletteRole.FieldLabel,
         [TextRole.Editable] = PaletteRole.Editable,
+        [TextRole.OverlayFrame] = PaletteRole.OverlayFrame,
+        [TextRole.OverlayFrameWarn] = PaletteRole.OverlayFrameWarn,
+        [TextRole.OverlayFrameBad] = PaletteRole.OverlayFrameBad,
+        [TextRole.OverlayChip] = PaletteRole.OverlayChip,
+        [TextRole.OverlayChipWarn] = PaletteRole.OverlayChipWarn,
+        [TextRole.OverlayChipBad] = PaletteRole.OverlayChipBad,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();

@@ -3,7 +3,7 @@
                                         
                                         
   +- Actions ------------------------+  
-  | > Show or hide help            ? |  
+wo| > Show or hide help            ? |as
   |   Edit the issue       Space i e |  
   |   Quit                         q |  
   +----------------------------------+  

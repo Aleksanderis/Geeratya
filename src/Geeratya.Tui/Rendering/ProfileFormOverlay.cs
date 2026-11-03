@@ -66,11 +66,13 @@ public static class ProfileFormOverlay
 
         var top = (height - lines.Count) / 2;
         var left = (width - boxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
+
+        OverlayBox.Cover(regions, top, left, boxWidth, lines.Count);
 
         for (var index = 0; index < lines.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(lines[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], lines[index], left, width);
         }
 
         MarkRegions(regions, top, left, boxWidth);

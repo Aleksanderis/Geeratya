@@ -288,7 +288,8 @@ public class CommentEditorOverlayTests
 
         Assert.Contains("CONFIRM Confirm  (y/n)", frame.StatusLine);
         Assert.Contains("Discard the unsent comment text?", text);
-        Assert.Contains("draft", text);
+        Assert.Contains("Comment on A-1", text);
+        Assert.Contains("│ draf╭─ Confirm", text);
     }
 
     private static CommentEditor EditorWithPopup()

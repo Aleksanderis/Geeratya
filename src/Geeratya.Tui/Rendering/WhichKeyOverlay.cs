@@ -74,19 +74,9 @@ public static class WhichKeyOverlay
 
         for (var index = 0; index < lines.Count; index++)
         {
-            result[top + index] = DockRight(result[top + index], lines[index], width - boxWidth, width);
+            result[top + index] = OverlayBox.Over(result[top + index], lines[index], width - boxWidth, width);
         }
 
         return result;
-    }
-
-    /// <summary>The body row cut to <paramref name="left"/> columns, then the box row: the popup sits flush right, as in Gitunia.</summary>
-    private static StyledLine DockRight(StyledLine bodyRow, StyledLine box, int left, int width)
-    {
-        var spans = new List<StyledSpan>(StyledLines.Fit(bodyRow, left).Spans);
-
-        spans.AddRange(box.Spans);
-
-        return StyledLines.Fit(new StyledLine(spans), width);
     }
 }
