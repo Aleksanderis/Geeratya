@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Measure cold start to first frame and key-to-frame of the real binary in tmux.
-# Usage: [SCENARIO=list|views|detail] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
+# Usage: [SCENARIO=list|views|detail|scrum] [KEYS=n] [TIMEOUT_MS=n] [ROWS=n] [JQL=...] scripts/measure.sh <binary> <fake url> [runs]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  base URL printed by tools/FakeJira; written as the site of one active fake profile into the
 #               private configuration directory (token: GEERATYA_TOKEN=fake), so the binary talks to the fake
@@ -91,7 +91,7 @@ start_session() {
   wait_frame ""
 }
 
-case ${SCENARIO:-} in '' | list | views | detail) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list, views or detail)" >&2; exit 2 ;; esac
+case ${SCENARIO:-} in '' | list | views | detail | scrum) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list, views, detail or scrum)" >&2; exit 2 ;; esac
 base_runs=$runs
 if [ -n "${SCENARIO:-}" ]; then base_runs=0; fi
 # The floor: a shell that prints one character, so the numbers can be read net of tmux and polling cost.
@@ -213,6 +213,81 @@ if [ "${SCENARIO:-}" = views ]; then
   echo "second start, :jql to list header, cache present:  median $c1, p95 $c2"
   echo "Tab key to frame with 10 tabs open (ms):           median $e1, p95 $e2"
   echo "RSS with 10 tabs of one page each (MB):            median $f1, p95 $f2"
+  exit 0
+fi
+
+if [ "${SCENARIO:-}" = scrum ]; then
+  # Scrum paths against a fake started with --issues (the generated board GEN, project GEN). Per run, two sessions
+  # share one private cache: the first has none (open the backlog, switch to a sprint, both over the network), the
+  # second starts with the cache the first wrote (the same two steps from the cache). A third step presses `j` and
+  # `za` (fold a section) in the loaded backlog. SPRINT is the text typed in the sprint switcher.
+  sprint=${SPRINT:-28}
+  s_open=()
+  s_open_cached=()
+  s_switch=()
+  s_switch_cached=()
+  s_picker=()
+  s_key=()
+  s_fold=()
+  s_cold=()
+  s_cold_cached=()
+  s_rss=()
+  backlog_ready='Generated Sprint [0-9]+ · (active|future)'
+  sprint_ready='(Task|Bug|Story) GEN-[0-9]+'
+  for ((run = 1; run <= runs; run++)); do
+    export XDG_CACHE_HOME=$work/cache-s$run XDG_STATE_HOME=$work/state-s$run
+    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    for pass in fresh cached; do
+      tmux -L "$socket" kill-server 2> /dev/null || true
+      socket=$socket_base-s$run$pass
+      cold_ms=$(start_session "$binary")
+      tmux -L "$socket" send-keys -t m ":backlog GEN" Enter
+      open_ms=$(wait_match "$backlog_ready")
+      tmux -L "$socket" send-keys -t m Space s v
+      picker_ms=$(wait_match 'Switch sprint')
+      wait_match "Generated Sprint $sprint \\(" > /dev/null
+      tmux -L "$socket" send-keys -t m "$sprint"
+      sleep 0.2
+      tmux -L "$socket" send-keys -t m Enter
+      switch_ms=$(wait_match "$sprint_ready")
+      if [ "$pass" = fresh ]; then
+        s_cold+=("$cold_ms")
+        s_open+=("$open_ms")
+        s_switch+=("$switch_ms")
+        s_picker+=("$picker_ms")
+        sleep 2 # let the debounced cache write finish
+      else
+        s_cold_cached+=("$cold_ms")
+        s_open_cached+=("$open_ms")
+        s_switch_cached+=("$switch_ms")
+        # Back to the backlog tab, then keys in the loaded backlog.
+        tmux -L "$socket" send-keys -t m M-1
+        wait_match 'GEN board · [0-9]+ issues' > /dev/null
+        for ((press = 1; press <= keys; press++)); do
+          before=$(frame)
+          tmux -L "$socket" send-keys -t m j
+          s_key+=("$(wait_frame "$before")")
+        done
+        before=$(frame)
+        tmux -L "$socket" send-keys -t m z a
+        s_fold+=("$(wait_frame "$before")")
+        s_rss+=("$(pane_rss_mb)")
+      fi
+    done
+  done
+  report() { local label=$1; shift; local m p; read -r m p <<< "$(printf '%s\n' "$@" | summarise)"; printf '%-58s median %s, p95 %s\n' "$label" "$m" "$p"; }
+  echo "scenario scrum: sprint typed in the switcher: $sprint"
+  echo "load average:  $load_before before, $(load_now) after ($(nproc 2> /dev/null || echo '?') cores)"
+  report "cold start to first frame, fresh (ms):" "${s_cold[@]}"
+  report "cold start to first frame, cache present (ms):" "${s_cold_cached[@]}"
+  report ":backlog to first rows, no cache (ms):" "${s_open[@]}"
+  report ":backlog to first rows, cache present (ms):" "${s_open_cached[@]}"
+  report "<space>sv to the switcher drawn (ms):" "${s_picker[@]}"
+  report "switcher Enter to sprint rows, no cache (ms):" "${s_switch[@]}"
+  report "switcher Enter to sprint rows, cache present (ms):" "${s_switch_cached[@]}"
+  report "j key to frame in the loaded backlog (ms):" "${s_key[@]}"
+  report "za (fold a section) to frame (ms):" "${s_fold[@]}"
+  report "RSS with the backlog and a sprint tab loaded (MB):" "${s_rss[@]}"
   exit 0
 fi
 
