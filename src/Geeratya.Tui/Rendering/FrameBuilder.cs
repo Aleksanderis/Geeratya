@@ -77,7 +77,7 @@ public static class FrameBuilder
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
         var regions = new List<OverlayRegion>();
         var body = BodyOf(state, viewState, renderer, context, width, bodyHeight, regions);
-        var marker = helpOpen ? null : RowMenuMarker.Stamp(body, state);
+        var marker = helpOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
 
         if (helpOpen)
         {

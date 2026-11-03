@@ -9,6 +9,7 @@ using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
+[Trait("Os", "Independent")]
 public class RowMenuMarkerTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
@@ -52,6 +53,18 @@ public class RowMenuMarkerTests
 
         Assert.Null(FrameBuilder.BuildStyled(palette, 80, 24, _keymap)!.RowMenuMarker);
         Assert.Null(FrameBuilder.BuildStyled(help, 80, 24, _keymap)!.RowMenuMarker);
+    }
+
+    [Fact]
+    public void GivenTheWhichKeyPopupIsOpen_WhenBuildingTheFrame_ThenNoMarkerIsDrawnOrReported()
+    {
+        var since = DateTimeOffset.UnixEpoch;
+        var pending = Sample() with { PendingKeys = "Space", PendingSince = since };
+        var open = WhichKeyDelay.Opened(pending, since + TimeSpan.FromMilliseconds(250));
+
+        var frame = FrameBuilder.BuildStyled(open, 80, 24, _keymap)!;
+
+        Assert.Null(frame.RowMenuMarker);
     }
 
     [Fact]
