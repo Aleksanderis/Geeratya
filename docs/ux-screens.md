@@ -274,6 +274,8 @@ Overflow: when the titles do not fit, the window of tabs slides so the active on
 
 A `+` button (clickable, `tab.new`) follows the last tab after two spaces when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
+A `[jump]` chip (clickable, `issue.jump`) is right-aligned in the line when at least two cells remain after the last tab or the `+`; it is not drawn when no tab is open.
+
 Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
 ## Connection check and network states

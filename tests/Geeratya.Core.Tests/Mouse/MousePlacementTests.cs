@@ -419,8 +419,32 @@ public class MousePlacementTests
         var (result, _) = Resolve(state, 80, 24, chip.Start, 0, MouseGesture.Click);
 
         Assert.NotNull(result.Jump);
-        Assert.EndsWith("[jump] ", TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 80).PlainText + " ");
+    }
+
+    [Fact]
+    public void GivenWideTabBar_WhenBuildingWithTheChip_ThenTheChipTextSitsExactlyOnItsCells()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
+        var text = TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 80).PlainText;
+
+        Assert.Equal("[jump]", text.Substring(chip.Start, chip.End - chip.Start));
         Assert.Equal(79, chip.End);
+    }
+
+    [Theory]
+    [InlineData(-1, false)]
+    [InlineData(0, true)]
+    [InlineData(5, true)]
+    [InlineData(6, false)]
+    public void GivenWideTabBar_WhenClickingAroundTheChip_ThenOnlyItsCellsOpenThePrompt(int offset, bool opens)
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
+
+        var (result, _) = Resolve(state, 80, 24, chip.Start + offset, 0, MouseGesture.Click);
+
+        Assert.Equal(opens, result.Jump is not null);
     }
 
     [Fact]

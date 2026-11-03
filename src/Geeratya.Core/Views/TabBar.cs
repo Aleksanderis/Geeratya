@@ -66,7 +66,11 @@ public static class TabBar
             return null;
         }
 
-        var (line, _, _) = Layout(tabs, active, width);
+        return ChipFor(Layout(tabs, active, width).Line, width);
+    }
+
+    private static TabButton? ChipFor(StyledLine line, int width)
+    {
         var start = width - JumpChipText.Length - 1;
 
         return start >= DisplayWidth.Of(line.PlainText) + Separator.Length ? new TabButton(start, start + JumpChipText.Length) : null;
@@ -75,9 +79,9 @@ public static class TabBar
     /// <summary>The bar with the jump chip right-aligned in the spare cells (the bar itself when there is no room).</summary>
     public static StyledLine BuildWithJumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width)
     {
-        var line = Build(tabs, active, width);
+        var line = Layout(tabs, active, width).Line;
 
-        if (JumpChip(tabs, active, width) is not { } chip)
+        if (tabs.Count == 0 || ChipFor(line, width) is not { } chip)
         {
             return line;
         }
