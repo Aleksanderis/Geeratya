@@ -66,7 +66,9 @@ wait_frame() {
   start=$(now_ms)
   while true; do
     current=$(frame)
-    if [ -n "${current//[[:space:]]/}" ] && [ "$current" != "$before" ]; then
+    # grep, not ${current//[[:space:]]/}: in a UTF-8 locale bash needs about 100 ms for that substitution on a
+    # 120x40 frame with box-drawing characters (#616), which the harness then reports as the app's start time.
+    if [ "$current" != "$before" ] && printf '%s' "$current" | grep -q '[^[:space:]]'; then
       echo $(($(now_ms) - start))
       return 0
     fi

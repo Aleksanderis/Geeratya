@@ -169,3 +169,18 @@ Environment: Linux x86_64, 14 cores, load average 13 to 16 (other agents buildin
 Reading it: the first frame is unchanged by the Scrum code (the backlog and the sprint list are only requested after a view is opened). The cold-start and `j` rows were taken at load 13 to 16, so they sit above the quiet-machine M1 figures (35 and 37); a back-to-back `?` key run at the same load read 82 ms median, so the differences are load, not the Scrum paths. A sprint switch with the cache present draws the sprint's rows in 74 ms against 235 without; the sprint list in the switcher is loaded once per open and is not part of the timed rows. Not measured: a 5000-row backlog on the board (the backlog view holds 1248 of the 5000 issues (closed sprints are excluded by its JQL); the 10 000-row in-process row above covers the render size) and the Windows console.
 
 No budget is missed, so no performance issue was registered.
+
+## Startup after the M6 work (#616)
+
+Native AOT `geeratya`, `scripts/measure.sh <binary> <fake url> 20`, fake Jira with 50 ms latency, 14 cores, load average 10 to 14 during the runs (other agents were building). Three alternating 20-session rounds per binary:
+
+| Binary | Cold start to first frame, median / p95 (ms), three rounds |
+|---|---|
+| `ddb6c86` (PR #553, #542; the 38 ms figure) | 40 / 50, 37 / 47, 57 / 83 |
+| `main` at `678c041` (after #615) | 38 / 51, 38 / 45, 45 / 64 |
+
+**There is no startup regression.** The 130 to 140 ms figures (the 137 of #589) were an artifact of the harness: `wait_frame` tested "the frame has text" with `${current//[[:space:]]/}`, and in a UTF-8 locale bash needs about 100 ms for that substitution on a 120x40 frame that contains box-drawing characters (measured: 111 ms against 5 ms for the same frame in ASCII). PR #612 (#537) was the first to draw the start and messages screens in a frame, so from that merge on every check of a frame with a border cost 100 ms, which the harness added to the cold start (and to the key to frame figures: `?` read 180 ms instead of 37). Bisect over the 24 merges after #553: `3af9504` and `bbf545c` read 37, `f6a4800` (#612) and later 133 to 143; a timestamped `tmux capture-pane` trace of the same binary showed the frame at 41 to 48 ms, tmux start included. The check now uses `grep -q '[^[:space:]]'`.
+
+Any figure above taken with the old `measure.sh` on a build that has framed screens (after #612, 2026-11-03) is inflated by up to about 100 ms, in particular the key to frame rows; re-measure before quoting them.
+
+Idle cost (M7 input), start screen and a 100-row list, 20 s windows each, `/proc/<pid>/stat`: 22 and 25 CPU ticks (about 1.1 to 1.3 % of one core, 0.2 s of CPU in 20 s), RSS 47 MB, 10 threads; with the frame on screen and nothing happening the process still uses CPU, which M7 should look at (the refresh tick and the cursor/blink timer are the first suspects, not verified).
