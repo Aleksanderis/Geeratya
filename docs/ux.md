@@ -143,7 +143,7 @@ Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-setting
 | Commit message box pane, conflict editor | comment editor overlay | no commit or merge in Jira |
 | Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | not needed so far (an unrecorded check of a JIT build idled near 1 % of a core); idle CPU is measured with the release numbers in #211 |
 
-The Settings screen Gitunia has is in too (requested by the owner, #556; see "Settings screen" in [settings.md](settings.md)). The other gaps found by the audit are open issues linked from #560: single-line prompt caret (#567), Visual range look (#568), cursor position in the status bar (#569), wheel in help and messages (#570), live drag (#571), row menu marker (#572), commands button (#573), tab rename and labels (#574), command line (#576, #577), print-frame colours (#585), error and loading bodies (#579).
+The Settings screen Gitunia has is in too (requested by the owner, #556; see "Settings screen" in [settings.md](settings.md)). The other gaps found by the audit are open issues linked from #560: single-line prompt caret (#567), cursor position in the status bar (#569), wheel in help and messages (#570), live drag (#571), row menu marker (#572), commands button (#573), tab rename and labels (#574), command line (#576, #577), print-frame colours (#585), error and loading bodies (#579).
 
 ## Print frame
 

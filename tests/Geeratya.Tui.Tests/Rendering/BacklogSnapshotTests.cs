@@ -46,6 +46,21 @@ public class BacklogSnapshotTests
         Assert.Equal(SnapshotFile.Expect($"backlog-{width}x{height}.txt", actual), actual);
     }
 
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAVisualRange_WhenBuildingTheFrame_ThenTheRangeRowsCarryThePlusAndMatchTheSnapshot(
+        int width,
+        int height)
+    {
+        var lines = FrameBuilder.Build(Sample(false, "GCS-2"), width, height, _keymap);
+
+        var actual = Actual(lines);
+
+        Assert.Equal(SnapshotFile.Expect($"backlog-range-{width}x{height}.txt", actual), actual);
+    }
+
     [Fact]
     public void GivenACollapsedSectionUnderTheCursor_WhenBuildingTheFrame_ThenItsHeaderCarriesTheCursor()
     {
@@ -183,7 +198,7 @@ public class BacklogSnapshotTests
         return string.Join('\n', lines) + "\n";
     }
 
-    private static TabState SampleTab(bool collapsedFirst)
+    private static TabState SampleTab(bool collapsedFirst, string? anchor = null)
     {
         var definition = new ViewDefinition(ViewSourceKind.ScrumBacklog, "6", ViewLayout.List, "Scrum board");
         var rows = BacklogSections.Order(
@@ -205,13 +220,14 @@ public class BacklogSnapshotTests
             RequestId = 0,
             Sprints = [_active, _future, _empty],
             CollapsedSections = collapsedFirst ? [BacklogSections.SprintKey(7)] : [],
+            VisualAnchor = anchor,
         };
     }
 
-    private static AppState Sample(bool collapsedFirst)
+    private static AppState Sample(bool collapsedFirst, string? anchor = null)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
-        var tab = SampleTab(collapsedFirst);
+        var tab = SampleTab(collapsedFirst, anchor);
         var session = SiteSession.Empty(profile) with { Tabs = [tab], Active = tab.Id };
 
         return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile), Session = session };

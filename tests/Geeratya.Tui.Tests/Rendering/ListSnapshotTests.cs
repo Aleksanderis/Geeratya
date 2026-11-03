@@ -32,6 +32,22 @@ public class ListSnapshotTests
         Assert.Equal(expected, actual);
     }
 
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenAVisualRange_WhenBuildingTheFrame_ThenTheRangeRowsCarryThePlusAndMatchTheSnapshot(
+        int width,
+        int height)
+    {
+        var lines = FrameBuilder.Build(Sample("GCM-12"), width, height, _keymap);
+        var actual = string.Join('\n', lines) + "\n";
+
+        var expected = SnapshotFile.Expect($"list-range-{width}x{height}.txt", actual);
+
+        Assert.Equal(expected, actual);
+    }
+
     [Fact]
     public void GivenTheAsciiGlyphSet_WhenBuildingTheFrame_ThenTheBodyMatchesTheAsciiSnapshot()
     {
@@ -44,7 +60,7 @@ public class ListSnapshotTests
         Assert.Equal(expected, actual);
     }
 
-    private static AppState Sample()
+    private static AppState Sample(string? anchor = null)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
@@ -67,6 +83,7 @@ public class ListSnapshotTests
             Rows = rows,
             Selected = 2,
             SelectedKey = "GCM-15",
+            VisualAnchor = anchor,
             KeyWidth = 6,
             Next = new PageCursor("n2"),
             Load = new Loading(LoadReason.NextPage),
