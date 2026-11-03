@@ -114,7 +114,10 @@ public static class GeneratedIssues
 
     public static byte[] Count(int total) => Encoding.UTF8.GetBytes($"{{\"count\":{total}}}");
 
-    /// <summary>The status id of a generated status: the ids the recorded board configuration maps to its columns (Backlog has none).</summary>
+    /// <summary>
+    /// The status id of a generated status: the ids the recorded board configuration maps to its columns
+    /// (Backlog has none, so its cards show in the Unmapped column).
+    /// </summary>
     internal static string StatusIdOf(string status)
     {
         return status switch

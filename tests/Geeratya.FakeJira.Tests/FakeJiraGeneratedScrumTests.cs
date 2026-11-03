@@ -78,11 +78,23 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
         var byName = page.GetProperty("issues").EnumerateArray()
             .Select(issue => issue.GetProperty("fields").GetProperty("status"))
             .GroupBy(status => status.GetProperty("name").GetString()!)
-            .ToDictionary(group => group.Key, group => group.Select(status => status.GetProperty("id").GetString()!).Distinct().ToList());
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(status => status.GetProperty("id").GetString()!).Distinct().ToList());
 
         Assert.All(byName, pair => Assert.Single(pair.Value));
         Assert.All(byName.Where(pair => pair.Key != "Backlog"), pair => Assert.Contains(pair.Value[0], mapped));
         Assert.True(byName.ContainsKey("Done") && byName.ContainsKey("To Do") && byName.ContainsKey("In Progress"));
+    }
+
+    [Fact]
+    public async Task GivenGeneratedIssue_WhenDetailRead_ThenStatusAndStubStatusesCarryIds()
+    {
+        var detail = (await Json("/rest/api/3/issue/GEN-5")).GetProperty("fields");
+        var stub = detail.GetProperty("subtasks")[0].GetProperty("fields");
+
+        Assert.NotEmpty(detail.GetProperty("status").GetProperty("id").GetString()!);
+        Assert.NotEmpty(stub.GetProperty("status").GetProperty("id").GetString()!);
     }
 
     [Fact]
