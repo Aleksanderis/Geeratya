@@ -117,3 +117,15 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 ## 2026-11-03 (Visual mode)
 
 **UI:** Visual mode (#393) is a state of the tab (`TabState.VisualAnchor`) over Normal mode, not an `InputMode` of its own as in Gitunia (`VisualReducer`, key mode Visual). Why: Geeratya's Visual keys are exactly the Normal keys (motions extend the range, write keys act on the set), so a second mode would duplicate every Normal row and every Normal-only check for no difference in behaviour; the badge still reads `VISUAL`. Revisit if Visual ever needs keys Normal must not have..
+
+## 2026-11-03 (keymap audit decisions, #465-#468)
+
+Owner asked for maximum autonomy; each took the recommended default (agent: orchestrator).
+
+**UI:** Message history stays `<space>n` (#465), not Gitunia's `<space>m`. Why: `<space>m` is the comment group and the layout rule is one noun, one `<space>` group. No code.
+
+**UI:** Help overlay keeps `Tab`/`Shift-Tab` for pages and `j`/`k` for scrolling (#466); `Ctrl-d`/`Ctrl-u` half-page scroll is added (follow-up issue). Why: the help pages are short lists and `j`/`k` matches the rest of the app.
+
+**Scope:** In-view find (`/`, `n`/`N`) and copy are not included (#467). Why: filtering is done with JQL and README Features does not list them. Revisit only with a README Features line first.
+
+**UI:** The actions menu stays `<space>a` (issue) and `<space>A` (tab and view) (#468), not Gitunia's `<space>.`. Why: already built, documented and taught in hints. No code.
