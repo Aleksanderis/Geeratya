@@ -203,11 +203,13 @@ public sealed partial class FakeJiraRouter
         return new FakeReply(404, ReadFixture(NotFoundFixture));
     }
 
-    /// <summary>The Scrum lists whose order is the rank: a sprint's issues, and the board lists of <see cref="IsIssueList"/>.</summary>
+    /// <summary>The Scrum lists whose order is the rank: a sprint's issues and the board lists.</summary>
     private static bool IsScrumIssueList(string path)
     {
-        return IsIssueList(path)
-            || (path.StartsWith(SprintPrefix, StringComparison.Ordinal) && path.EndsWith("/issue", StringComparison.Ordinal));
+        var sprintIssues = path.StartsWith(SprintPrefix, StringComparison.Ordinal)
+            && path.EndsWith("/issue", StringComparison.Ordinal);
+
+        return IsIssueList(path) || sprintIssues;
     }
 
     /// <summary>The agile lists whose order is the rank: a board's backlog and issues.</summary>

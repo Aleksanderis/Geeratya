@@ -96,7 +96,8 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
         var move = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", $$"""{"issues":["{{key}}"]}""");
         var sprint = Keys(await Json($"{Agile}/sprint/5009/issue?maxResults=100"));
         var board = await Json($"{Agile}/board/7/issue?maxResults=1000");
-        var entry = board.GetProperty("issues").EnumerateArray().First(issue => issue.GetProperty("key").GetString() == key);
+        var entry = board.GetProperty("issues").EnumerateArray()
+            .First(issue => issue.GetProperty("key").GetString() == key);
 
         Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
         Assert.DoesNotContain(key, sprint);
@@ -107,7 +108,10 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     public async Task GivenGeneratedBoard_WhenMovedIntoClosedSprintOrWithUnknownIssue_ThenBadRequestAndNothingMoves()
     {
         var closed = await Send(HttpMethod.Post, $"{Agile}/sprint/5001/issue", """{"issues":["GEN-801"]}""");
-        var unknown = await Send(HttpMethod.Post, $"{Agile}/sprint/5009/issue", """{"issues":["GEN-801","GEN-99999"]}""");
+        var unknown = await Send(
+            HttpMethod.Post,
+            $"{Agile}/sprint/5009/issue",
+            """{"issues":["GEN-801","GEN-99999"]}""");
         var malformed = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", "{");
         var sprint = Keys(await Json($"{Agile}/sprint/5009/issue?maxResults=100"));
 
@@ -187,6 +191,16 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
         Assert.DoesNotContain("GEN-1", keys);
         Assert.Contains("GEN-801", keys);
         Assert.True(page.GetProperty("total").GetInt32() > 80);
+    }
+
+    [Fact]
+    public async Task GivenGeneratedMode_WhenRecordedIssueMovedToBacklog_ThenRecordedBoardServesIt()
+    {
+        var move = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", """{"issues":["GCS-15"]}""");
+        var backlog = Keys(await Json($"{Agile}/board/6/backlog"));
+
+        Assert.Equal(HttpStatusCode.NoContent, move.StatusCode);
+        Assert.Contains("GCS-15", backlog);
     }
 
     [Fact]
