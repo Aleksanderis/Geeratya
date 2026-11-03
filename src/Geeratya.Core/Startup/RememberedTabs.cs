@@ -109,7 +109,7 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
 
     private static RestoredTab? ToRestored(RememberedTab? tab)
     {
-        if (tab?.SourceValue is null || tab.Title is null || tab.SourceValue.Length > MaxValueLength
+        if (tab?.SourceValue is null || tab.SourceValue.Length > MaxValueLength
             || !TryParse<ViewSourceKind>(tab.Source, out var source) || !TryParse<ViewLayout>(tab.Layout, out var layout))
         {
             return null;
@@ -118,7 +118,7 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
         var swimlane = TryParse<SwimlaneKind>(tab.Swimlane, out var kind) ? kind : SwimlaneKind.None;
 
         return new RestoredTab(
-            new ViewDefinition(source, tab.SourceValue, layout, tab.Title),
+            new ViewDefinition(source, tab.SourceValue, layout, tab.Title ?? tab.SourceValue),
             tab.QuickFilters ?? [],
             swimlane,
             swimlane == SwimlaneKind.None ? null : tab.Lane);

@@ -15,7 +15,7 @@ public sealed record RememberedTab(
     string Source,
     string SourceValue,
     string Layout,
-    string Title,
+    string? Title,
     IReadOnlyList<long>? QuickFilters = null,
     string? Swimlane = null,
     string? Lane = null);
