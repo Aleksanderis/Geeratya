@@ -256,7 +256,7 @@ public class ConfirmOverlayTests
         Assert.Same(editor, declined.State.Editor);
     }
 
-    private static AppState Open(ConfirmRequest? request = null)
+    internal static AppState Open(ConfirmRequest? request = null)
     {
         return AppState.Initial with
         {

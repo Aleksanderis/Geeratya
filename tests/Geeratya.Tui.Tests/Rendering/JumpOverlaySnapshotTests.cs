@@ -93,7 +93,7 @@ public class JumpOverlaySnapshotTests
         }
     }
 
-    private static AppState Sample(string text)
+    internal static AppState Sample(string text)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var tab = TabState.Opened(

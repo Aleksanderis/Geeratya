@@ -64,7 +64,7 @@ public class ContextMenuOverlayTests
         }
     }
 
-    private static AppState Sample()
+    internal static AppState Sample()
     {
         var items = new List<ContextMenuItem>
         {

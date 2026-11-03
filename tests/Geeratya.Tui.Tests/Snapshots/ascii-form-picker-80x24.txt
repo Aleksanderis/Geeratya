@@ -1,0 +1,24 @@
+ [1 JQL: A]  +                                                                  
+                                                                                
+A - 1 issue                                                                     
+  +- Create issue in A ------------------------------------------------------+  
+  | > Task                                                                   |  
+  |   Epic                                                                   |  
+  | ------------------------------------------------------------------------ |  
+  | Down/Up type   Enter choose   Esc cancel                                 |  
+  +--------------------------------------------------------------------------+  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ INSERT Choose the issue type       Tab/Shift-Tab field  Ctrl-s save  Esc cancel

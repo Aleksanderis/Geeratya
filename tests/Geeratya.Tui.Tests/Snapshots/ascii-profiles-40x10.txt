@@ -1,0 +1,10 @@
+                                        
+                                        
+                                        
+                                        
+  +- Profiles -----------------------+  
+  | > work            me@work.test o |  
+  |   dev             me@dev.test on |  
+  +----------------------------------+  
+                                        
+ INSERT           Enter next  Esc cancel

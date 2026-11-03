@@ -1,0 +1,10 @@
+                                        
+                                        
+                                        
+                                        
+  +- Actions ------------------------+  
+  | > Show or hide help            ? |  
+  |   Edit the issue       Space i e |  
+  |   Quit                         q |  
+  +----------------------------------+  
+ INSERT                                 

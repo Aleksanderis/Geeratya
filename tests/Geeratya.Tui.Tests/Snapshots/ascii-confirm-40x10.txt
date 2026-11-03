@@ -1,0 +1,10 @@
+                                        
+                                        
+                                        
+                                        
+                Geeratya                
+      No profile yet: :profile add      
+      ? help   : command   q quit       
+                                        
+                                        
+ CONFIRM Delete the GCM-3 comment? (y/n)
