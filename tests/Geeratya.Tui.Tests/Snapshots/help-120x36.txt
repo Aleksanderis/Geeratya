@@ -20,6 +20,7 @@ Normal mode
   PageUp     Page up                                                                                                    
   ?          Show or hide help                                                                                          
   :          Open the command palette                                                                                   
+  Ctrl-p     Open the command palette                                                                                   
   q          Quit                                                                                                       
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
@@ -32,5 +33,4 @@ Normal mode
   g t        Next tab                                                                                                   
   Shift-Tab  Previous tab                                                                                               
   g T        Previous tab                                                                                               
-  Alt-1      Go to tab 1                                                                                                
  HELP                                                                                            j down  k up  Esc close

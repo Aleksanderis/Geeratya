@@ -130,6 +130,48 @@ public static class ActionCatalog
         return ModalOnly.Contains(id);
     }
 
+    /// <summary>The palette's groups in display order; <see cref="GroupOf"/> names one of them.</summary>
+    public static IReadOnlyList<string> Groups { get; } =
+    [
+        "Issue",
+        "Comment",
+        "Rank",
+        "View",
+        "Tabs",
+        "Navigate",
+        "General",
+    ];
+
+    /// <summary>
+    /// The palette group of an action (<c>docs/ux.md</c>, "Command palette"), from the id's prefix so a new action
+    /// of a known family needs no entry; null for an action in no group (a test fails when a bound action has none).
+    /// </summary>
+    public static string? GroupOf(string id)
+    {
+        if (id == ActionIds.ViewMenuOpen || id.StartsWith("view.", StringComparison.Ordinal))
+        {
+            return "View";
+        }
+
+        if (id == ActionIds.ContextMenuOpen)
+        {
+            return "General";
+        }
+
+        var dot = id.IndexOf('.', StringComparison.Ordinal);
+
+        return (dot < 0 ? id : id[..dot]) switch
+        {
+            "issue" => "Issue",
+            "comment" => "Comment",
+            "rank" => "Rank",
+            "tab" => "Tabs",
+            "nav" or "item" or "detail" => "Navigate",
+            "help" or "app" or "palette" or "mode" => "General",
+            _ => null,
+        };
+    }
+
     public static string? FindTitle(string id)
     {
         foreach (var definition in All)

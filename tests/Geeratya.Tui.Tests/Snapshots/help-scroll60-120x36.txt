@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
   Space i c  Create an issue (type picker, then the form)                                                               
   Space i C  Create a sub-task of the selected issue                                                                    
   Space i l  Link the issue to another issue                                                                            
@@ -23,14 +24,13 @@ Help mode
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
+  Up         Previous row in the picker                                                                                 
+  Ctrl-p     Previous row in the picker                                                                                 
+  Down       Next row in the picker                                                                                     
+  Ctrl-n     Next row in the picker                                                                                     
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Confirm mode                                                                                                            
   y          Confirm                                                                                                    
-  n          Decline                                                                                                    
-  Esc        Decline                                                                                                    
-                                                                                                                        
-Insert mode                                                                                                             
-  Enter      Accept the field and go to the next                                                                        
  HELP                                                                                            j down  k up  Esc close
