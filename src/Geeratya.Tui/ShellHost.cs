@@ -129,8 +129,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
-        _state = WithNotice(_state, JoinNotices(_state.Message, _keymapLoad?.Notice));
-        _state = StatusMessages.AddWarnings(_state, _keymapLoad?.Problems.Count > 1 ? _keymapLoad.Problems : []);
+        _state = StatusMessages.KeymapStartup(_state, _keymapLoad);
         _application = application;
         DetectBackground();
         application.Init();

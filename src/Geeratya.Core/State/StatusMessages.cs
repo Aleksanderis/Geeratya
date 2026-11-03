@@ -118,15 +118,42 @@ public static class StatusMessages
     {
         var problems = reloaded.Problems ?? [];
 
+        // A reload replaces the earlier report: the old keymap.json entries go, so reloading twice lists each problem once.
+        state = state with { StatusHistory = [.. state.StatusHistory.Where(message => !IsKeymapProblem(message))] };
+
         if (problems.Count == 0)
         {
             return state with { Message = reloaded.Message };
         }
 
-        return AddWarnings(
-            Warn(state, reloaded.Message),
-            problems.Count > 1 ? problems.Select(problem => $"keymap.json: {problem}").ToList() : []);
+        return AddWarnings(Warn(state, reloaded.Message), KeymapWarnings(problems));
     }
+
+    /// <summary>
+    /// The startup report of loading <c>keymap.json</c>: the notice joins <see cref="AppState.Message"/> (after what is
+    /// already there) and several problems each become a history warning. Does nothing for a null load.
+    /// </summary>
+    public static AppState KeymapStartup(AppState state, KeymapLoadResult? load)
+    {
+        var notice = state.Message is not null && load?.Notice is not null ? $"{state.Message} | {load.Notice}" : state.Message ?? load?.Notice;
+        var withNotice = notice is null
+            ? state with { Message = null }
+            : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
+
+        return AddWarnings(withNotice, KeymapWarnings(load?.Problems ?? []));
+    }
+
+    private static List<string> KeymapWarnings(IReadOnlyList<string> problems)
+    {
+        return problems.Count > 1 ? [.. problems.Select(problem => KeymapPrefix + problem)] : [];
+    }
+
+    private static bool IsKeymapProblem(StatusMessage message)
+    {
+        return message.Severity == StatusSeverity.Warning && message.Text.StartsWith(KeymapPrefix, StringComparison.Ordinal);
+    }
+
+    private const string KeymapPrefix = "keymap.json: ";
 
     /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the history is newest first, so the last one listed shows first.</summary>
     public static AppState AddWarnings(AppState state, IReadOnlyList<string> warnings)
