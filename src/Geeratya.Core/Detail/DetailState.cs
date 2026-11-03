@@ -67,6 +67,9 @@ public sealed record DetailState(
     DateTimeOffset? IssueSavedAt = null,
     IReadOnlyList<RowChange>? HeldChanges = null)
 {
+    /// <summary>The board's name for the estimate field (for example "Story Points"); null shows "Estimate".</summary>
+    public string? EstimateLabel { get; init; }
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

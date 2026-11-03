@@ -417,6 +417,18 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAnEmptyScrumBoard_WhenRendering_ThenItSaysThereIsNoOpenSprintAndNamesTheBacklog()
+    {
+        var tab = Tab() with { Board = _configuration with { Type = BoardType.Scrum } };
+
+        var body = Render(tab, 100, 20);
+
+        Assert.Contains(body, line => line.PlainText.Contains("No open sprint on this board.", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.Contains(":backlog", StringComparison.Ordinal));
+        Assert.DoesNotContain(body, line => line.PlainText.Contains("The board has no issues.", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenNoActiveSprint_WhenRendering_ThenAClearEmptyStateOffersTheBacklog()
     {
         var tab = SprintTab() with { SprintResolved = true };

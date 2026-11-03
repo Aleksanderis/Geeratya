@@ -35,7 +35,7 @@ internal static class BoardWire
 
     internal sealed record Estimation(EstimationField? Field);
 
-    internal sealed record EstimationField(string? FieldId);
+    internal sealed record EstimationField(string? FieldId, string? DisplayName);
 
     /// <summary>Board issues and backlog: issues with <c>startAt</c> and <c>total</c>.</summary>
     internal sealed record IssuePage(List<SearchWire.Issue>? Issues, int? StartAt, int? MaxResults, int? Total);

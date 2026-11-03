@@ -105,6 +105,40 @@ public sealed class IssueDetailFlowTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenFailingFieldList_WhenTwoIssuesAreOpened_ThenTheIssuesLoadAndTheFieldListIsAskedOnce()
+    {
+        _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json")
+            .Fixture($"{Site}/GTM-5/comment", "adf/comments-gtm5.json")
+            .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json")
+            .Fixture("/rest/api/3/field", "metadata/field-list.json", HttpStatusCode.Forbidden);
+        await ConnectAsync();
+
+        var first = await OpenAsync("GTM-5");
+        var second = await OpenAsync("GTM-5");
+
+        Assert.NotNull(Top(first).Issue);
+        Assert.NotNull(Top(second).Issue);
+        Assert.Equal(1, _http.Requests.Count(uri => uri.AbsolutePath == "/rest/api/3/field"));
+    }
+
+    [Fact]
+    public async Task GivenWarmedFieldList_WhenAnIssueIsOpened_ThenNoSecondFieldRequestIsSent()
+    {
+        _http.Fixture($"{Site}/GTM-5", "adf/issue-gtm5-rich-description.json")
+            .Fixture($"{Site}/GTM-5/comment", "adf/comments-gtm5.json")
+            .Fixture($"{Site}/GTM-5/remotelink", "links/remotelink-list-gtm5.json")
+            .Fixture("/rest/api/3/field", "metadata/field-list.json");
+        await ConnectAsync();
+
+        _connections!.WarmFields();
+        _connections.WarmFields();
+        var state = await OpenAsync("GTM-5");
+
+        Assert.NotNull(Top(state).Issue);
+        Assert.Equal(1, _http.Requests.Count(uri => uri.AbsolutePath == "/rest/api/3/field"));
+    }
+
+    [Fact]
     public async Task GivenScrumIssue_WhenOpened_ThenDetailCarriesSprintsEstimateAndEpicFromTheSiteFields()
     {
         _http.Fixture($"{Site}/GCS-8", "scrum/issue-gcs-carried-over.json")
