@@ -15,6 +15,15 @@ public enum SuggestionKind
     /// <summary>Issues by key or text (the parent field).</summary>
     Issues,
 
+    /// <summary>People who can see issues of a project (a person field other than the assignee in a create form).</summary>
+    ProjectUsers,
+
+    /// <summary>Components of a project (a create form's components field).</summary>
+    Components,
+
+    /// <summary>Versions of a project (a create form's version fields).</summary>
+    Versions,
+
     /// <summary>The allowed values of a select or multiple-choice field: matched locally, no Jira call.</summary>
     Options,
 }

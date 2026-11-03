@@ -381,6 +381,15 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenAHiddenBacklogColumn_WhenAltHIsPressedOnTheFirstShownColumn_ThenNoMoveToBacklogOpens()
+    {
+        var result = Keys(Tabbed(ViewLayout.Columns, backlogFirst: true), "Alt-h");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("already in the first column", result.State.Message);
+    }
+
+    [Fact]
     public void GivenTheListLayout_WhenAltLIsPressed_ThenTheStatusLineNamesTheColumnsLayout()
     {
         var result = Keys(Tabbed(ViewLayout.List), "Alt-l");
@@ -473,7 +482,7 @@ public class TransitionFlowTests
         return new Transition(id, target.Name, target, fields.Length > 0, true, fields);
     }
 
-    private AppState Tabbed(ViewLayout layout, IssueStatus? status = null)
+    private AppState Tabbed(ViewLayout layout, IssueStatus? status = null, bool backlogFirst = false)
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var state = AppState.Initial with
@@ -490,7 +499,9 @@ public class TransitionFlowTests
             1,
             "Board",
             BoardType.Kanban,
-            [new("To Do", ["1"]), new("In Progress", ["2"]), new("Done", ["3"])],
+            backlogFirst
+                ? [new("Backlog", ["0"]), new("To Do", ["1"]), new("In Progress", ["2"]), new("Done", ["3"])]
+                : [new("To Do", ["1"]), new("In Progress", ["2"]), new("Done", ["3"])],
             "10",
             null,
             null,

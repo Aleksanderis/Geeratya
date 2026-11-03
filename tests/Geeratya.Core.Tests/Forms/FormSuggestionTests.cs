@@ -7,6 +7,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Suggestions.Models;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Tests.Forms;
 
@@ -341,11 +342,76 @@ public class FormSuggestionTests
     }
 
     [Fact]
-    public void GivenACreateForm_WhenTypingInANonAssigneePersonField_ThenNoLookupIsRequested()
+    public void GivenACreateForm_WhenTypingInANonAssigneePersonField_ThenPeopleOfTheProjectAreSearched()
     {
         var result = Press(AsCreateForm(Focused("customfield_9")), "j");
 
-        Assert.Empty(result.Effects);
+        var effect = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(result.Effects));
+        Assert.Equal(SuggestionKind.ProjectUsers, effect.Source.Kind);
+        Assert.Equal("GCM", effect.Source.ProjectKey);
+        Assert.Null(effect.Source.IssueKey);
+    }
+
+    [Theory]
+    [InlineData(SuggestionKind.Components)]
+    [InlineData(SuggestionKind.Versions)]
+    public void GivenACreateFormProjectListField_WhenTypingAFilter_ThenTheProjectListIsSearchedNotTheLocalValues(
+        SuggestionKind lookup)
+    {
+        var result = Press(FocusedLookup(lookup), "a");
+
+        var effect = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(result.Effects));
+        Assert.Equal(lookup, effect.Source.Kind);
+        Assert.Equal("GCM", effect.Source.ProjectKey);
+        Assert.Equal(lookup, Popup(result.State).Source.Kind);
+    }
+
+    [Fact]
+    public void GivenACreateFormProjectListField_WhenTheFilterIsEmpty_ThenTheAllowedValuesAreListedLocally()
+    {
+        var state = FocusedLookup(SuggestionKind.Components);
+
+        Assert.Equal(SuggestionKind.Options, Popup(state).Source.Kind);
+        Assert.Equal(["Alpha"], Popup(state).Items.Select(item => item.Label));
+    }
+
+    [Fact]
+    public void GivenAFoundComponent_WhenItIsTaken_ThenItBecomesAChipWithItsNameAndTheFilterIsLocalAgain()
+    {
+        var typed = Press(FocusedLookup(SuggestionKind.Components), "b");
+        var requestId = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects)).RequestId;
+        var found = Reply(typed.State, requestId, new Suggestion("77", "Beta", null, false));
+
+        var taken = Press(Press(found.State, "Down").State, "Enter");
+
+        var field = taken.State.Session.Tabs[0].Form!.Fields[1];
+        Assert.Equal(["77"], field.Value.Chosen);
+        Assert.Contains(field.Options, option => option is { Id: "77", Label: "Beta" });
+        Assert.Equal(string.Empty, field.Entry);
+    }
+
+    [Fact]
+    public void GivenAnOpenProjectListPopup_WhenEscIsPressed_ThenTheFilterIsClearedAndTheLocalValuesReturn()
+    {
+        var typed = Press(FocusedLookup(SuggestionKind.Components), "b");
+
+        var closed = Press(typed.State, "Esc");
+
+        var form = closed.State.Session.Tabs[0].Form!;
+        Assert.Equal(string.Empty, form.Fields[1].Entry);
+        Assert.Equal(SuggestionKind.Options, form.Suggest!.Source.Kind);
+    }
+
+    // A create form whose second field is a multiple choice with a project list, focused with its local values listed.
+    private AppState FocusedLookup(SuggestionKind lookup)
+    {
+        var tab = Focused("components", FormFieldKind.MultiSelect).Session.Tabs[0];
+        var field = tab.Form!.Fields[1] with { Lookup = lookup, Options = [new FieldOption("1", "Alpha")] };
+        var target = new CreateFormTarget("GCM", null, false, null);
+        var popup = ChoicePopup.For(field, 1, null);
+        var form = tab.Form with { Fields = [tab.Form.Fields[0], field], Target = target, Suggest = popup };
+
+        return WithTab(Focused("components"), tab with { Form = form });
     }
 
     private static AppState AsCreateForm(AppState state)

@@ -31,6 +31,20 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     private const string VersionsSegment = "versions";
     private const int LabelPageSize = 1000;
 
+    /// <summary>People who can see issues of a project (a person field of the create form other than the assignee).</summary>
+    public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchProjectUsersAsync(
+        string projectKey,
+        string? query,
+        CancellationToken cancellationToken)
+    {
+        if (!IsProjectKey(projectKey))
+        {
+            return Task.FromResult(NotFound());
+        }
+
+        return SearchUsersAsync($"{ViewIssueSearch}?projectKey={projectKey}", query, cancellationToken);
+    }
+
     /// <summary>People who can be assigned issues of a project (the create form).</summary>
     public Task<JiraResult<IReadOnlyList<Suggestion>>> SearchAssignableUsersForProjectAsync(
         string projectKey,

@@ -28,7 +28,7 @@ public static partial class FormReducer
         return action switch
         {
             ActionIds.Cancel when popup.Query.Length == 0 => null,
-            ActionIds.Cancel when popup.Source.Kind == SuggestionKind.Options
+            ActionIds.Cancel when FormFieldKinds.IsChoice(form.Fields[form.Focus].Kind)
                 => Result(ClearedFilter(state, tab, form)),
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
@@ -90,6 +90,13 @@ public static partial class FormReducer
             return form.Suggest is { Source.Kind: SuggestionKind.Options }
                 ? new ReduceResult(Replace(result.State, tab, form with { Suggest = null }), result.Effects)
                 : result;
+        }
+
+        // A typed filter of a field with a project list is answered by that search, not by the local values.
+        if (field.Lookup is not null && field.Entry.Trim().Length > 0
+            && form.Suggest is { Source.Kind: not SuggestionKind.Options })
+        {
+            return result;
         }
 
         var popup = ChoicePopup.For(field, form.Focus, form.Suggest);
@@ -253,14 +260,21 @@ public static partial class FormReducer
         };
     }
 
-    // A create form has no issue yet: people who can be assigned in the project (the assignee; other person fields have no project-scoped
-    // search yet), and issues of the project as parent.
+    // A create form has no issue yet: people who can be assigned in the project (the assignee), people who can see its
+    // issues (other person fields), the components and versions of the project (the typed filter of those fields) and
+    // issues of the project as parent.
     private static SuggestionSource? CreateSourceOf(CreateFormTarget create, FormField field)
     {
+        if (field.Lookup is { } lookup && FormFieldKinds.IsChoice(field.Kind))
+        {
+            return new SuggestionSource(lookup, null, [], create.ProjectKey);
+        }
+
         return field.Kind switch
         {
             FormFieldKind.User when field.Id == FormFieldIds.Assignee
                 => new SuggestionSource(SuggestionKind.AssignableUsers, null, [], create.ProjectKey),
+            FormFieldKind.User => new SuggestionSource(SuggestionKind.ProjectUsers, null, [], create.ProjectKey),
             FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, null, [], create.ProjectKey),
             _ => null,
         };

@@ -1,3 +1,4 @@
+using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
@@ -15,6 +16,7 @@ namespace Geeratya.Core.Forms;
 /// <param name="Initial">The value the form was opened with; only fields that differ are written.</param>
 /// <param name="Entry">The typing buffer: the filter of a choice field, the label being typed.</param>
 /// <param name="Error">Why the field is wrong (checked locally or refused by Jira), or null.</param>
+/// <param name="Lookup">The project list a typed filter also searches (components, versions of a create form), or null.</param>
 public sealed record FormField(
     string Id,
     string Label,
@@ -24,7 +26,8 @@ public sealed record FormField(
     FormValue Value,
     FormValue Initial,
     string Entry,
-    string? Error)
+    string? Error,
+    SuggestionKind? Lookup = null)
 {
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 

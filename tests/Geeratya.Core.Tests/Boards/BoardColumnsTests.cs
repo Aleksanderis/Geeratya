@@ -45,6 +45,46 @@ public class BoardColumnsTests
     }
 
     [Fact]
+    public void GivenCompanyManagedKanbanWithBacklogFirst_WhenShowingColumns_ThenBacklogColumnAndItsIssuesAreHidden()
+    {
+        var configuration = Configuration(
+            BoardType.Kanban,
+            Column("Backlog", "10003"),
+            Column("To Do", "10004"),
+            Column("Done", "10005"));
+
+        var columns = BoardColumns.Visible(
+            configuration,
+            [Row("A-1", "10003"), Row("A-2", "10004"), Row("A-3", "10005")]);
+
+        Assert.Equal(["To Do", "Done"], columns.Select(column => column.Name));
+        Assert.Equal(["A-2"], columns[0].Rows.Select(row => row.Key));
+    }
+
+    [Fact]
+    public void GivenTeamManagedBoardWithBacklogColumn_WhenShowingColumns_ThenBacklogColumnStays()
+    {
+        var configuration = Configuration(
+            BoardType.Simple,
+            Column("To Do", "10004"),
+            Column("Backlog", "10003"),
+            Column("Done", "10005"));
+
+        var columns = BoardColumns.Visible(configuration, [Row("A-1", "10003")]);
+
+        Assert.Equal(["To Do", "Backlog", "Done"], columns.Select(column => column.Name));
+        Assert.Equal(["A-1"], columns[1].Rows.Select(row => row.Key));
+    }
+
+    [Fact]
+    public void GivenKanbanWithoutBacklogFirst_WhenShowingColumns_ThenEveryColumnStays()
+    {
+        var configuration = Configuration(BoardType.Kanban, Column("To Do", "10004"), Column("Backlog", "10003"));
+
+        Assert.Equal(2, BoardColumns.Visible(configuration, []).Count);
+    }
+
+    [Fact]
     public void GivenStatusInNoColumn_WhenGrouping_ThenTheIssueIsUnmappedAndNotLost()
     {
         var configuration = Configuration(BoardType.Kanban, Column("To Do", "10004"));
