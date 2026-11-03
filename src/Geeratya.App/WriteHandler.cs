@@ -7,6 +7,7 @@ using Geeratya.Core.Writes.Comments;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
+using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
@@ -248,7 +249,7 @@ public sealed class WriteHandler
         _createSubmitted.TryRemove(effect.OperationId, out _);
 
         var key = result.Value.Key;
-        var rows = await ReadKeysAsync(services, [key], token);
+        var rows = await ReadKeysAsync(services, [key], [], token);
         var shown = rows is null ? [] : rows.Where(row => row.Key == key).ToArray();
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown, CreatedKey: key);
@@ -480,7 +481,7 @@ public sealed class WriteHandler
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
 
-        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, effect.Request.ReadBackFieldIds, token);
         var shown = rows is null ? [] : rows.Where(effect.Request.IsShownBy).ToArray();
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), shown);
@@ -519,7 +520,7 @@ public sealed class WriteHandler
             return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), VerifyOutcome.Unreachable, []);
         }
 
-        var rows = await ReadKeysAsync(services, effect.Request.Keys, token);
+        var rows = await ReadKeysAsync(services, effect.Request.Keys, effect.Request.ReadBackFieldIds, token);
         var outcome = OutcomeOf(effect.Request, rows);
 
         return new WriteVerified(effect.OperationId, _clock.GetUtcNow(), outcome, rows ?? []);
@@ -602,11 +603,15 @@ public sealed class WriteHandler
     private static async Task<IReadOnlyList<IssueSummary>?> ReadKeysAsync(
         JiraServices services,
         IReadOnlyList<string> keys,
+        IReadOnlyList<string> extraFieldIds,
         CancellationToken token)
     {
         try
         {
-            var query = new IssueSearchQuery(JqlBuilder.KeyIn(keys), keys.Count);
+            var query = new IssueSearchQuery(JqlBuilder.KeyIn(keys), keys.Count)
+            {
+                Extras = new IssueExtraFields(null, extraFieldIds),
+            };
             var result = await services.Search.SearchAsync(query, null, token);
 
             return result.IsSuccess ? result.Value.Items : null;

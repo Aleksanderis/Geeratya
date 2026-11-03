@@ -7,6 +7,7 @@ using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Adf;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Suggestions.Models;
@@ -109,12 +110,45 @@ public class FormOpenerTests
     }
 
     [Fact]
-    public void GivenAnEstimateClear_WhenTheReadBackRowHasNoEstimate_ThenItIsNeverVerifiedAsApplied()
+    public void GivenAnEstimateEdit_WhenTheReadBackRowIsChecked_ThenOnlyTheWrittenValueCountsAsShown()
     {
+        var set = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.OfText("8"));
         var clear = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.Empty);
-        var request = new EditRequest("A-1", [clear], true);
+        var setRequest = new EditRequest("A-1", [set], true);
+        var clearRequest = new EditRequest("A-1", [clear], true);
 
-        Assert.False(request.IsShownBy(Issue(null) with { Estimate = null }));
+        Assert.Equal(["customfield_10047"], setRequest.ReadBackFieldIds);
+        Assert.True(setRequest.IsShownBy(Issue(null) with { Estimate = 8 }));
+        Assert.False(setRequest.IsShownBy(Issue(null) with { Estimate = 3 }));
+        Assert.True(clearRequest.IsShownBy(Issue(null) with { Estimate = null }));
+        Assert.False(clearRequest.IsShownBy(Issue(null) with { Estimate = 3 }));
+    }
+
+    [Fact]
+    public void GivenABoardWithAnEstimationField_WhenEstimateIsRun_ThenTheTargetNamesThatField()
+    {
+        var result = Palette(WithBoard(Tabbed(), "customfield_10047", true), "estimate");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Equal("customfield_10047", Assert.IsType<EditFormTarget>(effect.Target).EstimateFieldId);
+    }
+
+    [Fact]
+    public void GivenABoardReadWithoutEstimation_WhenEstimateIsRun_ThenNoFormOpensAndTheStatusSaysWhy()
+    {
+        var result = Palette(WithBoard(Tabbed(), null, true), "estimate");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("no story point estimation", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenACachedBoardWithoutEstimationInfo_WhenEstimateIsRun_ThenTheFormStillOpens()
+    {
+        var result = Palette(WithBoard(Tabbed(), null, false), "estimate");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Null(Assert.IsType<EditFormTarget>(effect.Target).EstimateFieldId);
     }
 
     [Fact]
@@ -545,6 +579,18 @@ public class FormOpenerTests
         var issue = Detailed(description);
 
         return _reducer.Reduce(opened, new IssueDetailLoaded(tab.Id, shown.IssueRequest, issue, _start)).State;
+    }
+
+    private static AppState WithBoard(AppState state, string? estimationFieldId, bool read)
+    {
+        var board = new BoardConfiguration(4, "Board", BoardType.Scrum, [], "1", null, null, null)
+        {
+            EstimationFieldId = estimationFieldId,
+            EstimationRead = read,
+        };
+        var tab = state.Session.Tabs[0] with { Board = board };
+
+        return state with { Session = state.Session with { Tabs = [tab] } };
     }
 
     private AppState Tabbed(IssueAssignee? assignee = null)

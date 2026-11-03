@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.CommandPalette;
 
@@ -73,6 +74,11 @@ public static class PaletteRows
 
         foreach (var only in _paletteOnly)
         {
+            if (only.Line == PaletteCommands.Estimate && BoardHasNoEstimation(state))
+            {
+                continue;
+            }
+
             var row = new PaletteRow(PaletteRowKind.Command, only.Line, only.Title, string.Empty);
 
             AddCandidate(candidates, filter, row, only.Group, focused.Contains(ActionIds.IssueEdit));
@@ -123,6 +129,14 @@ public static class PaletteRows
         var word = FirstWord(text.Trim());
 
         return PaletteCommands.All.Any(command => command.Name == word) || _extraCommandWords.Contains(word);
+    }
+
+    // The board of the active tab says it has no estimation: the estimate command is left out.
+    private static bool BoardHasNoEstimation(AppState state)
+    {
+        var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+
+        return tab?.Board is { HasNoEstimation: true };
     }
 
     // The default list leaves the advanced actions out; typing a filter searches them too, so they stay reachable.

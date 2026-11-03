@@ -39,12 +39,18 @@ public static class FormOpener
             return Say(state, NoIssueText);
         }
 
+        if (subject.Tab.Board is { HasNoEstimation: true })
+        {
+            return Say(state, $"{subject.Key} has no estimate to edit: the board has no story point estimation");
+        }
+
         var target = new EditFormTarget(
             subject.Key,
             new Dictionary<string, FormValue>(),
             true,
             FormFieldKind.Number,
-            EstimateOnly: true);
+            EstimateOnly: true,
+            EstimateFieldId: subject.Tab.Board?.EstimationFieldId);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
     }
