@@ -124,22 +124,23 @@ Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-setting
 |---|---|---|
 | Repeat mode (bare step keys after one step) | none; rank steps take counts (`3 Alt-k`) | the only steppers are rank keys; there is nothing to resize or nudge |
 | Pane focus keys (`Ctrl-h/j/k/l`, `Ctrl-w`), pane resize, zoom, drag to resize | `h`/`l` between columns, `] ]` and `[ [` between sections; no resize | panes are content-driven (columns, sections), not a fixed pane set |
-| In-view find (`/`, `n`, `N`), clipboard copy (`y`, OSC 52), character selection (`Alt-v`) | not included (decision #467) | README Features does not list them; JQL, saved views and `<space>g` find issues |
+| In-view find (`/`, `n`, `N`) and clipboard copy (`y`, OSC 52) | not included (decision #467) | README Features does not list them; JQL and saved views narrow a list, `<space>g` jumps to a known key |
+| Character selection (`Alt-v`) | none | Visual selects issues, there is no text to select |
 | Per-view key rows and a `view` field in the user file | the same keys in every view; an applies-to tag on the action drives contextual help | one key set to learn |
 | Three command levels | two (`everyday`, `advanced`) | two are enough until the keymap grows |
 | One `config.json` with `keys` | `keymap.json` (never written by the app) and `settings.json` (app-written) | different writers; the keymap already shipped |
-| `<space>m` message history, `<space>.` actions menu, help scroll by `J/K/D/U` only | `<space>n`, `<space>a` (issue) and `<space>A` (tab and view), `Tab`/`Shift-Tab` pages with `j`/`k` sections (decisions #465, #466, #468) | `<space>m` is the comment group; already built and taught |
+| `<space>m` message history, `<space>.` actions menu | `<space>n`, `<space>a` (issue) and `<space>A` (tab and view) (decisions #465, #468) | `<space>m` is the comment group; already built and taught |
 | Visual as an input mode | a state of the tab over Normal mode | its keys are exactly the Normal keys |
 | Graph lanes, branch label caps, diff colours, `labelCaps` | issue-type and status-category colours, no Powerline caps | Geeratya must not look like a Git client |
 | Repository picker with pins, recents and discovered folders (`scanRoots`) | source picker with boards, filters, saved views and recents; profiles instead of repositories | Jira nouns; one site is active at a time |
-| Fetch, pull and push chips, operation banner, dirty and ahead/behind markers, file polling | network banner, `<space>r` refresh, `!` stale and `…` loading tab markers, refresh of the active tab only | there are no remotes or working trees; a Jira view is stale by age |
+| Fetch, pull and push chips, operation banner, dirty and ahead/behind markers, file polling | network banner and `STALE` banner, `<space>r` refresh, `!` failed and `…` loading tab markers, refresh of the active tab only | there are no remotes or working trees; a Jira view is stale by age |
 | Session restore of tabs, the active tab and focus | remembered tab definitions (`tabs.json`); rows come from the cache | views reload, so a stored cursor or scroll position could point at other rows |
-| No right-, middle- or Ctrl-click bindings (#479 there) | right-click menus, Ctrl-click marks (owner choice in #200), plus a visible `...` marker as the click path | Geeratya's owner wants them; the marker is for multiplexers that swallow them |
-| Double-click accepts a picker row | a single click on a picker, jump or palette row runs it | picker rows are one-step choices; a double-click would be a second request |
+| No right-, middle- or Ctrl-click bindings (#479 there), a `...` marker opens the row menu | right-click menus and Ctrl-click marks (full mouse support is a README feature, `ux-mouse.md`); a `...` marker is planned (#572) | the right-click paths shipped first; the marker is for multiplexers that swallow them |
+| Double-click accepts a picker row | a single click on a picker, jump or palette row runs it | Gitunia's single click only highlights, so it needs the double-click; here a single click already accepts |
 | Commit message box pane, conflict editor | comment editor overlay | no commit or merge in Jira |
-| Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | measured idle cost is about 1 % of a core (JIT build); re-measure with the release numbers (#211) |
+| Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | not needed so far (an unrecorded check of a JIT build idled near 1 % of a core); idle CPU is measured with the release numbers in #211 |
 
-Not intended and no longer left out: the Settings screen (requested by the owner, #556). The other gaps (single-line prompt caret, Visual range look, cursor position in the status bar, wheel in help and messages, live drag, row menu marker, commands button, tab rename and labels, startup problems, command line, print-frame colours, rules and docs) are open issues listed in the comment on #560.
+Not intended and no longer left out: the Settings screen (requested by the owner, planned in #556). The other gaps found by the audit are open issues linked from #560: single-line prompt caret (#567), Visual range look (#568), cursor position in the status bar (#569), wheel in help and messages (#570), live drag (#571), row menu marker (#572), commands button (#573), tab rename and labels (#574), startup problems (#575), command line (#576, #577), print-frame colours (#585), error and loading bodies (#579).
 
 ## Print frame
 
