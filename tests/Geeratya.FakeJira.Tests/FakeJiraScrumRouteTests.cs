@@ -234,7 +234,7 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
     }
 
     [Fact]
-    public async Task GivenTeamManagedBacklogIssue_WhenMovedToActiveSprintTwiceAndBack_ThenEachMoveIsHarmless()
+    public async Task GivenTeamManagedBacklogIssue_WhenMovedToActiveSprintTwiceAndBack_ThenTheFakeKeepsOneMembershipAndNoError()
     {
         var first = await Send(HttpMethod.Post, $"{Agile}/sprint/10/issue", """{"issues":["GTS-22"]}""");
         var again = await Send(HttpMethod.Post, $"{Agile}/sprint/10/issue", """{"issues":["GTS-22"]}""");

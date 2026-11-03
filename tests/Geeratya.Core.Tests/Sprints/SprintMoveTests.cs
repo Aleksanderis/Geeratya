@@ -244,6 +244,20 @@ public class SprintMoveTests
         var failed = _reducer.Reduce(started.State, new WriteFailed(id, _now, error));
 
         Assert.Equal(["A-2", "A-3"], Tab(failed.State).Marks);
+        Assert.Null(Tab(failed.State).VisualAnchor);
+        Assert.IsType<Loading>(Tab(failed.State).Load);
+    }
+
+    [Fact]
+    public void GivenAMoveThatTookSomeIssues_WhenTheCallEndedWithARateLimit_ThenTheTabStillReloads()
+    {
+        var started = Press(Chord(Marked(Loaded(), "A-1", "A-2"), "Space s b").State, "y");
+        var id = started.State.Session.Operations.Single().Id;
+        var error = new WriteError(WriteErrorKind.RateLimited, 429, "slow down", [], ["x"], null, ["A-2"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(id, _now, error));
+
+        Assert.Equal(["A-2"], Tab(failed.State).Marks);
         Assert.IsType<Loading>(Tab(failed.State).Load);
     }
 
