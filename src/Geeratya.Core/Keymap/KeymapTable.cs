@@ -110,6 +110,12 @@ public sealed class KeymapTable
         return null;
     }
 
+    /// <summary>The first keys bound to the action as shown to the user (<see cref="KeyNotation.Display"/>), or null.</summary>
+    public string? FindKeyLabel(InputMode mode, string action)
+    {
+        return KeyNotation.Display(FindKeys(mode, action));
+    }
+
     /// <summary>Everything wrong: duplicates, shadowed sequences, unknown actions, bad key spelling.</summary>
     public IReadOnlyList<string> FindProblems()
     {

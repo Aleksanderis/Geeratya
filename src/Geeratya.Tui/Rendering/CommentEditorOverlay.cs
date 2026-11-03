@@ -261,20 +261,20 @@ public static class CommentEditorOverlay
 
     private static string PopupFooterText(KeymapTable keymap)
     {
-        var down = keymap.FindKeys(InputMode.Insert, ActionIds.PickerNext);
-        var up = keymap.FindKeys(InputMode.Insert, ActionIds.PickerPrevious);
-        var accept = keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext);
-        var enter = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
-        var close = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
+        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
+        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
+        var enter = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
+        var close = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
 
         return $"{down}/{up} choose   {accept}/{enter} accept   {close} close list";
     }
 
     private static string FooterText(KeymapTable keymap, CommentEditor editor)
     {
-        var save = keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit);
-        var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
-        var newLine = keymap.FindKeys(InputMode.Insert, ActionIds.FormNext);
+        var save = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormSubmit);
+        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
+        var newLine = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
         var verb = editor.IsEdit ? "save" : "send";
 
         if (editor.Suggest is { Items.Count: > 0 })

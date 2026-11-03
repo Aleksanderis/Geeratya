@@ -3,7 +3,7 @@ using Geeratya.Core.Keymap;
 namespace Geeratya.Core.State;
 
 /// <summary>
-/// The which-key popup waits before it opens, so a fast chord such as <c>Space i k</c> never flashes it. The wait is
+/// The which-key popup waits before it opens, so a fast chord such as <c>&lt;space&gt;ik</c> never flashes it. The wait is
 /// counted on the clock the shell hands to <see cref="Views.Tick"/>; there is no timer in the state layer.
 /// </summary>
 public static class WhichKeyDelay
