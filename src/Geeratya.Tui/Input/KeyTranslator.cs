@@ -18,6 +18,12 @@ public static class KeyTranslator
         var code = key.KeyCode & ~(KeyCode.ShiftMask | KeyCode.AltMask | KeyCode.CtrlMask);
         var name = NameOf(code);
 
+        // Terminals send Ctrl-^ as 0x1E, which Terminal.Gui reports as Ctrl+6 (a real Ctrl-6 is the same key).
+        if (key.IsCtrl && !key.IsAlt && code == KeyCode.D6)
+        {
+            return "Ctrl-^";
+        }
+
         if (name is not null)
         {
             return WithModifiers(key, name, name == "Tab");

@@ -37,6 +37,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `g t` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |
 | `g T` | Previous tab | `tab.previous` | everyday |
+| `Ctrl-^` | Previously active tab | `tab.last-active` | everyday |
+| `Space Tab` | Previously active tab | `tab.last-active` | everyday |
 | `Alt-1` | Go to tab 1 | `tab.go-to.1` | everyday |
 | `Alt-2` | Go to tab 2 | `tab.go-to.2` | everyday |
 | `Alt-3` | Go to tab 3 | `tab.go-to.3` | everyday |
