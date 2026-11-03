@@ -126,16 +126,24 @@ mkdir -p "$work/config/geeratya" "$work/state" "$work/cache"
 start() {
   tmux -L "$socket" kill-server 2> /dev/null || true
   sleep 0.5
+  rm -rf "$work/state" "$work/cache"; mkdir -p "$work/state" "$work/cache" # no restored tabs: a fresh session opens the source picker
   printf '{"activeName":"fake","profiles":[%s]}\n' "$1" > "$work/config/geeratya/profiles.json"
   tmux -L "$socket" -f /dev/null new-session -d -s s -x 120 -y 36 \
     "env -i HOME=$work PATH=$PATH COLORTERM=truecolor TERM=tmux-256color \
       GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache '$binary'"
 }
+# The startup source picker (#542) is open on a fresh session: close it so the steps below start from the empty tab.
+settle() {
+  wait_for "fake: fake@example.com"
+  wait_for "Open a view"
+  tmux -L "$socket" send-keys -t s Escape
+  wait_gone "Open a view"
+}
 one="{\"name\":\"fake\",\"siteUrl\":\"$fake_url\",\"email\":\"fake@example.com\"}"
 two="$one,{\"name\":\"second\",\"siteUrl\":\"$fake_url\",\"email\":\"second@example.com\"}"
 
 start "$one"
-wait_for "fake: fake@example.com"
+settle
 
 # Scrum backlog (#394): a row dragged onto another section asks first, nothing is sent before y; Esc keeps everything.
 send ":backlog GEN board|"
@@ -154,26 +162,31 @@ for kind in "GCS 6" "GTS 5"; do
   project=${kind% *}
   board=${kind#* }
   start "$one"
-  wait_for "fake: fake@example.com"
+  settle
   send ":backlog $project board|"
-  wait_for "Backlog · "
-  size=$(frame | grep -o "Backlog · [0-9]* issues" | tr -dc 0-9)
-  key=$(frame | awk '/Seed Sprint 3 ·/ { found = 1; next } found { print $1; exit }')
+  wait_for "├─ Backlog "
+  size=$(frame | grep -F "├─ Backlog " | grep -o "[0-9]* issues" | tr -dc 0-9)
+  key=$(frame | awk '/Seed Sprint 3 ──/ { found = 1; next } found { print $2; exit }')
   [[ $key =~ ^[A-Z]+-[0-9]+$ ]] || fail "no row in Seed Sprint 3 of $project (got '$key')"
   fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
-  drag_to "$key " "Backlog · $size issues"
+  drag_to "$key " "├─ Backlog "
   wait_for "Jira has no undo"
   wait_for "Move $key"
   fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
   send "y"
   wait_gone "Jira has no undo"
-  wait_for "Backlog · $((size + 1)) issues"
+  wait_for "├─ Backlog "
+  for _ in $(seq 1 50); do
+    [ "$(frame | grep -F "├─ Backlog " | grep -o "[0-9]* issues" | tr -dc 0-9)" = "$((size + 1))" ] && break
+    sleep 0.15
+  done
+  [ "$(frame | grep -F "├─ Backlog " | grep -o "[0-9]* issues" | tr -dc 0-9)" = "$((size + 1))" ] || fail "the backlog section did not grow to $((size + 1))"
   fake_lists "board/$board/backlog" "$key" || fail "$key is not in the fake's backlog after y"
   echo "ok: $project drop on the backlog with y moved $key"
 done
 
 start "$one"
-wait_for "fake: fake@example.com"
+settle
 
 # Source picker: <space>t, click a row.
 send " t"
@@ -201,11 +214,11 @@ wait_gone "Help"
 # Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
 # motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
 # swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
-drag "Story GCM-11" 30 motion
+drag "Story GCM-11" 40 motion
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
-drag "Story GCM-11" 30
+drag "Story GCM-11" 40
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
@@ -247,16 +260,17 @@ wait_gone "Tab/Enter accept"
 wait_for "Test User 3"
 
 # Profile list: right-click asks to remove (Esc keeps it), click switches.
+# Two profiles: GEERATYA_TOKEN serves neither, so no connection and no source picker.
 start "$two"
 wait_for "fake: fake@example.com"
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "second  " 2
 wait_for "Remove profile second"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+# The profile screen stays open under the dialog: Esc, Cancel and the removal only close the dialog.
+wait_for "─ Details ─"
 
 # Confirm dialog buttons (#379): a click on the Cancel row closes it and keeps the profile; a click on the answer row
 # ("Remove profile", below the question that starts with the same words) confirms and removes it (the inactive profile,
@@ -265,19 +279,19 @@ click "second  " 2
 wait_for "Remove profile second"
 click "Cancel"
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 frame | grep -qF -- "second  " || fail "the profile was removed by a click on Cancel"
 click "second  "
 wait_for "second: second@example.com"
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "fake  " 2
 wait_for "Remove profile fake"
 click "Remove profile  "
 wait_gone "Remove profile fake"
+wait_for "second: second@example.com on" # the removal leaves the profile screen
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 frame | grep -qF -- "fake  " && fail "the profile is still listed after a click on the yes row"
 echo "ok: confirm dialog click on Cancel keeps, click on yes removes"
 echo "PASS"
