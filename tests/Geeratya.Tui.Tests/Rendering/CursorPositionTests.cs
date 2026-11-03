@@ -146,6 +146,31 @@ public class CursorPositionTests
         }
     }
 
+    [Fact]
+    public void GivenASprintBoardWhoseGoalFits_WhenThePositionWouldPushItOut_ThenThePositionHidesFirst()
+    {
+        const string goal = "Ship the board and polish everything";
+        var sprint = new Sprint(7, "Sprint 1", SprintState.Active, goal, null, null, null, 4);
+        var definition = new ViewDefinition(ViewSourceKind.Sprint, "4:active", ViewLayout.Columns, "Board");
+        var tab = BoardTab("A-2") with { Definition = definition, Sprint = sprint, SprintResolved = true };
+        var goalOnly = 0;
+        var seen = false;
+
+        for (var width = 80; width <= 300; width++)
+        {
+            var line = StatusBar.Render(ActiveOf(tab), width, _keymap);
+            var hasGoal = line.Contains(goal, StringComparison.Ordinal);
+            var hasPosition = line.Contains("card 2/3", StringComparison.Ordinal);
+
+            goalOnly += hasGoal && !hasPosition ? 1 : 0;
+            Assert.True(!seen || hasGoal, line);
+            Assert.EndsWith(GlobalHints, line);
+            seen |= hasGoal;
+        }
+
+        Assert.True(goalOnly > 0);
+    }
+
     private static ViewDefinition Plain()
     {
         return new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
