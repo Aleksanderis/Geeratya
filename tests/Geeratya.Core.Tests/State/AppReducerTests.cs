@@ -202,6 +202,7 @@ public class AppReducerTests
         var result = Press(AppState.Initial with { Mode = InputMode.Insert }, "Ctrl-c");
 
         Assert.Empty(result.Effects.OfType<QuitEffect>());
+        Assert.Equal(InputMode.Normal, result.State.Mode);
     }
 
     [Fact]

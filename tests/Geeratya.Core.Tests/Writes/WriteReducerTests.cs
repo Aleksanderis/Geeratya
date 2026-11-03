@@ -542,6 +542,23 @@ public class WriteReducerTests
     }
 
     [Fact]
+    public void GivenRunningWrite_WhenPressingCtrlCInNormalOrInTheQuitQuestion_ThenItAsksAndNeverQuitsAtOnce()
+    {
+        var state = TwoTabs();
+        var tab = state.Session.Tabs[0].Id;
+        var running = Request(state, tab, "A-1", _eve).State;
+
+        var asked = _reducer.Reduce(running, new KeyPressed("Ctrl-c"));
+        var again = _reducer.Reduce(asked.State, new KeyPressed("Ctrl-c"));
+
+        Assert.Empty(asked.Effects);
+        Assert.Equal(InputMode.Confirm, asked.State.Mode);
+        Assert.Contains("Quit anyway?", asked.State.Confirm!.Message);
+        Assert.Empty(again.Effects);
+        Assert.Equal(InputMode.Confirm, again.State.Mode);
+    }
+
+    [Fact]
     public void GivenNoWrites_WhenQuitting_ThenItQuitsAtOnce()
     {
         var result = _reducer.Reduce(TwoTabs(), new KeyPressed("q"));
