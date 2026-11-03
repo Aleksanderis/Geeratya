@@ -143,7 +143,7 @@ settled_capture() {
   start=$(now_ms)
   while true; do
     current=$(tmux -L "$socket" capture-pane -t s -p -e 2> /dev/null || true)
-    if [ -n "${current//[[:space:]]/}" ] && [ "$current" = "$previous" ]; then
+    if [ "$current" = "$previous" ] && printf '%s' "$current" | grep -q '[^[:space:]]'; then
       printf '%s\n' "$current"
       return 0
     fi
