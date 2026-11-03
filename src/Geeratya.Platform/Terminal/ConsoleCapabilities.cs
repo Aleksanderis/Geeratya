@@ -14,12 +14,12 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
         EnvironmentReader environment,
         bool isInputRedirected,
         bool isOutputRedirected,
-        OperatingSystemKind operatingSystem = OperatingSystemKind.Linux)
+        OperatingSystemKind operatingSystem)
     {
         var term = environment.Get("TERM");
         var isDumb = term == "dumb";
         var isInteractive = !isInputRedirected && !isOutputRedirected && !isDumb;
-        var isClassic = IsClassicConsole(environment, operatingSystem, term);
+        var isClassic = IsVtFamily(term) || IsClassicConsole(environment, operatingSystem, term);
         var glyphs = isDumb || isClassic || !IsUtf8(environment) ? GlyphSet.Ascii : GlyphSet.Unicode;
 
         if (environment.Get("NO_COLOR") is not null || isDumb || isOutputRedirected || HasNoColors(term))
@@ -43,7 +43,7 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
     {
         return operatingSystem switch
         {
-            OperatingSystemKind.Linux => IsVirtualTerminal(term),
+            OperatingSystemKind.Linux => term is "linux" or "ansi" or "cons25",
             OperatingSystemKind.Windows => environment.Get("WT_SESSION") is null
                 && term is null
                 && environment.Get("TERM_PROGRAM") is null
@@ -54,12 +54,7 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
         };
     }
 
-    private static bool IsVirtualTerminal(string? term)
-    {
-        return term is "linux" or "ansi" or "cons25" || IsVtFamily(term);
-    }
-
-    /// <summary>The VT100 family has no colours at all.</summary>
+    /// <summary>The VT100 family (<c>vt52</c>, <c>vt100</c>, <c>vt220</c>, never <c>vte</c>) has no colours at all.</summary>
     private static bool HasNoColors(string? term)
     {
         return IsVtFamily(term);
@@ -67,7 +62,7 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
 
     private static bool IsVtFamily(string? term)
     {
-        return term is not null && term.StartsWith("vt", StringComparison.Ordinal);
+        return term is { Length: > 2 } && term.StartsWith("vt", StringComparison.Ordinal) && char.IsAsciiDigit(term[2]);
     }
 
     private static bool HasTrueColor(EnvironmentReader environment, OperatingSystemKind operatingSystem)

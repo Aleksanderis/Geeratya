@@ -95,6 +95,29 @@ public class ConsoleCapabilitiesTests
         Assert.Equal(ColorSupport.TrueColor, capabilities.Colors);
     }
 
+    [Theory]
+    [InlineData("TERM=vte-256color")]
+    [InlineData("TERM=vte")]
+    [InlineData("TERM=vte-direct")]
+    public void GivenLibvteTerminal_WhenDetecting_ThenKeepsUnicodeAndColors(string term)
+    {
+        var capabilities = Detect(false, false, term, "COLORTERM=truecolor");
+
+        Assert.Equal(GlyphSet.Unicode, capabilities.Glyphs);
+        Assert.Equal(ColorSupport.TrueColor, capabilities.Colors);
+    }
+
+    [Theory]
+    [InlineData(OperatingSystemKind.MacOs)]
+    [InlineData(OperatingSystemKind.Windows)]
+    public void GivenVt100_WhenDetectingOnAnySystem_ThenAsciiAndNoColor(OperatingSystemKind system)
+    {
+        var capabilities = DetectOn(system, "TERM=vt100");
+
+        Assert.Equal(GlyphSet.Ascii, capabilities.Glyphs);
+        Assert.Equal(ColorSupport.None, capabilities.Colors);
+    }
+
     [Fact]
     public void GivenWindowsWithoutAnyTerminalVariable_WhenDetecting_ThenClassicConsoleGetsAsciiAnd16Colors()
     {
@@ -175,6 +198,6 @@ public class ConsoleCapabilitiesTests
             .ToDictionary(pair => pair[0], pair => pair[1]);
         var environment = new EnvironmentReader(name => dictionary.GetValueOrDefault(name));
 
-        return ConsoleCapabilities.Detect(environment, inputRedirected, outputRedirected);
+        return ConsoleCapabilities.Detect(environment, inputRedirected, outputRedirected, OperatingSystemKind.Linux);
     }
 }
