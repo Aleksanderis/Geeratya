@@ -159,7 +159,7 @@ public static class ProfileManagerScreen
         {
             var add = context.Keymap.FindKeys(InputMode.Insert, ActionIds.ProfileAdd);
 
-            lines.Add(StyledLine.Of("No profile yet.", TextRole.Body));
+            lines.Add(StyledLine.Of("No profile yet."));
             lines.Add(StyledLine.Of($"{add} adds one.", TextRole.Muted));
         }
 
@@ -256,7 +256,7 @@ public static class ProfileManagerScreen
 
         foreach (var text in ConfirmDialog.Wrap("Add a Jira Cloud site, the account and an API token to start.", room - 2))
         {
-            lines.Add(StyledLine.Of(text, TextRole.Body));
+            lines.Add(StyledLine.Of(text));
         }
 
         lines.Add(StyledLine.Empty);
