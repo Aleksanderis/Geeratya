@@ -107,9 +107,7 @@ public static class SprintMoveActions
     {
         if (drag.Live && tab.VisualAnchor is { } anchor)
         {
-            var index = tab.Rows.ToList().FindIndex(row => string.Equals(row.Key, anchor, StringComparison.OrdinalIgnoreCase));
-
-            return index < 0 ? null : index;
+            return BacklogCursor.IndexOfKey(tab, anchor);
         }
 
         return OnScreen(tab, drag.FromRow) ? layout.LineAt(LineOf(tab, drag.FromRow))?.Row : null;

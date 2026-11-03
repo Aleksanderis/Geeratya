@@ -437,6 +437,23 @@ public class SprintMoveTests
     }
 
     [Fact]
+    public void GivenALiveRangePressedOnACollapsedSection_WhenAutoScrollPassesIt_ThenTheCursorStaysOnItsVisibleStop()
+    {
+        var state = WithSprints(Loaded());
+        var tab = Tab(state);
+        var future = BacklogSections.SprintKey(BacklogFixtures.FutureId);
+        state = Replace(state, tab with { CollapsedSections = [future], VisibleRows = 6 });
+        tab = Tab(state);
+        var stop = BacklogSections.Build(tab).Sections.Single(section => section.Key == future).FirstRow;
+        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(stop));
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+
+        var scrolled = _reducer.Reduce(started, new RowsDragScrolled(6)).State;
+
+        Assert.Equal(stop, Tab(scrolled).Selected);
+    }
+
+    [Fact]
     public void GivenALiveRangeOnASectionedBacklog_WhenAutoScrollHasNowhereToGo_ThenNothingChanges()
     {
         var state = WithSprints(Loaded());

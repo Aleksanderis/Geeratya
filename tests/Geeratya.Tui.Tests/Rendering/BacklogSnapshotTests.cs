@@ -70,7 +70,7 @@ public class BacklogSnapshotTests
         int height)
     {
         var state = Sample(false);
-        var tab = state.Session.Tabs[0] with { VisibleRows = Math.Max(1, height - 6) };
+        var tab = state.Session.Tabs[0] with { VisibleRows = 3 };
         var reducer = new AppReducer(_keymap);
         state = state with { Session = state.Session with { Tabs = [tab] } };
         var started = reducer.Reduce(state, new RowsDragging(0, 4, 4, width, true)).State;

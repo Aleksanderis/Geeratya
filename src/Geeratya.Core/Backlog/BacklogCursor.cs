@@ -55,6 +55,20 @@ public static class BacklogCursor
         return Place(tab with { VisibleRows = viewport }, layout, row, viewport);
     }
 
+    /// <summary>The index of the row with that key (case-insensitive), null when there is none.</summary>
+    public static int? IndexOfKey(TabState tab, string? key)
+    {
+        for (var index = 0; key is not null && index < tab.Rows.Count; index++)
+        {
+            if (string.Equals(tab.Rows[index].Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                return index;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>A motion of the keyboard across the stops of all sections.</summary>
     public static TabState Move(TabState tab, ListMove move)
     {

@@ -241,9 +241,7 @@ public static class SelectionActions
     // The section of the pressed row (the Visual anchor), null when it is not found.
     private static BacklogSection? AnchorSection(TabState tab, BacklogLayout layout)
     {
-        var anchor = tab.Rows.ToList().FindIndex(row => string.Equals(row.Key, tab.VisualAnchor, StringComparison.OrdinalIgnoreCase));
-
-        return anchor < 0 ? null : layout.SectionOfRow(anchor);
+        return BacklogCursor.IndexOfKey(tab, tab.VisualAnchor) is { } anchor ? layout.SectionOfRow(anchor) : null;
     }
 
     // A live range on a sectioned backlog never spans sections: a pointer in another one holds the cursor at the edge
@@ -258,9 +256,12 @@ public static class SelectionActions
             return Result(state);
         }
 
-        var to = layout.LineAt(line);
+        if (layout.LineAt(line) is not { } to)
+        {
+            return Result(state);
+        }
 
-        if (to is { } found && found.Section.Key == home.Key)
+        if (to.Section.Key == home.Key)
         {
             return ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.ToRow, drag.Width)) ?? Result(state);
         }
@@ -270,7 +271,7 @@ public static class SelectionActions
             return Result(state);
         }
 
-        var edge = line < home.FirstLine ? home.FirstRow : home.FirstRow + home.RowCount - 1;
+        var edge = layout.StopFor(line < home.FirstLine ? home.FirstRow : home.FirstRow + home.RowCount - 1);
 
         return edge == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, edge));
     }
@@ -287,22 +288,25 @@ public static class SelectionActions
         var last = home.FirstRow + home.RowCount - 1;
         var scroll = Math.Clamp(tab.Scroll + step, 0, Math.Max(0, layout.LineCount - tab.VisibleRows));
         var edgeLine = step < 0 ? scroll : Math.Min(layout.LineCount - 1, scroll + tab.VisibleRows - 1);
-        var edge = edgeLine < home.FirstLine
+        var row = edgeLine < home.FirstLine
             ? home.FirstRow
             : edgeLine >= home.FirstLine + home.LineCount
                 ? last
                 : Math.Clamp(BacklogCursor.RowAtLine(layout, edgeLine) ?? home.FirstRow, home.FirstRow, last);
+        var edge = layout.StopFor(row);
 
         if (scroll == tab.Scroll && edge == tab.Selected)
         {
             return Result(state);
         }
 
-        var moved = edge == tab.Selected
-            ? tab
-            : tab with { Selected = edge, SelectedKey = tab.Rows[edge].Key, FocusedSprintId = null };
+        // The cursor move goes through the same path as a click (next-page trigger included); the window is set after
+        // it, because the cursor may be off screen by design while the pointer is far from its section.
+        var moved = edge == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, edge));
 
-        return Result(ViewReducer.Replace(state, moved with { Scroll = scroll }));
+        return ActiveTab(moved.State) is { } after
+            ? new ReduceResult(ViewReducer.Replace(moved.State, after with { Scroll = scroll }), moved.Effects)
+            : moved;
     }
 
     private static TabState Toggled(TabState tab, IReadOnlyList<string> keys)
