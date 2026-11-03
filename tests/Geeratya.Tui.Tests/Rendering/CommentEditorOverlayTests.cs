@@ -18,6 +18,16 @@ public class CommentEditorOverlayTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
 
     [Fact]
+    public void GivenAWideTerminal_WhenTypingMoreText_ThenTheBoxStaysEightyColumnsWide()
+    {
+        var empty = string.Join('\n', Frame(Editor(string.Empty), 120, 36).PlainLines());
+        var typed = string.Join('\n', Frame(Editor("a much longer line of comment text"), 120, 36).PlainLines());
+
+        Assert.Equal(WidthOfBox(empty), WidthOfBox(typed));
+        Assert.Equal(80, WidthOfBox(typed));
+    }
+
+    [Fact]
     public void GivenANewComment_WhenRendering_ThenTheBoxShowsTitleTextPlaceholderAndKeys()
     {
         var frame = Frame(Editor(string.Empty), 80, 24);
@@ -319,5 +329,13 @@ public class CommentEditorOverlayTests
     internal static CommentEditor Editor(string text)
     {
         return new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of(text), string.Empty);
+    }
+
+    private static int WidthOfBox(string frame)
+    {
+        var top = frame.Split('\n').First(line => line.Contains("Comment on", StringComparison.Ordinal));
+        var inner = top[top.IndexOf("╭─ Comment on", StringComparison.Ordinal)..(top.IndexOf('╮', top.IndexOf("Comment on", StringComparison.Ordinal)) + 1)];
+
+        return inner.Length;
     }
 }

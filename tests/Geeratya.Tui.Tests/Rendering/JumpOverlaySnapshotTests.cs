@@ -55,7 +55,7 @@ public class JumpOverlaySnapshotTests
         var down = RegionProbe.Click(state, frame, row.Region, MouseGesture.WheelDown)!;
 
         Assert.NotNull(down.State.Jump);
-        Assert.True(down.State.Jump.Selected > 0);
+        Assert.Equal(3, down.State.Jump.Selected);
     }
 
     [Fact]

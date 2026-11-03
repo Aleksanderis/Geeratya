@@ -1,0 +1,24 @@
+                                                                    [: commands]
+                                                                                
++- Geeratya -------------------------------------------------------------------+
+| +- Help -------------------------------------------------------------------+ |
+| | > Global      |   :          Open the command palette  (Ctrl-p)         ^| |
+| |   All actions |   <space>A   Open the actions menu of the tab and the    | |
+| |   Commands    |              view                                        | |
+| |               |   Tab        Next tab  (gt)                              | |
+| |               |   Shift-Tab  Previous tab  (gT)                          | |
+| |               |   Ctrl-^     Previously active tab  (<space><Tab>)       | |
+| |               |   Alt-1      Go to tab 1                                 | |
+| |               |   Alt-2      Go to tab 2                                 | |
+| |               |   Alt-3      Go to tab 3                                 | |
+| |               |   Alt-4      Go to tab 4                                 | |
+| |               |   Alt-5      Go to tab 5                                 | |
+| |               |   Alt-6      Go to tab 6                                 | |
+| |               |   Alt-7      Go to tab 7                                 | |
+| |               |   Alt-8      Go to tab 8                                 | |
+| |               |   Alt-9      Go to tab 9                                 | |
+| |               |   <space>t   Open the source picker for a new tab        | |
+| |               |   <space>c   Close the tab                              v| |
+| +--------------------------------------------------------------------------+ |
++------------------------------------------------------------------------------+
+[HELP]                                  j section  J scroll  / filter  Esc close
