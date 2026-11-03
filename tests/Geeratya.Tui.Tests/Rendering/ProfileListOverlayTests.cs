@@ -69,6 +69,24 @@ public class ProfileListOverlayTests
     }
 
     [Fact]
+    public void GivenTheOpenList_WhenClickingTheAddAndEditButtons_ThenTheFormsOpenAndTheKeysAreShown()
+    {
+        var state = Sample();
+        var frame = FrameBuilder.BuildStyled(state, 100, 24, _keymap)!;
+        var add = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileAddButton)).Region;
+        var edit = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileEditButton)).Region;
+        var text = string.Join('\n', frame.PlainLines());
+
+        var added = RegionProbe.Click(state, frame, add, MouseGesture.Click)!;
+        var edited = RegionProbe.Click(state, frame, edit, MouseGesture.Click)!;
+
+        Assert.False(added.State.Form!.IsEdit);
+        Assert.Equal("work", edited.State.Form!.EditingName);
+        Assert.Contains("Ctrl-a add", text, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-e edit", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenAnyTerminalSize_WhenBuildingTheFrame_ThenItNeverThrows()
     {
         for (var width = 0; width <= 30; width++)

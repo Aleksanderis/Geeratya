@@ -62,6 +62,21 @@ public enum MouseTarget
     /// <summary>A profile row of the profile list overlay.</summary>
     ProfileRow,
 
+    /// <summary>The Add button of the profile list overlay.</summary>
+    ProfileAddButton,
+
+    /// <summary>The Edit button of the profile list overlay (edits the highlighted profile).</summary>
+    ProfileEditButton,
+
+    /// <summary>The Test connection button of the profile form.</summary>
+    ProfileTestButton,
+
+    /// <summary>The Save button of the profile form.</summary>
+    ProfileSaveButton,
+
+    /// <summary>The Cancel button of the profile form.</summary>
+    ProfileCancelButton,
+
     /// <summary>A field of an open field form (a click focuses it).</summary>
     FormField,
 

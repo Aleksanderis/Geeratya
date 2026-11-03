@@ -227,7 +227,7 @@ public class ProfileReducerTests
     }
 
     [Fact]
-    public void GivenProfilesAndNone_WhenListing_ThenTheListOpensOnTheActiveOneOrTheMessageSaysToAdd()
+    public void GivenProfilesAndNone_WhenListing_ThenTheListOpensOnTheActiveOneOrTheAddFormOpens()
     {
         var both = WithProfiles(_work, _dev);
         var some = Palette(both with { Profiles = both.Profiles.Activate("dev") }, "profile");
@@ -236,7 +236,8 @@ public class ProfileReducerTests
         Assert.Equal(InputMode.Insert, some.State.Mode);
         Assert.Equal(1, some.State.ProfileList!.Selected);
         Assert.Null(none.State.ProfileList);
-        Assert.Contains("profile add", none.State.Message);
+        Assert.NotNull(none.State.Form);
+        Assert.False(none.State.Form.IsEdit);
     }
 
     [Fact]

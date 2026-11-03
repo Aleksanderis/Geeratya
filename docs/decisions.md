@@ -134,6 +134,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **UI:** The look follows Gitunia (one frame with shared edges, title chips, accent focus, floating overlays) but differs where listed in `ux-look.md` section 8: panes per screen instead of a fixed pane set, one `OverlayBox` over a muted visible view, no pane-resize keys, and issue-type and status colours instead of Git colours so it does not read as a Git client. Pane focus reuses `h`/`l` and `]`/`[`, so no keymap change. Why: owner intent (slicker, Gitunia-styled, not a Git look); Gitunia `ux-look.md` and `ux-mouse.md` (Backdrop) shaped it.
 
+## 2026-11-03 (profile manager, #528)
+
+**UI:** The profile manager (#528) is the existing profile list overlay plus one four-field add/edit form (`Tab` between fields, `Ctrl-s` save, `Alt-t` test connection); no token source row. Why: popup and form components are restyled by #524 to #527, so the two-pane full-body screen waits for them; the token is always the OS secret store (`GEERATYA_TOKEN` is process-wide and works with one profile only), so there is no per-profile choice to show. `Alt-t` because `Ctrl-t` is the picker's open-in-new-tab key. Details: `ux.md`, "Profiles".
+
 ## 2026-11-03 (quick filters and swimlanes, #192)
 
 **UI:** Swimlanes are back in the columns layout, as Geeratya's own grouping (assignee, epic) shown one lane at a time, and quick filters are the board's own, applied as extra JQL (overrides the 2026-11-02 "no swimlanes" entry and #143 feedback; the later #192 comment kept both). Why: the agile API gives no swimlane definition, and one lane at a time keeps the card-pitch viewport maths. Epics are neither hidden nor added: the board endpoint already follows each board's own rule. Details: `ux-screens.md`, "Columns layout".

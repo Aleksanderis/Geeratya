@@ -142,6 +142,7 @@ public sealed class AppReducer
             SourceCommand source => SourceReducer.Reduce(state, source),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
+            ProfileTested tested => ProfileReducer.Tested(state, tested),
             CacheWriteFailed failed => Result(StatusMessages.Warn(state, failed.Message)),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             ConnectionCheckRequested => ProfileReducer.CheckConnection(state, announce: false),
@@ -245,6 +246,14 @@ public sealed class AppReducer
             MouseTarget.ProfileRow when clicked.Action == ActionIds.ProfileRemove
                 => ProfileReducer.RemoveHighlighted(cleared, clicked.Index),
             MouseTarget.ProfileRow => ProfileReducer.SwitchHighlighted(cleared, clicked.Index),
+            MouseTarget.ProfileAddButton when cleared.ProfileList is not null => ProfileReducer.Add(cleared),
+            MouseTarget.ProfileEditButton when cleared.ProfileList is not null
+                => ProfileReducer.EditHighlighted(cleared),
+            MouseTarget.ProfileTestButton when cleared.Form is not null => ProfileReducer.TestConnection(cleared),
+            MouseTarget.ProfileSaveButton when cleared.Form is not null => ProfileReducer.Save(cleared),
+            MouseTarget.ProfileCancelButton when cleared.Form is not null => Result(ToNormal(cleared)),
+            MouseTarget.FormField when cleared.Form is not null
+                => Result(ProfileReducer.FocusField(cleared, clicked.Index)),
             MouseTarget.FormField or MouseTarget.FormChoice => FormReducer.Clicked(cleared, clicked),
             MouseTarget.ContextMenu when cleared.ContextMenu is { } menu && clicked.Index < menu.Items.Count
                 => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
@@ -558,6 +567,11 @@ public sealed class AppReducer
             ActionIds.FormNext => Accept(state, at),
             ActionIds.FormBackspace => Result(Erase(state)),
             ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
+            ActionIds.ProfileAdd => InProfileList(state, ProfileReducer.Add),
+            ActionIds.ProfileEdit => InProfileList(state, current => ProfileReducer.EditHighlighted(current)),
+            ActionIds.ProfileTest => ProfileReducer.TestConnection(state),
+            ActionIds.FormFieldNext when state.Form is not null => Result(ProfileReducer.Focus(state, 1)),
+            ActionIds.FormFieldPrevious when state.Form is not null => Result(ProfileReducer.Focus(state, -1)),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
             ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state, at),
@@ -572,6 +586,7 @@ public sealed class AppReducer
             ActionIds.SprintStart => InNormal(state, () => SprintLifecycle.Start(state, at)),
             ActionIds.SprintComplete => InNormal(state, () => SprintLifecycle.Complete(state, at)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
+            ActionIds.FormSubmit when state.Form is not null => ProfileReducer.Save(state),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
             ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
@@ -647,6 +662,11 @@ public sealed class AppReducer
     private static ReduceResult InNormal(AppState state, Func<ReduceResult> action)
     {
         return state.Mode == InputMode.Normal ? action() : Result(state);
+    }
+
+    private static ReduceResult InProfileList(AppState state, Func<AppState, ReduceResult> action)
+    {
+        return state.ProfileList is not null ? action(state) : Result(state);
     }
 
     /// <summary>Enter in Insert mode: a new line in the editor, else accepts the form field or picker row.</summary>

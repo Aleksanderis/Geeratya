@@ -1,4 +1,8 @@
+using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Jira;
+using Geeratya.Jira.Transport;
+using Geeratya.Jira.Users;
 using Geeratya.Platform.Secrets;
 
 namespace Geeratya.App;
@@ -16,11 +20,17 @@ public sealed class ProfileEffectHandler
 
     private const string CacheLeftMessage = "Its cache folder could not be deleted completely.";
 
-    private readonly ProfileServices _services;
+    private const string NoStoredTokenMessage = "Failed: no API token is stored for this profile; type one.";
 
-    public ProfileEffectHandler(ProfileServices services)
+    private static readonly TimeSpan _testTimeout = TimeSpan.FromSeconds(15);
+
+    private readonly ProfileServices _services;
+    private readonly ITransportFactory _transports;
+
+    public ProfileEffectHandler(ProfileServices services, ITransportFactory? transports = null)
     {
         _services = services;
+        _transports = transports ?? new DefaultTransportFactory();
     }
 
     /// <summary>The command that reports the outcome, or null when the effect is not a profile effect.</summary>
@@ -33,6 +43,8 @@ public sealed class ProfileEffectHandler
                 AddProfileEffect add => await AddAsync(add, cancellationToken),
                 RemoveProfileEffect remove => await RemoveAsync(remove, cancellationToken),
                 SaveProfilesEffect save => Save(save),
+                UpdateProfileEffect update => await UpdateAsync(update, cancellationToken),
+                TestProfileEffect test => await TestAsync(test, cancellationToken),
                 _ => null,
             };
         }
@@ -78,7 +90,7 @@ public sealed class ProfileEffectHandler
 
         var cacheDeleted = _services.Caches.Delete(remove.Profile);
 
-        DeleteHistory(remove);
+        DeleteHistory(remove.Profile);
 
         var message = RemovedMessage(remove);
 
@@ -86,11 +98,141 @@ public sealed class ProfileEffectHandler
     }
 
     /// <summary>The history and board kinds are conveniences: a file that cannot be deleted is not reported.</summary>
-    private void DeleteHistory(RemoveProfileEffect remove)
+    private void DeleteHistory(Profile profile)
     {
-        DeleteQuietly(() => _services.BoardKinds.Delete(remove.Profile));
-        DeleteQuietly(() => _services.Histories.Delete(remove.Profile));
-        DeleteQuietly(() => _services.SavedViews?.Delete(remove.Profile));
+        DeleteQuietly(() => _services.BoardKinds.Delete(profile));
+        DeleteQuietly(() => _services.Histories.Delete(profile));
+        DeleteQuietly(() => _services.SavedViews?.Delete(profile));
+    }
+
+    /// <summary>
+    /// Saves an edited profile. A typed token is stored under the new key; a kept one is read from the old key and
+    /// moved when the site or account changed, so the user never retypes it. The catalog is saved last: a failure
+    /// before that leaves the old profile as it was.
+    /// </summary>
+    private async Task<Command> UpdateAsync(UpdateProfileEffect update, CancellationToken cancellationToken)
+    {
+        var store = _services.Tokens.Store;
+        var keyChanged = update.Old.CredentialKey != update.New.CredentialKey;
+        var token = update.NewToken?.Reveal();
+
+        if (token is null && keyChanged)
+        {
+            token = await store.GetAsync(update.Old.CredentialKey, cancellationToken);
+
+            if (token is null && !HasEnvironmentToken())
+            {
+                return new ProfileOperationFailed(
+                    "The profile was not changed: no API token is stored for it, so type the token again.");
+            }
+        }
+
+        var stored = true;
+
+        if (token is not null)
+        {
+            stored = await store.SetAsync(update.New.CredentialKey, token, cancellationToken);
+        }
+
+        _services.Store.Save(update.Catalog);
+
+        var leftover = string.Empty;
+
+        if (keyChanged && !update.OldKeyShared)
+        {
+            leftover = await CleanUpOldAsync(update, cancellationToken);
+        }
+
+        var replaced = update.NewToken is not null && update.Catalog.ActiveName == update.New.Name;
+
+        return new ProfilesChanged(update.Catalog, $"{UpdatedMessage(update, stored)}{leftover}", replaced);
+    }
+
+    /// <summary>The profile is already saved: a failing cleanup is reported, not turned into a failed save.</summary>
+    private async Task<string> CleanUpOldAsync(UpdateProfileEffect update, CancellationToken cancellationToken)
+    {
+        _services.Caches.Delete(update.Old);
+        DeleteHistory(update.Old);
+
+        try
+        {
+            await _services.Tokens.Store.DeleteAsync(update.Old.CredentialKey, cancellationToken);
+        }
+        catch (SecretStoreException)
+        {
+            return " The old token could not be deleted from the secret store.";
+        }
+
+        return string.Empty;
+    }
+
+    private bool HasEnvironmentToken()
+    {
+        return _services.Tokens.HasEnvironmentToken;
+    }
+
+    private static string UpdatedMessage(UpdateProfileEffect update, bool stored)
+    {
+        if (!stored)
+        {
+            return $"Updated profile {update.New.Name}. No secret store is available: {TokenVariableHint}.";
+        }
+
+        return update.NewToken is null
+            ? $"Updated profile {update.New.Name}; the stored token is kept."
+            : $"Updated profile {update.New.Name}; the new token is in the secret store.";
+    }
+
+    /// <summary>Asks Jira who the account is with a throwaway transport; the token never leaves this method.</summary>
+    private async Task<Command> TestAsync(TestProfileEffect test, CancellationToken cancellationToken)
+    {
+        var token = test.Token?.Reveal();
+
+        if (token is null && test.StoredKey is not null)
+        {
+            var resolved = await _services.Tokens.ResolveAsync(
+                test.StoredKey,
+                test.AllowEnvironment,
+                cancellationToken);
+
+            token = resolved.Token;
+        }
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return new ProfileTested(test.Profile, false, NoStoredTokenMessage);
+        }
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        timeout.CancelAfter(_testTimeout);
+
+        try
+        {
+            var connection = new JiraConnection(new Uri(test.Profile.SiteUrl), test.Profile.Email);
+
+            using var transport = _transports.Create(connection, new JiraApiToken(token));
+            var result = await new JiraUserClient(transport).GetMyselfAsync(timeout.Token);
+
+            if (result.IsSuccess)
+            {
+                var name = ConnectionText.Sanitize(result.Value.DisplayName);
+
+                return new ProfileTested(test.Profile, true, $"Connected as {name}.");
+            }
+
+            var failure = ConnectionText.Failure(result.Error, test.Profile.SiteUrl);
+
+            return new ProfileTested(test.Profile, false, $"Failed: {failure.Hint}");
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return new ProfileTested(test.Profile, false, "Failed: the site did not answer in time.");
+        }
+        catch (Exception exception) when (exception is ArgumentException or UriFormatException)
+        {
+            return new ProfileTested(test.Profile, false, "Failed: the site address cannot be used.");
+        }
     }
 
     private static void DeleteQuietly(Action delete)

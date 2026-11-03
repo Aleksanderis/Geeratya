@@ -18,7 +18,7 @@ public static class ConnectionText
         {
             JiraErrorKind.Unauthorized => new ConnectionCheckFailure(
                 ConnectionFailureKind.Unauthorized,
-                $"Token or email rejected (401). Replace them: :profile remove, then :profile add."),
+                $"Token or email rejected (401). Replace them: :profile edit and type the token again."),
             JiraErrorKind.Forbidden => new ConnectionCheckFailure(
                 ConnectionFailureKind.Forbidden,
                 $"{host} denied access (403): this account may not use the Jira API."),

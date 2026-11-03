@@ -178,7 +178,7 @@ public static class NetworkBanner
     {
         var name = session.ProfileName ?? "NAME";
 
-        return $"Jira rejected the token (401). Replace it: :profile remove {name}, then :profile add.";
+        return $"Jira rejected the token (401). Replace it: :profile edit {name} and type the token again.";
     }
 
     private static int Seconds(TimeSpan span)

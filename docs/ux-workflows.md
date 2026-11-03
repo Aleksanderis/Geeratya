@@ -47,6 +47,8 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 
 `:profile switch <name>` replaces the connection; every tab, stack and cache of the old profile is dropped (`ux.md` "Profiles"). The new profile starts with no tabs, and the check line runs again. A reply that arrives for the old profile is ignored.
 
+Add, edit and remove profiles: the profile list (`:profile list`, or `:profile` with a profile saved) is the manager. `Ctrl-a` adds, `Ctrl-e` edits the highlighted profile, `Ctrl-x` removes it after a confirm that names what is deleted (the profile entry and its stored token; Jira data is untouched and Jira cannot undo anything here). The form tests the connection on demand (`Alt-t`) and an edit never asks for the token again unless it should change (`ux.md`, "Profiles"). First run: the start screen says `:profile add`; `:profile` with no profile opens the add form.
+
 ## 8. Write something (M2)
 
 Design in `architecture.md`, "Write pipeline". What the user sees:

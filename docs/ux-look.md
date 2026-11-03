@@ -302,7 +302,7 @@ The manager is a full-body screen, not an overlay (it is also the first-run scre
  NORMAL  * active    Enter switch  Ctrl-x remove  Esc close   (more keys: #528)
 ```
 
-`●` (ASCII `*`) marks the active profile, in the `good` role. The tab row shows a single `Profiles` chip while the screen is open (it is not a tab of the active site; it can be opened without a connection). The details pane never shows a token, only its source (`OS secret store`, `env GEERATYA_TOKEN`, `not set`). Keys are listed as a proposal; #528 fixes them with the keymap rules. Remove asks (confirm box above: `Remove profile "personal"? Deletes the entry and its stored token. Jira data is untouched.`).
+`●` (ASCII `*`) marks the active profile, in the `good` role. The tab row shows a single `Profiles` chip while the screen is open (it is not a tab of the active site; it can be opened without a connection). The details pane never shows a token, only its source (`OS secret store`, `env GEERATYA_TOKEN`, `not set`). Keys are proposed here; #528 settled them (see the end of this section). Remove asks (confirm box above: `Remove profile "personal"? Deletes the entry and its stored token. Jira data is untouched.`).
 
 The add and edit form is one overlay with labelled fields (a form box as above, size 56 to 72 columns):
 
@@ -319,6 +319,8 @@ The add and edit form is one overlay with labelled fields (a form box as above, 
         │ Tab field  Ctrl-t test  Ctrl-s save  Esc cancel          │
         ╰──────────────────────────────────────────────────────────╯
 ```
+
+**As implemented by #528.** The manager is the profile list overlay (the existing popup component) with two buttons, Add and Edit, and its keys are `Enter` switch, `Ctrl-a` add, `Ctrl-e` edit, `Ctrl-x` remove, `Esc` close. The form shows the four fields at once (Name, Site URL, Account, Token) with `>` on the focused row, a note line (validation as you type, or the connection test result), the buttons `Test connection`, `Save`, `Cancel` and the keys `Tab` field, `Ctrl-s` save, `Alt-t` test (`Ctrl-t` is the picker's open-in-new-tab key), `Esc` cancel. The token source row is not shown: the token is stored in the OS secret store, and `GEERATYA_TOKEN` serves only a single profile without a store (`ux.md`, "Profiles"), so there is nothing per profile to choose. The two-pane full-body screen with a details pane and the `Profiles` tab chip is not done yet (it waits for the frame of #524 and #527).
 
 Labels are a fixed-width muted column; the focused field's value is accent with the cursor; validation (URL shape, email shape) is a `bad` note at the end of the field's line while typing; the buttons are chips (the focused one filled accent) and are mouse targets; the result line is `good` or `bad` with a word (`Connected`, `Failed: 401`). Editing never shows an existing token; "kept" means the stored one stays unless the field is typed in.
 
@@ -350,7 +352,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Help | Square corners, grey frame, view rows below the box visible but not muted | 7 | #526 |
 | Confirm | Square corners, grey frame, view rows left and right of it blanked | 7 | #526 |
 | Forms and pickers | Square corners, grey frame, box placed 2 columns from the left rather than centred | 7 | #526 |
-| Profiles | `:profile list` is a small box over the start screen; add is a four-step one-field wizard; no edit | 7 (profile manager) | #528 |
+| Profiles | `:profile list` is a small box over the start screen; add is a four-step one-field wizard; no edit | 7 (profile manager) | #528 (form and keys done; two-pane screen open) |
 
 ## 10. Reconciliation with the other parts, and what stays open
 
@@ -359,7 +361,7 @@ The look changes how screens are drawn, not what they do. Where this part and an
 - **`ux-screens.md`**: the board's title line, the tab bar rows and the "Detail" box layout are replaced by sections 2 and 5 here (the paragraphs are updated by #524 and #527 when they land); cards, column widths, scroll and cursor rules stay as written there (see section 2). The detail is one document with one cursor.
 - **Pane keys**: there are none beyond the existing ones (`h`/`l`, `] ]`, `[ [`). `ux.md` "Not adopted from Gitunia" ("pane focus keys, no panes to resize") stays true: no resize keys, no direct pane-focus keys. "Focus model" stays: one focus place, the overlay or the body; the focused pane inside the body is a drawing detail of the cursor.
 - **Mouse** (`ux-mouse.md`): new targets are listed here and added there by the implementing issue: pane focus (#525), Backdrop (#526, replaces the per-overlay "click outside" lines), tab close `x`, middle-click close and the `+N` overflow chip (#527).
-- **Profile manager and form (#528) are a proposal.** #528 settles: the keys (no bare letters, `ux-keymap.md` rule; `Ctrl-x` remove, `Enter` and click switch stay), a Name field (the add wizard has one), whether the manager replaces the start screen (the start screen stays until it does), and the status line, which shows only what is already known for the active profile (no request to an inactive site; one site is active at a time). The token source row offers the env var only as `GEERATYA_TOKEN`, the process-wide variable that works with exactly one profile (`ux.md`, "Profiles"); otherwise the OS secret store.
+- **Profile manager and form (#528).** Settled by #528: the keys (no bare letters, `ux-keymap.md` rule; `Ctrl-x` remove, `Enter` and click switch stay, `Ctrl-a` add, `Ctrl-e` edit, `Alt-t` test), a Name field (kept, editable, unique), the start screen stays (the manager does not replace it), and no token source row (see the section above). The status line of the two-pane screen, which shows only what is already known for the active profile (no request to an inactive site), stays with the follow-up for the two-pane screen.
 - **Network banner and stale row, issue-stack breadcrumb, which-key popup** (not placed above): the banner stays one row directly under the tab row (it shifts the frame down by one row); the breadcrumb (`GCM board › GCM-12`) goes to the status bar left in the detail, before the ruler; the which-key popup is an `OverlayBox` anchored at the bottom right without a Backdrop (it closes on any key as today). #525 and #527 may refine these.
 - **Mode badges**: `MESSAGES` (the messages overlay) uses the `info` role like `HELP`.
 - **Destructive vs warn confirm frame**: `bad` for the destructive list in `CLAUDE.md` (delete, bulk edits, many-issue assignee or sprint changes) and for a transition the workflow model marks as side-effecting when it is known; `warn` otherwise. How a transition is known to fire side effects is not decided here; until it is, a transition uses `warn`.
