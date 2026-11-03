@@ -9,7 +9,6 @@ using Geeratya.Core.Sources;
 using Geeratya.Core.Text;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
-using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -210,10 +209,10 @@ public static class StatusBar
         }
 
         // The cursor position is last in line: it shows only when the line, the hints and their gap still fit.
-        var viewRoom = shown == text ? 0 : PositionedRoom(state, spare);
+        var viewRoom = shown == text ? 0 : StatusViewText.PositionedRoom(state, spare);
         var positioned = Text(state, width, keymap, clock, confirmDialogShown, viewRoom, true);
 
-        if (positioned != shown && !LosesGoal(state, shown, positioned))
+        if (positioned != shown && !StatusViewText.LosesGoal(state, shown, positioned))
         {
             var positionedLeft = Left(state, positioned);
             var needed = TextWidth.Of(positionedLeft) + hintWidth + (hints.Count > 0 ? HintGap.Length : 0);
@@ -243,40 +242,6 @@ public static class StatusBar
         spans.AddRange(HintBar.Spans(hints));
 
         return StyledLines.Fit(new StyledLine(spans), width, TextRole.BarText);
-    }
-
-    // The goal ranks above the cursor position: a position that would push the goal out stays hidden.
-    private static bool LosesGoal(AppState state, string shown, string positioned)
-    {
-        if (ListBodyRenderer.ActiveTab(state) is not { } tab)
-        {
-            return false;
-        }
-
-        var goal = ColumnsBodyRenderer.GoalText(tab);
-
-        return goal.Length > 0 && shown.Contains(goal, StringComparison.Ordinal)
-            && !positioned.Contains(goal, StringComparison.Ordinal);
-    }
-
-    /// <summary>The view text's room once the cursor position takes its cells: the board text gives way, not a hint.</summary>
-    private static int PositionedRoom(AppState state, int spare)
-    {
-        if (ListBodyRenderer.ActiveTab(state) is not { Detail.Count: 0 } tab)
-        {
-            return spare;
-        }
-
-        var position = CursorPosition.Text(tab);
-
-        if (position.Length == 0)
-        {
-            return spare;
-        }
-
-        var reduced = spare - TextWidth.Of(position) - Separator.Length;
-
-        return reduced >= MinViewRoom ? reduced : spare;
     }
 
     private static string Left(AppState state, string text)
@@ -728,7 +693,7 @@ public static class StatusBar
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
-        var view = viewRoom > 0 ? ViewText(state, now, viewRoom, withGoal) : string.Empty;
+        var view = viewRoom > 0 ? StatusViewText.Of(state, now, viewRoom, withGoal) : string.Empty;
 
         if (withPosition && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } positioned)
         {
@@ -757,39 +722,6 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
-    }
-
-    /// <summary>
-    /// What the screen no longer draws as a title line of its own: the source and its count on a board, the
-    /// breadcrumb and the ruler in the issue detail (<c>docs/ux-look.md</c>, sections 2 and 5).
-    /// </summary>
-    private static string ViewText(AppState state, DateTimeOffset now, int room, bool withGoal)
-    {
-        if (ListBodyRenderer.ActiveTab(state) is not { } tab)
-        {
-            return string.Empty;
-        }
-
-        if (tab.Detail.Count > 0)
-        {
-            return CardText.Shorten(DetailStatus.Text(tab, room), room);
-        }
-
-        if (tab.Definition.Layout != ViewLayout.Columns)
-        {
-            return string.Empty;
-        }
-
-        var glyphs = Glyphs.For(GlyphSet.Unicode);
-        var full = ColumnsBodyRenderer.StatusText(tab, glyphs, now, withGoal);
-
-        // The goal is the last text and shows only whole: when it does not fit it is left out, not cut.
-        if (TextWidth.Of(full) > room && withGoal)
-        {
-            full = ColumnsBodyRenderer.StatusText(tab, glyphs, now, false);
-        }
-
-        return CardText.Shorten(full, room);
     }
 
     private static string SelectedText(TabState tab)

@@ -434,7 +434,11 @@ public class StatusBarTests
         Assert.True(shown == line.Contains(Goal, StringComparison.Ordinal), line);
         Assert.DoesNotContain(shown ? "Ship the board and p…" : "Ship", line, StringComparison.Ordinal);
         Assert.Equal(width, TextWidth.Of(line));
-        Assert.Contains(width >= 80 ? "q quit" : string.Empty, line, StringComparison.Ordinal);
+
+        if (width >= 80)
+        {
+            Assert.EndsWith("q quit", line, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

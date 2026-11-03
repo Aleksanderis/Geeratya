@@ -147,7 +147,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     /// <summary>
     /// The text of the title line of the board, which the status bar shows now: the sprint's name, dates, days left,
     /// count and points on a sprint board, else the title and count, then the view options and the loading note, and
-    /// on a sprint board the goal last (the status bar cuts from the end).
+    /// on a sprint board the goal last when <paramref name="withGoal"/> (the status bar leaves it out whole when it does
+    /// not fit, it never cuts it).
     /// </summary>
     public static string StatusText(TabState tab, Glyphs glyphs, DateTimeOffset now, bool withGoal = true)
     {
