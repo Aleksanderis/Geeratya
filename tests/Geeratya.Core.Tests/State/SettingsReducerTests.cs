@@ -259,7 +259,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         {
             var message = Run($"set {setting.Name}").State.Message;
 
-            Assert.True(message is { Length: <= 80 }, $"{setting.Name}: {message?.Length} columns: {message}");
+            Assert.True(message is { Length: <= 80 }, $"{setting.Name}: {message.Length} columns: {message}");
         }
     }
 
