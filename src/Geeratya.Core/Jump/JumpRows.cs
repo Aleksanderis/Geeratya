@@ -19,7 +19,7 @@ public static class JumpRows
     {
         var parse = JumpKey.Parse(jump.Text, DefaultProject(state));
         var needle = jump.Text.Trim().ToUpperInvariant();
-        var candidates = Candidates(state);
+        var candidates = Candidates(state, needle.Length == 0);
         var rows = new List<JumpRow>();
         var seen = new HashSet<string>();
 
@@ -68,9 +68,15 @@ public static class JumpRows
         return state.Session.RecentKeys.Count > 0 ? JumpKey.ProjectOf(state.Session.RecentKeys[0]) : null;
     }
 
-    private static List<JumpRow> Candidates(AppState state)
+    private static List<JumpRow> Candidates(AppState state, bool recentFirst)
     {
         var rows = new List<JumpRow>();
+        var recent = RecentRows(state);
+
+        if (recentFirst)
+        {
+            rows.AddRange(recent);
+        }
 
         if (ActiveTab(state) is { } tab)
         {
@@ -84,9 +90,22 @@ public static class JumpRows
             rows.AddRange(tab.Rows.Select(row => new JumpRow(row.Key, row.Summary, JumpOrigin.Tab)));
         }
 
-        rows.AddRange(state.Session.RecentKeys.Select(key => new JumpRow(key, string.Empty, JumpOrigin.Recent)));
+        if (!recentFirst)
+        {
+            rows.AddRange(recent);
+        }
 
         return rows;
+    }
+
+    /// <summary>The keys opened in this session, then those remembered for the profile (newest first, no repeats).</summary>
+    private static List<JumpRow> RecentRows(AppState state)
+    {
+        var remembered = state.Session.Sources.History?.Issues ?? [];
+
+        return [.. state.Session.RecentKeys.Concat(remembered)
+            .Distinct(StringComparer.Ordinal)
+            .Select(key => new JumpRow(key, string.Empty, JumpOrigin.Recent))];
     }
 
     private static TabState? ActiveTab(AppState state)
