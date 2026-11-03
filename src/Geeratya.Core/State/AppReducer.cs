@@ -139,7 +139,7 @@ public sealed class AppReducer
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
             SettingsReloaded reloaded => SettingsReducer.Reloaded(state, reloaded),
             ThemeApplied applied => SettingsReducer.Applied(state, applied),
-            KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
+            KeymapReloaded reloaded => Result(StatusMessages.Keymap(state, reloaded)),
             _ => Result(state),
         };
     }

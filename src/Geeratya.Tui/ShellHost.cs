@@ -44,7 +44,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly KeymapTable _keymap;
     private readonly ThemeSwitcher _themes;
     private readonly MouseDragTracker _dragTracker = new();
-    private readonly string? _keymapNotice;
+    private readonly KeymapLoadResult? _keymapLoad;
     private readonly KeymapTable _defaultBindings;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
@@ -86,7 +86,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _background = background;
         _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
-        _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
+        _keymapLoad = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
         _themes = new ThemeSwitcher(new ThemeCatalog(profiles.ThemesDirectory));
         _glyphs = glyphs;
@@ -129,7 +129,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
-        _state = WithNotice(_state, JoinNotices(_state.Message, _keymapNotice));
+        _state = WithNotice(_state, JoinNotices(_state.Message, _keymapLoad?.Notice));
+        _state = StatusMessages.AddWarnings(_state, _keymapLoad?.Problems.Count > 1 ? _keymapLoad.Problems : []);
         _application = application;
         DetectBackground();
         application.Init();
@@ -481,9 +482,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
     /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>
     private KeymapReloaded ReloadKeymap()
     {
-        var notice = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
+        var load = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
 
-        return new KeymapReloaded(notice ?? "Keymap reloaded");
+        return new KeymapReloaded(load?.Notice ?? "Keymap reloaded", load?.Problems);
     }
 
     /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>

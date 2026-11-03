@@ -6,10 +6,10 @@ namespace Geeratya.Tui;
 public static class UserKeymaps
 {
     /// <summary>
-    /// Replaces the bindings of <paramref name="keymap"/> with <paramref name="defaults"/> plus the user's file. Returns the status
-    /// notice for the problems found, or null when there are none (or no store).
+    /// Replaces the bindings of <paramref name="keymap"/> with <paramref name="defaults"/> plus the user's file. Returns the load result
+    /// (its problems and notice), or null when there is no store.
     /// </summary>
-    public static string? Apply(KeymapTable keymap, KeymapTable defaults, UserKeymapStore? store)
+    public static KeymapLoadResult? Apply(KeymapTable keymap, KeymapTable defaults, UserKeymapStore? store)
     {
         if (store is null)
         {
@@ -20,6 +20,6 @@ public static class UserKeymaps
 
         keymap.Replace(result.Bindings, result.Custom);
 
-        return result.Notice;
+        return result;
     }
 }

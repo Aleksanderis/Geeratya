@@ -48,6 +48,10 @@ public static class UserKeymap
             {
                 problems.Add($"unbind {Label(row?.Mode, row?.Keys)}: a row needs mode and keys");
             }
+            else if (ReservedKeys.IsReserved(row.Mode.Value, row.Keys))
+            {
+                problems.Add($"unbind {Label(row.Mode, row.Keys)}: {ReservedKeys.Quit} always quits and cannot be unbound");
+            }
             else if (remaining.RemoveAll(binding => binding.Mode == row.Mode && binding.Keys == row.Keys) == 0)
             {
                 problems.Add($"unbind {Label(row.Mode, row.Keys)}: no default binding with these keys");
@@ -117,6 +121,11 @@ public static class UserKeymap
             {
                 return $"{label}: printable keys are text in {row.Mode} mode and cannot be bound";
             }
+        }
+
+        if (ReservedKeys.IsReserved(row.Mode.Value, row.Keys))
+        {
+            return $"{label}: {ReservedKeys.Quit} always quits and cannot be rebound";
         }
 
         if (row.Mode == InputMode.Normal && ActionCatalog.IsModalOnly(row.Action))

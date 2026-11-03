@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.Tests.Keymap;
@@ -22,9 +23,28 @@ public class KeymapDocumentTests
     {
         var markdown = KeymapDocument.RenderMarkdown(DefaultKeymap.Load());
 
-        Assert.Contains("| Keys | Action | Level |", markdown);
-        Assert.Contains("| `Space i d` | Delete the issue (asks first; Jira cannot undo it) | advanced |", markdown);
-        Assert.Contains("| `Space i s` | Change the status of the issue | everyday |", markdown);
+        Assert.Contains("| Keys | Action | Id | Level |", markdown);
+        Assert.Contains("| `Space i d` | Delete the issue (asks first; Jira cannot undo it) | `issue.delete` | advanced |", markdown);
+        Assert.Contains("| `Space i s` | Change the status of the issue | `issue.transition` | everyday |", markdown);
+    }
+
+    [Fact]
+    public void GivenTheReference_WhenRenderingMarkdown_ThenEveryBindingRowEndsWithItsActionId()
+    {
+        var keymap = DefaultKeymap.Load();
+        var markdown = KeymapDocument.RenderMarkdown(keymap);
+
+        foreach (var binding in keymap.Bindings)
+        {
+            var pattern = $@"\| `{Regex.Escape(binding.Keys)}` \| [^|]+ \| `{Regex.Escape(binding.Action)}` \| (everyday|advanced) \|";
+
+            Assert.Matches(pattern, markdown);
+        }
+
+        var keyRows = markdown.Split("## Palette commands")[0].Split('\n').Where(line => line.StartsWith("| `", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.All(keyRows, row => Assert.Matches(@"\| `[^`]+` \| (everyday|advanced) \|$", row));
     }
 
     [Fact]

@@ -46,6 +46,22 @@ public class InputRoutingTests
         Assert.Equal(expected, route.Kind);
     }
 
+    [Theory]
+    [InlineData(InputMode.Normal, true)]
+    [InlineData(InputMode.Help, true)]
+    [InlineData(InputMode.Command, true)]
+    [InlineData(InputMode.Confirm, true)]
+    [InlineData(InputMode.Insert, false)]
+    public void GivenAKeymapWithoutCtrlC_WhenCtrlCArrives_ThenItQuitsExceptInInsertMode(InputMode mode, bool quits)
+    {
+        var bare = new KeymapTable([]);
+        var state = AppState.Initial with { Mode = mode };
+
+        var route = InputRouting.Route(state, "Ctrl-c", bare);
+
+        Assert.Equal(quits, route.Resolution?.Action == ActionIds.Quit);
+    }
+
     [Fact]
     public void GivenCommandMode_WhenTypingChordKeys_ThenTheyAreTextAndNeverFireChords()
     {
