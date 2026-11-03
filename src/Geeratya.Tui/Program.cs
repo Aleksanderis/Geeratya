@@ -3,14 +3,22 @@ using Geeratya.Platform.Directories;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui;
 
+var environment = EnvironmentReader.ForProcess();
+var operatingSystem = ApplicationDirectories.DetectOperatingSystem();
 var capabilities = ConsoleCapabilities.Detect(
-    EnvironmentReader.ForProcess(),
+    environment,
     Console.IsInputRedirected,
     Console.IsOutputRedirected,
-    ApplicationDirectories.DetectOperatingSystem());
+    operatingSystem);
+var background = new TerminalBackgroundDetector(
+    environment,
+    capabilities.IsInteractive,
+    operatingSystem,
+    new ConsoleBackgroundQuery(environment));
 
 return new ApplicationRunner(
     Console.Out,
     capabilities.IsInteractive,
     capabilities.Colors,
-    glyphs: capabilities.Glyphs).Run(args);
+    glyphs: capabilities.Glyphs,
+    background: background).Run(args);

@@ -9,12 +9,12 @@ public static class BuiltInThemes
 {
     public const string DefaultDarkName = "catppuccin-mocha";
     public const string DefaultLightName = "catppuccin-latte";
+    public const string AutoName = "auto";
 
     private const string ResourcePrefix = "themes/";
     private const string ResourceSuffix = ".json";
     private const string DarkAlias = "dark";
     private const string LightAlias = "light";
-    private const string AutoName = "auto";
 
     private static readonly Lazy<Theme> _default = new(() => Find(DefaultDarkName)!.Theme!);
 
@@ -64,6 +64,12 @@ public static class BuiltInThemes
             LightAlias => DefaultLightName,
             _ => name,
         };
+    }
+
+    /// <summary>True for <c>auto</c>: the theme follows the terminal background.</summary>
+    public static bool IsAuto(string name)
+    {
+        return name == AutoName;
     }
 
     /// <summary>True for the names a user file may not take: the aliases and the reserved <c>auto</c>.</summary>

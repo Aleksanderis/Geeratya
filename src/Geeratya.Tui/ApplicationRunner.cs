@@ -25,6 +25,7 @@ public sealed class ApplicationRunner
     private readonly Func<ProfileServices> _createProfiles;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
+    private readonly TerminalBackgroundDetector? _background;
 
     public ApplicationRunner(
         TextWriter output,
@@ -32,8 +33,10 @@ public sealed class ApplicationRunner
         ColorSupport colors = ColorSupport.TrueColor,
         TextWriter? error = null,
         Func<ProfileServices>? createProfiles = null,
-        GlyphSet glyphs = GlyphSet.Unicode)
+        GlyphSet glyphs = GlyphSet.Unicode,
+        TerminalBackgroundDetector? background = null)
     {
+        _background = background;
         _output = output;
         _error = error ?? Console.Error;
         _isInteractive = isInteractive;
@@ -90,7 +93,7 @@ public sealed class ApplicationRunner
             return 1;
         }
 
-        using var host = new ShellHost(keymap, _colors, profiles, _glyphs);
+        using var host = new ShellHost(keymap, _colors, profiles, _glyphs, _background);
 
         return host.Run();
     }
