@@ -74,13 +74,13 @@ public sealed partial class PrintFrameTests : IDisposable
         using var painted = new StringWriter();
         using var transparent = new StringWriter();
 
-        new ApplicationRunner(painted, false, createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(painted, false), createProfiles: Services)
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Directory.CreateDirectory(_directory);
         File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ \"transparent\": true }");
 
-        new ApplicationRunner(transparent, false, createProfiles: ServicesWithSettings)
+        new ApplicationRunner(new RunnerContext(transparent, false), createProfiles: ServicesWithSettings)
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Assert.DoesNotContain(";49m", painted.ToString(), StringComparison.Ordinal);
