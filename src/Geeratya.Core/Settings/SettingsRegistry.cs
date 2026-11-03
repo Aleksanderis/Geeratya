@@ -99,10 +99,10 @@ public static class SettingsRegistry
         return [.. All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default}) - {setting.Help}")];
     }
 
-    /// <summary>One setting with its value, default, accepted values and help, for <c>:set name</c>.</summary>
+    /// <summary>One setting with its value, default and accepted values, for <c>:set name</c> (the help text is in the <c>:set</c> overlay; the status line is one row).</summary>
     public static string Describe(SettingDefinition setting, AppSettings settings)
     {
-        return $"{setting.Name} {setting.Read(settings)} (default {setting.Default}; {setting.Expected}). {setting.Help}";
+        return $"{setting.Name} {setting.Read(settings)} (default {setting.Default}; {setting.Expected})";
     }
 
     /// <summary>The Markdown table in <c>docs/settings.md</c>.</summary>
