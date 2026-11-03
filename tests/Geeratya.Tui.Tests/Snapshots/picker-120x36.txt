@@ -33,4 +33,4 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
- INSERT open a view                                                                   Down choose  Enter open  Esc close
+ INSERT  open a view                                                                  Down choose  Enter open  Esc close

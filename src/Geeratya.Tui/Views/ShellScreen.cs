@@ -1,8 +1,8 @@
-using System.Text;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Rendering.Themes;
@@ -18,15 +18,10 @@ namespace Geeratya.Tui.Views;
 /// </summary>
 public sealed class ShellScreen : Window
 {
-    // Typed text such as an underscore in a command must show as typed, so no character is a hot key marker.
-    private static readonly Rune _noHotKey = new(0xFFFF);
-
     private readonly StyledBodyView _body;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
-    private readonly Label _status;
-    private readonly Label _statusMessage;
-    private PaletteRole _messageRole = PaletteRole.Error;
+    private readonly StyledBodyView _status;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
@@ -51,19 +46,10 @@ public sealed class ShellScreen : Window
         Height = Dim.Fill();
 
         _body = new StyledBodyView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(1) };
-        _status = new Label { Text = string.Empty, X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), HotKeySpecifier = _noHotKey };
-        _statusMessage = new Label
-        {
-            Text = string.Empty,
-            X = 0,
-            Y = Pos.AnchorEnd(1),
-            Width = 0,
-            Visible = false,
-            HotKeySpecifier = _noHotKey,
-        };
+        _status = new StyledBodyView { X = 0, Y = Pos.AnchorEnd(1), Width = Dim.Fill(), Height = 1 };
         ApplySchemes();
 
-        Add(_body, _status, _statusMessage);
+        Add(_body, _status);
         ViewportChanged += OnViewportChanged;
     }
 
@@ -112,31 +98,8 @@ public sealed class ShellScreen : Window
         var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors, faint));
 
         _body.SetLines(lines.ToList());
-        _status.Text = frame.StatusLine;
-        ShowMessage(frame.StatusSegment);
+        _status.SetLines([StyledRuns.Resolve(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine), _theme, _colors)]);
         SetNeedsDraw();
-    }
-
-    // The message sits on top of the bar in its own role: success (a filled chip while fresh), warning or error.
-    private void ShowMessage(StatusSegment? segment)
-    {
-        if (segment is null)
-        {
-            _statusMessage.Visible = false;
-
-            return;
-        }
-
-        if (segment.Role != _messageRole)
-        {
-            _messageRole = segment.Role;
-            ApplySchemes();
-        }
-
-        _statusMessage.X = segment.Start;
-        _statusMessage.Width = segment.Width;
-        _statusMessage.Text = segment.Text;
-        _statusMessage.Visible = true;
     }
 
     private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)
@@ -160,7 +123,6 @@ public sealed class ShellScreen : Window
         SetScheme(body);
         _body.SetScheme(body);
         _status.SetScheme(CreateScheme(Palette.Resolve(_theme, _colors, PaletteRole.Status)));
-        _statusMessage.SetScheme(CreateScheme(Palette.Resolve(_theme, _colors, _messageRole)));
     }
 
     private static Scheme CreateScheme(ResolvedStyle style)

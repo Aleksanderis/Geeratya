@@ -1,4 +1,4 @@
- [1 Board: GCM board]  +         [jump] 
+ 1 Board GCM board   +     Space g jump 
                                         
 ╭─To Do 5  In Progress 4 ›─────────────╮
 │>E GCM-8 Seed: Onboarding flow        │

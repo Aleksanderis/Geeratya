@@ -1,4 +1,4 @@
- [1 JQL: View]  +                                                        [jump] 
+ 1 JQL View x   +                                                  Space g jump 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
@@ -21,4 +21,4 @@
 │ │                                                                          │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND :zzqx                               Up/Down move  Enter run  Esc cancel
+ COMMAND  :zzqx                              Up/Down move  Enter run  Esc cancel

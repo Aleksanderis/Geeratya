@@ -1,4 +1,4 @@
- [1 JQL: View]  +                [jump] 
+ 1 JQL View   +            Space g jump 
                                         
 ╭─ View ──────────────────── 0 issues ─╮
 │  Key T Summary                      S│
@@ -7,4 +7,4 @@
 │ │ > Jump to an issue by k  Space g │ │
 │ │   Open the issue in the  Space o │ │
 ╰─╰──────────────────────────────────╯─╯
- COMMAND :                              
+ COMMAND  :                             

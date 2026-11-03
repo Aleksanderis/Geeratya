@@ -1,4 +1,4 @@
- [1 JQL: A]  +                                                           [jump] 
+[1 JQL A x]  +                                                    [Space g jump]
                                                                                 
 +- A ---------------------------------------------------------------- 1 issue -+
 | +- Edit A-1 ---------------------------------------------------------------+ |
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
- INSERT Edit A-1                    Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+[INSERT] Edit A-1                   Tab/Shift-Tab field  Ctrl-s save  Esc cancel

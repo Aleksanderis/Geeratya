@@ -22,8 +22,8 @@ public static class StatusMessages
 
     private const string KeymapPrefix = "keymap.json: ";
 
-    /// <summary>The column where the status line's text starts in Normal mode: the badge <c> NORMAL </c> before it.</summary>
-    public const int TextStart = 8;
+    /// <summary>The column where the status line's text starts in Normal mode: the badge <c> NORMAL </c> and one space before it.</summary>
+    public const int TextStart = 9;
 
     /// <summary>The cells of the showing message in the status line (Normal mode only), null when none shows.</summary>
     public static TabButton? Cells(AppState state)

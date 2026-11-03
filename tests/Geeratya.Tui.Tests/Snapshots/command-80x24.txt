@@ -21,4 +21,4 @@
   │                                                                          │  
   ╰──────────────────────────────────────────────────────────────────────────╯  
                                                                                 
- COMMAND :search                             Up/Down move  Enter run  Esc cancel
+ COMMAND  :search                            Up/Down move  Enter run  Esc cancel

@@ -7,4 +7,4 @@
 | x         Dismiss the status message |
 | n         Show the message history   |
 +--------------------------------------+
- NORMAL Space                           
+[NORMAL] Space                          

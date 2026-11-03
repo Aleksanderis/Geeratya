@@ -7,4 +7,4 @@ wo│ > Board   GCM board (scrum, GCM) │as
   │   Backlog GCM board (scrum, GCM) │  
   │   Board   GTM 日本語 board with  │  
   ╰──────────────────────────────────╯  
- INSERT open a view                     
+ INSERT  open a view                    

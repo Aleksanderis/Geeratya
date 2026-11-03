@@ -7,4 +7,4 @@
       ? help   : commands   q quit      
                                         
                                         
- CONFIRM Delete PROJ-1? Jira canno (y/n)
+ CONFIRM  Delete PROJ-1? Jira cann (y/n)

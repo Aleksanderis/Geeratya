@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +      [jump] 
+ 1 JQL My open issues   +               
  RATE LIMITED  Retrying in 25 s         
 ╭─ My open issues ────────── 3 issues ─╮
 │  Key    T Summary                   S│
@@ -7,4 +7,4 @@
 │  GCM-15 T As a user I can filter by ●│
 │                                      │
 ╰──────────────────────────────────────╯
- NORMAL rate limited 25s                
+ NORMAL  rate limited 25s               

@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +                                                                                      [jump] 
+ 1 JQL My open issues x   +                                                                                Space g jump 
  RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.                                                       
 ╭─ My open issues ────────────────────────────────────────────────────────────────────────────────────────── 3 issues ─╮
 │  Key    T Summary                                                                     Status         Assignee        │
@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL rate limited 25s             j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit
+ NORMAL  rate limited 25s            j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit

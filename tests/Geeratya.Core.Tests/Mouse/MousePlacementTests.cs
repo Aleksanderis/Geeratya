@@ -428,15 +428,15 @@ public class MousePlacementTests
         var chip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
         var text = TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, 80).PlainText;
 
-        Assert.Equal("[jump]", text.Substring(chip.Start, chip.End - chip.Start));
-        Assert.Equal(79, chip.End);
+        Assert.Equal(" Space g jump ", text.Substring(chip.Start, chip.End - chip.Start));
+        Assert.Equal(80, chip.End);
     }
 
     [Theory]
     [InlineData(-1, false)]
     [InlineData(0, true)]
-    [InlineData(5, true)]
-    [InlineData(6, false)]
+    [InlineData(13, true)]
+    [InlineData(14, false)]
     public void GivenWideTabBar_WhenClickingAroundTheChip_ThenOnlyItsCellsOpenThePrompt(int offset, bool opens)
     {
         var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
@@ -445,6 +445,29 @@ public class MousePlacementTests
         var (result, _) = Resolve(state, 80, 24, chip.Start + offset, 0, MouseGesture.Click);
 
         Assert.Equal(opens, result.Jump is not null);
+    }
+
+    [Fact]
+    public void GivenWideTabBar_WhenClickingTheCloseX_ThenTheActiveTabClosesAndNeighbourCellsOnlySwitch()
+    {
+        var state = TwoTabs(80);
+        var close = TabBar.CloseButton(state.Session.Tabs, state.Session.Active, 80)!.Value;
+        var areas = TabBar.Areas(state.Session.Tabs, state.Session.Active, 80);
+
+        var (closed, _) = Resolve(state, 80, 24, close.Start, 0, MouseGesture.Click);
+        var (beforeX, _) = Resolve(state, 80, 24, close.Start - 1, 0, MouseGesture.Click);
+
+        Assert.Single(closed.Session.Tabs);
+        Assert.Equal(2, beforeX.Session.Tabs.Count);
+        Assert.True(close.Start > areas[^1].Start && close.End == areas[^1].End);
+    }
+
+    [Fact]
+    public void GivenTabBarUnderEightyColumns_WhenAskingForTheCloseX_ThenThereIsNone()
+    {
+        var state = TwoTabs(79);
+
+        Assert.Null(TabBar.CloseButton(state.Session.Tabs, state.Session.Active, 79));
     }
 
     [Fact]
@@ -599,7 +622,7 @@ public class MousePlacementTests
         var areas = TabBar.Areas(state.Session.Tabs, state.Session.Active, 80);
 
         Assert.Equal(state, Resolve(state, 80, 24, areas[0].End, 0, MouseGesture.Click).State);
-        Assert.Equal(state, Resolve(state, 80, 24, areas[1].End + 3, 0, MouseGesture.Click).State);
+        Assert.Equal(state, Resolve(state, 80, 24, areas[1].End + 5, 0, MouseGesture.Click).State);
     }
 
     [Fact]

@@ -7,4 +7,4 @@
   | -------------------------------- |  
   | Ctrl-s send   Enter new line   E |  
   +----------------------------------+  
- INSERT Commenting on A-1               
+[INSERT] Commenting on A-1              

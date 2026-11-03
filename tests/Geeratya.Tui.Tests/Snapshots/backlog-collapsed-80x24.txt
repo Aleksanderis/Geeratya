@@ -1,4 +1,4 @@
- [1 Backlog: Scrum board]  +                                             [jump] 
+ 1 Backlog Scrum board x   +                                       Space g jump 
                                                                                 
 ╭─ Scrum board ───────────────────────────────────────────────────── 5 issues ─╮
 │  Key   T Summary                                         Status         Pts  │

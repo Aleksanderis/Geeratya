@@ -9,4 +9,4 @@
 +- Backlog ---------------------------- 1 issue - 1.5 pts -+
 |  GCS-5 S Tidy the release notes            To Do         |
 +----------------------------------------------------------+
- NORMAL     j/k move  Enter open  ? help  : commands  q quit
+[NORMAL]    j/k move  Enter open  ? help  : commands  q quit

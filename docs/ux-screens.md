@@ -292,21 +292,19 @@ GCM board › GCM-12 · Top
 
 ## Tab bar
 
-One line at the top, titles separated by two spaces, each prefixed with its number (`Alt-1` to `Alt-9` go there). The active tab is in brackets and bold (reversed in the no-colour tier). Titles: `Board: <name>`, `Backlog: <name>`, `Filter: <name>`, `JQL: <query>`; an inactive title is cut to 24 cells, the active one to 40 (never below 8); the sketches in this document that show longer titles are abbreviated only for the width of the row, the rule is this one. A tab shows `…` after its title while loading and `!` when its last load failed. An issue opened inside a tab does not rename the tab.
+> The tab rows in the sketches of this document (`[3 JQL: ...]`, a colon after the kind, a bracketed active tab) predate the chip look; the rule is the paragraphs below and [ux-look.md](ux-look.md), section 5.
 
-Overflow: when the titles do not fit, the window of tabs slides so the active one is fully visible, `‹n` (tabs hidden on the left) and `+n ›` (right) mark the cut ends, and inactive titles shrink towards 8 cells before any is hidden. At 120 and 40 columns:
+One line at the top on the bar background (look: [ux-look.md](ux-look.md), section 5). Each tab is a padded chip ` <number> <kind> <name> ` (`Alt-1` to `Alt-9` go there), chips separated by one bar cell. The active chip is filled with the accent and bold (bold without fill in the no-colour tier, where the bar itself is reversed); inactive chips are muted text on the bar. Kinds: `Board`, `Backlog`, `Sprint`, `Filter`, `JQL` (no colon); a label (`<kind> <name>`) is cut to 24 cells, inactive ones shrink towards 8 when the line is short. A chip shows `…` after its label while loading and `!` when its last load failed. An issue opened inside a tab does not rename the tab. At 80 columns and more the active chip ends with ` x` (click closes the tab, `docs/ux-mouse.md`). In the ASCII glyph set the padding cells of every chip become brackets (`[1 Board GCM]`, same width).
 
-```text
- ‹3  [6 JQL: project = GCM AND labels = auth]  7 Backlog: GCM board  8 Filter: Mine  9 Board: GTM board  +2 ›
-```
+Overflow: when the chips do not fit, the window of tabs slides so the active one is fully visible, `‹n` (tabs hidden on the left) and `+n ›` (right) mark the cut ends as dim chips, and inactive labels shrink towards 8 cells before any is hidden. Under 40 columns only the active chip and the `+` remain (no marks; `Alt-N`, `Tab` and `Shift-Tab` still switch). At 120 columns:
 
 ```text
- ‹3  [4 JQL: project = GCM A…]  +2 ›
+ ‹3  6 JQL project = GCM AND la… x   7 Backlog GCM board   8 Filter Mine   9 Board GTM board  +2 › 
 ```
 
-A `+` button (clickable, `tab.new`) follows the last tab after two spaces when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits; when only the active tab fits, its title is cut below 40 cells (never below 8). The bar always takes the first row, blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
+A ` + ` button (clickable, `tab.new`) follows the last chip when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits. The bar always takes the first row, full width on the bar background and blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-A `[jump]` chip (clickable, `issue.jump`) is right-aligned in the line when at least two cells remain after the last tab or the `+`; it is not drawn when no tab is open.
+A dim chip with the keys of `issue.jump` (` Space g jump `, clickable) is right-aligned in the line when at least one cell remains after the last chip or the `+`; it is not drawn when no tab is open.
 
 Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 
@@ -425,7 +423,7 @@ The overlay takes every key (`ux.md` "Focus model and key style"); its mode text
 - **Rows.** The typed key first (with its title when the tab knows it), then completions that contain the text: the issues opened on the tab's stack (newest first), the tab's rows, then keys opened earlier (`recent`: those of this session, up to 20, then the profile's remembered issue keys from `SiteHistory.Issues`, newest first, no repeats; the history is read from disk when the prompt opens if not yet loaded, and is the profile's, so a profile switch shows the other one's). With an empty prompt the recent keys come first, then the tab's keys; typing filters all of them. `Up`/`Down`, `Ctrl-p`/`Ctrl-n` and `Ctrl-j`/`Ctrl-k` choose, `Ctrl-l` accepts, at most 30 rows. A key is remembered when its issue loaded, so a key that was not found never becomes a completion.
 - **Enter** opens the highlighted row on top of the active tab's issue stack (or in a new tab, see Target), so `Esc` returns to where the user was (the stack limit applies: with 50 issues open the status line says so). With no tab open, a tab for `key = KEY` is opened first. The issue loads as from any list (cache first, three requests); a missing or hidden issue shows `Not found or no access: KEY` in the detail, as for any other open.
 - **Target.** `:set jump.target current|tab` (default `current`, see [settings.md](settings.md)). With `tab` every jump opens a new tab `key = KEY` with the issue on top, and `Esc` in it returns to that one-issue list; the tab you jumped from stays as it was.
-- **Mouse.** A click on a prompt row and the menu item `issue.jump` already run this reducer, so they follow the target. A click on the `[jump]` chip at the right end of the tab bar row (drawn when the bar has room) opens the prompt, same as the key.
+- **Mouse.** A click on a prompt row and the menu item `issue.jump` already run this reducer, so they follow the target. A click on the jump chip (` Space g jump `) at the right end of the tab bar row (drawn when the bar has room) opens the prompt, same as the key.
 
 ## Field form overlay
 
