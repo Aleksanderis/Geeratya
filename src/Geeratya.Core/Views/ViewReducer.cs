@@ -304,7 +304,9 @@ public static class ViewReducer
             return state;
         }
 
-        return Replace(state, tab with { Board = configured.Configuration });
+        return Replace(
+            state,
+            DetailReducer.WithEstimateLabel(tab with { Board = configured.Configuration }, state.ViewportColumns));
     }
 
     /// <summary>The sprint of a Sprint view: kept in the tab while the request is the tab's current one.</summary>
