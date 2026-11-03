@@ -100,16 +100,18 @@ public static class HelpOverlay
 
         box.Add(OverlayBox.Bottom(boxWidth));
 
+        OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
+
         for (var row = 0; row < rows && first + row < names.Count; row++)
         {
             regions?.Add(new OverlayRegion(MouseTarget.HelpPage, top + 1 + row, left + 2, menuCells, 1, first + row));
         }
 
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(box[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], box[index], left, width);
         }
 
         return result;

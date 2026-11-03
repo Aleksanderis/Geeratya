@@ -33,10 +33,11 @@ public static class ConfirmOverlay
             return null;
         }
 
-        var box = BoxLines(layout, keymap);
+        var kind = KindOf(request);
+        var box = BoxLines(layout, keymap, kind);
         var top = (height - box.Count) / 2;
         var left = (width - layout.BoxWidth) / 2;
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
 
         regions?.Add(new OverlayRegion(MouseTarget.ConfirmBox, top, left, layout.BoxWidth, box.Count, 0));
         OverlayBox.Mark(regions, MouseTarget.ConfirmYes, top, left, layout.BoxWidth, layout.YesRow, [0]);
@@ -48,29 +49,43 @@ public static class ConfirmOverlay
 
         for (var index = 0; index < box.Count; index++)
         {
-            result[top + index] = OverlayBox.Place(box[index], left, width);
+            result[top + index] = OverlayBox.Over(result[top + index], box[index], left, width);
         }
 
         return result;
     }
 
-    private static List<StyledLine> BoxLines(ConfirmDialogLayout layout, KeymapTable keymap)
+    /// <summary>
+    /// The frame colour: a notice is plain accent, a destructive request the bad colour, any other question the warn
+    /// colour (<c>docs/ux-look.md</c>, "Confirm").
+    /// </summary>
+    public static OverlayKind KindOf(ConfirmRequest request)
+    {
+        if (request.Title is not null)
+        {
+            return OverlayKind.Normal;
+        }
+
+        return request.Destructive ? OverlayKind.Destructive : OverlayKind.Warn;
+    }
+
+    private static List<StyledLine> BoxLines(ConfirmDialogLayout layout, KeymapTable keymap, OverlayKind kind)
     {
         var contentWidth = layout.BoxWidth - 2;
-        var lines = new List<StyledLine> { OverlayBox.Top(layout.BoxWidth, layout.Title) };
+        var lines = new List<StyledLine> { OverlayBox.Top(layout.BoxWidth, layout.Title, kind) };
 
         foreach (var text in layout.Question)
         {
-            lines.Add(OverlayBox.Wall(StyledLine.Of(text), contentWidth));
+            lines.Add(OverlayBox.Wall(StyledLine.Of(text), contentWidth, kind));
         }
 
         if (layout.Warning.Count > 0)
         {
-            lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth));
+            lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth, kind));
 
             foreach (var text in layout.Warning)
             {
-                lines.Add(OverlayBox.Wall(StyledLine.Of(text, TextRole.Warning), contentWidth));
+                lines.Add(OverlayBox.Wall(StyledLine.Of(text, TextRole.Warning), contentWidth, kind));
             }
         }
 
@@ -78,17 +93,17 @@ public static class ConfirmOverlay
         var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo) ?? string.Empty;
         var keyWidth = Math.Max(TextWidth.Of(yes), TextWidth.Of(no));
 
-        lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth));
-        lines.Add(OverlayBox.Wall(AnswerLine(yes, layout.YesLabel, keyWidth, layout.TextColumns), contentWidth));
+        lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth, kind));
+        lines.Add(OverlayBox.Wall(AnswerLine(yes, layout.YesLabel, keyWidth, layout.TextColumns), contentWidth, kind));
 
         if (!layout.Notice)
         {
             var cancel = AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns);
 
-            lines.Add(OverlayBox.Wall(cancel, contentWidth));
+            lines.Add(OverlayBox.Wall(cancel, contentWidth, kind));
         }
 
-        lines.Add(OverlayBox.Bottom(layout.BoxWidth));
+        lines.Add(OverlayBox.Bottom(layout.BoxWidth, kind));
 
         return lines;
     }

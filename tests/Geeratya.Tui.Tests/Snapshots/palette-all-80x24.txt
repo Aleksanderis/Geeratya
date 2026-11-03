@@ -1,24 +1,24 @@
  [1 JQL: View]  +                                                        [jump] 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
-  ┌─ Commands ───────────────────────────────────────────────────────────────┐  
-  │ Issue                                                                    │  
-  │ > Jump to an issue by key                                        Space g │  
-  │   Open the issue in the browser                                  Space o │  
-  │   Open the parent issue                                          Space p │  
-  │   Edit fields of the issue (summary, labels, priority, descri  Space i e │  
-  │   Assign the issue: search people, or unassign                 Space i a │  
-  │   Assign the issue to me                                       Space i m │  
-  │   Change the status of the issue                               Space i s │  
-  │   Move the card to the next column                                 Alt-l │  
-  │   Move the card to the previous column                             Alt-h │  
-  │   Create an issue (type picker, then the form)                 Space i c │  
-  │   Create a sub-task of the selected issue                      Space i C │  
-  │   Move the selected issues to a sprint                         Space s m │  
-  │   Move the selected issues to the backlog                      Space s b │  
-  │   Edit the labels of the issue                                           │  
-  │   Change the priority of the issue                                       │  
-  │   Change the estimate of the issue                                       │  
-  │ Comment                                                                  │  
-  └──────────────────────────────────────────────────────────────────────────┘  
+│  Key T Summary                                                 Status        │
+│ ╭─ Commands ───────────────────────────────────────────────────────────────╮ │
+│p│ Issue                                                                    │ │
+│ │ > Jump to an issue by key                                        Space g │ │
+│ │   Open the issue in the browser                                  Space o │ │
+│ │   Open the parent issue                                          Space p │ │
+│ │   Edit fields of the issue (summary, labels, priority, descri  Space i e │ │
+│ │   Assign the issue: search people, or unassign                 Space i a │ │
+│ │   Assign the issue to me                                       Space i m │ │
+│ │   Change the status of the issue                               Space i s │ │
+│ │   Move the card to the next column                                 Alt-l │ │
+│ │   Move the card to the previous column                             Alt-h │ │
+│ │   Create an issue (type picker, then the form)                 Space i c │ │
+│ │   Create a sub-task of the selected issue                      Space i C │ │
+│ │   Move the selected issues to a sprint                         Space s m │ │
+│ │   Move the selected issues to the backlog                      Space s b │ │
+│ │   Edit the labels of the issue                                           │ │
+│ │   Change the priority of the issue                                       │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND :                                   Up/Down move  Enter run  Esc cancel

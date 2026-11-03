@@ -226,8 +226,10 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("┌─ Help"));
-        Assert.DoesNotContain(lines, line => line.Contains("Status    In Progress"));
+        Assert.Contains(lines, line => line.Contains("╭─ Help"));
+
+        // The view stays visible around and behind the popup (it is dimmed, never erased).
+        Assert.Contains(lines, line => line.Contains("GCM-12 · Task"));
     }
 
     [Fact]

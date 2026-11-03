@@ -1,24 +1,24 @@
  [1 Board: Sample]  +                                                    [jump] 
                                                                                 
 ╭─ Issues 1 ───────────────────────────────────────────────────────────────────╮
-  ┌─ Help ───────────────────────────────────────────────────────────────────┐  
-  │ > Columns     │   j          Move down  (Down)                           │  
-  │   Global      │   k          Move up  (Up)                               │  
-  │   All actions │   h          Move left  (Left)                           │  
-  │   Commands    │   l          Move right  (Right)                         │  
-  │               │   g g        Go to the top  (Home)                       │  
-  │               │   G          Go to the bottom  (End)                     │  
-  │               │   Ctrl-d     Page down  (PageDown)                       │  
-  │               │   Ctrl-u     Page up  (PageUp)                           │  
-  │               │   Space a    Open the actions menu of the selected issue │  
-  │               │   Enter      Open the selected item                      │  
-  │               │   0          Go to the first column                      │  
-  │               │   $          Go to the last column                       │  
-  │               │   ] ]        Next section of the issue or the Scrum      │  
-  │               │              backlog                                     │  
-  │               │   [ [        Previous section of the issue or the Scrum  │  
-  │               │              backlog                                     │  
-  │               │   z a        Fold a backlog section or the sub-tasks of  │  
-  └──────────────────────────────────────────────────────────────────────────┘  
+│ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
+│ │ > Columns     │   j          Move down  (Down)                           │ │
+│ │   Global      │   k          Move up  (Up)                               │ │
+│ │   All actions │   h          Move left  (Left)                           │ │
+│ │   Commands    │   l          Move right  (Right)                         │ │
+│ │               │   g g        Go to the top  (Home)                       │ │
+│ │               │   G          Go to the bottom  (End)                     │ │
+│ │               │   Ctrl-d     Page down  (PageDown)                       │ │
+│ │               │   Ctrl-u     Page up  (PageUp)                           │ │
+│ │               │   Space a    Open the actions menu of the selected issue │ │
+│ │               │   Enter      Open the selected item                      │ │
+│ │               │   0          Go to the first column                      │ │
+│ │               │   $          Go to the last column                       │ │
+│ │               │   ] ]        Next section of the issue or the Scrum      │ │
+│ │               │              backlog                                     │ │
+│ │               │   [ [        Previous section of the issue or the Scrum  │ │
+│ │               │              backlog                                     │ │
+│ │               │   z a        Fold a backlog section or the sub-tasks of  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-            ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
+            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
             │   Global      │   Space m d  Delete the comment under the cursor                             │            
             │ > All actions │ Rank                                                                         │            
             │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │            
@@ -31,6 +31,6 @@
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
-            └──────────────────────────────────────────────────────────────────────────────────────────────┘            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

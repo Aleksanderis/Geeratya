@@ -69,7 +69,7 @@ public class AsciiScreenSnapshotTests
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
 
-    private static AppState State(string name)
+    internal static AppState State(string name)
     {
         return name switch
         {
