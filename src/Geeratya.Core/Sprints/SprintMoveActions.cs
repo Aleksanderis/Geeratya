@@ -200,7 +200,7 @@ public static class SprintMoveActions
     }
 
     /// <summary>Where the issues are now: their open sprints (up to two named), else the backlog.</summary>
-    private static string SourceOf(AppState state, IReadOnlyList<string> keys)
+    public static string SourceOf(AppState state, IReadOnlyList<string> keys)
     {
         var names = new List<string>();
         var inBacklog = false;

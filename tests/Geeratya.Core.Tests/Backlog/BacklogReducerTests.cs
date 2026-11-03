@@ -188,22 +188,6 @@ public class BacklogReducerTests
     }
 
     [Fact]
-    public void GivenAScrumBacklog_WhenRankKeysArePressed_ThenTheyAreRefusedAndTheRowsStayGrouped()
-    {
-        var state = Loaded(BacklogFixtures.RankedRows);
-        var before = Tab(state).Rows.Select(row => row.Key).ToArray();
-
-        foreach (var key in new[] { "Alt-j", "Alt-k" })
-        {
-            var result = _reducer.Reduce(state, new KeyPressed(key, _now));
-
-            Assert.Contains("#182", result.State.Message);
-            Assert.Empty(result.Effects);
-            Assert.Equal(before, Tab(result.State).Rows.Select(row => row.Key));
-        }
-    }
-
-    [Fact]
     public void GivenAVisualRangeAcrossACollapsedSection_WhenTargetsAreTaken_ThenHiddenRowsAreLeftOut()
     {
         var state = Loaded(BacklogFixtures.RankedRows);

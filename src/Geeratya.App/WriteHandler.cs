@@ -504,6 +504,11 @@ public sealed class WriteHandler
             return await services.Edits.AssignAsync(assign.Key, change, token);
         }
 
+        if (request is RankMoveRequest rankMove)
+        {
+            return await RankMoveAsync(services, rankMove, token);
+        }
+
         if (request is RankBlockRequest block)
         {
             return await RankBlockAsync(services, block, token);
@@ -635,6 +640,43 @@ public sealed class WriteHandler
         }
 
         return $"{moved} of {total} moved; {named} not moved: {reason}";
+    }
+
+    /// <summary>
+    /// Move into the sprint of the reference issue (or the backlog), then rank next to it. A failed move stops here
+    /// and nothing changed. A failed rank leaves the issues moved: the error keeps its kind (a lost reply stays unknown) and its text says
+    /// the issues moved; the tabs reload and show the truth.
+    /// </summary>
+    private static async Task<WriteResult<WriteAccepted>> RankMoveAsync(
+        JiraServices services,
+        RankMoveRequest request,
+        CancellationToken token)
+    {
+        var move = new SprintMoveRequest(request.BlockKeys, request.Target, request.SourceText);
+        var moved = await SprintMoveAsync(services, move, token);
+
+        if (!moved.IsSuccess)
+        {
+            return moved;
+        }
+
+        var ranked = await RankKeysAsync(
+            services,
+            request.BlockKeys,
+            request.ReferenceKey,
+            request.Before,
+            request.RankFieldId,
+            token);
+
+        if (ranked.IsSuccess)
+        {
+            return ranked;
+        }
+
+        var error = ranked.Error;
+        var message = $"{RankMoveRequest.MovedPrefix}{request.TargetText} but not ranked: {error.Message}";
+
+        return WriteResults.Failure<WriteAccepted>(error with { Message = message, Messages = [message], FieldErrors = [] });
     }
 
     private static Task<WriteResult<WriteAccepted>> RankAsync(

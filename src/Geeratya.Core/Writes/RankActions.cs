@@ -1,7 +1,10 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Selection;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Writes;
 
@@ -15,7 +18,7 @@ public static class RankActions
 {
     private const string NotRankedText = "Ranking works in a board or backlog view";
     private const string InsideIssueText = "Ranking works on a list or a board, not inside an issue";
-    private const string SectionsText = "Ranking across sprint sections is not built yet (#182)";
+    private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
     private const string NothingText = "Nothing to rank here";
     private const string IncompleteText =
         "Not every issue is loaded yet: wait for the rest before ranking to the bottom";
@@ -137,12 +140,8 @@ public static class RankActions
 
         var keys = members.Select(index => universe.Rows[index].Key).ToArray();
         var original = tab.Rows.Select(row => row.Key).ToArray();
-        var request = new RankBlockRequest(
-            keys,
-            universe.Rows[reference].Key,
-            before,
-            tab.Board?.RankFieldId,
-            original);
+        var request = (WriteRequest?)CrossSections(state, tab, keys, universe.Rows[reference], before, original)
+            ?? new RankBlockRequest(keys, universe.Rows[reference].Key, before, tab.Board?.RankFieldId, original);
         var held = tab.Marks.Count > 0 ? tab : tab with { Marks = keys, VisualAnchor = null };
         var kept = ViewReducer.Replace(state, held);
 
@@ -318,10 +317,56 @@ public static class RankActions
         int to,
         DateTimeOffset at)
     {
-        var request = BuildRequest(tab, universe, from, to);
+        var request = (WriteRequest?)CrossSections(
+                state,
+                tab,
+                [universe.Rows[from].Key],
+                universe.Rows[to],
+                to < from,
+                tab.Rows.Select(row => row.Key).ToArray())
+            ?? BuildRequest(tab, universe, from, to);
         var cleared = tab.RankPickup is null ? state : ViewReducer.Replace(state, tab with { RankPickup = null });
 
         return WriteReducer.Reduce(cleared, new WriteRequested(tab.Id, request, at));
+    }
+
+    /// <summary>
+    /// In the Scrum backlog, a move next to a row of another section also changes the sprint of the issues: they take
+    /// the sprint of the reference row (the backlog when it has none). Null when every issue is already in that
+    /// section (a plain rank) or the tab is not a sectioned backlog.
+    /// </summary>
+    private static RankMoveRequest? CrossSections(
+        AppState state,
+        TabState tab,
+        IReadOnlyList<string> keys,
+        IssueSummary reference,
+        bool before,
+        IReadOnlyList<string> original)
+    {
+        if (!BacklogSections.Applies(tab))
+        {
+            return null;
+        }
+
+        var section = BacklogSections.KeyOf(reference);
+        var crossing = keys.Any(key => IndexOf(tab.Rows, key) is var index and >= 0 &&
+            BacklogSections.KeyOf(tab.Rows[index]) != section);
+
+        if (!crossing)
+        {
+            return null;
+        }
+
+        var sprint = reference.CurrentSprint is { State: SprintState.Active or SprintState.Future } open ? open : null;
+
+        return new RankMoveRequest(
+            keys,
+            reference.Key,
+            before,
+            tab.Board?.RankFieldId,
+            original,
+            sprint,
+            SprintMoveActions.SourceOf(state, keys));
     }
 
     private static RankRequest BuildRequest(TabState tab, RankUniverse universe, int from, int to)
@@ -388,9 +433,9 @@ public static class RankActions
             return null;
         }
 
-        if (tab.Definition.Source == ViewSourceKind.ScrumBacklog)
+        if (tab.Marks.Count == 0 && BacklogCursor.OnCollapsedHeader(tab))
         {
-            refusal = SectionsText;
+            refusal = CollapsedText;
 
             return null;
         }
