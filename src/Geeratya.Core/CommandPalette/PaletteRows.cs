@@ -31,7 +31,6 @@ public static class PaletteRows
         new(PaletteCommands.Labels, "Edit the labels of the issue", IssueGroup),
         new(PaletteCommands.Priority, "Change the priority of the issue", IssueGroup),
         new(PaletteCommands.Estimate, "Change the estimate of the issue", IssueGroup),
-        new(PaletteCommands.Profile, "Profiles: open the manager", GeneralGroup),
     ];
 
     /// <summary>The list for the palette text of <paramref name="state"/>: subheaders and rows in display order.</summary>
