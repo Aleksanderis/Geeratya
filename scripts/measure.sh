@@ -243,7 +243,6 @@ if [ "${SCENARIO:-}" = scrum ]; then
       cold_ms=$(start_session "$binary")
       tmux -L "$socket" send-keys -t m ":backlog GEN" Enter
       open_ms=$(wait_match "$backlog_ready")
-      before=$(frame)
       tmux -L "$socket" send-keys -t m Space s v
       picker_ms=$(wait_match 'Switch sprint')
       wait_match "Generated Sprint $sprint \\(" > /dev/null
