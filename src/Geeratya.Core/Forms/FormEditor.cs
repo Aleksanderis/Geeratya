@@ -99,8 +99,8 @@ public static class FormEditor
         return field.Kind == FormFieldKind.Labels ? CommitLabel(field) : field;
     }
 
-    // The typed text of a field that takes a key as it stands, upper-cased, when it is a full issue key.
-    private static string? TypedKey(FormField field)
+    /// <summary>The typed text of a field that takes a key as it stands, upper-cased, when it is a full issue key, else null.</summary>
+    public static string? TypedKey(FormField field)
     {
         if (!field.TakesTypedKey || field.Kind != FormFieldKind.Parent)
         {

@@ -16,7 +16,8 @@ namespace Geeratya.Core.Forms;
 /// <param name="Initial">The value the form was opened with; only fields that differ are written.</param>
 /// <param name="Entry">The typing buffer: the filter of a choice field, the label being typed.</param>
 /// <param name="Error">Why the field is wrong (checked locally or refused by Jira), or null.</param>
-/// <param name="TakesTypedKey">A full issue key typed into this issue field is taken as it stands, without picking it from the popup (the link form).</param>
+/// <param name="TakesTypedKey">A full issue key typed into this parent-kind field is taken as it stands, without
+/// picking it from the popup (the link form). Enter takes the key, Tab the highlighted row.</param>
 /// <param name="Lookup">The project list a typed filter also searches (components, versions of a create form), or null.</param>
 public sealed record FormField(
     string Id,

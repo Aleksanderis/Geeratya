@@ -89,12 +89,19 @@ public class LinkFlowTests
 
         var loaded = _reducer.Reduce(
             asked,
-            new SuggestionsLoaded(Active(asked).Id, popup.RequestId, [new Suggestion("10006", "Fix login", "A-30", false)]));
+            new SuggestionsLoaded(
+                Active(asked).Id,
+                popup.RequestId,
+                [new Suggestion("A-30", "Fix login", "A-30", false)]));
         var accepted = Press(loaded.State, "Enter");
 
         var field = Active(accepted.State).Form!.Fields[1];
-        Assert.Equal(["10006"], field.Value.Chosen);
+        Assert.Equal(["A-30"], field.Value.Chosen);
         Assert.Equal(string.Empty, field.Entry);
+
+        var sent = Press(accepted.State, "Ctrl-s");
+        var request = Assert.IsType<LinkIssuesRequest>(Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>()).Request);
+        Assert.Equal("A-30", request.OtherKey);
     }
 
     [Fact]
@@ -106,6 +113,24 @@ public class LinkFlowTests
 
         var effect = Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>());
         Assert.Equal("A-30", Assert.IsType<LinkIssuesRequest>(effect.Request).OtherKey);
+    }
+
+    [Fact]
+    public void GivenAFullKeyTypedAndAPopupWithOtherRows_WhenEnter_ThenTheTypedKeyIsLinkedNotTheFirstRow()
+    {
+        var asked = Type(Press(LoadedForm(), "Enter").State, "a-3");
+        var popup = Active(asked).Form!.Suggest!;
+        var loaded = _reducer.Reduce(
+            asked,
+            new SuggestionsLoaded(
+                Active(asked).Id,
+                popup.RequestId,
+                [new Suggestion("A-30", "Other", "A-30", false)]));
+
+        var sent = Press(loaded.State, "Enter");
+
+        var request = Assert.IsType<LinkIssuesRequest>(Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>()).Request);
+        Assert.Equal("A-3", request.OtherKey);
     }
 
     [Fact]

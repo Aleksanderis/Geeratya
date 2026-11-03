@@ -6,7 +6,10 @@ using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Links;
 
-/// <summary>The fields of the link form: the type with its side, and the issue at the other end (found by the suggestion popup, or a full key typed). Pure.</summary>
+/// <summary>
+/// The fields of the link form: the type with its side, and the issue at the other end (found by the suggestion
+/// popup, or a full key typed). Pure.
+/// </summary>
 public static class LinkFormFields
 {
     public const string TypeFieldId = "linktype";
