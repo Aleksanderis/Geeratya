@@ -21,4 +21,4 @@
   |               |   Alt-8      Go to tab 8                                 |  
   +--------------------------------------------------------------------------+  
                                                                                 
- HELP                                   j section  J scroll  / filter  Esc close
+[HELP]                                  j section  J scroll  / filter  Esc close

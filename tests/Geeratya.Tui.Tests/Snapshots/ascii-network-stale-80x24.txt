@@ -1,4 +1,4 @@
- [1 JQL: My open issues .]  +                                            [jump] 
+[1 JQL My open issues . x]  +                                     [Space g jump]
  STALE  Data is 23 min old. Refreshing.                                         
 +- My open issues -------------------------------------------------- 3 issues -+
 |  Key    T Summary                                              Status        |
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
- NORMAL stale  j/k move  Enter open  Space o browser  ? help  : commands  q quit
+[NORMAL] stale                  j/k move  Enter open  ? help  : commands  q quit

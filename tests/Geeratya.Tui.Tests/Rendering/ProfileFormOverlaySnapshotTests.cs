@@ -55,7 +55,7 @@ public class ProfileFormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(ProfileFormField.Email, null), 80, 24, _keymap);
         var status = lines[^1];
 
-        Assert.Contains("INSERT Account email", status, StringComparison.Ordinal);
+        Assert.Contains("INSERT  Account email", status, StringComparison.Ordinal);
         Assert.DoesNotContain("_", status, StringComparison.Ordinal);
         Assert.Contains(lines, line => line.Contains("> Account", StringComparison.Ordinal) && line.Contains('│'));
     }

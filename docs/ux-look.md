@@ -142,9 +142,9 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 
 - One chip per tab: ` <number> <kind> <name> `, the active tab the filled accent chip (bold), others muted text on the bar. Kind words are Jira nouns (`Board`, `Backlog`, `JQL`, `Filter`, `Issue`); a tab label is at most 24 columns, truncated with `…`.
 - After the last chip a `+` target (opens the source picker, same as `<space>t`). The right end keeps the `jump` chip (`JumpChip`, still a click target: opens the jump prompt), now drawn as the dim chip `Space g jump`. The close affordance (new mouse target) `x` shows on the active chip when the width is 80 or more (` 1 Board GCM x `), and on a hovered chip; middle-click closes any chip.
-- Mouse targets (`ux-mouse.md`, tab targets): a chip switches, `x` closes (asks as `:tab close` does), `+` opens the picker; the targets are exactly the cells the chip occupies.
-- Overflow: the active chip is always visible; chips that do not fit collapse into a dim `+N` chip (click opens the picker's tab list). Under 40 columns only the active chip and `+` remain.
-- ASCII tier: chips are bracketed ` [1 Board GCM] `; no-colour tier: the active chip reversed-bold.
+- Mouse targets (`ux-mouse.md`, tab targets): a chip switches, `x` closes (at once, like `tab.close`), `+` opens the picker; the targets are exactly the cells the chip occupies (the `x` target is the `x` and the pad after it).
+- Overflow: the active chip is always visible; chips that do not fit are hidden behind the dim `‹n` and `+n ›` chips (click steps to the neighbouring hidden tab). Under 40 columns only the active chip and `+` remain. Not done in #527, registered as #547: middle-click close, `x` on hover, and the `+N` chip opening a tab list in the picker.
+- ASCII tier: chips are bracketed, `[1 Board GCM]`: the padding cells of the chip become the brackets, so a chip keeps its width and its mouse cells. No-colour tier: the bar is reversed and the active chip is bold without reverse, so it reads as the one normal-video chip on the reversed bar (a reversed chip on a reversed bar would vanish).
 
 **Status bar** (last row):
 
@@ -153,7 +153,7 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
  ^^^^^^^ mode badge       ^ message / state                  ^ hint chips
 ```
 
-- Column 0: a one-space-padded **mode badge** as a filled chip, bold: `NORMAL` accent, `VISUAL` the `remote` role, `INSERT` `good`, `COMMAND` `warn`, `CONFIRM` `bad`, `HELP` `info`. Text on a badge is the theme's chip text colour. Without colour the badge is reversed-bold and the word tells the mode.
+- Column 0: a one-space-padded **mode badge** (` NORMAL `, then one more space before the text) as a filled chip, bold: `NORMAL` accent, `VISUAL` the `remote` role, `INSERT` `good`, `COMMAND` `warn`, `CONFIRM` `bad`, `HELP` `info`. Text on a badge is the theme's chip text colour. Without colour the badge is reversed-bold and the word tells the mode.
 - Then the message or state text: the pending keys in Normal mode; otherwise the message of the status history, coloured by severity (info normal text, warning `warn`, error `bad` bold, success `good`; a message always carries a word as well, `Failed:`, `Warning:`, so colour is not the only carrier). When there is none: the source and its count (`GCM board 24`, sprint name for a sprint board, `GEN-5 13%` in the detail), then the connection state (`Connected as ...`, `Offline`, `Rate limited, retry in 12 s`).
 - **Key hints** (right side, `HintBar`): chips `key label`, the key bold in the key role of `ux.md` (`warn`; the accent stays for focus), the label muted, two spaces between chips, right-aligned, within the keymap rules of `ux.md`, "Hints". When the width is short, chips drop from the right end towards the left (the global `? help  : commands  q quit` are dropped last and never partly). In the other modes the same bar shows that mode's hints (`Tab/Shift-Tab field  Ctrl-s save  Esc cancel`).
 - Whole-line fallbacks: 16-colour uses the bar as white-on-blue as today with bold keys; no colour: the bar is reversed.
@@ -348,9 +348,9 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Board | Done in #524: one rounded frame, shared edges, column chips in the top edge, the title line is in the status bar. Open: the selected card keeps the heavy `┏` box (spec keeps it), chips are not filled (#525) | 2, 3 | #524, #525 |
 | Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Open: chips are not filled and the focused pane is not accent (#525), the status chip on the right of the header | 2, 4 | #524, #525 |
 | Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Open: filled and focus chips (#525) | 2, 3 | #524, #525 |
-| Tab row | Plain text `[1 Board: GCM board]  +`, active tab marked by a tint only, followed by a blank row | 5 | #527 |
-| Status bar | Mode badge is plain text on a bar close to the page colour; hints are plain text | 5 | #527 |
-| Palette | Done in #525: rounded accent frame and chip over the dimmed view. Open: subheader styling, count chip | 7 | #525, #527 |
+| Tab row | Done in #527: chips on the bar background, filled accent for the active one, `x`, ` + `, dim jump chip with the keys. Open: middle-click, hover `x`, `+N` tab list (#547) | 5 | #527, #547 |
+| Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |
+| Palette | Done in #525: rounded accent frame and chip over the dimmed view. Open: subheader styling, count chip | 7 | #525, #548 (subheaders and count) |
 | Help | Done in #525: rounded accent frame over the dimmed view | 7 | #525 |
 | Confirm | Done in #525: rounded frame (`bad`, `warn` or accent), view dimmed around it | 7 | #525 |
 | Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box | 7 | #525 |

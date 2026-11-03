@@ -264,7 +264,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         var size = _application!.Screen.Size;
         var now = TimeProvider.System.GetUtcNow();
         var regions = _screen!.OverlayRegions;
-        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions);
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap);
         var commands = ResolvePointer(context, drag, mouse.Flags, new MouseCell(position.X, position.Y), now);
 
         if (commands.Count == 0)

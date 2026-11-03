@@ -1,0 +1,2 @@
+[1 Board GCM board] [2 JQL project = GEN x] [3 Backlog GEN board]  +                                      [Space g jump]
+[NORMAL]                             j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit

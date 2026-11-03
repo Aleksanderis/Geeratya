@@ -21,4 +21,4 @@
                                                                                 
                                                                                 
                                                                                 
- INSERT Commenting on A-1                                Ctrl-s save  Esc cancel
+[INSERT] Commenting on A-1                               Ctrl-s save  Esc cancel

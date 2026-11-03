@@ -1,4 +1,4 @@
- [1 Board: GCM board]  +                                                                                         [jump] 
+ 1 Board GCM board x   +                                                                                   Space g jump 
                                                                                                                         
 ╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 2 ─────────────────────────────╮
 │ ┌───────────────────────────────────┐ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │
@@ -33,4 +33,4 @@
 │                                       │                                       │                                      │
 │                                       │                                       │                                      │
 ╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
- NORMAL GCM board · 20 issues                 h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit
+ NORMAL  GCM board · 20 issues                h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit

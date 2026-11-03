@@ -1,4 +1,4 @@
- [1 JQL: Sample]  +              [jump] 
+ 1 JQL Sample   +          Space g jump 
                                         
 ╭─ A-1 · Task ─────────────────────────╮
 │>╭─ Help ───────────────────────────╮ │

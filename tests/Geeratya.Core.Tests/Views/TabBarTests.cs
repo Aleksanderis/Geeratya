@@ -20,14 +20,15 @@ public class TabBarTests
     }
 
     [Fact]
-    public void GivenOneTab_WhenBuilding_ThenItIsNumberedBracketedAndSelectedRole()
+    public void GivenOneTab_WhenBuilding_ThenItIsANumberedPaddedChipInTheActiveRole()
     {
         var tabs = Tabs("project = A");
 
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
-        Assert.Equal(" [1 JQL: project = A]  +", line.PlainText);
-        Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text == "[1 JQL: project = A]");
+        Assert.Equal(" 1 JQL project = A x   + ", line.PlainText);
+        Assert.Contains(line.Spans, span => span.Role == TextRole.TabActive && span.Text == " 1 JQL project = A x ");
+        Assert.Contains(line.Spans, span => span.Role == TextRole.BarMuted && span.Text == " + ");
     }
 
     [Fact]
@@ -42,7 +43,7 @@ public class TabBarTests
 
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
-        Assert.Equal(" [1 Board: GCM board]  2 Backlog: GCM board  3 Filter: Mine  +", line.PlainText);
+        Assert.Equal(" 1 Board GCM board x   2 Backlog GCM board   3 Filter Mine   + ", line.PlainText);
     }
 
     [Fact]
@@ -54,20 +55,19 @@ public class TabBarTests
 
         var line = TabBar.Build([loading, failed, idle], loading.Id, 120);
 
-        Assert.Equal(" [1 JQL: a …]  2 JQL: b !  3 JQL: c  +", line.PlainText);
+        Assert.Equal(" 1 JQL a … x   2 JQL b !   3 JQL c   + ", line.PlainText);
     }
 
     [Fact]
-    public void GivenLongTitles_WhenBuilding_ThenInactiveCutAt24AndActiveAt40()
+    public void GivenLongTitles_WhenBuilding_ThenEveryLabelIsCutAt24()
     {
         var longTitle = new string('x', 80);
         var tabs = Tabs(longTitle, longTitle);
 
         var line = TabBar.Build(tabs, tabs[0].Id, 200);
 
-        var inactive = $"2 JQL: {new string('x', 18)}…";
-        var active = $"[1 JQL: {new string('x', 34)}…]";
-        Assert.Equal($" {active}  {inactive}  +", line.PlainText);
+        var chip = $"JQL {new string('x', 19)}…";
+        Assert.StartsWith($" 1 {chip} x   2 {chip} ", line.PlainText);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class TabBarTests
 
         Assert.DoesNotContain("‹", line.PlainText);
         Assert.DoesNotContain("›", line.PlainText);
-        Assert.Contains("4 JQL:", line.PlainText);
+        Assert.Contains(" 4 JQL ", line.PlainText);
         Assert.True(DisplayWidth.Of(line.PlainText) <= 100);
         Assert.True(DisplayWidth.Of(line.PlainText) > 80);
     }
@@ -100,7 +100,7 @@ public class TabBarTests
                 var line = TabBar.Build(tabs, tabs[active].Id, width);
 
                 Assert.True(DisplayWidth.Of(line.PlainText) <= width, $"{count} tabs, {width} wide, tab {active}");
-                Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith($"[{active + 1} "));
+                Assert.Contains(line.Spans, span => span.Role == TextRole.TabActive && span.Text.StartsWith($" {active + 1} "));
             }
         }
     }
@@ -114,7 +114,7 @@ public class TabBarTests
         {
             var line = TabBar.Build(tabs, tabs[14].Id, width);
 
-            Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("[15 "));
+            Assert.Contains(line.Spans, span => span.Role == TextRole.TabActive && span.Text.StartsWith(" 15 "));
         }
     }
 
@@ -127,9 +127,9 @@ public class TabBarTests
 
         var text = line.PlainText;
         Assert.StartsWith(" ‹", text);
-        Assert.EndsWith(" ›", text);
-        Assert.Contains("[15 JQL:", text);
-        var shown = Enumerable.Range(1, 30).Count(number => text.Contains($" {number} JQL:") || text.Contains($"[{number} JQL:"));
+        Assert.EndsWith(" › ", text);
+        Assert.Contains(" 15 JQL ", text);
+        var shown = Enumerable.Range(1, 30).Count(number => text.Contains($" {number} JQL "));
         var left = int.Parse(text[" ‹".Length..text.IndexOf(' ', 2)], CultureInfo.InvariantCulture);
         var plus = text.LastIndexOf('+');
         var right = int.Parse(text[(plus + 1)..text.IndexOf(' ', plus)], CultureInfo.InvariantCulture);
@@ -144,7 +144,7 @@ public class TabBarTests
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
         Assert.DoesNotContain("‹", line.PlainText);
-        Assert.EndsWith(" ›", line.PlainText);
+        Assert.EndsWith(" › ", line.PlainText);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class TabBarTests
 
         Assert.StartsWith(" ‹", line.PlainText);
         Assert.DoesNotContain("›", line.PlainText);
-        Assert.Contains("[30 JQL:", line.PlainText);
+        Assert.Contains(" 30 JQL ", line.PlainText);
         Assert.Contains("…", line.PlainText);
         Assert.True(DisplayWidth.Of(line.PlainText) <= 40);
     }
@@ -183,7 +183,55 @@ public class TabBarTests
         var line = TabBar.Build(tabs, tabs[0].Id, 120);
 
         Assert.DoesNotContain('\n', line.PlainText);
-        Assert.Contains("project = A ORDER BY key", line.PlainText);
+        Assert.Contains("project = A ORDER B…", line.PlainText);
+    }
+
+    [Fact]
+    public void GivenWideBar_WhenBuilding_ThenOnlyTheActiveChipCarriesTheCloseXWithItsOwnCells()
+    {
+        var tabs = Tabs("project = A", "project = B");
+
+        var wide = TabBar.Areas(tabs, tabs[1].Id, 80);
+        var narrow = TabBar.Areas(tabs, tabs[1].Id, 79);
+        var line = TabBar.Build(tabs, tabs[1].Id, 80).PlainText;
+
+        Assert.Null(wide[0].Close);
+        var close = wide[1].Close!.Value;
+        Assert.Equal(wide[1].End, close.End);
+        Assert.Equal("x ", line[close.Start..close.End]);
+        Assert.All(narrow, area => Assert.Null(area.Close));
+        Assert.Equal(close, TabBar.CloseButton(tabs, tabs[1].Id, 80));
+        Assert.Null(TabBar.CloseButton(tabs, tabs[1].Id, 79));
+    }
+
+    [Theory]
+    [InlineData(39)]
+    [InlineData(20)]
+    public void GivenUnderFortyColumns_WhenBuilding_ThenOnlyTheActiveChipAndThePlusRemain(int width)
+    {
+        var tabs = Tabs("project = A", "project = B", "project = C");
+
+        var line = TabBar.Build(tabs, tabs[1].Id, width);
+
+        Assert.DoesNotContain("‹", line.PlainText);
+        Assert.DoesNotContain("›", line.PlainText);
+        Assert.Contains(" 2 JQL ", line.PlainText);
+        Assert.DoesNotContain(" 1 JQL", line.PlainText);
+        Assert.DoesNotContain(" 3 JQL", line.PlainText);
+        Assert.Single(TabBar.Areas(tabs, tabs[1].Id, width));
+    }
+
+    [Fact]
+    public void GivenTabs_WhenBuildingWithTheJumpChip_ThenTheBarIsFullWidthAndTheChipNamesTheKeys()
+    {
+        var tabs = Tabs("project = A");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80);
+
+        Assert.Equal(80, DisplayWidth.Of(line.PlainText));
+        Assert.EndsWith(" Space g jump ", line.PlainText);
+        Assert.Equal(TextRole.TabDim, line.Spans[^1].Role);
+        Assert.Equal(80, DisplayWidth.Of(TabBar.BuildWithJumpChip([], null, 80).PlainText));
     }
 
     [Fact]
