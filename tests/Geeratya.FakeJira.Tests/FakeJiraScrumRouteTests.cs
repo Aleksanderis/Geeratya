@@ -144,9 +144,11 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
         var page = await Json($"{Agile}/board/6/issue?jql={Uri.EscapeDataString(jql)}");
         var keys = Keys(page);
 
-        Assert.Contains("GCS-18", keys);
+        Assert.Contains("GCS-8", keys);
+        Assert.Contains("GCS-15", keys);
         Assert.Contains("GCS-21", keys);
-        Assert.True(page.GetProperty("total").GetInt32() >= 11);
+        Assert.DoesNotContain("GCS-3", keys);
+        Assert.Equal(14, page.GetProperty("total").GetInt32());
     }
 
     [Fact]

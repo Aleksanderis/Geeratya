@@ -285,8 +285,7 @@ public sealed partial class FakeScrumStore
             && jql.Contains(EmptySprintJql, StringComparison.OrdinalIgnoreCase))
         {
             // The Scrum backlog view's query: open and future sprints plus issues in no sprint at all (#506).
-            return _sprints.Any(sprint => StateOf(sprint) != ClosedState && _members[IdOf(sprint)].Contains(key))
-                || !_sprints.Any(sprint => _members[IdOf(sprint)].Contains(key));
+            return InOpenSprint(key) || !_sprints.Any(sprint => _members[IdOf(sprint)].Contains(key));
         }
 
         if (jql.Contains(OpenSprintsJql, StringComparison.OrdinalIgnoreCase))
