@@ -1,9 +1,16 @@
 # Dispatch only: no push or pull_request triggers (CI minutes are scarce,
 # see docs/decisions.md, 2026-11-01). Run: gh workflow run ci.yml --ref main
+# One platform only (saves minutes on a rerun): add -f os=windows or -f os=ubuntu
 name: ci
 
 on:
   workflow_dispatch:
+    inputs:
+      os:
+        description: Platform to run
+        type: choice
+        options: [all, ubuntu, windows]
+        default: all
 
 permissions:
   contents: read
@@ -24,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: ${{ fromJSON(inputs.os == 'ubuntu' && '["ubuntu-latest"]' || inputs.os == 'windows' && '["windows-latest"]' || '["ubuntu-latest","windows-latest"]') }}
     steps:
       - uses: actions/checkout@v4
 
