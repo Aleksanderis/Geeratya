@@ -104,11 +104,22 @@ public sealed class SprintMoveClient(JiraTransport transport)
     {
         var body = RankRequestBody.Backlog(chunk);
         var request = JiraRequest.Write(HttpMethod.Post, path, body) with { AllowsEmptyBody = true };
-        var result = await transport.SendWriteAsync(request, RankJsonContext.Default.Response, cancellationToken);
 
-        return result.IsSuccess
-            ? WriteResults.Success(RankMapper.Map(chunk, result.Value))
-            : WriteResults.Failure<RankOutcome>(result.Error);
+        try
+        {
+            var result = await transport.SendWriteAsync(request, RankJsonContext.Default.Response, cancellationToken);
+
+            return result.IsSuccess
+                ? WriteResults.Success(RankMapper.Map(chunk, result.Value))
+                : WriteResults.Failure<RankOutcome>(result.Error);
+        }
+        catch (OperationCanceledException)
+        {
+            // The chunk may have been applied: report it as unknown so the chunks that did move are not lost.
+            var error = new WriteError(WriteErrorKind.UnknownOutcome, null, "The move was cancelled.", [], []);
+
+            return WriteResults.Failure<RankOutcome>(error);
+        }
     }
 
     private static WriteResult<SprintMoveOutcome> Refused(string message) =>

@@ -122,6 +122,30 @@ public sealed class SprintMoveClientTests
     }
 
     [Fact]
+    public async Task GivenCancelDuringSecondChunk_WhenMoving_ThenFirstChunkStillReportedMoved()
+    {
+        using var fixture = new TransportFixture();
+        using var source = new CancellationTokenSource();
+        var gate = new TaskCompletionSource();
+        fixture.Handler.Script(
+            HttpMethod.Post,
+            SprintIssuePath,
+            FakeResponse.WithStatus(HttpStatusCode.NoContent),
+            new FakeResponse(HttpStatusCode.NoContent, Gate: gate.Task));
+        var keys = Enumerable.Range(1, 120).Select(number => $"GCS-{number}").ToList();
+
+        var task = new SprintMoveClient(fixture.Transport).MoveToSprintAsync(7, keys, source.Token);
+        await source.CancelAsync();
+        gate.SetResult();
+        var result = await task;
+
+        Assert.Equal(keys.Take(50), result.Value.Moved);
+        Assert.Equal(keys.Skip(50).Take(50), result.Value.Unknown);
+        Assert.Equal(keys.Skip(100), result.Value.NotAttempted);
+        Assert.True(result.Value.Error!.IsOutcomeUnknown);
+    }
+
+    [Fact]
     public async Task GivenInvalidInput_WhenMoving_ThenValidationAndNoRequest()
     {
         using var fixture = new TransportFixture();
