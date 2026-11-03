@@ -2,9 +2,9 @@
                                         
 ╭─ View ──────────────────── 0 issues ─╮
 │  Key T Summary                      S│
-│ ╭─ Commands ───────────────────────╮ │
-│p│ Issue                            │ │
+│ ╭─ Commands ─────────────── 68/68 ─╮ │
+│p│ : _                              │ │
+│ ├──────────────────────────────────┤ │
 │ │ > Jump to an issue by k  Space g │ │
-│ │   Open the issue in the  Space o │ │
 ╰─╰──────────────────────────────────╯─╯
  COMMAND  :                             

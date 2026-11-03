@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
@@ -23,6 +24,10 @@ public static class PaletteOverlay
     private const int KeyGap = 2;
     private const int TopGap = 2;
     private const int MaxBoxHeight = 18;
+    private const int ChromeRows = 4;
+    private const int HeaderRows = 3;
+    private const int FooterMinimumHeight = 12;
+    private const string Cursor = "_";
 
     /// <summary>Draws the palette of <paramref name="state"/> over <paramref name="body"/> (<paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -35,7 +40,7 @@ public static class PaletteOverlay
     {
         var boxWidth = width >= NarrowBoxWidth ? Math.Min(width - Margin, MaxBoxWidth) : width;
 
-        if (state.Mode != InputMode.Command || boxWidth < 8 || height < MinimumBoxHeight)
+        if (state.Mode != InputMode.Command || boxWidth < 8 || height < MinimumBoxHeight + TopGap)
         {
             return body;
         }
@@ -43,7 +48,15 @@ public static class PaletteOverlay
         var rows = PaletteRows.For(state, keymap);
         var count = rows.Count(row => row.IsSelectable);
         var selected = Math.Clamp(state.PaletteSelected, 0, Math.Max(0, count - 1));
-        var area = Math.Min(height - 2 - TopGap, MaxBoxHeight - 2);
+        var available = Math.Min(height - TopGap, MaxBoxHeight);
+        var footer = available >= FooterMinimumHeight ? 2 : 0;
+        var area = available - ChromeRows - footer;
+
+        if (area < 1)
+        {
+            return body;
+        }
+
         var lines = ListLines(rows, selected, boxWidth - 4, gaps: true);
 
         if (lines.Count > area)
@@ -55,14 +68,27 @@ public static class PaletteOverlay
         var shown = lines.Skip(first).Take(area).ToList();
         var stable = StableRows(state, keymap, boxWidth - 4, area);
 
-        while (shown.Count < stable)
+        while (shown.Count < Math.Max(stable, 0))
         {
             shown.Add(new ListLine(StyledLine.Empty, -1, false));
         }
 
-        var box = new List<StyledLine> { OverlayBox.Top(boxWidth, Title) };
+        var inner = boxWidth - 2;
+        var box = new List<StyledLine>
+        {
+            OverlayBox.Top(boxWidth, Title, CountText(state, keymap, rows, count)),
+            OverlayBox.Wall(QueryLine(state.PaletteText, inner - 2), inner),
+            OverlayBox.Divider(boxWidth),
+        };
 
-        box.AddRange(shown.Select(line => OverlayBox.Wall(line.Text, boxWidth - 2)));
+        box.AddRange(shown.Select(line => OverlayBox.Wall(line.Text, inner)));
+
+        if (footer > 0)
+        {
+            box.Add(OverlayBox.Divider(boxWidth));
+            box.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), inner));
+        }
+
         box.Add(OverlayBox.Bottom(boxWidth));
 
         var left = (width - boxWidth) / 2;
@@ -74,7 +100,7 @@ public static class PaletteOverlay
         {
             if (shown[index].Index >= 0)
             {
-                OverlayBox.Mark(regions, MouseTarget.PaletteRow, TopGap, left, boxWidth, 1 + index, [shown[index].Index]);
+                OverlayBox.Mark(regions, MouseTarget.PaletteRow, TopGap, left, boxWidth, HeaderRows + index, [shown[index].Index]);
             }
         }
 
@@ -84,6 +110,52 @@ public static class PaletteOverlay
         }
 
         return result;
+    }
+
+    // The query line: the prompt in the accent colour, the typed text (its tail when too long) and a cursor cell.
+    private static StyledLine QueryLine(string text, int width)
+    {
+        var shown = text;
+
+        while (shown.Length > 1 && TextWidth.Of(shown) > Math.Max(1, width - 2 - Cursor.Length))
+        {
+            shown = shown[(char.IsHighSurrogate(shown[0]) && shown.Length > 2 ? 2 : 1)..];
+        }
+
+        return new StyledLine(
+        [
+            new StyledSpan(": ", TextRole.Heading),
+            new StyledSpan(shown, TextRole.Body),
+            new StyledSpan(Cursor, TextRole.Muted),
+        ]);
+    }
+
+    // The count chip: rows shown over rows of the unfiltered list; none for a typed command line.
+    private static string CountText(AppState state, KeymapTable keymap, IReadOnlyList<PaletteRow> rows, int shown)
+    {
+        if (rows.Any(row => row.Kind == PaletteRowKind.Usage))
+        {
+            return string.Empty;
+        }
+
+        var all = PaletteRows.For(state with { PaletteText = string.Empty }, keymap).Count(row => row.IsSelectable);
+
+        return $"{shown.ToString(CultureInfo.InvariantCulture)}/{all.ToString(CultureInfo.InvariantCulture)}";
+    }
+
+    private static string FooterText(KeymapTable keymap)
+    {
+        var up = KeyName(keymap, ActionIds.PickerPrevious);
+        var down = KeyName(keymap, ActionIds.PickerNext);
+        var run = KeyName(keymap, ActionIds.PaletteSubmit);
+        var cancel = KeyName(keymap, ActionIds.Cancel);
+
+        return $"{up}/{down} move  {run} run  {cancel} cancel";
+    }
+
+    private static string KeyName(KeymapTable keymap, string action)
+    {
+        return keymap.FindKeys(InputMode.Command, action) ?? "?";
     }
 
     // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the

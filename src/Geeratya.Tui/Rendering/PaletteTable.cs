@@ -116,6 +116,7 @@ public static class PaletteTable
             ThemeColor.Bad,
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.Chip),
+        [PaletteRole.OverlayCount] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -167,6 +168,7 @@ public static class PaletteTable
         [TextRole.OverlayChip] = PaletteRole.OverlayChip,
         [TextRole.OverlayChipWarn] = PaletteRole.OverlayChipWarn,
         [TextRole.OverlayChipBad] = PaletteRole.OverlayChipBad,
+        [TextRole.OverlayCount] = PaletteRole.OverlayCount,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();
