@@ -12,7 +12,9 @@ public sealed record CachedIssueRow(
     List<string> Labels,
     CachedParent? Parent,
     DateTimeOffset? Updated,
-    string ProjectKey);
+    string ProjectKey,
+    List<CachedSprint> Sprints,
+    double? Estimate);
 
 /// <summary>The JSON shape of an issue status.</summary>
 public sealed record CachedStatus(string Id, string Name, string CategoryKey);
@@ -24,4 +26,7 @@ public sealed record CachedIssueType(string Id, string Name, int HierarchyLevel,
 public sealed record CachedPerson(string AccountId, string DisplayName);
 
 /// <summary>The JSON shape of a parent stub.</summary>
-public sealed record CachedParent(string Key, string? Summary);
+public sealed record CachedParent(string Key, string? Summary, bool IsEpic);
+
+/// <summary>The JSON shape of a sprint of an issue; <see cref="State"/> is the enum member name.</summary>
+public sealed record CachedSprint(long Id, string Name, string State);
