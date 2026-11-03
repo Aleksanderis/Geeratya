@@ -22,6 +22,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The cells of the close <c>x</c> on the active tab chip, null when the bar draws none.</summary>
     public TabButton? TabClose { get; init; }
 
+    /// <summary>The cells of the commands chip at the right end of the tab bar row, null when the bar draws none.</summary>
+    public TabButton? CommandsChip { get; init; }
+
     /// <summary>The cells of the jump chip at the right end of the tab bar row, null when the bar draws none.</summary>
     public TabButton? JumpChip { get; init; }
 
@@ -65,9 +68,10 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
 
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {
-            TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width),
-            NewTabButton = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, width),
-            TabClose = TabBar.CloseButton(state.Session.Tabs, state.Session.Active, width),
+            TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width, keymap),
+            NewTabButton = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, width, keymap),
+            TabClose = TabBar.CloseButton(state.Session.Tabs, state.Session.Active, width, keymap),
+            CommandsChip = TabBar.CommandsChip(state.Session.Tabs, state.Session.Active, width, keymap),
             JumpChip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, width, keymap),
             StatusMessage = StatusMessages.Cells(state),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,

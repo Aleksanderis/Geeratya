@@ -76,6 +76,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | StatusMessage | Right-click | `menu.view` | V | Same as a right-click on the rest of the line |
 | TabClose | Click | `tab.close` | B | The `x` on the active tab chip (drawn from 80 columns): closes that tab at once, like `tab.close` (closing a tab is not a Jira write) |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
+| CommandsChip | Click | `palette.open` | B | Opens the command palette, same as `:`; the ` : commands ` chip at the right end of the tab bar row, left of the jump chip (the key comes from the keymap), drawn from 44 columns: the tabs make room for it, so it never hides behind them. Also with no tab open |
 | JumpChip | Click | `issue.jump` | B | Opens the jump prompt, same as `<space>g`; the ` <space>g jump ` chip at the right end of the tab bar row (the keys come from the keymap), drawn when the bar has room (at least one spare cell after the last chip or the `+`) |
 | LaneChip | Click | `detail.section-next` | B | Columns layout with swimlanes: steps to the next lane (wrapping), same as `]]`; the `Lane n/N: Name` text in the status line, clickable over the part that shows (a message or typed keys hide it, a cut line shortens it). `[[` stays keyboard-only: the lanes wrap, so stepping back is one click short of a full cycle |
 | LaneChip | Right-click | `menu.view` | V | Same as a right-click on the rest of the status line |

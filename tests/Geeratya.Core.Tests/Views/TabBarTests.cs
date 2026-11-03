@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Transport;
@@ -232,6 +233,101 @@ public class TabBarTests
         Assert.EndsWith(" <space>g jump ", line.PlainText);
         Assert.Equal(TextRole.TabDim, line.Spans[^1].Role);
         Assert.Equal(80, DisplayWidth.Of(TabBar.BuildWithJumpChip([], null, 80).PlainText));
+    }
+
+    [Theory]
+    [InlineData(44)]
+    [InlineData(80)]
+    [InlineData(120)]
+    public void GivenSeveralTabs_WhenWidthIsFortyFourOrMore_ThenTheCommandsChipShowsAtTheRightEnd(int width)
+    {
+        var tabs = Tabs("project = A", "project = B", "project = C", "project = D");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, width);
+        var chip = TabBar.CommandsChip(tabs, tabs[0].Id, width);
+
+        Assert.NotNull(chip);
+        Assert.Equal(width, DisplayWidth.Of(line.PlainText));
+        Assert.Equal(" : commands ", line.PlainText.Substring(chip.Value.Start, chip.Value.End - chip.Value.Start));
+    }
+
+    [Fact]
+    public void GivenWideBar_WhenBuilding_ThenTheCommandsChipSitsLeftOfTheJumpChip()
+    {
+        var tabs = Tabs("project = A");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 120);
+
+        Assert.EndsWith(" : commands   <space>g jump ", line.PlainText);
+        Assert.Equal(120, TabBar.JumpChip(tabs, tabs[0].Id, 120)!.Value.End);
+    }
+
+    [Theory]
+    [InlineData(40)]
+    [InlineData(43)]
+    public void GivenNarrowBar_WhenWidthIsUnderFortyFour_ThenThereIsNoCommandsChip(int width)
+    {
+        var tabs = Tabs("project = A");
+
+        Assert.Null(TabBar.CommandsChip(tabs, tabs[0].Id, width));
+        Assert.DoesNotContain("commands", TabBar.BuildWithJumpChip(tabs, tabs[0].Id, width).PlainText);
+    }
+
+    [Fact]
+    public void GivenManyTabs_WhenWidthIsFortyFour_ThenTheTabsLeaveRoomAndTheJumpChipGivesWay()
+    {
+        var tabs = Tabs("project = A", "project = B", "project = C", "project = D", "project = E", "project = F");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 44);
+
+        Assert.EndsWith(" : commands ", line.PlainText);
+        Assert.Null(TabBar.JumpChip(tabs, tabs[0].Id, 44));
+        Assert.Equal(44, DisplayWidth.Of(line.PlainText));
+        Assert.All(TabBar.Areas(tabs, tabs[0].Id, 44), area => Assert.True(area.End <= 44 - 13));
+    }
+
+    [Fact]
+    public void GivenAKeymapWithoutThePaletteKey_WhenBuilding_ThenTheChipDropsTheKeyAndStaysClickable()
+    {
+        var tabs = Tabs("project = A");
+        var keymap = new KeymapTable([]);
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80, keymap);
+        var chip = TabBar.CommandsChip(tabs, tabs[0].Id, 80, keymap)!.Value;
+
+        Assert.Equal(" commands ", line.PlainText.Substring(chip.Start, chip.End - chip.Start));
+    }
+
+    [Fact]
+    public void GivenARemappedPaletteKey_WhenBuilding_ThenTheChipNamesIt()
+    {
+        var tabs = Tabs("project = A");
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-p", ActionIds.PaletteOpen)]);
+
+        Assert.Contains(" Ctrl-p commands ", TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80, keymap).PlainText);
+    }
+
+    [Theory]
+    [InlineData(44)]
+    [InlineData(48)]
+    public void GivenSeveralTabs_WhenWidthIsFortyFourOrFortyEight_ThenTheBarKeepsItsHiddenTabMarks(int width)
+    {
+        var tabs = Tabs("project = A", "project = B", "project = C", "project = D");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[1].Id, width);
+
+        Assert.Contains("‹", line.PlainText);
+        Assert.Contains("commands", line.PlainText);
+        Assert.Equal(width, DisplayWidth.Of(line.PlainText));
+    }
+
+    [Fact]
+    public void GivenNoTabs_WhenWide_ThenTheCommandsChipStillShows()
+    {
+        var line = TabBar.BuildWithJumpChip([], null, 80);
+
+        Assert.EndsWith(" : commands ", line.PlainText);
+        Assert.Null(TabBar.JumpChip([], null, 80));
     }
 
     [Fact]

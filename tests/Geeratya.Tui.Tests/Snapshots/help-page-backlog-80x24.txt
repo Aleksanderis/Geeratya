@@ -1,4 +1,4 @@
- 1 Backlog Sample x   +                                           <space>g jump 
+ 1 Backlog Sample x   +                              : commands   <space>g jump 
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
