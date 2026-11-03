@@ -5,12 +5,15 @@ using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
-/// <summary>The overlay surface, the dimmed view and the overlay roles in every colour tier (<c>docs/ux-look.md</c>, section 6).</summary>
+/// <summary>
+/// The overlay surface, the dimmed view and the overlay roles in every colour tier (<c>docs/ux-look.md</c>, section 6).
+/// </summary>
 [Trait("Os", "Independent")]
 public class OverlayColourTests
 {
+    // Body text keeps 4.5 on the surface; muted and accent-coloured text keep 3.0 (a raised fill costs them a
+    // little, as on the selection tint).
     private const double SurfaceContrast = 1.3;
-    // Body text keeps 4.5 on the surface; muted and accent-coloured text keep 3.0 (a raised fill costs them a little, as on the selection tint).
     private const double MutedDimContrast = 3.0;
     private const double FrameContrast = 3.0;
     private const double TextContrast = 4.5;
@@ -31,9 +34,10 @@ public class OverlayColourTests
         foreach (var role in new[] { PaletteRole.Body, PaletteRole.Muted, PaletteRole.Key, PaletteRole.Heading })
         {
             var style = Palette.Resolve(theme, ColorSupport.TrueColor, role, SpanGround.Surface, true);
+            var required = role == PaletteRole.Body ? TextContrast : MutedDimContrast;
 
             Assert.True(
-                Contrast.Ratio(style.Foreground!.Value, style.Background!.Value) >= (role == PaletteRole.Body ? TextContrast : MutedDimContrast),
+                Contrast.Ratio(style.Foreground!.Value, style.Background!.Value) >= required,
                 $"{name}: {role} on the surface");
         }
     }
@@ -54,7 +58,8 @@ public class OverlayColourTests
 
     [Theory]
     [MemberData(nameof(Themes))]
-    public void GivenATheme_WhenResolvingTheOverlayRoles_ThenFramesAndChipsKeepTheirContrastInBothColourTiers(string name)
+    public void GivenATheme_WhenResolvingTheOverlayRoles_ThenFramesAndChipsKeepTheirContrastInBothTiers(
+        string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
         PaletteRole[] frames = [PaletteRole.OverlayFrame, PaletteRole.OverlayFrameWarn, PaletteRole.OverlayFrameBad];
@@ -119,7 +124,14 @@ public class OverlayColourTests
         var theme = BuiltInThemes.Default;
         var chip = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.OverlayChip);
 
-        Assert.Equal(chip.Background, Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.OverlayChip, SpanGround.Surface | SpanGround.Dim, true).Background);
+        var raised = Palette.Resolve(
+            theme,
+            ColorSupport.TrueColor,
+            PaletteRole.OverlayChip,
+            SpanGround.Surface | SpanGround.Dim,
+            true);
+
+        Assert.Equal(chip.Background, raised.Background);
     }
 
     [Fact]

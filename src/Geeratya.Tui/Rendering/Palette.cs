@@ -15,7 +15,8 @@ public static class Palette
     /// <summary>
     /// Resolves a role where it sits: on the page, on an overlay's raised surface (the page background of the role
     /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (text blended
-    /// towards the page at 24 bits; faint, or bright black when <paramref name="faintSupported"/> is false, at 16 colours;
+    /// towards the page at 24 bits; faint, or bright black when <paramref name="faintSupported"/> is false, at 16
+    /// colours;
     /// unchanged without colour). The ground never changes the page background at 16 colours or without colour.
     /// </summary>
     public static ResolvedStyle Resolve(

@@ -1,6 +1,8 @@
 namespace Geeratya.Core.Text;
 
-/// <summary>What a span sits on. A flag set: a box under another overlay is both <see cref="Surface"/> and <see cref="Dim"/>.</summary>
+/// <summary>
+/// What a span sits on. A flag set: a box under another overlay is both <see cref="Surface"/> and <see cref="Dim"/>.
+/// </summary>
 [Flags]
 public enum SpanGround
 {

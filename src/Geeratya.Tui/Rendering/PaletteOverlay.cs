@@ -86,7 +86,8 @@ public static class PaletteOverlay
         return result;
     }
 
-    // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the filter narrows.
+    // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the
+    // filter narrows.
     private static int StableRows(AppState state, KeymapTable keymap, int width, int area)
     {
         if (state.PaletteText.Length == 0)

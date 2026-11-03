@@ -98,15 +98,18 @@ public class OverlayLookTests
     [InlineData("form", 120, 36)]
     [InlineData("form", 80, 24)]
     [InlineData("form-picker", 80, 24)]
-    public void GivenAFormOverNonEmptyView_WhenBuildingTheFrame_ThenTheViewRowsShowDimmedAroundTheBox(
+    public void GivenAForm_WhenBuildingTheFrame_ThenTheViewShowsDimmedLeftAndRightOfTheBox(
         string name,
         int width,
         int height)
     {
         var frame = Build(name, width, height);
-        var row = frame.Body.First(line => line.PlainText.Contains("Issue 1", StringComparison.Ordinal));
+        var box = BoxOf(frame);
+        var row = frame.Body[box.Top - frame.Header.Count + 1];
 
-        Assert.All(row.Spans.Where(span => span.Text.Trim().Length > 0), span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
+        Assert.Equal(SpanGround.Dim, row.Spans[0].Ground);
+        Assert.Contains(row.Spans, span => span.Ground == SpanGround.Surface);
+        Assert.Equal(SpanGround.Dim, row.Spans[^1].Ground);
     }
 
     [Theory]
@@ -120,14 +123,19 @@ public class OverlayLookTests
 
         Assert.Equal(FrameBuilder.BodyHeight(height), frame.Body.Count);
         Assert.All(frame.Body, line => Assert.Equal(width, TextWidth.Of(line.PlainText)));
-        Assert.All(frame.Regions, region => Assert.True(region.Left + region.Width <= width && region.Top + region.Height <= height));
+        Assert.All(
+            frame.Regions,
+            region => Assert.True(region.Left + region.Width <= width && region.Top + region.Height <= height));
     }
 
     [Theory]
     [MemberData(nameof(Screens))]
-    public void GivenAnOverlay_WhenBuildingTheFrame_ThenTheBoxIsCentredAcrossTheWidth(string name, int width, int height)
+    public void GivenAnOverlay_WhenBuildingTheFrame_ThenTheBoxIsCentredAcrossTheWidth(
+        string name,
+        int width,
+        int height)
     {
-        var box = Build(name, width, height).Regions.First(region => region.Target is MouseTarget.OverlayBox or MouseTarget.ConfirmBox);
+        var box = BoxOf(Build(name, width, height));
 
         Assert.InRange(box.Left - (width - box.Left - box.Width), -1, 1);
     }
@@ -141,13 +149,15 @@ public class OverlayLookTests
     {
         var state = StateOf(name);
         var frame = Build(name, width, height);
-        var box = frame.Regions.First(region => region.Target is MouseTarget.OverlayBox or MouseTarget.ConfirmBox);
+        var box = BoxOf(frame);
         var context = MouseContext.From(state, width, height, frame.Header.Count, default, frame.Regions);
         var outsideRow = box.Top == frame.Header.Count ? box.Top + box.Height : frame.Header.Count;
         var outside = MouseResolver.Resolve(context, 0, outsideRow, MouseGesture.Click, default);
         var edge = MouseResolver.Resolve(context, box.Left + box.Width / 2, box.Top, MouseGesture.Click, default);
 
-        Assert.Single(outside);
+        var cancel = Assert.IsType<ActionRequested>(Assert.Single(outside));
+
+        Assert.Equal(ActionIds.Cancel, cancel.Action);
         Assert.Empty(edge);
     }
 
@@ -159,7 +169,7 @@ public class OverlayLookTests
     [InlineData("confirm")]
     [InlineData("palette")]
     [InlineData("picker")]
-    public void GivenAnOverlayInTheAsciiGlyphSet_WhenBuildingTheFrame_ThenTheFrameIsPlusAndDashesAndTheViewShows(string name)
+    public void GivenAnOverlayInTheAsciiGlyphSet_WhenBuildingTheFrame_ThenTheFrameIsPlusAndDashes(string name)
     {
         var lines = FrameBuilder.Build(StateOf(name), 80, 24, _keymap, NetworkSample, GlyphSet.Ascii);
 
@@ -170,7 +180,11 @@ public class OverlayLookTests
     [Fact]
     public void GivenAConfirmThatDeletes_WhenBuildingTheFrame_ThenTheFrameIsTheBadColourAndAnyOtherQuestionIsWarn()
     {
-        var destructive = new ConfirmRequest("Delete PROJ-1? Jira cannot undo this.", "issue.delete", Label: "Delete issue", Destructive: true);
+        var destructive = new ConfirmRequest(
+            "Delete PROJ-1? Jira cannot undo this.",
+            "issue.delete",
+            Label: "Delete issue",
+            Destructive: true);
         var plain = new ConfirmRequest("Move PROJ-1 to Done?", "write.confirm", Label: "Move issue");
         var notice = new ConfirmRequest("Some text", "x", Title: "Goal");
 
@@ -200,11 +214,18 @@ public class OverlayLookTests
 
         var spans = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body.SelectMany(line => line.Spans).ToList();
 
-        Assert.Contains(spans, span => span.Role == TextRole.OverlayChip && span.Ground == (SpanGround.Surface | SpanGround.Dim));
+        Assert.Contains(
+            spans,
+            span => span.Role == TextRole.OverlayChip && span.Ground == (SpanGround.Surface | SpanGround.Dim));
         Assert.Contains(spans, span => span.Role == TextRole.OverlayChipWarn && span.Ground == SpanGround.Surface);
     }
 
     private static DateTimeOffset NetworkSample => NetworkStateSnapshotTests.Now;
+
+    private static OverlayRegion BoxOf(StyledFrame frame)
+    {
+        return frame.Regions.First(region => region.Target is MouseTarget.OverlayBox or MouseTarget.ConfirmBox);
+    }
 
     private static TextRole FrameOf(string name)
     {
@@ -220,7 +241,8 @@ public class OverlayLookTests
     {
         var spans = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body.SelectMany(line => line.Spans);
 
-        return spans.First(span => span.Text.StartsWith('╭') && span.Role != TextRole.Muted && span.Role != TextRole.Heading).Role;
+        return spans.First(
+            span => span.Text.StartsWith('╭') && span.Role is not (TextRole.Muted or TextRole.Heading)).Role;
     }
 
     private static StyledFrame Build(string name, int width, int height)

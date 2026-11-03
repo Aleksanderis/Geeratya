@@ -171,7 +171,9 @@ public class PaletteOverlayTests
         var right = all[bottom].IndexOf('╯', StringComparison.Ordinal);
 
         // The text between the walls of the box; the view and its frame show around it.
-        return [.. all.Skip(top + 1).Take(bottom - top - 1).Select(line => line[(left + 1)..right].Trim().Trim('│').Trim())];
+        var rows = all.Skip(top + 1).Take(bottom - top - 1);
+
+        return [.. rows.Select(line => line[(left + 1)..right].Trim().Trim('│').Trim())];
     }
 
     private static string Slug(string text)

@@ -66,7 +66,7 @@ public static class FormOverlay
         var footer = room >= FooterMinimumInner ? FooterHeight : 0;
         var inner = Math.Min(room, content.Lines.Count + footer);
         var box = BoxLines(form, content, keymap, boxWidth, inner, footer);
-        var top = OverlayBox.CentredTop(height, box.Count);
+        var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
         var result = OverlayBox.Backdrop(body);
 

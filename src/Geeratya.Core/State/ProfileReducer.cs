@@ -488,7 +488,12 @@ public static class ProfileReducer
 
         var question = $"Remove profile {profile.Name} ({profile.Email} on {profile.SiteUrl}) and delete its stored "
             + $"token?{ActiveNotice(state.Profiles, profile)}{RunningNotice(state, profile)} This cannot be undone";
-        var request = new ConfirmRequest(question, RemoveAction, profile.Name, Label: "Remove profile", Destructive: true);
+        var request = new ConfirmRequest(
+            question,
+            RemoveAction,
+            profile.Name,
+            Label: "Remove profile",
+            Destructive: true);
 
         return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
     }

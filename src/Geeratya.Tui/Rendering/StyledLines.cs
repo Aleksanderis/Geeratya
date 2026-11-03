@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -54,8 +56,8 @@ public static class StyledLines
                 break;
             }
 
-            var text = new System.Text.StringBuilder();
-            var elements = System.Globalization.StringInfo.GetTextElementEnumerator(span.Text);
+            var text = new StringBuilder();
+            var elements = StringInfo.GetTextElementEnumerator(span.Text);
 
             while (elements.MoveNext())
             {

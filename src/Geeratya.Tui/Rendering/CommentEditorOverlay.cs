@@ -26,6 +26,7 @@ public static class CommentEditorOverlay
     private const int MinimumBoxWidth = 12;
     private const int MinimumHeight = 6;
     private const int MinimumTextRows = 4;
+    private const int TopGap = 1;
     private const int FooterHeight = 2;
     private const int MaxNoteRows = 3;
     private const int WallColumns = 4;
@@ -53,7 +54,7 @@ public static class CommentEditorOverlay
         var rows = EditorLayout.Rows(editor.Buffer.Text, EditorLayout.Capacity(inner));
         var area = Math.Clamp(height - 2 - notes.Count - FooterHeight, 1, Math.Max(MinimumTextRows, rows.Count));
         var box = BoxLines(editor, rows, notes, footer, boxWidth, area);
-        var top = OverlayBox.CentredTop(height, box.Count);
+        var top = Math.Min(TopGap, Math.Max(0, height - box.Count));
         var left = (width - boxWidth) / 2;
         var result = OverlayBox.Backdrop(body);
 

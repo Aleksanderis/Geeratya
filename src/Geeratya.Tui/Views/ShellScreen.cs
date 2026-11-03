@@ -108,7 +108,8 @@ public sealed class ShellScreen : Window
         }
 
         _regions = frame.Regions;
-        var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors, _glyphs != GlyphSet.Ascii));
+        var faint = _glyphs != GlyphSet.Ascii;
+        var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors, faint));
 
         _body.SetLines(lines.ToList());
         _status.Text = frame.StatusLine;

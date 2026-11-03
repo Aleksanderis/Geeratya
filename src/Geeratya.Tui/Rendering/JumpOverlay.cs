@@ -52,6 +52,7 @@ public static class JumpOverlay
         var result = OverlayBox.Backdrop(body);
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
+
         var area = Math.Max(0, inner - 1 - footer);
 
         if (rows.Count > 0)

@@ -59,6 +59,7 @@ public static class SourcePickerOverlay
         var result = OverlayBox.Backdrop(body);
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
+
         var area = inner - 1 - footer;
         var visible = rows.ChoiceOfLine.Skip(FirstVisible(rows, area)).Take(Math.Max(0, area));
 

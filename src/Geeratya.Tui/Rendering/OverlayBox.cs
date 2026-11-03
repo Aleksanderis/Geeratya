@@ -3,7 +3,9 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>How serious the action an overlay asks about is; it picks the frame colour (<c>docs/ux-look.md</c>, section 7).</summary>
+/// <summary>
+/// How serious the action an overlay asks about is; it picks the frame colour (<c>docs/ux-look.md</c>, section 7).
+/// </summary>
 public enum OverlayKind
 {
     /// <summary>The accent frame of every overlay.</summary>
@@ -89,44 +91,13 @@ public static class OverlayBox
     }
 
     /// <summary>
-    /// Notes the whole box in <paramref name="regions"/> (when not null) as <see cref="MouseTarget.OverlayBox"/>: a click on a
-    /// part of it that is no row does nothing, and a click outside every box is the backdrop and closes the overlay. Call
-    /// it before marking the rows, which then sit on top of it.
+    /// Notes the whole box in <paramref name="regions"/> (when not null) as <see cref="MouseTarget.OverlayBox"/>: a click
+    /// on a part of it that is no row does nothing, and a click outside every box is the backdrop and closes the
+    /// overlay. Call it before marking the rows, which then sit on top of it.
     /// </summary>
     public static void Cover(List<OverlayRegion>? regions, int top, int left, int boxWidth, int rows)
     {
         regions?.Add(new OverlayRegion(MouseTarget.OverlayBox, top, left, boxWidth, rows, 0));
-    }
-
-    /// <summary>The row of the first line of a box of <paramref name="count"/> rows centred in <paramref name="height"/>.</summary>
-    public static int CentredTop(int height, int count)
-    {
-        return Math.Max(0, (height - count) / 2);
-    }
-
-    private static StyledLine Grounded(StyledLine line, SpanGround ground)
-    {
-        return new StyledLine([.. line.Spans.Select(span => span with { Ground = span.Ground | ground })]);
-    }
-
-    private static TextRole FrameRole(OverlayKind kind)
-    {
-        return kind switch
-        {
-            OverlayKind.Warn => TextRole.OverlayFrameWarn,
-            OverlayKind.Destructive => TextRole.OverlayFrameBad,
-            _ => TextRole.OverlayFrame,
-        };
-    }
-
-    private static TextRole ChipRole(OverlayKind kind)
-    {
-        return kind switch
-        {
-            OverlayKind.Warn => TextRole.OverlayChipWarn,
-            OverlayKind.Destructive => TextRole.OverlayChipBad,
-            _ => TextRole.OverlayChip,
-        };
     }
 
     /// <summary>
@@ -159,5 +130,30 @@ public static class OverlayBox
 
             row++;
         }
+    }
+
+    private static StyledLine Grounded(StyledLine line, SpanGround ground)
+    {
+        return new StyledLine([.. line.Spans.Select(span => span with { Ground = span.Ground | ground })]);
+    }
+
+    private static TextRole FrameRole(OverlayKind kind)
+    {
+        return kind switch
+        {
+            OverlayKind.Warn => TextRole.OverlayFrameWarn,
+            OverlayKind.Destructive => TextRole.OverlayFrameBad,
+            _ => TextRole.OverlayFrame,
+        };
+    }
+
+    private static TextRole ChipRole(OverlayKind kind)
+    {
+        return kind switch
+        {
+            OverlayKind.Warn => TextRole.OverlayChipWarn,
+            OverlayKind.Destructive => TextRole.OverlayChipBad,
+            _ => TextRole.OverlayChip,
+        };
     }
 }

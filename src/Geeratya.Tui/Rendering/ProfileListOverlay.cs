@@ -56,6 +56,7 @@ public static class ProfileListOverlay
         var result = OverlayBox.Backdrop(body);
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
+
         var shown = Math.Max(0, Math.Min(area, profiles.Count - first));
 
         OverlayBox.Mark(regions, MouseTarget.ProfileRow, top, left, boxWidth, 1, Enumerable.Range(first, shown));
