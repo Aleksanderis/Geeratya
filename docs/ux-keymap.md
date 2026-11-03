@@ -88,8 +88,8 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>sv` | `sprint.switch` | Switch the sprint shown (active, future, closed): picker over the board of the active tab (board, backlog or sprint view). `Enter` opens the row in the current tab when that is a Sprint view, else in a new tab; `Ctrl-t` always in a new tab. Built (#177) | E | view menu (right-click a tab or the status line) | M5 #177 |
 | `<space>sm` | `sprint.move-issues` | Move the issue, the marked issues or the Visual range to a sprint (picker) | E | drag onto a sprint section | M5 #181 |
 | `<space>sb` | `sprint.move-to-backlog` | Move the same set to the backlog | E | drag onto the backlog section | M5 #181 |
-| `<space>sn` | `sprint.create` | Create a sprint (name, goal, dates) | E | `+` in the backlog header | M5 #185 |
-| `<space>se` | `sprint.edit` | Edit the sprint shown (name, goal, dates) | A | click the sprint header | M5 #185 |
+| `<space>sn` | `sprint.create` | Create a sprint (name, goal, dates): the field form, opened at once, on a Scrum backlog or sprint view; a new sprint is future and has no issues. Built (#185) | E | view menu (right-click a tab or the status line); `+` in the backlog header waits for the mouse work of #178 | M5 #185 |
+| `<space>se` | `sprint.edit` | Edit the sprint shown (name, goal, dates): the sprint of a Sprint view, or in a Scrum backlog the sprint of the section under the cursor (an empty section has no cursor stop: open it from the sprint switcher). A closed sprint is read only. Dates are typed `yyyy-MM-dd HH:mm` in local time and cannot be cleared once set (Jira's update has no way to). Built (#185) | A | view menu; click the sprint header waits for the mouse work of #178 | M5 #185 |
 | `<space>ss` | `sprint.start` | Start the sprint (Confirm: dates, issue count) | E | button in the sprint header | M5 #186 |
 | `<space>sc` | `sprint.complete` | Complete the sprint (Confirm: says where the N open issues go) | E | button in the sprint header | M5 #186 |
 | `<space>vf` | `view.quick-filter` | Toggle board quick filters | E | click a filter chip | M6 #192 |

@@ -116,6 +116,12 @@ public static class ContextMenus
             actions.Add(ActionIds.SprintSwitch);
         }
 
+        if (active is { Definition.Source: ViewSourceKind.ScrumBacklog or ViewSourceKind.Sprint })
+        {
+            actions.Add(ActionIds.SprintCreate);
+            actions.Add(ActionIds.SprintEdit);
+        }
+
         if (state.Session.Tabs.Count > 1)
         {
             actions.Add(ActionIds.TabPrevious);

@@ -4,6 +4,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Links;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -285,6 +286,11 @@ public static class WriteReducer
             return CompleteLink(state, operation);
         }
 
+        if (operation.Request is SprintWriteRequest sprint)
+        {
+            return CompleteSprint(state, operation, sprint);
+        }
+
         var effects = new List<Effect>();
 
         if (operation.Request.ChangesRows)
@@ -364,6 +370,34 @@ public static class WriteReducer
         var reloaded = ReloadDetails(finished, operation.Keys, effects);
 
         return new ReduceResult(reloaded with { Message = operation.Request.DoneText }, effects);
+    }
+
+    /// <summary>
+    /// Jira changed a sprint: no row shows it, so nothing is patched; every tab of the board that shows sprints
+    /// (Scrum backlog, Sprint view) reloads to pick up the new header and the new section.
+    /// </summary>
+    private static ReduceResult CompleteSprint(AppState state, Operation operation, SprintWriteRequest request)
+    {
+        var effects = new List<Effect>();
+        var next = Finish(state, operation, false, effects);
+
+        foreach (var tab in next.Session.Tabs.Where(candidate => ShowsSprintsOf(candidate, request.BoardId)).ToArray())
+        {
+            var current = ViewReducer.Find(next.Session.Tabs, tab.Id);
+
+            if (current is { Cold: false, Load: not Loading })
+            {
+                next = ViewReducer.StartRefresh(next, current, false, effects);
+            }
+        }
+
+        return new ReduceResult(next with { Message = operation.Request.DoneText }, effects);
+    }
+
+    private static bool ShowsSprintsOf(TabState tab, long boardId)
+    {
+        return tab.Definition.Source is ViewSourceKind.ScrumBacklog or ViewSourceKind.Sprint
+            && SprintBoards.BoardOf(tab.Definition) == boardId;
     }
 
     private static ReduceResult Failed(AppState state, WriteFailed failed)

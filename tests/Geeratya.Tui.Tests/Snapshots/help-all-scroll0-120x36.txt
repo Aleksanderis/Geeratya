@@ -30,7 +30,7 @@
             │               │   Space l    Switch between list and columns                                 │            
             │               │   Space *    Switch the command level for the session                        │            
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
-            │               │ Tabs                                                                         │            
+            │               │   Space s n  Create a sprint (name, goal, dates)                             │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

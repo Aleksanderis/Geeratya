@@ -545,6 +545,8 @@ public sealed class AppReducer
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
             ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state),
             ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
+            ActionIds.SprintCreate => InNormal(state, () => SprintForms.Create(state)),
+            ActionIds.SprintEdit => InNormal(state, () => SprintForms.Edit(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
