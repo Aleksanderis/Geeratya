@@ -22,7 +22,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string NoIssuesText = "No issues match.";
     private const string NoBoardIssuesText = "The board has no issues.";
     private const string NoOpenSprintText = "No open sprint on this board.";
-    private const string NoOpenSprintHint = "Plan or start one in the backlog (:backlog) or the board's Sprint view.";
+    private const string NoOpenSprintHint = "Plan one in the backlog (:backlog).";
     private const string RetryText = "<space>r to retry";
     private const string TruncatedText = "Load more stopped at 10 000 rows.";
     private const string CouldNotLoadMore = "Could not load more: ";

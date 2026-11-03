@@ -24,13 +24,19 @@ public sealed class SiteFields(FieldClient client, TimeProvider? clock = null)
     private Task<JiraResult<IssueExtraFields>>? _inflight;
     private JiraResult<IssueExtraFields>? _failure;
     private DateTimeOffset _failedAt;
+    private int _warmed;
 
     /// <summary>
-    /// Starts the lookup in the background (lowest priority) so the first issue detail finds the ids ready. Does
-    /// nothing when they are known, remembered as failed or already being asked.
+    /// Starts the lookup in the background (lowest priority) so the first issue detail finds the ids ready. Only the
+    /// first call per connection does anything.
     /// </summary>
     public void Warm()
     {
+        if (Interlocked.Exchange(ref _warmed, 1) == 1)
+        {
+            return;
+        }
+
         _ = AskAsync(JiraPriority.Background);
     }
 
@@ -67,41 +73,47 @@ public sealed class SiteFields(FieldClient client, TimeProvider? clock = null)
             }
 
             // The request belongs to the connection, not to the first caller: one caller leaving does not cancel it.
-            return _inflight = FetchAsync(priority);
+            var fetch = FetchAsync(priority);
+
+            // A reply that completed synchronously has already stored its answer; keeping it here would stick.
+            if (!fetch.IsCompleted)
+            {
+                _inflight = fetch;
+            }
+
+            return fetch;
         }
     }
 
     private async Task<JiraResult<IssueExtraFields>> FetchAsync(JiraPriority priority)
     {
-        JiraResult<IssueExtraFields> result;
+        JiraResult<IssueExtraFields>? result = null;
 
         try
         {
-            result = await Task.Run(() => client.GetExtraFieldsAsync(CancellationToken.None, priority));
+            result = await client.GetExtraFieldsAsync(CancellationToken.None, priority);
+
+            return result;
         }
         finally
         {
+            // One step: a caller arriving now sees the answer, never an empty gap that would start a second request.
             lock (_lock)
             {
                 _inflight = null;
+
+                if (result is { IsSuccess: true })
+                {
+                    _known = result.Value;
+                    _failure = null;
+                }
+                else if (result is not null)
+                {
+                    _failure = result;
+                    _failedAt = _clock.GetUtcNow();
+                }
             }
         }
-
-        lock (_lock)
-        {
-            if (result.IsSuccess)
-            {
-                _known = result.Value;
-                _failure = null;
-            }
-            else
-            {
-                _failure = result;
-                _failedAt = _clock.GetUtcNow();
-            }
-        }
-
-        return result;
     }
 
     /// <summary>Keeps the estimation field of a board's configuration; a null or blank id is ignored.</summary>
