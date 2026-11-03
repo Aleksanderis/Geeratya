@@ -34,7 +34,8 @@ public sealed class AppReducer
     ];
 
     private const string EscapeKey = "Esc";
-    private const string ConfirmTooSmallText = "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
+    private const string ConfirmTooSmallText =
+        "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
 
     private readonly KeymapTable _keymap;

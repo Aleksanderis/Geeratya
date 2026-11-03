@@ -4,7 +4,7 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
-/// <summary>The Confirm dialog: how a request is split, wrapped and sized, and whether it fits the terminal. Pure.</summary>
+/// <summary>The Confirm dialog: how a request is split, wrapped and sized, and whether it fits. Pure.</summary>
 public static class ConfirmDialog
 {
     public const string Title = "Confirm";
@@ -37,7 +37,8 @@ public static class ConfirmDialog
 
         var split = Split(request.Message);
         var text = boxWidth - 4;
-        var layout = new ConfirmDialogLayout(boxWidth, Wrap(split.Question, text), Wrap(split.Warning, text), LabelOf(request));
+        var question = Wrap(split.Question, text);
+        var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request));
 
         return layout.Height <= bodyRows ? layout : null;
     }
@@ -48,12 +49,13 @@ public static class ConfirmDialog
     /// </summary>
     public static bool Fits(AppState state)
     {
-        if (state.Confirm is not { } request || state.ViewportColumns <= 0 || state.ViewportRows <= 0)
+        if (state.Confirm is not { } request || state.ViewportColumns <= 0
+            || state.ViewportBodyHeight == AppState.UnknownBodyHeight)
         {
             return true;
         }
 
-        return Layout(request, state.ViewportColumns, state.ViewportRows) is not null;
+        return Layout(request, state.ViewportColumns, state.ViewportBodyHeight) is not null;
     }
 
     /// <summary>The name of the <c>y</c> answer: the request's own label, else a plain "Confirm".</summary>
@@ -160,8 +162,7 @@ public static class ConfirmDialog
 
         var text = outside.ToString();
 
-        return text.Contains("undo", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("undone", StringComparison.OrdinalIgnoreCase);
+        return text.Contains("undo", StringComparison.OrdinalIgnoreCase);
     }
 
     // A sentence ends at ".", "?" or "!" followed by a space or the end, outside double quotes; the mark stays with it.

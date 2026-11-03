@@ -82,8 +82,8 @@ public static class StatusBar
     ];
 
     /// <summary>
-    /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide. <paramref name="now"/>
-    /// is the clock the network word counts from (a rate-limit wait); without it the epoch is used.
+    /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.
+    /// <paramref name="now"/> is the clock the network word counts from (a rate-limit wait); without it the epoch is used.
     /// <paramref name="confirmDialogShown"/> says the Confirm dialog is drawn, so the line keeps only the short
     /// <c>Confirm  (y/n)</c>; otherwise the question itself stays in the line.
     /// </summary>
@@ -99,7 +99,8 @@ public static class StatusBar
             return string.Empty;
         }
 
-        var left = $" {Badge(state.Mode)} {Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown)}".TrimEnd();
+        var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
+        var left = $" {Badge(state.Mode)} {text}".TrimEnd();
         var hints = state.Settings.StatusHints
             ? Fit(HintTexts(state, keymap), width - TextWidth.Of(left))
             : string.Empty;

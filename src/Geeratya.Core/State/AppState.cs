@@ -40,6 +40,14 @@ public sealed record AppState(
     /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
     public int ViewportColumns { get; init; }
 
+    /// <summary>
+    /// The rows between the header and the status line, as the frame draws the body (what overlays such as the
+    /// Confirm dialog are placed in); <see cref="UnknownBodyHeight"/> until the host reports it.
+    /// </summary>
+    public int ViewportBodyHeight { get; init; } = UnknownBodyHeight;
+
+    public const int UnknownBodyHeight = -1;
+
     /// <summary>The user's switches (hints, which-key); the defaults until the host loads the file.</summary>
     public AppSettings Settings { get; init; } = AppSettings.Default;
 

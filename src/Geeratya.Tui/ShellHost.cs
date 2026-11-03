@@ -137,7 +137,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _screen = screen;
         screen.BodyRowsChanged += OnBodyRowsChanged;
         screen.Render(_state, TimeProvider.System.GetUtcNow());
-        Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns));
+        Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns, screen.BodyHeight));
         Dispatch(new ConnectionCheckRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
         application.Run(screen);
@@ -181,7 +181,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private void OnBodyRowsChanged(int rows)
     {
-        Dispatch(new ViewportChanged(rows, _screen!.BodyColumns));
+        Dispatch(new ViewportChanged(rows, _screen!.BodyColumns, _screen.BodyHeight));
     }
 
     /// <summary>Timer callback (not the UI thread): hands the clock to the reducer, which decides about refreshes.</summary>

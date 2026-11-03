@@ -18,7 +18,9 @@ public class ConfirmDialogTests
     [Fact]
     public void GivenAQuotedCommentThatMentionsUndo_WhenSplitting_ThenTheQuoteStaysInTheQuestion()
     {
-        var split = ConfirmDialog.Split("Delete the A-1 comment? Jira cannot undo this. By Eve: \"I cannot undo. Really? ok\"");
+        const string message = "Delete the A-1 comment? Jira cannot undo this. By Eve: \"I cannot undo. Really? ok\"";
+
+        var split = ConfirmDialog.Split(message);
 
         Assert.Equal("Delete the A-1 comment? By Eve: \"I cannot undo. Really? ok\"", split.Question);
         Assert.Equal("Jira cannot undo this.", split.Warning);

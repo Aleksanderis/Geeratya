@@ -21,7 +21,7 @@ public class ConfirmOverlayTests
     [Theory]
     [InlineData(120, 36)]
     [InlineData(80, 24)]
-    public void GivenRoom_WhenBuildingTheFrame_ThenTheDialogNamesWhatChangesAndTheStatusLineIsShort(int width, int height)
+    public void GivenRoom_WhenBuildingTheFrame_ThenTheDialogNamesWhatChangesAndTheStatusIsShort(int width, int height)
     {
         var frame = FrameBuilder.BuildStyled(Open(), width, height, _helpLines, _keymap)!;
         var text = string.Join('\n', frame.PlainLines());
@@ -114,7 +114,7 @@ public class ConfirmOverlayTests
         var state = Open();
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
-        int[][] cells = [[0, 5], [79, 12], [3, 22], [10, 23]];
+        int[][] cells = [[0, 5], [79, 12], [3, 22], [10, 23], [5, 0], [5, 1]];
 
         foreach (var cell in cells)
         {
@@ -162,9 +162,9 @@ public class ConfirmOverlayTests
     [Fact]
     public void GivenTheDialogOpen_WhenTheTerminalShrinksBelowIt_ThenItClosesUnansweredWithAWarning()
     {
-        var state = Open() with { ViewportColumns = 80, ViewportRows = 21 };
+        var state = Open() with { ViewportColumns = 80, ViewportBodyHeight = 21 };
 
-        var result = _reducer.Reduce(state, new ViewportChanged(7, 40));
+        var result = _reducer.Reduce(state, new ViewportChanged(0, 40, 7));
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
         Assert.Null(result.State.Confirm);
@@ -175,18 +175,45 @@ public class ConfirmOverlayTests
     [Fact]
     public void GivenTheDialogOpen_WhenTheTerminalStillFits_ThenItStaysOpen()
     {
-        var state = Open() with { ViewportColumns = 80, ViewportRows = 21 };
+        var state = Open() with { ViewportColumns = 80, ViewportBodyHeight = 21 };
 
-        var result = _reducer.Reduce(state, new ViewportChanged(30, 100));
+        var result = _reducer.Reduce(state, new ViewportChanged(25, 100, 30));
 
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.NotNull(result.State.Confirm);
     }
 
     [Fact]
+    public void GivenRealHostSizesOfEveryHeight_WhenAConfirmIsRequested_ThenItOpensExactlyWhenTheFrameDrawsIt()
+    {
+        for (var height = 1; height <= 30; height++)
+        {
+            var viewport = new ViewportChanged(Math.Max(0, height - 5), 80, FrameBuilder.BodyHeight(height));
+            var state = _reducer.Reduce(AppState.Initial, viewport).State;
+
+            var opened = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x"))).State;
+            var shown = FrameBuilder.BuildStyled(Open(), 80, height, _helpLines, _keymap)!.Regions.Count > 0;
+
+            Assert.Equal(shown, opened.Mode == InputMode.Confirm);
+        }
+    }
+
+    [Fact]
+    public void GivenAFiveRowTerminal_WhenAConfirmIsRequested_ThenItIsNotOpened()
+    {
+        var viewport = new ViewportChanged(0, 80, FrameBuilder.BodyHeight(5));
+        var state = _reducer.Reduce(AppState.Initial, viewport).State;
+
+        var result = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x")));
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Contains("too small to confirm", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenATinyTerminal_WhenAConfirmIsRequested_ThenItIsNotOpenedAndTheStatusSaysSo()
     {
-        var state = AppState.Initial with { ViewportColumns = 40, ViewportRows = 7 };
+        var state = AppState.Initial with { ViewportColumns = 40, ViewportBodyHeight = 7 };
 
         var result = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x")));
 
@@ -197,17 +224,23 @@ public class ConfirmOverlayTests
     }
 
     [Fact]
-    public void GivenADiscardQuestionOverTheEditor_WhenTheTerminalShrinks_ThenTheEditorGetsItsTextBack()
+    public void GivenADiscardQuestionOverTheEditor_WhenShrinkingOrClickingOutside_ThenTheEditorGetsItsTextBack()
     {
         var editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of("draft"), string.Empty);
         var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", "x");
-        var state = Open(request) with { ViewportColumns = 80, ViewportRows = 21, Editor = editor };
+        var state = Open(request) with { ViewportColumns = 80, ViewportBodyHeight = 21, Editor = editor };
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
+        var click = MouseResolver.Resolve(context, 5, 0, MouseGesture.Click, _at);
+        var declined = _reducer.Reduce(state, Assert.Single(click));
 
-        var result = _reducer.Reduce(state, new ViewportChanged(5, 80));
+        var result = _reducer.Reduce(state, new ViewportChanged(0, 80, 5));
 
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.Same(editor, result.State.Editor);
         Assert.Null(result.State.Confirm);
+        Assert.Equal(InputMode.Insert, declined.State.Mode);
+        Assert.Same(editor, declined.State.Editor);
     }
 
     private static AppState Open(ConfirmRequest? request = null)

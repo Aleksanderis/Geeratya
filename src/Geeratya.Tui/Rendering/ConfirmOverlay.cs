@@ -75,7 +75,10 @@ public static class ConfirmOverlay
 
         lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth));
         lines.Add(OverlayBox.Wall(AnswerLine(yes, layout.YesLabel, keyWidth, layout.TextColumns), contentWidth));
-        lines.Add(OverlayBox.Wall(AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns), contentWidth));
+
+        var cancel = AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns);
+
+        lines.Add(OverlayBox.Wall(cancel, contentWidth));
         lines.Add(OverlayBox.Bottom(layout.BoxWidth));
 
         return lines;

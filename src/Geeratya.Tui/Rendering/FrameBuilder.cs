@@ -26,6 +26,12 @@ public static class FrameBuilder
     /// <summary>The rows above the body: the tab bar and the network banner (blank while there is none).</summary>
     public const int HeaderRows = TabBar.Rows + 1;
 
+    /// <summary>The rows the body gets in a terminal of <paramref name="height"/> rows (never negative).</summary>
+    public static int BodyHeight(int height)
+    {
+        return Math.Max(0, height - 1 - Math.Min(HeaderRows, height - 1));
+    }
+
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.
     /// </summary>
@@ -64,7 +70,7 @@ public static class FrameBuilder
 
         var header = Math.Min(HeaderRows, height - 1);
         var clock = now ?? DateTimeOffset.UnixEpoch;
-        var bodyHeight = height - 1 - header;
+        var bodyHeight = BodyHeight(height);
         var context = new BodyContext(helpLines, keymap, glyphs);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));

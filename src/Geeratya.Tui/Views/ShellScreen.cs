@@ -61,6 +61,9 @@ public sealed class ShellScreen : Window
     /// </summary>
     public int BodyRows => Math.Max(0, _size.Height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows);
 
+    /// <summary>The rows the frame gives the body: where overlays (the Confirm dialog) are placed.</summary>
+    public int BodyHeight => FrameBuilder.BodyHeight(_size.Height);
+
     /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test.</summary>
     public IReadOnlyList<OverlayRegion> OverlayRegions => _regions;
 

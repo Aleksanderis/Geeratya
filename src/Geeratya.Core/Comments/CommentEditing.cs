@@ -142,7 +142,10 @@ internal static class CommentEditing
             return Result(Closed(state));
         }
 
-        var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", DiscardAction, Label: "Discard text");
+        var request = new ConfirmRequest(
+            "Discard the unsent comment text? It is not saved anywhere",
+            DiscardAction,
+            Label: "Discard text");
 
         return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }
