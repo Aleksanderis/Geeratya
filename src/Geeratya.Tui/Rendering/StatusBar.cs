@@ -208,6 +208,22 @@ public static class StatusBar
             left = Left(state, shown);
         }
 
+        // The cursor position is last in line: it shows only when the line, the hints and their gap still fit.
+        var viewRoom = shown == text ? 0 : PositionedRoom(state, spare);
+        var positioned = Text(state, width, keymap, clock, confirmDialogShown, viewRoom, true);
+
+        if (positioned != shown)
+        {
+            var positionedLeft = Left(state, positioned);
+            var needed = TextWidth.Of(positionedLeft) + hintWidth + (hints.Count > 0 ? HintGap.Length : 0);
+
+            if (needed <= width)
+            {
+                shown = positioned;
+                left = positionedLeft;
+            }
+        }
+
         var gap = width - TextWidth.Of(left) - hintWidth;
         var spans = new List<StyledSpan> { new($" {Badge(state)} ", BadgeRole(state)) };
 
@@ -226,6 +242,26 @@ public static class StatusBar
         spans.AddRange(HintBar.Spans(hints));
 
         return StyledLines.Fit(new StyledLine(spans), width, TextRole.BarText);
+    }
+
+    /// <summary>The view text's room once the cursor position takes its cells: the board text gives way, not a hint.</summary>
+    private static int PositionedRoom(AppState state, int spare)
+    {
+        if (ListBodyRenderer.ActiveTab(state) is not { Detail.Count: 0 } tab)
+        {
+            return spare;
+        }
+
+        var position = CursorPosition.Text(tab);
+
+        if (position.Length == 0)
+        {
+            return spare;
+        }
+
+        var reduced = spare - TextWidth.Of(position) - Separator.Length;
+
+        return reduced >= MinViewRoom ? reduced : spare;
     }
 
     private static string Left(AppState state, string text)
@@ -576,7 +612,8 @@ public static class StatusBar
         KeymapTable keymap,
         DateTimeOffset now,
         bool confirmDialogShown,
-        int viewRoom)
+        int viewRoom,
+        bool withPosition = false)
     {
         return state.Mode switch
         {
@@ -589,7 +626,7 @@ public static class StatusBar
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
-            _ => NormalText(state, now, viewRoom),
+            _ => NormalText(state, now, viewRoom, withPosition),
         };
     }
 
@@ -646,7 +683,7 @@ public static class StatusBar
     /// Pending keys, a count and a rank pickup win (they echo what the user is typing); then the notice; otherwise the network word of the active tab (first, so it survives a cut)
     /// and the result of the connection check show.
     /// </summary>
-    private static string NormalText(AppState state, DateTimeOffset now, int viewRoom)
+    private static string NormalText(AppState state, DateTimeOffset now, int viewRoom, bool withPosition)
     {
         if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
@@ -676,6 +713,16 @@ public static class StatusBar
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
         var view = viewRoom > 0 ? ViewText(state, now, viewRoom) : string.Empty;
+
+        if (withPosition && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } positioned)
+        {
+            var position = CursorPosition.Text(positioned);
+
+            if (position.Length > 0)
+            {
+                view = view.Length == 0 ? position : $"{position}{Separator}{view}";
+            }
+        }
 
         if (view.Length > 0)
         {

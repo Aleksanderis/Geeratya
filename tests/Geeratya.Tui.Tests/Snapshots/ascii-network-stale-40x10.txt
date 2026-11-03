@@ -7,4 +7,4 @@
 |  GCM-15 T As a user I can filter by x|
 |                                      |
 +--------------------------------------+
-[NORMAL] stale                          
+[NORMAL] stale - 1/3                    

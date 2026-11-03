@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  loading                    j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit
+ NORMAL  loading · 3/10+            j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit
