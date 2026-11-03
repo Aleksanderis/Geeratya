@@ -6,6 +6,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
@@ -353,6 +354,22 @@ public class ListBodyRendererTests
         var board = tab with { Definition = tab.Definition with { Source = ViewSourceKind.Board } };
 
         Assert.Equal("The board has no issues.", Frame(board, 60)[2].Trim());
+    }
+
+    [Fact]
+    public void GivenEmptyScrumBoardTab_WhenBuilding_ThenTheNoOpenSprintMessageShows()
+    {
+        var tab = Tab(LoadState.Idle);
+        var board = tab with
+        {
+            Definition = tab.Definition with { Source = ViewSourceKind.Board },
+            Board = new BoardConfiguration(4, "B", BoardType.Scrum, [], "1", null, null, null),
+        };
+
+        var lines = Frame(board, 70);
+
+        Assert.Equal("No open sprint on this board.", lines[2].Trim());
+        Assert.Contains(":backlog", lines[3], StringComparison.Ordinal);
     }
 
     [Fact]
