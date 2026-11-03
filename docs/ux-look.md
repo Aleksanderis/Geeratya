@@ -352,8 +352,8 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |
 | Palette | Done in #525: rounded accent frame and chip over the dimmed view. Done in #548: dim count chip `shown/total` in the top edge (role `OverlayCount`, muted, no fill), query line (`:` accent, text, cursor cell), joined rules, footer line `Up/Down move  Enter run  Esc cancel` (dropped under 12 box rows), accent bold subheaders, tinted selected row; the `>` marker stays in every tier (as in the other lists) | 7 | #525, #548 |
 | Help | Done in #525: rounded accent frame over the dimmed view | 7 | #525 |
-| Confirm | Done in #525: rounded frame (`bad`, `warn` or accent), view dimmed around it | 7 | #525 |
-| Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box | 7 | #525 |
+| Confirm | Done in #525: rounded frame (`bad`, `warn` or accent), view dimmed around it. Done in #539: shrinks to content, `bad` for side-effecting transitions, sprint completion and multi-issue sprint moves, chip names action and target | 7 | #525, #539 |
+| Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box. Done in #539: hint chips in the footer, `▲`/`▼` scroll markers and the 18-row cap (picker, jump); the mouse wheel does not scroll the picker rows yet | 7 | #525 |
 | Profiles | `:profile list` is a small box over the start screen; add is a four-step one-field wizard; no edit | 7 (profile manager) | #528 (form and keys done; two-pane screen open) |
 
 ## 10. Reconciliation with the other parts, and what stays open

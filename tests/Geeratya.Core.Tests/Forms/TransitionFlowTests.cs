@@ -85,6 +85,17 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenAWorkflowTransition_WhenPicked_ThenTheConfirmIsSevereAndNamesTheIssue()
+    {
+        var opened = Picker(Tabbed(ViewLayout.List), Transition("41", _done));
+
+        var asked = Keys(opened, "Enter").State;
+
+        Assert.True(asked.Confirm!.Destructive);
+        Assert.Equal("Move A-1", asked.Confirm.Heading);
+    }
+
+    [Fact]
     public void GivenTheIssueIsBusyWhenTheConfirmIsAnswered_ThenTheWriteIsRefusedAtThatMoment()
     {
         var opened = Picker(Tabbed(ViewLayout.List), Transition("41", _done));

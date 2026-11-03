@@ -100,7 +100,11 @@ public static class OverlayBox
     /// A box row whose right padding column carries <paramref name="marker"/> (a scroll marker from
     /// <see cref="ScrollMarker"/>) in the muted role.
     /// </summary>
-    public static StyledLine Wall(StyledLine content, int contentWidth, string marker, OverlayKind kind = OverlayKind.Normal)
+    public static StyledLine Wall(
+        StyledLine content,
+        int contentWidth,
+        string marker,
+        OverlayKind kind = OverlayKind.Normal)
     {
         var frame = FrameRole(kind);
         var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
