@@ -3,8 +3,8 @@
 +- Space ------------------------------+
 | c         Close the tab              |
 | t         Open the source picker for |
+| x         Dismiss the status message |
+| n         Show the message history   |
 | g         Jump to an issue by key    |
-| o         Open the issue in the brow |
-| p         Open the parent issue      |
 +--------------------------------------+
  NORMAL Space                           
