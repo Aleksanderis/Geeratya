@@ -84,6 +84,22 @@ public sealed class BoardKindStoreTests : IDisposable
         Assert.Empty(Directory.GetFileSystemEntries(_directory));
     }
 
+    [Fact]
+    public void GivenAFailingWrite_WhenSaving_ThenNoTemporaryFileIsLeftAndTheErrorPropagates()
+    {
+        var store = new BoardKindStore(_directory);
+
+        store.Save(_work, 1, BoardKind.Scrum);
+
+        var path = Directory.GetFiles(_directory, BoardKindStore.FileName, SearchOption.AllDirectories).Single();
+
+        File.Delete(path);
+        Directory.CreateDirectory(path);
+
+        Assert.ThrowsAny<IOException>(() => store.Save(_work, 2, BoardKind.Kanban));
+        Assert.False(File.Exists($"{path}.tmp"));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

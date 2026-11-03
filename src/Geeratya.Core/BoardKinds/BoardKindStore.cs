@@ -34,7 +34,8 @@ public sealed class BoardKindStore
     {
         lock (_lock)
         {
-            // Loading is the connection being (re)built, so a re-added profile stores answers again.
+            // Loading is the connection being (re)built, so a re-added profile stores answers again (a probe of the
+            // old connection still in flight then stores an answer for the same site, which is harmless).
             _removed.Remove(ProfileFolder.NameOf(profile));
 
             return Parse(Read(PathOf(profile)));
@@ -155,9 +156,21 @@ public sealed class BoardKindStore
         }
         catch
         {
-            File.Delete(temporary);
+            DeleteQuietly(temporary);
 
             throw;
+        }
+    }
+
+    private static void DeleteQuietly(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Best effort: the write failure is the error worth reporting.
         }
     }
 }
