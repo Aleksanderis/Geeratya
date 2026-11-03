@@ -131,7 +131,7 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
     }
 
-    private static FormState PickerForm()
+    internal static FormState PickerForm()
     {
         CreateIssueType[] types =
         [
@@ -215,7 +215,7 @@ public class FormOverlaySnapshotTests
         return new EditFormTarget("A-1", new Dictionary<string, FormValue>(), false, null);
     }
 
-    private static AppState Sample()
+    internal static AppState Sample()
     {
         return WithForm(SampleForm());
     }
@@ -247,7 +247,7 @@ public class FormOverlaySnapshotTests
         };
     }
 
-    private static AppState WithForm(FormState form)
+    internal static AppState WithForm(FormState form)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var reducer = new AppReducer(_keymap);

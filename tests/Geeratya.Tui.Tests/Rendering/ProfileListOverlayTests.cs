@@ -81,7 +81,7 @@ public class ProfileListOverlayTests
         }
     }
 
-    private static AppState Sample()
+    internal static AppState Sample()
     {
         var catalog = ProfileCatalog.Empty.With(_work).With(_dev).Activate("work");
 

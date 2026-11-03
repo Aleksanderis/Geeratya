@@ -26,6 +26,7 @@ public static class PaletteTable
             ThemeColor.BaseBackground,
             RoleStyle.Bold | RoleStyle.Underline),
         [PaletteRole.RateLimited] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Warning] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.Stale] = new(
             ThemeColor.Remote,
             ThemeColor.BaseBackground,
@@ -88,6 +89,7 @@ public static class PaletteTable
         [TextRole.Loading] = PaletteRole.Loading,
         [TextRole.Offline] = PaletteRole.Offline,
         [TextRole.RateLimited] = PaletteRole.RateLimited,
+        [TextRole.Warning] = PaletteRole.Warning,
         [TextRole.Stale] = PaletteRole.Stale,
         [TextRole.FieldLabel] = PaletteRole.FieldLabel,
         [TextRole.Editable] = PaletteRole.Editable,

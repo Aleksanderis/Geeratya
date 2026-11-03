@@ -3,6 +3,7 @@ using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
 
@@ -33,6 +34,18 @@ public class ConfirmOverlayTests
         Assert.Contains("n  Cancel", text, StringComparison.Ordinal);
         Assert.Contains("CONFIRM Confirm  (y/n)", frame.StatusLine, StringComparison.Ordinal);
         Assert.DoesNotContain("Delete the GCM-3", frame.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAWarningLine_WhenBuildingTheFrame_ThenItUsesTheWarningRole()
+    {
+        var frame = FrameBuilder.BuildStyled(Open(), 120, 36, _helpLines, _keymap)!;
+
+        var spans = frame.Body.SelectMany(line => line.Spans).ToList();
+
+        Assert.Contains(
+            spans,
+            span => span.Role == TextRole.Warning && span.Text.Contains("Jira cannot undo", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -243,7 +256,7 @@ public class ConfirmOverlayTests
         Assert.Same(editor, declined.State.Editor);
     }
 
-    private static AppState Open(ConfirmRequest? request = null)
+    internal static AppState Open(ConfirmRequest? request = null)
     {
         return AppState.Initial with
         {

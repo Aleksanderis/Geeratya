@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+        +- Confirm ----------------------------------------------------+        
+        | Delete the GCM-3 comment? By Eve: "first words"              |        
+        |                                                              |        
+        | Jira cannot undo this.                                       |        
+        |                                                              |        
+        | y  Delete comment                                            |        
+        | n  Cancel                                                    |        
+        +--------------------------------------------------------------+        
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ CONFIRM Confirm  (y/n)                                              y yes  n no

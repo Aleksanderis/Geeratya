@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Rendering.Themes;
@@ -134,6 +135,7 @@ public class PaletteTests
             PaletteRole.Loading,
             PaletteRole.Offline,
             PaletteRole.RateLimited,
+            PaletteRole.Warning,
             PaletteRole.Stale,
         ];
 
@@ -158,6 +160,21 @@ public class PaletteTests
         Assert.True(
             Contrast.Ratio(body.Background!.Value, selected.Background!.Value) >= MinimumSelectionBarRatio,
             $"{name}: selection bar in {tier} is faint against the body");
+    }
+
+    [Fact]
+    public void GivenAnyTheme_WhenResolvingWarningAndKey_ThenWarningIsTheWarnColour()
+    {
+        foreach (var name in BuiltInThemes.Names)
+        {
+            var theme = BuiltInThemes.Find(name)!.Theme!;
+
+            Assert.Equal(
+                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Key).Foreground,
+                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Warning).Foreground);
+        }
+
+        Assert.Equal(PaletteRole.Warning, PaletteTable.For(TextRole.Warning));
     }
 
     [Fact]
