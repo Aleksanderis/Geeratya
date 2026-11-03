@@ -34,7 +34,7 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
             rows.Add(StyledLine.Of(EmptyText, TextRole.Muted));
         }
 
-        rows.AddRange(state.StatusHistory.Select(message => StyledLine.Of(message.Line, RoleOf(message.Severity))));
+        rows.AddRange(state.StatusHistory.Select(message => StyledLine.Of(Fit(message.Line, inner), RoleOf(message.Severity))));
 
         var heading = state.MessagesShowSettings ? SettingsTitle : Title;
 

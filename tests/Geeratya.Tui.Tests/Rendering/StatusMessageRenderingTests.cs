@@ -136,6 +136,16 @@ public class StatusMessageRenderingTests
     }
 
     [Fact]
+    public void GivenOneMessage_WhenOpeningTheHistory_ThenTheCountChipIsSingular()
+    {
+        var state = StatusMessages.OpenHistory(Posted("First", StatusSeverity.Info));
+
+        var lines = FrameBuilder.Build(state, 60, 12, _keymap);
+
+        Assert.Contains(lines, line => line.StartsWith("╭─ Messages") && line.Contains(" 1 message "));
+    }
+
+    [Fact]
     public void GivenNoMessages_WhenOpeningTheHistory_ThenItSaysSo()
     {
         var lines = FrameBuilder.Build(StatusMessages.OpenHistory(AppState.Initial), 60, 12, _keymap);

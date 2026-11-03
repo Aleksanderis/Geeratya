@@ -241,6 +241,7 @@ public class OverlayLookTests
     {
         var spans = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body.SelectMany(line => line.Spans);
 
+        // The last corner: the overlay box is drawn after the screen frame, which has corners of its own.
         return spans.Last(
             span => span.Text.StartsWith('╭') && span.Role is not (TextRole.Muted or TextRole.Heading)).Role;
     }
