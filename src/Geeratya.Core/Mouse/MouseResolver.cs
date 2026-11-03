@@ -23,6 +23,11 @@ public static class MouseResolver
         MouseGesture gesture,
         DateTimeOffset at)
     {
+        if (gesture is MouseGesture.WheelUp or MouseGesture.WheelDown && context.WheelTarget is { } wheeled)
+        {
+            return Wheeled(context, wheeled, column, row, gesture, at);
+        }
+
         if (MouseHitTester.Locate(context, column, row) is not { } hit)
         {
             return _none;
@@ -61,6 +66,22 @@ public static class MouseResolver
         var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick or MouseGesture.CtrlClick;
 
         return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
+    }
+
+    // The wheel over an open help, messages or context menu acts on that overlay wherever the pointer is on the screen.
+    private static IReadOnlyList<Command> Wheeled(
+        MouseContext context,
+        MouseTarget target,
+        int column,
+        int row,
+        MouseGesture gesture,
+        DateTimeOffset at)
+    {
+        var inside = column >= 0 && row >= 0 && column < context.Width && row < context.Height;
+
+        return inside && DefaultMouseMap.Find(target, gesture) is { } found && WiredParts.Contains(found.Part)
+            ? [new ActionRequested(found.Action, found.Count, at)]
+            : _none;
     }
 
     /// <summary>
