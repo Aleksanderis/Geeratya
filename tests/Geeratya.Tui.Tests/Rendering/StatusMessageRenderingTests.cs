@@ -110,6 +110,50 @@ public class StatusMessageRenderingTests
         Assert.Contains("Space", line);
     }
 
+    [Theory]
+    [InlineData(StatusSeverity.Warning, "Warning: ")]
+    [InlineData(StatusSeverity.Error, "Error: ")]
+    public void GivenNoColour_WhenRenderingTheStatusLine_ThenThePlainTextStillNamesTheSeverity(
+        StatusSeverity severity,
+        string prefix)
+    {
+        var state = Posted("Saved A-1", severity);
+
+        var plain = StatusBar.Render(state, 100, _keymap);
+
+        Assert.Contains($"{prefix}Saved A-1", plain);
+        Assert.Equal(StatusMessages.PrefixOf(severity), prefix);
+    }
+
+    [Theory]
+    [InlineData(20)]
+    [InlineData(12)]
+    [InlineData(9)]
+    public void GivenANarrowTerminal_WhenLocatingTheMessage_ThenTheSegmentAndTheClickStayInsideTheWidth(int width)
+    {
+        var state = Posted("A message that is far too long for this terminal", StatusSeverity.Error);
+        var segment = StatusBar.MessageSegment(state, width);
+        var context = MouseContext.From(state, width, 24, 2, _now);
+        var cells = context.StatusMessage!.Value;
+
+        Assert.NotNull(segment);
+        Assert.True(segment.Start + segment.Width <= width);
+
+        var inside = MouseResolver.Resolve(context, cells.Start, 23, MouseGesture.Click, _now);
+        var beyond = MouseResolver.Resolve(context, width - 1, 23, MouseGesture.Click, _now);
+
+        Assert.Equal(ActionIds.StatusHistory, Assert.IsType<ActionRequested>(Assert.Single(inside)).Action);
+        Assert.Equal(ActionIds.StatusHistory, Assert.IsType<ActionRequested>(Assert.Single(beyond)).Action);
+    }
+
+    [Fact]
+    public void GivenTheTerminalIsNarrowerThanTheBadge_WhenAskingForTheMessageSegment_ThenThereIsNone()
+    {
+        var state = Posted("Saved A-1", StatusSeverity.Error);
+
+        Assert.Null(StatusBar.MessageSegment(state, StatusMessages.TextStart));
+    }
+
     private static AppState Posted(string text, StatusSeverity severity)
     {
         var reducer = new AppReducer(_keymap);
