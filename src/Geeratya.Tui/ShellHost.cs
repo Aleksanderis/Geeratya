@@ -292,7 +292,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
                 dropped.FromColumn,
                 dropped.FromRow,
                 dropped.ToColumn,
-                dropped.ToRow);
+                dropped.ToRow,
+                now);
         }
 
         return MouseFlagTranslator.TryTranslate(flags, out var gesture)
