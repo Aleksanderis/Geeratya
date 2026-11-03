@@ -50,9 +50,14 @@ public sealed class KeymapTable
 
     /// <summary>
     /// The keys that continue <paramref name="pending"/> in <paramref name="mode"/>, in keymap order, one entry per
-    /// next key (the data of the which-key popup); empty when nothing continues it.
+    /// next key (the data of the which-key popup); empty when nothing continues it. Actions above
+    /// <paramref name="level"/>
+    /// are left out, and a group with no action left disappears with them.
     /// </summary>
-    public IReadOnlyList<NextKey> NextKeys(InputMode mode, string pending)
+    public IReadOnlyList<NextKey> NextKeys(
+        InputMode mode,
+        string pending,
+        CommandLevel level = CommandLevel.Advanced)
     {
         var prefix = $"{pending}{SequenceSeparator}";
         var order = new List<string>();
@@ -61,7 +66,9 @@ public sealed class KeymapTable
 
         foreach (var binding in Bindings)
         {
-            if (binding.Mode != mode || !binding.Keys.StartsWith(prefix, StringComparison.Ordinal))
+            if (binding.Mode != mode
+                || !binding.Keys.StartsWith(prefix, StringComparison.Ordinal)
+                || !ActionCatalog.IsShownAt(binding.Action, level))
             {
                 continue;
             }

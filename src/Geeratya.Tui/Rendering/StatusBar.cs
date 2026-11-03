@@ -172,25 +172,27 @@ public static class StatusBar
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
+        var level = state.Settings.CommandLevel;
+
         if (state.Editor is not null && state.Mode == InputMode.Insert)
         {
-            return new HintList([], TextsOf(EditorHints, state.Mode, HintScope.Global, keymap));
+            return new HintList([], TextsOf(EditorHints, state.Mode, HintScope.Global, keymap, level));
         }
 
         if (FormReducer.IsOpen(state))
         {
-            return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap));
+            return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap, level));
         }
 
         if (state.Picker is not null || state.Jump is not null || state.ContextMenu is not null)
         {
-            return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap));
+            return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap, level));
         }
 
-        var global = HintsFor(state.Mode, keymap);
+        var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
 
         return state.Mode == InputMode.Normal
-            ? new HintList(TextsOf(ScreenHints, InputMode.Normal, ScopeOf(state), keymap), global)
+            ? new HintList(TextsOf(ScreenHints, InputMode.Normal, ScopeOf(state), keymap, level), global)
             : new HintList([], global);
     }
 
@@ -239,11 +241,13 @@ public static class StatusBar
         IReadOnlyList<StatusHint> hints,
         InputMode mode,
         HintScope scope,
-        KeymapTable keymap)
+        KeymapTable keymap,
+        CommandLevel level = CommandLevel.Advanced)
     {
         var texts = new List<string>();
 
-        foreach (var hint in hints.Where(hint => hint.Mode == mode && Applies(hint.Scope, scope)))
+        foreach (var hint in hints.Where(hint =>
+            hint.Mode == mode && Applies(hint.Scope, scope) && IsShownAt(hint, level)))
         {
             var keys = KeysOf(hint, mode, keymap);
 
@@ -254,6 +258,16 @@ public static class StatusBar
         }
 
         return texts;
+    }
+
+    /// <summary>
+    /// True unless every action the hint names is above <paramref name="level"/>: a hint stays while any of its
+    /// actions is shown (a level hides, it never disables).
+    /// </summary>
+    public static bool IsShownAt(StatusHint hint, CommandLevel level)
+    {
+        return ActionCatalog.IsShownAt(hint.ActionId, level)
+            || (hint.SecondActionId is { } second && ActionCatalog.IsShownAt(second, level));
     }
 
     private static bool Applies(HintScope hint, HintScope current)

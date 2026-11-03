@@ -7,8 +7,9 @@ namespace Geeratya.Core.CommandPalette;
 
 /// <summary>
 /// The lines of the command palette (<c>docs/ux.md</c>, "Command palette"): every action that is not modal-only,
-/// under group subheaders, filtered and ranked by the text typed after <c>:</c>. When the text starts with a command
-/// name and a space it is a command line instead and the list is that command's usage. Pure.
+/// under group subheaders, filtered and ranked by the text typed after <c>:</c>. At the everyday command level the
+/// unfiltered list leaves the advanced actions out and ends with a note counting them. When the text starts with a
+/// command name and a space it is a command line instead and the list is that command's usage. Pure.
 /// </summary>
 public static class PaletteRows
 {
@@ -39,11 +40,20 @@ public static class PaletteRows
         var filter = state.PaletteText.Trim();
         var focused = FocusedActions(state);
         var candidates = new List<Candidate>();
+        var hideAdvanced = filter.Length == 0 && state.Settings.CommandLevel == CommandLevel.Everyday;
+        var hidden = 0;
 
         foreach (var definition in ActionCatalog.All)
         {
             if (ActionCatalog.IsModalOnly(definition.Id) || _hiddenActions.Contains(definition.Id))
             {
+                continue;
+            }
+
+            if (hideAdvanced && definition.Level == CommandLevel.Advanced)
+            {
+                hidden++;
+
                 continue;
             }
 
@@ -65,7 +75,14 @@ public static class PaletteRows
             AddCandidate(candidates, filter, row, only.Group, focused.Contains(ActionIds.IssueEdit));
         }
 
-        return Arrange(candidates, filter.Length > 0);
+        var rows = Arrange(candidates, filter.Length > 0);
+
+        if (hidden > 0)
+        {
+            rows.Add(new PaletteRow(PaletteRowKind.Note, string.Empty, HiddenText(hidden), string.Empty));
+        }
+
+        return rows;
     }
 
     /// <summary>The rows <c>Up</c>, <c>Down</c> and a click can land on, in display order.</summary>
@@ -83,6 +100,14 @@ public static class PaletteRows
         var word = FirstWord(text.Trim());
 
         return PaletteCommands.All.Any(command => command.Name == word) || _extraCommandWords.Contains(word);
+    }
+
+    // The default list leaves the advanced actions out; typing a filter searches them too, so they stay reachable.
+    private static string HiddenText(int hidden)
+    {
+        var noun = hidden == 1 ? "advanced command" : "advanced commands";
+
+        return $"{hidden} {noun} hidden; type to find {(hidden == 1 ? "it" : "them")}";
     }
 
     private static List<PaletteRow>? UsageOf(string text)

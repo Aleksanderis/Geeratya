@@ -42,6 +42,6 @@ public class NextKeysTests
     public void GivenAKeyThatContinuesNothing_WhenAskingForTheNextKeys_ThenTheListIsEmpty()
     {
         Assert.Empty(_keymap.NextKeys(InputMode.Normal, "j"));
-        Assert.Empty(_keymap.NextKeys(InputMode.Help, "Space"));
+        Assert.Empty(_keymap.NextKeys(InputMode.Insert, "Space"));
     }
 }

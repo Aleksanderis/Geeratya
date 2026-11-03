@@ -32,5 +32,5 @@ Help
   Space A    Open the actions menu of the tab and the view                                                              
   Space m a  Add a comment to the issue                                                                                 
   Space m e  Edit the comment under the cursor                                                                          
-  Space m d  Delete the comment under the cursor                                                                        
+  Space i s  Change the status of the issue                                                                             
  HELP                                                                                            j down  k up  Esc close

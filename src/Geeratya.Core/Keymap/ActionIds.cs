@@ -65,6 +65,7 @@ public static class ActionIds
     public const string IssueJump = "issue.jump";
     public const string StatusHistory = "status.history";
     public const string StatusDismiss = "status.dismiss";
+    public const string ViewCycleCommandLevel = "view.cycle-command-level";
     public const string ProfileRemove = "profile.remove";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";

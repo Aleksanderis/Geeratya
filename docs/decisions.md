@@ -106,6 +106,8 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Stack:** Settings registry (#373, as in Gitunia): `settings.json` first kept flat keys (`statusHints`, `whichKey`, `theme`); superseded by #391: the keys are now grouped as in Gitunia (`hints.statusBar`, `hints.whichKey`; `theme` stays), the writer edits nested members, and the flat names are still read. `:set` without an argument lists every setting (value, default, help) in the Messages overlay (#385); `:set <name>` shows one with its default and accepted values on the status line (under 80 columns, #402). Details: `settings.md`.
 
+**UI:** Command levels (#196, source: Gitunia's levels, rewritten): the level is a property of the action in `ActionCatalog` (not of a key row in `keymap.default.json`, so every key of an action shares it; the generated `docs/keymap.md` shows it per row). Two levels only. The palette hides advanced actions only from the unfiltered list (a note counts them); typing any filter searches them too, because Geeratya has no typed command for most of them and Gitunia's "exact id only" would make `delete` unreachable. `<space>*` changes the level for the session without saving; `:set commandlevel` saves. Messages and Confirm texts that name a key are not filtered.
+
 **UI:** Quit and cancel keys (#390, Gitunia rules adopted unless writes or typed text are at stake): `Ctrl-c` now also quits from Confirm and a quit cancels running read loads at once, but it still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` keeps its Normal-only quit and does nothing in Confirm, so a stray key never answers a destructive question; `Esc` rules unchanged.
 
 ## 2026-11-03 (later)

@@ -8,7 +8,7 @@ public class FrameSnapshotTests
     private static readonly string[] _sections =
         ["Normal mode", "Help mode", "Command mode", "Confirm mode", "Insert mode", "Palette commands", ":quit"];
 
-    private static readonly int[] _scrolls = [0, 20, 40, 60, 80, 112, 116];
+    private static readonly int[] _scrolls = [0, 20, 40, 60, 80, 112, 128];
 
     public static TheoryData<string, string> Snapshots
     {
@@ -47,6 +47,7 @@ public class FrameSnapshotTests
     [InlineData(60)]
     [InlineData(80)]
     [InlineData(112)]
+    [InlineData(128)]
     public void GivenHelpScrolled_WhenPrintingTheFrame_ThenItMatchesTheSnapshotThatShowsTheLaterSections(int scroll)
     {
         using var writer = new StringWriter();
@@ -57,6 +58,36 @@ public class FrameSnapshotTests
 
         Assert.Equal(0, exitCode);
         Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    [InlineData(60)]
+    public void GivenAdvancedLevel_WhenPrintingTheHelp_ThenItMatchesTheSnapshotThatListsTheAdvancedBindings(int scroll)
+    {
+        using var writer = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false).Run(
+        [
+            "--print-frame", "--size", "120x36", "--mode", "help", "--help-scroll", scroll.ToString(),
+            "--command-level", "advanced",
+        ]);
+        var expected = SnapshotFile.Expect($"help-advanced-scroll{scroll}-120x36.txt", writer.ToString());
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+    }
+
+    [Fact]
+    public void GivenAnInvalidCommandLevel_WhenPrintingTheFrame_ThenUsageIsShown()
+    {
+        using var writer = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame", "--command-level", "expert"]);
+
+        Assert.Equal(2, exitCode);
+        Assert.Contains("--command-level", writer.ToString());
     }
 
     [Fact]

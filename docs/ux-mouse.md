@@ -91,7 +91,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 
 ## Without a path
 
-Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), and `tab.go-to.1` to `tab.go-to.9` (a click on tab N).
+Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), and `view.cycle-command-level` (its palette row: click the status line, then the row).
 
 ## Planned paths
 

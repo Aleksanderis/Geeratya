@@ -1,17 +1,12 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
-  Space i c  Create an issue (type picker, then the form)                                                               
-  Space i C  Create a sub-task of the selected issue                                                                    
-  Space i l  Link the issue to another issue                                                                            
-  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
-  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
-  Space i a  Assign the issue: search people, or unassign                                                               
   Space i m  Assign the issue to me                                                                                     
   Space g    Jump to an issue by key                                                                                    
   Space n    Show the message history                                                                                   
   Space x    Dismiss the status message                                                                                 
+  Space *    Switch the command level for the session                                                                   
+  (7 advanced commands hidden; Space * shows them)                                                                      
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -19,6 +14,7 @@ Help mode
   k          Move up                                                                                                    
   Up         Move up                                                                                                    
   ?          Show or hide help                                                                                          
+  Space *    Switch the command level for the session                                                                   
   Esc        Close help                                                                                                 
   q          Close help                                                                                                 
   Ctrl-c     Quit                                                                                                       
@@ -33,4 +29,8 @@ Command mode
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
+Confirm mode                                                                                                            
+  y          Confirm                                                                                                    
+  n          Decline                                                                                                    
+  Esc        Decline                                                                                                    
  HELP                                                                                            j down  k up  Esc close
