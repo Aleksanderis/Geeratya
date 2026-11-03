@@ -15,4 +15,6 @@ public enum OperationKind
     Bulk,
     LinkIssues,
     UnlinkIssues,
+    CreateSprint,
+    EditSprint,
 }

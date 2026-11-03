@@ -2,9 +2,11 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   0          Go to the first column                                          │            
-            │ > All actions │   $          Go to the last column                                           │            
-            │   Commands    │   ] ]        Next section of the issue or the Scrum backlog                  │            
+            │   Global      │   Ctrl-u     Page up  (PageUp)                                               │            
+            │ > All actions │   Enter      Open the selected item                                          │            
+            │   Commands    │   0          Go to the first column                                          │            
+            │               │   $          Go to the last column                                           │            
+            │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
             │               │   [ [        Previous section of the issue or the Scrum backlog              │            
             │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
             │               │ General                                                                      │            
@@ -29,8 +31,6 @@
             │               │   y          Confirm                                                         │            
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
-            │               │   Backspace  Delete the last character                                       │            
-            │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

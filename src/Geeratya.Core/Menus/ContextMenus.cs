@@ -116,6 +116,12 @@ public static class ContextMenus
             actions.Add(ActionIds.SprintSwitch);
         }
 
+        if (active is { Definition.Source: ViewSourceKind.ScrumBacklog or ViewSourceKind.Sprint })
+        {
+            actions.Add(ActionIds.SprintCreate);
+            actions.Add(ActionIds.SprintEdit);
+        }
+
         if (active is { Sprint.Goal: { } goal } && !string.IsNullOrWhiteSpace(goal))
         {
             actions.Add(ActionIds.SprintGoal);

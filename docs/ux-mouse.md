@@ -80,6 +80,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `sprint.switch` | V | Item of the menu of the tab and the view, shown on a board, backlog or sprint view: opens the sprint switcher, same as `<space>sv` |
+| ContextMenu | Click | `sprint.create` | V | Item of the menu of the tab and the view, shown on a Scrum backlog or sprint view: opens the sprint form, same as `<space>sn` |
+| ContextMenu | Click | `sprint.edit` | V | Item of the menu of the tab and the view, shown on a Scrum backlog or sprint view: edits the sprint under the cursor (backlog) or the one shown (sprint view), same as `<space>se` |
 | ContextMenu | Click | `sprint.goal` | V | Item of the view menu, shown on a Sprint view whose sprint has a goal: opens the goal notice, same as `<space>sg` |
 | ContextMenu | Click | `status.history` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `status.dismiss` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |

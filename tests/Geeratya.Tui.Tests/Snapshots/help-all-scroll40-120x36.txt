@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Alt-9      Go to tab 9                                                     │            
-            │ > All actions │   Space t    Open the source picker for a new tab                            │            
-            │   Commands    │   Space c    Close the tab                                                   │            
+            │   Global      │   Alt-8      Go to tab 8                                                     │            
+            │ > All actions │   Alt-9      Go to tab 9                                                     │            
+            │   Commands    │   Space t    Open the source picker for a new tab                            │            
+            │               │   Space c    Close the tab                                                   │            
             │               │ Navigate                                                                     │            
             │               │   j          Move down  (Down)                                               │            
             │               │   k          Move up  (Up)                                                   │            
@@ -30,7 +31,6 @@
             │               │   Space x    Dismiss the status message                                      │            
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
-            │               │   /          Filter the help by key, title or action id                      │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
