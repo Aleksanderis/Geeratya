@@ -72,3 +72,5 @@ Before ending:
 - No long summaries of agent work in the conversation; link PRs instead.
 - Never implement an issue yourself in the orchestrator session unless it is a trivial fix to something an agent just merged.
 - Never decide a milestone is done without checking that every issue in it is closed or waiting for the owner.
+
+Test of the marker detection in `owner-feedback.sh`: `scripts/test-owner-feedback.sh` (or `.ps1`); run it after editing `def agent`.
