@@ -9,16 +9,18 @@ public sealed record ConfirmDialogLayout(
     int BoxWidth,
     IReadOnlyList<string> Question,
     IReadOnlyList<string> Warning,
-    string YesLabel)
+    string YesLabel,
+    string Title = ConfirmDialog.Title,
+    bool Notice = false)
 {
-    /// <summary>Rows of the box with its two edges: question, a gap and the warning, a gap, then the two answers.</summary>
-    public int Height => 2 + Question.Count + (Warning.Count > 0 ? Warning.Count + 1 : 0) + 1 + 2;
+    /// <summary>Rows of the box with its two edges: question, a gap and the warning, a gap, then the two answers (a notice has only the close row).</summary>
+    public int Height => 2 + Question.Count + (Warning.Count > 0 ? Warning.Count + 1 : 0) + 1 + (Notice ? 1 : 2);
 
     /// <summary>The row of the <c>y</c> answer, counted from the top edge of the box.</summary>
     public int YesRow => Height - 3;
 
     /// <summary>The row of the <c>n</c> answer, counted from the top edge of the box.</summary>
-    public int NoRow => Height - 2;
+    public int NoRow => Notice ? -1 : Height - 2;
 
     /// <summary>Columns of text between the walls and their padding.</summary>
     public int TextColumns => BoxWidth - 4;

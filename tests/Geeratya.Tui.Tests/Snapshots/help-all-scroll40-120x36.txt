@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Space t    Open the source picker for a new tab                            │            
-            │ > All actions │   Space c    Close the tab                                                   │            
-            │   Commands    │ Navigate                                                                     │            
+            │   Global      │   Alt-9      Go to tab 9                                                     │            
+            │ > All actions │   Space t    Open the source picker for a new tab                            │            
+            │   Commands    │   Space c    Close the tab                                                   │            
+            │               │ Navigate                                                                     │            
             │               │   j          Move down  (Down)                                               │            
             │               │   k          Move up  (Up)                                                   │            
             │               │   h          Move left  (Left)                                               │            
@@ -30,7 +31,6 @@
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
             │               │   /          Filter the help by key, title or action id                      │            
-            │               │   Tab        Next help section                                               │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

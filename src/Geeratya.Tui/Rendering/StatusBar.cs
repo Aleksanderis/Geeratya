@@ -524,6 +524,11 @@ public static class StatusBar
         var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
         var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
 
+        if (state.Confirm?.Title is { } title)
+        {
+            return $"{title}  ({yes}/{no} close)";
+        }
+
         if (dialogShown)
         {
             return $"{ConfirmDialog.StatusText}  ({yes}/{no})";

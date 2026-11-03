@@ -132,6 +132,7 @@ public static class ActionCatalog
         new(ActionIds.PickerNext, "Next row in the picker"),
         new(ActionIds.PickerOpenNewTab, "Open the highlighted sprint in a new tab"),
         new(ActionIds.SprintSwitch, "Switch the sprint shown (active, future, closed)"),
+        new(ActionIds.SprintGoal, "Show the full goal of the sprint"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
@@ -221,7 +222,7 @@ public static class ActionCatalog
     /// </summary>
     public static string? GroupOf(string id)
     {
-        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id.StartsWith("view.", StringComparison.Ordinal))
+        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id == ActionIds.SprintGoal || id.StartsWith("view.", StringComparison.Ordinal))
         {
             return "View";
         }

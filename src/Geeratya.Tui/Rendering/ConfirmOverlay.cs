@@ -39,7 +39,12 @@ public static class ConfirmOverlay
 
         regions?.Add(new OverlayRegion(MouseTarget.ConfirmBox, top, left, layout.BoxWidth, box.Count, 0));
         OverlayBox.Mark(regions, MouseTarget.ConfirmYes, top, left, layout.BoxWidth, layout.YesRow, [0]);
-        OverlayBox.Mark(regions, MouseTarget.ConfirmNo, top, left, layout.BoxWidth, layout.NoRow, [0]);
+
+        if (!layout.Notice)
+        {
+            OverlayBox.Mark(regions, MouseTarget.ConfirmNo, top, left, layout.BoxWidth, layout.NoRow, [0]);
+        }
+
 
         for (var index = 0; index < box.Count; index++)
         {
@@ -52,7 +57,7 @@ public static class ConfirmOverlay
     private static List<StyledLine> BoxLines(ConfirmDialogLayout layout, KeymapTable keymap)
     {
         var contentWidth = layout.BoxWidth - 2;
-        var lines = new List<StyledLine> { OverlayBox.Top(layout.BoxWidth, ConfirmDialog.Title) };
+        var lines = new List<StyledLine> { OverlayBox.Top(layout.BoxWidth, layout.Title) };
 
         foreach (var text in layout.Question)
         {
@@ -76,9 +81,13 @@ public static class ConfirmOverlay
         lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth));
         lines.Add(OverlayBox.Wall(AnswerLine(yes, layout.YesLabel, keyWidth, layout.TextColumns), contentWidth));
 
-        var cancel = AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns);
+        if (!layout.Notice)
+        {
+            var cancel = AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns);
 
-        lines.Add(OverlayBox.Wall(cancel, contentWidth));
+            lines.Add(OverlayBox.Wall(cancel, contentWidth));
+        }
+
         lines.Add(OverlayBox.Bottom(layout.BoxWidth));
 
         return lines;

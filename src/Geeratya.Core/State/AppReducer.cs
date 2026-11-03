@@ -544,6 +544,7 @@ public sealed class AppReducer
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
             ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state),
+            ActionIds.SprintGoal => InNormal(state, () => Result(SprintGoalNotice.Open(state))),
             ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
@@ -678,6 +679,11 @@ public sealed class AppReducer
         if (state.Editor is not null)
         {
             return Result(CommentEditing.KeepEditing(state));
+        }
+
+        if (state.Confirm?.Title is not null)
+        {
+            return Result(ToNormal(state));
         }
 
         return Result(ToNormal(state) with { Message = "Cancelled." });
@@ -1052,6 +1058,11 @@ public sealed class AppReducer
         var normal = ToNormal(state);
 
         if (request is null)
+        {
+            return Result(normal);
+        }
+
+        if (request.Title is not null)
         {
             return Result(normal);
         }

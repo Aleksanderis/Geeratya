@@ -82,6 +82,7 @@ public static class ActionIds
     public const string PickerNext = "picker.next";
     public const string PickerOpenNewTab = "picker.open-new-tab";
     public const string SprintSwitch = "sprint.switch";
+    public const string SprintGoal = "sprint.goal";
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";

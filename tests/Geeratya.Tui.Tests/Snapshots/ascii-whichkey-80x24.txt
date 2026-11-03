@@ -19,6 +19,6 @@
                     | *         Switch the command level for the session       |
                     | m         +comment (2)                                   |
                     | i         +issue (6)                                     |
-                    | s         +sprint (1)                                    |
+                    | s         +sprint (2)                                    |
                     +----------------------------------------------------------+
  NORMAL Space                                         ? help  : commands  q quit

@@ -35,8 +35,19 @@ public static class ConfirmDialog
             return null;
         }
 
-        var split = Split(request.Message);
         var text = boxWidth - 4;
+
+        if (request.Title is not null)
+        {
+            var paragraphs = request.Message.Split('\n')
+                .SelectMany(paragraph => paragraph.Trim().Length == 0 ? [string.Empty] : Wrap(paragraph, text))
+                .ToList();
+            var notice = new ConfirmDialogLayout(boxWidth, paragraphs, [], LabelOf(request), request.Title, true);
+
+            return notice.Height <= bodyRows ? notice : null;
+        }
+
+        var split = Split(request.Message);
         var question = Wrap(split.Question, text);
         var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request));
 
