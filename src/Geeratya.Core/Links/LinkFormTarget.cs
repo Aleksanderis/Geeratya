@@ -14,7 +14,8 @@ public sealed record LinkFormTarget(string Key) : FormTarget
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
         var chosen = changes.FirstOrDefault(change => change.FieldId == LinkFormFields.TypeFieldId)?.Value.Chosen;
-        var other = changes.FirstOrDefault(change => change.FieldId == LinkFormFields.IssueFieldId)?.Value.Text;
+        var picked = changes.FirstOrDefault(change => change.FieldId == LinkFormFields.IssueFieldId)?.Value;
+        var other = picked?.Chosen is [var first, ..] ? first : picked?.Text;
         var choice = chosen is [var id] && LinkOptionId.TryParse(id, out var parsed) ? parsed : null;
 
         // A missing type goes on as an empty id, which the client refuses before anything is sent.
