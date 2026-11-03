@@ -7,9 +7,9 @@ public enum ViewSourceKind
     Board,
     Backlog,
 
-    /// <summary>One sprint (or the active ones) of a Scrum board; the source value is a <see cref="SprintSource"/>.</summary>
+    /// <summary>One sprint (or the active ones) of a Scrum board; the value is a <see cref="SprintSource"/>.</summary>
     Sprint,
 
-    /// <summary>Everything on a Scrum board, sprints and backlog; the source value is the board id.</summary>
+    /// <summary>Open and future sprints and the backlog of a Scrum board; the source value is the board id.</summary>
     ScrumBacklog,
 }

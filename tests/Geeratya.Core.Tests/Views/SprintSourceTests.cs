@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Cache;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -115,6 +116,19 @@ public class SprintSourceTests
 
         Assert.Equal(2, done.State.Session.Tabs[0].Rows.Count);
         Assert.Equal("7:active", done.State.Session.Tabs[0].Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenOpenIssueDetail_WhenSwitchingSprint_ThenTheDetailIsClosed()
+    {
+        var loaded = Loaded(Definition(ViewSourceKind.Sprint, "7:42"), 3);
+        var tab = loaded.Session.Tabs[0];
+        var withDetail = _reducer.Reduce(loaded, new IssueDetailOpenRequested(tab.Id, "A-1", tab.Rows[0])).State;
+        Assert.NotEmpty(withDetail.Session.Tabs[0].Detail);
+
+        var result = _reducer.Reduce(withDetail, new SprintSwitched(tab.Id, new SprintSource(7, 43), "S43"));
+
+        Assert.Empty(result.State.Session.Tabs[0].Detail);
     }
 
     [Fact]

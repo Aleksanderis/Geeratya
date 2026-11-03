@@ -137,7 +137,7 @@ public sealed class ViewLoadHandlerScrumTests
     }
 
     [Fact]
-    public async Task GivenScrumBacklogSource_WhenOpened_ThenTheBoardIssuesAreAskedWithoutAnySprintFilter()
+    public async Task GivenScrumBacklogSource_WhenOpened_ThenOnlyOpenAndFutureSprintsAndTheBacklogAreAsked()
     {
         using var fixture = await ConnectedAsync(
             http => http
@@ -148,7 +148,9 @@ public sealed class ViewLoadHandlerScrumTests
         await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, "6");
 
         Assert.Equal("/rest/agile/1.0/board/6/issue", fixture.Path(2));
-        Assert.DoesNotContain("jql=", fixture.Query(2));
+        Assert.Contains(
+            "jql=sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY",
+            Uri.UnescapeDataString(fixture.Query(2)));
         Assert.Contains("customfield_10020", fixture.Query(2));
     }
 

@@ -164,6 +164,8 @@ public static class ViewReducer
             ProtectedRows = [],
             RemovedKeys = [],
             RefreshQueued = false,
+            Detail = [],
+            LoadedAt = null,
         };
 
         effects.Add(new CancelTabEffect(tab.Id));

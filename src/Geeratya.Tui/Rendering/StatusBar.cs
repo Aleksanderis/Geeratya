@@ -232,7 +232,7 @@ public static class StatusBar
             return HintScope.Columns;
         }
 
-        return tab.Definition.Source == ViewSourceKind.Board ? HintScope.ListOnBoard : HintScope.List;
+        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Sprint ? HintScope.ListOnBoard : HintScope.List;
     }
 
     /// <summary>

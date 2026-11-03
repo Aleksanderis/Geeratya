@@ -21,6 +21,10 @@ public sealed class ViewLoadHandler
         "Not connected to Jira: check the profile and its API token (:profile), then reload.";
 
     private const string OpenSprintsJql = "sprint in openSprints()";
+
+    // Active and future sprints plus the backlog; closed sprints (thousands of done issues) are left out.
+    private const string BacklogWithSprintsJql =
+        "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
     private const string UnsupportedSourceMessage = "This kind of view cannot be loaded yet.";
     private const string InvalidBoardMessage = "The board id is not a number.";
 
@@ -182,7 +186,10 @@ public sealed class ViewLoadHandler
                 report(new BoardConfigurationLoaded(effect.Tab, effect.RequestId, loaded));
             }
 
-            var kind = await ResolveKindAsync(services, id, loaded, effect.Background, token);
+            // The sprint sources are Scrum by definition, so the kind needs no lookup.
+            var kind = effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog
+                ? BoardKind.Scrum
+                : await ResolveKindAsync(services, id, loaded, effect.Background, token);
 
             return await BoardPageAsync(services, effect, id, kind, token);
         }
@@ -291,7 +298,7 @@ public sealed class ViewLoadHandler
 
     /// <summary>
     /// The sprint filter of a source: open sprints for a board, one sprint or the open ones for a sprint view, none for
-    /// the backlog endpoint and for the Scrum backlog (which shows every sprint and the backlog).
+    /// the backlog endpoint, and the open and future sprints plus the backlog for the Scrum backlog.
     /// </summary>
     private static string? SprintJql(ViewDefinition definition)
     {
@@ -300,12 +307,15 @@ public sealed class ViewLoadHandler
             return OpenSprintsJql;
         }
 
+        if (definition.Source == ViewSourceKind.ScrumBacklog)
+        {
+            return BacklogWithSprintsJql;
+        }
+
         if (definition.Source == ViewSourceKind.Sprint
             && SprintSource.TryParse(definition.SourceValue, out var sprint))
         {
-            return sprint.SprintId is { } id
-                ? $"sprint = {id.ToString(CultureInfo.InvariantCulture)}"
-                : OpenSprintsJql;
+            return sprint.SprintId is { } id ? $"sprint = {id.ToString(CultureInfo.InvariantCulture)}" : OpenSprintsJql;
         }
 
         return null;
