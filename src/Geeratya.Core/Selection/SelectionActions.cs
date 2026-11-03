@@ -15,6 +15,7 @@ public static class SelectionActions
 {
     private const string InsideIssueText = "Select rows in the list, not inside an issue";
     private const string ColumnsText = "Visual mode works in the list and backlog layouts; mark cards with Alt-m";
+    private const string ListedText = "A sub-task listed under a card cannot be marked; Enter opens it";
     private const string NothingText = "Nothing to select here";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -99,6 +100,12 @@ public static class SelectionActions
         if (CursorKey(tab) is not { } cursorKey)
         {
             return Say(state, NothingText);
+        }
+
+        if (tab.Definition.Layout == ViewLayout.Columns
+            && ColumnsNavigation.SelectedIssue(tab) is { IsListed: true })
+        {
+            return Say(state, ListedText);
         }
 
         if (tab.VisualAnchor is not null && advance)

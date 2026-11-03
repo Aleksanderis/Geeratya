@@ -29,14 +29,17 @@ public static class BoardColumns
     public static IReadOnlyList<BoardColumnGroup> Visible(
         BoardConfiguration? configuration,
         IReadOnlyList<IssueSummary> rows,
-        IReadOnlyList<string>? expanded = null)
+        IReadOnlyList<string>? expanded = null,
+        IReadOnlyList<IssueSummary>? all = null)
     {
+        all ??= rows;
+
         if (configuration is null)
         {
-            return rows.Count == 0 ? [] : [Arrange(AllIssuesName, rows, expanded, rows)];
+            return rows.Count == 0 ? [] : [Arrange(AllIssuesName, rows, expanded, all)];
         }
 
-        var groups = Group(configuration, rows, expanded);
+        var groups = Group(configuration, rows, expanded, all);
         var columns = HidesBacklogColumn(configuration) ? [.. groups.Columns.Skip(1)] : groups.Columns;
 
         if (groups.Unmapped.Count == 0)
@@ -44,7 +47,7 @@ public static class BoardColumns
             return columns;
         }
 
-        return [.. columns, Arrange(UnmappedName, groups.Unmapped, expanded, rows)];
+        return [.. columns, Arrange(UnmappedName, groups.Unmapped, expanded, all)];
     }
 
     /// <summary>
@@ -66,8 +69,10 @@ public static class BoardColumns
     public static BoardColumnGroups Group(
         BoardConfiguration configuration,
         IReadOnlyList<IssueSummary> rows,
-        IReadOnlyList<string>? expanded = null)
+        IReadOnlyList<string>? expanded = null,
+        IReadOnlyList<IssueSummary>? all = null)
     {
+        all ??= rows;
         var columnOfStatus = new Dictionary<string, int>();
 
         for (var index = 0; index < configuration.Columns.Count; index++)
@@ -103,7 +108,7 @@ public static class BoardColumns
 
         for (var index = 0; index < groups.Length; index++)
         {
-            groups[index] = Arrange(configuration.Columns[index].Name, buckets[index], expanded, rows);
+            groups[index] = Arrange(configuration.Columns[index].Name, buckets[index], expanded, all);
         }
 
         return new BoardColumnGroups(groups, unmapped);

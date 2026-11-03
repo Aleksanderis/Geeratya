@@ -1,8 +1,12 @@
 using Geeratya.App.Tests.Fakes;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Boards;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Search.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -165,10 +169,44 @@ public class ColumnsSubtaskTests
     {
         var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a");
 
-        var lines = FrameBuilder.Build(state, Width, Height, _keymap, null, Geeratya.Platform.Terminal.GlyphSet.Ascii);
+        var lines = FrameBuilder.Build(state, Width, Height, _keymap, null, GlyphSet.Ascii);
 
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.Contains(lines, line => line.Contains("v Sub-tasks", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GivenTheCursorOnAListedSubtask_WhenMarking_ThenItIsRefusedAndNothingIsMarked()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a", "j");
+
+        var result = Press(state, "Alt-m");
+
+        Assert.Empty(Active(result).Marks);
+        Assert.Contains("cannot be marked", result.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenTheCursorOnAListedSubtask_WhenAskingForWriteTargets_ThenOnlyThatSubtaskIsTheTarget()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a", "j");
+
+        var targets = RowSelection.Targets(Active(state));
+
+        Assert.Equal(["GCM-18"], targets);
+    }
+
+    [Fact]
+    public async Task GivenALaneThatHidesASubtaskCard_WhenExpanding_ThenTheSubtaskIsNotListedTwice()
+    {
+        var state = await OpenAsync("gcm", false, "GCM-10");
+        var tab = Active(state);
+        var lane = tab with { Swimlane = SwimlaneKind.Assignee, ExpandedSubtasks = ["GCM-10"] };
+        var rows = tab.Rows.Where(row => row.Key != "GCM-18").Select(row => row).ToList();
+
+        var columns = BoardColumns.Visible(tab.Board, rows, lane.ExpandedSubtasks, tab.Rows);
+
+        Assert.DoesNotContain(columns.SelectMany(column => column.Rows), row => row.IsListed && row.Key == "GCM-18");
     }
 
     private static async Task<AppState> OpenAsync(string kind, bool filtered, string selectKey)
@@ -218,9 +256,11 @@ public class ColumnsSubtaskTests
         return [.. ColumnsNavigation.ColumnsOf(Active(state)).SelectMany(column => column.Rows).Select(row => row.Key)];
     }
 
-    private static List<Geeratya.Jira.Search.Models.IssueSummary> Listed(AppState state)
+    private static List<IssueSummary> Listed(AppState state)
     {
-        return [.. ColumnsNavigation.ColumnsOf(Active(state)).SelectMany(column => column.Rows).Where(row => row.IsListed)];
+        var rows = ColumnsNavigation.ColumnsOf(Active(state)).SelectMany(column => column.Rows);
+
+        return [.. rows.Where(row => row.IsListed)];
     }
 
     private static int ColumnCount(AppState state)

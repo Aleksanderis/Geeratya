@@ -29,7 +29,7 @@ public sealed record IssueSummary(
     public IReadOnlyList<IssueSprint> Sprints { get; init; } = [];
 
     /// <summary>
-    /// The sub-tasks the parent lists (<c>subtasks</c> field); empty when none or not requested. Only board sources ask.
+    /// The sub-tasks the parent lists (<c>subtasks</c> field); empty when none or not requested. Board sources ask.
     /// </summary>
     public IReadOnlyList<IssueSubtask> Subtasks { get; init; } = [];
 
