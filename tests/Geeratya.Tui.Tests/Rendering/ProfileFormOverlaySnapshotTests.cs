@@ -80,6 +80,19 @@ public class ProfileFormOverlaySnapshotTests
         Assert.DoesNotContain(lines, line => line.Contains("s3cr3t", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData(ProfileFormField.Name, "Enter next")]
+    [InlineData(ProfileFormField.SiteUrl, "Enter next")]
+    [InlineData(ProfileFormField.Email, "Enter next")]
+    [InlineData(ProfileFormField.Token, "Enter save")]
+    public void GivenEachStep_WhenBuildingTheFrame_ThenBoxFooterAndStatusHintSayTheSame(ProfileFormField field, string expected)
+    {
+        var lines = FrameBuilder.Build(Sample(field, null), 100, 30, _keymap);
+
+        Assert.Contains(lines, line => line.Contains('│') && line.Contains(expected, StringComparison.Ordinal));
+        Assert.Contains(expected, lines[^1], StringComparison.Ordinal);
+    }
+
     private static AppState Sample(ProfileFormField field, string? error)
     {
         var form = ProfileForm.Start with { Field = field, Token = new SecretText(Token), Error = error };

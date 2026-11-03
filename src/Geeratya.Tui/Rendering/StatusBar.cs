@@ -75,6 +75,13 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints of the profile-add prompt on <paramref name="field"/>; Enter's verb is the box footer's.</summary>
+    public static IReadOnlyList<StatusHint> ProfileHints(ProfileFormField field) =>
+    [
+        new(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(field)),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
     /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>
     public static IReadOnlyList<StatusHint> HelpHints { get; } =
     [
@@ -201,6 +208,11 @@ public static class StatusBar
         if (state is { Mode: InputMode.Help, MessagesOpen: false })
         {
             return new HintList([], TextsOf(HelpHints, state.Mode, HintScope.Global, keymap, level));
+        }
+
+        if (state is { Mode: InputMode.Insert, Form: { } profile })
+        {
+            return new HintList([], TextsOf(ProfileHints(profile.Field), state.Mode, HintScope.Global, keymap, level));
         }
 
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
