@@ -179,7 +179,7 @@ public sealed class ProfileEffectHandler
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new ProfileTested(test.Profile, false, NoStoredTokenMessage);
+            return new ProfileTested(false, NoStoredTokenMessage);
         }
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -197,20 +197,20 @@ public sealed class ProfileEffectHandler
             {
                 var name = ConnectionText.Sanitize(result.Value.DisplayName);
 
-                return new ProfileTested(test.Profile, true, $"Connected as {name}.");
+                return new ProfileTested(true, $"Connected as {name}.");
             }
 
             var failure = ConnectionText.Failure(result.Error, test.Profile.SiteUrl);
 
-            return new ProfileTested(test.Profile, false, $"Failed: {failure.Hint}");
+            return new ProfileTested(false, $"Failed: {failure.Hint}");
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return new ProfileTested(test.Profile, false, "Failed: the site did not answer in time.");
+            return new ProfileTested(false, "Failed: the site did not answer in time.");
         }
         catch (Exception exception) when (exception is ArgumentException or UriFormatException)
         {
-            return new ProfileTested(test.Profile, false, "Failed: the site address cannot be used.");
+            return new ProfileTested(false, "Failed: the site address cannot be used.");
         }
     }
 

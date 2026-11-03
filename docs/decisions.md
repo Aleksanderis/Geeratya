@@ -133,3 +133,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (look spec, #523)
 
 **UI:** The look follows Gitunia (one frame with shared edges, title chips, accent focus, floating overlays) but differs where listed in `ux-look.md` section 8: panes per screen instead of a fixed pane set, one `OverlayBox` over a muted visible view, no pane-resize keys, and issue-type and status colours instead of Git colours so it does not read as a Git client. Pane focus reuses `h`/`l` and `]`/`[`, so no keymap change. Why: owner intent (slicker, Gitunia-styled, not a Git look); Gitunia `ux-look.md` and `ux-mouse.md` (Backdrop) shaped it.
+
+## 2026-11-03 (profile manager, #528)
+
+**UI:** The profile manager (#528) is the existing profile list overlay plus one four-field add/edit form (`Tab` between fields, `Ctrl-s` save, `Alt-t` test connection); no token source row. Why: popup and form components are restyled by #524 to #527, so the two-pane full-body screen waits for them; the token is always the OS secret store (`GEERATYA_TOKEN` is process-wide and works with one profile only), so there is no per-profile choice to show. `Alt-t` because `Ctrl-t` is the picker's open-in-new-tab key. Details: `ux.md`, "Profiles".
