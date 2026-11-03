@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │   ]]         Next section of the issue or the Scrum backlog                  │            
-            │ > All actions │   [[         Previous section of the issue or the Scrum backlog              │            
-            │   Commands    │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
+            │   Global      │   $          Go to the last column                                           │            
+            │ > All actions │   ]]         Next section of the issue or the Scrum backlog                  │            
+            │   Commands    │   [[         Previous section of the issue or the Scrum backlog              │            
+            │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
             │               │              section                                                         │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
@@ -30,7 +31,6 @@
             │               │   G          Scroll help to the bottom                                       │            
             │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
             │               │   Backspace  Delete the character before the caret                           │            
-            │               │   y          Confirm                                                         │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

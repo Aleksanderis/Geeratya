@@ -89,6 +89,7 @@ public class MouseMapTests
             MouseGesture.WheelDown => "Wheel down",
             MouseGesture.DoubleClick => "Double-click",
             MouseGesture.RightClick => "Right-click",
+            MouseGesture.MiddleClick => "Middle-click",
             MouseGesture.CtrlClick => "Ctrl-click",
             MouseGesture.DragRows => "Drag rows",
             MouseGesture.DragToSprint => "Drag to sprint",

@@ -1,3 +1,4 @@
+using Geeratya.Core.Views;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Menus;
@@ -38,6 +39,9 @@ public sealed record AppState(
     int ViewportRows,
     SourcePickerState? Picker = null)
 {
+    /// <summary>The tab chip under the pointer, null when the pointer is elsewhere (the chip shows its close x).</summary>
+    public TabId? HoveredTab { get; init; }
+
     /// <summary>The last terminal width the host reported; issue details are laid out for it (0 until known).</summary>
     public int ViewportColumns { get; init; }
 

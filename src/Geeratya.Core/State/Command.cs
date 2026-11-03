@@ -1,3 +1,4 @@
+using Geeratya.Core.Views;
 namespace Geeratya.Core.State;
 
 /// <summary>An input to the reducer.</summary>
@@ -33,6 +34,12 @@ public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffse
 /// click landed on a row, card or line, so a click on empty space never acts on the old selection.
 /// </param>
 public sealed record PointerPlaced(int Column, int Row, int Width, ActionRequested? Then = null) : Command;
+
+/// <summary>
+/// The pointer moved over the tab bar (or off it): the chip under it, null when none. The chip shows its close
+/// <c>x</c> while hovered (<c>docs/ux-look.md</c>, section 5); it changes nothing else and has no action id.
+/// </summary>
+public sealed record TabHovered(TabId? Tab) : Command;
 
 /// <summary>
 /// A card dragged from one cell to another on the columns layout (press, move, release). It is the key

@@ -43,6 +43,11 @@ public static class MouseResolver
             return TabClick(context, hit, gesture, at);
         }
 
+        if (hit.Target == MouseTarget.TabClose && gesture == MouseGesture.Click)
+        {
+            return AreaAt(context, hit.Column) is { } closed ? [new TabClosed(closed.Tab)] : _none;
+        }
+
         var inBody = hit.Target is MouseTarget.Lists or MouseTarget.Detail;
 
         if (inBody && gesture == MouseGesture.Click)
@@ -82,6 +87,21 @@ public static class MouseResolver
         return inside && DefaultMouseMap.Find(target, gesture) is { } found && WiredParts.Contains(found.Part)
             ? [new ActionRequested(found.Action, found.Count, at)]
             : _none;
+    }
+
+    /// <summary>
+    /// The tab chip under the pointer as a command: the tab of the chip (its close <c>x</c> included), null on a
+    /// separator, a hidden-tab mark, anywhere else, or while an overlay is open.
+    /// </summary>
+    public static TabHovered Hover(MouseContext context, int column, int row)
+    {
+        if (MouseHitTester.Locate(context, column, row) is not { Target: MouseTarget.Tabs or MouseTarget.TabClose } hit
+            || AreaAt(context, hit.Column) is not { Overflow: false } area)
+        {
+            return new TabHovered(null);
+        }
+
+        return new TabHovered(area.Tab);
     }
 
     /// <summary>
@@ -204,22 +224,35 @@ public static class MouseResolver
 
     private static IReadOnlyList<Command> TabClick(MouseContext context, MouseHit hit, MouseGesture gesture, DateTimeOffset at)
     {
-        if (gesture is not (MouseGesture.Click or MouseGesture.RightClick))
+        if (gesture is not (MouseGesture.Click or MouseGesture.RightClick or MouseGesture.MiddleClick)
+            || AreaAt(context, hit.Column) is not { } area)
         {
             return _none;
         }
 
+        // A middle click closes the chip under the pointer, active or not, the way the x does (never a hidden tab).
+        if (gesture == MouseGesture.MiddleClick)
+        {
+            return area.Overflow ? _none : [new TabClosed(area.Tab)];
+        }
+
+        // A right-click switches to the tab first, so the menu acts on the tab under the pointer.
+        return gesture == MouseGesture.Click
+            ? [new TabActivated(area.Tab)]
+            : [new TabActivated(area.Tab), new ActionRequested(ActionIds.ViewMenuOpen, 1, at)];
+    }
+
+    /// <summary>The tab chip under a tab bar column, null on a separator or empty bar.</summary>
+    private static TabArea? AreaAt(MouseContext context, int column)
+    {
         foreach (var area in context.TabAreas)
         {
-            if (hit.Column >= area.Start && hit.Column < area.End)
+            if (column >= area.Start && column < area.End)
             {
-                // A right-click switches to the tab first, so the menu acts on the tab under the pointer.
-                return gesture == MouseGesture.Click
-                    ? [new TabActivated(area.Tab)]
-                    : [new TabActivated(area.Tab), new ActionRequested(ActionIds.ViewMenuOpen, 1, at)];
+                return area;
             }
         }
 
-        return _none;
+        return null;
     }
 }

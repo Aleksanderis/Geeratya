@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │ Navigate                                                                     │            
-            │ > All actions │   j          Move down  (Down)                                               │            
-            │   Commands    │   k          Move up  (Up)                                                   │            
+            │   Global      │   <space>T   Show a list of open tabs                                        │            
+            │ > All actions │ Navigate                                                                     │            
+            │   Commands    │   j          Move down  (Down)                                               │            
+            │               │   k          Move up  (Up)                                                   │            
             │               │   h          Move left  (Left)                                               │            
             │               │   l          Move right  (Right)                                             │            
             │               │   gg         Go to the top  (Home)                                           │            
@@ -30,7 +31,6 @@
             │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │            
             │               │              screen)                                                         │            
             │               │ Dialogs                                                                      │            
-            │               │   Esc        Close help  (q)                                                 │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

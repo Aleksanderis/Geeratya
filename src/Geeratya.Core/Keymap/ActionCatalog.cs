@@ -108,6 +108,7 @@ public static class ActionCatalog
         new(ActionIds.TabGoTo9, "Go to tab 9"),
         new(ActionIds.TabNew, "Open the source picker for a new tab"),
         new(ActionIds.TabClose, "Close the tab"),
+        new(ActionIds.TabList, "Show a list of open tabs"),
         new(ActionIds.ViewRefresh, "Refresh the view (also retries after an error)"),
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.ViewQuickFilter, "Cycle the quick filter of the board (off, then each filter in turn)"),

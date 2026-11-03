@@ -230,6 +230,11 @@ public static class SourceReducer
             return Plain(state);
         }
 
+        if (picker.Scope == PickerScope.Tabs)
+        {
+            return TabListReducer.Accept(state, picker);
+        }
+
         if (picker.Scope == PickerScope.Sprints)
         {
             return AcceptSprint(state, false, at);

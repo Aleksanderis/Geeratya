@@ -1,10 +1,10 @@
                                                                     [: commands]
                                                                                 
-                                                                                
                     +- <space> ------------------------------------------------+
                     | c         Close the tab                                  |
                     | t         Open the source picker for a new tab           |
                     | Tab       Previously active tab                          |
+                    | T         Show a list of open tabs                       |
                     | x         Dismiss the status message                     |
                     | n         Show the message history                       |
                     | g         Jump to an issue by key                        |
