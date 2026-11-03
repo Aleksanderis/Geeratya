@@ -637,13 +637,34 @@ public class MousePlacementTests
     }
 
     [Fact]
-    public void GivenOpenedIssue_WhenClickingTheBreadcrumb_ThenTheCursorStays()
+    public void GivenOpenedIssue_WhenClickingTheTopEdge_ThenTheCursorStays()
     {
         var state = OpenedIssue();
 
         var result = Click(state, 80, 24, 4, HeaderRows);
 
         Assert.Equal(Active(state).Detail[^1].Cursor, Active(result).Detail[^1].Cursor);
+    }
+
+    [Fact]
+    public void GivenScrolledIssue_WhenClickingTheBottomEdge_ThenTheCursorStaysOnItsLine()
+    {
+        var small = _reducer.Reduce(OpenedIssue(), new ViewportChanged(3, 80)).State;
+        var state = small;
+
+        for (var step = 0; step < 6; step++)
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j")).State;
+        }
+
+        var top = Active(state).Detail[^1];
+        var viewport = DetailLayout.ViewportRows(Active(state).VisibleRows);
+
+        var result = Click(state, 80, 24, 4, HeaderRows + DetailLayout.HeaderRows + viewport);
+
+        Assert.True(top.Scroll > 0);
+        Assert.Equal(top.Cursor, Active(result).Detail[^1].Cursor);
+        Assert.Equal(top.Scroll, Active(result).Detail[^1].Scroll);
     }
 
     [Fact]

@@ -1,8 +1,8 @@
-using Geeratya.Core.Text;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
@@ -110,6 +110,15 @@ public class BacklogSnapshotTests
         Assert.Contains(body, line => line.StartsWith("├─ Backlog") && line.Contains("1 issue"));
         Assert.StartsWith("╰", body[^2]);
         Assert.DoesNotContain(body, line => line.StartsWith('┌') || line.StartsWith('┐'));
+    }
+
+    [Fact]
+    public void GivenACollapsedSectionUnderTheCursor_WhenBuilding_ThenItsEdgeChipHasTheMarkerAndTheSelectedRole()
+    {
+        var body = FrameBuilder.BuildStyled(Sample(true), 100, 24, _keymap)!.Body;
+
+        var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ > ▸ Sprint 1"));
+        Assert.Contains(edge.Spans, span => span.Role == TextRole.Selected && span.Text.Contains("Sprint 1"));
     }
 
     [Fact]

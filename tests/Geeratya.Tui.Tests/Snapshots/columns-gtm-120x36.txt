@@ -33,4 +33,4 @@
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │
 ╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
- NORMAL    h/l column  j/k card  Enter open  Space l list  Space o browser  Space i c create  ? help  : commands  q quit
+ NORMAL GTM board · 16 issues                 h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit

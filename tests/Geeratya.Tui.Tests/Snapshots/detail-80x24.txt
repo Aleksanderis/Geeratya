@@ -21,4 +21,4 @@
 │ - bullet one                                                                 │
 │ - bullet two                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit
+ NORMAL My open issues › GCM-12 · Top     j/k scroll  ? help  : commands  q quit

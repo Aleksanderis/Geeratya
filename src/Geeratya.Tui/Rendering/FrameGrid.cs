@@ -125,7 +125,7 @@ public sealed class FrameGrid
 
         while (column < Width)
         {
-            if (chips?.FirstOrDefault(chip => chip.Column == column && chip.Spans.Count > 0) is { Spans.Count: > 0 } chip
+            if (chips?.FirstOrDefault(candidate => candidate.Column == column && candidate.Spans.Count > 0) is { Spans.Count: > 0 } chip
                 && IsBorder(row, column))
             {
                 Flush(spans, border);

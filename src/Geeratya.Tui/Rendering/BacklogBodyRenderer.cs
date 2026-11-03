@@ -112,7 +112,11 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
             name = $"{name}{glyphs.Separator}{ActiveWord}";
         }
 
-        var role = IsOnCursor(tab, section) ? TextRole.Selected : TextRole.Strong;
+        var onCursor = IsOnCursor(tab, section);
+        var role = onCursor ? TextRole.Selected : TextRole.Strong;
+
+        // The marker says where the cursor is without colour, in the print frame and the ASCII tier.
+        name = onCursor ? $"> {name}" : name;
         var parts = new List<string>();
 
         if (!section.IsBacklog)
@@ -228,6 +232,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     private static StyledLine HeaderLine(TabState tab, BacklogSection section, int width, Glyphs glyphs)
     {
         var text = HeaderText(section, tab.Next is not null, glyphs);
+
         if (IsOnCursor(tab, section))
         {
             var selected = $"> {text}";

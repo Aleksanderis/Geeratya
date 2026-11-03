@@ -21,6 +21,7 @@ public static class StatusBar
     private const string MovePrompt = "move to sprint";
     private const string JumpPrompt = "jump to an issue";
     private const int MinViewRoom = 8;
+    private const int MaxViewReserve = 40;
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -123,17 +124,34 @@ public static class StatusBar
 
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var text = Text(state, width, keymap, clock, confirmDialogShown, 0);
-        var left = $" {Badge(state)} {text}".TrimEnd();
-        var hints = ShownHints(state, keymap, width - TextWidth.Of(left));
-        var spare = width - TextWidth.Of(left) - TextWidth.Of(hints) - Separator.Length;
+        var wanted = TextWidth.Of(Text(state, width, keymap, clock, confirmDialogShown, int.MaxValue))
+            - TextWidth.Of(text);
 
-        // The view text (source and count, breadcrumb and ruler) takes only what the key hints leave over.
-        if (hints.Length > 0)
+        // The view text (source, count, filter and lane, breadcrumb, ruler) is state the user needs: up to
+        // MaxViewReserve cells are kept for it and the screen hints drop from the end to make room (the global
+        // hints stay while they fit).
+        var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
+        var left = $" {Badge(state)} {text}".TrimEnd();
+        var room = width - TextWidth.Of(left);
+        var hints = ShownHints(state, keymap, room - reserve);
+
+        // The global hints never give way to the view text: shrink the reserve until they fit again.
+        while (hints.Length == 0 && reserve > 0 && ShownHints(state, keymap, room).Length > 0)
         {
-            spare -= HintGap.Length * 2;
+            reserve--;
+            hints = ShownHints(state, keymap, room - reserve);
         }
 
-        var shown = spare >= MinViewRoom ? Text(state, width, keymap, clock, confirmDialogShown, spare) : text;
+        var spare = width - TextWidth.Of(left) - TextWidth.Of(hints) - Separator.Length;
+
+        if (hints.Length > 0)
+        {
+            spare -= HintGap.Length;
+        }
+
+        var shown = wanted > 0 && spare >= MinViewRoom
+            ? Text(state, width, keymap, clock, confirmDialogShown, spare)
+            : text;
 
         if (shown != text)
         {

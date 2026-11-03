@@ -33,4 +33,4 @@
 │ ```                                                                                                                  │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL GCM-12 · Top       j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : commands  q quit
+ NORMAL My open issues › GCM-12 · Top      j/k scroll  Enter open  Esc back  Space o browser  ? help  : commands  q quit

@@ -21,4 +21,4 @@
 ├─ Comments ───────────────────────────────────────────────────────────────────┤
 │>No comments.                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit
+ NORMAL My open issues › GCM-12 · Bot     j/k scroll  ? help  : commands  q quit

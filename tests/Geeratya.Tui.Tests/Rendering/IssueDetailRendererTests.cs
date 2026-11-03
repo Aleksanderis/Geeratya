@@ -197,6 +197,29 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenASectionJump_WhenBuilding_ThenTheTopEdgeNamesTheSectionAndNoSecondEdgeFollowsIt()
+    {
+        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("]")).State;
+
+        state = _reducer.Reduce(state, new KeyPressed("]")).State;
+
+        var body = FrameBuilder.Build(state, 160, 12, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.StartsWith("╭─ Description", body[0]);
+        Assert.False(body[1].StartsWith('├'), body[1]);
+    }
+
+    [Fact]
+    public void GivenNarrowTerminal_WhenOpenIssue_ThenTheRulerAndKeyStillShowInTheStatusBar()
+    {
+        var lines = FrameBuilder.Build(Loaded(80, 12), 80, 12, _keymap);
+
+        Assert.Contains("GCM-12", lines[^1]);
+        Assert.Contains("Top", lines[^1]);
+        Assert.Contains("q quit", lines[^1]);
+    }
+
+    [Fact]
     public void GivenHelpOpenOverAnIssue_WhenBuilding_ThenHelpWins()
     {
         var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("?")).State;
@@ -236,7 +259,9 @@ public class IssueDetailRendererTests
             Session = SiteSession.Empty(_profile),
         };
 
-        state = _reducer.Reduce(state, new ViewportChanged(height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows, width)).State;
+        state = _reducer.Reduce(state, new ViewportChanged(
+            height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows,
+            width)).State;
 
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));

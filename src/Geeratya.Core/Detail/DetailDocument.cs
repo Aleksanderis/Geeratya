@@ -20,7 +20,7 @@ public sealed record DetailDocument(
     /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
 
-    /// <summary>The index of the section that holds <paramref name="line"/>; its shared edge belongs to it.</summary>
+    /// <summary>The index of the section that holds <paramref name="line"/>; a shared edge line still belongs to the pane above it.</summary>
     public int SectionAt(int line)
     {
         var index = 0;
@@ -29,7 +29,7 @@ public sealed record DetailDocument(
         {
             var edge = section == 0 ? 0 : Sections[section] - 1;
 
-            if (edge <= line)
+            if (edge < line)
             {
                 index = section;
             }
