@@ -6,14 +6,14 @@
                                                                                 
                                                                                 
                                                                                 
-        +- Confirm ----------------------------------------------------+        
-        | Delete the GCM-3 comment? By Eve: "first words"              |        
-        |                                                              |        
-        | Jira cannot undo this.                                       |        
-        |                                                              |        
-        | y  Delete comment                                            |        
-        | n  Cancel                                                    |        
-        +--------------------------------------------------------------+        
+              +- Confirm ---------------------------------------+               
+              | Delete the GCM-3 comment? By Eve: "first words" |               
+              |                                                 |               
+              | Jira cannot undo this.                          |               
+              |                                                 |               
+              | y  Delete comment                               |               
+              | n  Cancel                                       |               
+              +-------------------------------------------------+               
                                                                                 
                                                                                 
                                                                                 

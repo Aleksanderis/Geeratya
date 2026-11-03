@@ -81,12 +81,17 @@ public static class PaletteOverlay
             OverlayBox.Divider(boxWidth),
         };
 
-        box.AddRange(shown.Select(line => OverlayBox.Wall(line.Text, inner)));
+        for (var row = 0; row < shown.Count; row++)
+        {
+            var marker = row < area ? OverlayBox.ScrollMarker(row, area, first, lines.Count) : " ";
+
+            box.Add(OverlayBox.Wall(shown[row].Text, inner, marker));
+        }
 
         if (footer > 0)
         {
             box.Add(OverlayBox.Divider(boxWidth));
-            box.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), inner));
+            box.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), inner));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));

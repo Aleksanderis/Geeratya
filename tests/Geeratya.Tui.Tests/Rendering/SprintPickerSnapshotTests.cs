@@ -68,7 +68,8 @@ public class SprintPickerSnapshotTests
     [Fact]
     public void GivenAnOpenSwitcher_WhenClickingTheMoreRow_ThenAnotherPageOfClosedSprintsShows()
     {
-        var state = Sample(25);
+        var opened = Sample(25);
+        var state = opened with { Picker = opened.Picker! with { Selected = 12 } };
         var frame = FrameBuilder.BuildStyled(state, 100, 40, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.PickerRow).Single(candidate => candidate.Text.Contains("more closed"));
 

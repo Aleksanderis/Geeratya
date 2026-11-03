@@ -5,6 +5,6 @@
 │ ╭─ Commands ─────────────── 68/68 ─╮ │
 │p│ : _                              │ │
 │ ├──────────────────────────────────┤ │
-│ │ > Jump to an issue by k  Space g │ │
+│ │ > Jump to an issue by k  Space g▲│ │
 ╰─╰──────────────────────────────────╯─╯
  COMMAND  :                             
