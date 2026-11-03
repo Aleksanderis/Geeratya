@@ -175,8 +175,29 @@ public sealed class SuggestionHandler
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
             _ when source.IssueKey is null && source.ProjectKey is { } project
                 => SearchProjectIssuesAsync(services, project, effect.Query, token),
-            _ => services.Suggestions.SearchIssuesAsync(effect.Query, null, token),
+            _ => SearchOtherIssuesAsync(services, source.IssueKey, effect.Query, token),
         };
+    }
+
+    // An issue is never offered as its own parent or link target: the field's own issue is dropped from the rows
+    // (a row's detail is its issue key).
+    private static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchOtherIssuesAsync(
+        JiraServices services,
+        string? ownKey,
+        string query,
+        CancellationToken token)
+    {
+        var result = await services.Suggestions.SearchIssuesAsync(query, null, token);
+
+        if (!result.IsSuccess || ownKey is null)
+        {
+            return result;
+        }
+
+        IReadOnlyList<Suggestion> others =
+            [.. result.Value.Where(row => !string.Equals(row.Detail, ownKey, StringComparison.OrdinalIgnoreCase))];
+
+        return JiraResults.Success(others);
     }
 
     // The parent of a new issue must belong to its project: the picker's history section is not narrowed by the

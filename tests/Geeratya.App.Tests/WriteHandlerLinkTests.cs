@@ -185,7 +185,7 @@ public sealed class WriteHandlerLinkTests
         var loaded = reducer.Reduce(opened.State, Assert.Single(fixture.Posted));
         var filled = PressAll(reducer, loaded.State, "Enter", "a", "-", "2");
         var submitted = PressAll(reducer, filled.State, "Ctrl-s");
-        await fixture.Writes.StartAsync(Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects)));
+        await fixture.Writes.StartAsync(Assert.Single(submitted.Effects.OfType<ExecuteWriteEffect>()));
         var finished = reducer.Reduce(submitted.State, fixture.Posted[1]);
 
         Assert.Equal(["GET", "POST"], fixture.Http.Methods);
