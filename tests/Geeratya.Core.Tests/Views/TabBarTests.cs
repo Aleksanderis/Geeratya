@@ -60,15 +60,47 @@ public class TabBarTests
     }
 
     [Fact]
-    public void GivenLongTitles_WhenBuilding_ThenEveryLabelIsCutAt24()
+    public void GivenTwoTabsWithTheSameLabel_WhenBuilding_ThenTheSecondCarriesAQualifier()
+    {
+        var tabs = Tabs("project = GEN", "project = GEN", "project = GEN");
+
+        var line = TabBar.Build(tabs, tabs[0].Id, 120);
+
+        Assert.StartsWith(" 1 JQL project = GEN x   2 JQL project = GEN (2)   3 JQL project = GEN (3)  ", line.PlainText);
+    }
+
+    [Fact]
+    public void GivenTwoLongIdenticalLabels_WhenBuilding_ThenTheQualifierSurvivesTheCut()
     {
         var longTitle = new string('x', 80);
         var tabs = Tabs(longTitle, longTitle);
 
         var line = TabBar.Build(tabs, tabs[0].Id, 200);
 
-        var chip = $"JQL {new string('x', 19)}…";
-        Assert.StartsWith($" 1 {chip} x   2 {chip} ", line.PlainText);
+        Assert.Contains($"JQL {new string('x', 15)}… (2)", line.PlainText);
+    }
+
+    [Fact]
+    public void GivenARenamedTab_WhenBuilding_ThenItShowsItsNameWithoutTheSourceKind()
+    {
+        var tabs = Tabs("project = A", "project = B");
+        tabs[1] = tabs[1] with { Name = "Mine" };
+
+        var line = TabBar.Build(tabs, tabs[0].Id, 120);
+
+        Assert.Contains(" 2 Mine ", line.PlainText);
+        Assert.DoesNotContain("project = B", line.PlainText);
+    }
+
+    [Fact]
+    public void GivenALongTitle_WhenBuilding_ThenEveryLabelIsCutAt24()
+    {
+        var longTitle = new string('x', 80);
+        var tabs = Tabs(longTitle, new string('y', 80));
+
+        var line = TabBar.Build(tabs, tabs[0].Id, 200);
+
+        Assert.StartsWith($" 1 JQL {new string('x', 19)}… x   2 JQL {new string('y', 19)}… ", line.PlainText);
     }
 
     [Fact]

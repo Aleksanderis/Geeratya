@@ -11,6 +11,7 @@ namespace Geeratya.Core.Startup;
 /// <param name="QuickFilters">The ids of the quick filters switched on.</param>
 /// <param name="Swimlane">The <see cref="Boards.SwimlaneKind"/> by name.</param>
 /// <param name="Lane">The key of the lane shown, or null.</param>
+/// <param name="Name">The name the user gave the tab (<c>tab.rename</c>), or null for the source label.</param>
 public sealed record RememberedTab(
     string Source,
     string SourceValue,
@@ -18,4 +19,5 @@ public sealed record RememberedTab(
     string? Title,
     IReadOnlyList<long>? QuickFilters = null,
     string? Swimlane = null,
-    string? Lane = null);
+    string? Lane = null,
+    string? Name = null);

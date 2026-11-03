@@ -114,6 +114,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.SprintMoveToBacklog),
         ContextMenuRow(ActionIds.CommentDelete),
         ContextMenuRow(ActionIds.TabClose, 'V'),
+        ContextMenuRow(ActionIds.TabRename, 'V'),
         ContextMenuRow(ActionIds.TabPrevious, 'V'),
         ContextMenuRow(ActionIds.HelpToggle, 'V'),
         ContextMenuRow(ActionIds.Quit, 'V'),

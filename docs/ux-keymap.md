@@ -37,6 +37,8 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `s u c a x r D M E` and other bare letters | edit commands | not bound by Geeratya actions |
 | `0` `$` | line start, line end | first and last column of the board |
 | `] ]` `[ [` | next and previous section | next and previous section of the issue, or of the Scrum backlog |
+| `Ctrl-t` | pop the tag stack | new tab (opens the source picker; Gitunia binds it the same; there are no tags here). In the picker it keeps its meaning "open in a new tab" (#574) |
+| `Ctrl-w` | window commands | prefix: `Ctrl-w r` renames the tab (#574, Gitunia key); the other window commands are not bound |
 | `z a` | toggle a fold | collapse or expand the sprint section under the cursor (Scrum backlog), or the sub-task list of the card under the cursor (board, #520) |
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Ctrl-p` | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up; inside the palette `Ctrl-p`/`Ctrl-n` and `Ctrl-j`/`Ctrl-k` move the highlight, `Ctrl-l` runs) |

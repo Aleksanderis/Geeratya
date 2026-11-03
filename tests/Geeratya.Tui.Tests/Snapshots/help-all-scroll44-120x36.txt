@@ -8,9 +8,10 @@
 │           │               │   Alt-7      Go to tab 7                                                     │           │
 │           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
-│           │               │   <space>t   Open the source picker for a new tab                            │           │
+│           │               │   <space>t   Open the source picker for a new tab  (Ctrl-t)                  │           │
 │           │               │   <space>c   Close the tab                                                   │           │
 │           │               │   <space>T   Show a list of open tabs                                        │           │
+│           │               │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
 │           │               │ Navigate                                                                     │           │
 │           │               │   j          Move down  (Down)                                               │           │
 │           │               │   k          Move up  (Up)                                                   │           │
@@ -30,7 +31,6 @@
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
 │           │               │   q          Quit  (Ctrl-c)                                                  │           │
-│           │               │   Esc        Cancel or close                                                 │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

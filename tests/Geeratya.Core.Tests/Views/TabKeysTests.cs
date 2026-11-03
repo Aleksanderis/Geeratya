@@ -104,6 +104,113 @@ public class TabKeysTests
     }
 
     [Fact]
+    public void GivenAListAndItsDetail_WhenPressingCtrlT_ThenTheSourcePickerOpensFromBoth()
+    {
+        var list = Fill(OpenTabs(1), 3);
+        var detail = Press(list, "Enter").State;
+
+        var fromList = Press(list, "Ctrl-t");
+        var fromDetail = Press(detail, "Ctrl-t");
+
+        Assert.NotEmpty(detail.Session.Tabs[0].Detail);
+        Assert.NotNull(fromList.State.Picker);
+        Assert.Equal(InputMode.Insert, fromList.State.Mode);
+        Assert.NotNull(fromDetail.State.Picker);
+        Assert.Single(fromDetail.State.Session.Tabs);
+    }
+
+    [Fact]
+    public void GivenAnActiveTab_WhenPressingCtrlWR_ThenTheCommandLineHoldsTheCurrentLabel()
+    {
+        var result = Press(Press(OpenTabs(1), "Ctrl-w").State, "r");
+
+        Assert.Equal(InputMode.Command, result.State.Mode);
+        Assert.Equal("tab rename", result.State.PaletteText);
+    }
+
+    [Fact]
+    public void GivenAnUnnamedTab_WhenPressingCtrlWRThenEnter_ThenTheTabStaysUnnamed()
+    {
+        var opened = Press(Press(OpenTabs(1), "Ctrl-w").State, "r");
+
+        var result = Press(opened.State, "Enter");
+
+        Assert.Null(result.State.Session.Tabs[0].Name);
+    }
+
+    [Fact]
+    public void GivenANamedTab_WhenPressingCtrlWR_ThenTheCommandLineHoldsTheName()
+    {
+        var named = Run(OpenTabs(1), "tab rename Mine").State;
+
+        var result = Press(Press(named, "Ctrl-w").State, "r");
+
+        Assert.Equal("tab rename Mine", result.State.PaletteText);
+    }
+
+    [Theory]
+    [InlineData("  a\tb  ", "a b")]
+    [InlineData("   ", null)]
+    public void GivenRawNames_WhenCleaning_ThenControlsBecomeSpacesAndBlanksAreNull(string raw, string? expected)
+    {
+        Assert.Equal(expected, TabNames.Clean(raw));
+    }
+
+    [Fact]
+    public void GivenALongNameWithASurrogatePairAtTheCut_WhenCleaning_ThenThePairIsNotSplit()
+    {
+        var raw = $"{new string('a', TabNames.MaxLength - 1)}\U0001F600zzz";
+
+        var clean = TabNames.Clean(raw);
+
+        Assert.Equal(new string('a', TabNames.MaxLength - 1), clean);
+    }
+
+    [Fact]
+    public void GivenNoTab_WhenPressingCtrlWR_ThenTheStatusLineSaysSo()
+    {
+        var result = Press(Press(Start(), "Ctrl-w").State, "r");
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Equal("No tab to rename: open one first.", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenTabRenameCommand_WhenRunning_ThenOnlyTheActiveTabIsNamedAndItsLabelChanges()
+    {
+        var state = OpenTabs(2);
+
+        var result = Run(state, "tab rename  Sprint board ");
+
+        Assert.Null(result.State.Session.Tabs[0].Name);
+        Assert.Equal("Sprint board", result.State.Session.Tabs[1].Name);
+        Assert.Equal("Sprint board", TabTitles.Label(result.State.Session.Tabs[1]));
+        Assert.Equal("Tab renamed to \"Sprint board\".", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenARenamedTab_WhenRenamingToAnEmptyName_ThenTheSourceLabelReturns()
+    {
+        var named = Run(OpenTabs(1), "tab rename Mine").State;
+
+        var cleared = Run(named, "tab rename").State;
+
+        Assert.Null(cleared.Session.Tabs[0].Name);
+        Assert.Equal("JQL project = P1", TabTitles.Label(cleared.Session.Tabs[0]));
+    }
+
+    [Fact]
+    public void GivenTwoTabsOnTheSameSource_WhenListingTabs_ThenTheSecondRowIsQualified()
+    {
+        var state = Open(Open(Start(), "project = GEN").State, "project = GEN").State;
+
+        var tabs = state.Session.Tabs;
+
+        Assert.Equal("JQL project = GEN", TabTitles.Qualified(tabs, 0));
+        Assert.Equal("JQL project = GEN (2)", TabTitles.Qualified(tabs, 1));
+    }
+
+    [Fact]
     public void GivenALoadingTab_WhenClosingIt_ThenItsLoadIsCancelledAndLateRepliesAreIgnored()
     {
         var opened = Open(Start(), "project = A");
@@ -156,7 +263,7 @@ public class TabKeysTests
     {
         var result = Run(OpenTabs(2), command);
 
-        Assert.Equal("Usage: :tab new|close|next|prev|<n>", result.State.Message);
+        Assert.Equal("Usage: :tab new|rename [name]|close|next|prev|<n>", result.State.Message);
     }
 
     [Fact]
