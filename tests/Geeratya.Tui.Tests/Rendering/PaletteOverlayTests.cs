@@ -43,7 +43,7 @@ public class PaletteOverlayTests
     public void GivenThemeNames_WhenBuildingTheFrame_ThenThemeRowsMatchTheSnapshot()
     {
         var state = Sample("theme:") with { ThemeNames = ["catppuccin-mocha", "dracula", "nord"] };
-        var actual = string.Join('\n', FrameBuilder.Build(state, 80, 24, _helpLines, _keymap)) + "\n";
+        var actual = string.Join('\n', FrameBuilder.Build(state, 80, 24, _keymap)) + "\n";
         var expected = SnapshotFile.Expect("palette-themes-80x24.txt", actual);
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
