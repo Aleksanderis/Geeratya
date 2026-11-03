@@ -12,6 +12,8 @@ namespace Geeratya.Core.Writes;
 public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes, bool EstimateOnly = false)
     : WriteRequest
 {
+    private const double EstimateTolerance = 1e-9;
+
     public override OperationKind Kind => OperationKind.EditFields;
 
     public override IReadOnlyList<string> Keys => [Key];
@@ -73,9 +75,19 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
         var labelsShown = labels is null || row.Labels.ToHashSet().SetEquals(labels);
         var priorityShown = priority is null || row.Priority == priority;
 
-        var estimateShown = estimate is not { } wanted || row.Estimate == wanted.Number;
+        var estimateShown = estimate is not { } wanted || SameNumber(row.Estimate, wanted.Number);
 
         return summaryShown && labelsShown && priorityShown && estimateShown;
+    }
+
+    private static bool SameNumber(double? shown, double? wanted)
+    {
+        if (shown is null || wanted is null)
+        {
+            return shown is null && wanted is null;
+        }
+
+        return Math.Abs(shown.Value - wanted.Value) < EstimateTolerance;
     }
 
     private string? TextOf(string fieldId)
