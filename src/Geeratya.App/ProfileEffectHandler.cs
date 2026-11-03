@@ -85,13 +85,18 @@ public sealed class ProfileEffectHandler
         return new ProfilesChanged(remove.Catalog, cacheDeleted ? message : $"{message} {CacheLeftMessage}");
     }
 
-    /// <summary>The history is a convenience: a file that cannot be deleted is not reported.</summary>
+    /// <summary>The history and board kinds are conveniences: a file that cannot be deleted is not reported.</summary>
     private void DeleteHistory(RemoveProfileEffect remove)
+    {
+        DeleteQuietly(() => _services.BoardKinds.Delete(remove.Profile));
+        DeleteQuietly(() => _services.Histories.Delete(remove.Profile));
+    }
+
+    private static void DeleteQuietly(Action delete)
     {
         try
         {
-            _services.BoardKinds.Delete(remove.Profile);
-            _services.Histories.Delete(remove.Profile);
+            delete();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

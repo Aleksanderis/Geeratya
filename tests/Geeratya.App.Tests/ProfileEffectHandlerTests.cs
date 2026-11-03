@@ -1,4 +1,5 @@
 using Geeratya.Core.BoardKinds;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Profiles;
@@ -89,11 +90,13 @@ public sealed class ProfileEffectHandlerTests : IDisposable
         var both = ProfileCatalog.Empty.With(_work).With(_dev);
 
         await handler.RunAsync(new AddProfileEffect(_dev, new SecretText("hunter2-secret"), both), CancellationToken.None);
+        profiles.BoardKinds.Save(_dev, 7, BoardKind.Scrum);
         await handler.RunAsync(
             new RemoveProfileEffect(_dev, DeleteToken: true, both.Without("dev"), WasActive: false),
             CancellationToken.None);
 
         Assert.Empty(store.Secrets);
+        Assert.Empty(profiles.BoardKinds.Load(_dev));
         Assert.Equal(["work"], profiles.Store.Load().Catalog.Profiles.Select(profile => profile.Name));
     }
 

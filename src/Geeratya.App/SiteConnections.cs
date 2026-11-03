@@ -1,9 +1,9 @@
 using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Profiles;
-using Geeratya.Jira.Sprints;
-using Geeratya.Jira.Sprints.Models;
 using Geeratya.Core.State;
 using Geeratya.Jira;
+using Geeratya.Jira.Sprints;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Secrets;
 
@@ -26,9 +26,9 @@ public sealed class SiteConnections : IDisposable
 
     private readonly TokenProvider _tokens;
     private readonly ITransportFactory _transports;
+    private readonly BoardKindStore? _boardKinds;
     private readonly object _lock = new();
     private Profile? _profile;
-    private readonly BoardKindStore? _boardKinds;
     private JiraTransport? _transport;
     private BoardKindResolver? _kinds;
     private Profile? _failedProfile;
