@@ -1,4 +1,3 @@
-using System.Globalization;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.SavedViews;
@@ -150,29 +149,12 @@ public static class SourceReducer
 
     public static AppState Type(AppState state, string text)
     {
-        var picker = state.Picker;
-
-        if (picker is null)
-        {
-            return state;
-        }
-
-        return state with { Picker = picker with { Text = $"{picker.Text}{text}", Selected = 0, AutoOpen = false, Notice = null } };
+        return PromptEditing.Insert(state, text);
     }
 
     public static AppState Backspace(AppState state)
     {
-        var picker = state.Picker;
-
-        if (picker is null || picker.Text.Length == 0)
-        {
-            return state;
-        }
-
-        var starts = StringInfo.ParseCombiningCharacters(picker.Text);
-        var text = picker.Text[..starts[^1]];
-
-        return state with { Picker = picker with { Text = text, Selected = 0, AutoOpen = false, Notice = null } };
+        return PromptEditing.Backspace(state);
     }
 
     /// <summary>Moves the highlight by <paramref name="delta"/> rows, stopping at the first and last row.</summary>

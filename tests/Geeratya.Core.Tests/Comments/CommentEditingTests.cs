@@ -93,6 +93,21 @@ public class CommentEditingTests
     }
 
     [Fact]
+    public void GivenTheEditor_WhenUsingTheWordAndLineDeleteKeys_ThenTheyActOnTheBufferAtTheCursor()
+    {
+        var state = Press(OpenIssue(), "Space", "m", "a").State;
+
+        state = Press(state, "a", "b", "Space", "c", "d", "Enter", "e", "f", "Space", "g", "h").State;
+        var word = Press(state, "Ctrl-w").State;
+        var line = Press(word, "Ctrl-u").State;
+        var after = Press(Press(line, "Up", "Home").State, "Alt-d").State;
+
+        Assert.Equal("ab cd\nef ", word.Editor!.Buffer.Text);
+        Assert.Equal("ab cd\n", line.Editor!.Buffer.Text);
+        Assert.Equal(" cd\n", after.Editor!.Buffer.Text);
+    }
+
+    [Fact]
     public void GivenTypedText_WhenPressingCtrlS_ThenOneAddWriteStartsAndTheEditorShowsSaving()
     {
         var typed = Typed("Looks good");

@@ -133,6 +133,25 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-l` | Run the typed command | `palette.submit` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
+| `Alt-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Alt-b` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-f` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Ctrl-w` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Ctrl-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-d` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
+| `Left` | Move the cursor left | `editor.left` | everyday |
+| `Right` | Move the cursor right | `editor.right` | everyday |
+| `Home` | Move the cursor to the start of the row | `editor.row-start` | everyday |
+| `End` | Move the cursor to the end of the row | `editor.row-end` | everyday |
+| `Ctrl-a` | Move the cursor to the start of the row | `editor.row-start` | everyday |
+| `Ctrl-e` | Move the cursor to the end of the row | `editor.row-end` | everyday |
+| `Delete` | Delete the character under the cursor | `editor.delete` | everyday |
+| `Ctrl-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Ctrl-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
 
 ## Confirm mode
 
@@ -178,6 +197,16 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
 | `Ctrl-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
 | `Ctrl-o` | Open the issue page in the browser from the form | `form.open-browser` | everyday |
+| `Alt-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Alt-b` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-f` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Ctrl-w` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Ctrl-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-d` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
 
 ## Palette commands
 

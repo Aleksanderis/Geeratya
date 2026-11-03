@@ -22,7 +22,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
-# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up) and `^` sends Alt-m (mark).
+# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up) `^` sends Alt-m (mark) and `<` sends Left (the prompt caret).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -49,6 +49,7 @@ all_scenarios=(
   "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
   "palette;120;36;dark;:jql project = GCM|:;Commands"
   "palette-filtered;80;24;dark;:jql project = GCM|:rank;Rank"
+  "palette-caret;80;24;dark;:jql project = GCM|:rank<<;ra|nk"
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
   "profile-list;120;36;dark;:profile|;Details"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
@@ -209,6 +210,8 @@ capture_scenario() {
       tmux -L "$socket" send-keys -t s M-k
     elif [ "$key" = "^" ]; then
       tmux -L "$socket" send-keys -t s M-m
+    elif [ "$key" = "<" ]; then
+      tmux -L "$socket" send-keys -t s Left
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi

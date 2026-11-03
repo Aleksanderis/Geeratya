@@ -99,6 +99,8 @@ public static partial class FormReducer
             ActionIds.FormNext => Enter(state, tab, form, at),
             ActionIds.FormBackspace => Edited(Edit(state, tab, form, FormEditor.Backspace), tab.Id),
             null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
+            _ when PromptEditing.OperationOf(action) is { } operation
+                => Edited(Edit(state, tab, form, field => FormEditor.Apply(field, operation)), tab.Id),
             _ => Result(state),
         };
 

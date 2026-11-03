@@ -17,7 +17,6 @@ using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
-using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 
@@ -227,6 +226,7 @@ public sealed class AppReducer
             HelpScroll = 0,
             HelpPage = 0,
             HelpFilter = string.Empty,
+            HelpFilterBack = 0,
             HelpFiltering = false,
             MessagesOpen = false,
             MessagesShowSettings = false,
@@ -481,7 +481,7 @@ public sealed class AppReducer
             return TypeInInsert(state, text);
         }
 
-        return state.Mode == InputMode.Command ? WithPaletteText(state, $"{state.PaletteText}{text}") : state;
+        return state.Mode == InputMode.Command ? PromptEditing.Insert(state, text) : state;
     }
 
     private static AppState TypeText(AppState state, string key)
@@ -498,13 +498,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return WithPaletteText(state, $"{state.PaletteText}{text}");
-    }
-
-    // The filter changed, so the highlight goes back to the first row.
-    private static AppState WithPaletteText(AppState state, string text)
-    {
-        return state with { PaletteText = text, PaletteSelected = 0 };
+        return PromptEditing.Insert(state, text);
     }
 
     private static AppState TypeInInsert(AppState state, string text)
@@ -543,6 +537,11 @@ public sealed class AppReducer
         if (EmptySprintFocus.Refuses(state, action))
         {
             return Result(state with { Message = EmptySprintFocus.Refusal });
+        }
+
+        if (state.Editor is null && PromptEditing.OperationOf(action) is { } operation)
+        {
+            return Result(PromptEditing.Apply(state, operation));
         }
 
         return action switch
@@ -607,6 +606,9 @@ public sealed class AppReducer
             ActionIds.EditorPageDown => Result(CommentEditing.Move(state, EditorMove.PageDown)),
             ActionIds.EditorWordLeft => Result(CommentEditing.Move(state, EditorMove.WordLeft)),
             ActionIds.EditorWordRight => Result(CommentEditing.Move(state, EditorMove.WordRight)),
+            ActionIds.EditorDeleteWordBefore => Result(CommentEditing.DeleteWordBefore(state)),
+            ActionIds.EditorDeleteWordAfter => Result(CommentEditing.DeleteWordAfter(state)),
+            ActionIds.EditorDeleteToStart => Result(CommentEditing.DeleteToStart(state)),
             ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
@@ -898,7 +900,7 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return WithPaletteText(state, TextElements.RemoveLast(state.PaletteText));
+        return PromptEditing.Backspace(state);
     }
 
     private AppState MovePalette(AppState state, int delta)
@@ -963,7 +965,7 @@ public sealed class AppReducer
 
         if (row.Kind == PaletteRowKind.Command)
         {
-            return RunCommandLine(state with { PaletteText = row.Id }, at);
+            return RunCommandLine(state with { PaletteText = row.Id, PaletteBack = 0 }, at);
         }
 
         return ReduceRequested(normal, new ActionRequested(row.Id, 1, at));
@@ -972,7 +974,7 @@ public sealed class AppReducer
     /// <summary><c>view.saved-save</c>: the command line with <c>view save </c> typed, ready for the name.</summary>
     private static ReduceResult OpenSaveCommand(AppState state)
     {
-        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.View} save " };
+        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.View} save ", PaletteBack = 0 };
 
         return Result(command);
     }

@@ -1,4 +1,5 @@
 using Geeratya.Core.Sprints;
+using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Sources;
 
@@ -15,4 +16,7 @@ public sealed record SourcePickerState(string Text, int Selected, PickerScope Sc
 {
     /// <summary>The board and sprints of the sprint switcher; null in every other scope.</summary>
     public SprintPickerData? Sprint { get; init; }
+
+    /// <summary>Units between the caret and the end of <see cref="Text"/> (<see cref="PromptText"/>); 0 is the end.</summary>
+    public int Back { get; init; }
 }

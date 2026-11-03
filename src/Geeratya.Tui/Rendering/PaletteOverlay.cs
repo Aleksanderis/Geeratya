@@ -27,7 +27,6 @@ public static class PaletteOverlay
     private const int ChromeRows = 4;
     private const int HeaderRows = 3;
     private const int FooterMinimumHeight = 12;
-    private const string Cursor = "_";
 
     /// <summary>Draws the palette of <paramref name="state"/> over <paramref name="body"/> (<paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -77,7 +76,7 @@ public static class PaletteOverlay
         var box = new List<StyledLine>
         {
             OverlayBox.Top(boxWidth, Title, CountText(state, keymap, rows, count)),
-            OverlayBox.Wall(QueryLine(state.PaletteText, inner - 2), inner),
+            OverlayBox.Wall(QueryLine(state, inner - 2), inner),
             OverlayBox.Divider(boxWidth),
         };
 
@@ -118,21 +117,11 @@ public static class PaletteOverlay
     }
 
     // The query line: the prompt in the accent colour, the typed text (its tail when too long) and a cursor cell.
-    private static StyledLine QueryLine(string text, int width)
+    private static StyledLine QueryLine(AppState state, int width)
     {
-        var shown = text;
+        var text = PromptSpans.Of(new PromptText(state.PaletteText, state.PaletteBack), Math.Max(1, width - 2), TextRole.Muted);
 
-        while (shown.Length > 1 && TextWidth.Of(shown) > Math.Max(1, width - 2 - Cursor.Length))
-        {
-            shown = shown[(char.IsHighSurrogate(shown[0]) && shown.Length > 2 ? 2 : 1)..];
-        }
-
-        return new StyledLine(
-        [
-            new StyledSpan(": ", TextRole.Heading),
-            new StyledSpan(shown, TextRole.Body),
-            new StyledSpan(Cursor, TextRole.Muted),
-        ]);
+        return new StyledLine([new StyledSpan(": ", TextRole.Heading), .. text]);
     }
 
     // The count chip: rows shown over rows of the unfiltered list; none for a typed command line.

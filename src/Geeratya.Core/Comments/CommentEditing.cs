@@ -123,6 +123,24 @@ internal static class CommentEditing
         return Change(state, static buffer => buffer.Delete());
     }
 
+    /// <summary>Ctrl-w: deletes the word before the cursor.</summary>
+    public static AppState DeleteWordBefore(AppState state)
+    {
+        return Change(state, static buffer => buffer.DeleteBetween(buffer.WordLeft().Cursor, buffer.Cursor));
+    }
+
+    /// <summary>Alt-d: deletes the word after the cursor.</summary>
+    public static AppState DeleteWordAfter(AppState state)
+    {
+        return Change(state, static buffer => buffer.DeleteBetween(buffer.Cursor, buffer.WordRight().Cursor));
+    }
+
+    /// <summary>Ctrl-u: deletes from the cursor back to the start of its line.</summary>
+    public static AppState DeleteToStart(AppState state)
+    {
+        return Change(state, static buffer => buffer.DeleteBetween(buffer.LineStart(), buffer.Cursor));
+    }
+
     public static AppState Move(AppState state, EditorMove move)
     {
         var capacity = EditorLayout.Capacity(CommentEditor.InnerWidth(state.ViewportColumns));

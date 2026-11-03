@@ -1,4 +1,3 @@
-using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
@@ -45,19 +44,12 @@ public static class JumpReducer
 
     public static AppState Type(AppState state, string text)
     {
-        return state.Jump is { } jump ? state with { Jump = new JumpState($"{jump.Text}{text}", 0, null) } : state;
+        return PromptEditing.Insert(state, text);
     }
 
     public static AppState Backspace(AppState state)
     {
-        if (state.Jump is not { Text.Length: > 0 } jump)
-        {
-            return state;
-        }
-
-        var starts = StringInfo.ParseCombiningCharacters(jump.Text);
-
-        return state with { Jump = new JumpState(jump.Text[..starts[^1]], 0, null) };
+        return PromptEditing.Backspace(state);
     }
 
     /// <summary>Moves the highlight by <paramref name="delta"/> rows, stopping at the first and last row.</summary>

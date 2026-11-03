@@ -1,4 +1,4 @@
-using System.Globalization;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Adf;
 
 namespace Geeratya.Core.Editing;
@@ -86,6 +86,18 @@ public sealed record TextBuffer(string Text, int Cursor)
         return this with { Text = Text.Remove(Cursor, EditorLayout.NextStart(Text, Cursor) - Cursor) };
     }
 
+    /// <summary>Removes <c>[start, end)</c>, the cursor at <paramref name="start"/>; nothing when the range is empty.</summary>
+    public TextBuffer DeleteBetween(int start, int end)
+    {
+        return end <= start ? this : new TextBuffer(Text.Remove(start, end - start), start);
+    }
+
+    /// <summary>The index of the start of the line (up to the previous line break) the cursor is on.</summary>
+    public int LineStart()
+    {
+        return Cursor == 0 ? 0 : Text.LastIndexOf('\n', Cursor - 1) + 1;
+    }
+
     /// <summary>One character left; a mention or issue reference counts as one character.</summary>
     public TextBuffer Left()
     {
@@ -125,12 +137,12 @@ public sealed record TextBuffer(string Text, int Cursor)
     {
         var index = Cursor;
 
-        while (index > 0 && !IsWordCharacter(Text[index - 1]))
+        while (index > 0 && !WordCharacters.IsWord(Text[index - 1]))
         {
             index--;
         }
 
-        while (index > 0 && IsWordCharacter(Text[index - 1]))
+        while (index > 0 && WordCharacters.IsWord(Text[index - 1]))
         {
             index--;
         }
@@ -143,12 +155,12 @@ public sealed record TextBuffer(string Text, int Cursor)
     {
         var index = Cursor;
 
-        while (index < Text.Length && !IsWordCharacter(Text[index]))
+        while (index < Text.Length && !WordCharacters.IsWord(Text[index]))
         {
             index++;
         }
 
-        while (index < Text.Length && IsWordCharacter(Text[index]))
+        while (index < Text.Length && WordCharacters.IsWord(Text[index]))
         {
             index++;
         }
@@ -183,21 +195,6 @@ public sealed record TextBuffer(string Text, int Cursor)
     private AdfTokenSpan? TokenStartingAt(int index)
     {
         return AdfMarkdownTokens.Find(Text).FirstOrDefault(span => span.Start <= index && index < span.End);
-    }
-
-    private static bool IsWordCharacter(char value)
-    {
-        if (char.IsLetterOrDigit(value) || value == '_' || char.IsSurrogate(value))
-        {
-            return true;
-        }
-
-        // Marks and joiners (a zero-width joiner is a format character) keep a grapheme cluster in one piece.
-        return CharUnicodeInfo.GetUnicodeCategory(value)
-            is UnicodeCategory.NonSpacingMark
-            or UnicodeCategory.SpacingCombiningMark
-            or UnicodeCategory.EnclosingMark
-            or UnicodeCategory.Format;
     }
 
     private static string Truncated(string typed, int room)

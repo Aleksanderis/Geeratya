@@ -12,6 +12,7 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class JumpOverlay
 {
+    private const int PromptMargin = 4;
     private const string Title = "Jump to an issue";
     private const string HintText = "Type a key like GCM-12, or a number in the current project.";
     private const string RecentText = "recent";
@@ -87,7 +88,7 @@ public static class JumpOverlay
         var lines = new List<StyledLine>
         {
             OverlayBox.Top(boxWidth, Title),
-            OverlayBox.Wall(Prompt(jump), contentWidth),
+            OverlayBox.Wall(Prompt(jump, contentWidth), contentWidth),
         };
 
         var shown = rows.Skip(first).Take(area).ToList();
@@ -122,9 +123,11 @@ public static class JumpOverlay
         return area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, count - area));
     }
 
-    private static StyledLine Prompt(JumpState jump)
+    private static StyledLine Prompt(JumpState jump, int contentWidth)
     {
-        return new StyledLine([new StyledSpan("> ", TextRole.Key), new StyledSpan($"{jump.Text}_", TextRole.Body)]);
+        var text = PromptSpans.Of(new PromptText(jump.Text, jump.Back), contentWidth - PromptMargin, TextRole.Body);
+
+        return new StyledLine([new StyledSpan("> ", TextRole.Key), .. text]);
     }
 
     private static List<StyledLine> RowLines(IReadOnlyList<JumpRow> rows, int selected, int width)

@@ -18,7 +18,6 @@ public static class HelpOverlay
     private const string IdleMark = "  ";
     private const string Divider = "│";
     private const string FilterPrefix = "/ ";
-    private const string CursorMark = "_";
     private const int MaxBoxWidth = 96;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
@@ -124,16 +123,15 @@ public static class HelpOverlay
             return Title;
         }
 
-        var cursor = state.HelpFiltering ? CursorMark : string.Empty;
-        var room = Math.Max(1, boxWidth - 8 - Title.Length - FilterPrefix.Length - cursor.Length);
-        var filter = state.HelpFilter;
+        var room = Math.Max(1, boxWidth - 8 - Title.Length - FilterPrefix.Length);
+        var window = PromptWindow.Of(new PromptText(state.HelpFilter, state.HelpFilterBack), room);
 
-        while (TextWidth.Of(filter) > room && filter.Length > 1)
+        if (!state.HelpFiltering)
         {
-            filter = filter[(char.IsHighSurrogate(filter[0]) && filter.Length > 2 ? 2 : 1)..];
+            return $"{Title}  {FilterPrefix}{window.Before}{window.After}";
         }
 
-        return $"{Title}  {FilterPrefix}{filter}{cursor}";
+        return $"{Title}  {FilterPrefix}{window.Before}{window.Caret}{window.After}";
     }
 
     private static StyledLine MenuRow(IReadOnlyList<string> names, int index, int current, int cells)
