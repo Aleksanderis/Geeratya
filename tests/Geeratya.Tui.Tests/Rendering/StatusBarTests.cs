@@ -29,7 +29,7 @@ public class StatusBarTests
         var marked = ActiveOf(tab with { Marks = ["A-1", "A-2", "A-3"] });
 
         Assert.Contains("VISUAL", StatusBar.Render(visual, 80, _keymap));
-        Assert.Contains("NORMAL 3 selected", StatusBar.Render(marked, 80, _keymap));
+        Assert.Contains("3 selected", StatusBar.Render(marked, 80, _keymap));
     }
 
     [Fact]

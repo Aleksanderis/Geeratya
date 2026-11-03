@@ -98,7 +98,7 @@ public static class SelectionActions
             return Say(state, refusal!);
         }
 
-        if (tab.VisualAnchor is not null)
+        if (tab.VisualAnchor is not null && advance)
         {
             var keys = RowSelection.Targets(tab with { Marks = [] });
 

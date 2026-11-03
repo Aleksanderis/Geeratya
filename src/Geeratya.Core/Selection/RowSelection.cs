@@ -94,7 +94,8 @@ public static class RowSelection
     /// </summary>
     public static TabState Pruned(TabState tab)
     {
-        if (tab.Next is not null || tab.Truncated || (tab.Marks.Count == 0 && tab.VisualAnchor is null))
+        // Rows from the cache are the first page only: they say nothing about the whole result.
+        if (tab.Next is not null || tab.Truncated || tab.IsStale || (tab.Marks.Count == 0 && tab.VisualAnchor is null))
         {
             return tab;
         }

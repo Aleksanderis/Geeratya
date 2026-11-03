@@ -333,7 +333,7 @@ public static class StatusBar
         }
 
         // Visual mode is a state of the tab over Normal mode (docs/ux.md, "Modes").
-        var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { VisualAnchor: not null };
+        var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0, VisualAnchor: not null };
 
         return visual ? "VISUAL" : Badge(state.Mode);
     }
@@ -409,13 +409,14 @@ public static class StatusBar
             return state.Message;
         }
 
-        if (ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } selecting && RowSelection.Count(selecting) > 0)
-        {
-            return SelectedText(selecting);
-        }
-
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
+
+        if (ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } selecting && RowSelection.Count(selecting) > 0)
+        {
+            // The network word stays first, so it survives a cut.
+            return word.Length == 0 ? SelectedText(selecting) : $"{word}{Separator}{SelectedText(selecting)}";
+        }
 
         if (word.Length == 0)
         {

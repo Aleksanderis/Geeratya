@@ -31,6 +31,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string Unassigned = "-";
     private const string UnknownGlyph = "?";
 
+    private static readonly HashSet<string> _noMarks = [];
+
     public bool AppliesTo(AppState state)
     {
         return state.Mode != InputMode.Help && ActiveTab(state) is { Definition.Layout: ViewLayout.List };
@@ -61,12 +63,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var first = FirstRow(tab);
         var busy = BusyMarks.Keys(state);
         var range = RowSelection.VisualRange(tab);
-        var marks = new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
 
         for (var index = first; index < first + shown; index++)
         {
             var row = tab.Rows[index];
-            var set = marks.Contains(row.Key) ? SetMark.Marked : range?.Contains(index) == true ? SetMark.InRange : SetMark.None;
+            var set = SetMarkOf(row, index, marks, range);
 
             lines.Add(RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, width, glyphs));
         }
@@ -250,11 +252,14 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return new StyledLine(spans);
     }
 
-    private enum SetMark
+    private static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
     {
-        None,
-        Marked,
-        InRange,
+        if (marks.Contains(row.Key))
+        {
+            return SetMark.Marked;
+        }
+
+        return range?.Contains(index) == true ? SetMark.InRange : SetMark.None;
     }
 
     private static string StatusText(IssueStatus status, int width, Glyphs glyphs)
@@ -282,5 +287,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
             StatusCategoryKeys.Done => TextRole.StatusDone,
             _ => TextRole.Body,
         };
+    }
+
+    private enum SetMark
+    {
+        None,
+        Marked,
+        InRange,
     }
 }

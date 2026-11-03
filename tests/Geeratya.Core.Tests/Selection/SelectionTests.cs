@@ -339,6 +339,44 @@ public class SelectionTests
         Assert.Equal(0, RowSelection.Count(Tab(Loaded(ViewLayout.List, "A-1"))));
     }
 
+    [Fact]
+    public void GivenMarksAndTheColumnsLayout_WhenDraggingACard_ThenTheDropIsRefusedLikeTheKey()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2");
+        var marked = Press(state, "Alt-m").State;
+        var columns = _reducer.Reduce(marked, new ViewLayoutChanged(Tab(marked).Id, ViewLayout.Columns)).State;
+
+        var result = _reducer.Reduce(columns, new CardDragged(5, 3, 60, 120));
+
+        Assert.Equal("1 issue selected; clear the selection first", result.State.Message);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenStaleCachedRows_WhenPruning_ThenMarksOfRowsBeyondTheCachedPageStay()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
+        var marked = Press(Press(Press(state, "j").State, "j").State, "Alt-m").State;
+        var tab = Tab(marked);
+        var cached = tab with { Rows = [.. tab.Rows.Take(1)], IsStale = true };
+
+        var pruned = RowSelection.Pruned(cached);
+
+        Assert.Equal(["A-3"], pruned.Marks);
+    }
+
+    [Fact]
+    public void GivenVisualModeAndACtrlClick_WhenMarkingInPlace_ThenOnlyTheClickedRowIsMarked()
+    {
+        var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
+        var ranged = Press(Press(state, "v").State, "j").State;
+        var placed = new PointerPlaced(5, 4, 80, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+
+        var result = _reducer.Reduce(ranged, placed).State;
+
+        Assert.Equal(["A-3"], Tab(result).Marks);
+    }
+
     private static TabState Tab(AppState state)
     {
         return state.Session.Tabs.Single(tab => tab.Id == state.Session.Active);
