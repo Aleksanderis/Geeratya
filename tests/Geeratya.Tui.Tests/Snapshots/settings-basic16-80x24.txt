@@ -2,7 +2,7 @@
                                                                                 
 ╭─ Categories ─────┬─ Settings: Appearance ────────────────────────────────────╮
 │ > Appearance     │ > theme             auto                                  │
-│   Hints and keys │                                                           │
+│   Hints and keys │   transparent       off                                   │
 │   Startup        │                                                           │
 │   Profiles       │                                                           │
 │   About          │                                                           │

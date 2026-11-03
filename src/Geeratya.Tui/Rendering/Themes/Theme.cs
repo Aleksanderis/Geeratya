@@ -17,14 +17,18 @@ public sealed class Theme
     private static readonly Rgb _black = new(0, 0, 0);
 
     private readonly IReadOnlyDictionary<PaletteRole, PaletteEntry> _entries;
+    private readonly Rgb? _overlayBackground;
 
     public Theme(
         string name,
         ThemeVariant variant,
         IReadOnlyDictionary<ThemeColor, Rgb> colors,
         IReadOnlyDictionary<ThemeColor, Ansi16Color> ansi,
-        Rgb? overlayBackground = null)
+        Rgb? overlayBackground = null,
+        bool keepTerminalBackground = false)
     {
+        _overlayBackground = overlayBackground;
+        KeepTerminalBackground = keepTerminalBackground;
         Name = name;
         Variant = variant;
         Colors = colors;
@@ -37,6 +41,18 @@ public sealed class Theme
             _black,
             variant == ThemeVariant.Light ? LightScrim : DarkScrim);
         DimAmount = ChooseDimAmount(colors, ScrimBackground);
+    }
+
+    /// <summary>
+    /// The page and the cards keep the terminal's own background (the <c>transparentBackground</c> setting). Text
+    /// roles keep the theme's colours, fills (selection, bars, chips) and the overlay box stay painted.
+    /// </summary>
+    public bool KeepTerminalBackground { get; }
+
+    /// <summary>The same theme drawn with or without the terminal's own background under the page.</summary>
+    public Theme WithTerminalBackground(bool keep)
+    {
+        return keep == KeepTerminalBackground ? this : new Theme(Name, Variant, Colors, Ansi, _overlayBackground, keep);
     }
 
     /// <summary>The page background (<see cref="ThemeColor.BaseBackground"/>).</summary>

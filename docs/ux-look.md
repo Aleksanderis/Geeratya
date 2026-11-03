@@ -172,6 +172,7 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 | Bars | `barBackground` | white on blue as today | reversed | unchanged |
 | Overlay box | accent frame, the theme's own page colour as fill | bright cyan frame, default background | bold frame | `+ - \|` frame |
 | View behind an overlay | muted and darker (the page background moved 60 percent towards black, 15 percent on a light theme, the scrim; foreground blended about 30 percent towards the scrim, lowered until the muted text keeps contrast 3.0; cells with a fill of their own, such as the selected row, chips and the bars, keep it) | faint (SGR 2) on terminals that are not classic consoles, else bright black | unchanged | unchanged |
+| Terminal background (`:set transparent on`, #566) | page roles (text, dividers, cards) take the default background (SGR 49); fills (selection, range, bars, chips) and the overlay box stay painted | the same: page roles take the default background instead of black or white | unchanged (already the terminal's) | same as the colour tier |
 | Confirm frame | `bad` for destructive, `warn` for other | red / yellow | bold | as above |
 
 Contrast: chip text on the accent fill, text on the bar background, the quiet border (3.0) and the dimmed view (muted text on the page, 3.0 as a floor so the view stays readable) are covered by the existing role contrast tests plus new roles tested in all built-in themes.

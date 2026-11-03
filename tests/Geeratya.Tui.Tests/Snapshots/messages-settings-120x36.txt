@@ -5,11 +5,11 @@
 │ hints.whichKey on (default on) - Show the popup of the next keys while a multi-key binding is half typed.            │
 │ commandlevel everyday (default everyday) - Which actions help, the palette, which-key and the hints list: everyday o…│
 │ theme auto (default auto) - The colour theme: a built-in one or a file in the themes folder.                         │
+│ transparent off (default off) - Keep the terminal's own background instead of the theme's page colour; text colours …│
 │ jump.target current (default current) - Where the jump prompt (<space>g) opens an issue: on top of the current tab, …│
 │ startup.restore on (default on) - Reopen the tabs of the last run on start; off starts on the board picker every tim…│
 │ Messages                                                                                                             │
 │ Saved A-1                                                                                                            │
-│                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

@@ -10,7 +10,7 @@ public static class AttributeFactory
     public static Attribute Create(ResolvedStyle style)
     {
         var foreground = ToColor(style.Foreground, style.Foreground16);
-        var background = ToColor(style.Background, style.Background16);
+        var background = style.DefaultBackground ? Color.None : ToColor(style.Background, style.Background16);
 
         return new Attribute(foreground, background, ToTextStyle(style.Style));
     }

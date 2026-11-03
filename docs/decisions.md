@@ -167,3 +167,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (code structure rules, #580)
 
 **Code structure:** Dependencies are objects (no `Func<>`/`Action<>` collaborators, at most five constructor parameters), no `.cs` file over about 500 lines in `src/`, and fixed places for logic (#580). Why: agents kept growing files and wiring delegates. Source: Gitunia's rules from the owner's code review of 2026-11-01. Rules: `.claude/rules/csharp-style.md`.
+
+## 2026-11-04 (terminal background, #566)
+
+**UI:** `:set transparent on` keeps the terminal's own background for the page roles in every tier; it is never refused and no tint is blended from a detected colour (overrides the plan in the issue). Why: OSC 11 is missing on Windows and the selection, scrim and chip fills are painted fills that need no base; contrast cannot be guaranteed against an unknown colour, so text keeps the theme's colours (tested against the theme page) and the user picks a theme of the terminal's side. The overlay box stays painted so it still stands out. Details: `ux.md`, "Themes".
