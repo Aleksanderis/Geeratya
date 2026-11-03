@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Rendering.Themes;
@@ -10,6 +11,7 @@ public class PaletteTests
 {
     // Empirical floor, not a WCAG rule: the faintest shipped bar is about 1.27.
     private const double MinimumSelectionBarRatio = 1.2;
+    private const double MinimumWarningRatio = 3.0;
 
     public static TheoryData<string, ColorSupport> ThemesAndTiers
     {
@@ -134,6 +136,7 @@ public class PaletteTests
             PaletteRole.Loading,
             PaletteRole.Offline,
             PaletteRole.RateLimited,
+            PaletteRole.Warning,
             PaletteRole.Stale,
         ];
 
@@ -158,6 +161,37 @@ public class PaletteTests
         Assert.True(
             Contrast.Ratio(body.Background!.Value, selected.Background!.Value) >= MinimumSelectionBarRatio,
             $"{name}: selection bar in {tier} is faint against the body");
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingWarning_ThenItIsReadableOnTheBodyBackground(
+        string name,
+        ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var warning = Palette.Resolve(theme, tier, PaletteRole.Warning);
+        var body = Palette.Resolve(theme, tier, PaletteRole.Body);
+
+        Assert.True(
+            Contrast.Ratio(warning.Foreground!.Value, body.Background!.Value) >= MinimumWarningRatio,
+            $"{name}: warning text in {tier} is hard to read on the body background");
+    }
+
+    [Fact]
+    public void GivenAnyTheme_WhenResolvingWarningAndKey_ThenWarningIsTheWarnColour()
+    {
+        foreach (var name in BuiltInThemes.Names)
+        {
+            var theme = BuiltInThemes.Find(name)!.Theme!;
+
+            Assert.Equal(
+                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Key).Foreground,
+                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Warning).Foreground);
+        }
+
+        Assert.Equal(PaletteRole.Warning, PaletteTable.For(TextRole.Warning));
     }
 
     [Fact]

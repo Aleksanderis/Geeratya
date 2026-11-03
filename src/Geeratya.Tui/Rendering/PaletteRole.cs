@@ -11,6 +11,7 @@ public enum PaletteRole
     Loading,
     Offline,
     RateLimited,
+    Warning,
     Stale,
     Heading,
     Strong,

@@ -25,6 +25,7 @@ public enum TextRole
     Loading,
     Offline,
     RateLimited,
+    Warning,
     Stale,
     FieldLabel,
     Editable,
