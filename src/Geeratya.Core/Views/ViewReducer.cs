@@ -147,9 +147,11 @@ public static class ViewReducer
     {
         var height = Math.Max(0, viewport.Rows);
         var columns = viewport.Columns > 0 ? viewport.Columns : state.ViewportColumns;
+        var bodyHeight = viewport.BodyHeight >= 0 ? viewport.BodyHeight : state.ViewportBodyHeight;
 
         if (state.ViewportRows == height
             && state.ViewportColumns == columns
+            && state.ViewportBodyHeight == bodyHeight
             && state.Session.Tabs.All(tab => tab.VisibleRows == height))
         {
             return state;
@@ -158,7 +160,7 @@ public static class ViewReducer
         var tabs = state.Session.Tabs.Select(tab => DetailReducer.Resized(Resized(tab, height), columns)).ToArray();
 
         var resized = WithSession(state, tabs, state.Session.Active, state.Sequence)
-            with { ViewportRows = height, ViewportColumns = columns };
+            with { ViewportRows = height, ViewportColumns = columns, ViewportBodyHeight = bodyHeight };
 
         // A taller viewport can bring the end of the loaded rows within reach without any key press.
         var active = resized.Session.Active is { } id ? Find(resized.Session.Tabs, id) : null;

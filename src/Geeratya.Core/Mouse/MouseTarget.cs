@@ -61,4 +61,13 @@ public enum MouseTarget
 
     /// <summary>A row of the comment editor's suggestion popup (a click takes it).</summary>
     EditorChoice,
+
+    /// <summary>The <c>y</c> row of the Confirm dialog: runs the action.</summary>
+    ConfirmYes,
+
+    /// <summary>The <c>n</c> row of the Confirm dialog: cancels.</summary>
+    ConfirmNo,
+
+    /// <summary>The rest of the Confirm dialog's box: a click there does nothing (outside it cancels).</summary>
+    ConfirmBox,
 }

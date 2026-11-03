@@ -82,17 +82,25 @@ public static class StatusBar
     ];
 
     /// <summary>
-    /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide. <paramref name="now"/>
-    /// is the clock the network word counts from (a rate-limit wait); without it the epoch is used.
+    /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.
+    /// <paramref name="now"/> is the clock the network word counts from (a rate-limit wait); without it the epoch is used.
+    /// <paramref name="confirmDialogShown"/> says the Confirm dialog is drawn, so the line keeps only the short
+    /// <c>Confirm  (y/n)</c>; otherwise the question itself stays in the line.
     /// </summary>
-    public static string Render(AppState state, int width, KeymapTable keymap, DateTimeOffset? now = null)
+    public static string Render(
+        AppState state,
+        int width,
+        KeymapTable keymap,
+        DateTimeOffset? now = null,
+        bool confirmDialogShown = false)
     {
         if (width <= 0)
         {
             return string.Empty;
         }
 
-        var left = $" {Badge(state.Mode)} {Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch)}".TrimEnd();
+        var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
+        var left = $" {Badge(state.Mode)} {text}".TrimEnd();
         var hints = state.Settings.StatusHints
             ? Fit(HintTexts(state, keymap), width - TextWidth.Of(left))
             : string.Empty;
@@ -261,12 +269,17 @@ public static class StatusBar
         };
     }
 
-    private static string Text(AppState state, int width, KeymapTable keymap, DateTimeOffset now)
+    private static string Text(
+        AppState state,
+        int width,
+        KeymapTable keymap,
+        DateTimeOffset now,
+        bool confirmDialogShown)
     {
         return state.Mode switch
         {
             InputMode.Command => $":{state.PaletteText}",
-            InputMode.Confirm => ConfirmText(state, width, keymap),
+            InputMode.Confirm => ConfirmText(state, width, keymap, confirmDialogShown),
             InputMode.Help => string.Empty,
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
@@ -389,11 +402,20 @@ public static class StatusBar
         return text[start..];
     }
 
-    /// <summary>Cuts the question, never the answer keys: the suffix stays visible on a narrow terminal.</summary>
-    private static string ConfirmText(AppState state, int width, KeymapTable keymap)
+    /// <summary>
+    /// The short line while the dialog is open. Without a dialog (no room, or the size is not known yet) it cuts
+    /// the question, never the answer keys: the suffix stays visible on a narrow terminal.
+    /// </summary>
+    private static string ConfirmText(AppState state, int width, KeymapTable keymap, bool dialogShown)
     {
         var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes);
         var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo);
+
+        if (dialogShown)
+        {
+            return $"{ConfirmDialog.StatusText}  ({yes}/{no})";
+        }
+
         var suffix = $" ({yes}/{no})";
         var used = TextWidth.Of($" {Badge(InputMode.Confirm)} {suffix}");
         var question = TextWidth.Fit(state.Confirm?.Message ?? string.Empty, Math.Max(0, width - used));

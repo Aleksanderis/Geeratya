@@ -6,19 +6,19 @@
                                                                                 
                                                                                 
                                                                                 
+        ┌─ Confirm ────────────────────────────────────────────────────┐        
+        │ Delete PROJ-1?                                               │        
+        │                                                              │        
+        │ Jira cannot undo this                                        │        
+        │                                                              │        
+        │ y  Delete issue                                              │        
+        │ n  Cancel                                                    │        
+        └──────────────────────────────────────────────────────────────┘        
                                                                                 
                                                                                 
                                                                                 
-                                    Geeratya                                    
-                          No profile yet: :profile add                          
-                          ? help   : command   q quit                           
                                                                                 
                                                                                 
                                                                                 
                                                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- CONFIRM Delete PROJ-1? Jira cannot undo this (y/n)                  y yes  n no
+ CONFIRM Confirm  (y/n)                                              y yes  n no

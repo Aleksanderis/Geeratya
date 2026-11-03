@@ -96,7 +96,7 @@ internal static class CommentEditing
             $"Delete the {top.Detail.Key} comment? Jira cannot undo this. By {Clean(author)}: \"{Quote(comment)}\"";
         var write = new DeleteCommentRequest(top.Detail.Key, comment.Id);
         var confirmed = new WriteRequested(top.Tab.Id, write, at);
-        var request = new ConfirmRequest(message, ActionIds.CommentDelete, comment.Id, confirmed);
+        var request = new ConfirmRequest(message, ActionIds.CommentDelete, comment.Id, confirmed, "Delete comment");
 
         return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }
@@ -142,7 +142,10 @@ internal static class CommentEditing
             return Result(Closed(state));
         }
 
-        var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", DiscardAction);
+        var request = new ConfirmRequest(
+            "Discard the unsent comment text? It is not saved anywhere",
+            DiscardAction,
+            Label: "Discard text");
 
         return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }

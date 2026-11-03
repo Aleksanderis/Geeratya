@@ -127,7 +127,9 @@ public static class WriteReducer
     /// <summary>Opens Confirm mode; <c>y</c> runs the same request again, marked as confirmed.</summary>
     private static ReduceResult Ask(AppState state, WriteRequested requested, string question)
     {
-        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, requested with { Confirmed = true });
+        var label = requested.Request.AskLabel;
+        var again = requested with { Confirmed = true };
+        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, again, label);
         var asking = state with
         {
             Mode = InputMode.Confirm,
