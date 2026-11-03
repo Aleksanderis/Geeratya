@@ -100,7 +100,7 @@ public class WhichKeyOverlayTests
     public void GivenEveryHintList_WhenCheckingTheDefaultKeymap_ThenEachNamedActionIsBoundInItsMode()
     {
         IEnumerable<StatusHint> all =
-            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.HelpHints, .. StatusBar.FormHints];
+            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.HelpHints, .. StatusBar.FormHints, .. StatusBar.ProfileHints(ProfileFormField.Name), .. StatusBar.ProfileHints(ProfileFormField.Token)];
 
         foreach (var hint in all)
         {

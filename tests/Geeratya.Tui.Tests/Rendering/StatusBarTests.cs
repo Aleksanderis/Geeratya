@@ -222,7 +222,8 @@ public class StatusBarTests
 
         Assert.Contains("INSERT [4/4] API token (hidden): ***_", line);
         Assert.DoesNotContain("abc", line);
-        Assert.Contains("Enter next", line);
+        Assert.Contains("Enter save", line);
+        Assert.DoesNotContain("Enter next", line);
         Assert.Contains("Esc cancel", line);
     }
 
