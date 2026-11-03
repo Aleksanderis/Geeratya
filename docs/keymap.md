@@ -33,7 +33,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `$` | Go to the last column | `nav.last-column` | everyday |
 | `] ]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
 | `[ [` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
-| `z a` | Collapse or expand the sprint section of the Scrum backlog | `section.toggle` | everyday |
+| `z a` | Fold a backlog section or the sub-tasks of a card | `section.toggle` | everyday |
 | `Tab` | Next tab | `tab.next` | everyday |
 | `g t` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |

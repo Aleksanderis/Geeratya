@@ -28,6 +28,17 @@ public sealed record IssueSummary(
     /// <summary>The sprints the Sprint field lists, oldest first; empty when none or not requested.</summary>
     public IReadOnlyList<IssueSprint> Sprints { get; init; } = [];
 
+    /// <summary>
+    /// The sub-tasks the parent lists (<c>subtasks</c> field); empty when none or not requested. Only board sources ask.
+    /// </summary>
+    public IReadOnlyList<IssueSubtask> Subtasks { get; init; } = [];
+
+    /// <summary>
+    /// True for a row made from a parent's sub-task list rather than loaded as an issue of the source: the columns
+    /// layout shows it under an expanded parent and does not count it as a loaded card.
+    /// </summary>
+    public bool IsListed { get; init; }
+
     /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>
     public double? Estimate { get; init; }
 

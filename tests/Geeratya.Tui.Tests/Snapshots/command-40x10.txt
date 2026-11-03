@@ -4,7 +4,7 @@
   ┌─ Commands ───────────────────────┐  
   │ Issue                            │  
   │ > Assign the issue: s  Space i a │  
-  │ Navigate                         │  
-  │   Collapse or expand the sp  z a │  
   └──────────────────────────────────┘  
+                                        
+                                        
  COMMAND :search                        

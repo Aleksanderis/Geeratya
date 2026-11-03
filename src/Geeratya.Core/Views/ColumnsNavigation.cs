@@ -122,7 +122,8 @@ public static class ColumnsNavigation
     /// <summary>The columns the layout draws for the tab's rows.</summary>
     public static IReadOnlyList<BoardColumnGroup> ColumnsOf(TabState tab)
     {
-        return BoardColumns.Visible(tab.Board, Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows));
+        return BoardColumns.Visible(tab.Board, Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows),
+            tab.ExpandedSubtasks);
     }
 
     /// <summary>
@@ -159,7 +160,8 @@ public static class ColumnsNavigation
 
         var index = IndexOfKey(tab.Rows, issue.Key);
 
-        return index < 0 ? moved : moved with { Selected = index, SelectedKey = issue.Key };
+        // A row listed from an expanded parent is not a loaded row: only the key follows, so the cursor stays on it.
+        return index < 0 ? moved with { SelectedKey = issue.Key } : moved with { Selected = index, SelectedKey = issue.Key };
     }
 
     private static int IndexOfKey(IReadOnlyList<IssueSummary> rows, string key)

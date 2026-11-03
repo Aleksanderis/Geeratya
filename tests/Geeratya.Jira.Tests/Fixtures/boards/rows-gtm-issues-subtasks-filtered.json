@@ -1,0 +1,1216 @@
+{
+  "expand": "schema,names",
+  "issues": [
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10307,
+          "description": "",
+          "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+          "hierarchyLevel": 1,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+          "id": "10012",
+          "name": "Epic",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-epic-onboarding"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Seed: Onboarding flow",
+        "updated": "2026-11-01T17:48:52.071+0200",
+        "subtasks": []
+      },
+      "id": "10031",
+      "key": "GTM-9",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10031"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10307,
+          "description": "",
+          "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+          "hierarchyLevel": 1,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+          "id": "10012",
+          "name": "Epic",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-epic-reporting"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Seed: Reporting",
+        "updated": "2026-11-01T17:48:54.710+0200",
+        "subtasks": []
+      },
+      "id": "10032",
+      "key": "GTM-10",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10032"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10013",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-story-signup"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/2/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Onboarding flow"
+          },
+          "id": "10031",
+          "key": "GTM-9",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10031"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Sign up with email",
+        "updated": "2026-11-01T17:49:30.920+0200",
+        "subtasks": [
+          {
+            "id": "10041",
+            "key": "GTM-19",
+            "self": "https://example.atlassian.net/rest/api/3/issue/10041",
+            "fields": {
+              "summary": "Build the form",
+              "status": {
+                "description": "",
+                "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+                "id": "10005",
+                "name": "Done",
+                "self": "https://example.atlassian.net/rest/api/2/status/10005",
+                "statusCategory": {
+                  "colorName": "green",
+                  "id": 3,
+                  "key": "done",
+                  "name": "Done",
+                  "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+                }
+              },
+              "issuetype": {
+                "avatarId": 10316,
+                "description": "Subtasks track small pieces of work that are part of a larger task.",
+                "entityId": "0942134e-c5a4-4806-b6b4-0112caff0004",
+                "hierarchyLevel": -1,
+                "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+                "id": "10011",
+                "name": "Subtask",
+                "self": "https://example.atlassian.net/rest/api/2/issuetype/10011",
+                "subtask": true
+              }
+            }
+          },
+          {
+            "id": "10042",
+            "key": "GTM-20",
+            "self": "https://example.atlassian.net/rest/api/3/issue/10042",
+            "fields": {
+              "summary": "Validate the email",
+              "status": {
+                "description": "",
+                "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+                "id": "10004",
+                "name": "To Do",
+                "self": "https://example.atlassian.net/rest/api/2/status/10004",
+                "statusCategory": {
+                  "colorName": "yellow",
+                  "id": 4,
+                  "key": "indeterminate",
+                  "name": "In Progress",
+                  "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+                }
+              },
+              "issuetype": {
+                "avatarId": 10316,
+                "description": "Subtasks track small pieces of work that are part of a larger task.",
+                "entityId": "0942134e-c5a4-4806-b6b4-0112caff0004",
+                "hierarchyLevel": -1,
+                "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+                "id": "10011",
+                "name": "Subtask",
+                "self": "https://example.atlassian.net/rest/api/2/issuetype/10011",
+                "subtask": true
+              }
+            }
+          }
+        ]
+      },
+      "id": "10033",
+      "key": "GTM-11",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10033"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10013",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-story-welcome"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/2/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Onboarding flow"
+          },
+          "id": "10031",
+          "key": "GTM-9",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10031"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Welcome screen",
+        "updated": "2026-11-01T17:49:29.861+0200",
+        "subtasks": []
+      },
+      "id": "10034",
+      "key": "GTM-12",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10034"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10013",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-story-export"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "This issue is being actively worked on at the moment by the assignee.",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+              "id": "3",
+              "name": "In Progress",
+              "self": "https://example.atlassian.net/rest/api/2/status/3",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Reporting"
+          },
+          "id": "10032",
+          "key": "GTM-10",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10032"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Export report as CSV",
+        "updated": "2026-11-01T17:49:00.770+0200",
+        "subtasks": []
+      },
+      "id": "10035",
+      "key": "GTM-13",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10035"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10015",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-task-copy"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/2/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Onboarding flow"
+          },
+          "id": "10031",
+          "key": "GTM-9",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10031"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Review onboarding copy",
+        "updated": "2026-11-01T17:49:01.723+0200",
+        "subtasks": []
+      },
+      "id": "10036",
+      "key": "GTM-14",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10036"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10015",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-task-charts"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "This issue is being actively worked on at the moment by the assignee.",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+              "id": "3",
+              "name": "In Progress",
+              "self": "https://example.atlassian.net/rest/api/2/status/3",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Reporting"
+          },
+          "id": "10032",
+          "key": "GTM-10",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10032"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Pick a chart library",
+        "updated": "2026-11-01T17:49:04.534+0200",
+        "subtasks": []
+      },
+      "id": "10037",
+      "key": "GTM-15",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10037"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10015",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-task-docs"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10005",
+          "name": "Done",
+          "self": "https://example.atlassian.net/rest/api/2/status/10005",
+          "statusCategory": {
+            "colorName": "green",
+            "id": 3,
+            "key": "done",
+            "name": "Done",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/3"
+          }
+        },
+        "summary": "Write the setup guide",
+        "updated": "2026-11-01T17:49:06.986+0200",
+        "subtasks": []
+      },
+      "id": "10038",
+      "key": "GTM-16",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10038"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10303,
+          "description": "",
+          "entityId": "2db593ac-b664-460d-acf6-1c786b691b72",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10014",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10014",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-bug-crash"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+              "id": "10004",
+              "name": "To Do",
+              "self": "https://example.atlassian.net/rest/api/2/status/10004",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Onboarding flow"
+          },
+          "id": "10031",
+          "key": "GTM-9",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10031"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "This issue is being actively worked on at the moment by the assignee.",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+          "id": "3",
+          "name": "In Progress",
+          "self": "https://example.atlassian.net/rest/api/2/status/3",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "App crashes on empty profile",
+        "updated": "2026-11-01T17:49:30.940+0200",
+        "subtasks": []
+      },
+      "id": "10039",
+      "key": "GTM-17",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10039"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10303,
+          "description": "",
+          "entityId": "2db593ac-b664-460d-acf6-1c786b691b72",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10014",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10014",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-bug-date"
+        ],
+        "parent": {
+          "fields": {
+            "issuetype": {
+              "avatarId": 10307,
+              "description": "",
+              "entityId": "7b13c0f9-4a4f-4da4-9093-f1d01e5bbe8c",
+              "hierarchyLevel": 1,
+              "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "id": "10012",
+              "name": "Epic",
+              "self": "https://example.atlassian.net/rest/api/2/issuetype/10012",
+              "subtask": false
+            },
+            "priority": {
+              "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+              "id": "3",
+              "name": "Medium",
+              "self": "https://example.atlassian.net/rest/api/2/priority/3"
+            },
+            "status": {
+              "description": "This issue is being actively worked on at the moment by the assignee.",
+              "iconUrl": "https://example.atlassian.net/images/icons/statuses/inprogress.png",
+              "id": "3",
+              "name": "In Progress",
+              "self": "https://example.atlassian.net/rest/api/2/status/3",
+              "statusCategory": {
+                "colorName": "yellow",
+                "id": 4,
+                "key": "indeterminate",
+                "name": "In Progress",
+                "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+              }
+            },
+            "summary": "Seed: Reporting"
+          },
+          "id": "10032",
+          "key": "GTM-10",
+          "self": "https://example.atlassian.net/rest/api/2/issue/10032"
+        },
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10004",
+          "name": "To Do",
+          "self": "https://example.atlassian.net/rest/api/2/status/10004",
+          "statusCategory": {
+            "colorName": "yellow",
+            "id": 4,
+            "key": "indeterminate",
+            "name": "In Progress",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/4"
+          }
+        },
+        "summary": "Wrong date format in report",
+        "updated": "2026-11-01T17:49:10.366+0200",
+        "subtasks": []
+      },
+      "id": "10040",
+      "key": "GTM-18",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10040"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10015",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-backlog-1"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: dark mode",
+        "updated": "2026-11-01T17:49:17.742+0200",
+        "subtasks": []
+      },
+      "id": "10043",
+      "key": "GTM-21",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10043"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10315,
+          "description": "",
+          "entityId": "315645be-367f-4075-af5f-1966ce9b2993",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "id": "10013",
+          "name": "Story",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10013",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-backlog-2"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: keyboard shortcuts help",
+        "updated": "2026-11-01T17:49:20.097+0200",
+        "subtasks": []
+      },
+      "id": "10044",
+      "key": "GTM-22",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10044"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10303,
+          "description": "",
+          "entityId": "2db593ac-b664-460d-acf6-1c786b691b72",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+          "id": "10014",
+          "name": "Bug",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10014",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-backlog-3"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: tooltip clipped",
+        "updated": "2026-11-01T17:49:22.488+0200",
+        "subtasks": []
+      },
+      "id": "10045",
+      "key": "GTM-23",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10045"
+    },
+    {
+      "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+      "fields": {
+        "assignee": null,
+        "issuetype": {
+          "avatarId": 10318,
+          "description": "",
+          "entityId": "dc711e08-2f34-4922-911b-aaa6e466b1a4",
+          "hierarchyLevel": 0,
+          "iconUrl": "https://example.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+          "id": "10015",
+          "name": "Task",
+          "self": "https://example.atlassian.net/rest/api/2/issuetype/10015",
+          "subtask": false
+        },
+        "labels": [
+          "geeratya-seed",
+          "geeratya-seed-GTM-backlog-4"
+        ],
+        "priority": {
+          "iconUrl": "https://example.atlassian.net/images/icons/priorities/medium_new.svg",
+          "id": "3",
+          "name": "Medium",
+          "self": "https://example.atlassian.net/rest/api/2/priority/3"
+        },
+        "project": {
+          "avatarUrls": {},
+          "id": "10002",
+          "key": "GTM",
+          "name": "GTM",
+          "projectCategory": {
+            "description": "",
+            "id": "10000",
+            "name": "Dev",
+            "self": "https://example.atlassian.net/rest/api/2/projectCategory/10000"
+          },
+          "projectTypeKey": "software",
+          "self": "https://example.atlassian.net/rest/api/2/project/10002",
+          "simplified": true
+        },
+        "status": {
+          "description": "",
+          "iconUrl": "https://example.atlassian.net/images/icons/statuses/generic.png",
+          "id": "10003",
+          "name": "Backlog",
+          "self": "https://example.atlassian.net/rest/api/2/status/10003",
+          "statusCategory": {
+            "colorName": "blue-gray",
+            "id": 2,
+            "key": "new",
+            "name": "To Do",
+            "self": "https://example.atlassian.net/rest/api/2/statuscategory/2"
+          }
+        },
+        "summary": "Backlog: update dependencies",
+        "updated": "2026-11-01T17:49:24.702+0200",
+        "subtasks": []
+      },
+      "id": "10046",
+      "key": "GTM-24",
+      "self": "https://example.atlassian.net/rest/agile/1.0/issue/10046"
+    }
+  ],
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 14
+}

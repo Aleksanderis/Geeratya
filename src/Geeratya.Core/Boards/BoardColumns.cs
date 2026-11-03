@@ -18,6 +18,9 @@ public static class BoardColumns
 
     private const string AllIssuesName = "Issues";
 
+    /// <summary>The hierarchy level of a sub-task, as Jira reports it.</summary>
+    private const int SubtaskLevel = -1;
+
     /// <summary>
     /// The columns the columns layout draws: the board's own columns in board order, then <see cref="UnmappedName"/>
     /// only when an issue needs it, so no loaded issue is hidden. Without a configuration (not loaded yet) every row
@@ -25,14 +28,15 @@ public static class BoardColumns
     /// </summary>
     public static IReadOnlyList<BoardColumnGroup> Visible(
         BoardConfiguration? configuration,
-        IReadOnlyList<IssueSummary> rows)
+        IReadOnlyList<IssueSummary> rows,
+        IReadOnlyList<string>? expanded = null)
     {
         if (configuration is null)
         {
-            return rows.Count == 0 ? [] : [Arrange(AllIssuesName, rows)];
+            return rows.Count == 0 ? [] : [Arrange(AllIssuesName, rows, expanded, rows)];
         }
 
-        var groups = Group(configuration, rows);
+        var groups = Group(configuration, rows, expanded);
         var columns = HidesBacklogColumn(configuration) ? [.. groups.Columns.Skip(1)] : groups.Columns;
 
         if (groups.Unmapped.Count == 0)
@@ -40,7 +44,7 @@ public static class BoardColumns
             return columns;
         }
 
-        return [.. columns, Arrange(UnmappedName, groups.Unmapped)];
+        return [.. columns, Arrange(UnmappedName, groups.Unmapped, expanded, rows)];
     }
 
     /// <summary>
@@ -59,7 +63,10 @@ public static class BoardColumns
     /// Groups <paramref name="rows"/> by status id into the columns of <paramref name="configuration"/>. The order
     /// of the rows is kept inside a column; a status listed in two columns belongs to the first.
     /// </summary>
-    public static BoardColumnGroups Group(BoardConfiguration configuration, IReadOnlyList<IssueSummary> rows)
+    public static BoardColumnGroups Group(
+        BoardConfiguration configuration,
+        IReadOnlyList<IssueSummary> rows,
+        IReadOnlyList<string>? expanded = null)
     {
         var columnOfStatus = new Dictionary<string, int>();
 
@@ -96,7 +103,7 @@ public static class BoardColumns
 
         for (var index = 0; index < groups.Length; index++)
         {
-            groups[index] = Arrange(configuration.Columns[index].Name, buckets[index]);
+            groups[index] = Arrange(configuration.Columns[index].Name, buckets[index], expanded, rows);
         }
 
         return new BoardColumnGroups(groups, unmapped);
@@ -107,6 +114,96 @@ public static class BoardColumns
     /// the parent (after the children already placed there) and is marked nested; every other row keeps its place.
     /// </summary>
     public static BoardColumnGroup Arrange(string name, IReadOnlyList<IssueSummary> rows)
+    {
+        return Arrange(name, rows, null, rows);
+    }
+
+    /// <summary>
+    /// Like <see cref="Arrange(string, IReadOnlyList{IssueSummary})"/>, and under each card of
+    /// <paramref name="expanded"/> that lists sub-tasks, a nested row for every sub-task that is not an issue of the
+    /// source (<paramref name="all"/>), so a board filter that leaves sub-tasks out still shows them (#520). A
+    /// sub-task that is a card keeps its own card.
+    /// </summary>
+    public static BoardColumnGroup Arrange(
+        string name,
+        IReadOnlyList<IssueSummary> rows,
+        IReadOnlyList<string>? expanded,
+        IReadOnlyList<IssueSummary> all)
+    {
+        var arranged = ArrangeParents(name, rows);
+
+        if (expanded is not { Count: > 0 } || !rows.Any(row => row.Subtasks.Count > 0))
+        {
+            return arranged;
+        }
+
+        return WithListedSubtasks(arranged, expanded, all);
+    }
+
+    private static BoardColumnGroup WithListedSubtasks(
+        BoardColumnGroup group,
+        IReadOnlyList<string> expanded,
+        IReadOnlyList<IssueSummary> all)
+    {
+        var known = new HashSet<string>(all.Select(row => row.Key), StringComparer.Ordinal);
+        var ordered = new List<IssueSummary>();
+        var nested = new List<bool>();
+
+        for (var index = 0; index < group.Rows.Count; index++)
+        {
+            var row = group.Rows[index];
+
+            ordered.Add(row);
+            nested.Add(group.IsNested(index));
+
+            if (!expanded.Contains(row.Key) || group.IsNested(index))
+            {
+                continue;
+            }
+
+            // After the children already placed under this parent.
+            var end = index + 1;
+
+            while (group.IsNested(end))
+            {
+                ordered.Add(group.Rows[end]);
+                nested.Add(true);
+                end++;
+            }
+
+            foreach (var subtask in row.Subtasks.Where(subtask => !known.Contains(subtask.Key)))
+            {
+                ordered.Add(Listed(row, subtask));
+                nested.Add(true);
+            }
+
+            index = end - 1;
+        }
+
+        return new BoardColumnGroup(group.Name, ordered, nested);
+    }
+
+    /// <summary>The row an expanded parent shows for one of its sub-tasks, built from the stub.</summary>
+    public static IssueSummary Listed(IssueSummary parent, IssueSubtask subtask)
+    {
+        return new IssueSummary(
+            string.Empty,
+            subtask.Key,
+            subtask.Summary,
+            subtask.Status,
+            new IssueTypeSummary(string.Empty, subtask.TypeName, SubtaskLevel, true),
+            null,
+            null,
+            [],
+            new IssueParent(parent.Key, parent.Summary),
+            null,
+            parent.ProjectKey)
+        {
+            IsListed = true,
+        };
+    }
+
+    private static BoardColumnGroup ArrangeParents(string name, IReadOnlyList<IssueSummary> rows)
     {
         if (!rows.Any(row => row.Parent is not null))
         {

@@ -27,6 +27,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private const int BlankRow = int.MaxValue;
     private const int Margin = 1;
     private const int ChildIndent = 2;
+
+    private const int SubtaskBarCells = 6;
     private const int MinimumBoxWidth = 8;
     private const string ParentMark = "↑";
     private const string Vertical = "│";
@@ -62,6 +64,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var compact = BoardCards.IsCompact(area, ListLayout.HeaderRows);
         var cardRows = BoardCards.CardRows(area, ListLayout.HeaderRows);
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
         var grid = new FrameGrid(width, height, panes);
         var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
@@ -71,7 +74,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var card = row < cards * (compact ? 1 : BoardCards.FullRows) ? row : BlankRow;
             var spans = grid.Row(
                 row + BoardCards.TopRows,
-                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks));
+                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks, expanded));
 
             lines.Add(new StyledLine(spans));
         }
@@ -311,7 +314,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int length,
         int row,
         bool compact,
-        HashSet<string> marks)
+        HashSet<string> marks,
+        HashSet<string> expanded)
     {
         var position = 0;
 
@@ -323,7 +327,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var column = window.First + position;
         var spans = new List<StyledSpan>();
 
-        AddCell(spans, columns[column], cursor, column, row, compact, length, marks);
+        AddCell(spans, columns[column], cursor, column, row, compact, length, marks, expanded);
 
         return spans;
     }
@@ -336,7 +340,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int row,
         bool compact,
         int inner,
-        HashSet<string> marks)
+        HashSet<string> marks,
+        HashSet<string> expanded)
     {
         if (group.Rows.Count == 0)
         {
@@ -361,6 +366,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var selected = column == cursor.Column && card == cursor.Cards[column];
         var issue = group.Rows[card];
         var marked = marks.Contains(issue.Key);
+        var open = issue.Subtasks.Count > 0 && expanded.Contains(issue.Key);
 
         if (compact)
         {
@@ -391,7 +397,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var nextSelected = column == cursor.Column && card + 1 == cursor.Cards[column] && group.IsNested(card + 1);
 
-        AddBoxRow(spans, issue, within, selected, marked, part, inner, selected || nextSelected);
+        AddBoxRow(spans, issue, within, selected, marked, open, part, inner, selected || nextSelected);
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
@@ -417,6 +423,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int within,
         bool selected,
         bool marked,
+        bool open,
         GroupPart part,
         int inner,
         bool heavyBottom)
@@ -437,7 +444,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         if (part != GroupPart.None)
         {
-            AddGroupedRow(spans, issue, within, selected, marked, part, width, heavyBottom);
+            AddGroupedRow(spans, issue, within, selected, marked, open, part, width, heavyBottom);
         }
         else if (within == 0 || within == BoardCards.FullRows - 1)
         {
@@ -460,7 +467,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var side = selected ? "┃" : Vertical;
 
             spans.Add(new StyledSpan(side, frame));
-            AddBoxText(spans, issue, within, selected, marked, width - 2, text);
+            AddBoxText(spans, issue, within, selected, marked, open, width - 2, text);
             spans.Add(new StyledSpan(side, frame));
         }
 
@@ -479,6 +486,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int within,
         bool selected,
         bool marked,
+        bool open,
         GroupPart part,
         int width,
         bool heavyBottom)
@@ -526,7 +534,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
                 spans.Add(new StyledSpan(new string(' ', indent), text));
             }
 
-            AddBoxText(spans, issue, first ? within : within + 1, selected, marked, width - 2 - indent, text);
+            AddBoxText(spans, issue, first ? within : within + 1, selected, marked, open, width - 2 - indent, text);
         }
 
         spans.Add(new StyledSpan(side, frame));
@@ -539,9 +547,21 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         int within,
         bool selected,
         bool marked,
+        bool open,
         int room,
         TextRole text)
     {
+        if (within != 1 && issue.Subtasks.Count > 0 && !issue.IsListed)
+        {
+            var line = within == FirstSummaryLine
+                ? CardText.Shorten(issue.Summary, room - 2)
+                : SubtaskRow(issue.Subtasks, open, room - 2);
+
+            spans.Add(new StyledSpan(TextWidth.Pad($" {line} ", room), text));
+
+            return;
+        }
+
         if (within != 1)
         {
             var lines = CardText.TwoLines(issue.Summary, room - 2);
@@ -563,6 +583,29 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         spans.Add(new StyledSpan(star, starRole));
         spans.Add(new StyledSpan(label, selected ? text : IssueTypeRole.For(issue.IssueType)));
         spans.Add(new StyledSpan(tail, text));
+    }
+
+    /// <summary>
+    /// The sub-task row of a card, the second summary line: the fold mark, <c>Sub-tasks done/total</c> and a bar of
+    /// <see cref="SubtaskBarCells"/> cells; the word and then the bar go first when the card is narrow (#520).
+    /// </summary>
+    private static string SubtaskRow(IReadOnlyList<IssueSubtask> subtasks, bool open, int room)
+    {
+        var done = subtasks.Count(subtask => subtask.IsDone);
+        var mark = open ? "▾" : "▸";
+        var count = $"{done}/{subtasks.Count}";
+        var filled = done * SubtaskBarCells / subtasks.Count;
+        var bar = $"{new string('━', filled)}{new string('─', SubtaskBarCells - filled)}";
+        var full = $"{mark} Sub-tasks {count} {bar}";
+
+        if (TextWidth.Of(full) <= room)
+        {
+            return full;
+        }
+
+        var narrow = $"{mark} {count} {bar}";
+
+        return TextWidth.Of(narrow) <= room ? narrow : CardText.Shorten($"{mark} {count}", room);
     }
 
     /// <summary>
@@ -602,6 +645,11 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     private static (string Label, string Remainder) KeyLine(IssueSummary issue, int width)
     {
         var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
+
+        if (issue.IsListed)
+        {
+            initials = issue.Status.Name;
+        }
 
         if (issue.Estimate is not null)
         {
