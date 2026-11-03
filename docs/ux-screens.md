@@ -143,7 +143,7 @@ A Sprint view (Scrum, #176) uses the same columns; its first line is the sprint 
 
 **Sprint switcher (#177).** `<space>sv` (or the view menu) opens the source picker in its sprint scope for the board of the active tab; a tab without a board (JQL, filter) answers with a note, a Kanban board with the error "This is a Kanban board: it has no sprints." Rows are grouped Active, Future (Jira's order) and Closed (newest completion first, 10 at first; the row `N more closed sprints` adds 10 more without a request). Every sprint is loaded once per open (`board/{id}/sprint`, all states, at most 1000 sprints) and the typed text filters all groups by name. Each row shows the dates, closed ones also `closed 2 Nov`. `Enter` replaces the sprint of the tab when it is a Sprint view and otherwise opens a new Sprint tab; `Ctrl-t` always opens a new tab. A closed sprint is read only: the header shows `closed <date>` and the write actions (status, edit, assign, delete, create, rank) answer `Closed sprint: read only.`; comments stay allowed (Jira allows them).
 
-One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). The Backlog column is shown like any other column.
+One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). On a company-managed Kanban board whose first column is `Backlog` that column is hidden, as Jira does (those issues are in the `:backlog` view; `BoardColumns.HidesBacklogColumn`). A team-managed board shows its `Backlog` column like any other.
 
 ```text
  [1 Board: GTM board]
@@ -477,7 +477,7 @@ Without a board name and exactly one board on the site, `:board` and `:backlog` 
 
 ## Decisions for the screens (defaults)
 
-- The Backlog column of a board is shown like any other column.
+- The Backlog column of a company-managed Kanban board (first column, named `Backlog`) is hidden in the columns layout, as in Jira; a team-managed board shows its Backlog column like any other.
 - Attachments open the issue page in the browser (the download URL needs the auth header).
 - The board opens in Columns; backlog, JQL and filters open in List; the layout can be switched per tab (boards only in M1).
 - A loaded issue whose status is in no column gets a trailing `Unmapped` column rather than being hidden (the board endpoint itself never returns such issues, #138).

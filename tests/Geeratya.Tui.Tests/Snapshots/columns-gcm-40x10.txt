@@ -1,10 +1,10 @@
  [1 Board: GCM board]  +         [jump] 
                                         
-GCM board · 24 issues                 3›
-┌─Backlog 12  To Do 5 ›────────────────┐
-│>T GCM-1 Survey task one              │
-│ └s GCM-6 Survey4 subtask             │
-│ T GCM-4 Survey task four             │
-│ S GCM-3 Survey story three with unic…│
+GCM board · 24 issues                 2›
+┌─To Do 5  In Progress 4 ›─────────────┐
+│>E GCM-8 Seed: Onboarding flow        │
+│ ├S GCM-11 Welcome screen             │
+│ └T GCM-13 Review onboarding copy     │
+│ s GCM-19 ↑GCM-10 Validate the email  │
 └──────────────────────────────────────┘
  NORMAL       ? help  : commands  q quit

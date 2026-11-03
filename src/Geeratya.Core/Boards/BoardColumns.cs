@@ -29,13 +29,26 @@ public static class BoardColumns
         }
 
         var groups = Group(configuration, rows);
+        var columns = HidesBacklogColumn(configuration) ? groups.Columns.Skip(1).ToList() : groups.Columns;
 
         if (groups.Unmapped.Count == 0)
         {
-            return groups.Columns;
+            return columns;
         }
 
-        return [.. groups.Columns, Arrange(UnmappedName, groups.Unmapped)];
+        return [.. columns, Arrange(UnmappedName, groups.Unmapped)];
+    }
+
+    /// <summary>
+    /// True when Jira does not show the first column on the board: a company-managed Kanban board whose first column
+    /// is the Backlog column (its issues live in the Backlog view). The configuration has no flag for the backlog
+    /// feature, so the board kind and the name decide; a team-managed board keeps its Backlog column (it is a normal
+    /// column there, third on the dev board) and so does a Kanban board whose first column has another name.
+    /// </summary>
+    public static bool HidesBacklogColumn(BoardConfiguration configuration)
+    {
+        return configuration is { Type: BoardType.Kanban, Columns: [{ Name: var first }, ..] }
+            && string.Equals(first, "Backlog", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

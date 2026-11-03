@@ -33,7 +33,7 @@ public class ColumnsSnapshotTests
         var lines = FrameBuilder.Build(state, width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var name = $"columns-{kind}-{width}x{height}.txt";
-        var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
+        var expected = SnapshotFile.Expect(name, actual);
 
         Assert.Equal(expected, actual);
     }
@@ -59,20 +59,25 @@ public class ColumnsSnapshotTests
     }
 
     [Theory]
-    [InlineData("gcm", "Backlog", "To Do", "In Progress", "Done")]
+    [InlineData("gcm", "To Do", "In Progress", "Done", null)]
     [InlineData("gtm", "To Do", "In Progress", "Backlog", "Done")]
     public async Task GivenEachBoardKind_WhenBuilding_ThenColumnsAreInBoardOrderAndOneCardIsMarked(
         string kind,
         string first,
         string second,
         string third,
-        string fourth)
+        string? fourth)
     {
         var state = await OpenAsync(kind, 36);
 
         var lines = FrameBuilder.Build(state, 120, 36, _keymap);
 
-        var positions = new[] { first, second, third, fourth }
+        if (kind == "gcm")
+        {
+            Assert.DoesNotContain("Backlog", lines[3], StringComparison.Ordinal);
+        }
+
+        var positions = new[] { first, second, third, fourth }.OfType<string>()
             .Select(name => lines[3].IndexOf(name, StringComparison.Ordinal))
             .ToArray();
         Assert.All(positions, position => Assert.True(position >= 0));
