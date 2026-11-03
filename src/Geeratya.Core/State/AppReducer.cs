@@ -122,7 +122,8 @@ public sealed class AppReducer
     // A drop on another section of a Scrum backlog asks to move the issues; any other drag selects rows.
     private static ReduceResult RowsDrag(AppState state, RowsDragged dragged)
     {
-        return SprintMoveActions.Dropped(state, dragged, dragged.At) ?? SelectionActions.Dragged(state, dragged);
+        return SprintMoveActions.Dropped(state, dragged, dragged.At)
+            ?? (dragged.Live ? SelectionActions.DragEnded(state, dragged) : SelectionActions.Dragged(state, dragged));
     }
 
     private ReduceResult ReduceCommand(AppState state, Command command)
@@ -133,6 +134,8 @@ public sealed class AppReducer
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
             RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
+            RowsDragging dragging => Followed(state, SelectionActions.Dragging(Unpended(state), dragging)),
+            RowsDragScrolled scrolled => Followed(state, SelectionActions.DragScrolled(state, scrolled)),
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),

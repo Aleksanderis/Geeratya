@@ -74,7 +74,8 @@ public static class MouseResolver
         int fromRow,
         int toColumn,
         int toRow,
-        DateTimeOffset at = default)
+        DateTimeOffset at = default,
+        bool live = false)
     {
         var gesture = context.ColumnsLayout ? MouseGesture.Drag : MouseGesture.DragRows;
 
@@ -89,10 +90,46 @@ public static class MouseResolver
 
         if (gesture == MouseGesture.DragRows)
         {
-            return [new RowsDragged(fromColumn, start.Row, end.Row, context.Width, at)];
+            return [new RowsDragged(fromColumn, start.Row, end.Row, context.Width, at, live)];
         }
 
         return [new CardDragged(fromColumn, start.Row, toColumn, context.Width)];
+    }
+
+    /// <summary>
+    /// The held left button moved over rows of the list or backlog layout: the live range. The first move starts
+    /// Visual mode on the pressed row even when the pointer already left the body (then the range is that row alone);
+    /// later moves outside the body do nothing here, the auto-scroll step moves the cursor. Columns layout, overlays
+    /// and a press outside the body do nothing.
+    /// </summary>
+    public static IReadOnlyList<Command> ResolveDragMove(
+        MouseContext context,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow,
+        bool first)
+    {
+        if (context.OverlayOpen || context.ColumnsLayout || context.DetailOpen
+            || DefaultMouseMap.Find(MouseTarget.Lists, MouseGesture.DragRows) is not { } found
+            || !WiredParts.Contains(found.Part)
+            || MouseHitTester.Locate(context, fromColumn, fromRow) is not { Target: MouseTarget.Lists } start)
+        {
+            return _none;
+        }
+
+        var end = start.Row;
+
+        if (MouseHitTester.Locate(context, toColumn, toRow) is { Target: MouseTarget.Lists } inside)
+        {
+            end = inside.Row;
+        }
+        else if (!first)
+        {
+            return _none;
+        }
+
+        return [new RowsDragging(fromColumn, start.Row, end, context.Width, first)];
     }
 
     // A row of an open overlay (picker, jump prompt, profile list, form field, suggestion popup): the row is chosen,
