@@ -44,7 +44,7 @@ public static class PaletteCommands
         new(AssignMe, "assign-me", "Assign the selected or shown issue to me"),
         new(Profile, "profile add|list|switch <name>|remove <name>|check", "Manage Jira profiles"),
         new(Set, "set hints|whichkey on|off", "Show or hide the status bar hints or the which-key popup (saved)"),
-        new(Theme, "theme [name]", "Switch the colour theme (no name: list them); saved"),
+        new(Theme, "theme [name]", "Switch the colour theme (no name: list the families); saved"),
         new(Keys, "keys reload", "Read keymap.json again and apply it"),
         new(Help, "help", "Show or hide help"),
         new(Quit, "quit", "Quit"),

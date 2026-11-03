@@ -40,10 +40,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
-    private const int MaximumThemeReasons = 3;
-
     private readonly KeymapTable _keymap;
-    private readonly ThemeCatalog _themes;
+    private readonly ThemeSwitcher _themes;
     private readonly MouseDragTracker _dragTracker = new();
     private readonly string? _keymapNotice;
     private readonly KeymapTable _defaultBindings;
@@ -83,7 +81,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _keymap = keymap;
         _keymapNotice = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
         _colors = colors;
-        _themes = new ThemeCatalog(profiles.ThemesDirectory);
+        _themes = new ThemeSwitcher(new ThemeCatalog(profiles.ThemesDirectory));
         _glyphs = glyphs;
         _profiles = profiles;
         _profileEffects = new ProfileEffectHandler(profiles);
@@ -404,78 +402,27 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
     }
 
-    /// <summary>
-    /// The theme saved in the settings; the default one, with a status line notice, when it cannot be used (a theme
-    /// file that is gone or invalid must never stop the start). Theme files that were not offered are reported too.
-    /// </summary>
+    /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
     private Theme StartTheme()
     {
-        var name = _state.Settings.Theme;
-        var result = string.IsNullOrWhiteSpace(name) ? null : _themes.Find(name);
-        var problems = _themes.Problems;
+        var start = _themes.Start(_state.Settings.Theme);
 
-        if (problems.Count > 0)
-        {
-            _state = _state with { Message = JoinNotices(_state.Message, $"Theme files not used: {Reasons(problems)}") };
-        }
+        _state = _state with { Message = JoinNotices(_state.Message, start.Notice) };
 
-        if (result?.Theme is { } theme)
-        {
-            return theme;
-        }
-
-        var reason = result is null ? "not found" : Reasons(result.Errors);
-        var notice = $"Theme {name}: {reason}; using {BuiltInThemes.DefaultDarkName}.";
-
-        _state = _state with { Message = JoinNotices(_state.Message, notice) };
-
-        return BuiltInThemes.Default;
+        return start.Theme;
     }
 
-    /// <summary>Switches the screen to the named theme (or lists them) and reports the outcome for the reducer.</summary>
+    /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>
     private ThemeApplied ApplyTheme(string name)
     {
-        var current = _state.Settings.Theme;
+        var choice = _themes.Choose(name, _state.Settings.Theme);
 
-        if (name.Length == 0)
+        if (choice.Theme is not null)
         {
-            return new ThemeApplied(current, false, ListThemes(current));
+            _screen?.SetTheme(choice.Theme);
         }
 
-        var result = _themes.Find(name);
-
-        if (result is null)
-        {
-            return new ThemeApplied(name, false, $"Theme {name} not found. Available: {NamesOf(_themes.Names)}.");
-        }
-
-        if (result.Theme is not { } theme)
-        {
-            return new ThemeApplied(name, false, $"Theme {name} not used: {Reasons(result.Errors)}.");
-        }
-
-        _screen?.SetTheme(theme);
-
-        return new ThemeApplied(theme.Name, true, $"Theme {theme.Name}.");
-    }
-
-    private string ListThemes(string current)
-    {
-        var listing = $"Theme {current}. Available: {NamesOf(_themes.Names)}.";
-
-        return _themes.Problems.Count == 0 ? listing : $"{listing} Not used: {Reasons(_themes.Problems)}.";
-    }
-
-    private static string NamesOf(IReadOnlyList<string> names)
-    {
-        return string.Join(", ", names);
-    }
-
-    private static string Reasons(IReadOnlyList<string> reasons)
-    {
-        var shown = string.Join("; ", reasons.Take(MaximumThemeReasons));
-
-        return reasons.Count > MaximumThemeReasons ? $"{shown} (+{reasons.Count - MaximumThemeReasons} more)" : shown;
+        return new ThemeApplied(choice.Name, choice.Theme is not null, choice.Message);
     }
 
     /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>

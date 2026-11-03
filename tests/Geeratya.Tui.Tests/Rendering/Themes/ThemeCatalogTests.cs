@@ -63,7 +63,9 @@ public sealed class ThemeCatalogTests : IDisposable
         Assert.DoesNotContain("broken", catalog.Names);
         Assert.Contains("good", catalog.Names);
         Assert.Null(catalog.Find("broken"));
-        Assert.Contains(catalog.Problems, problem => problem.StartsWith("broken.json: colors.accent", StringComparison.Ordinal));
+        Assert.Contains(
+            catalog.Problems,
+            problem => problem.StartsWith("broken.json: colors.accent", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -78,6 +80,17 @@ public sealed class ThemeCatalogTests : IDisposable
 
         Assert.Contains(catalog.Problems, problem => problem.Contains("reserved", StringComparison.Ordinal));
         Assert.Equal("catppuccin-mocha", catalog.Find("dark")!.Theme!.Name);
+    }
+
+    [Fact]
+    public void GivenUserFileWithASpaceInItsName_WhenListing_ThenItIsRefusedBecauseItCannotBeTyped()
+    {
+        Write("my theme.json", UserFile("#ff0000"));
+
+        var catalog = new ThemeCatalog(_directory);
+
+        Assert.DoesNotContain("my theme", catalog.Names);
+        Assert.Contains(catalog.Problems, problem => problem.Contains("spaces", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -23,13 +23,13 @@ public sealed class ShellScreen : Window
 
     private readonly StyledBodyView _body;
     private readonly ColorSupport _colors;
-    private Theme _theme;
     private readonly GlyphSet _glyphs;
     private readonly Label _status;
     private IReadOnlyList<string> _helpLines;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
+    private Theme _theme;
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
     private IReadOnlyList<OverlayRegion> _regions = [];
 
@@ -100,7 +100,9 @@ public sealed class ShellScreen : Window
         }
 
         _regions = frame.Regions;
-        _body.SetLines(frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors)).ToList());
+        var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors));
+
+        _body.SetLines(lines.ToList());
         _status.Text = frame.StatusLine;
         SetNeedsDraw();
     }

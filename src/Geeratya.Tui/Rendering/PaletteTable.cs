@@ -107,7 +107,7 @@ public static class PaletteTable
         return role == PaletteRole.Divider ? DividerContrast : TextContrast;
     }
 
-    /// <summary>The entry of every role for a theme: its colours at 24 bits, the 16-colour table of its variant.</summary>
+    /// <summary>The entry of every role of a theme: its colours at 24 bits, the 16-colour table of its variant.</summary>
     public static IReadOnlyDictionary<PaletteRole, PaletteEntry> Build(Theme theme)
     {
         var entries = new Dictionary<PaletteRole, PaletteEntry>();

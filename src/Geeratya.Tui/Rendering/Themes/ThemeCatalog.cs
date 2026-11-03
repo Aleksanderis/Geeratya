@@ -66,6 +66,10 @@ public sealed class ThemeCatalog(string? themesDirectory)
             {
                 _problems.Add($"{Path.GetFileName(path)}: the name '{name}' is reserved");
             }
+            else if (name.Any(char.IsWhiteSpace))
+            {
+                _problems.Add($"{Path.GetFileName(path)}: the name must not contain spaces");
+            }
             else if (!themes.ContainsKey(name) && Read(name, path) is { } theme)
             {
                 themes[name] = theme;

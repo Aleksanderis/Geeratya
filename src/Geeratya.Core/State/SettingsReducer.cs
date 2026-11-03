@@ -49,7 +49,7 @@ public static class SettingsReducer
     }
 
     /// <summary>The host's answer: a theme that is drawn becomes the saved choice.</summary>
-    public static ReduceResult ThemeApplied(AppState state, ThemeApplied applied)
+    public static ReduceResult Applied(AppState state, ThemeApplied applied)
     {
         if (!applied.Applied)
         {
