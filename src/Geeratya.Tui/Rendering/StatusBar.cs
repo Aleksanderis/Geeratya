@@ -75,6 +75,16 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>
+    public static IReadOnlyList<StatusHint> HelpHints { get; } =
+    [
+        new(InputMode.Help, ActionIds.HelpPageNext, "page"),
+        new(InputMode.Help, ActionIds.HelpFilter, "filter"),
+        new(InputMode.Help, ActionIds.NavigateDown, "down"),
+        new(InputMode.Help, ActionIds.NavigateUp, "up"),
+        new(InputMode.Help, ActionIds.HelpClose, "close"),
+    ];
+
     /// <summary>The hints shown while a field form is open (Insert mode, the active tab's form).</summary>
     public static IReadOnlyList<StatusHint> FormHints { get; } =
     [
@@ -187,6 +197,11 @@ public static class StatusBar
         if (state.Picker is not null || state.Jump is not null || state.ContextMenu is not null)
         {
             return new HintList([], TextsOf(PickerHints, state.Mode, HintScope.Global, keymap, level));
+        }
+
+        if (state is { Mode: InputMode.Help, MessagesOpen: false })
+        {
+            return new HintList([], TextsOf(HelpHints, state.Mode, HintScope.Global, keymap, level));
         }
 
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);

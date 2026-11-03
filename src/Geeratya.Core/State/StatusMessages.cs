@@ -88,6 +88,8 @@ public static class StatusMessages
             Mode = InputMode.Help,
             MessagesOpen = true,
             HelpScroll = 0,
+            HelpFilter = string.Empty,
+            HelpFiltering = false,
             PendingKeys = string.Empty,
             Count = 0,
             PaletteText = string.Empty,

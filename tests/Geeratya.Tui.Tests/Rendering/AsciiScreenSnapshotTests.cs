@@ -13,7 +13,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class AsciiScreenSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     private static readonly string[] _names =
     [
@@ -58,7 +57,7 @@ public class AsciiScreenSnapshotTests
         int width,
         int height)
     {
-        var lines = FrameBuilder.Build(State(name), width, height, _helpLines, _keymap, NetworkStateSnapshotTests.Now, GlyphSet.Ascii);
+        var lines = FrameBuilder.Build(State(name), width, height, _keymap, NetworkStateSnapshotTests.Now, GlyphSet.Ascii);
         var actual = string.Join('\n', lines) + "\n";
 
         var expected = SnapshotFile.Expect($"ascii-{name}-{width}x{height}.txt", actual);

@@ -10,7 +10,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ProfileListOverlayTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly Profile _dev = new("dev", "https://dev.atlassian.net", "me@dev.test");
 
@@ -20,7 +19,7 @@ public class ProfileListOverlayTests
     [InlineData(40, 10)]
     public void GivenTheOpenList_WhenReadingTheRegions_ThenEachProfileHasARowWithItsName(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample(), width, height, _keymap)!;
         var rows = RegionProbe.Rows(frame, MouseTarget.ProfileRow);
 
         Assert.Equal([0, 1], rows.Select(row => row.Index));
@@ -31,7 +30,7 @@ public class ProfileListOverlayTests
     [Fact]
     public void GivenTheOpenList_WhenBuildingTheFrame_ThenTheActiveProfileAndTheKeysAreShown()
     {
-        var text = string.Join('\n', FrameBuilder.BuildStyled(Sample(), 100, 24, _helpLines, _keymap)!.PlainLines());
+        var text = string.Join('\n', FrameBuilder.BuildStyled(Sample(), 100, 24, _keymap)!.PlainLines());
 
         Assert.Contains("(active)", text, StringComparison.Ordinal);
         Assert.Contains("Ctrl-x remove", text, StringComparison.Ordinal);
@@ -42,7 +41,7 @@ public class ProfileListOverlayTests
     public void GivenTheOpenList_WhenClickingTheSecondProfile_ThenTheSwitchStartsLikeTheCommand()
     {
         var state = Sample();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.ProfileRow).Single(candidate => candidate.Index == 1);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -58,7 +57,7 @@ public class ProfileListOverlayTests
     public void GivenTheOpenList_WhenRightClickingAProfile_ThenTheRemovalIsConfirmedAndNothingRuns()
     {
         var state = Sample();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.ProfileRow).Single(candidate => candidate.Index == 1);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.RightClick)!;
@@ -76,7 +75,7 @@ public class ProfileListOverlayTests
         {
             for (var height = 0; height <= 12; height++)
             {
-                FrameBuilder.BuildStyled(Sample(), width, height, _helpLines, _keymap);
+                FrameBuilder.BuildStyled(Sample(), width, height, _keymap);
             }
         }
     }

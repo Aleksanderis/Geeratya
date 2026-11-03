@@ -18,7 +18,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class SourcePickerSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData(120, 36)]
@@ -26,7 +25,7 @@ public class SourcePickerSnapshotTests
     [InlineData(40, 10)]
     public void GivenAnOpenPicker_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample("g"), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample("g"), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"picker-{width}x{height}.txt");
 
@@ -39,7 +38,7 @@ public class SourcePickerSnapshotTests
     [InlineData(40, 10)]
     public void GivenAnOpenPicker_WhenReadingTheRegions_ThenEachRowCoversItsChoiceWithinTheBox(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), width, height, _keymap)!;
         var rows = RegionProbe.Rows(frame, MouseTarget.PickerRow);
 
         Assert.NotEmpty(rows);
@@ -53,7 +52,7 @@ public class SourcePickerSnapshotTests
     public void GivenAnOpenPicker_WhenClickingAFilterChoice_ThenTheFilterOpensInANewTab()
     {
         var state = Sample(string.Empty);
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.PickerRow).Single(candidate => candidate.Index == 4);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -67,7 +66,7 @@ public class SourcePickerSnapshotTests
     public void GivenAnOpenPicker_WhenClickingOutsideTheRows_ThenNothingIsResolved()
     {
         var state = Sample(string.Empty);
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, FrameBuilder.HeaderRows, default, frame.Regions);
 
         Assert.Empty(MouseResolver.Resolve(context, 0, 20, MouseGesture.Click, default));
@@ -78,7 +77,7 @@ public class SourcePickerSnapshotTests
     {
         var state = Sample("") with { Session = Sample("").Session with { Sources = SourceLists.Empty.Requested(SourceListKind.Boards) } };
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Loading…", StringComparison.Ordinal));
     }
@@ -86,7 +85,7 @@ public class SourcePickerSnapshotTests
     [Fact]
     public void GivenTypedTextMatchingNothing_WhenBuildingTheFrame_ThenTheQueryRowIsOffered()
     {
-        var lines = FrameBuilder.Build(Sample("zzz"), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample("zzz"), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("zzz", StringComparison.Ordinal) && line.Contains("JQL", StringComparison.Ordinal));
     }
@@ -96,7 +95,7 @@ public class SourcePickerSnapshotTests
     [InlineData(40, 10)]
     public void GivenTheAsciiGlyphSet_WhenBuildingTheFrameWithThePicker_ThenNoShellGlyphIsDrawn(int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample("g"), width, height, _helpLines, _keymap, null, GlyphSet.Ascii);
+        var lines = FrameBuilder.Build(Sample("g"), width, height, _keymap, null, GlyphSet.Ascii);
 
         Assert.Contains(lines, line => line.Contains('+', StringComparison.Ordinal));
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
@@ -110,7 +109,7 @@ public class SourcePickerSnapshotTests
         var lists = state.Session.Sources with { Boards = null, History = SiteHistory.Empty.WithQuery("project = GCM") };
         var shown = state with { Session = state.Session with { Sources = lists } };
 
-        var lines = FrameBuilder.Build(shown, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(shown, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Recent", StringComparison.Ordinal)
             && line.Contains("project = GCM", StringComparison.Ordinal));

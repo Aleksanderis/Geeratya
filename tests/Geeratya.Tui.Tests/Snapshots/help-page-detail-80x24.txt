@@ -1,0 +1,24 @@
+ [1 JQL: Sample]  +                                                      [jump] 
+                                                                                
+Help                                                                            
+Issue detail  Global  All actions  Commands                                     
+  j          Move down  (Down)                                                  
+  k          Move up  (Up)                                                      
+  g g        Go to the top  (Home)                                              
+  G          Go to the bottom  (End)                                            
+  Ctrl-d     Page down  (PageDown)                                              
+  Ctrl-u     Page up  (PageUp)                                                  
+  Space a    Open the actions menu of the selected issue                        
+  Enter      Open the selected item                                             
+  ] ]        Next section of the issue                                          
+  [ [        Previous section of the issue                                      
+  Space o    Open the issue in the browser                                      
+  Space p    Open the parent issue                                              
+  Space i e  Edit fields of the issue (summary, labels, priority, description)  
+  Space i a  Assign the issue: search people, or unassign                       
+  Space i m  Assign the issue to me                                             
+  Space i s  Change the status of the issue                                     
+  Space i C  Create a sub-task of the selected issue                            
+  Space m a  Add a comment to the issue                                         
+  Space m e  Edit the comment under the cursor                                  
+ HELP                                Tab page  / filter  j down  k up  Esc close

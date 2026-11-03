@@ -1,3 +1,4 @@
+using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 
@@ -61,7 +62,7 @@ public class AppReducerTests
     public void GivenHelpOpen_WhenScrollingFarDown_ThenScrollStopsAtLastLine()
     {
         var state = Press(AppState.Initial, "?").State;
-        var lineCount = KeymapDocument.RenderHelpLines(DefaultKeymap.Load()).Count;
+        var lineCount = HelpPages.Lines(state, DefaultKeymap.Load()).Count;
 
         for (var step = 0; step < lineCount + 10; step++)
         {

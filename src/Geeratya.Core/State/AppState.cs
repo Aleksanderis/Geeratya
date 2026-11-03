@@ -75,7 +75,9 @@ public sealed record AppState(
     /// </summary>
     public StatusMessage? Status { get; init; }
 
-    /// <summary>The severity the next text written to <see cref="Message"/> is posted with; reset once it is posted.</summary>
+    /// <summary>
+    /// The severity the next text written to <see cref="Message"/> is posted with; reset once it is posted.
+    /// </summary>
     public StatusSeverity MessageSeverity { get; init; }
 
     /// <summary>The last 50 messages, newest first.</summary>
@@ -84,8 +86,24 @@ public sealed record AppState(
     /// <summary>The help overlay shows the message history instead of the key reference.</summary>
     public bool MessagesOpen { get; init; }
 
-    /// <summary>The Messages overlay lists every setting (value, default, help) above the history (<c>:set</c> without an argument).</summary>
+    /// <summary>
+    /// The Messages overlay lists every setting (value, default, help) above the history (<c>:set</c> without an
+    /// argument).
+    /// </summary>
     public bool MessagesShowSettings { get; init; }
+
+    /// <summary>
+    /// The page of the help overlay (an index into <c>HelpPages.Names</c>); 0 is the active layout's page.
+    /// </summary>
+    public int HelpPage { get; init; }
+
+    /// <summary>The text of the help filter (<c>/</c>); empty when none.</summary>
+    public string HelpFilter { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The help filter line is being typed: printable keys are text and <c>Enter</c> keeps the filter.
+    /// </summary>
+    public bool HelpFiltering { get; init; }
 
     /// <summary>The highlighted row of the command palette, counted over its selectable rows (Command mode).</summary>
     public int PaletteSelected { get; init; }

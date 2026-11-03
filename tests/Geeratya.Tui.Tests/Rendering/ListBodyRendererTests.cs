@@ -18,7 +18,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ListBodyRendererTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Fact]
     public void GivenNoTab_WhenBuilding_ThenTheStartScreenStillShows()
@@ -380,7 +379,7 @@ public class ListBodyRendererTests
 
     private static IReadOnlyList<StyledLine> Render(TabState tab, int width, int height, GlyphSet glyphs = GlyphSet.Unicode)
     {
-        var context = new BodyContext(_helpLines, _keymap, glyphs);
+        var context = new BodyContext(_keymap, glyphs);
 
         return new ListBodyRenderer().Render(Active(tab), context, width, height);
     }
@@ -430,7 +429,7 @@ public class ListBodyRendererTests
     /// <summary>The frame without its header lines, so the rows below them keep their meaning.</summary>
     private static List<string> Body(AppState state, int width, int height)
     {
-        return [.. FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _helpLines, _keymap)
+        return [.. FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _keymap)
             .Skip(FrameBuilder.HeaderRows)];
     }
 }

@@ -46,6 +46,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
+| HelpPage | Click | `help.page-next` | O | Help overlay: shows the clicked page (a page name in the row under the title), from its first line; same as `Tab` or `Shift-Tab` until that page; the filter stays |
 | ConfirmYes | Click | `confirm.yes` | O | Confirm dialog: the `y` row runs the action, same as `y` (the dialog closes first) |
 | ConfirmNo | Click | `confirm.no` | O | Confirm dialog: the `n` row cancels, same as `n` |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
@@ -91,11 +92,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 
 ## Without a path
 
-Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), and `view.cycle-command-level` (its palette row: click the status line, then the row).
-
-## Planned paths
-
-Not in the table until built, each with its issue: a click on a command palette row and the wheel in it (#368); a click on a help page name (#371).
+Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), `help.page-previous` (a click on the page name), `help.filter` (the filter is typed text; the page names are the mouse path) and `view.cycle-command-level` (its palette row: click the status line, then the row).
 
 ## Checks and terminal selection
 

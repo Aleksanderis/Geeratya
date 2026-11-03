@@ -1,0 +1,10 @@
+ [1 Backlog: Sample]  +          [jump] 
+                                        
+Help                                    
+Backlog  Global  All actions  Commands  
+  j          Move down  (Down)          
+  k          Move up  (Up)              
+  g g        Go to the top  (Home)      
+  G          Go to the bottom  (End)    
+  Ctrl-d     Page down  (PageDown)      
+ HELP                                   

@@ -1,3 +1,4 @@
+using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
@@ -39,12 +40,14 @@ public class CommandLevelReducerTests
     public void GivenHelpScrolledFarInAdvanced_WhenSwitchingToEveryday_ThenTheScrollStaysInsideTheShorterHelp()
     {
         var keymap = DefaultKeymap.Load();
-        var everydayLines = KeymapDocument.RenderHelpLines(keymap).Count;
-        var advancedLines = KeymapDocument.RenderHelpLines(keymap, CommandLevel.Advanced).Count;
-        var help = AppState.Initial with
+        var allActions = AppState.Initial with { Mode = InputMode.Help, HelpPage = 1 };
+        var everydayLines = HelpPages.Lines(allActions, keymap).Count;
+        var advancedLines = HelpPages.Lines(
+            allActions with { Settings = AppSettings.Default with { CommandLevel = CommandLevel.Advanced } },
+            keymap).Count;
+        var help = allActions with
         {
             Settings = AppSettings.Default with { CommandLevel = CommandLevel.Advanced },
-            Mode = InputMode.Help,
             HelpScroll = advancedLines - 1,
         };
 

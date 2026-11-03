@@ -3,6 +3,48 @@ namespace Geeratya.Core.Keymap;
 /// <summary>Every action a key can run, with its title.</summary>
 public static class ActionCatalog
 {
+    private static readonly Dictionary<string, ActionScope> _scopes = new()
+    {
+        [ActionIds.NavigateDown] = ActionScope.Views,
+        [ActionIds.NavigateUp] = ActionScope.Views,
+        [ActionIds.NavigateTop] = ActionScope.Views,
+        [ActionIds.NavigateBottom] = ActionScope.Views,
+        [ActionIds.NavigatePageDown] = ActionScope.Views,
+        [ActionIds.NavigatePageUp] = ActionScope.Views,
+        [ActionIds.NavigateLeft] = ActionScope.Columns,
+        [ActionIds.NavigateRight] = ActionScope.Columns,
+        [ActionIds.NavigateFirstColumn] = ActionScope.Columns,
+        [ActionIds.NavigateLastColumn] = ActionScope.Columns,
+        [ActionIds.ItemOpen] = ActionScope.Views,
+        [ActionIds.SectionNext] = ActionScope.Detail,
+        [ActionIds.SectionPrevious] = ActionScope.Detail,
+        [ActionIds.ContextMenuOpen] = ActionScope.Views,
+        [ActionIds.ViewLayoutToggle] = ActionScope.Lists,
+        [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
+        [ActionIds.IssueOpenParent] = ActionScope.Detail,
+        [ActionIds.IssueEdit] = ActionScope.Views,
+        [ActionIds.IssueAssign] = ActionScope.Views,
+        [ActionIds.IssueAssignMe] = ActionScope.Views,
+        [ActionIds.IssueTransition] = ActionScope.Views,
+        [ActionIds.IssueTransitionNext] = ActionScope.Columns,
+        [ActionIds.IssueTransitionPrevious] = ActionScope.Columns,
+        [ActionIds.RankUp] = ActionScope.Lists,
+        [ActionIds.RankDown] = ActionScope.Lists,
+        [ActionIds.RankTop] = ActionScope.Lists,
+        [ActionIds.RankBottom] = ActionScope.Lists,
+        [ActionIds.RankTo] = ActionScope.Lists,
+        [ActionIds.IssueDelete] = ActionScope.Views,
+        [ActionIds.IssueCreateSubtask] = ActionScope.Views,
+        [ActionIds.IssueLink] = ActionScope.Views,
+        [ActionIds.IssueUnlink] = ActionScope.Detail,
+        [ActionIds.CommentAdd] = ActionScope.Detail,
+        [ActionIds.CommentEdit] = ActionScope.Detail,
+        [ActionIds.CommentDelete] = ActionScope.Detail,
+    };
+
+    /// <summary>The ids the scope table names (for the test that checks them against the catalog).</summary>
+    public static IReadOnlyCollection<string> ScopedIds => _scopes.Keys;
+
     public static IReadOnlyList<ActionDefinition> All { get; } =
     [
         new(ActionIds.NavigateDown, "Move down"),
@@ -15,6 +57,9 @@ public static class ActionCatalog
         new(ActionIds.NavigatePageUp, "Page up"),
         new(ActionIds.HelpToggle, "Show or hide help"),
         new(ActionIds.HelpClose, "Close help"),
+        new(ActionIds.HelpFilter, "Filter the help by key, title or action id"),
+        new(ActionIds.HelpPageNext, "Next help page"),
+        new(ActionIds.HelpPagePrevious, "Previous help page"),
         new(ActionIds.Quit, "Quit"),
         new(ActionIds.Cancel, "Cancel or close"),
         new(ActionIds.PaletteOpen, "Open the command palette"),
@@ -106,6 +151,9 @@ public static class ActionCatalog
     public static IReadOnlyCollection<string> ModalOnly { get; } =
     [
         ActionIds.HelpClose,
+        ActionIds.HelpFilter,
+        ActionIds.HelpPageNext,
+        ActionIds.HelpPagePrevious,
         ActionIds.PaletteSubmit,
         ActionIds.PaletteBackspace,
         ActionIds.ConfirmYes,
@@ -176,6 +224,16 @@ public static class ActionCatalog
             "help" or "app" or "palette" or "mode" or "status" => "General",
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// The layouts an action applies to (<c>docs/ux.md</c>, "Help"): the tag the help overlay sorts its layout pages
+    /// by. An action not named in the table applies everywhere (<see cref="ActionScope.Global"/>); a test checks
+    /// that the table names only catalog actions.
+    /// </summary>
+    public static ActionScope ScopeOf(string id)
+    {
+        return _scopes.GetValueOrDefault(id, ActionScope.Global);
     }
 
     /// <summary>

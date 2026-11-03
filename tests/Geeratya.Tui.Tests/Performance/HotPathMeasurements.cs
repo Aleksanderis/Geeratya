@@ -26,7 +26,6 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
     private const int Height = 36;
 
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     private static readonly BoardConfiguration _configuration = new(
         4,
@@ -145,7 +144,7 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
             var begin = Stopwatch.GetTimestamp();
 
             state = _reducer.Reduce(state, new KeyPressed(keys[index % keys.Length])).State;
-            FrameBuilder.BuildStyled(state, Width, Height, _helpLines, _keymap);
+            FrameBuilder.BuildStyled(state, Width, Height, _keymap);
 
             if (index >= 500)
             {

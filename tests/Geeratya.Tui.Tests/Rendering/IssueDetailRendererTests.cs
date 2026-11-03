@@ -28,7 +28,6 @@ public class IssueDetailRendererTests
     private static readonly DateTimeOffset _now = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _profile = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly IssueStatus _status = new("3", "In Progress", "indeterminate");
     private static readonly IssueTypeSummary _type = new("10", "Task", 0, false);
     private readonly AppReducer _reducer = new(_keymap);
@@ -68,7 +67,7 @@ public class IssueDetailRendererTests
     {
         var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         var marked = lines.Where(line => line.StartsWith("> ")).ToList();
         Assert.Single(marked);
@@ -82,7 +81,7 @@ public class IssueDetailRendererTests
     [InlineData(11)]
     public void GivenFramesDroppedOrTiny_WhenTheCursorIsShown_ThenTheRowStaysWithinTheWidth(int width)
     {
-        var lines = FrameBuilder.Build(Loaded(80, 24), width, 12, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Loaded(80, 24), width, 12, _keymap);
 
         Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
     }
@@ -90,7 +89,7 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenAnOpenIssue_WhenBuilding_ThenTheBreadcrumbNamesTheViewAndTheKey()
     {
-        var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap);
 
         Assert.StartsWith("My open issues › GCM-12", lines[FrameBuilder.HeaderRows]);
     }
@@ -98,7 +97,7 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenAsciiGlyphs_WhenBuilding_ThenPanelBordersAreAsciiAndKeepTheirWidth()
     {
-        var lines = FrameBuilder.Build(Loaded(80, 24), 80, 24, _helpLines, _keymap, null, GlyphSet.Ascii);
+        var lines = FrameBuilder.Build(Loaded(80, 24), 80, 24, _keymap, null, GlyphSet.Ascii);
 
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(9).ToList();
         Assert.StartsWith("+- GCM-12 - Task ", body[1]);
@@ -116,7 +115,7 @@ public class IssueDetailRendererTests
     {
         var state = Opened(100, 30);
 
-        var lines = FrameBuilder.Build(state, 100, 30, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 100, 30, _keymap);
 
         Assert.Contains("Loading…", lines[FrameBuilder.HeaderRows]);
         Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12 · Task "));
@@ -136,9 +135,9 @@ public class IssueDetailRendererTests
         }
 
 
-        var top = FrameBuilder.Build(state, 80, 12, _helpLines, _keymap);
-        var end = FrameBuilder.Build(bottom, 80, 12, _helpLines, _keymap);
-        var half = FrameBuilder.Build(middle, 80, 12, _helpLines, _keymap);
+        var top = FrameBuilder.Build(state, 80, 12, _keymap);
+        var end = FrameBuilder.Build(bottom, 80, 12, _keymap);
+        var half = FrameBuilder.Build(middle, 80, 12, _keymap);
 
         Assert.EndsWith("Top", top[FrameBuilder.HeaderRows].TrimEnd());
         Assert.EndsWith("Bot", end[FrameBuilder.HeaderRows].TrimEnd());
@@ -154,7 +153,7 @@ public class IssueDetailRendererTests
     [InlineData(20, 2)]
     public void GivenOpenIssue_WhenBuildingAtAnySize_ThenItNeverThrowsAndFillsTheFrame(int width, int height)
     {
-        var lines = FrameBuilder.Build(Loaded(80, 24), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Loaded(80, 24), width, height, _keymap);
 
         Assert.Equal(height, lines.Count);
         Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
@@ -165,7 +164,7 @@ public class IssueDetailRendererTests
     {
         var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("?")).State;
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         Assert.DoesNotContain(lines, line => line.StartsWith("My open issues › GCM-12"));
     }
@@ -175,7 +174,7 @@ public class IssueDetailRendererTests
     {
         var state = Loaded(80, 24);
 
-        var lines = FrameBuilder.Build(state, 50, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 50, 24, _keymap);
 
         Assert.All(lines, line => Assert.Equal(50, DisplayWidth.Of(line)));
         Assert.Contains("Status    In Progress", string.Join('\n', lines));
@@ -183,7 +182,7 @@ public class IssueDetailRendererTests
 
     private static void AssertSnapshot(AppState state, int width, int height, string name)
     {
-        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
 
         var expected = SnapshotFile.Expect(name, actual);

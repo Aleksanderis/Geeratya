@@ -5,6 +5,7 @@ using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Help;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
@@ -12,6 +13,7 @@ using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 
@@ -193,6 +195,9 @@ public sealed class AppReducer
             PaletteText = string.Empty,
             PaletteSelected = 0,
             HelpScroll = 0,
+            HelpPage = 0,
+            HelpFilter = string.Empty,
+            HelpFiltering = false,
             MessagesOpen = false,
             MessagesShowSettings = false,
             Confirm = null,
@@ -227,6 +232,7 @@ public sealed class AppReducer
                 => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
             MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),
             MouseTarget.PaletteRow when state.Mode == InputMode.Command => ClickPaletteRow(cleared, clicked),
+            MouseTarget.HelpPage when state.Mode == InputMode.Help => Result(HelpReducer.Show(cleared, clicked.Index)),
             MouseTarget.ConfirmYes when state.Mode == InputMode.Confirm => Confirmed(state, clicked.At),
             MouseTarget.ConfirmNo when state.Mode == InputMode.Confirm => DeclineConfirm(state),
             _ => Result(state),
@@ -294,6 +300,8 @@ public sealed class AppReducer
                 return route.Popup!;
             case KeyRouteKind.Form:
                 return FormReducer.Key(state, key, at, _keymap);
+            case KeyRouteKind.HelpFilter:
+                return Result(HelpReducer.Key(state, key, _keymap));
             case KeyRouteKind.Count:
                 return Result(state with { Count = Counts.Append(state.Count, key), Message = null });
             case KeyRouteKind.ChordPrefix:
@@ -453,7 +461,10 @@ public sealed class AppReducer
         {
             ActionIds.Quit => Quit(state),
             ActionIds.HelpToggle => Result(ToggleHelp(state)),
-            ActionIds.HelpClose => Result(ToNormal(state)),
+            ActionIds.HelpClose => Result(HelpReducer.Close(state) ?? ToNormal(state)),
+            ActionIds.HelpFilter => Result(HelpReducer.OpenFilter(state)),
+            ActionIds.HelpPageNext => Result(HelpReducer.Step(state, _keymap, 1)),
+            ActionIds.HelpPagePrevious => Result(HelpReducer.Step(state, _keymap, -1)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
@@ -705,7 +716,7 @@ public sealed class AppReducer
     {
         return state.MessagesOpen
             ? StatusMessages.OverlayRowCount(state)
-            : KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
+            : HelpPages.Lines(state, _keymap).Count;
     }
 
     private AppState ScrollHelp(AppState state, int delta)
@@ -753,7 +764,7 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return WithPaletteText(state, RemoveLastTextElement(state.PaletteText));
+        return WithPaletteText(state, TextElements.RemoveLast(state.PaletteText));
     }
 
     private AppState MovePalette(AppState state, int delta)
@@ -959,13 +970,6 @@ public sealed class AppReducer
     private static bool IsProfileCommand(string text)
     {
         return text == "profile" || text.StartsWith("profile ", StringComparison.Ordinal);
-    }
-
-    private static string RemoveLastTextElement(string text)
-    {
-        var starts = StringInfo.ParseCombiningCharacters(text);
-
-        return text[..starts[^1]];
     }
 
     private ReduceResult Confirmed(AppState state, DateTimeOffset at)

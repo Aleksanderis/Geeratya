@@ -16,7 +16,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class JumpOverlaySnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData(120, 36)]
@@ -24,7 +23,7 @@ public class JumpOverlaySnapshotTests
     [InlineData(40, 10)]
     public void GivenAnOpenPrompt_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample("gcm"), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample("gcm"), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"jump-{width}x{height}.txt");
 
@@ -37,7 +36,7 @@ public class JumpOverlaySnapshotTests
     [InlineData(40, 10)]
     public void GivenAnOpenPrompt_WhenReadingTheRegions_ThenEachRowCoversItsKey(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Sample("gcm"), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample("gcm"), width, height, _keymap)!;
         var rows = RegionProbe.Rows(frame, MouseTarget.JumpRow);
 
         Assert.NotEmpty(rows);
@@ -50,7 +49,7 @@ public class JumpOverlaySnapshotTests
     public void GivenAnOpenPrompt_WhenClickingASecondRow_ThenThePromptClosesOnThatRow()
     {
         var state = Sample("gcm");
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.JumpRow).Single(candidate => candidate.Index == 1);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -66,7 +65,7 @@ public class JumpOverlaySnapshotTests
         var profile = new Profile("w", "https://w.test", "a@w.test");
         var empty = Sample(string.Empty) with { Session = SiteSession.Empty(profile) };
 
-        var lines = FrameBuilder.Build(empty, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(empty, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Type a key like GCM-12", StringComparison.Ordinal));
     }
@@ -76,7 +75,7 @@ public class JumpOverlaySnapshotTests
     {
         var state = Sample("zz") with { Jump = new JumpState("zz", 0, "\"zz\" is not an issue key") };
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         Assert.Contains("is not an issue key", lines[^1], StringComparison.Ordinal);
     }
@@ -88,7 +87,7 @@ public class JumpOverlaySnapshotTests
         {
             for (var height = 0; height <= 12; height++)
             {
-                FrameBuilder.Build(Sample("gcm"), width, height, _helpLines, _keymap);
+                FrameBuilder.Build(Sample("gcm"), width, height, _keymap);
             }
         }
     }

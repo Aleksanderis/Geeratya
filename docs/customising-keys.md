@@ -49,6 +49,8 @@ When the file is read, every row is checked. A row that is wrong is skipped, the
 - a dialog-only action (confirm, form, palette submit) bound in Normal mode;
 - an `unbind` row that matches no default.
 
+To see what was applied, open help (`?`) and press `Tab` to the `Custom` page. It appears only when the file changed something and lists each added or changed binding (key, action title and action id, with the mode when it is not Normal) and `Unbound: <keys>` for each removed default. Rows that were skipped are not listed there (the status line names the first problem; the Messages overlay, `<space>n`, keeps it). The filter (`/`) works on this page too.
+
 A file that is not valid JSON (or has an unknown `mode`) is ignored as a whole and the defaults stay. Geeratya never crashes on this file.
 
 Keep the vim rule in mind ([ux-keymap.md](ux-keymap.md), "Key rule"): the defaults leave bare letters alone for vim's sake, but your file may bind whatever you like. The terminal decides which `Ctrl-` and `Alt-` combinations arrive at all (`Ctrl-i` is `Tab`, `Ctrl-m` is `Enter`, and a terminal without "Option as Meta" sends no `Alt-` keys).
@@ -59,7 +61,7 @@ A row with no `mode` (or no `keys` or `action`) is reported and skipped; it neve
 
 If you unbind every way to quit or to open the palette, Ctrl-c still quits unless you removed it too. Edit or delete `keymap.json` from outside the app and start again.
 
-Planned (#303): `Ctrl-c` is read before the keymap, so a `keymap.json` can no longer remove it; a `Custom` page in the help overlay (#371) lists your own bindings, and the Messages overlay (#369) keeps every skipped row, not only the first.
+Planned (#303): `Ctrl-c` is read before the keymap, so a `keymap.json` can no longer remove it; and the Messages overlay (#369) keeps every skipped row, not only the first.
 
 ## Applying changes
 

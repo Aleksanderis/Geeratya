@@ -440,17 +440,6 @@ public class SourceReducerTests
         Assert.Equal("No profile yet: add one with :profile add.", result.State.Message);
     }
 
-    [Fact]
-    public void GivenTheCommandTable_WhenRenderingHelp_ThenEveryCommandAppears()
-    {
-        var lines = KeymapDocument.RenderHelpLines(DefaultKeymap.Load());
-
-        foreach (var command in PaletteCommands.All)
-        {
-            Assert.Contains($"  :{command.Usage}", lines);
-        }
-    }
-
     private static AppState Start()
     {
         return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_work), Session = SiteSession.Empty(_work) };

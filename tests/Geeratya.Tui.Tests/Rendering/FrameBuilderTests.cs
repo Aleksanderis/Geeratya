@@ -9,7 +9,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class FrameBuilderTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(DefaultKeymap.Load());
 
     [Fact]
     public void GivenEveryModeAndManySizes_WhenBuilding_ThenLinesFillTheSizeExactly()
@@ -22,7 +21,7 @@ public class FrameBuilderTests
             {
                 for (var height = 0; height <= 14; height++)
                 {
-                    AssertFills(FrameBuilder.Build(state, width, height, _helpLines, _keymap), width, height);
+                    AssertFills(FrameBuilder.Build(state, width, height, _keymap), width, height);
                 }
             }
         }
@@ -33,7 +32,7 @@ public class FrameBuilderTests
     {
         var state = AppState.Initial with { Mode = InputMode.Help, HelpScroll = 10_000 };
 
-        AssertFills(FrameBuilder.Build(state, 40, 10, _helpLines, _keymap), 40, 10);
+        AssertFills(FrameBuilder.Build(state, 40, 10, _keymap), 40, 10);
     }
 
     [Fact]
@@ -41,7 +40,7 @@ public class FrameBuilderTests
     {
         var state = AppState.Initial with { Message = "日本語日本語日本語日本語" };
 
-        AssertFills(FrameBuilder.Build(state, 15, 5, _helpLines, _keymap), 15, 5);
+        AssertFills(FrameBuilder.Build(state, 15, 5, _keymap), 15, 5);
     }
 
     [Fact]
@@ -50,7 +49,7 @@ public class FrameBuilderTests
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile) };
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("work: me@work.test on https://work.atlassian.net"));
     }
@@ -58,7 +57,7 @@ public class FrameBuilderTests
     [Fact]
     public void GivenNoProfile_WhenBuildingTheStartScreen_ThenItPointsToTheAddCommand()
     {
-        var lines = FrameBuilder.Build(AppState.Initial, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(AppState.Initial, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains(":profile add"));
     }

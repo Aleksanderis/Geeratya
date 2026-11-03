@@ -1,36 +1,36 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  Space i d  Delete the issue (asks first; Jira cannot undo it)                                                         
-  Space i c  Create an issue (type picker, then the form)                                                               
-  Space i C  Create a sub-task of the selected issue                                                                    
-  Space i l  Link the issue to another issue                                                                            
-  Space i u  Remove the link under the cursor (asks first; Jira cannot undo it)                                         
-  Space i e  Edit fields of the issue (summary, labels, priority, description)                                          
-  Space i a  Assign the issue: search people, or unassign                                                               
-  Space i m  Assign the issue to me                                                                                     
-  Space g    Jump to an issue by key                                                                                    
+Global  All actions  Commands                                                                                           
+  q          Quit  (Ctrl-c)                                                                                             
+  Esc        Cancel or close                                                                                            
+  :          Open the command palette  (Ctrl-p)                                                                         
+  Space a    Open the actions menu of the selected issue                                                                
   Space n    Show the message history                                                                                   
   Space x    Dismiss the status message                                                                                 
-  Space *    Switch the command level for the session                                                                   
-                                                                                                                        
-Help mode                                                                                                               
-  j          Move down                                                                                                  
-  Down       Move down                                                                                                  
-  k          Move up                                                                                                    
-  Up         Move up                                                                                                    
-  ?          Show or hide help                                                                                          
-  Space *    Switch the command level for the session                                                                   
-  Esc        Close help                                                                                                 
-  q          Close help                                                                                                 
-  Ctrl-c     Quit                                                                                                       
-                                                                                                                        
-Command mode                                                                                                            
+Dialogs                                                                                                                 
+  Esc        Close help  (q)                                                                                            
+  /          Filter the help by key, title or action id                                                                 
+  Tab        Next help page                                                                                             
+  Shift-Tab  Previous help page                                                                                         
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
-  Up         Previous row in the picker                                                                                 
-  Ctrl-p     Previous row in the picker                                                                                 
-  Down       Next row in the picker                                                                                     
-  Ctrl-n     Next row in the picker                                                                                     
-  Esc        Cancel or close                                                                                            
- HELP                                                                                            j down  k up  Esc close
+  y          Confirm                                                                                                    
+  n          Decline  (Esc)                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Ctrl-x     Remove the highlighted profile (asks first; the stored token is deleted)                                   
+  Up         Previous row in the picker  (Ctrl-p)                                                                       
+  Down       Next row in the picker  (Ctrl-n)                                                                           
+  Left       Move the cursor left                                                                                       
+  Right      Move the cursor right                                                                                      
+  Home       Move the cursor to the start of the row                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
+  PageUp     Move the cursor up half a screen                                                                           
+  PageDown   Move the cursor down half a screen                                                                         
+  Ctrl-Left  Move the cursor to the start of the word                                                                   
+  Ctrl-Right Move the cursor to the end of the word                                                                     
+  Tab        Next field of the form                                                                                     
+  Shift-Tab  Previous field of the form                                                                                 
+ HELP                                                                        Tab page  / filter  j down  k up  Esc close

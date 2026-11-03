@@ -313,6 +313,7 @@ Every way into the app ends in one action: a key resolves against the keymap to 
 
 1. Suggestion popup of the comment editor (move, accept, close), only for the keys it uses.
 2. An open field form (create, edit, link, profile add): it takes every key.
+2a. Help filter line: while the help overlay's `/` filter is being typed it takes every key except the one that resolves to `app.quit` (so `Ctrl-c` still quits).
 3. Count digit (`1`-`9`, then `0`), Normal mode with no half-typed chord only.
 4. Chord prefix (`g`, `<space>`): the key is held in `PendingKeys`, nothing runs.
 5. Back out: `Esc` in Normal mode with no chord or count typed and no notice pops the issue stack.

@@ -21,7 +21,6 @@ public class NetworkStateSnapshotTests
 {
     internal static readonly DateTimeOffset Now = new(2026, 11, 2, 12, 5, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
 
     public static TheoryData<string, int, int> Snapshots
@@ -45,7 +44,7 @@ public class NetworkStateSnapshotTests
     [MemberData(nameof(Snapshots))]
     public void GivenANetworkState_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(string name, int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, Now);
+        var lines = FrameBuilder.Build(Sample(name), width, height, _keymap, Now);
         var actual = string.Join('\n', lines) + "\n";
         var file = $"network-{name}-{width}x{height}.txt";
 
@@ -63,7 +62,7 @@ public class NetworkStateSnapshotTests
         string name,
         TextRole role)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(name), 120, 36, _helpLines, _keymap, null, Now)!;
+        var frame = FrameBuilder.BuildStyled(Sample(name), 120, 36, _keymap, null, Now)!;
         var badge = frame.Header[1].Spans[0];
 
         Assert.Equal(role, badge.Role);
@@ -110,7 +109,7 @@ public class NetworkStateSnapshotTests
             {
                 for (var height = 0; height <= 12; height++)
                 {
-                    var lines = FrameBuilder.Build(Sample(name), width, height, _helpLines, _keymap, Now);
+                    var lines = FrameBuilder.Build(Sample(name), width, height, _keymap, Now);
 
                     Assert.Equal(width == 0 ? 0 : height, lines.Count);
                     Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
@@ -122,8 +121,8 @@ public class NetworkStateSnapshotTests
     [Fact]
     public void GivenAFrameWithAndWithoutABanner_WhenBuildingBoth_ThenTheBodyKeepsItsHeight()
     {
-        var fresh = FrameBuilder.BuildStyled(Sample("fresh"), 80, 24, _helpLines, _keymap, null, Now)!;
-        var offline = FrameBuilder.BuildStyled(Sample("offline"), 80, 24, _helpLines, _keymap, null, Now)!;
+        var fresh = FrameBuilder.BuildStyled(Sample("fresh"), 80, 24, _keymap, null, Now)!;
+        var offline = FrameBuilder.BuildStyled(Sample("offline"), 80, 24, _keymap, null, Now)!;
 
         Assert.Equal(fresh.Body.Count, offline.Body.Count);
         Assert.Equal(string.Empty, fresh.Header[1].PlainText.Trim());

@@ -13,7 +13,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class TabBarFrameTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData(120, 36)]
@@ -21,7 +20,7 @@ public class TabBarFrameTests
     [InlineData(40, 10)]
     public void GivenThreeTabs_WhenBuildingTheFrame_ThenTheFirstLineIsTheBarAndTheFrameFillsTheSize(int width, int height)
     {
-        var lines = FrameBuilder.Build(State(3, 30), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(State(3, 30), width, height, _keymap);
 
         Assert.Equal(height, lines.Count);
         Assert.Contains("[3 JQL:", lines[0]);
@@ -34,7 +33,7 @@ public class TabBarFrameTests
     [InlineData(10)]
     public void GivenALoadedTab_WhenBuildingTheFrame_ThenIssueRowsShownEqualTheViewportTheHostReports(int height)
     {
-        var lines = FrameBuilder.Build(State(1, 50), 80, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(State(1, 50), 80, height, _keymap);
 
         var shown = lines.Count(line => line.Contains("A-", StringComparison.Ordinal));
         var bodyRows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows;
@@ -44,7 +43,7 @@ public class TabBarFrameTests
     [Fact]
     public void GivenNoTabs_WhenBuildingTheFrame_ThenTheTabBarLineIsBlank()
     {
-        var lines = FrameBuilder.Build(AppState.Initial, 40, 10, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(AppState.Initial, 40, 10, _keymap);
 
         Assert.Equal(new string(' ', 40), lines[0]);
     }
@@ -52,7 +51,7 @@ public class TabBarFrameTests
     [Fact]
     public void GivenTabs_WhenBuildingStyledFrame_ThenTheActiveTabUsesTheSelectedRole()
     {
-        var frame = FrameBuilder.BuildStyled(State(2, 5), 80, 12, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(State(2, 5), 80, 12, _keymap)!;
 
         Assert.Contains(frame.Header[0].Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("[2 "));
     }

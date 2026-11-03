@@ -483,8 +483,6 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         var notice = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
 
-        _screen?.RefreshHelp();
-
         return new KeymapReloaded(notice ?? "Keymap reloaded");
     }
 

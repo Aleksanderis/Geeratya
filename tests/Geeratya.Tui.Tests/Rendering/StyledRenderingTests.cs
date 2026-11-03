@@ -14,7 +14,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class StyledRenderingTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(DefaultKeymap.Load());
 
     [Theory]
     [InlineData(TextRole.Body, PaletteRole.Body)]
@@ -141,7 +140,7 @@ public class StyledRenderingTests
     {
         var renderer = new FakeBodyRenderer();
 
-        var frame = FrameBuilder.BuildStyled(AppState.Initial, 20, 5, _helpLines, _keymap, [renderer])!;
+        var frame = FrameBuilder.BuildStyled(AppState.Initial, 20, 5, _keymap, [renderer])!;
 
         Assert.Equal(TextRole.Selected, frame.Body[0].Spans[0].Role);
         Assert.StartsWith("> PROJ-1 To Do", frame.Body[0].PlainText);
@@ -153,8 +152,8 @@ public class StyledRenderingTests
     [Fact]
     public void GivenNoCustomRenderer_WhenBuilding_ThenHelpAndStartScreensAreChosenFromState()
     {
-        var help = FrameBuilder.BuildStyled(AppState.Initial with { Mode = InputMode.Help }, 40, 10, _helpLines, _keymap)!;
-        var start = FrameBuilder.BuildStyled(AppState.Initial, 40, 10, _helpLines, _keymap)!;
+        var help = FrameBuilder.BuildStyled(AppState.Initial with { Mode = InputMode.Help }, 40, 10, _keymap)!;
+        var start = FrameBuilder.BuildStyled(AppState.Initial, 40, 10, _keymap)!;
 
         Assert.StartsWith("Help", help.Body[0].PlainText);
         Assert.Contains(start.Body, line => line.PlainText.Contains("Geeratya"));
@@ -163,7 +162,7 @@ public class StyledRenderingTests
     [Fact]
     public void GivenHeaderRow_WhenBuilding_ThenFrameKeepsItsHeightWithABlankHeaderLine()
     {
-        var frame = FrameBuilder.BuildStyled(AppState.Initial, 30, 8, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(AppState.Initial, 30, 8, _keymap)!;
 
         Assert.Equal(FrameBuilder.HeaderRows, frame.Header.Count);
         Assert.Equal(8 - 1 - FrameBuilder.HeaderRows, frame.Body.Count);
