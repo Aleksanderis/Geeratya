@@ -35,6 +35,7 @@ all_scenarios=(
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
+  "tabs-same;120;36;dark;:jql project = GCM|:jql project = GCM|:jql project = GCM|:tab rename Release 12|;Release 12"
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
