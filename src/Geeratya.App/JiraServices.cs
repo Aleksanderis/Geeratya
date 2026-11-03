@@ -6,6 +6,7 @@ using Geeratya.Jira.Issues;
 using Geeratya.Jira.Links;
 using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
+using Geeratya.Jira.Fields;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Sprints;
@@ -23,11 +24,12 @@ namespace Geeratya.App;
 /// </summary>
 public sealed class JiraServices
 {
-    private JiraServices(JiraTransport transport, BoardKindResolver boardKinds, int generation)
+    private JiraServices(JiraTransport transport, BoardKindResolver boardKinds, SiteFields fields, int generation)
     {
         Transport = transport;
         Generation = generation;
         BoardKinds = boardKinds;
+        Fields = fields;
         Search = new JiraSearchClient(transport);
         Users = new JiraUserClient(transport);
         Issues = new IssueClient(transport);
@@ -41,10 +43,25 @@ public sealed class JiraServices
         Suggestions = new SuggestionClient(transport);
         Transitions = new TransitionClient(transport);
         Ranks = new RankClient(transport);
+        Sprints = new SprintClient(transport);
+        SprintWrites = new SprintWriteClient(transport);
+        SprintMoves = new SprintMoveClient(transport);
     }
 
     /// <summary>Scrum or Kanban per board; answers are kept per profile, so a board is probed once.</summary>
     public BoardKindResolver BoardKinds { get; }
+
+    /// <summary>Sprints of a board and the issues of a sprint (reads).</summary>
+    public SprintClient Sprints { get; }
+
+    /// <summary>Creates, edits, starts and completes sprints (writes: only called from a confirmed command).</summary>
+    public SprintWriteClient SprintWrites { get; }
+
+    /// <summary>Moves issues into a sprint or the backlog (writes: only called from a confirmed command).</summary>
+    public SprintMoveClient SprintMoves { get; }
+
+    /// <summary>The Sprint and estimate field ids of this site, read once per connection.</summary>
+    public SiteFields Fields { get; }
 
     /// <summary>Create metadata and the create call (the write is only called from the write handler).</summary>
     public IssueCreateClient Creates { get; }
@@ -93,10 +110,15 @@ public sealed class JiraServices
     public static JiraServices? Create(SiteConnections connections)
     {
         var generation = connections.Generation;
-        var (transport, kinds) = connections.Snapshot();
+        var parts = connections.Snapshot();
 
         // Generation is read first: if a switch lands in between, the stamp is older than the transport and the
         // result is dropped as stale, never the other way round.
-        return transport is null || kinds is null ? null : new JiraServices(transport, kinds, generation);
+        if (parts is not { Transport: { } transport, Kinds: { } kinds, Fields: { } fields })
+        {
+            return null;
+        }
+
+        return new JiraServices(transport, kinds, fields, generation);
     }
 }

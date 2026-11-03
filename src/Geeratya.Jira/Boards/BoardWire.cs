@@ -18,7 +18,8 @@ internal static class BoardWire
         ColumnConfig? ColumnConfig,
         FilterRef? Filter,
         SubQuery? SubQuery,
-        Ranking? Ranking);
+        Ranking? Ranking,
+        Estimation? Estimation);
 
     internal sealed record ColumnConfig(List<Column>? Columns, string? ConstraintType);
 
@@ -31,6 +32,10 @@ internal static class BoardWire
     internal sealed record SubQuery(string? Query);
 
     internal sealed record Ranking(long? RankCustomFieldId);
+
+    internal sealed record Estimation(EstimationField? Field);
+
+    internal sealed record EstimationField(string? FieldId);
 
     /// <summary>Board issues and backlog: issues with <c>startAt</c> and <c>total</c>.</summary>
     internal sealed record IssuePage(List<SearchWire.Issue>? Issues, int? StartAt, int? MaxResults, int? Total);

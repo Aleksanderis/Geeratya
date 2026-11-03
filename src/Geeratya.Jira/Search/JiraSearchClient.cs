@@ -38,7 +38,7 @@ public sealed class JiraSearchClient(JiraTransport transport)
             return JiraResults.Failure<IssuePage>(ExpireCursor(result.Error, cursor));
         }
 
-        return JiraResults.Success(IssueSummaryMapper.MapPage(result.Value));
+        return JiraResults.Success(IssueSummaryMapper.MapPage(result.Value, query.Extras));
     }
 
     /// <summary>The approximate number of matches, good for an "about N" label only.</summary>
@@ -56,22 +56,24 @@ public sealed class JiraSearchClient(JiraTransport transport)
 
     private static JiraRequest BuildRequest(IssueSearchQuery query, int pageSize, string? token)
     {
-        var path = BuildGetPath(query.Jql, pageSize, token);
+        var path = BuildGetPath(query, pageSize, token);
 
         if (path.Length <= MaxGetPathLength)
         {
             return JiraRequest.Get(path);
         }
 
-        var body = new SearchWire.Body(query.Jql, pageSize, IssueFields.ListRow, token);
+        var fields = query.Extras.FieldList(IssueFields.ListRow);
+        var body = new SearchWire.Body(query.Jql, pageSize, fields, token);
 
         return JiraRequest.PostSearch(SearchPath, JsonSerializer.Serialize(body, SearchJsonContext.Default.Body));
     }
 
-    private static string BuildGetPath(string jql, int pageSize, string? token)
+    private static string BuildGetPath(IssueSearchQuery query, int pageSize, string? token)
     {
-        var query = $"jql={Uri.EscapeDataString(jql)}&fields={IssueFields.ListRowQueryValue}&maxResults={pageSize}";
-        var path = $"{SearchPath}?{query}";
+        var fields = query.Extras.QueryValue(IssueFields.ListRow);
+        var parameters = $"jql={Uri.EscapeDataString(query.Jql)}&fields={fields}&maxResults={pageSize}";
+        var path = $"{SearchPath}?{parameters}";
 
         return token is null ? path : $"{path}&nextPageToken={Uri.EscapeDataString(token)}";
     }

@@ -33,6 +33,13 @@ internal static class BoardMapper
             ParseType(board.Type),
             board.Location?.ProjectKey ?? string.Empty);
 
+    /// <summary>
+    /// Only a custom field is a story-point estimate; a board estimating by "Original time estimate" names a system
+    /// field in seconds, which is not shown as points.
+    /// </summary>
+    private static string? CustomFieldOrNull(string? fieldId) =>
+        fieldId is not null && fieldId.StartsWith(RankFieldPrefix, StringComparison.Ordinal) ? fieldId : null;
+
     public static BoardConfiguration MapConfiguration(BoardWire.Configuration wire)
     {
         var columns = new List<BoardColumn>();
@@ -53,13 +60,16 @@ internal static class BoardMapper
             wire.Filter?.Id ?? string.Empty,
             string.IsNullOrWhiteSpace(query) ? null : query,
             wire.Ranking?.RankCustomFieldId is { } rank ? $"{RankFieldPrefix}{rank}" : null,
-            wire.ColumnConfig?.ConstraintType);
+            wire.ColumnConfig?.ConstraintType)
+        {
+            EstimationFieldId = CustomFieldOrNull(wire.Estimation?.Field?.FieldId),
+        };
     }
 
     /// <summary>The agile API has no <c>isLast</c>: the page ends at <c>total</c> or when empty.</summary>
-    public static IssuePage MapIssues(BoardWire.IssuePage wire)
+    public static IssuePage MapIssues(BoardWire.IssuePage wire, IssueExtraFields? extras = null)
     {
-        var items = IssueSummaryMapper.MapIssues(wire.Issues);
+        var items = IssueSummaryMapper.MapIssues(wire.Issues, extras);
         var startAt = wire.StartAt ?? 0;
         var isLast = IsLast(startAt, items.Count, wire.Total, null);
         var next = isLast ? null : PageCursor.Offset(startAt + items.Count);

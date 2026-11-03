@@ -1,6 +1,9 @@
 using System.Globalization;
+using System.Text.Json;
 using Geeratya.Jira.Paging;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints;
 
 namespace Geeratya.Jira.Search;
 
@@ -14,19 +17,22 @@ internal static class IssueSummaryMapper
     /// <summary>Jira's own category key for a status without a category.</summary>
     public const string UndefinedCategoryKey = "undefined";
 
+    private const string IdProperty = "id";
+    private const string NameProperty = "name";
+    private const string StateProperty = "state";
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
-    public static IssuePage MapPage(SearchWire.Response response)
+    public static IssuePage MapPage(SearchWire.Response response, IssueExtraFields? extras = null)
     {
-        var items = MapIssues(response.Issues);
+        var items = MapIssues(response.Issues, extras);
         var next = HasNext(response) ? new PageCursor(response.NextPageToken!) : null;
 
         return new IssuePage(items, next, null);
     }
 
     /// <summary>Maps a list of wire issues; null gives an empty list.</summary>
-    public static List<IssueSummary> MapIssues(List<SearchWire.Issue>? wire)
+    public static List<IssueSummary> MapIssues(List<SearchWire.Issue>? wire, IssueExtraFields? extras = null)
     {
         wire ??= [];
         var items = new List<IssueSummary>(wire.Count);
@@ -34,7 +40,7 @@ internal static class IssueSummaryMapper
 
         for (var index = 0; index < wire.Count; index++)
         {
-            items.Add(MapIssue(wire[index], pool));
+            items.Add(MapIssue(wire[index], pool, extras));
         }
 
         return items;
@@ -43,7 +49,10 @@ internal static class IssueSummaryMapper
     private static bool HasNext(SearchWire.Response response) =>
         !response.IsLast && !string.IsNullOrEmpty(response.NextPageToken);
 
-    private static IssueSummary MapIssue(SearchWire.Issue issue, Dictionary<string, string> pool)
+    private static IssueSummary MapIssue(
+        SearchWire.Issue issue,
+        Dictionary<string, string> pool,
+        IssueExtraFields? extras)
     {
         var fields = issue.Fields;
 
@@ -58,8 +67,65 @@ internal static class IssueSummaryMapper
             fields?.Labels is { Count: > 0 } labels ? labels : [],
             MapParent(fields?.Parent),
             ParseTimestamp(fields?.Updated),
-            Share(fields?.Project?.Key, pool) ?? string.Empty);
+            Share(fields?.Project?.Key, pool) ?? string.Empty)
+        {
+            Sprints = MapSprints(fields?.Extra, extras?.SprintFieldId),
+            Estimate = MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
+        };
     }
+
+    /// <summary>
+    /// The sprints of the Sprint field: an array of objects, <c>null</c> for none. Entries without an id are skipped
+    /// and a field of another shape gives an empty list.
+    /// </summary>
+    internal static List<IssueSprint> MapSprints(Dictionary<string, JsonElement>? extra, string? fieldId)
+    {
+        var result = new List<IssueSprint>();
+
+        if (fieldId is null || extra is null || !extra.TryGetValue(fieldId, out var field)
+            || field.ValueKind != JsonValueKind.Array)
+        {
+            return result;
+        }
+
+        foreach (var entry in field.EnumerateArray())
+        {
+            if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(IdProperty, out var id)
+                && id.ValueKind == JsonValueKind.Number && id.TryGetInt64(out var sprintId))
+            {
+                var state = SprintMapper.ParseState(TextOf(entry, StateProperty));
+
+                result.Add(new IssueSprint(sprintId, TextOf(entry, NameProperty), state));
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>The first candidate estimate field that holds a number; null when none does.</summary>
+    internal static double? MapEstimate(Dictionary<string, JsonElement>? extra, IReadOnlyList<string>? fieldIds)
+    {
+        if (extra is null || fieldIds is null)
+        {
+            return null;
+        }
+
+        foreach (var fieldId in fieldIds)
+        {
+            if (extra.TryGetValue(fieldId, out var field) && field.ValueKind == JsonValueKind.Number
+                && field.TryGetDouble(out var value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static string TextOf(JsonElement element, string property) =>
+        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString() ?? string.Empty
+            : string.Empty;
 
     internal static IssueStatus MapStatus(SearchWire.Status? status, Dictionary<string, string> pool) =>
         new(
@@ -86,8 +152,17 @@ internal static class IssueSummaryMapper
             Share(assignee.DisplayName, pool) ?? string.Empty);
     }
 
-    private static IssueParent? MapParent(SearchWire.Parent? parent) =>
-        parent?.Key is { Length: > 0 } key ? new IssueParent(key, parent.Stub?.Summary) : null;
+    private static IssueParent? MapParent(SearchWire.Parent? parent)
+    {
+        if (parent?.Key is not { Length: > 0 } key)
+        {
+            return null;
+        }
+
+        var isEpic = parent.Stub?.IssueType?.HierarchyLevel == IssueDetail.EpicHierarchyLevel;
+
+        return new IssueParent(key, parent.Stub?.Summary, isEpic);
+    }
 
     internal static string? Share(string? value, Dictionary<string, string> pool)
     {

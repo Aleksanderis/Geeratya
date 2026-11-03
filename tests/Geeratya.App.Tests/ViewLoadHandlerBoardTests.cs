@@ -13,6 +13,7 @@ namespace Geeratya.App.Tests;
 
 public sealed class ViewLoadHandlerBoardTests
 {
+    private const string NoSprints = """{"errorMessages":["The board does not support sprints"],"errors":{}}""";
     private const string NotFound = """{"errorMessages":["Board does not exist"],"errors":{}}""";
 
     private static readonly Profile _a = new("a", "https://a.atlassian.net", "me@a.test");
@@ -24,6 +25,7 @@ public sealed class ViewLoadHandlerBoardTests
         using var fixture = await ConnectedAsync(
             http => http
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
+                .Reply(HttpStatusCode.BadRequest, NoSprints)
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues")));
 
         var state = await OpenAsync(fixture, ViewSourceKind.Board, "3");
@@ -33,7 +35,9 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Equal(16, tab.Rows.Count);
         Assert.Equal(LoadState.Idle, tab.Load);
         Assert.Contains("/rest/agile/1.0/board/3/configuration", fixture.Path(0));
-        Assert.Contains("/rest/agile/1.0/board/3/issue", fixture.Path(1));
+        Assert.Contains("/rest/agile/1.0/board/3/sprint", fixture.Path(1));
+        Assert.Contains("/rest/agile/1.0/board/3/issue", fixture.Path(2));
+        Assert.DoesNotContain("jql=", fixture.Path(2));
 
         var groups = GroupOf(tab);
         Assert.Equal(["To Do", "In Progress", "Backlog", "Done"], groups.Columns.Select(column => column.Name));
@@ -48,6 +52,7 @@ public sealed class ViewLoadHandlerBoardTests
         using var fixture = await ConnectedAsync(
             http => http
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
+                .Reply(HttpStatusCode.BadRequest, NoSprints)
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues"))
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-issues"))
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
@@ -58,10 +63,11 @@ public sealed class ViewLoadHandlerBoardTests
         var byClock = await RunAsync(fixture, opened, new Tick(loadedAt + RefreshSchedule.Interval));
         var byHand = await RunAsync(fixture, byClock, new RefreshRequested(byClock.Session.Tabs[0].Id));
 
-        Assert.Equal(5, fixture.Http.Requests.Count);
-        Assert.Contains("/board/3/issue", fixture.Path(2));
-        Assert.Contains("/board/3/configuration", fixture.Path(3));
-        Assert.Contains("/board/3/issue", fixture.Path(4));
+        Assert.Equal(6, fixture.Http.Requests.Count);
+        Assert.Contains("/board/3/sprint", fixture.Path(1));
+        Assert.Contains("/board/3/issue", fixture.Path(3));
+        Assert.Contains("/board/3/configuration", fixture.Path(4));
+        Assert.Contains("/board/3/issue", fixture.Path(5));
         Assert.Equal(16, byHand.Session.Tabs[0].Rows.Count);
         Assert.Equal(LoadState.Idle, byHand.Session.Tabs[0].Load);
     }
@@ -111,13 +117,14 @@ public sealed class ViewLoadHandlerBoardTests
         using var fixture = await ConnectedAsync(
             http => http
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gtm-config"))
+                .Reply(HttpStatusCode.BadRequest, NoSprints)
                 .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gtm-backlog")));
 
         var state = await OpenAsync(fixture, ViewSourceKind.Backlog, "3");
 
         var tab = state.Session.Tabs[0];
         Assert.Equal(13, tab.Rows.Count);
-        Assert.Contains("/rest/agile/1.0/board/3/backlog", fixture.Path(1));
+        Assert.Contains("/rest/agile/1.0/board/3/backlog", fixture.Path(2));
         Assert.Empty(GroupOf(tab).Unmapped);
     }
 

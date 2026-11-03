@@ -15,6 +15,9 @@ namespace Geeratya.App.Tests.Fakes;
 /// </summary>
 public static class BoardStateFixtures
 {
+    // A team-managed board says "simple", so opening it probes the sprint list once; Kanban answers 400.
+    private const string KanbanProbeReply = """{"errorMessages":["The board does not support sprints"],"errors":{}}""";
+
     private static readonly Profile _profile = new("work", "https://work.atlassian.net", "me@work.test");
 
     /// <summary>The company-managed Kanban board (4 columns, Backlog first, 24 issues).</summary>
@@ -26,7 +29,7 @@ public static class BoardStateFixtures
     /// <summary>The team-managed board (4 columns, Backlog third, 16 issues).</summary>
     public static Task<AppState> TeamManagedAsync(int viewportRows)
     {
-        return OpenAsync("board-gtm-config", ["rows-gtm-issues"], "3", "GTM board", viewportRows);
+        return OpenAsync("board-gtm-config", ["rows-gtm-issues"], "3", "GTM board", viewportRows, KanbanProbeReply);
     }
 
     private static async Task<AppState> OpenAsync(
@@ -34,9 +37,15 @@ public static class BoardStateFixtures
         string[] pages,
         string boardId,
         string title,
-        int viewportRows)
+        int viewportRows,
+        string? probeReply = null)
     {
         var http = new ScriptedJiraHandler().Reply(HttpStatusCode.OK, BoardFixtureFiles.Read(configuration));
+
+        if (probeReply is not null)
+        {
+            http.Reply(HttpStatusCode.BadRequest, probeReply);
+        }
 
         foreach (var page in pages)
         {

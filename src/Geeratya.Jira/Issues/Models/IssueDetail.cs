@@ -38,4 +38,20 @@ public sealed record IssueDetail(
     IssueStub? Parent,
     IReadOnlyList<IssueStub> Subtasks,
     IReadOnlyList<IssueLink> Links,
-    IReadOnlyList<IssueAttachment> Attachments);
+    IReadOnlyList<IssueAttachment> Attachments)
+{
+    /// <summary>The sprints the Sprint field lists, oldest first; empty when none or not requested.</summary>
+    public IReadOnlyList<IssueSprint> Sprints { get; init; } = [];
+
+    /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>
+    public double? Estimate { get; init; }
+
+    /// <summary>The epic of the issue: its parent when that parent's type is on the epic level, otherwise null.</summary>
+    public IssueStub? Epic => Parent is { IssueType.HierarchyLevel: EpicHierarchyLevel } ? Parent : null;
+
+    /// <summary>The sprint the issue is in now (active, else future, else last closed); null for none.</summary>
+    public IssueSprint? CurrentSprint => IssueSprint.Current(Sprints);
+
+    /// <summary>The hierarchy level Jira gives epics.</summary>
+    public const int EpicHierarchyLevel = 1;
+}
