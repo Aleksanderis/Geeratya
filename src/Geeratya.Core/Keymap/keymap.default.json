@@ -18,6 +18,7 @@
     { "mode": "normal", "keys": "PageUp", "action": "nav.page-up" },
     { "mode": "normal", "keys": "?", "action": "help.toggle" },
     { "mode": "normal", "keys": ":", "action": "palette.open" },
+    { "mode": "normal", "keys": "Ctrl-p", "action": "palette.open" },
     { "mode": "normal", "keys": "q", "action": "app.quit" },
     { "mode": "normal", "keys": "Esc", "action": "mode.cancel" },
     { "mode": "normal", "keys": "Ctrl-c", "action": "app.quit" },
@@ -79,6 +80,10 @@
 
     { "mode": "command", "keys": "Enter", "action": "palette.submit" },
     { "mode": "command", "keys": "Backspace", "action": "palette.backspace" },
+    { "mode": "command", "keys": "Up", "action": "picker.previous" },
+    { "mode": "command", "keys": "Ctrl-p", "action": "picker.previous" },
+    { "mode": "command", "keys": "Down", "action": "picker.next" },
+    { "mode": "command", "keys": "Ctrl-n", "action": "picker.next" },
     { "mode": "command", "keys": "Esc", "action": "mode.cancel" },
     { "mode": "command", "keys": "Ctrl-c", "action": "app.quit" },
 

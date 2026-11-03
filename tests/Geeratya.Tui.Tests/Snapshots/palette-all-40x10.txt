@@ -1,0 +1,10 @@
+ [1 JQL: View]  +                       
+                                        
+View · 0 issues                         
+  ┌─ Commands ───────────────────────┐  
+  │ Issue                            │  
+  │ > Jump to an issue by k  Space g │  
+  │   Open the issue in the  Space o │  
+  │   Open the parent issue  Space p │  
+  └──────────────────────────────────┘  
+ COMMAND :                              

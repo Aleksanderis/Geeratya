@@ -1,10 +1,10 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
+                    ┌─ Commands ───────────────────────────────────────────────────────────────────┐                    
+                    │ Issue                                                                        │                    
+                    │ > Assign the issue: search people, or unassign                     Space i a │                    
+                    └──────────────────────────────────────────────────────────────────────────────┘                    
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -33,4 +33,4 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
- COMMAND :search                                                                                   Enter run  Esc cancel
+ COMMAND :search                                                                     Up/Down move  Enter run  Esc cancel

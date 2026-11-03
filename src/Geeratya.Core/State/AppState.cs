@@ -63,6 +63,9 @@ public sealed record AppState(
     /// <summary>The open right-click menu (Insert mode), otherwise null.</summary>
     public ContextMenuState? ContextMenu { get; init; }
 
+    /// <summary>The highlighted row of the command palette, counted over its selectable rows (Command mode).</summary>
+    public int PaletteSelected { get; init; }
+
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 

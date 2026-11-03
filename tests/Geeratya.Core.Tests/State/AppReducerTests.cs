@@ -98,9 +98,9 @@ public class AppReducerTests
     [Fact]
     public void GivenCommandMode_WhenTypingUnknownAndEnter_ThenMessageNamesIt()
     {
-        var result = Press(TypeCommand("nope"), "Enter");
+        var result = Press(TypeCommand("zzqx"), "Enter");
 
-        Assert.Equal("Unknown command: nope", result.State.Message);
+        Assert.Equal("Unknown command: zzqx", result.State.Message);
         Assert.Equal(string.Empty, result.State.PaletteText);
         Assert.Empty(result.Effects);
     }
