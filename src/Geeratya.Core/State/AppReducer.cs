@@ -265,9 +265,23 @@ public sealed class AppReducer
             return placement;
         }
 
+        // A mark needs a card under the pointer: a column header only moves the cursor there.
+        if (action.Action == ActionIds.SelectionMark && !CardUnderPointer(cleared, placed))
+        {
+            return placement;
+        }
+
         var acted = ReduceRequested(placement.State, action);
 
         return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    private static bool CardUnderPointer(AppState before, PointerPlaced placed)
+    {
+        var tab = before.Session.Active is { } id ? ViewReducer.Find(before.Session.Tabs, id) : null;
+
+        return tab is not { Detail.Count: 0, Definition.Layout: ViewLayout.Columns }
+            || ColumnsNavigation.IsCardAt(tab, placed.Width, placed.Column, placed.Row);
     }
 
     private static AppState Unpended(AppState state)
