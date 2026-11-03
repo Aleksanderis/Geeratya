@@ -14,6 +14,7 @@ namespace Geeratya.Core.CommandPalette;
 public static class PaletteRows
 {
     private const string OtherGroup = "Other";
+    private const string GeneralGroup = "General";
     private const string IssueGroup = "Issue";
     private const string KeySeparator = ", ";
 
@@ -73,6 +74,13 @@ public static class PaletteRows
             var row = new PaletteRow(PaletteRowKind.Command, only.Line, only.Title, string.Empty);
 
             AddCandidate(candidates, filter, row, only.Group, focused.Contains(ActionIds.IssueEdit));
+        }
+
+        foreach (var name in state.ThemeNames)
+        {
+            var row = new PaletteRow(PaletteRowKind.Command, $"theme {name}", $"Theme: {name}", string.Empty);
+
+            AddCandidate(candidates, filter, row, GeneralGroup, false);
         }
 
         var rows = Arrange(candidates, filter.Length > 0);

@@ -133,6 +133,17 @@ public class PaletteReducerTests
     }
 
     [Fact]
+    public void GivenAThemeRow_WhenPressingEnter_ThenThePaletteClosesAndTheThemeIsRequested()
+    {
+        var typed = Typed("Theme: nord") with { ThemeNames = ["dracula", "nord"] };
+
+        var result = Press(typed, "Enter");
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Equal("nord", Assert.IsType<ApplyThemeEffect>(Assert.Single(result.Effects)).Name);
+    }
+
+    [Fact]
     public void GivenATypedCommandWithArguments_WhenPressingEnter_ThenItRunsAsACommandLineNotARow()
     {
         var result = Press(Typed("jql project = A", Signed()), "Enter");

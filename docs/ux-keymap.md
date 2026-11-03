@@ -120,3 +120,8 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 ### Not planned
 
 A bare-letter shortcut for any write, an undo key (Jira has none), bulk delete, bulk field edit, bulk status change.
+
+## Design details (moved from `decisions.md`)
+
+- **Command levels (#196).** The level is a property of the action in `ActionCatalog`, not of a key row in `keymap.default.json`, so every key of an action shares it; the generated `docs/keymap.md` shows it per row. Two levels only. The palette hides advanced actions only from the unfiltered list (a note counts them); any filter searches them too, because most have no typed command and "exact id only" would make `delete` unreachable. `<space>*` changes the level for the session without saving; `:set commandlevel` saves. Messages and Confirm texts that name a key are not filtered.
+- **Quit and cancel (#390).** `Ctrl-c` quits from Confirm and cancels running read loads at once, but still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` quits in Normal only and does nothing in Confirm, so a stray key never answers a destructive question.
