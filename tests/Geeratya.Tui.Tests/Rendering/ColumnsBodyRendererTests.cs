@@ -424,6 +424,39 @@ public class ColumnsBodyRendererTests
                 && line.PlainText.Contains("0.5p", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void GivenASprintViewWithHiddenColumns_WhenRendering_ThenTheHeaderLineEndsWithTheHiddenMarker()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true };
+
+        var body = RenderSprint(tab, 40, 20);
+
+        Assert.Matches("[‹›]", body[0].PlainText);
+        Assert.True(TextWidth.Of(body[0].PlainText) <= 40);
+    }
+
+    [Fact]
+    public void GivenASprintViewWithMoreRowsToLoad_WhenRendering_ThenThePartialCountIsMarked()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true, Truncated = true };
+
+        var body = RenderSprint(tab, 140, 20);
+
+        Assert.Contains("1+", body[0].PlainText);
+    }
+
+    [Fact]
+    public void GivenSprintViewAndNoClock_WhenRendering_ThenNoDaysLeftShow()
+    {
+        var tab = SprintTab(Issue("1", "A-1")) with { Sprint = _sprint, SprintResolved = true };
+        var context = new BodyContext(_keymap);
+
+        var body = new ColumnsBodyRenderer().Render(Active(tab), context, 120, 20);
+
+        Assert.DoesNotContain("d left", body[0].PlainText);
+        Assert.DoesNotContain("ago", body[0].PlainText);
+    }
+
     private static IReadOnlyList<StyledLine> RenderSprint(TabState tab, int width, int height)
     {
         var context = new BodyContext(_keymap, GlyphSet.Unicode, _now);

@@ -117,12 +117,18 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     /// The title of a Sprint view: sprint name, dates, days left, issue count and points done/total, then the goal cut
     /// to what is left of the width. Falls back to the plain title while the sprint is unknown.
     /// </summary>
-    private static StyledLine SprintTitle(TabState tab, Sprint sprint, int width, Glyphs glyphs, DateTimeOffset now)
+    private static StyledLine SprintTitle(
+        TabState tab,
+        Sprint sprint,
+        BoardWindow window,
+        int width,
+        Glyphs glyphs,
+        DateTimeOffset now)
     {
         var parts = new[]
         {
             SprintHeaderText.Dates(sprint),
-            SprintHeaderText.DaysLeft(sprint, now),
+            now == default ? string.Empty : SprintHeaderText.DaysLeft(sprint, now),
             ListBodyRenderer.CountText(tab),
             SprintHeaderText.Points(tab.Rows),
         };
@@ -133,16 +139,39 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             spans.Add(new StyledSpan($"{glyphs.Separator}{part}", TextRole.Muted));
         }
 
-        var goal = string.Join(' ', (sprint.Goal ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
+        {
+            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
+            spans.AddRange(note.Spans);
+        }
+
+        var hidden = HiddenText(window);
+        var reserved = hidden.Length > 0 ? TextWidth.Of(hidden) + 1 : 0;
+
+        var goal = string.Join(' ', (sprint.Goal ?? string.Empty)
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         var used = spans.Sum(span => TextWidth.Of(span.Text));
-        var room = width - used - TextWidth.Of(glyphs.Separator);
+        var room = width - reserved - used - TextWidth.Of(glyphs.Separator);
 
         if (goal.Length > 0 && room >= MinGoal)
         {
             spans.Add(new StyledSpan($"{glyphs.Separator}{CardText.Shorten(goal, room)}", TextRole.Muted));
         }
 
-        return CutTo(spans, width);
+        var line = CutTo(spans, width - reserved);
+        var gap = width - TextWidth.Of(line.PlainText) - TextWidth.Of(hidden);
+
+        if (hidden.Length == 0 || gap < 1)
+        {
+            return line;
+        }
+
+        return new StyledLine(
+        [
+            .. line.Spans,
+            new StyledSpan(new string(' ', gap), TextRole.Body),
+            new StyledSpan(hidden, TextRole.Muted),
+        ]);
     }
 
     /// <summary>The spans cut to <paramref name="width"/> cells, without padding.</summary>
@@ -166,7 +195,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     {
         if (tab.Sprint is { } sprint && tab.Definition.Source == ViewSourceKind.Sprint)
         {
-            return SprintTitle(tab, sprint, width, glyphs, now);
+            return SprintTitle(tab, sprint, window, width, glyphs, now);
         }
 
         var spans = new List<StyledSpan>

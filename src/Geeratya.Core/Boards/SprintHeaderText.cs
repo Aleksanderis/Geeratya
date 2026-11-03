@@ -25,7 +25,7 @@ public static class SprintHeaderText
     }
 
     /// <summary>
-    /// Time left of an active sprint (<c>5d left</c>, <c>ends today</c>, <c>ended 2d ago</c>); empty for a sprint that
+    /// Time left of an active sprint, by UTC calendar day (<c>5d left</c>, <c>ends today</c>, <c>ended 2d ago</c>); empty for a sprint that
     /// is not active or has no end date.
     /// </summary>
     public static string DaysLeft(Sprint sprint, DateTimeOffset now)
@@ -77,7 +77,7 @@ public static class SprintHeaderText
     /// <summary>An estimate as shown on a card: <c>5</c>, <c>0.5</c>; empty for none.</summary>
     public static string Estimate(double? points)
     {
-        return points is { } value ? $"{Number(value)}" : string.Empty;
+        return points is { } value ? Number(value) : string.Empty;
     }
 
     private static string Number(double value)

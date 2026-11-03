@@ -158,6 +158,7 @@ public sealed class ViewLoadHandlerScrumTests
         Assert.Equal(LoadState.Idle, state.Session.Tabs[0].Load);
         Assert.NotEmpty(state.Session.Tabs[0].Rows);
         Assert.Null(state.Session.Tabs[0].Sprint);
+        Assert.False(state.Session.Tabs[0].SprintResolved);
     }
 
     [Fact]
@@ -172,7 +173,7 @@ public sealed class ViewLoadHandlerScrumTests
 
         await OpenAsync(fixture, ViewSourceKind.Sprint, "6:active");
 
-        Assert.Contains($"jql={OpenSprints}", Uri.UnescapeDataString(fixture.Query(3)));
+        Assert.Contains("jql=sprint in openSprints() and sprint not in futureSprints()", Uri.UnescapeDataString(fixture.Query(3)));
     }
 
     [Fact]

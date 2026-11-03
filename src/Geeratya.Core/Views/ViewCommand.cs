@@ -57,10 +57,11 @@ public sealed record BoardConfigurationLoaded(TabId Tab, long RequestId, BoardCo
     : ViewCommand;
 
 /// <summary>
-/// The sprint a Sprint view shows arrived (null: the board has no active sprint, or the lookup failed), after the
+/// The sprint a Sprint view shows arrived (null: the board has no active sprint; <paramref name="LookupFailed"/> when the lookup failed instead), after the
 /// board configuration; applied only while <paramref name="RequestId"/> is the tab's current request.
 /// </summary>
-public sealed record SprintLoaded(TabId Tab, long RequestId, Sprint? Sprint) : ViewCommand;
+public sealed record SprintLoaded(TabId Tab, long RequestId, Sprint? Sprint, bool LookupFailed = false)
+    : ViewCommand;
 
 /// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab
