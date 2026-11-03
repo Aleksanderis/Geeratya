@@ -91,6 +91,16 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedIssue_WhenDetailRead_ThenItListsTheSameSubtaskStubsAsTheBoard()
+    {
+        var detail = await Json("/rest/api/3/issue/GEN-5");
+        var plain = await Json("/rest/api/3/issue/GEN-4");
+
+        Assert.Equal(3, detail.GetProperty("fields").GetProperty("subtasks").GetArrayLength());
+        Assert.Equal(0, plain.GetProperty("fields").GetProperty("subtasks").GetArrayLength());
+    }
+
+    [Fact]
     public async Task GivenGeneratedBacklogIssue_WhenMovedIntoActiveSprintAndRanked_ThenSprintListsItAtThatPosition()
     {
         var backlogKey = Keys(await Json($"{Agile}/board/7/backlog?maxResults=1000"))[^1];

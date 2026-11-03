@@ -37,9 +37,9 @@ all_scenarios=(
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
-  "sprint-columns;120;36;dark;:board GEN| sv|;Generated Sprint"
+  "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
   # sprint-subtasks: the sub-task summary row on the cards (generated sub-task stubs), then one card expanded with z a
-  "sprint-subtasks;120;36;dark;:board GEN| sv|;Generated Sprint"
+  "sprint-subtasks;120;36;dark;:board GEN| sv|;Sub-tasks 1/3"
   "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|jza;Generated sub-task"
   # sprint-points reuses the columns view and waits for a card estimate
   "sprint-points;120;36;dark;:board GEN| sv|;5p"

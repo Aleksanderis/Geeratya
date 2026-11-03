@@ -9,7 +9,7 @@ public static class GeneratedIssues
 {
     private const int LinkedIssueNumber = 2;
     private const int SubtaskKeyBase = 100000;
-    private const int IdBase = 900000;
+    private const int IdBase = 900000; // Sub-task keys and ids sit above the generated range (they overlap it only beyond --issues 10000).
 
     private static readonly string[] _statuses = ["Backlog", "To Do", "In Progress", "Done"];
     private const int LongThreadEvery = 5;
@@ -71,7 +71,7 @@ public static class GeneratedIssues
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"First generated step"}]}]},
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Second generated step"}]}]}]},
               {"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":"generated --issue {{{number}}}"}]}]},
-            "subtasks":[],"issuelinks":[],"attachment":[]}}
+            "subtasks":{{{SubtasksJson(number)}}},"issuelinks":[],"attachment":[]}}
             """;
 
         return Encoding.UTF8.GetBytes(json.ReplaceLineEndings(string.Empty));
@@ -162,7 +162,25 @@ public static class GeneratedIssues
     /// </summary>
     internal static void WriteSubtasks(Utf8JsonWriter writer, string prefix, int number)
     {
-        writer.WriteStartArray("subtasks");
+        writer.WritePropertyName("subtasks");
+        WriteSubtaskArray(writer, prefix, number);
+    }
+
+    private static string SubtasksJson(int number)
+    {
+        var buffer = new MemoryStream();
+
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            WriteSubtaskArray(writer, "GEN-", number);
+        }
+
+        return Encoding.UTF8.GetString(buffer.ToArray());
+    }
+
+    private static void WriteSubtaskArray(Utf8JsonWriter writer, string prefix, int number)
+    {
+        writer.WriteStartArray();
 
         for (var index = 1; index <= SubtaskCount(number); index++)
         {
