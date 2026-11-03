@@ -78,6 +78,25 @@ public class PaletteReducerTests
     }
 
     [Fact]
+    public void GivenOpenPalette_WhenPressingCtrlJAndCtrlK_ThenTheHighlightMovesLikeDownAndUp()
+    {
+        var down = Press(Press(Open(), "Ctrl-j").State, "Ctrl-j").State;
+        var up = Press(down, "Ctrl-k").State;
+
+        Assert.Equal(2, down.PaletteSelected);
+        Assert.Equal(1, up.PaletteSelected);
+    }
+
+    [Fact]
+    public void GivenAFilter_WhenPressingCtrlL_ThenItRunsTheActionLikeEnter()
+    {
+        var result = Press(Typed("hide help"), "Ctrl-l");
+
+        Assert.Equal(InputMode.Help, result.State.Mode);
+        Assert.Equal(string.Empty, result.State.PaletteText);
+    }
+
+    [Fact]
     public void GivenAFilter_WhenPressingEnterOnAnAction_ThenThePaletteClosesAndTheActionRuns()
     {
         var result = Press(Typed("hide help"), "Enter");

@@ -21,6 +21,13 @@ public class KeyTranslatorTests
     }
 
     [Fact]
+    public void GivenCtrlEnter_WhenTranslating_ThenCtrlJ()
+    {
+        Assert.Equal("Ctrl-j", KeyTranslator.Translate(new Key(KeyCode.Enter | KeyCode.CtrlMask)));
+        Assert.Equal("Enter", KeyTranslator.Translate(new Key(KeyCode.Enter)));
+    }
+
+    [Fact]
     public void GivenLetterWithoutShift_WhenTranslating_ThenLowercase()
     {
         Assert.Equal("j", KeyTranslator.Translate(new Key(KeyCode.J)));

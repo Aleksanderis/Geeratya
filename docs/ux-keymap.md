@@ -36,7 +36,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `0` `$` | line start, line end | first and last column of the board |
 | `] ]` `[ [` | next and previous section | next and previous section of the issue |
 | `g t` `g T` | next and previous tab | next and previous tab |
-| `Ctrl-p` | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up; inside the palette `Ctrl-p`/`Ctrl-n` move the highlight) |
+| `Ctrl-p` | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up; inside the palette `Ctrl-p`/`Ctrl-n` and `Ctrl-j`/`Ctrl-k` move the highlight, `Ctrl-l` runs) |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |
 | `Enter` | next line | open the selected item |
 | `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key, `<space>n` the message history, `<space>x` dismiss the status message |

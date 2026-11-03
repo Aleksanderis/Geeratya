@@ -16,15 +16,15 @@ Dialogs
   /          Filter the help by key, title or action id                                                                 
   Tab        Next help page                                                                                             
   Shift-Tab  Previous help page                                                                                         
-  Enter      Run the typed command                                                                                      
+  Enter      Run the typed command  (Ctrl-l)                                                                            
   Backspace  Delete the last character                                                                                  
   y          Confirm                                                                                                    
   n          Decline  (Esc)                                                                                             
-  Enter      Accept the field and go to the next                                                                        
+  Enter      Accept the field and go to the next  (Ctrl-l)                                                              
   Backspace  Delete the last character                                                                                  
   Ctrl-x     Remove the highlighted profile (asks first; the stored token is deleted)                                   
-  Up         Previous row in the picker  (Ctrl-p)                                                                       
-  Down       Next row in the picker  (Ctrl-n)                                                                           
+  Up         Previous row in the picker  (Ctrl-p, Ctrl-k)                                                               
+  Down       Next row in the picker  (Ctrl-n, Ctrl-j)                                                                   
   Left       Move the cursor left                                                                                       
   Right      Move the cursor right                                                                                      
   Home       Move the cursor to the start of the row                                                                    

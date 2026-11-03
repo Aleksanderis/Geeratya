@@ -337,6 +337,21 @@ public class SourceReducerTests
     }
 
     [Fact]
+    public void GivenThePicker_WhenPressingCtrlJCtrlKAndCtrlL_ThenItMovesAndOpensTheRow()
+    {
+        var state = OpenPicker(Loaded(Start()));
+
+        var down = Press(Press(state, "Ctrl-j").State, "Ctrl-j").State;
+        var up = Press(down, "Ctrl-k").State;
+        var result = Press(up, "Ctrl-l");
+
+        Assert.Equal(2, down.Picker!.Selected);
+        Assert.Equal(1, up.Picker!.Selected);
+        Assert.Null(result.State.Picker);
+        Assert.Single(result.State.Session.Tabs);
+    }
+
+    [Fact]
     public void GivenThePicker_WhenMovingDownAndUp_ThenTheHighlightStopsAtTheEnds()
     {
         var state = OpenPicker(Loaded(Start()));

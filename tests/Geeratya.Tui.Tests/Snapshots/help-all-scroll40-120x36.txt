@@ -29,7 +29,7 @@ Dialogs
   /          Filter the help by key, title or action id                                                                 
   Tab        Next help page                                                                                             
   Shift-Tab  Previous help page                                                                                         
-  Enter      Run the typed command                                                                                      
+  Enter      Run the typed command  (Ctrl-l)                                                                            
   Backspace  Delete the last character                                                                                  
   y          Confirm                                                                                                    
   n          Decline  (Esc)                                                                                             
