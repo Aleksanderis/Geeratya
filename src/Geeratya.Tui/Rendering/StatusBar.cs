@@ -325,21 +325,11 @@ public static class StatusBar
     }
 
     /// <summary>
-    /// A notice or pending keys win; otherwise the network word of the active tab (first, so it survives a cut)
+    /// Pending keys, a count and a rank pickup win (they echo what the user is typing); then the notice; otherwise the network word of the active tab (first, so it survives a cut)
     /// and the result of the connection check show.
     /// </summary>
     private static string NormalText(AppState state, DateTimeOffset now)
     {
-        if (state.Status is { } status)
-        {
-            return status.Line;
-        }
-
-        if (state.Message is not null)
-        {
-            return state.Message;
-        }
-
         if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
             return PendingText(state);
@@ -348,6 +338,16 @@ public static class StatusBar
         if (ListBodyRenderer.ActiveTab(state)?.RankPickup is { } picked)
         {
             return $"Picked up {picked}: move to its new place and press the rank-to key again (Esc cancels)";
+        }
+
+        if (state.Status is { } status)
+        {
+            return status.Line;
+        }
+
+        if (state.Message is not null)
+        {
+            return state.Message;
         }
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);

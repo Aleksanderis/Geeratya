@@ -4,6 +4,7 @@ using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.State;
 
+[Trait("Os", "Independent")]
 public sealed class StatusMessageTests
 {
     private static readonly DateTimeOffset _start = new(2026, 11, 3, 10, 0, 0, TimeSpan.Zero);
@@ -150,6 +151,51 @@ public sealed class StatusMessageTests
         var shown = _reducer.Reduce(AppState.Initial with { Message = "Early" }, new Tick(_start)).State;
 
         Assert.Equal(_start, shown.Status!.PostedAt);
+    }
+
+    [Fact]
+    public void GivenAShowingMessage_WhenAKeyPressCarriesTheTime_ThenItExpiresWithoutATick()
+    {
+        var posted = Post("Notice", StatusSeverity.Info);
+
+        var expired = _reducer.Reduce(posted, new KeyPressed("j", _start.AddSeconds(6))).State;
+
+        Assert.Null(expired.Status);
+    }
+
+    [Fact]
+    public void GivenAShowingMessage_WhenAnActionRequestCarriesTheTime_ThenItExpiresWithoutATick()
+    {
+        var posted = Post("Notice", StatusSeverity.Info);
+
+        var expired = _reducer.Reduce(posted, new ActionRequested(ActionIds.NavigateDown, 1, _start.AddSeconds(6))).State;
+
+        Assert.Null(expired.Status);
+    }
+
+    [Fact]
+    public void GivenARankPickup_WhenEscIsPressedWithAMessageShowing_ThenTheMessageStaysForThePickupToClaimEsc()
+    {
+        var posted = Post("Notice", StatusSeverity.Warning);
+        var tab = new TabId(1);
+        var withPickup = posted with
+        {
+            Session = SiteSession.Empty(null) with { Tabs = [TabState.Opened(tab, new ViewDefinition(ViewSourceKind.Jql, "t", ViewLayout.List, "t"), 1, 1, 10) with { RankPickup = "A-1" }], Active = tab },
+        };
+
+        var escaped = _reducer.Reduce(withPickup, new KeyPressed("Esc", _start.AddSeconds(1))).State;
+
+        Assert.Equal("Notice", escaped.Status!.Text);
+    }
+
+    [Fact]
+    public void GivenAStartupMessageWithoutAPost_WhenNothingIsPosted_ThenTheSeverityResetsToInfo()
+    {
+        var state = AppState.Initial with { MessageSeverity = StatusSeverity.Warning };
+
+        var settled = StatusMessages.Settle(state, null);
+
+        Assert.Equal(StatusSeverity.Info, settled.MessageSeverity);
     }
 
     private AppState Post(string text, StatusSeverity severity)

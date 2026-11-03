@@ -146,10 +146,13 @@ public static class FrameBuilder
             Glyphs.ToAscii(frame.StatusLine))
         {
             Regions = frame.Regions,
-            StatusSegment = frame.StatusSegment is { } segment
-                ? segment with { Text = Glyphs.ToAscii(segment.Text) }
-                : null,
+            StatusSegment = Asciified(frame.StatusSegment),
         };
+    }
+
+    private static StatusSegment? Asciified(StatusSegment? segment)
+    {
+        return segment is null ? null : segment with { Text = Glyphs.ToAscii(segment.Text) };
     }
 
     private static StyledLine Asciified(StyledLine line)

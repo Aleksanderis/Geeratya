@@ -116,7 +116,12 @@ public static class StatusMessages
         if (text is null)
         {
             // Nothing posted. A reducer that wiped the text (a key press) does not end the message.
-            return state.Status is { } shown ? state with { Message = shown.Text } : state;
+            if (state.Status is { } shown)
+            {
+                return state with { Message = shown.Text };
+            }
+
+            return state.MessageSeverity == StatusSeverity.Info ? state : state with { MessageSeverity = StatusSeverity.Info };
         }
 
         if (state.Status is { } current && current.Text == text)

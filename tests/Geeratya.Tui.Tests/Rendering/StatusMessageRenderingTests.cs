@@ -90,6 +90,17 @@ public class StatusMessageRenderingTests
         Assert.Contains(lines, line => line.StartsWith("No messages yet."));
     }
 
+    [Fact]
+    public void GivenAMessageAndPendingKeys_WhenRenderingTheStatusLine_ThenTheKeysEchoInsteadOfTheMessage()
+    {
+        var state = Posted("Saved A-1", StatusSeverity.Error) with { PendingKeys = "Space" };
+
+        var line = StatusBar.Render(state, 100, _keymap);
+
+        Assert.DoesNotContain("Saved A-1", line);
+        Assert.Contains("Space", line);
+    }
+
     private static AppState Posted(string text, StatusSeverity severity)
     {
         var reducer = new AppReducer(_keymap);

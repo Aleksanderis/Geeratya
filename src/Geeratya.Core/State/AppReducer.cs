@@ -86,11 +86,9 @@ public sealed class AppReducer
             return Result(StatusMessages.Warn(before, ConfirmTooSmallText));
         }
 
-        var closed = after.Editor is not null
-            ? StatusMessages.Warn(CommentEditing.KeepEditing(after), ConfirmClosedText)
-            : StatusMessages.Warn(ToNormal(after), ConfirmClosedText);
+        var closed = after.Editor is not null ? CommentEditing.KeepEditing(after) : ToNormal(after);
 
-        return Result(closed);
+        return Result(StatusMessages.Warn(closed, ConfirmClosedText));
     }
 
     private ReduceResult ReduceCommand(AppState state, Command command)
