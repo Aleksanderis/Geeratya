@@ -1,0 +1,10 @@
+ 1 JQL View   +           <space>g jump 
+                                        
+╭─ View ──────────────────── 0 issues ─╮
+│  Key T Summary                      S│
+│ ╭─ Commands ───────────────────────╮ │
+│p│ : jql proj|ect                   │ │
+│ ├──────────────────────────────────┤ │
+│ │ jql [query]                     ▼│ │
+╰─╰──────────────────────────────────╯─╯
+ COMMAND  :jql project                  

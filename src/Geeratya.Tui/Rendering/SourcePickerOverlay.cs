@@ -16,6 +16,7 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class SourcePickerOverlay
 {
+    private const int PromptMargin = 4;
     private const string Title = "Open a view";
     private const string SprintTitle = "Switch sprint";
     private const string MoveTitle = "Move to sprint";
@@ -85,7 +86,7 @@ public static class SourcePickerOverlay
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
         var first = FirstVisible(rows, area);
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker), contentWidth) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker, contentWidth), contentWidth) };
 
         var shown = rows.Lines.Skip(first).Take(Math.Max(0, area)).ToList();
 
@@ -139,9 +140,11 @@ public static class SourcePickerOverlay
         return Math.Min(rows.SelectedLine - area + 1, Math.Max(0, rows.Lines.Count - area));
     }
 
-    private static StyledLine Prompt(SourcePickerState picker)
+    private static StyledLine Prompt(SourcePickerState picker, int contentWidth)
     {
-        return new StyledLine([new StyledSpan("> ", TextRole.Key), new StyledSpan($"{picker.Text}_", TextRole.Body)]);
+        var text = PromptSpans.Of(new PromptText(picker.Text, picker.Back), contentWidth - PromptMargin, TextRole.Body);
+
+        return new StyledLine([new StyledSpan("> ", TextRole.Key), .. text]);
     }
 
     private static string FooterText(KeymapTable keymap, SourcePickerState picker)

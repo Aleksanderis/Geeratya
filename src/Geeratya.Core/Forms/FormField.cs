@@ -1,4 +1,5 @@
 using Geeratya.Core.Suggestions;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
@@ -32,6 +33,12 @@ public sealed record FormField(
     SuggestionKind? Lookup = null,
     bool TakesTypedKey = false)
 {
+    /// <summary>
+    /// Units between the caret and the end of the text being typed (<see cref="Entry"/> for a choice, picked or label
+    /// field, else the value text); 0 is the end. See <see cref="PromptText"/>.
+    /// </summary>
+    public int Back { get; init; }
+
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
     /// <summary>True when the user changed the field, counting a label that is typed and not yet added, or text typed into a person or parent field and not picked.</summary>

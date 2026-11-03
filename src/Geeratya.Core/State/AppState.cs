@@ -5,6 +5,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
@@ -117,6 +118,12 @@ public sealed record AppState(
 
     /// <summary>The text of the help filter (<c>/</c>); empty when none.</summary>
     public string HelpFilter { get; init; } = string.Empty;
+
+    /// <summary>Units between the caret and the end of <see cref="PaletteText"/> (<see cref="PromptText"/>).</summary>
+    public int PaletteBack { get; init; }
+
+    /// <summary>Units between the caret and the end of <see cref="HelpFilter"/>.</summary>
+    public int HelpFilterBack { get; init; }
 
     /// <summary>
     /// The help filter line is being typed: printable keys are text and <c>Enter</c> keeps the filter.

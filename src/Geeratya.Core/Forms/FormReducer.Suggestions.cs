@@ -69,7 +69,7 @@ public static partial class FormReducer
     // Esc in a choice field drops the typed filter; the list of its values stays.
     private static AppState ClearedFilter(AppState state, TabState tab, FormState form)
     {
-        var field = form.Fields[form.Focus] with { Entry = string.Empty };
+        var field = form.Fields[form.Focus] with { Entry = string.Empty, Back = 0 };
 
         return Replace(state, tab, form with { Fields = WithField(form.Fields, form.Focus, field) });
     }

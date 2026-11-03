@@ -76,7 +76,12 @@ public static class HelpReducer
                 return Step(state, keymap, -1);
         }
 
-        return KeyNotation.ToText(key) is { } text ? Typed(state, $"{state.HelpFilter}{text}") : state;
+        if (PromptEditing.OperationOf(keymap.Resolve(InputMode.Insert, string.Empty, key).Action) is { } operation)
+        {
+            return Edited(state, Prompt(state).Apply(operation));
+        }
+
+        return KeyNotation.ToText(key) is { } text ? Edited(state, Prompt(state).Insert(text)) : state;
     }
 
     private static bool IsPages(AppState state)
@@ -86,7 +91,7 @@ public static class HelpReducer
 
     private static AppState Cleared(AppState state)
     {
-        return state with { HelpFilter = string.Empty, HelpFiltering = false, HelpScroll = 0 };
+        return state with { HelpFilter = string.Empty, HelpFilterBack = 0, HelpFiltering = false, HelpScroll = 0 };
     }
 
     private static AppState Erased(AppState state)
@@ -96,12 +101,19 @@ public static class HelpReducer
             return state with { HelpFiltering = false };
         }
 
-        return Typed(state, TextElements.RemoveLast(state.HelpFilter));
+        return Edited(state, Prompt(state).Apply(PromptOperation.Backspace));
     }
 
-    // The filter changed, so the page starts at its first line again.
-    private static AppState Typed(AppState state, string filter)
+    private static PromptText Prompt(AppState state)
     {
-        return state with { HelpFilter = filter, HelpScroll = 0 };
+        return new PromptText(state.HelpFilter, state.HelpFilterBack);
+    }
+
+    // A changed filter starts the page at its first line again; a caret move leaves the scroll.
+    private static AppState Edited(AppState state, PromptText filter)
+    {
+        var scroll = filter.Text == state.HelpFilter ? state.HelpScroll : 0;
+
+        return state with { HelpFilter = filter.Text, HelpFilterBack = filter.Back, HelpScroll = scroll };
     }
 }

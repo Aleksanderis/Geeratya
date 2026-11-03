@@ -353,6 +353,100 @@ public class FormReducerTests
         Assert.Null(other.Session.Tabs[1].Form);
     }
 
+    [Fact]
+    public void GivenATextField_WhenPressingLeftAndTyping_ThenTheCharacterGoesInAtTheCaret()
+    {
+        var state = LoadedWith([TextField("summary")]);
+
+        state = Type(state, "abc");
+        state = Press(state, "Left").State;
+        state = Type(state, "X");
+
+        Assert.Equal("abXc", FocusedField(state).Value.Text);
+        Assert.Equal(1, FocusedField(state).Back);
+    }
+
+    [Fact]
+    public void GivenATextField_WhenPressingCtrlWAndCtrlU_ThenTheWordBeforeAndTheTextBeforeTheCaretGo()
+    {
+        var state = Type(LoadedWith([TextField("summary")]), "fix the login");
+
+        var word = Press(state, "Ctrl-w").State;
+        var line = Press(Press(word, "Left").State, "Ctrl-u").State;
+
+        Assert.Equal("fix the ", FocusedField(word).Value.Text);
+        Assert.Equal(" ", FocusedField(line).Value.Text);
+    }
+
+    [Fact]
+    public void GivenATextField_WhenPressingHomeAndDelete_ThenTheFirstCharacterGoes()
+    {
+        var state = Type(LoadedWith([TextField("summary")]), "abc");
+
+        state = Press(Press(state, "Home").State, "Delete").State;
+
+        Assert.Equal("bc", FocusedField(state).Value.Text);
+        Assert.Equal(2, FocusedField(state).Back);
+    }
+
+    [Fact]
+    public void GivenALabelBuffer_WhenEditingMidText_ThenTheBufferNotTheLabelsTakesTheKeys()
+    {
+        var state = Type(Loaded(["backend"]), "abc");
+
+        state = Press(Press(state, "Left").State, "Backspace").State;
+
+        Assert.Equal("ac", FocusedField(state).Entry);
+        Assert.Equal(["backend"], FocusedField(state).Value.Chosen);
+    }
+
+    [Fact]
+    public void GivenALabelBufferWithTheCaretAtItsStart_WhenBackspacing_ThenTheLabelStaysAndNothingChanges()
+    {
+        var state = Type(Loaded(["backend"]), "ab");
+
+        state = Press(Press(state, "Home").State, "Backspace").State;
+
+        Assert.Equal("ab", FocusedField(state).Entry);
+        Assert.Equal(["backend"], FocusedField(state).Value.Chosen);
+    }
+
+    [Fact]
+    public void GivenATextFieldWithTheCaretInside_WhenPastingText_ThenItGoesInAtTheCaret()
+    {
+        var state = Type(LoadedWith([TextField("summary")]), "ad");
+        state = Press(state, "Left").State;
+
+        var pasted = _reducer.Reduce(state, new TextPasted("bc\nignored")).State;
+
+        Assert.Equal("abcd", FocusedField(pasted).Value.Text);
+    }
+
+    [Fact]
+    public void GivenAParagraphField_WhenPressingHomeAndEnd_ThenTheCaretsLineIsMeant()
+    {
+        var field = FormField.Create("description", "Description", FormFieldKind.Paragraph, false, []);
+        var state = Type(LoadedWith([field]), "one");
+        state = Press(state, "Enter").State;
+        state = Type(state, "two");
+
+        var home = Press(Press(state, "Home").State, "X").State;
+
+        Assert.Equal("one\nXtwo", FocusedField(home).Value.Text);
+    }
+
+    private static FormField FocusedField(AppState state)
+    {
+        var form = state.Session.Tabs[0].Form!;
+
+        return form.Fields[form.Focus];
+    }
+
+    private static FormField TextField(string id)
+    {
+        return FormField.Create(id, id, FormFieldKind.Text, false, []);
+    }
+
     private AppState Type(AppState state, string text)
     {
         return text.Aggregate(state, (current, character) => Press(current, character.ToString()).State);

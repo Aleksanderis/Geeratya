@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Suggestions;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -30,17 +31,26 @@ public static class FormEditor
             return TypeLabels(field, text);
         }
 
-        if (FormFieldKinds.IsChoice(field.Kind))
+        if (TypesInEntry(field))
         {
-            return field with { Entry = Bounded($"{field.Entry}{FirstLine(text)}"), Error = null };
+            return Inserted(field, FirstLine(text));
         }
 
-        if (FormFieldKinds.IsPicked(field.Kind))
+        return Inserted(field, text);
+    }
+
+    /// <summary>
+    /// An editing key of the text being typed (caret moves, deletes): a no-op on a read-only field. The caret and
+    /// the text belong to the filter or label buffer of a choice, picked or label field, else to the value.
+    /// </summary>
+    public static FormField Apply(FormField field, PromptOperation operation)
+    {
+        if (!field.IsEditable)
         {
-            return field with { Entry = Bounded($"{field.Entry}{FirstLine(text)}"), Error = null };
+            return field;
         }
 
-        return field with { Value = FormValue.OfText(Bounded($"{field.Value.Text}{text}")), Error = null };
+        return WithPrompt(field, Prompt(field).Apply(operation));
     }
 
     /// <summary>Deletes the last character; in an empty label buffer it removes the last label.</summary>
@@ -66,7 +76,7 @@ public static class FormEditor
             return BackspacePicked(field);
         }
 
-        return field with { Value = FormValue.OfText(RemoveLast(field.Value.Text)), Error = null };
+        return Apply(field, PromptOperation.Backspace);
     }
 
     /// <summary>Enter: adds the typed label, or moves on (a choice is taken from the suggestion popup).</summary>
@@ -145,7 +155,7 @@ public static class FormEditor
 
         if (suggestion.Id.Length == 0)
         {
-            return field with { Value = FormValue.Empty, Entry = string.Empty, Error = null };
+            return field with { Value = FormValue.Empty, Entry = string.Empty, Back = 0, Error = null };
         }
 
         var option = new FieldOption(suggestion.Id, SuggestionText.Of(suggestion));
@@ -155,6 +165,7 @@ public static class FormEditor
             Value = FormValue.OfChosen([suggestion.Id]),
             Options = [.. field.Options.Where(other => other.Id != suggestion.Id), option],
             Entry = string.Empty,
+            Back = 0,
             Error = null,
         };
     }
@@ -174,17 +185,17 @@ public static class FormEditor
         {
             var value = suggestion.Id.Length == 0 ? FormValue.Empty : FormValue.OfChosen([suggestion.Id]);
 
-            return field with { Value = value, Entry = string.Empty, Error = null };
+            return field with { Value = value, Entry = string.Empty, Back = 0, Error = null };
         }
 
         if (suggestion.Id.Length == 0 || field.Value.Chosen.Contains(suggestion.Id))
         {
-            return field with { Entry = string.Empty };
+            return field with { Entry = string.Empty, Back = 0 };
         }
 
         var chosen = FormValue.OfChosen([.. field.Value.Chosen, suggestion.Id]);
 
-        return field with { Value = chosen, Entry = string.Empty, Error = null };
+        return field with { Value = chosen, Entry = string.Empty, Back = 0, Error = null };
     }
 
     // Backspace edits the typed filter; on an empty filter it clears a single choice or drops the last chip.
@@ -192,7 +203,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return field with { Entry = RemoveLast(field.Entry), Error = null };
+            return Apply(field, PromptOperation.Backspace);
         }
 
         var keep = field.Kind == FormFieldKind.Select ? 0 : Math.Max(0, field.Value.Chosen.Count - 1);
@@ -204,7 +215,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return field with { Entry = RemoveLast(field.Entry), Error = null };
+            return Apply(field, PromptOperation.Backspace);
         }
 
         return field with { Value = FormValue.Empty, Error = null };
@@ -234,7 +245,7 @@ public static class FormEditor
             }
             else
             {
-                next = next with { Entry = Bounded($"{next.Entry}{element}") };
+                next = Inserted(next, element);
             }
         }
 
@@ -245,7 +256,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return field with { Entry = RemoveLast(field.Entry), Error = null };
+            return Apply(field, PromptOperation.Backspace);
         }
 
         var remaining = field.Value.Chosen.Take(Math.Max(0, field.Value.Chosen.Count - 1));
@@ -259,12 +270,12 @@ public static class FormEditor
 
         if (label.Length == 0)
         {
-            return field with { Entry = string.Empty };
+            return field with { Entry = string.Empty, Back = 0 };
         }
 
         var chosen = field.Value.Chosen.Contains(label) ? field.Value.Chosen : [.. field.Value.Chosen, label];
 
-        return field with { Value = FormValue.OfChosen(chosen), Entry = string.Empty };
+        return field with { Value = FormValue.OfChosen(chosen), Entry = string.Empty, Back = 0 };
     }
 
     private static List<string> Elements(string text)
@@ -280,28 +291,51 @@ public static class FormEditor
         return result;
     }
 
-    private static string Bounded(string text)
+    // The kinds that type into the filter or label buffer; every other kind types into its value.
+    private static bool TypesInEntry(FormField field)
     {
-        if (text.Length <= MaxTextLength)
+        return field.Kind == FormFieldKind.Labels || FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind);
+    }
+
+    private static PromptText Prompt(FormField field)
+    {
+        return new PromptText(TypesInEntry(field) ? field.Entry : field.Value.Text, field.Back);
+    }
+
+    private static FormField WithPrompt(FormField field, PromptText prompt)
+    {
+        if (TypesInEntry(field))
+        {
+            return field with { Entry = prompt.Text, Back = prompt.Back, Error = null };
+        }
+
+        return field with { Value = FormValue.OfText(prompt.Text), Back = prompt.Back, Error = null };
+    }
+
+    // Typed text goes in at the caret; text beyond the limit is dropped.
+    private static FormField Inserted(FormField field, string typed)
+    {
+        var prompt = Prompt(field);
+        var room = MaxTextLength - prompt.Text.Length;
+
+        if (typed.Length == 0 || room <= 0)
+        {
+            return field with { Error = null };
+        }
+
+        return WithPrompt(field, prompt.Insert(Bounded(typed, room)));
+    }
+
+    private static string Bounded(string text, int room)
+    {
+        if (text.Length <= room)
         {
             return text;
         }
 
         // Never end on half of a surrogate pair.
-        var length = char.IsHighSurrogate(text[MaxTextLength - 1]) ? MaxTextLength - 1 : MaxTextLength;
+        var length = char.IsHighSurrogate(text[room - 1]) ? room - 1 : room;
 
         return text[..length];
-    }
-
-    private static string RemoveLast(string text)
-    {
-        if (text.Length == 0)
-        {
-            return text;
-        }
-
-        var starts = StringInfo.ParseCombiningCharacters(text);
-
-        return text[..starts[^1]];
     }
 }
