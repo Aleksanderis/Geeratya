@@ -1,6 +1,6 @@
 # UX: look (frame, chips, focus, overlays, chrome)
 
-Part of the interface specification; start at [ux.md](ux.md). This is the visual contract for the rendering layer: what a screen looks like, in every colour tier. Behaviour (keys, modes, workflows) stays in the other parts; colours by role and the theme files stay in [ux.md](ux.md), "Colour tiers". Implemented by #524 (frame), #525 (focus and chips), #526 (overlays), #527 (tab row, hints, status bar, palette) and #528 (profile manager); each section below says which. The reference is Gitunia's `docs/internal/ux-look.md` (read-only; the code is rewritten, not copied). Mockups are 80x24 unless stated; they show the glyph tier with rounded corners, `[x]` marks what is accent-coloured or filled, and are checked against the real render of the fake Jira (gap list at the end).
+Part of the interface specification; start at [ux.md](ux.md). This is the visual contract for the rendering layer: what a screen looks like, in every colour tier. Behaviour (keys, modes, workflows) stays in the other parts; colours by role and the theme files stay in [ux.md](ux.md), "Colour tiers". Implemented by #524 (frame), #525 (focus and chips), #526 (overlays), #527 (tab row, hints, status bar, palette) and #528 (profile manager); each section below says which. The reference is Gitunia's `docs/internal/ux-look.md` (read-only; the code is rewritten, not copied). Mockups are 80 columns wide and are excerpts: rows are elided where the content repeats (a full screen at 24 rows has a 22-row frame between the tab row and the status bar), accent colour and fills cannot be drawn so each mockup says in its caption or surrounding text what is accent, and the `>` marks the selected row (in the colour tiers the selection is a tint and the marker is added only in the no-colour and ASCII tiers). Overlay mockups show the box on a few rows of the muted view, without bars. They show the glyph tier with rounded corners and were checked against the real render of the fake Jira (gap list at the end).
 
 ## 1. Principles
 
@@ -26,7 +26,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 │ │ GCM-11  Story        │ │ │ GCM-14  Task         │ │                        │
 │ └──────────────────────┘ │ └──────────────────────┘ │                        │
 ╰──────────────────────────┴──────────────────────────┴────────────────────────╯
- NORMAL  GCM board 24  ·  Connected as Test User 1       ? help  : commands  q quit
+ NORMAL  GCM board 24  ·  Connected as Test User 1      ? help  : commands  q quit
 ```
 
 | Part | Unicode tier | ASCII tier |
@@ -38,9 +38,9 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 
 - Rounded outer corners, plain junctions. Where two panes meet there is one line, not two, and a junction glyph where the line meets another (also against the outer frame: `┬` on the top edge, `┴` on the bottom, `├ ┤` on the sides).
 - The first and last column and the top and bottom row of the body belong to the frame. Content is padded by one column inside each pane (two from 100 columns of width, `PanePadding`, as Gitunia); the selection marker lives in the padding column, never on the border (today the `>` overwrites the left border on the issue detail).
-- Cards on the board are boxes inside the column pane, with plain `┌ ┐ └ ┘` corners (no heavy `┏` for the selected card: the selected card uses the accent border and a tint, section 4).
+- Cards on the board keep the content and height of `ux-screens.md` ("Columns layout": type, key, assignee initials, summary wrapped to two lines, five rows). Only the border changes to the frame family: plain `┌ ┐ └ ┘`; the selected card keeps its heavier border (`┏ ┓ ┗ ┛`, ASCII `+` with `#` edges), only in the focused column (rule of `ux-screens.md` stays), and gets the tint. The mockups draw shorter cards to fit the page.
 - The rows the frame uses are the body: with 24 rows that is 22 (row 0 tab row, rows 1 to 22 frame, row 23 status bar). The line "`GCM board · 24 issues`" that sits above the board today moves into the chrome (the active tab chip names the source; the count goes to the status bar left, section 5). It is not a row of its own.
-- Resize: the grid is recomputed from the size; a pane that would get fewer than 12 columns or 3 rows is dropped from the layout in the order the screen defines (board: columns scroll horizontally as today, the focused column always fits; detail: see below). Below 20 columns or 5 rows the body is drawn without a frame, as the content alone.
+- Resize: the grid is recomputed from the size; a pane that would get fewer than 3 rows collapses to its title edge; board columns keep the rules of `ux-screens.md` (at least 20 cells wide, below 60 columns exactly one column, the hidden-column marks `‹2` and `1›` move to the ends of the top edge, dim chips). Below 20 columns or 5 rows the body is drawn without a frame, as the content alone.
 
 ### Screen layouts
 
@@ -68,10 +68,10 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 │ Generated Writer 1 · 3 d ago                                                 │
 │ Generated comment 2 on issue 5.                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GEN-5  13%  ·  Connected as Test User 1          ? help  : commands  q quit
+ NORMAL  GEN-5  13%  ·  Connected as Test User 1       ? help  : commands  q quit
 ```
 
-The panes are the sections the detail already has (header and fields, Description, Comments, then Relations, Attachments and Links when present, in that order). Heights: the header pane is its content height; the others share the rest by content, each at least 3 rows, and the focused pane gets the surplus; a pane that does not fit is collapsed to its title edge (the chip stays, the edge shows `▸`, ASCII `>`; `Enter` or a click expands it). Narrow (under 100 columns) is the layout above; from 100 columns the relations and attachments panes may sit in a right column of 36 to 44 columns (`├`/`┬`/`┴` junctions as in section 2), the left column keeps the order.
+The panes are the sections the detail already has (header and fields, Description, Comments, then Relations, Attachments and Links when present, in that order). Heights: the header pane is its content height; the others share the rest by content, each at least 3 rows, and the focused pane gets the surplus. The detail stays one scrolling document with one cursor (`ux-screens.md`, "Issue detail"): the panes are how that document is drawn, scroll and the `Top/NN%/Bot` ruler stay document-wide (the status bar shows the ruler), `j`/`k` cross from one pane to the next, and the focused pane is the one holding the cursor. There is no side-by-side layout and no collapse.
 
 **Backlog (Scrum and Kanban).** Panes are the sprint sections and the Backlog section, stacked; each pane's chip carries the sprint name and state, its right-hand chip dates and points:
 
@@ -89,10 +89,10 @@ The panes are the sections the detail already has (header and fields, Descriptio
 │  GEN-31 B Generated issue 31                               To Do            2│
 │  GEN-32 S Generated issue 32                               Backlog          3│
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GEN board 29  ·  Connected as Test User 1          ? help  : commands  q quit
+ NORMAL  GEN board 29  ·  Connected as Test User 1      ? help  : commands  q quit
 ```
 
-The sprint goal is the pane's first content line (`Goal: ...`, muted) when set. The column header line (`Key T Summary ...`) is shown once in the top pane's first content row and repeats nowhere. Collapsed sections (`za`, today `+`/`-` markers in the text line) become collapsed panes: only the title edge, with `▸` before the chip text.
+The sprint goal is the pane's first content line (`Goal: ...`, muted) when set. The column header line (`Key T Summary ...`) is shown once in the top pane's first content row and repeats nowhere. A section collapsed with `za` stays a pane that is only its title edge, with `▸` (ASCII `>`) before the chip text; `j`/`k` step over all sections as in `ux-screens.md`.
 
 **List (JQL and filters).** One pane; chip: the source (`project = GCM`), right-hand chip the count `40 issues`. Header row inside the pane as in the backlog.
 
@@ -125,7 +125,7 @@ Chip kinds: the **focused** pane's chip is the filled accent chip (accent backgr
 
 ### Pane navigation (no new keys)
 
-Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog `]` and `[` jump to the next and previous pane (the section keys of today; `Enter` on a collapsed pane expands it); `j`/`k` stay inside the focused pane and scroll it. A click focuses the pane it lands in (the existing row targets keep working, `ux-mouse.md` gets the pane-focus target in #525). The wheel scrolls the pane under the pointer without moving focus.
+Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in (the existing row targets keep working, `ux-mouse.md` gets the pane-focus target in #525). The wheel scrolls the document as today.
 
 ## 5. Chrome: tab row, status bar, key hints (#527)
 
@@ -139,7 +139,7 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 ```
 
 - One chip per tab: ` <number> <kind> <name> `, the active tab the filled accent chip (bold), others muted text on the bar. Kind words are Jira nouns (`Board`, `Backlog`, `JQL`, `Filter`, `Issue`); a tab label is at most 24 columns, truncated with `…`.
-- After the last chip a `+` target (opens the source picker, same as `<space>t`). The right end carries a dim `Space g jump` hint. The close affordance `x` shows on the active chip when the width is 80 or more (` 1 Board GCM x `), and on a hovered chip; middle-click closes any chip.
+- After the last chip a `+` target (opens the source picker, same as `<space>t`). The right end keeps the `jump` chip (`JumpChip`, still a click target: opens the jump prompt), now drawn as the dim chip `Space g jump`. The close affordance (new mouse target) `x` shows on the active chip when the width is 80 or more (` 1 Board GCM x `), and on a hovered chip; middle-click closes any chip.
 - Mouse targets (`ux-mouse.md`, tab targets): a chip switches, `x` closes (asks as `:tab close` does), `+` opens the picker; the targets are exactly the cells the chip occupies.
 - Overflow: the active chip is always visible; chips that do not fit collapse into a dim `+N` chip (click opens the picker's tab list). Under 40 columns only the active chip and `+` remain.
 - ASCII tier: chips are bracketed ` [1 Board GCM] `; no-colour tier: the active chip reversed-bold.
@@ -147,13 +147,13 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 **Status bar** (last row):
 
 ```
- NORMAL  GCM board 24 · Connected as Test User 1          ? help  : commands  q quit
+ NORMAL  GCM board 24 · Connected as Test User 1       ? help  : commands  q quit
  ^^^^^^^ mode badge       ^ message / state                  ^ hint chips
 ```
 
 - Column 0: a one-space-padded **mode badge** as a filled chip, bold: `NORMAL` accent, `VISUAL` the `remote` role, `INSERT` `good`, `COMMAND` `warn`, `CONFIRM` `bad`, `HELP` `info`. Text on a badge is the theme's chip text colour. Without colour the badge is reversed-bold and the word tells the mode.
 - Then the message or state text: the pending keys in Normal mode; otherwise the message of the status history, coloured by severity (info normal text, warning `warn`, error `bad` bold, success `good`; a message always carries a word as well, `Failed:`, `Warning:`, so colour is not the only carrier). When there is none: the source and its count (`GCM board 24`, sprint name for a sprint board, `GEN-5 13%` in the detail), then the connection state (`Connected as ...`, `Offline`, `Rate limited, retry in 12 s`).
-- **Key hints** (right side, `HintBar`): chips `key label`, the key bold in the accent colour, the label muted, two spaces between chips, right-aligned, within the keymap rules of `ux.md`, "Hints". When the width is short, chips drop from the right end towards the left (the global `? help  : commands  q quit` are dropped last and never partly). In the other modes the same bar shows that mode's hints (`Tab/Shift-Tab field  Ctrl-s save  Esc cancel`).
+- **Key hints** (right side, `HintBar`): chips `key label`, the key bold in the key role of `ux.md` (`warn`; the accent stays for focus), the label muted, two spaces between chips, right-aligned, within the keymap rules of `ux.md`, "Hints". When the width is short, chips drop from the right end towards the left (the global `? help  : commands  q quit` are dropped last and never partly). In the other modes the same bar shows that mode's hints (`Tab/Shift-Tab field  Ctrl-s save  Esc cancel`).
 - Whole-line fallbacks: 16-colour uses the bar as white-on-blue as today with bold keys; no colour: the bar is reversed.
 
 ## 6. Colour and glyph tiers (all sections)
@@ -162,12 +162,12 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 |---|---|---|---|---|
 | Focused box | accent, bold | bright cyan (dark) or blue (light), bold | bold | same as the colour tier |
 | Quiet box | `border` role | bright black / gray | plain | `+ - \|` |
-| Focused chip | accent fill, chip text | cyan/blue fill, black text, bold | reversed, bold | ` [text] ` bracketed |
-| Dim chip | muted on page | bright black on default | plain | bracketed, muted |
+| Focused chip | accent fill, chip text | cyan/blue fill, black text, bold | reversed, bold | plain `- text -` in an edge, bracketed only in the bars (section 10) |
+| Dim chip | muted on page | bright black on default | plain | plain, muted |
 | Selected row | `selection` tint | white on blue (focused), bright black (unfocused) | reversed + `>` in the padding column | `>` marker |
 | Bars | `barBackground` | white on blue as today | reversed | unchanged |
 | Overlay box | accent frame, surface fill | bright cyan frame, default background | bold frame | `+ - \|` frame |
-| View behind an overlay | muted (blended 55 percent towards the page background) | faint where the terminal supports it, else bright black | unchanged | unchanged |
+| View behind an overlay | muted (foreground blended about 30 percent towards the page background, lowered until the muted text keeps contrast 3.0; backgrounds unchanged) | faint (SGR 2) on terminals that are not classic consoles, else bright black | unchanged | unchanged |
 | Confirm frame | `bad` for destructive, `warn` for other | red / yellow | bold | as above |
 
 Contrast: chip text on the accent fill, text on the bar background, the quiet border (3.0) and the dimmed view (muted text on the page, 3.0 as a floor so the view stays readable) are covered by the existing role contrast tests plus new roles tested in all built-in themes.
@@ -178,14 +178,14 @@ Every overlay is one component, `OverlayBox`, with the same look; palette, help,
 
 - **Placement.** A floating box centred horizontally; vertically centred, except the palette and the pickers, which are anchored 2 rows below the top of the body so their height does not jump while filtering (they keep the height of the unfiltered list, up to their limit).
 - **Over a visible view.** Only the box's cells are drawn; the rest of the screen keeps the view, but muted (table in section 6). It is never erased: today rows are blanked left and right of the box. The tab row and status bar stay (the status bar shows the overlay's mode and hints).
-- **Frame.** Rounded accent frame, bold; the title is the filled accent chip in the top edge (left aligned, one `─` in). The interior has the **surface** background (the `selection` step lightened or darkened by a third of the way to the page; contrast against the muted view at least 1.3:1) so the box reads as raised even where the frame is dim; with no background colours (no-colour tier) the frame is bold and double-spaced from the view by one blank margin cell where room allows.
-- **Size limits.** Width: content width plus 4, at most 100 columns and at least 30, never more than the terminal width minus 4 (minus 2 under 60 columns). Height: content plus 2, at most the body height minus 2, at most 18 for the palette and pickers. The box shrinks to content (a confirm is as wide as its longest line up to 62). Long content scrolls inside the box with a `▲`/`▼` marker (ASCII `^`/`v`) in the right padding column.
-- **Too small.** Below 30 columns or 8 rows the overlay is drawn without a frame filling the body (title as the first line, hints on the status bar), as the repository picker of Gitunia does; below 12 columns it shows only the title.
-- **Mouse.** The area outside the box is the **Backdrop**: a click on it closes the overlay as `Esc` does (confirm: cancels like `n`, as today; an editor with unsaved text asks first). Clicks inside the box that hit no row do nothing. Rows and chips inside are mouse targets as today (`ux-mouse.md`); the Backdrop target replaces the "click outside" rules listed per overlay there (#526 updates them).
+- **Frame.** Rounded accent frame, bold; the title is the filled accent chip in the top edge (left aligned, one `─` in). The interior has the **surface** background (the `selection` step lightened or darkened by a third of the way to the page; contrast against the muted view at least 1.3:1) so the box reads as raised even where the frame is dim; in the no-colour tier the frame is bold and the box cells are cleared, nothing else changes.
+- **Size limits.** Width: content width plus 4, at most 100 columns and at least 30 where the terminal is 34 columns or wider, never more than the terminal width minus 4. Height: content plus 2, at most the body height minus 2, at most 18 for the palette and pickers. The box shrinks to content (a confirm is as wide as its longest line up to 62). Long content scrolls inside the box with a `▲`/`▼` marker (ASCII `^`/`v`) in the right padding column.
+- **Too small.** Below 34 columns or 8 rows the overlay is drawn without a frame filling the body (title as the first line, hints on the status bar), as the repository picker of Gitunia does; below 12 columns it shows only the title.
+- **Mouse.** The area outside the box is the **Backdrop**: a click on it closes the overlay as `Esc` does (confirm: cancels like `n`, as today; any form or editor with typed text asks first, as `Esc` does; the tab row and the status bar are not Backdrop, a click there works as always, and the overlay closes first only for a tab click). Clicks inside the box that hit no row do nothing. Rows and chips inside are mouse targets as today (`ux-mouse.md`); the Backdrop target replaces the "click outside" rules listed per overlay there (#526 updates them).
 - **Footer.** The last interior row is a hint line of dim chips (`Up/Down move  Enter run  Esc cancel`), separated from the rows by a `─` rule across the box; the same hints also show on the status bar.
 - **Selected row** in lists: the focus tint, with the marker `>` in the first padding column in the no-colour and ASCII tiers.
 
-Mockups below show the box only against the (muted) view; `[View]` marks rows where the view stays visible.
+Mockups below show the box on a few rows of the muted view.
 
 ### Command palette (`:`; #527)
 
@@ -197,7 +197,7 @@ Mockups below show the box only against the (muted) view; `[View]` marks rows wh
 │ GCM-10 │ : rank_                                                    │        │
 │ GCM-11 ├────────────────────────────────────────────────────────────┤        │
 │ GCM-12 │ Issue                                                      │        │
-│ GCM-13 │ ▌ Rank the issue up (a count moves it that far)      Alt-k │        │
+│ GCM-13 │ > Rank the issue up (a count moves it that far)      Alt-k │        │
 │ GCM-14 │   Rank the issue down                                Alt-j │        │
 │ GCM-15 │ Backlog                                                    │        │
 │ GCM-16 │   Rank the issue to the top of the backlog                 │        │
@@ -205,7 +205,7 @@ Mockups below show the box only against the (muted) view; `[View]` marks rows wh
 │ GCM-18 │ Up/Down move  Enter run  Esc cancel                        │        │
 │ GCM-19 ╰────────────────────────────────────────────────────────────╯        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND :rank                                Up/Down move  Enter run  Esc cancel
+ COMMAND :rank                             Up/Down move  Enter run  Esc cancel
 ```
 
 - Title chip `Commands`; right-hand dim chip `shown/total` in the top edge. Query line directly under it: the prompt `:` in the accent colour, the typed text, a cursor cell. A rule below the query line.
@@ -217,7 +217,7 @@ Mockups below show the box only against the (muted) view; `[View]` marks rows wh
 
 ```
 ╭─ Help ────────────────────────────────────────────────────────── / filter ───╮
-│ ▌ List        │  j          Move down  (Down)                                │
+│ > List        │  j          Move down  (Down)                                │
 │   Global      │  k          Move up  (Up)                                    │
 │   All actions │  g g        Go to the top  (Home)                            │
 │   Commands    │  Space a    Open the actions menu of the selected issue      │
@@ -254,7 +254,7 @@ The frame and chip use the `bad` role for destructive actions (delete, bulk edit
       │ ┌─────────────────────────────────────────────────────────┐ │
       │ │ urgent_                                                 │ │
       │ └─────────────────────────────────────────────────────────┘ │
-      │   ▌ urgent (new)                                            │
+      │   > urgent (new)                                            │
       │     geeratya-seed                                           │
       ├─────────────────────────────────────────────────────────────┤
       │ Down/Up choose  Tab/Enter accept  Ctrl-s save  Esc cancel   │
@@ -270,7 +270,7 @@ Field label above its input; the focused field's input box is accent (the others
   │ > _                                                            │
   │ ────────────────────────────────────────────────────────────── │
   │ Boards                                                         │
-  │ ▌ Board   GCM board (kanban, GCM)                              │
+  │ > Board   GCM board (kanban, GCM)                              │
   │   Backlog GCM board (kanban, GCM)                              │
   │ Filters                                                        │
   │   Filter  Filter for GCM board (Test User 1)                   │
@@ -291,13 +291,13 @@ The manager is a full-body screen, not an overlay (it is also the first-run scre
  Profiles                                                       Space g jump
 ╭─ Profiles 2 ───────────────────┬─ Details ───────────────────────────────────╮
 │ ● work       me@acme.com       │ Site     https://acme.atlassian.net         │
-│ ▌ personal   me@home.net       │ Account  me@home.net                        │
+│ > personal   me@home.net       │ Account  me@home.net                        │
 │                                │ Token    OS secret store (stored)           │
 │                                │ Status   Connected as Me (checked 2 min ago)│
 │                                │                                             │
 │                                │                                             │
 ╰────────────────────────────────┴─────────────────────────────────────────────╯
- NORMAL  ● active    a add  e edit  d remove  Enter switch  Esc close
+ NORMAL  * active    Enter switch  Ctrl-x remove  Esc close   (more keys: #528)
 ```
 
 `●` (ASCII `*`) marks the active profile, in the `good` role. The tab row shows a single `Profiles` chip while the screen is open (it is not a tab of the active site; it can be opened without a connection). The details pane never shows a token, only its source (`OS secret store`, `env GEERATYA_TOKEN`, `not set`). Keys are listed as a proposal; #528 fixes them with the keymap rules. Remove asks (confirm box above: `Remove profile "personal"? Deletes the entry and its stored token. Jira data is untouched.`).
@@ -349,3 +349,17 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Confirm | Square corners, grey frame, view rows left and right of it blanked | 7 | #526 |
 | Forms and pickers | Square corners, grey frame, box placed 2 columns from the left rather than centred | 7 | #526 |
 | Profiles | `:profile list` is a small box over the start screen; add is a four-step one-field wizard; no edit | 7 (profile manager) | #528 |
+
+## 10. Reconciliation with the other parts, and what stays open
+
+The look changes how screens are drawn, not what they do. Where this part and an older paragraph differ, this part wins for drawing and the older part for behaviour:
+
+- **`ux-screens.md`**: the board's title line, the tab bar rows and the "Detail" box layout are replaced by sections 2 and 5 here (the paragraphs are updated by #524 and #527 when they land); cards, column widths, scroll and cursor rules stay as written there (see section 2). The detail is one document with one cursor.
+- **Pane keys**: there are none beyond the existing ones (`h`/`l`, `] ]`, `[ [`). `ux.md` "Not adopted from Gitunia" ("pane focus keys, no panes to resize") stays true: no resize keys, no direct pane-focus keys. "Focus model" stays: one focus place, the overlay or the body; the focused pane inside the body is a drawing detail of the cursor.
+- **Mouse** (`ux-mouse.md`): new targets are listed here and added there by the implementing issue: pane focus (#525), Backdrop (#526, replaces the per-overlay "click outside" lines), tab close `x`, middle-click close and the `+N` overflow chip (#527).
+- **Profile manager and form (#528) are a proposal.** #528 settles: the keys (no bare letters, `ux-keymap.md` rule; `Ctrl-x` remove, `Enter` and click switch stay), a Name field (the add wizard has one), whether the manager replaces the start screen (the start screen stays until it does), and the status line, which shows only what is already known for the active profile (no request to an inactive site; one site is active at a time). The token source row offers the env var only as `GEERATYA_TOKEN`, the process-wide variable that works with exactly one profile (`ux.md`, "Profiles"); otherwise the OS secret store.
+- **Network banner and stale row, issue-stack breadcrumb, which-key popup** (not placed above): the banner stays one row directly under the tab row (it shifts the frame down by one row); the breadcrumb (`GCM board › GCM-12`) goes to the status bar left in the detail, before the ruler; the which-key popup is an `OverlayBox` anchored at the bottom right without a Backdrop (it closes on any key as today). #525 and #527 may refine these.
+- **Mode badges**: `MESSAGES` (the messages overlay) uses the `info` role like `HELP`.
+- **Destructive vs warn confirm frame**: `bad` for the destructive list in `CLAUDE.md` (delete, bulk edits, many-issue assignee or sprint changes) and for a transition the workflow model marks as side-effecting when it is known; `warn` otherwise. How a transition is known to fire side effects is not decided here; until it is, a transition uses `warn`.
+- **Palette**: the mockup shows an advanced command; by default the list holds the everyday level only (`ux-keymap.md` rule 4).
+- **ASCII tier**: a quiet pane edge is `+--- To Do 5 ---+`: the chip text sits in a plain `- text -` edge; the filled accent chip is the same with bold or reversed text (`NO_COLOR`), and the glyph tier brackets chips only in the status and tab bars (` [1 Board GCM] `), never in a frame edge, so edges stay unambiguous.
