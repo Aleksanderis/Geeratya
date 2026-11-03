@@ -46,6 +46,38 @@ public static class OverlayBox
         ]);
     }
 
+    /// <summary>
+    /// The top edge with a dim count chip at the right (<paramref name="count"/>, for example <c>12/87</c>), a rule
+    /// cell between it and the corner. The count is left out when the title and it do not fit.
+    /// </summary>
+    public static StyledLine Top(int boxWidth, string title, string count, OverlayKind kind = OverlayKind.Normal)
+    {
+        var frame = FrameRole(kind);
+        var chip = TextWidth.Fit($" {title} ", Math.Max(0, boxWidth - ChipChrome));
+        var tag = $" {count} ";
+        var fill = boxWidth - ChipChrome - TextWidth.Of(chip) - TextWidth.Of(tag) - 1;
+
+        if (count.Length == 0 || fill < 1)
+        {
+            return Top(boxWidth, title, kind);
+        }
+
+        return new StyledLine(
+        [
+            new StyledSpan($"{Corner[0]}{Horizontal}", frame),
+            new StyledSpan(chip, ChipRole(kind)),
+            new StyledSpan(new string(Horizontal, fill), frame),
+            new StyledSpan(tag, TextRole.OverlayCount),
+            new StyledSpan($"{Horizontal}{Corner[1]}", frame),
+        ]);
+    }
+
+    /// <summary>A rule across the box that joins both walls (<c>├───┤</c>), under the query line and above the footer.</summary>
+    public static StyledLine Divider(int boxWidth, OverlayKind kind = OverlayKind.Normal)
+    {
+        return StyledLine.Of($"├{new string(Horizontal, boxWidth - 2)}┤", FrameRole(kind));
+    }
+
     public static StyledLine Bottom(int boxWidth, OverlayKind kind = OverlayKind.Normal)
     {
         return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", FrameRole(kind));
