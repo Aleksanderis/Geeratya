@@ -239,7 +239,7 @@ public class CommentEditorOverlayTests
     public void GivenAPopupWithRows_WhenClickingTheFirstRow_ThenTheMentionReplacesTheTypedWord()
     {
         var state = StateWith(EditorWithPopup());
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, [], _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.EditorChoice).Single(candidate => candidate.Index == 0);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -282,7 +282,7 @@ public class CommentEditorOverlayTests
             Confirm = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", "comment.discard"),
         };
 
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, [], _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
 
         var text = string.Join('\n', frame.PlainLines());
 
@@ -306,7 +306,7 @@ public class CommentEditorOverlayTests
 
     private static StyledFrame Frame(CommentEditor editor, int width, int height)
     {
-        return FrameBuilder.BuildStyled(StateWith(editor), width, height, [], _keymap)!;
+        return FrameBuilder.BuildStyled(StateWith(editor), width, height, _keymap)!;
     }
 
     internal static AppState StateWith(CommentEditor editor)

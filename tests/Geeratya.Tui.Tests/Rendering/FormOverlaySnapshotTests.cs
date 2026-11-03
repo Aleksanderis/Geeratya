@@ -19,7 +19,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class FormOverlaySnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly DateTimeOffset _start = new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
 
     [Theory]
@@ -28,7 +27,7 @@ public class FormOverlaySnapshotTests
     [InlineData(40, 10)]
     public void GivenAnOpenForm_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample(), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample(), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-{width}x{height}.txt");
 
@@ -38,7 +37,7 @@ public class FormOverlaySnapshotTests
     [Fact]
     public void GivenTheLabelsFieldInFocus_WhenBuildingTheFrame_ThenTheLabelsAndTheCaretShow()
     {
-        var lines = FrameBuilder.Build(Sample(), 120, 36, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[backend] [ui]", StringComparison.Ordinal) && line.Contains('_'));
         Assert.Contains(lines, line => line.Contains("> Labels", StringComparison.Ordinal));
@@ -47,7 +46,7 @@ public class FormOverlaySnapshotTests
     [Fact]
     public void GivenARequiredFieldWithAnError_WhenBuildingTheFrame_ThenTheErrorShowsUnderTheField()
     {
-        var lines = FrameBuilder.Build(Sample(), 120, 36, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("! Required", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("(not editable here)", StringComparison.Ordinal));
@@ -59,7 +58,7 @@ public class FormOverlaySnapshotTests
     {
         var state = WithForm(FormState.Opened(Target(), 3, null));
 
-        var lines = FrameBuilder.Build(state, 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Loading fields…", StringComparison.Ordinal));
     }
@@ -69,7 +68,7 @@ public class FormOverlaySnapshotTests
     {
         var form = SampleForm() with { Focus = 3 };
 
-        var lines = FrameBuilder.Build(WithForm(form), 40, 10, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(form), 40, 10, _keymap);
 
         Assert.Contains(lines, line => line.Contains("> ", StringComparison.Ordinal));
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
@@ -83,7 +82,7 @@ public class FormOverlaySnapshotTests
             .WithInitial(FormValue.OfChosen(labels)) with { Entry = "typing-now" };
         var form = SampleForm() with { Fields = [field], Focus = 0 };
 
-        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[team-label-12]", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("typing-now_", StringComparison.Ordinal));
@@ -97,7 +96,7 @@ public class FormOverlaySnapshotTests
             .WithInitial(FormValue.OfText(new string('x', 80) + "THE-END"));
         var form = SampleForm() with { Fields = [field], Focus = 0 };
 
-        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(form), 40, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END_", StringComparison.Ordinal));
     }
@@ -105,7 +104,7 @@ public class FormOverlaySnapshotTests
     [Fact]
     public void GivenTheTypePicker_WhenBuildingTheFrame_ThenTheTypesAndTheirKeysShow()
     {
-        var lines = FrameBuilder.Build(WithForm(PickerForm()), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(PickerForm()), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Create issue in A", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("> Task", StringComparison.Ordinal));
@@ -123,7 +122,7 @@ public class FormOverlaySnapshotTests
         var target = new CreateFormTarget("A", "A-1", false, new CreateIssueType("10", "Task", string.Empty, 0, false));
         var form = FormState.Opened(target, 3, null) with { Fields = [summary, parent], IsLoading = false };
 
-        var lines = FrameBuilder.Build(WithForm(form), 120, 36, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(form), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Create Task under A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Parent", StringComparison.Ordinal));
@@ -155,7 +154,7 @@ public class FormOverlaySnapshotTests
         var opened = FormState.Opened(new AssignFormTarget("A-1", null), 3, null);
         var form = opened with { Fields = [field], IsLoading = false };
 
-        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(form), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Assign A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Eve Example", StringComparison.Ordinal));
@@ -169,7 +168,7 @@ public class FormOverlaySnapshotTests
         var form = FormState.Opened(target, 3, null) with { Fields = target.Fields(), IsLoading = false };
         var shown = form with { Suggest = ChoicePopup.For(form.Fields[0], 0, null) };
 
-        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Change status of A-1", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("> Move to *", StringComparison.Ordinal));
@@ -186,7 +185,7 @@ public class FormOverlaySnapshotTests
         var form = FormState.Opened(Target(), 3, null) with { Fields = [typed], IsLoading = false };
         var shown = form with { Suggest = ChoicePopup.For(typed, 0, null) };
 
-        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[Backend] oc_", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("> Docs", StringComparison.Ordinal));
@@ -199,7 +198,7 @@ public class FormOverlaySnapshotTests
     {
         var target = new TransitionPickTarget("A-1", ["2"], "In Progress", []);
 
-        var lines = FrameBuilder.Build(WithForm(FormState.Opened(target, 3, null)), 80, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(WithForm(FormState.Opened(target, 3, null)), 80, 24, _keymap);
 
         Assert.DoesNotContain(lines, line => line.Contains("Move A-1 to In Progress", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Loading fields", StringComparison.Ordinal) && line.Contains('┌'));

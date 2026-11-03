@@ -27,8 +27,6 @@ public sealed class ShellScreen : Window
     private readonly Label _status;
     private readonly Label _statusMessage;
     private PaletteRole _messageRole = PaletteRole.Error;
-    private IReadOnlyList<string> _helpLines;
-    private IReadOnlyList<string> _advancedHelpLines;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
@@ -47,8 +45,6 @@ public sealed class ShellScreen : Window
         _keymap = keymap;
         _colors = colors;
         _glyphs = glyphs;
-        _helpLines = KeymapDocument.RenderHelpLines(keymap);
-        _advancedHelpLines = KeymapDocument.RenderHelpLines(keymap, CommandLevel.Advanced);
         _size = initialSize;
         BorderStyle = LineStyle.None;
         Width = Dim.Fill();
@@ -89,18 +85,6 @@ public sealed class ShellScreen : Window
     /// <summary>The terminal width, which issue details are laid out for.</summary>
     public int BodyColumns => Math.Max(0, _size.Width);
 
-    /// <summary>Builds the help text again after the keymap was replaced.</summary>
-    public void RefreshHelp()
-    {
-        _helpLines = KeymapDocument.RenderHelpLines(_keymap);
-        _advancedHelpLines = KeymapDocument.RenderHelpLines(_keymap, CommandLevel.Advanced);
-    }
-
-    private IReadOnlyList<string> HelpLinesFor(AppState state)
-    {
-        return state.Settings.CommandLevel == CommandLevel.Advanced ? _advancedHelpLines : _helpLines;
-    }
-
     /// <summary>Draws with another theme, starting with the next frame (drawn now).</summary>
     public void SetTheme(Theme theme)
     {
@@ -114,8 +98,7 @@ public sealed class ShellScreen : Window
         _state = state;
         _now = now;
 
-        var helpLines = HelpLinesFor(state);
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, helpLines, _keymap, null, now, _glyphs);
+        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _keymap, null, now, _glyphs);
 
         if (frame is null)
         {

@@ -1,0 +1,24 @@
+ [1 JQL: Sample]  +                                                      [jump] 
+                                                                                
+Help                                                                            
+List  Global  All actions  Commands  Custom                                     
+  Unbound: q                                                                    
+  Ctrl-q     Quit (app.quit)                                                    
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ HELP                                Tab page  / filter  j down  k up  Esc close

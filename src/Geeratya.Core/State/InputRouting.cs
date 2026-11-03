@@ -1,5 +1,6 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Views;
 
@@ -16,6 +17,9 @@ public enum KeyRouteKind
 
     /// <summary>A digit that starts or extends a count in Normal mode.</summary>
     Count,
+
+    /// <summary>The help overlay's filter line is being typed and takes the printable keys.</summary>
+    HelpFilter,
 
     /// <summary>The key starts or continues a longer binding; nothing runs yet.</summary>
     ChordPrefix,
@@ -59,6 +63,11 @@ public static class InputRouting
         if (FormReducer.IsOpen(state))
         {
             return new KeyRoute(KeyRouteKind.Form);
+        }
+
+        if (HelpReducer.TakesKeys(state) && keymap.Resolve(state.Mode, string.Empty, key).Action != ActionIds.Quit)
+        {
+            return new KeyRoute(KeyRouteKind.HelpFilter);
         }
 
         if (Counts.IsDigit(state, key))

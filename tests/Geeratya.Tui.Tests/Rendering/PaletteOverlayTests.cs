@@ -17,7 +17,6 @@ public class PaletteOverlayTests
     private static readonly DateTimeOffset _now = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData("", 0, 120, 36)]
@@ -33,7 +32,7 @@ public class PaletteOverlayTests
         int height)
     {
         var state = Sample(text) with { PaletteSelected = selected };
-        var actual = string.Join('\n', FrameBuilder.Build(state, width, height, _helpLines, _keymap)) + "\n";
+        var actual = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap)) + "\n";
         var name = $"palette-{Slug(text)}-{width}x{height}.txt";
         var expected = SnapshotFile.Expect(name, actual);
 
@@ -43,7 +42,7 @@ public class PaletteOverlayTests
     [Fact]
     public void GivenSeveralGroupsThatFit_WhenBuildingTheFrame_ThenABlankLinePrecedesEverySubheaderButTheFirst()
     {
-        var inner = BoxInner(FrameBuilder.Build(Sample("the tab"), 100, 36, _helpLines, _keymap));
+        var inner = BoxInner(FrameBuilder.Build(Sample("the tab"), 100, 36, _keymap));
         var headers = inner.Select((text, index) => new { text, index })
             .Where(item => ActionCatalog.Groups.Contains(item.text))
             .ToList();
@@ -56,7 +55,7 @@ public class PaletteOverlayTests
     [Fact]
     public void GivenTheFullList_WhenItDoesNotFit_ThenTheBlankLinesAreDropped()
     {
-        var inner = BoxInner(FrameBuilder.Build(Sample(string.Empty), 100, 36, _helpLines, _keymap));
+        var inner = BoxInner(FrameBuilder.Build(Sample(string.Empty), 100, 36, _keymap));
 
         Assert.DoesNotContain(string.Empty, inner);
         Assert.Contains(ActionCatalog.Groups[0], inner);
@@ -68,7 +67,7 @@ public class PaletteOverlayTests
     [InlineData(40, 10)]
     public void GivenAnOpenPalette_WhenReadingTheRegions_ThenEveryRowIsClickableAndSubheadersAreNot(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), width, height, _keymap)!;
         var rows = RegionProbe.Rows(frame, MouseTarget.PaletteRow);
 
         Assert.NotEmpty(rows);
@@ -82,7 +81,7 @@ public class PaletteOverlayTests
     public void GivenAFilteredPalette_WhenClickingARow_ThenThatActionRunsAfterThePaletteClosed()
     {
         var state = Sample("hide help");
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.PaletteRow).Single();
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -96,7 +95,7 @@ public class PaletteOverlayTests
     public void GivenAnOpenPalette_WhenWheelingOverARow_ThenTheHighlightMovesAndThePaletteStaysOpen()
     {
         var state = Sample(string.Empty);
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.PaletteRow)[0];
 
         var down = RegionProbe.Click(state, frame, row.Region, MouseGesture.WheelDown)!;
@@ -113,7 +112,7 @@ public class PaletteOverlayTests
         var count = PaletteRows.Selectable(Sample(string.Empty), _keymap).Count;
         var state = Sample(string.Empty) with { PaletteSelected = count - 1 };
 
-        var frame = FrameBuilder.BuildStyled(state, 80, 12, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 12, _keymap)!;
         var marked = frame.PlainLines().Where(line => line.Contains("│ > ", StringComparison.Ordinal)).ToList();
 
         Assert.Single(marked);
@@ -123,7 +122,7 @@ public class PaletteOverlayTests
     [Fact]
     public void GivenARowWithKeys_WhenBuildingTheFrame_ThenTheKeysShowAtTheEnd()
     {
-        var lines = FrameBuilder.Build(Sample("Close the tab"), 100, 24, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample("Close the tab"), 100, 24, _keymap);
         var row = lines.Single(line => line.Contains("│ > Close the tab", StringComparison.Ordinal));
 
         Assert.Contains("Space c", row, StringComparison.Ordinal);
@@ -132,7 +131,7 @@ public class PaletteOverlayTests
     [Fact]
     public void GivenTheAsciiGlyphSet_WhenBuildingTheFrame_ThenNoUnicodeGlyphLeaks()
     {
-        var frame = FrameBuilder.Build(Sample(string.Empty), 80, 24, _helpLines, _keymap, null, GlyphSet.Ascii);
+        var frame = FrameBuilder.Build(Sample(string.Empty), 80, 24, _keymap, null, GlyphSet.Ascii);
 
         Assert.All(frame, line => Assert.All(line, character => Assert.True(character < 128, line)));
     }
@@ -146,7 +145,7 @@ public class PaletteOverlayTests
             {
                 for (var height = 0; height <= 12; height++)
                 {
-                    FrameBuilder.BuildStyled(Sample(text), width, height, _helpLines, _keymap);
+                    FrameBuilder.BuildStyled(Sample(text), width, height, _keymap);
                 }
             }
         }

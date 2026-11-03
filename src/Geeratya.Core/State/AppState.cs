@@ -81,6 +81,15 @@ public sealed record AppState(
     /// <summary>The Messages overlay lists every setting (value, default, help) above the history (<c>:set</c> without an argument).</summary>
     public bool MessagesShowSettings { get; init; }
 
+    /// <summary>The page of the help overlay (an index into <c>HelpPages.Names</c>); 0 is the active layout's page.</summary>
+    public int HelpPage { get; init; }
+
+    /// <summary>The text of the help filter (<c>/</c>); empty when none.</summary>
+    public string HelpFilter { get; init; } = string.Empty;
+
+    /// <summary>The help filter line is being typed: printable keys are text and <c>Enter</c> keeps the filter.</summary>
+    public bool HelpFiltering { get; init; }
+
     /// <summary>The highlighted row of the command palette, counted over its selectable rows (Command mode).</summary>
     public int PaletteSelected { get; init; }
 

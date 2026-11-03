@@ -9,7 +9,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class WhichKeyOverlayTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Fact]
     public void GivenSpacePending_WhenBuilding_ThenEveryNextKeyShowsWithTheCatalogTitle()
@@ -101,7 +100,7 @@ public class WhichKeyOverlayTests
     public void GivenEveryHintList_WhenCheckingTheDefaultKeymap_ThenEachNamedActionIsBoundInItsMode()
     {
         IEnumerable<StatusHint> all =
-            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.FormHints];
+            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.HelpHints, .. StatusBar.FormHints];
 
         foreach (var hint in all)
         {
@@ -129,6 +128,6 @@ public class WhichKeyOverlayTests
 
     private static IReadOnlyList<string> Build(AppState state, int width, int height)
     {
-        return FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+        return FrameBuilder.Build(state, width, height, _keymap);
     }
 }

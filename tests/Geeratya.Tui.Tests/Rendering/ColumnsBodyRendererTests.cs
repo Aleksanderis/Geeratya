@@ -18,7 +18,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ColumnsBodyRendererTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     private static readonly BoardConfiguration _configuration = new(
         4,
@@ -314,7 +313,7 @@ public class ColumnsBodyRendererTests
             {
                 for (var height = 1; height <= 14; height++)
                 {
-                    var frame = FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _helpLines, _keymap);
+                    var frame = FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _keymap);
                     var lines = frame.Skip(FrameBuilder.HeaderRows).ToList();
 
                     Assert.Equal(height, lines.Count);
@@ -352,7 +351,7 @@ public class ColumnsBodyRendererTests
 
     private static IReadOnlyList<StyledLine> RenderState(AppState state, int width, int height)
     {
-        var context = new BodyContext(_helpLines, _keymap);
+        var context = new BodyContext(_keymap);
 
         return new ColumnsBodyRenderer().Render(state, context, width, height);
     }
@@ -505,7 +504,7 @@ public class ColumnsBodyRendererTests
 
         for (var width = 1; width <= 60; width++)
         {
-            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _helpLines, _keymap);
+            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _keymap);
 
             Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
         }
@@ -533,7 +532,7 @@ public class ColumnsBodyRendererTests
 
         for (var width = 1; width <= 60; width++)
         {
-            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _helpLines, _keymap);
+            var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _keymap);
 
             Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
         }

@@ -16,9 +16,13 @@ public sealed class KeymapTable
     /// </summary>
     public IReadOnlyList<KeyBinding> Bindings { get; private set; }
 
-    public void Replace(IReadOnlyList<KeyBinding> bindings)
+    /// <summary>The changes the user's <c>keymap.json</c> made to the defaults; empty without a file.</summary>
+    public IReadOnlyList<CustomKeymapRow> Custom { get; private set; } = [];
+
+    public void Replace(IReadOnlyList<KeyBinding> bindings, IReadOnlyList<CustomKeymapRow>? custom = null)
     {
         Bindings = bindings;
+        Custom = custom ?? [];
     }
 
     /// <summary>Feeds <paramref name="key"/> after the already typed <paramref name="pending"/> keys.</summary>

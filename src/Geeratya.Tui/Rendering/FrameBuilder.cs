@@ -40,12 +40,11 @@ public static class FrameBuilder
         AppState state,
         int width,
         int height,
-        IReadOnlyList<string> helpLines,
         KeymapTable keymap,
         DateTimeOffset? now = null,
         GlyphSet glyphs = GlyphSet.Unicode)
     {
-        return BuildStyled(state, width, height, helpLines, keymap, null, now, glyphs)?.PlainLines() ?? [];
+        return BuildStyled(state, width, height, keymap, null, now, glyphs)?.PlainLines() ?? [];
     }
 
     /// <summary>
@@ -58,7 +57,6 @@ public static class FrameBuilder
         AppState state,
         int width,
         int height,
-        IReadOnlyList<string> helpLines,
         KeymapTable keymap,
         IReadOnlyList<IBodyRenderer>? screens = null,
         DateTimeOffset? now = null,
@@ -72,12 +70,17 @@ public static class FrameBuilder
         var header = Math.Min(HeaderRows, height - 1);
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var bodyHeight = BodyHeight(height);
-        var context = new BodyContext(helpLines, keymap, glyphs);
+        var context = new BodyContext(keymap, glyphs);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
         var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);
 
         var regions = new List<OverlayRegion>();
+
+        if (state.Mode == InputMode.Help && !state.MessagesOpen)
+        {
+            regions.AddRange(HelpBodyRenderer.PageRegions(state, keymap, width));
+        }
 
         if (state.ProfileList is not null)
         {

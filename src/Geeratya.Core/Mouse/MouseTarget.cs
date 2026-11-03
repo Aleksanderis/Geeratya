@@ -71,6 +71,9 @@ public enum MouseTarget
     /// <summary>A row of the comment editor's suggestion popup (a click takes it).</summary>
     EditorChoice,
 
+    /// <summary>A page name in the first rows of the help overlay (a click shows that page).</summary>
+    HelpPage,
+
     /// <summary>The <c>y</c> row of the Confirm dialog: runs the action.</summary>
     ConfirmYes,
 

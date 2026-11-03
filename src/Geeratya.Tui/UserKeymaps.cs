@@ -18,7 +18,7 @@ public static class UserKeymaps
 
         var result = store.Load(defaults.Bindings);
 
-        keymap.Replace(result.Bindings);
+        keymap.Replace(result.Bindings, result.Custom);
 
         return result.Notice;
     }

@@ -10,7 +10,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class StatusMessageRenderingTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly DateTimeOffset _now = new(2026, 11, 3, 10, 0, 0, TimeSpan.Zero);
 
     [Theory]
@@ -72,7 +71,7 @@ public class StatusMessageRenderingTests
         state = reducer.Reduce(StatusMessages.Fail(state, "Second failed"), new KeyPressed("x", _now)).State;
         state = StatusMessages.OpenHistory(state);
 
-        var lines = FrameBuilder.Build(state, 60, 12, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 60, 12, _keymap);
 
         var heading = lines.ToList().FindIndex(line => line.StartsWith("Messages"));
 
@@ -85,7 +84,7 @@ public class StatusMessageRenderingTests
     [Fact]
     public void GivenNoMessages_WhenOpeningTheHistory_ThenItSaysSo()
     {
-        var lines = FrameBuilder.Build(StatusMessages.OpenHistory(AppState.Initial), 60, 12, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(StatusMessages.OpenHistory(AppState.Initial), 60, 12, _keymap);
 
         Assert.Contains(lines, line => line.StartsWith("No messages yet."));
     }

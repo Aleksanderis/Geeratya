@@ -1,0 +1,36 @@
+                                                                                                                        
+                                                                                                                        
+Help                                                                                                                    
+Global  All actions  Commands                                                                                           
+  h          Move left  (Left)                                                                                          
+  l          Move right  (Right)                                                                                        
+  g g        Go to the top  (Home)                                                                                      
+  G          Go to the bottom  (End)                                                                                    
+  Ctrl-d     Page down  (PageDown)                                                                                      
+  Ctrl-u     Page up  (PageUp)                                                                                          
+  Enter      Open the selected item                                                                                     
+  0          Go to the first column                                                                                     
+  $          Go to the last column                                                                                      
+  ] ]        Next section of the issue                                                                                  
+  [ [        Previous section of the issue                                                                              
+General                                                                                                                 
+  ?          Show or hide help                                                                                          
+  q          Quit  (Ctrl-c)                                                                                             
+  Esc        Cancel or close                                                                                            
+  :          Open the command palette  (Ctrl-p)                                                                         
+  Space a    Open the actions menu of the selected issue                                                                
+  Space n    Show the message history                                                                                   
+  Space x    Dismiss the status message                                                                                 
+Dialogs                                                                                                                 
+  Esc        Close help  (q)                                                                                            
+  /          Filter the help by key, title or action id                                                                 
+  Tab        Next help page                                                                                             
+  Shift-Tab  Previous help page                                                                                         
+  Enter      Run the typed command                                                                                      
+  Backspace  Delete the last character                                                                                  
+  y          Confirm                                                                                                    
+  n          Decline  (Esc)                                                                                             
+  Enter      Accept the field and go to the next                                                                        
+  Backspace  Delete the last character                                                                                  
+  Ctrl-x     Remove the highlighted profile (asks first; the stored token is deleted)                                   
+ HELP                                                                        Tab page  / filter  j down  k up  Esc close

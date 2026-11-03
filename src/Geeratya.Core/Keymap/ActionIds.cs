@@ -13,7 +13,10 @@ public static class ActionIds
     public const string NavigatePageUp = "nav.page-up";
     public const string HelpToggle = "help.toggle";
     public const string HelpClose = "help.close";
-    public const string Quit = "app.quit";
+    public const string HelpFilter = "help.filter";
+    public const string HelpPageNext = "help.page-next";
+    public const string HelpPagePrevious = "help.page-previous";
+    public const string Quit ="app.quit";
     public const string Cancel = "mode.cancel";
     public const string PaletteOpen = "palette.open";
     public const string ContextMenuOpen = "menu.context";

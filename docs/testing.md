@@ -8,13 +8,13 @@ Strategy and layers. The procedure for writing, recording and running tests is t
 |---|---|---|
 | Pure tests | State, commands, keymap, JQL building, mappers over recorded JSON, layout | `tests/Geeratya.<Project>.Tests`, no terminal, no socket |
 | Transport and store tests | Jira calls, paging, refresh, caches against the in-process fake | `FakeJiraHandler` in `tests/Geeratya.Jira.Tests/Fakes` |
-| Frame snapshots | Rendering as text at several sizes (help also scrolled, `--help-scroll`) | Tui tests |
+| Frame snapshots | Rendering as text at several sizes (help pages and scrolled, `--help-page`, `--help-scroll`) | Tui tests |
 | Fake Jira server | The real binary against recorded data (tmux, screenshots, measurements) | `tools/FakeJira` |
 | Live tests | Behaviour the fake might get wrong, on the dev site only | Opt-in, `Live=true` |
 
 xUnit throughout, one test project per source project, same folder layout as the code. `[Trait("Os", "Independent")]` marks pure classes the Windows leg runs (`testing` skill). `tools/FakeJira` has its own test project, `tests/Geeratya.FakeJira.Tests`, which starts the server on a free loopback port and talks to it with a real `HttpClient`, so those tests are not marked OS independent.
 
-To regenerate snapshots after adding key rows or palette commands, run `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests`. The switch is project-wide for the families that honour it: `help-scroll*`, `popup-*`, `network-*` and the issue detail snapshots. Those tests then write the current output into `tests/Geeratya.Tui.Tests/Snapshots/` instead of asserting; review the diff and commit it. Unset, they assert as usual.
+To regenerate snapshots after adding key rows or palette commands, run `GEERATYA_UPDATE_SNAPSHOTS=1 dotnet test tests/Geeratya.Tui.Tests`. The switch is project-wide for the families that honour it: `help-*`, `popup-*`, `network-*` and the issue detail snapshots. Those tests then write the current output into `tests/Geeratya.Tui.Tests/Snapshots/` instead of asserting; review the diff and commit it. Unset, they assert as usual.
 
 ## Fixtures
 

@@ -12,7 +12,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class StatusMessageSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly DateTimeOffset _now = new(2026, 11, 3, 10, 0, 0, TimeSpan.Zero);
 
     [Theory]
@@ -21,7 +20,7 @@ public class StatusMessageSnapshotTests
     [InlineData(40, 10)]
     public void GivenTheHistoryOverlay_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(HistoryState(), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(HistoryState(), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"messages-{width}x{height}.txt");
 
@@ -34,7 +33,7 @@ public class StatusMessageSnapshotTests
     public void GivenTheSettingsList_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
         var state = StatusMessages.OpenSettings(Posted());
-        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect($"messages-settings-{width}x{height}.txt", actual);
 

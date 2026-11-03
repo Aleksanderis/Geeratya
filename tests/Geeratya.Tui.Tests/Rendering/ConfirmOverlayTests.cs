@@ -16,7 +16,6 @@ public class ConfirmOverlayTests
 
     private static readonly DateTimeOffset _at = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly AppReducer _reducer = new(_keymap);
 
     [Theory]
@@ -24,7 +23,7 @@ public class ConfirmOverlayTests
     [InlineData(80, 24)]
     public void GivenRoom_WhenBuildingTheFrame_ThenTheDialogNamesWhatChangesAndTheStatusIsShort(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Open(), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Open(), width, height, _keymap)!;
         var text = string.Join('\n', frame.PlainLines());
 
         Assert.Contains("Delete the GCM-3 comment?", text, StringComparison.Ordinal);
@@ -39,7 +38,7 @@ public class ConfirmOverlayTests
     [Fact]
     public void GivenAWarningLine_WhenBuildingTheFrame_ThenItUsesTheWarningRole()
     {
-        var frame = FrameBuilder.BuildStyled(Open(), 120, 36, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Open(), 120, 36, _keymap)!;
 
         var spans = frame.Body.SelectMany(line => line.Spans).ToList();
 
@@ -55,7 +54,7 @@ public class ConfirmOverlayTests
             + "Two writes are running. This cannot be undone";
         var state = Open(new ConfirmRequest(message, "x", Label: "Remove profile"));
 
-        var lines = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!.PlainLines();
+        var lines = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.PlainLines();
         var text = string.Join(' ', lines.Select(line => line.Replace('│', ' ')));
 
         Assert.Contains("https://work.atlassian.net)", text, StringComparison.Ordinal);
@@ -65,7 +64,7 @@ public class ConfirmOverlayTests
     [Fact]
     public void GivenTooLittleRoom_WhenBuildingTheFrame_ThenNoDialogIsDrawnAndTheStatusLineKeepsTheQuestion()
     {
-        var frame = FrameBuilder.BuildStyled(Open(), 40, 10, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Open(), 40, 10, _keymap)!;
 
         Assert.Empty(frame.Regions);
         Assert.DoesNotContain("┌─ Confirm", string.Join('\n', frame.PlainLines()), StringComparison.Ordinal);
@@ -80,7 +79,7 @@ public class ConfirmOverlayTests
         {
             for (var height = 0; height <= 30; height++)
             {
-                var frame = FrameBuilder.BuildStyled(Open(), width, height, _helpLines, _keymap);
+                var frame = FrameBuilder.BuildStyled(Open(), width, height, _keymap);
 
                 foreach (var region in frame?.Regions ?? [])
                 {
@@ -95,7 +94,7 @@ public class ConfirmOverlayTests
     public void GivenTheDialog_WhenClickingTheYesRow_ThenTheActionRunsAndTheModeIsRestored()
     {
         var state = Open(new ConfirmRequest("Quit anyway?", ActionIds.Quit, Label: "Quit"));
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.ConfirmYes).Single();
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -110,7 +109,7 @@ public class ConfirmOverlayTests
     public void GivenTheDialog_WhenClickingTheNoRow_ThenNothingRunsAndTheDialogCloses()
     {
         var state = Open();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.ConfirmNo).Single();
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -125,7 +124,7 @@ public class ConfirmOverlayTests
     public void GivenTheDialog_WhenClickingOutsideTheBoxInTheBodyOrTheStatusLine_ThenItCancelsLikeN()
     {
         var state = Open();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
         int[][] cells = [[0, 5], [79, 12], [3, 22], [10, 23], [5, 0], [5, 1]];
 
@@ -143,7 +142,7 @@ public class ConfirmOverlayTests
     public void GivenTheDialog_WhenClickingInsideTheBoxOffTheRows_ThenNothingHappens()
     {
         var state = Open();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var box = frame.Regions.Single(region => region.Target == MouseTarget.ConfirmBox);
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
 
@@ -204,7 +203,7 @@ public class ConfirmOverlayTests
             var state = _reducer.Reduce(AppState.Initial, viewport).State;
 
             var opened = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x"))).State;
-            var shown = FrameBuilder.BuildStyled(Open(), 80, height, _helpLines, _keymap)!.Regions.Count > 0;
+            var shown = FrameBuilder.BuildStyled(Open(), 80, height, _keymap)!.Regions.Count > 0;
 
             Assert.Equal(shown, opened.Mode == InputMode.Confirm);
         }
@@ -241,7 +240,7 @@ public class ConfirmOverlayTests
         var editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of("draft"), string.Empty);
         var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", "x");
         var state = Open(request) with { ViewportColumns = 80, ViewportBodyHeight = 21, Editor = editor };
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
         var click = MouseResolver.Resolve(context, 5, 0, MouseGesture.Click, _at);
         var declined = _reducer.Reduce(state, Assert.Single(click));

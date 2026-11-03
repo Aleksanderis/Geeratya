@@ -16,7 +16,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ListSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData(120, 36)]
@@ -24,7 +23,7 @@ public class ListSnapshotTests
     [InlineData(40, 10)]
     public void GivenALoadedList_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(Sample(), width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(Sample(), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var name = $"list-{width}x{height}.txt";
 
@@ -36,7 +35,7 @@ public class ListSnapshotTests
     [Fact]
     public void GivenTheAsciiGlyphSet_WhenBuildingTheFrame_ThenTheBodyMatchesTheAsciiSnapshot()
     {
-        var lines = FrameBuilder.Build(Sample(), 40, 10, _helpLines, _keymap, null, GlyphSet.Ascii)
+        var lines = FrameBuilder.Build(Sample(), 40, 10, _keymap, null, GlyphSet.Ascii)
             .Skip(FrameBuilder.HeaderRows);
         var actual = string.Join('\n', lines) + "\n";
 

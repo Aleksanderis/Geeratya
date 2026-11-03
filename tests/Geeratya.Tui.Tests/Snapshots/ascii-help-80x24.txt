@@ -1,24 +1,24 @@
                                                                                 
                                                                                 
 Help                                                                            
-Normal mode                                                                     
-  j          Move down                                                          
-  Down       Move down                                                          
-  k          Move up                                                            
-  Up         Move up                                                            
-  h          Move left                                                          
-  Left       Move left                                                          
-  l          Move right                                                         
-  Right      Move right                                                         
-  g g        Go to the top                                                      
-  Home       Go to the top                                                      
-  G          Go to the bottom                                                   
-  End        Go to the bottom                                                   
-  Ctrl-d     Page down                                                          
-  PageDown   Page down                                                          
-  Ctrl-u     Page up                                                            
-  PageUp     Page up                                                            
+Global  All actions  Commands                                                   
   ?          Show or hide help                                                  
-  :          Open the command palette                                           
-  Ctrl-p     Open the command palette                                           
- HELP                                                    j down  k up  Esc close
+  q          Quit  (Ctrl-c)                                                     
+  Esc        Cancel or close                                                    
+  :          Open the command palette  (Ctrl-p)                                 
+  Space A    Open the actions menu of the tab and the view                      
+  Tab        Next tab  (g t)                                                    
+  Shift-Tab  Previous tab  (g T)                                                
+  Alt-1      Go to tab 1                                                        
+  Alt-2      Go to tab 2                                                        
+  Alt-3      Go to tab 3                                                        
+  Alt-4      Go to tab 4                                                        
+  Alt-5      Go to tab 5                                                        
+  Alt-6      Go to tab 6                                                        
+  Alt-7      Go to tab 7                                                        
+  Alt-8      Go to tab 8                                                        
+  Alt-9      Go to tab 9                                                        
+  Space t    Open the source picker for a new tab                               
+  Space c    Close the tab                                                      
+  Space r    Refresh the view (also retries after an error)                     
+ HELP                                Tab page  / filter  j down  k up  Esc close

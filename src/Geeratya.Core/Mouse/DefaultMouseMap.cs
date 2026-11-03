@@ -32,6 +32,7 @@ public static class DefaultMouseMap
         new(MouseTarget.FormField, MouseGesture.Click, ActionIds.FormFieldNext, 1, 'O'),
         new(MouseTarget.FormChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.EditorChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
+        new(MouseTarget.HelpPage, MouseGesture.Click, ActionIds.HelpPageNext, 1, 'O'),
         new(MouseTarget.ConfirmYes, MouseGesture.Click, ActionIds.ConfirmYes, 1, 'O'),
         new(MouseTarget.ConfirmNo, MouseGesture.Click, ActionIds.ConfirmNo, 1, 'O'),
         new(MouseTarget.Lists, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
@@ -128,6 +129,8 @@ public static class DefaultMouseMap
             [ActionIds.TabGoTo7] = tabClick,
             [ActionIds.TabGoTo8] = tabClick,
             [ActionIds.TabGoTo9] = tabClick,
+            [ActionIds.HelpPagePrevious] = "a click on the page name shows that page",
+            [ActionIds.HelpFilter] = "the filter is typed text; the page names are the mouse path",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
 

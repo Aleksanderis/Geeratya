@@ -40,6 +40,7 @@ public static class UserKeymap
     {
         var problems = new List<string>();
         var remaining = defaults.ToList();
+        var custom = new List<CustomKeymapRow>();
 
         foreach (var row in file.Unbind ?? [])
         {
@@ -50,6 +51,10 @@ public static class UserKeymap
             else if (remaining.RemoveAll(binding => binding.Mode == row.Mode && binding.Keys == row.Keys) == 0)
             {
                 problems.Add($"unbind {Label(row.Mode, row.Keys)}: no default binding with these keys");
+            }
+            else
+            {
+                custom.Add(new CustomKeymapRow(row.Mode.Value, row.Keys, null));
             }
         }
 
@@ -80,10 +85,11 @@ public static class UserKeymap
             }
 
             added.Add(row);
+            custom.Add(new CustomKeymapRow(row.Mode, row.Keys, row.Action));
         }
 
         // The user's rows come first, so a hint or help line shows the key the user chose for an action.
-        return new KeymapLoadResult(added.Concat(remaining).ToList(), problems);
+        return new KeymapLoadResult(added.Concat(remaining).ToList(), problems) { Custom = custom };
     }
 
     private static string? FindRowProblem(UserKeymapRow? row)

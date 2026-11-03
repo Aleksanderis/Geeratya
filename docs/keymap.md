@@ -87,6 +87,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `k` | Move up | everyday |
 | `Up` | Move up | everyday |
 | `?` | Show or hide help | everyday |
+| `/` | Filter the help by key, title or action id | everyday |
+| `Tab` | Next help page | everyday |
+| `Shift-Tab` | Previous help page | everyday |
 | `Space *` | Switch the command level for the session | everyday |
 | `Esc` | Close help | everyday |
 | `q` | Close help | everyday |

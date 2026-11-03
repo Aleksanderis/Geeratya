@@ -10,13 +10,12 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ConnectionLineTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly Profile _profile = new("work", "https://work.atlassian.net", "me@work.test");
 
     [Fact]
     public void GivenConnected_WhenBuildingTheStartScreen_ThenTheConnectedLineShowsBelowTheProfile()
     {
-        var lines = FrameBuilder.Build(With(new Connected("Test User 1")), 80, 12, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(With(new Connected("Test User 1")), 80, 12, _keymap);
 
         var profile = lines.ToList().FindIndex(line => line.Contains("me@work.test"));
 
@@ -26,7 +25,7 @@ public class ConnectionLineTests
     [Fact]
     public void GivenChecking_WhenBuildingTheStartScreen_ThenCheckingShowsAndNoLineOverflows()
     {
-        var lines = FrameBuilder.Build(With(new Checking()), 40, 10, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(With(new Checking()), 40, 10, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Checking work.atlassian.net..."));
         Assert.All(lines, line => Assert.True(line.Length <= 40));

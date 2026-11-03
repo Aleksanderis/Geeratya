@@ -15,7 +15,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ColumnsSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
 
     [Theory]
     [InlineData("gcm", 120, 36)]
@@ -31,7 +30,7 @@ public class ColumnsSnapshotTests
     {
         var state = await OpenAsync(kind, height);
 
-        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var name = $"columns-{kind}-{width}x{height}.txt";
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
@@ -50,7 +49,7 @@ public class ColumnsSnapshotTests
     {
         var state = await OpenAsync(kind, height);
 
-        var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap, null, GlyphSet.Ascii);
+        var lines = FrameBuilder.Build(state, width, height, _keymap, null, GlyphSet.Ascii);
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect($"columns-ascii-{kind}-{width}x{height}.txt", actual);
 
@@ -71,7 +70,7 @@ public class ColumnsSnapshotTests
     {
         var state = await OpenAsync(kind, 36);
 
-        var lines = FrameBuilder.Build(state, 120, 36, _helpLines, _keymap);
+        var lines = FrameBuilder.Build(state, 120, 36, _keymap);
 
         var positions = new[] { first, second, third, fourth }
             .Select(name => lines[3].IndexOf(name, StringComparison.Ordinal))
@@ -92,7 +91,7 @@ public class ColumnsSnapshotTests
         {
             for (var height = 1; height <= 40; height += 3)
             {
-                var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
+                var lines = FrameBuilder.Build(state, width, height, _keymap);
 
                 Assert.Equal(height, lines.Count);
                 Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));

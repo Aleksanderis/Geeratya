@@ -11,7 +11,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class ContextMenuOverlayTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
-    private static readonly IReadOnlyList<string> _helpLines = KeymapDocument.RenderHelpLines(_keymap);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
 
     [Theory]
@@ -20,7 +19,7 @@ public class ContextMenuOverlayTests
     [InlineData(40, 10)]
     public void GivenTheOpenMenu_WhenReadingTheRegions_ThenEachItemHasARowWithItsTitle(int width, int height)
     {
-        var frame = FrameBuilder.BuildStyled(Sample(), width, height, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample(), width, height, _keymap)!;
         var rows = RegionProbe.Rows(frame, MouseTarget.ContextMenu);
 
         Assert.Equal([0, 1, 2], rows.Select(row => row.Index));
@@ -31,7 +30,7 @@ public class ContextMenuOverlayTests
     [Fact]
     public void GivenTheOpenMenu_WhenBuildingTheFrame_ThenTheKeysOfTheActionsAreShown()
     {
-        var frame = FrameBuilder.BuildStyled(Sample(), 100, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(Sample(), 100, 24, _keymap)!;
         var text = string.Join('\n', frame.PlainLines());
         var quit = RegionProbe.Rows(frame, MouseTarget.ContextMenu).Single(row => row.Index == 2);
 
@@ -43,7 +42,7 @@ public class ContextMenuOverlayTests
     public void GivenTheOpenMenu_WhenClickingARow_ThenThatActionRunsAndTheMenuCloses()
     {
         var state = Sample();
-        var frame = FrameBuilder.BuildStyled(state, 80, 24, _helpLines, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.ContextMenu).Single(candidate => candidate.Index == 0);
 
         var result = RegionProbe.Click(state, frame, row.Region, MouseGesture.Click)!;
@@ -59,7 +58,7 @@ public class ContextMenuOverlayTests
         {
             for (var height = 0; height <= 12; height++)
             {
-                FrameBuilder.BuildStyled(Sample(), width, height, _helpLines, _keymap);
+                FrameBuilder.BuildStyled(Sample(), width, height, _keymap);
             }
         }
     }

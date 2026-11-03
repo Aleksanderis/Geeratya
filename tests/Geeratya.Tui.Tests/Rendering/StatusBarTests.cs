@@ -32,6 +32,7 @@ public class StatusBarTests
         var all = StatusBar.Hints
             .Concat(StatusBar.ScreenHints)
             .Concat(StatusBar.PickerHints)
+            .Concat(StatusBar.HelpHints)
             .Concat(StatusBar.EditorHints)
             .Concat(StatusBar.FormHints);
 
@@ -172,6 +173,26 @@ public class StatusBarTests
     public void GivenDefaultKeymap_WhenRenderingHelpHints_ThenCloseShowsEscNotQ()
     {
         Assert.Contains("Esc close", StatusBar.HintsFor(InputMode.Help, _keymap));
+    }
+
+    [Fact]
+    public void GivenHelpPages_WhenRenderingTheStatusLine_ThenTheHintsNameThePageAndFilterKeys()
+    {
+        var line = StatusBar.Render(AppState.Initial with { Mode = InputMode.Help }, 80, _keymap);
+
+        Assert.Contains("Tab page", line);
+        Assert.Contains("/ filter", line);
+    }
+
+    [Fact]
+    public void GivenTheMessagesOverlay_WhenRenderingTheStatusLine_ThenThePageAndFilterHintsAreLeftOut()
+    {
+        var state = StatusMessages.OpenHistory(AppState.Initial);
+
+        var line = StatusBar.Render(state, 80, _keymap);
+
+        Assert.DoesNotContain("page", line);
+        Assert.DoesNotContain("filter", line);
     }
 
     [Fact]
