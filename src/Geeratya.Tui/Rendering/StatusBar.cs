@@ -25,6 +25,7 @@ public static class StatusBar
         new(InputMode.Help, ActionIds.NavigateDown, "down"),
         new(InputMode.Help, ActionIds.NavigateUp, "up"),
         new(InputMode.Help, ActionIds.HelpClose, "close"),
+        new(InputMode.Command, ActionIds.PickerPrevious, "move", HintScope.Global, ActionIds.PickerNext),
         new(InputMode.Command, ActionIds.PaletteSubmit, "run"),
         new(InputMode.Command, ActionIds.Cancel, "cancel"),
         new(InputMode.Confirm, ActionIds.ConfirmYes, "yes"),

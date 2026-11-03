@@ -53,6 +53,9 @@ public enum MouseTarget
     /// <summary>A completion row of the jump prompt.</summary>
     JumpRow,
 
+    /// <summary>An action row of the command palette (a click runs it, the wheel moves the highlight).</summary>
+    PaletteRow,
+
     /// <summary>A profile row of the profile list overlay.</summary>
     ProfileRow,
 

@@ -1,0 +1,24 @@
+ [1 JQL: View]  +                                                               
+                                                                                
+View · 0 issues                                                                 
+  ┌─ Commands ───────────────────────────────────────────────────────────────┐  
+  │ Issue                                                                    │  
+  │ > Jump to an issue by key                                        Space g │  
+  │   Open the issue in the browser                                  Space o │  
+  │   Open the parent issue                                          Space p │  
+  │   Edit fields of the issue (summary, labels, priority, descri  Space i e │  
+  │   Assign the issue: search people, or unassign                 Space i a │  
+  │   Assign the issue to me                                       Space i m │  
+  │   Change the status of the issue                               Space i s │  
+  │   Move the card to the next column                                 Alt-l │  
+  │   Move the card to the previous column                             Alt-h │  
+  │   Delete the issue (asks first; Jira cannot undo it)           Space i d │  
+  │   Create an issue (type picker, then the form)                 Space i c │  
+  │   Create a sub-task of the selected issue                      Space i C │  
+  │   Link the issue to another issue                              Space i l │  
+  │   Remove the link under the cursor (asks first; Jira cannot u  Space i u │  
+  │   Edit the labels of the issue                                           │  
+  │   Change the priority of the issue                                       │  
+  │ Comment                                                                  │  
+  └──────────────────────────────────────────────────────────────────────────┘  
+ COMMAND :                                   Up/Down move  Enter run  Esc cancel

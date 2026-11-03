@@ -1,10 +1,15 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Ctrl-c     Quit                                                                                                       
                                                                                                                         
 Command mode                                                                                                            
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
+  Up         Previous row in the picker                                                                                 
+  Ctrl-p     Previous row in the picker                                                                                 
+  Down       Next row in the picker                                                                                     
+  Ctrl-n     Next row in the picker                                                                                     
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
@@ -28,9 +33,4 @@ Insert mode
   Ctrl-s     Save the form                                                                                              
   Ctrl-g     Open the new issue after it is created (on or off)                                                         
   Alt-Enter  Save the form                                                                                              
-  Left       Move the cursor left                                                                                       
-  Right      Move the cursor right                                                                                      
-  Home       Move the cursor to the start of the row                                                                    
-  End        Move the cursor to the end of the row                                                                      
-  Delete     Delete the character under the cursor                                                                      
  HELP                                                                                            j down  k up  Esc close

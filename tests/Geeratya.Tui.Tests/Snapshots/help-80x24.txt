@@ -20,5 +20,5 @@ Normal mode
   PageUp     Page up                                                            
   ?          Show or hide help                                                  
   :          Open the command palette                                           
-  q          Quit                                                               
+  Ctrl-p     Open the command palette                                           
  HELP                                                    j down  k up  Esc close

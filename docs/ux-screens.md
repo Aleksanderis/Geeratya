@@ -440,7 +440,7 @@ project = GEN · 40 issues
 | `:refresh` | alias of `<space>r` |
 | `:browse` | alias of `<space>o` |
 
-Without a board name and exactly one board on the site, `:board` and `:backlog` open it directly. The palette stays the stub of `ux.md` for anything else ("Unknown command: ..."). Commands appear in the generated help once they exist; completion of names is not part of M1.
+Without a board name and exactly one board on the site, `:board` and `:backlog` open it directly. Text that is neither a command line nor matches a palette row shows "Unknown command: ..." (`ux.md`, "Command palette"). Commands appear in the generated help once they exist; completion of names is not part of M1.
 
 ## Decisions for the screens (defaults)
 

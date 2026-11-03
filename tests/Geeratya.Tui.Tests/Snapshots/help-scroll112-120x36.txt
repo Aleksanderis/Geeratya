@@ -1,6 +1,11 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Left       Move the cursor left                                                                                       
+  Right      Move the cursor right                                                                                      
+  Home       Move the cursor to the start of the row                                                                    
+  End        Move the cursor to the end of the row                                                                      
+  Delete     Delete the character under the cursor                                                                      
   PageUp     Move the cursor up half a screen                                                                           
   PageDown   Move the cursor down half a screen                                                                         
   Ctrl-Left  Move the cursor to the start of the word                                                                   
@@ -28,9 +33,4 @@ Palette commands
       Edit the labels of the selected or shown issue (field form)                                                       
   :create [subtask]                                                                                                     
       Create an issue, or a sub-task of the selected issue (field form)                                                 
-  :priority                                                                                                             
-      Change the priority of the selected or shown issue (field form)                                                   
-  :assign                                                                                                               
-      Assign the selected or shown issue: search people, or unassign                                                    
-  :assign-me                                                                                                            
  HELP                                                                                            j down  k up  Esc close

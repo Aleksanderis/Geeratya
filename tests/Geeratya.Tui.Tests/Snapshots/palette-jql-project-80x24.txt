@@ -1,0 +1,24 @@
+ [1 JQL: View]  +                                                               
+                                                                                
+View · 0 issues                                                                 
+  ┌─ Commands ───────────────────────────────────────────────────────────────┐  
+  │ jql [query]                                                              │  
+  │ Open a JQL query in a new tab (no query: pick from recent ones)          │  
+  └──────────────────────────────────────────────────────────────────────────┘  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ COMMAND :jql project                        Up/Down move  Enter run  Esc cancel

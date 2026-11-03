@@ -38,6 +38,9 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed). With the Confirm dialog open the whole screen outside its box counts, the body and the status line too, and the click cancels like `n`; a click inside the box but not on a row does nothing |
 | PickerRow | Click | `form.next` | O | Source picker: opens the clicked board, filter or query, same as `Enter` on it |
 | JumpRow | Click | `form.next` | O | Jump prompt: opens the clicked issue, same as `Enter` on it |
+| PaletteRow | Click | `form.next` | O | Command palette: runs the clicked action, same as `Enter` on it (the palette closes first, so a form or Confirm opens as usual); a click on a subheader or a gap does nothing |
+| PaletteRow | Wheel up | `picker.previous` | O | Command palette: moves the highlight up 3 rows over the list (runs nothing) |
+| PaletteRow | Wheel down | `picker.next` | O | Command palette: moves the highlight down 3 rows over the list (runs nothing) |
 | ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
 | ProfileRow | Right-click | `profile.remove` | O | Profile list: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
 | FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |

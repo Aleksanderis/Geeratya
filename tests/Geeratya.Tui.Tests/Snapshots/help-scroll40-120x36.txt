@@ -1,6 +1,7 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
+  Alt-9      Go to tab 9                                                                                                
   Space t    Open the source picker for a new tab                                                                       
   Space c    Close the tab                                                                                              
   Space r    Refresh the view (also retries after an error)                                                             
@@ -32,5 +33,4 @@ Help
   Space n    Show the message history                                                                                   
   Space x    Dismiss the status message                                                                                 
                                                                                                                         
-Help mode                                                                                                               
  HELP                                                                                            j down  k up  Esc close
