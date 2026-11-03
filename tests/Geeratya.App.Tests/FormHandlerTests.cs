@@ -198,9 +198,17 @@ public sealed class FormHandlerTests
     }
 
     [Theory]
-    [InlineData("metadata/synthetic-editmeta-gcs-story.json", "issues/synthetic-field-values-gcs-estimate.json", "customfield_10047", "5")]
-    [InlineData("metadata/synthetic-editmeta-gts-task.json", "issues/synthetic-field-values-gts-estimate.json", "customfield_10016", "2.5")]
-    public async Task GivenEstimateOnlyOnEitherBoardKind_WhenTheFormLoads_ThenOnlyThatBoardsEstimateFieldIsOfferedWithItsValue(
+    [InlineData(
+        "metadata/synthetic-editmeta-gcs-story.json",
+        "issues/synthetic-field-values-gcs-estimate.json",
+        "customfield_10047",
+        "5")]
+    [InlineData(
+        "metadata/synthetic-editmeta-gts-task.json",
+        "issues/synthetic-field-values-gts-estimate.json",
+        "customfield_10016",
+        "2.5")]
+    public async Task GivenEstimateOnlyOnEitherBoardKind_WhenTheFormLoads_ThenOnlyThatEstimateFieldIsOffered(
         string metadataFixture,
         string valuesFixture,
         string fieldId,

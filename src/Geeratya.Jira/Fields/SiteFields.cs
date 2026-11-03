@@ -61,7 +61,7 @@ public sealed class SiteFields(FieldClient client)
 
         IReadOnlyList<string> ids =
         [
-            .. _boardEstimates.Values.Concat(site.Value.EstimateFieldIds).Distinct(StringComparer.Ordinal),
+            .. _boardEstimates.OrderBy(entry => entry.Key).Select(entry => entry.Value).Concat(site.Value.EstimateFieldIds).Distinct(StringComparer.Ordinal),
         ];
 
         return JiraResults.Success(ids);

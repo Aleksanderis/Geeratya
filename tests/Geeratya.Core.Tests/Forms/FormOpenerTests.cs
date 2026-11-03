@@ -109,6 +109,15 @@ public class FormOpenerTests
     }
 
     [Fact]
+    public void GivenAnEstimateClear_WhenTheReadBackRowHasNoEstimate_ThenItIsNeverVerifiedAsApplied()
+    {
+        var clear = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.Empty);
+        var request = new EditRequest("A-1", [clear], true);
+
+        Assert.False(request.IsShownBy(Issue(null) with { Estimate = null }));
+    }
+
+    [Fact]
     public void GivenAnEstimateThatDoesNotRead_WhenSaved_ThenNothingIsWrittenAndTheFieldShowsTheError()
     {
         var field = FormField.Create("customfield_10047", "Story Points", FormFieldKind.Number, false, [])

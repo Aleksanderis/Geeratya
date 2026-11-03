@@ -46,7 +46,12 @@ public sealed record EditRowChange(
 
         var priority = PriorityAfter is not null && row.Priority == PriorityAfter ? PriorityBefore : row.Priority;
 
-        var estimate = Estimate is { } edit && Nullable.Equals(row.Estimate, edit.After) ? edit.Before : row.Estimate;
+        var estimate = row.Estimate;
+
+        if (Estimate is { } edit && Nullable.Equals(row.Estimate, edit.After))
+        {
+            estimate = edit.Before;
+        }
 
         return row with { Summary = summary, Labels = labels, Priority = priority, Estimate = estimate };
     }

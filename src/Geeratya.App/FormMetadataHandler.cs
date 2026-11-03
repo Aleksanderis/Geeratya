@@ -18,7 +18,8 @@ public sealed class FormMetadataHandler
     private const string NeedsBrowserMessage =
         "This transition asks for a field Geeratya cannot edit yet; do it in the browser (<space>o).";
     private const string NoEstimateReason =
-        ": its board does not estimate by story points, or the field is not on this issue type's screen";
+        ": no estimate field is known for it, or the field is not on this issue type's screen "
+        + "(a board without story point estimation has none)";
     private const string UnsupportedMessage = "This form cannot be opened yet.";
 
     private readonly NetworkRunner _runner;
