@@ -20,6 +20,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 - Profiles: saved sites and accounts, one active at a time, quick switch
 - Tabs over the active site, local cache so views open instantly
 - Command palette, configurable vim-style keys and full mouse support
+- Settings screen: change the theme and the options visually, saved at once
 
 Attachments and images are shown as links that open in the browser, never rendered in the terminal.
 

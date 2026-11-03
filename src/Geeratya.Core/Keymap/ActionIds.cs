@@ -81,6 +81,8 @@ public static class ActionIds
     public const string StatusHistory = "status.history";
     public const string StatusDismiss = "status.dismiss";
     public const string ViewCycleCommandLevel = "view.cycle-command-level";
+    public const string SettingsOpen = "settings.open";
+    public const string SettingsReset = "settings.reset";
     public const string ProfileRemove = "profile.remove";
     public const string ProfileAdd = "profile.add";
     public const string ProfileEdit = "profile.edit";

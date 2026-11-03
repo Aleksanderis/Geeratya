@@ -65,6 +65,15 @@ public enum MouseTarget
     /// <summary>An action row of the command palette (a click runs it, the wheel moves the highlight).</summary>
     PaletteRow,
 
+    /// <summary>A category of the settings screen (a click moves the cursor to its first row).</summary>
+    SettingsCategory,
+
+    /// <summary>A row of the settings screen (a click acts like Enter, a right-click resets, the wheel moves).</summary>
+    SettingsRow,
+
+    /// <summary>A word of the open choice list of the settings screen (a click takes it).</summary>
+    SettingsChoice,
+
     /// <summary>A profile row of the profile manager screen.</summary>
     ProfileRow,
 

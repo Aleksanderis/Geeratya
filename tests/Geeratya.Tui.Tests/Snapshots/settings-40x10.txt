@@ -1,0 +1,10 @@
+ Settings                               
+                                        
+╭─ Settings ───────────────────────────╮
+│ Appearance                           │
+│ > theme             auto             │
+│ Hints and keys                       │
+│   hints.statusBar   full             │
+│ j/k move  Enter change  Alt-r reset  │
+╰──────────────────────────────────────╯
+ NORMAL  Settings: a change applies at o

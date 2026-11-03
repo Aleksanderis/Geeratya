@@ -1,0 +1,36 @@
+ Settings                                                                                                               
+                                                                                                                        
+╭─ Categories ─────┬─ Settings: Appearance ────────────────────────────────────────────────────────────────────────────╮
+│ > Appearance     │ > theme             auto                                                                          │
+│   Hints and keys │                                                                                                   │
+│   Startup        │                                                                                                   │
+│   Profiles       │                                                                                                   │
+│   About          │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │                                                                                                   │
+│                  │ The colour theme: a built-in one or a file in the themes folder. Default: auto. Values: auto,     │
+│                  │ dark, light, nord.                                                                                │
+│                  │ j/k move  Enter change  Alt-r reset  Esc close                                                    │
+╰──────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  Settings: a change applies at once and is saved                  j/k move  Enter change  Alt-r reset  Esc close
