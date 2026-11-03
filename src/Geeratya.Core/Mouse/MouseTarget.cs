@@ -63,6 +63,12 @@ public enum MouseTarget
     /// <summary>A row of the context menu that a right-click opens (the other actions of the row).</summary>
     ContextMenu,
 
+    /// <summary>The Help overlay for the wheel: it scrolls wherever the pointer is, over the popup or not.</summary>
+    HelpBody,
+
+    /// <summary>The Messages overlay for the wheel (same: anywhere on the screen).</summary>
+    MessagesBody,
+
     /// <summary>A choice row of the source picker overlay.</summary>
     PickerRow,
 

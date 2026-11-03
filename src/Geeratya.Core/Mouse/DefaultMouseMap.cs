@@ -27,6 +27,12 @@ public static class DefaultMouseMap
         new(MouseTarget.PaletteRow, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.PaletteRow, MouseGesture.WheelUp, ActionIds.PickerPrevious, WheelRows, 'O'),
         new(MouseTarget.PaletteRow, MouseGesture.WheelDown, ActionIds.PickerNext, WheelRows, 'O'),
+        new(MouseTarget.HelpBody, MouseGesture.WheelUp, ActionIds.HelpScrollUp, WheelRows, 'O'),
+        new(MouseTarget.HelpBody, MouseGesture.WheelDown, ActionIds.HelpScrollDown, WheelRows, 'O'),
+        new(MouseTarget.MessagesBody, MouseGesture.WheelUp, ActionIds.HelpScrollUp, WheelRows, 'O'),
+        new(MouseTarget.MessagesBody, MouseGesture.WheelDown, ActionIds.HelpScrollDown, WheelRows, 'O'),
+        new(MouseTarget.ContextMenu, MouseGesture.WheelUp, ActionIds.PickerPrevious, WheelRows, 'O'),
+        new(MouseTarget.ContextMenu, MouseGesture.WheelDown, ActionIds.PickerNext, WheelRows, 'O'),
         new(MouseTarget.SettingsCategory, MouseGesture.Click, ActionIds.NavigateRight, 1, 'O'),
         new(MouseTarget.SettingsRow, MouseGesture.Click, ActionIds.ItemOpen, 1, 'O'),
         new(MouseTarget.SettingsRow, MouseGesture.RightClick, ActionIds.SettingsReset, 1, 'O'),
@@ -137,7 +143,7 @@ public static class DefaultMouseMap
     private static ReadOnlyDictionary<string, string> BuildExclusions()
     {
         const string pointing = "motion: the pointer places the cursor and the wheel scrolls";
-        const string helpScroll = "scrolls the help page; the wheel does nothing while help is open (the section names are clickable)";
+        const string helpScroll = "scrolls the help page by half a page or to an end; the wheel rows cover the line scroll (the section names are clickable)";
         const string tabClick = "a click on tab N (Tabs row)";
 
         var exclusions = new Dictionary<string, string>
@@ -164,10 +170,10 @@ public static class DefaultMouseMap
             [ActionIds.TabGoTo8] = tabClick,
             [ActionIds.TabGoTo9] = tabClick,
             [ActionIds.HelpPagePrevious] = "a click on the section name shows that section",
-            [ActionIds.HelpScrollDown] = helpScroll,
-            [ActionIds.HelpScrollUp] = helpScroll,
             [ActionIds.HelpHalfPageDown] = helpScroll,
             [ActionIds.HelpHalfPageUp] = helpScroll,
+            [ActionIds.HelpTop] = helpScroll,
+            [ActionIds.HelpBottom] = helpScroll,
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
             [ActionIds.PickerOpenNewTab] = "the sprint picker only: a click on a row opens it like Enter, the key adds the new tab",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
