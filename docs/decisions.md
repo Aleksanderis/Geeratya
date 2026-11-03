@@ -14,7 +14,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **UI:** Write keys: one `<space>` group per noun, never a prefix of an M1 leaf, no bare letters; only sprint moves and rank steps take a set. Why: Gitunia redesigned its keymap late for the same reasons. Plan: `ux-keymap.md` (#152); Details: `ux-workflows.md`, "Design details".
 
-**Jira layer:** `BrowserUrlCheck` (Core) is the single gate before anything reaches the system browser: https only, no control characters, no user info; `RemoteLinkMapper` keeps any scheme (#118). Why: one gate for every open path.
+**Jira layer:** `BrowserUrlCheck` (Core) is the single gate before anything reaches the system browser (https only; `RemoteLinkMapper` keeps any scheme, #118). Why: one gate for every open path. Details: `architecture.md`, "Design details".
 
 **Scope:** Scrum boards and sprints are in (milestone M5, ahead of polish), in both project kinds; Scrum reports and charts are not. Why: Scrum is common and the tool is not only for the owner's team. Dev site: `GCS` (company-managed, board 6) and `GTS` (team-managed, board 5) are sandbox projects like `GCM` and `GTM`.
 
@@ -108,7 +108,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **UI:** Command levels (#196): the level belongs to the action in `ActionCatalog`, two levels, and the palette searches advanced actions once a filter is typed. Why: `delete` must stay reachable. Details: `ux-keymap.md`.
 
-**UI:** Quit and cancel (#390): `Ctrl-c` quits from Confirm and cancels read loads, but asks while writes run and never quits in a text form; `q` does nothing in Confirm. Why: a stray key never answers a destructive question. Details: `ux-keymap.md`.
+**UI:** Quit and cancel (#390, Gitunia rules unless writes or typed text are at stake): `Ctrl-c` quits from Confirm and cancels read loads, but asks while writes run and never quits in a text form; `q` does nothing in Confirm. Why: a stray key never answers a destructive question. Details: `ux-keymap.md`.
 
 ## 2026-11-03 (later)
 
