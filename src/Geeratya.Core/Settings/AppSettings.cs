@@ -7,10 +7,12 @@ namespace Geeratya.Core.Settings;
 /// <param name="StatusHints">How much of the key hints the right of the status bar shows.</param>
 /// <param name="WhichKey">Show the popup of the next keys while a multi-key binding is half typed.</param>
 /// <param name="Theme">The name of the colour theme: a built-in one or a file in the <c>themes</c> folder.</param>
+/// <param name="JumpTarget">Whether the jump prompt opens an issue in the current tab or in a new one.</param>
 public sealed record AppSettings(
     HintLevel StatusHints = HintLevel.Full,
     bool WhichKey = true,
-    string Theme = AppSettings.DefaultTheme)
+    string Theme = AppSettings.DefaultTheme,
+    JumpTarget JumpTarget = JumpTarget.Current)
 {
     public const string DefaultTheme = "auto";
 

@@ -36,9 +36,9 @@ public class StatusMessageSnapshotTests
         var state = StatusMessages.OpenSettings(Posted());
         var lines = FrameBuilder.Build(state, width, height, _helpLines, _keymap);
         var actual = string.Join('\n', lines) + "\n";
-        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"messages-settings-{width}x{height}.txt");
+        var expected = SnapshotFile.Expect($"messages-settings-{width}x{height}.txt", actual);
 
-        Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
     }
 
     private static AppState HistoryState()
