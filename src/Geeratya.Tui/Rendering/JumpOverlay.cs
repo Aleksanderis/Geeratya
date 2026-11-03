@@ -23,6 +23,7 @@ public static class JumpOverlay
     private const int FooterMinimumInner = 8;
     private const int KeyColumn = 12;
     private const int TopGap = 2;
+    private const int MaxBoxHeight = 18;
 
     /// <summary>Draws the prompt of <paramref name="state"/> over <paramref name="body"/>, <paramref name="height"/> lines.</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -44,7 +45,7 @@ public static class JumpOverlay
         var rows = JumpRows.For(state, jump);
         var selected = Math.Clamp(jump.Selected, 0, Math.Max(0, rows.Count - 1));
         var lines = RowLines(rows, selected, boxWidth - 4);
-        var inner = Math.Min(height, lines.Count + 1 + FooterHeight + 2) - 2;
+        var inner = Math.Min(Math.Min(height, MaxBoxHeight), lines.Count + 1 + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
         var box = BoxLines(jump, lines, selected, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
@@ -89,9 +90,13 @@ public static class JumpOverlay
             OverlayBox.Wall(Prompt(jump), contentWidth),
         };
 
-        foreach (var line in rows.Skip(first).Take(area))
+        var shown = rows.Skip(first).Take(area).ToList();
+
+        for (var row = 0; row < shown.Count; row++)
         {
-            lines.Add(OverlayBox.Wall(line, contentWidth));
+            var marker = OverlayBox.ScrollMarker(row, area, first, rows.Count);
+
+            lines.Add(OverlayBox.Wall(shown[row], contentWidth, marker));
         }
 
         while (lines.Count < inner + 1 - footer)
@@ -104,7 +109,7 @@ public static class JumpOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap), TextRole.Muted), contentWidth));
+            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));

@@ -130,7 +130,14 @@ public static class WriteReducer
     {
         var label = requested.Request.AskLabel;
         var again = requested with { Confirmed = true };
-        var confirm = new ConfirmRequest(question, ConfirmWriteAction, null, again, label);
+        var confirm = new ConfirmRequest(
+            question,
+            ConfirmWriteAction,
+            null,
+            again,
+            label,
+            Destructive: requested.Request.AskSevere,
+            Heading: requested.Request.AskHeading);
         var asking = state with
         {
             Mode = InputMode.Confirm,

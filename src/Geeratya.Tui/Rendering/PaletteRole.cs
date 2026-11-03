@@ -51,4 +51,5 @@ public enum PaletteRole
     OverlayChip,
     OverlayChipWarn,
     OverlayChipBad,
+    OverlayCount,
 }

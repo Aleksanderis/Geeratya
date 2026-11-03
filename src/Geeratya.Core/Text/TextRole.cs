@@ -92,4 +92,7 @@ public enum TextRole
 
     /// <summary>The title chip of a destructive confirm.</summary>
     OverlayChipBad,
+
+    /// <summary>The dim chip at the right of an overlay's top edge (the palette's <c>12/87</c>): quiet, never the accent.</summary>
+    OverlayCount,
 }

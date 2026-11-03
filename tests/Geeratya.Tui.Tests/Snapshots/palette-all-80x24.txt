@@ -2,8 +2,10 @@
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
-│ ╭─ Commands ───────────────────────────────────────────────────────────────╮ │
-│p│ Issue                                                                    │ │
+│ ╭─ Commands ─────────────────────────────────────────────────────── 68/68 ─╮ │
+│p│ : _                                                                      │ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ Issue                                                                    │ │
 │ │ > Jump to an issue by key                                        Space g │ │
 │ │   Open the issue in the browser                                  Space o │ │
 │ │   Open the parent issue                                          Space p │ │
@@ -14,11 +16,9 @@
 │ │   Move the card to the next column                                 Alt-l │ │
 │ │   Move the card to the previous column                             Alt-h │ │
 │ │   Create an issue (type picker, then the form)                 Space i c │ │
-│ │   Create a sub-task of the selected issue                      Space i C │ │
-│ │   Move the selected issues to a sprint                         Space s m │ │
-│ │   Move the selected issues to the backlog                      Space s b │ │
-│ │   Edit the labels of the issue                                           │ │
-│ │   Change the priority of the issue                                       │ │
+│ │   Create a sub-task of the selected issue                      Space i C▼│ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ Up/Down move  Enter run  Esc cancel                                      │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND  :                                  Up/Down move  Enter run  Esc cancel

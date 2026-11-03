@@ -2,9 +2,9 @@
                                         
                                         
                                         
-  ╭─ Commands ───────────────────────╮  
-  │ Issue                            │  
-  │ > Assign the issue: s  Space i a │  
-  │                                  │  
+  ╭─ Commands ──────────────── 1/68 ─╮  
+  │ : search_                        │  
+  ├──────────────────────────────────┤  
+  │ > Assign the issue: s  Space i a▲│  
   ╰──────────────────────────────────╯  
  COMMAND  :search                       

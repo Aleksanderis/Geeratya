@@ -3,6 +3,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Platform.Terminal;
@@ -161,7 +162,37 @@ public class PaletteOverlayTests
         }
     }
 
-    // The text between the walls of each row of the box, between its top and bottom edges.
+    [Fact]
+    public void GivenAFilter_WhenBuildingTheFrame_ThenTheTopEdgeCarriesTheCountAndTheQueryLineTheText()
+    {
+        var lines = FrameBuilder.Build(Sample("rank"), 80, 24, _keymap);
+        var top = lines.First(line => line.Contains("╭─ Commands", StringComparison.Ordinal));
+        var query = lines.First(line => line.Contains(": rank_", StringComparison.Ordinal));
+
+        Assert.Matches(@"Commands ─+ 6/\d+ ─╮", top);
+        Assert.Contains("│ : rank_", query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenATypedCommandLine_WhenBuildingTheFrame_ThenNoCountChipIsShown()
+    {
+        var lines = FrameBuilder.Build(Sample("jql project"), 80, 24, _keymap);
+        var top = lines.First(line => line.Contains("╭─ Commands", StringComparison.Ordinal));
+
+        Assert.DoesNotMatch(@"\d+/\d+", top);
+    }
+
+    [Fact]
+    public void GivenTheStyledFrame_WhenReadingTheRoles_ThenSubheaderIsAccentSelectedRowIsTintedAndCountIsDim()
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(string.Empty), 80, 24, _keymap)!;
+        var spans = frame.Body.SelectMany(line => line.Spans).ToList();
+
+        Assert.Contains(spans, span => span.Role == TextRole.Heading && span.Text.Trim() == "Issue");
+        Assert.Contains(spans, span => span.Role == TextRole.Selected && span.Text.Contains("> Jump", StringComparison.Ordinal));
+        Assert.Contains(spans, span => span.Role == TextRole.OverlayCount && span.Text.Contains('/', StringComparison.Ordinal));
+    }
+
     private static List<string> BoxInner(IReadOnlyList<string> lines)
     {
         var all = lines.ToList();
@@ -170,10 +201,14 @@ public class PaletteOverlayTests
         var left = all[top].IndexOf('╭', StringComparison.Ordinal);
         var right = all[bottom].IndexOf('╯', StringComparison.Ordinal);
 
-        // The text between the walls of the box; the view and its frame show around it.
-        var rows = all.Skip(top + 1).Take(bottom - top - 1);
+        // The list between the walls of the box, without the query line, the rules and the footer.
+        var rows = all.Skip(top + 3).Take(bottom - top - 3);
 
-        return [.. rows.Select(line => line[(left + 1)..right].Trim().Trim('│').Trim())];
+        return
+        [
+            .. rows.Select(line => line[(left + 1)..right].Trim().Trim('│').Trim())
+                .TakeWhile(text => !text.StartsWith("──", StringComparison.Ordinal)),
+        ];
     }
 
     private static string Slug(string text)

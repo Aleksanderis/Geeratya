@@ -58,6 +58,10 @@ public sealed record SprintMoveRequest(
 
     public override string AskLabel => $"Move {Noun}";
 
+    public override string AskHeading => $"Move {What}";
+
+    public override bool AskSevere => Keys.Count > 1;
+
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)
     {
