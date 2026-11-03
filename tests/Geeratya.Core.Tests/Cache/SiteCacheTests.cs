@@ -111,12 +111,12 @@ public sealed class SiteCacheTests : IDisposable
     [InlineData("not json at all")]
     [InlineData("")]
     [InlineData("null")]
-    [InlineData("""{"schema":2}""")]
-    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
-    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":null}]}""")]
-    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":[null]}]}""")]
-    [InlineData("""{"schema":2,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
-    [InlineData("""{"schema":2,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
+    [InlineData("""{"schema":3}""")]
+    [InlineData("""{"schema":3,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
+    [InlineData("""{"schema":3,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":null}]}""")]
+    [InlineData("""{"schema":3,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":[null]}]}""")]
+    [InlineData("""{"schema":3,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
+    [InlineData("""{"schema":3,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
     public void GivenCorruptFile_WhenReading_ThenItIsIgnoredAndDeleted(string content)
     {
         var folder = Path.Combine(_root, "p");
@@ -462,6 +462,43 @@ public sealed class SiteCacheTests : IDisposable
         Assert.Empty(read.Sprints);
         Assert.Null(read.Estimate);
         Assert.Null(read.Epic);
+    }
+
+    [Fact]
+    public void GivenBoardWithEstimationRead_WhenCachedAndRead_ThenTheNameSurvivesAndNothingIsHidden()
+    {
+        var folder = Path.Combine(_root, "p");
+        var board = new BoardConfiguration(4, "Board", BoardType.Scrum, [], "10000", null, null, null)
+        {
+            EstimationRead = true,
+            EstimationFieldId = "customfield_10047",
+            EstimationFieldName = "Story Points",
+        };
+        using (var writer = new SiteCache(folder))
+        {
+            writer.Put(_key, new CachedView([Issue(1)], board, _saved));
+            writer.Flush();
+        }
+
+        using var reader = new SiteCache(folder);
+        var read = reader.Get(_key)!.Board!;
+
+        Assert.Equal("Story Points", read.EstimationFieldName);
+        Assert.False(read.EstimationRead);
+        Assert.False(read.HasNoEstimation);
+    }
+
+    [Fact]
+    public void GivenSchemaTwoFile_WhenReading_ThenItIsIgnoredAndDeleted()
+    {
+        var folder = Path.Combine(_root, "p");
+        var path = Path.Combine(folder, SiteCache.ViewFileName(_key));
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(path, """{"schema":2,"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
+        using var cache = new SiteCache(folder);
+
+        Assert.Null(cache.Get(_key));
+        Assert.False(File.Exists(path));
     }
 
     [Fact]
