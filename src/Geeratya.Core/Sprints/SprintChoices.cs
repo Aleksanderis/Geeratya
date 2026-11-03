@@ -28,9 +28,15 @@ public static class SprintChoices
             .ToList();
 
         var choices = new List<SourceChoice>();
+        var moving = data.MoveKeys is not null;
 
         choices.AddRange(InState(matching, SprintState.Active).Select(sprint => Choice(data, sprint)));
         choices.AddRange(InState(matching, SprintState.Future).Select(sprint => Choice(data, sprint)));
+
+        if (moving)
+        {
+            return choices;
+        }
 
         var closed = InState(matching, SprintState.Closed)
             .OrderByDescending(sprint => sprint.CompleteDate ?? DateTimeOffset.MinValue)

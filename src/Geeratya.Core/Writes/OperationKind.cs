@@ -5,6 +5,7 @@ public enum OperationKind
 {
     Transition,
     Rank,
+    SprintMove,
     Assign,
     EditFields,
     AddComment,

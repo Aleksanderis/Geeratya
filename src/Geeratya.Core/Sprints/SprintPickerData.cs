@@ -17,4 +17,11 @@ public sealed record SprintPickerData(
     TabId Origin,
     IReadOnlyList<Sprint>? Sprints,
     string? Error,
-    int ClosedShown);
+    int ClosedShown)
+{
+    /// <summary>
+    /// The issues to move when the picker chooses the target of a sprint move (active and future sprints only);
+    /// null for the switcher.
+    /// </summary>
+    public IReadOnlyList<string>? MoveKeys { get; init; }
+}

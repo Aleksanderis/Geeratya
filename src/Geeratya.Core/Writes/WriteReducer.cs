@@ -300,7 +300,7 @@ public static class WriteReducer
 
         var replaced = ReplaceRows(state, rows);
         var stale = operation.Request.ChangesRows ? MarkStale(replaced, operation.Keys) : replaced;
-        var queued = QueueRankReload(stale, operation);
+        var queued = ClearSelection(QueueRankReload(stale, operation), operation);
         var finished = Finish(queued, operation, true, effects, rows);
         var reloaded = operation.Request.ChangesRows ? ReloadDetails(finished, operation.Keys, effects) : finished;
 
@@ -627,7 +627,7 @@ public static class WriteReducer
     /// </summary>
     private static AppState QueueRankReload(AppState state, Operation operation)
     {
-        if (operation.Kind != OperationKind.Rank)
+        if (operation.Kind is not (OperationKind.Rank or OperationKind.SprintMove))
         {
             return state;
         }
@@ -637,6 +637,31 @@ public static class WriteReducer
             .ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
+    }
+
+    /// <summary>
+    /// After a sprint move the moved issues leave the marks and the Visual range of every tab (they are in their new
+    /// place); other writes keep the selection.
+    /// </summary>
+    private static AppState ClearSelection(AppState state, Operation operation)
+    {
+        if (operation.Kind != OperationKind.SprintMove)
+        {
+            return state;
+        }
+
+        var tabs = state.Session.Tabs
+            .Select(tab => Holds(tab, operation.Keys) ? Unselected(tab, operation.Keys) : tab)
+            .ToArray();
+
+        return state with { Session = state.Session with { Tabs = tabs } };
+    }
+
+    private static TabState Unselected(TabState tab, IReadOnlyList<string> keys)
+    {
+        var marks = tab.Marks.Where(mark => !IsAmong(keys, mark)).ToArray();
+
+        return tab with { Marks = marks, VisualAnchor = null };
     }
 
     private static bool IsRankOrdered(TabState tab)

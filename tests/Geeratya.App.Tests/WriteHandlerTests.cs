@@ -7,6 +7,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes.Models;
 using Geeratya.Platform;
@@ -347,6 +348,68 @@ public sealed class WriteHandlerTests
         var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
         Assert.Equal(WriteErrorKind.Validation, failed.Error.Kind);
         Assert.Equal("1 of 2 not ranked (A-3): Not ranked", failed.Error.Message);
+    }
+
+    [Fact]
+    public async Task GivenASprintMove_WhenExecuting_ThenOnePostToTheSprintAndNoReadAreSent()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+        var request = new SprintMoveRequest(["A-1", "A-2"], new IssueSprint(8, "Sprint 2", SprintState.Future), "the backlog");
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, request));
+
+        Assert.EndsWith("/rest/agile/1.0/sprint/8/issue", Assert.Single(fixture.Http.Requests).AbsolutePath);
+        Assert.Contains("\"A-1\"", Assert.Single(fixture.Http.Bodies), StringComparison.Ordinal);
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+    }
+
+    [Fact]
+    public async Task GivenAMoveToTheBacklog_WhenExecuting_ThenItPostsToTheBacklogEndpoint()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, new SprintMoveRequest(["A-1"], null, "sprint")));
+
+        Assert.EndsWith("/rest/agile/1.0/backlog/issue", Assert.Single(fixture.Http.Requests).AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenASprintMoveThatJiraPartlyRefuses_WhenExecuting_ThenTheFailureSaysHowManyMovedAndWhichNot()
+    {
+        const string reply =
+            """{"entries":[{"issueKey":"A-1","status":200},{"issueKey":"A-3","status":400,"errors":["Epic cannot be moved"]}]}""";
+        using var fixture = await ConnectedAsync(h => h.Reply((HttpStatusCode)207, reply));
+        var request = new SprintMoveRequest(["A-1", "A-3"], null, "sprint");
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, request));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal("1 of 2 moved; A-3 not moved: Epic cannot be moved", failed.Error.Message);
+    }
+
+    [Fact]
+    public async Task GivenASingleIssueJiraRefuses_WhenMoving_ThenTheFailureIsJirasReason()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.BadRequest, Refused));
+        var request = new SprintMoveRequest(["A-1"], new IssueSprint(8, "S", SprintState.Future), "sprint");
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, request));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.Validation, failed.Error.Kind);
+        Assert.Contains("User cannot be assigned", failed.Error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenALostReplyOfASprintMove_WhenExecuting_ThenTheOutcomeIsUnknownAndNothingIsRepeated()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.BadGateway, "").Reply(HttpStatusCode.NoContent, ""), 3);
+
+        await fixture.Handler.StartAsync(
+            new ExecuteWriteEffect(41, new SprintMoveRequest(["A-1"], null, "sprint")));
+
+        Assert.IsType<WriteOutcomeUnknown>(Assert.Single(fixture.Posted));
+        Assert.Single(fixture.Http.Requests);
     }
 
     [Fact]

@@ -232,7 +232,7 @@ public sealed class AppReducer
         return clicked.Target switch
         {
             MouseTarget.PickerRow when cleared.Picker is { } picker
-                => SourceReducer.Accept(cleared with { Picker = picker with { Selected = clicked.Index } }),
+                => SourceReducer.Accept(cleared with { Picker = picker with { Selected = clicked.Index } }, clicked.At),
             MouseTarget.JumpRow when cleared.Jump is { } jump
                 => JumpReducer.Accept(cleared with { Jump = jump with { Selected = clicked.Index } }),
             MouseTarget.ProfileRow when clicked.Action == ActionIds.ProfileRemove
@@ -553,9 +553,11 @@ public sealed class AppReducer
             ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
-            ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state),
+            ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state, at),
             ActionIds.SprintGoal => InNormal(state, () => Result(SprintGoalNotice.Open(state))),
             ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
+            ActionIds.SprintMoveIssues => InNormal(state, () => SprintMoveActions.OpenPicker(state)),
+            ActionIds.SprintMoveToBacklog => InNormal(state, () => SprintMoveActions.ToBacklog(state, at)),
             ActionIds.SprintCreate => InNormal(state, () => SprintForms.Create(state)),
             ActionIds.SprintEdit => InNormal(state, () => SprintForms.Edit(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
@@ -651,7 +653,7 @@ public sealed class AppReducer
             return ProfileReducer.SwitchHighlighted(state);
         }
 
-        return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state);
+        return state.Picker is null ? ProfileReducer.Submit(state) : SourceReducer.Accept(state, at);
     }
 
     /// <summary>Up and down in Insert mode: a row up or down in the editor, else the picker selection.</summary>

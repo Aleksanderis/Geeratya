@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
@@ -17,6 +18,7 @@ public static class SourcePickerOverlay
 {
     private const string Title = "Open a view";
     private const string SprintTitle = "Switch sprint";
+    private const string MoveTitle = "Move to sprint";
     private const string ActiveHeading = "Active";
     private const string FutureHeading = "Future";
     private const string ClosedHeading = "Closed";
@@ -106,7 +108,17 @@ public static class SourcePickerOverlay
 
     private static string TitleOf(SourcePickerState picker)
     {
-        return picker.Scope == PickerScope.Sprints ? SprintTitle : Title;
+        if (picker.Scope != PickerScope.Sprints)
+        {
+            return Title;
+        }
+
+        return picker.Sprint?.MoveKeys is { } keys ? $"{MoveTitle}: {MovedText(keys)}" : SprintTitle;
+    }
+
+    private static string MovedText(IReadOnlyList<string> keys)
+    {
+        return keys.Count == 1 ? keys[0] : $"{keys.Count.ToString(CultureInfo.InvariantCulture)} issues";
     }
 
     private static int FirstVisible(PickerRows rows, int area)
@@ -133,6 +145,11 @@ public static class SourcePickerOverlay
 
         if (picker.Scope == PickerScope.Sprints)
         {
+            if (picker.Sprint?.MoveKeys is not null)
+            {
+                return $"{up}/{down} choose   {accept} move   {cancel} close";
+            }
+
             var newTab = keymap.FindKeys(InputMode.Insert, ActionIds.PickerOpenNewTab);
 
             return $"{up}/{down} choose   {accept} open   {newTab} new tab   {cancel} close";
