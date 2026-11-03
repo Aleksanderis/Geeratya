@@ -380,7 +380,7 @@ public class SprintMoveTests
     }
 
     [Fact]
-    public void GivenALiveRangeOnABacklog_WhenThePointerCrossesIntoAnotherSection_ThenTheRangeStaysAndTheDropAsks()
+    public void GivenALiveRangeOnABacklog_WhenThePointerCrossesIntoAnotherSection_ThenTheRangeStopsAtItsSectionEdgeAndTheDropAsks()
     {
         var state = WithSprints(Loaded());
         var tab = Tab(state);
@@ -393,24 +393,76 @@ public class SprintMoveTests
         var crossed = _reducer.Reduce(started, new RowsDragging(0, from, other, 80, false)).State;
         var dropped = _reducer.Reduce(crossed, new RowsDragged(0, from, other, 80, _now, true));
 
-        Assert.Equal(Tab(started).SelectedKey, Tab(crossed).SelectedKey);
+        Assert.Equal("A-4", Tab(crossed).SelectedKey);
+        Assert.Equal("A-3", Tab(crossed).VisualAnchor);
         Assert.Equal(InputMode.Confirm, dropped.State.Mode);
-        Assert.Contains("Move A-3 from", dropped.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Contains("Move 2 issues", dropped.State.Confirm!.Message, StringComparison.Ordinal);
         Assert.Empty(dropped.Effects);
     }
 
     [Fact]
-    public void GivenALiveRangeOnABacklog_WhenAnAutoScrollStepArrives_ThenTheCursorStaysInItsSection()
+    public void GivenALiveRangeOnASectionedBacklog_WhenAutoScrollStepsDownAndUp_ThenTheWindowScrollsAndTheCursorStaysInItsSection()
+    {
+        var state = WithSprints(Loaded());
+        state = Replace(state, Tab(state) with { VisibleRows = 4 });
+        var tab = Tab(state);
+        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3")));
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+
+        var down = _reducer.Reduce(started, new RowsDragScrolled(3)).State;
+        var up = _reducer.Reduce(down, new RowsDragScrolled(-9)).State;
+
+        Assert.Equal(3, Tab(down).Scroll);
+        Assert.Equal("A-4", Tab(down).SelectedKey);
+        Assert.Equal("A-3", Tab(down).VisualAnchor);
+        Assert.Equal(0, Tab(up).Scroll);
+        Assert.Equal("A-3", Tab(up).SelectedKey);
+    }
+
+    [Fact]
+    public void GivenAScrolledBacklogDrag_WhenReleasedOnTheBacklogSectionThatCameIntoView_ThenTheRangeIsAskedAbout()
+    {
+        var state = WithSprints(Loaded());
+        state = Replace(state, Tab(state) with { VisibleRows = 4 });
+        var tab = Tab(state);
+        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3")));
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+        var scrolled = _reducer.Reduce(started, new RowsDragScrolled(8)).State;
+        var target = Screen(Tab(scrolled), SectionLine(scrolled, null));
+
+        var dropped = _reducer.Reduce(scrolled, new RowsDragged(0, from, target, 80, _now, true));
+
+        Assert.Equal(InputMode.Confirm, dropped.State.Mode);
+        Assert.Empty(dropped.Effects);
+    }
+
+    [Fact]
+    public void GivenALiveRangePressedOnACollapsedSection_WhenAutoScrollPassesIt_ThenTheCursorStaysOnItsVisibleStop()
     {
         var state = WithSprints(Loaded());
         var tab = Tab(state);
-        var line = BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3"));
-        var from = Screen(tab, line);
+        var future = BacklogSections.SprintKey(BacklogFixtures.FutureId);
+        state = Replace(state, tab with { CollapsedSections = [future], VisibleRows = 6 });
+        tab = Tab(state);
+        var stop = BacklogSections.Build(tab).Sections.Single(section => section.Key == future).FirstRow;
+        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(stop));
         var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
 
-        var result = _reducer.Reduce(started, new RowsDragScrolled(3));
+        var scrolled = _reducer.Reduce(started, new RowsDragScrolled(6)).State;
 
-        Assert.Same(started, result.State);
+        Assert.Equal(stop, Tab(scrolled).Selected);
+    }
+
+    [Fact]
+    public void GivenALiveRangeOnASectionedBacklog_WhenAutoScrollHasNowhereToGo_ThenNothingChanges()
+    {
+        var state = WithSprints(Loaded());
+        var tab = Tab(state);
+        var from = Screen(tab, BacklogSections.Build(tab).LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-3")));
+        var started = _reducer.Reduce(state, new RowsDragging(0, from, from, 80, true)).State;
+        var atEnd = _reducer.Reduce(started, new RowsDragScrolled(3)).State;
+
+        Assert.Same(atEnd, _reducer.Reduce(atEnd, new RowsDragScrolled(3)).State);
     }
 
     [Fact]
