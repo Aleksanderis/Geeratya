@@ -40,6 +40,12 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The active tab shows the columns layout, so a drag moves a card; otherwise it selects rows.</summary>
     public bool ColumnsLayout { get; init; }
 
+    /// <summary>
+    /// The cells of the <c>...</c> marker on the selected row as drawn (screen rows, header included), null when the
+    /// frame shows none (overlay open, row too narrow, nothing selected).
+    /// </summary>
+    public OverlayRegion? RowMenuMarker { get; init; }
+
     /// <summary>The Confirm dialog is open: a click outside its box, the status line included, cancels.</summary>
     public bool ConfirmOpen { get; init; }
 

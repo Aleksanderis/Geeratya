@@ -84,6 +84,7 @@ public static class FrameBuilder
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
         var regions = new List<OverlayRegion>();
         var body = BodyOf(state, viewState, renderer, context, width, bodyHeight, regions);
+        var marker = helpOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
 
         if (helpOpen)
         {
@@ -154,6 +155,7 @@ public static class FrameBuilder
         {
             StatusStyled = status,
             Regions = [.. regions.Select(region => region.Shifted(header))],
+            RowMenuMarker = marker?.Shifted(header),
             StatusSegment = StatusBar.MessageSegment(state, width, clock),
         };
 
@@ -207,6 +209,7 @@ public static class FrameBuilder
         {
             StatusStyled = status,
             Regions = frame.Regions,
+            RowMenuMarker = frame.RowMenuMarker,
             StatusSegment = Asciified(frame.StatusSegment),
         };
     }

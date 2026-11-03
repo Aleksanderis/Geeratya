@@ -5,6 +5,6 @@
 │ screenshot.png · image/png · 3.3 MiB │
 │ · 5 h ago                            │
 ├─ Comments ───────────────────────────┤
-│>No comments.                         │
+│>No comments.                     ... │
 ╰──────────────────────────────────────╯
  NORMAL       ? help  : commands  q quit

@@ -33,6 +33,12 @@ public static class MouseResolver
             return _none;
         }
 
+        // Only a plain click belongs to the marker; any other gesture on its cells acts on the row like anywhere on it.
+        if (hit.Target == MouseTarget.RowMenuButton && gesture != MouseGesture.Click)
+        {
+            hit = hit with { Target = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists };
+        }
+
         if (IsOverlayRow(hit.Target))
         {
             return OverlayClick(hit, gesture, at);

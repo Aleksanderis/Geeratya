@@ -293,13 +293,14 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenNarrowWidths_WhenBuilding_ThenAssigneeThenStatusNameDrop()
     {
-        var tab = Tab(LoadState.Idle, 2) with { Rows = [Issue(1, assignee: "Jane Doe")] };
+        var tab = Tab(LoadState.Idle, 2) with { Rows = [Issue(1, assignee: "Jane Doe"), Issue(2, assignee: "Jane Doe")] };
 
         Assert.Contains("Jane Doe", Frame(tab, 102)[2]);
         Assert.DoesNotContain("Jane Doe", Frame(tab, 101)[2]);
         Assert.Contains("To Do", Frame(tab, 58)[2]);
         Assert.DoesNotContain("To Do", Frame(tab, 57)[2]);
-        Assert.EndsWith("○", Frame(tab, 42)[2].TrimEnd());
+        // The selected row (line 2) ends in the row menu marker; the status glyph shows on the others.
+        Assert.EndsWith("○", Frame(tab, 42)[3].TrimEnd());
     }
 
     [Fact]

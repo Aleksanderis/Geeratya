@@ -1,7 +1,7 @@
  1 JQL My open issues x   +                                                                  : commands   <space>g jump 
                                                                                                                         
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────────── In Progress ─╮
-│>Fix login redirect after token refresh                                                                               │
+│>Fix login redirect after token refresh                                                                           ... │
 │                                                                                                                      │
 │ Status    In Progress ▾                                    Priority  High ▾                                          │
 │ Assignee  Jane Doe ▾                                       Reporter  Ola Nordmann                                    │

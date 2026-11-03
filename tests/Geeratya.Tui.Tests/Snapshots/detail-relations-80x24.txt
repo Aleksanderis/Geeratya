@@ -19,6 +19,6 @@
 │ 日本語のノート.txt · text/plain · 47 B · 2 d ago                             │
 │ screenshot.png · image/png · 3.3 MiB · 5 h ago                               │
 ├─ Comments ───────────────────────────────────────────────────────────────────┤
-│>No comments.                                                                 │
+│>No comments.                                                             ... │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12 · Bot    j/k scroll  ? help  : commands  q quit

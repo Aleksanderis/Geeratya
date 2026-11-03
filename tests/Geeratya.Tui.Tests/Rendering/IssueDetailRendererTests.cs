@@ -2,6 +2,7 @@ using System.Text.Json;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -319,6 +320,17 @@ public class IssueDetailRendererTests
         state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, noComments, _now)).State;
 
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [remote], _now)).State;
+    }
+
+    [Fact]
+    public void GivenAnOpenedIssue_WhenBuilding_ThenTheCursorLineEndsInTheRowMenuMarker()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!;
+        var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
+        var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
+
+        Assert.Equal(RowMenuMarker.Text, line.Substring(marker.Left, marker.Width));
+        Assert.Single(frame.Body, candidate => candidate.PlainText.Contains(RowMenuMarker.Text));
     }
 
     [Fact]
