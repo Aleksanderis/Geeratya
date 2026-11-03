@@ -170,7 +170,8 @@ public sealed class WriteHandlerSprintTests
         Assert.EndsWith("/rest/agile/1.0/sprint/12", fixture.Http.Requests.ElementAt(0).AbsolutePath);
         Assert.EndsWith("/rest/agile/1.0/backlog/issue", fixture.Http.Requests.ElementAt(1).AbsolutePath);
         using var moved = JsonDocument.Parse(fixture.Http.Bodies.ElementAt(1));
-        Assert.Equal(["A-3", "A-4"], moved.RootElement.GetProperty("issues").EnumerateArray().Select(item => item.GetString()));
+        var keys = moved.RootElement.GetProperty("issues").EnumerateArray().Select(item => item.GetString());
+        Assert.Equal(["A-3", "A-4"], keys);
     }
 
     [Fact]
@@ -194,7 +195,9 @@ public sealed class WriteHandlerSprintTests
         using var fixture = await ConnectedAsync(
             handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-complete.json")));
 
-        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, new CompleteSprintRequest(6, Before(), [], 3, null)));
+        var request = new CompleteSprintRequest(6, Before(), [], 3, null);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, request));
 
         Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
         Assert.Single(fixture.Http.Requests);

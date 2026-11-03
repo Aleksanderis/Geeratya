@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Sprints;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Core.Writes;
@@ -31,7 +32,13 @@ public static class WriteFailureText
 
     private static string KeysOf(WriteRequest request)
     {
-        return request.Keys.Count == 0 ? request.ActionText : string.Join(", ", request.Keys);
+        // A sprint write holds issue keys (the open issues of a complete) but fails about the sprint.
+        if (request is SprintWriteRequest || request.Keys.Count == 0)
+        {
+            return request.ActionText;
+        }
+
+        return string.Join(", ", request.Keys);
     }
 
     private static string Wait(WriteError error)

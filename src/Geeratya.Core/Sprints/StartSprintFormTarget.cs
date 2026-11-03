@@ -22,7 +22,7 @@ public sealed record StartSprintFormTarget(long BoardId, Sprint Sprint, SprintTa
         return new StartSprintRequest(BoardId, Sprint, start, end, Tally.Count, Tally.Points, !Tally.IsComplete);
     }
 
-    /// <summary>The two required date fields, filled with <paramref name="start"/> and <paramref name="end"/>.</summary>
+    /// <summary>The two required date fields, filled with the given start and end.</summary>
     public static IReadOnlyList<FormField> Fields(DateTimeOffset start, DateTimeOffset end)
     {
         return

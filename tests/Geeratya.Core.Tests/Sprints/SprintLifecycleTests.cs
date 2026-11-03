@@ -14,7 +14,7 @@ using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Core.Tests.Sprints;
 
-/// <summary>Start and complete a sprint through the keymap, the forms, the confirm and the write pipeline (#186).</summary>
+/// <summary>Start and complete a sprint through the keymap, forms, confirm and write pipeline (#186).</summary>
 [Trait("Os", "Independent")]
 public class SprintLifecycleTests
 {
@@ -89,7 +89,7 @@ public class SprintLifecycleTests
         var sprint = BacklogFixtures.Active;
         var target = new CompleteSprintFormTarget(6, sprint, SprintTally.Of(tab, sprint), BacklogFixtures.Future);
         var field = target.Fields()[0];
-        var change = new FieldChange(field.Id, field.Kind, FormValue.OfChosen(["next"]), FormValue.Empty, null);
+        var change = new FieldChange(field.Id, field.Kind, FormValue.OfChosen(["next"]), FormValue.Empty);
 
         var request = Assert.IsType<CompleteSprintRequest>(target.Request([change]));
 
@@ -283,6 +283,39 @@ public class SprintLifecycleTests
         Assert.Contains("is completed", verified.State.Message);
         Assert.Contains("were not moved", verified.State.Message);
         Assert.Contains(verified.Effects, effect => effect is LoadViewPageEffect);
+    }
+
+    [Fact]
+    public void GivenAnEndBeforeTheStart_WhenTheDatesFormIsSubmitted_ThenNoQuestionIsAskedAndTheEndFieldShowsTheRefusal()
+    {
+        var onFuture = Press(Backlog(), "j", "j").State;
+        var opened = Press(onFuture, "Space", "s", "s").State;
+        var end = Active(opened).Form!.Fields[1];
+        var typed = Press(opened, ["Enter", .. Enumerable.Repeat("Backspace", end.Value.Text.Length)]);
+        var keys = "2020-01-01 09:00".Select(character => character == ' ' ? "Space" : character.ToString());
+        var early = Press(typed.State, [.. keys]);
+
+        var submitted = Press(early.State, "Ctrl-s");
+
+        var request = Assert.IsType<StartSprintRequest>(
+            Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects)).Request);
+        Assert.True(request.End <= request.Start);
+        Assert.Null(request.AskText);
+        Assert.Equal(InputMode.Insert, submitted.State.Mode);
+    }
+
+    [Fact]
+    public void GivenJiraAnswersNotFoundToTheComplete_WhenFailed_ThenTheTextNamesTheSprintAndNoIssueIsMarked()
+    {
+        var sent = Press(Press(Press(Backlog(), "Space", "s", "c").State, "Ctrl-s").State, "y").State;
+        var operation = sent.Session.Operations.Single();
+        var error = new WriteError(WriteErrorKind.NotFound, 404, "gone", [], []);
+
+        var failed = _reducer.Reduce(sent, new WriteFailed(operation.Id, _now, error));
+
+        Assert.Equal("complete sprint \"Sprint 1\" not found or no access", failed.State.Message);
+        Assert.DoesNotContain("A-3", failed.State.Message);
+        Assert.DoesNotContain(failed.Effects, effect => effect is InvalidateCacheEffect);
     }
 
     [Fact]

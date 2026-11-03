@@ -35,11 +35,20 @@ public sealed record StartSprintRequest(
 
     public override string AskLabel => "Start sprint";
 
-    /// <summary>What happens: the sprint, its issues and points, its dates, and that Jira has no undo.</summary>
+    /// <summary>
+    /// What happens: the sprint, its issues and points, its dates, and that Jira has no undo. Null for an end that is
+    /// not after the start, which the write refuses before sending.
+    /// </summary>
     public override string? AskText
     {
         get
         {
+            if (End <= Start)
+            {
+                // Nothing would be sent (the client refuses the dates): no question, the form shows the End error.
+                return null;
+            }
+
             var issues = SprintTally.Issues(IssueCount);
             var counted = CountIsPartial ? $"at least {issues}" : issues;
             var points = Points > 0 ? $", {SprintTally.Number(Points)} pts" : string.Empty;

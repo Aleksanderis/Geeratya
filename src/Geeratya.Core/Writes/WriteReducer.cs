@@ -262,9 +262,19 @@ public static class WriteReducer
 
     private static ReduceResult WithMessage(ReduceResult result, WriteRequest request)
     {
-        return result.State.Message == request.DoneText
-            ? result with { State = result.State with { Message = request.VerifiedDoneText } }
-            : result;
+        if (result.State.Message != request.DoneText)
+        {
+            return result;
+        }
+
+        var text = request.VerifiedDoneText;
+
+        // A completed sprint whose issues were not moved needs the user to act: a warning, not a plain line.
+        var state = request is CompleteSprintRequest { OpenKeys.Count: > 0 }
+            ? StatusMessages.Warn(result.State, text)
+            : result.State with { Message = text };
+
+        return result with { State = state };
     }
 
     /// <summary>The check itself failed: nothing is known, so the rows go back and are marked stale.</summary>
@@ -436,14 +446,17 @@ public static class WriteReducer
         var text = WriteFailureText.Of(failed.Error, operation.Request);
         var effects = new List<Effect>();
 
-        if (failed.Error.Kind == WriteErrorKind.NotFound)
+        // A sprint write fails about the sprint, not about the issues it would have moved.
+        var staleKeys = operation.Request is SprintWriteRequest ? [] : operation.Keys;
+
+        if (failed.Error.Kind == WriteErrorKind.NotFound && staleKeys.Count > 0)
         {
-            effects.Add(new InvalidateCacheEffect(operation.Keys));
+            effects.Add(new InvalidateCacheEffect(staleKeys));
         }
 
         var rejected = failed.Error.Kind == WriteErrorKind.Unauthorized;
         var linked = rejected ? state with { Session = state.Session with { Link = new Rejected() } } : state;
-        var marked = failed.Error.Kind == WriteErrorKind.NotFound ? MarkStale(linked, operation.Keys) : linked;
+        var marked = failed.Error.Kind == WriteErrorKind.NotFound ? MarkStale(linked, staleKeys) : linked;
 
         return RolledBack(marked, operation, text, effects, ReloadsAfter(failed.Error));
     }

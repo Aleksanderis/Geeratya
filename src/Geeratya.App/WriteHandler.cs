@@ -420,11 +420,22 @@ public sealed class WriteHandler
             return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), []);
         }
 
-        var moved = request.MoveTo is { } next
-            ? await services.SprintMoves.MoveToSprintAsync(next.Id, request.OpenKeys, token)
-            : await services.SprintMoves.MoveToBacklogAsync(request.OpenKeys, token);
+        var moved = await MoveOpenIssuesAsync(services, request, token);
 
         return new WriteSucceeded(effect.OperationId, _clock.GetUtcNow(), [], Warning: MoveWarning(request, moved));
+    }
+
+    private static Task<WriteResult<SprintMoveOutcome>> MoveOpenIssuesAsync(
+        JiraServices services,
+        CompleteSprintRequest request,
+        CancellationToken token)
+    {
+        if (request.MoveTo is { } next)
+        {
+            return services.SprintMoves.MoveToSprintAsync(next.Id, request.OpenKeys, token);
+        }
+
+        return services.SprintMoves.MoveToBacklogAsync(request.OpenKeys, token);
     }
 
     private static string? MoveWarning(CompleteSprintRequest request, WriteResult<SprintMoveOutcome> moved)
@@ -434,7 +445,9 @@ public sealed class WriteHandler
 
         if (!moved.IsSuccess)
         {
-            return $"Completed \"{name}\", but its {SprintTally.Issues(total)} were not moved to {request.Destination}: "
+            var all = SprintTally.Issues(total);
+
+            return $"Completed \"{name}\", but its {all} were not moved to {request.Destination}: "
                 + $"{moved.Error.Message}. They stay in the closed sprint.";
         }
 
@@ -446,7 +459,7 @@ public sealed class WriteHandler
         }
 
         var left = total - outcome.Moved.Count;
-        var lost = outcome.Unknown.Count > 0 ? " (some replies were lost: reload to see where they are)" : string.Empty;
+        var lost = outcome.Unknown.Count > 0 ? " (some replies were lost: reload to see them)" : string.Empty;
         var reason = outcome.Error?.Message ?? "Jira refused them";
 
         return $"Completed \"{name}\", but {left} of {total} open issues were not moved to {request.Destination}"

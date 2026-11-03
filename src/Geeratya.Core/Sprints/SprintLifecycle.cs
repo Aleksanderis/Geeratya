@@ -32,7 +32,7 @@ public static class SprintLifecycle
 
         if (sprint.State != SprintState.Future)
         {
-            return SprintForms.Say(state, sprint.State == SprintState.Closed ? ClosedSprintGate.Refusal : NotFutureText);
+            return SprintForms.Say(state, Refusal(sprint, NotFutureText));
         }
 
         var tab = found.Tab!;
@@ -59,7 +59,9 @@ public static class SprintLifecycle
         return FormReducer.OpenReady(state, tab.Id, target, StartSprintFormTarget.Fields(from, until));
     }
 
-    /// <summary><c>sprint.complete</c>: asks where the open issues go (when there is a choice), then confirms.</summary>
+    /// <summary>
+    /// <c>sprint.complete</c>: asks where the open issues go (when there is a choice), then confirms.
+    /// </summary>
     public static ReduceResult Complete(AppState state, DateTimeOffset at)
     {
         var found = Find(state);
@@ -71,7 +73,7 @@ public static class SprintLifecycle
 
         if (sprint.State != SprintState.Active)
         {
-            return SprintForms.Say(state, sprint.State == SprintState.Closed ? ClosedSprintGate.Refusal : NotActiveText);
+            return SprintForms.Say(state, Refusal(sprint, NotActiveText));
         }
 
         var tab = found.Tab!;
@@ -114,6 +116,11 @@ public static class SprintLifecycle
         var lookup = SprintForms.SprintOf(tab);
 
         return new Found(tab, board, lookup.Sprint, lookup.Reason);
+    }
+
+    private static string Refusal(Sprint sprint, string otherwise)
+    {
+        return sprint.State == SprintState.Closed ? ClosedSprintGate.Refusal : otherwise;
     }
 
     private static DateTimeOffset Minute(DateTimeOffset moment)

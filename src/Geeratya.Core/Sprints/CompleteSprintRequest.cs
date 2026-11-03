@@ -23,15 +23,16 @@ public sealed record CompleteSprintRequest(
 
     public override string StartedText => OpenKeys.Count == 0
         ? $"Completing sprint \"{Sprint.Name}\""
-        : $"Completing sprint \"{Sprint.Name}\" and moving {SprintTally.Issues(OpenKeys.Count)} to {Destination}";
+        : $"Completing sprint \"{Sprint.Name}\" and moving {Moved} to {Destination}";
 
-    public override string DoneText => $"Completed sprint \"{Sprint.Name}\"" + (OpenKeys.Count == 0
-        ? string.Empty
-        : $", moved {SprintTally.Issues(OpenKeys.Count)} to {Destination}");
+    public override string DoneText => OpenKeys.Count == 0
+        ? $"Completed sprint \"{Sprint.Name}\""
+        : $"Completed sprint \"{Sprint.Name}\", moved {Moved} to {Destination}";
 
-    public override string VerifiedDoneText => $"Sprint \"{Sprint.Name}\" is completed" + (OpenKeys.Count == 0
-        ? string.Empty
-        : $", but its reply was lost, so its {SprintTally.Issues(OpenKeys.Count)} were not moved to {Destination}: move them yourself");
+    public override string VerifiedDoneText => OpenKeys.Count == 0
+        ? $"Sprint \"{Sprint.Name}\" is completed"
+        : $"Sprint \"{Sprint.Name}\" is completed, but its reply was lost, so {Moved} were not moved to "
+            + $"{Destination}: move them yourself";
 
     public override string CheckingText => $"Not sure sprint \"{Sprint.Name}\" was completed, checking";
 
@@ -48,17 +49,14 @@ public sealed record CompleteSprintRequest(
     public string Destination => MoveTo is { } next ? $"sprint \"{next.Name}\"" : "the backlog";
 
     /// <summary>Done and open counts, where the open ones go, the two calls, and that Jira has no undo.</summary>
-    public override string? AskText
+    public override string AskText
     {
         get
         {
             var open = OpenKeys.Count;
             var counts = $"{DoneCount} done, {open} open";
-            var moves = open == 0
-                ? "No open issues to move."
-                : $"The {SprintTally.Issues(open)} will be moved to {Destination} in a second step; if that fails they stay in the closed sprint.";
 
-            return $"Complete \"{Sprint.Name}\" ({counts})? {moves} Jira cannot undo this.";
+            return $"Complete \"{Sprint.Name}\" ({counts})? {MoveText} Jira cannot undo this.";
         }
     }
 
@@ -66,5 +64,21 @@ public sealed record CompleteSprintRequest(
     public static bool IsShownBy(Sprint sprint)
     {
         return sprint.State == SprintState.Closed;
+    }
+
+    private string Moved => SprintTally.Issues(OpenKeys.Count);
+
+    private string MoveText
+    {
+        get
+        {
+            if (OpenKeys.Count == 0)
+            {
+                return "No open issues to move.";
+            }
+
+            return $"The {Moved} will be moved to {Destination} in a second step; "
+                + "if that fails they stay in the closed sprint.";
+        }
     }
 }
