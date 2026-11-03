@@ -9,9 +9,9 @@ public static class SettingsRegistry
 
     public const string ThemeName = "theme";
 
-    public const string Full = "full";
+    private const string Full = "full";
 
-    public const string Minimal = "minimal";
+    private const string Minimal = "minimal";
 
     private const string HintsExpected = "full, minimal or off";
 
@@ -103,7 +103,9 @@ public static class SettingsRegistry
         };
     }
 
-    /// <summary><c>on</c> is accepted as <c>full</c>, so files and habits from before the levels keep working.</summary>
+    /// <summary>
+    /// <c>on</c> is accepted as <c>full</c>, so files and habits from before the levels keep working.
+    /// </summary>
     private static AppSettings? ApplyHints(AppSettings settings, string text)
     {
         HintLevel? level = text switch

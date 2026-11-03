@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Tui.Rendering;
@@ -227,6 +228,22 @@ public class StatusBarTests
         Assert.DoesNotContain("browser", line);
         Assert.Contains("Switched to a long profile", line);
         Assert.Equal(40, line.Length);
+    }
+
+    [Fact]
+    public void GivenMinimalHintsAndColumnsLayout_WhenRendering_ThenOnlyTheThreeGlobalHintsShow()
+    {
+        var full = With(ViewLayout.Columns);
+        var minimal = full with { Settings = new AppSettings(StatusHints: HintLevel.Minimal) };
+
+        Assert.Contains("h/l column", StatusBar.Render(full, 120, _keymap));
+
+        var line = StatusBar.Render(minimal, 120, _keymap);
+
+        Assert.DoesNotContain("column", line);
+        Assert.DoesNotContain("browser", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.Equal(120, line.Length);
     }
 
     [Fact]

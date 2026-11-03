@@ -291,7 +291,9 @@ public sealed class AppReducer
         {
             var since = state.PendingKeys.Length == 0 ? at : state.PendingSince;
 
-            return Result(state with { PendingKeys = Join(state.PendingKeys, key), PendingSince = since, Message = null });
+            var pending = Join(state.PendingKeys, key);
+
+            return Result(state with { PendingKeys = pending, PendingSince = since, Message = null });
         }
 
         if (IsBackOut(state, resolution))

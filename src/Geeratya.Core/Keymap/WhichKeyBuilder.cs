@@ -10,17 +10,6 @@ public static class WhichKeyBuilder
 {
     private const string GroupMarker = "+";
 
-    /// <summary>The noun a group is called by, from the id prefix of the actions below it; one table for every popup.</summary>
-    private static readonly Dictionary<string, string> _nouns = new(StringComparer.Ordinal)
-    {
-        ["issue"] = "issue",
-        ["comment"] = "comment",
-        ["rank"] = "rank",
-        ["sprint"] = "sprint",
-        ["view"] = "view",
-        ["tab"] = "tab",
-    };
-
     private static readonly IComparer<WhichKeyRow> _rowOrder = Comparer<WhichKeyRow>.Create(CompareRows);
 
     public static IReadOnlyList<WhichKeyRow> Build(KeymapTable keymap, InputMode mode, string pending)
@@ -110,6 +99,6 @@ public static class WhichKeyBuilder
 
         var prefix = next.Count > 0 ? PrefixOf(next[0].Action!) : "keys";
 
-        return _nouns.GetValueOrDefault(prefix, prefix);
+        return prefix;
     }
 }

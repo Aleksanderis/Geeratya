@@ -7,7 +7,8 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>
 /// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
-/// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by <c>:set whichkey off</c>.
+/// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by
+/// <c>:set whichkey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
@@ -16,7 +17,9 @@ public static class WhichKeyOverlay
     private const int MinimumBoxHeight = 3;
     private const int KeyColumn = 10;
 
-    /// <summary>True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.</summary>
+    /// <summary>
+    /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
+    /// </summary>
     public static bool Applies(AppState state)
     {
         return WhichKeyDelay.IsOpen(state);

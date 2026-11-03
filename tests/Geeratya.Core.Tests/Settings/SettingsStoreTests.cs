@@ -90,6 +90,21 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         Assert.Equal(SettingsWriteOutcome.Saved, store.Write(_whichKey, new AppSettings(WhichKey: false)).Outcome);
     }
 
+    [Theory]
+    [InlineData("\"minimal\"", HintLevel.Minimal)]
+    [InlineData("\"full\"", HintLevel.Full)]
+    [InlineData("true", HintLevel.Full)]
+    [InlineData("false", HintLevel.Off)]
+    public void GivenAStatusHintsValue_WhenReading_ThenItMapsToTheLevel(string json, HintLevel expected)
+    {
+        Create($"{{ \"statusHints\": {json} }}");
+
+        var load = new SettingsStore(_directory).Read();
+
+        Assert.Equal(expected, load.Settings.StatusHints);
+        Assert.Empty(load.Warnings);
+    }
+
     [Fact]
     public void GivenAnInvalidValue_WhenReading_ThenTheDefaultAndAWarningComeBack_AndWritingFixesIt()
     {

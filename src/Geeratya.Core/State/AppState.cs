@@ -69,7 +69,9 @@ public sealed record AppState(
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }
 
-    /// <summary>When the first key of the pending multi-key binding was typed; the which-key delay counts from it.</summary>
+    /// <summary>
+    /// When the first key of the pending multi-key binding was typed; the which-key delay counts from it.
+    /// </summary>
     public DateTimeOffset? PendingSince { get; init; }
 
     /// <summary>

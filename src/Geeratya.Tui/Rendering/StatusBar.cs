@@ -103,9 +103,7 @@ public static class StatusBar
 
         var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
         var left = $" {Badge(state.Mode)} {text}".TrimEnd();
-        var hints = state.Settings.StatusHints == HintLevel.Off
-            ? string.Empty
-            : Fit(Leveled(HintTexts(state, keymap), state), width - TextWidth.Of(left));
+        var hints = ShownHints(state, keymap, width - TextWidth.Of(left));
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -147,6 +145,16 @@ public static class StatusBar
         }
 
         return string.Join(HintGap, screen.Append(global));
+    }
+
+    private static string ShownHints(AppState state, KeymapTable keymap, int room)
+    {
+        if (state.Settings.StatusHints == HintLevel.Off)
+        {
+            return string.Empty;
+        }
+
+        return Fit(Leveled(HintTexts(state, keymap), state), room);
     }
 
     /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q quit</c>).</summary>
