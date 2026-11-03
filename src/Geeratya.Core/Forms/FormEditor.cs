@@ -136,6 +136,14 @@ public static class FormEditor
     // A single choice replaces its value (the "(none)" row clears it); a multiple choice adds a chip.
     private static FormField ChooseOption(FormField field, Suggestion suggestion)
     {
+        // A value found by a search may not be among the allowed values: keep its label so the form can show it.
+        if (suggestion.Id.Length > 0 && field.Options.All(option => option.Id != suggestion.Id))
+        {
+            var option = new FieldOption(suggestion.Id, SuggestionText.Of(suggestion));
+
+            field = field with { Options = [.. field.Options, option] };
+        }
+
         if (field.Kind == FormFieldKind.Select)
         {
             var value = suggestion.Id.Length == 0 ? FormValue.Empty : FormValue.OfChosen([suggestion.Id]);

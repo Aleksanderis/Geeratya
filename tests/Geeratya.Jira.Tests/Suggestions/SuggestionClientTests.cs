@@ -45,6 +45,32 @@ public sealed class SuggestionClientTests
     }
 
     [Fact]
+    public async Task GivenProject_WhenSearchingProjectUsers_ThenViewIssueSearchIsScopedToTheProject()
+    {
+        using var fixture = Serving("/rest/api/3/user/viewissue/search", "suggestions/users-none.json");
+
+        var result = await new SuggestionClient(fixture.Transport)
+            .SearchProjectUsersAsync("GTM", "a b", CancellationToken.None);
+
+        Assert.Empty(result.Value);
+        Assert.Equal(
+            "/rest/api/3/user/viewissue/search?projectKey=GTM&query=a%20b&maxResults=20",
+            Assert.Single(fixture.Handler.Requests).PathAndQuery);
+    }
+
+    [Fact]
+    public async Task GivenAnInvalidProjectKey_WhenSearchingProjectUsers_ThenNothingIsRequested()
+    {
+        using var fixture = Serving("/rest/api/3/user/viewissue/search", "suggestions/users-none.json");
+
+        var result = await new SuggestionClient(fixture.Transport)
+            .SearchProjectUsersAsync("../x", "a", CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
     public async Task GivenMentionQuery_WhenSearching_ThenViewIssueEndpointIsUsed()
     {
         using var fixture = Serving("/rest/api/3/user/viewissue/search", "suggestions/users-assignable-gcm.json");

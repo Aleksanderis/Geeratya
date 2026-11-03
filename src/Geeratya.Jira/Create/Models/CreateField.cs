@@ -11,4 +11,5 @@ public sealed record CreateField(
     bool HasDefaultValue,
     CreateFieldKind Kind,
     IReadOnlyList<CreateAllowedValue> AllowedValues,
-    string? AutoCompleteUrl);
+    string? AutoCompleteUrl,
+    CreateLookup Lookup = CreateLookup.None);

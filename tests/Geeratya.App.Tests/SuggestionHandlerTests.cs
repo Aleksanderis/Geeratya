@@ -249,6 +249,37 @@ public sealed class SuggestionHandlerTests
     }
 
     [Fact]
+    public async Task GivenACreateFormPersonQuery_WhenLookedUp_ThenUsersWhoCanSeeTheProjectAreAsked()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Users()));
+        var source = new SuggestionSource(SuggestionKind.ProjectUsers, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 5, source, "jo", TimeSpan.FromMilliseconds(250)));
+
+        Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.EndsWith("/rest/api/3/user/viewissue/search", request.AbsolutePath);
+        Assert.Contains("projectKey=GCM", request.Query);
+    }
+
+    [Theory]
+    [InlineData(SuggestionKind.Components, "components")]
+    [InlineData(SuggestionKind.Versions, "versions")]
+    public async Task GivenACreateFormProjectListQuery_WhenLookedUp_ThenTheProjectsListIsRead(
+        SuggestionKind kind,
+        string segment)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, """[{"id":"1","name":"Alpha"}]"""));
+        var source = new SuggestionSource(kind, null, [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 5, source, "al", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal("Alpha", Assert.Single(loaded.Items).Label);
+        Assert.EndsWith($"/rest/api/3/project/GCM/{segment}", Assert.Single(fixture.Http.Requests).AbsolutePath);
+    }
+
+    [Fact]
     public async Task GivenACreateFormParentQuery_WhenLookedUp_ThenThePickerIsScopedToTheProject()
     {
         var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
