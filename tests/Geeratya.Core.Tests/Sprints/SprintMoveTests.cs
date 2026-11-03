@@ -49,7 +49,10 @@ public class SprintMoveTests
         Assert.Empty(result.Effects);
         var question = result.State.Confirm!.Message;
         Assert.Contains("Move 2 issues (A-3, A-2)", question, StringComparison.Ordinal);
-        Assert.Contains("sprint \"Sprint 1\" and sprint \"Sprint 2\" to the backlog", question, StringComparison.Ordinal);
+        Assert.Contains(
+            "sprint \"Sprint 1\" and sprint \"Sprint 2\" to the backlog",
+            question,
+            StringComparison.Ordinal);
         Assert.Contains("Jira has no undo", question, StringComparison.Ordinal);
     }
 
@@ -67,7 +70,9 @@ public class SprintMoveTests
             Assert.Equal(InputMode.Normal, result.State.Mode);
             Assert.Empty(result.State.Session.Operations);
             Assert.Equal(["A-2", "A-3"], Tab(result.State).Marks);
-            Assert.Equal(BacklogFixtures.FutureId, Tab(result.State).Rows.Single(row => row.Key == "A-2").CurrentSprint!.Id);
+            var row = Tab(result.State).Rows.Single(candidate => candidate.Key == "A-2");
+
+            Assert.Equal(BacklogFixtures.FutureId, row.CurrentSprint!.Id);
         }
     }
 
@@ -97,7 +102,8 @@ public class SprintMoveTests
     public void GivenASprintPicker_WhenChoosingASprint_ThenOnlyActiveAndFutureSprintsAreOfferedAndTheMoveStarts()
     {
         var opened = Chord(At(Loaded(), "A-5"), "Space s m");
-        var loaded = _reducer.Reduce(opened.State, new SprintListLoaded(6, [Closed(1), BacklogFixtures.Future, BacklogFixtures.Active])).State;
+        var sprints = new[] { Closed(1), BacklogFixtures.Future, BacklogFixtures.Active };
+        var loaded = _reducer.Reduce(opened.State, new SprintListLoaded(6, sprints)).State;
 
         var names = SourceChoices.For(loaded.Picker!, loaded.Session.Sources).Select(row => row.Name).ToArray();
         var moved = Press(loaded, "Enter");
@@ -134,6 +140,18 @@ public class SprintMoveTests
         var result = Press(Chord(state, "Space s b").State, "y");
 
         Assert.Equal(["A-1", "A-2"], Request(result).Keys.OrderBy(key => key));
+    }
+
+    [Fact]
+    public void GivenTheCursorOnACollapsedSectionHeader_WhenMoving_ThenItIsRefusedInsteadOfMovingTheHiddenRow()
+    {
+        var state = Press(At(Loaded(), "A-3"), "z").State;
+        state = Press(state, "a").State;
+
+        var result = Chord(state, "Space s b");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("Expand the section first", result.State.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -182,7 +200,9 @@ public class SprintMoveTests
 
         Assert.Empty(failed.State.Session.Operations);
         Assert.Contains("Sprint is closed", failed.State.Message, StringComparison.Ordinal);
-        Assert.Equal(BacklogFixtures.ActiveId, Tab(failed.State).Rows.Single(row => row.Key == "A-3").CurrentSprint!.Id);
+        var restored = Tab(failed.State).Rows.Single(row => row.Key == "A-3");
+
+        Assert.Equal(BacklogFixtures.ActiveId, restored.CurrentSprint!.Id);
         // The rank inside the section comes back with the reload that follows the refusal.
         Assert.Equal(
             BacklogFixtures.RankedRows.Select(row => row.Key).Order(),
@@ -293,7 +313,8 @@ public class SprintMoveTests
             Profiles = profiles,
             Session = SiteSession.Empty(profiles.Active) with { Connection = new Connected("Me Myself", "acc-me") },
         };
-        var definition = new ViewDefinition(source, source == ViewSourceKind.Jql ? "project = A" : "6", ViewLayout.List, "Board");
+        var value = source == ViewSourceKind.Jql ? "project = A" : "6";
+        var definition = new ViewDefinition(source, value, ViewLayout.List, "Board");
         var opened = _reducer.Reduce(start, new ViewOpenRequested(definition)).State;
         var viewport = _reducer.Reduce(opened, new ViewportChanged(20)).State;
         var tab = Tab(viewport);

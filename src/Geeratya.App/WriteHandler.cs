@@ -27,6 +27,7 @@ namespace Geeratya.App;
 public sealed class WriteHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
+    private const int MaxKeysNamed = 8;
     private const string UnexpectedMessage = "The write failed unexpectedly";
 
     private readonly NetworkRunner _runner;
@@ -439,6 +440,9 @@ public sealed class WriteHandler
     private static string SprintMoveFailureText(SprintMoveRequest move, SprintMoveOutcome outcome)
     {
         var failed = outcome.Rejected.Select(item => item.Key).Concat(outcome.NotAttempted).ToArray();
+        var named = failed.Length <= MaxKeysNamed
+            ? string.Join(", ", failed)
+            : $"{string.Join(", ", failed.Take(MaxKeysNamed))} and {failed.Length - MaxKeysNamed} more";
         var reason = outcome.Rejected.SelectMany(item => item.Errors).FirstOrDefault()
             ?? outcome.Error?.Message
             ?? "Jira did not move the issue";
@@ -450,7 +454,7 @@ public sealed class WriteHandler
             return reason;
         }
 
-        return $"{moved} of {total} moved; {string.Join(", ", failed)} not moved: {reason}";
+        return $"{moved} of {total} moved; {named} not moved: {reason}";
     }
 
     private static Task<WriteResult<WriteAccepted>> RankAsync(

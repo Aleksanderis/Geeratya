@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -20,6 +21,7 @@ public static class SprintMoveActions
     private const string NeedsBoardText = "Sprint moves work in a board, backlog or sprint view";
     private const string KanbanText = "This is a Kanban board: it has no sprints.";
     private const string NothingText = "Nothing to move here";
+    private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
     private const string BacklogText = "the backlog";
     private const int MaxPlacesNamed = 2;
 
@@ -108,6 +110,13 @@ public static class SprintMoveActions
             return [tab.Detail[^1].Key];
         }
 
+        if (tab.Marks.Count == 0 && BacklogCursor.OnCollapsedHeader(tab))
+        {
+            refusal = CollapsedText;
+
+            return null;
+        }
+
         var keys = RowSelection.Targets(tab);
 
         if (keys.Count == 0)
@@ -165,7 +174,10 @@ public static class SprintMoveActions
 
     private static IssueSummary? FindRow(AppState state, string key)
     {
-        return state.Session.Tabs
+        var active = ActiveTab(state);
+        var tabs = active is null ? state.Session.Tabs : [active, .. state.Session.Tabs];
+
+        return tabs
             .SelectMany(tab => tab.Rows)
             .FirstOrDefault(row => string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase));
     }

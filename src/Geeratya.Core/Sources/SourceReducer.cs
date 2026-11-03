@@ -16,6 +16,7 @@ public static class SourceReducer
 {
     private const string NoProfileMessage = "No profile yet: add one with :profile add.";
     private const string NothingToOpenMessage = "Nothing to open: type JQL, or press Esc.";
+    private const string NoOpenSprintMessage = "No active or future sprint on this board.";
     private const string NoBoardMessage = "No board here: open a Scrum board first (:board).";
     private const string LoadingMessage = "Still loading: wait a moment, or press Esc.";
     private const char DoubleQuote = '"';
@@ -293,7 +294,12 @@ public static class SourceReducer
             return error;
         }
 
-        return data.Sprints is null ? LoadingMessage : NothingToOpenMessage;
+        if (data.Sprints is null)
+        {
+            return LoadingMessage;
+        }
+
+        return data.MoveKeys is null ? NothingToOpenMessage : NoOpenSprintMessage;
     }
 
     /// <summary>The sprints (or the failure) of the board the open switcher asked for; a reply for another board is dropped.</summary>

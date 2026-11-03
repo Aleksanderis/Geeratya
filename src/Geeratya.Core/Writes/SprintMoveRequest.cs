@@ -10,7 +10,7 @@ namespace Geeratya.Core.Writes;
 /// </summary>
 /// <param name="MoveKeys">The issues to move, in view order.</param>
 /// <param name="Target">The sprint to move into, null for the backlog.</param>
-/// <param name="SourceText">Where the issues are now, for the question (<c>sprint "S1"</c>, <c>the backlog</c>).</param>
+/// <param name="SourceText">Where the issues are now, for the question, e.g. <c>the backlog</c>.</param>
 public sealed record SprintMoveRequest(IReadOnlyList<string> MoveKeys, IssueSprint? Target, string SourceText)
     : WriteRequest
 {
@@ -50,6 +50,7 @@ public sealed record SprintMoveRequest(IReadOnlyList<string> MoveKeys, IssueSpri
 
     public override string AskLabel => $"Move {Noun}";
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)
     {
         return new SprintRowChange(row.Key, row.Sprints, Target);
