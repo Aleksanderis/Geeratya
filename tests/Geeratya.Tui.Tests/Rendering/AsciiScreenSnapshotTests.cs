@@ -7,7 +7,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
 /// One snapshot per screen and overlay in the ASCII glyph set. Every character must be ASCII except letters of
-/// issue or field text (wide and accented letters), so a Unicode glyph that leaks in fails here. To refresh after an
+/// issue or field text (wide and accented letters, only on the jump and form screens), so a Unicode glyph that leaks in fails here. To refresh after an
 /// intended change, run with <c>GEERATYA_UPDATE_SNAPSHOTS=1</c> and review the diff.
 /// </summary>
 public class AsciiScreenSnapshotTests
@@ -32,6 +32,8 @@ public class AsciiScreenSnapshotTests
         "network-error",
         "network-loading",
     ];
+
+    private static readonly string[] _textScreens = ["jump", "form"];
 
     public static TheoryData<string, int, int> Screens
     {
@@ -63,7 +65,7 @@ public class AsciiScreenSnapshotTests
 
         Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
         Assert.All(lines, line => Assert.All(line, character => Assert.True(
-            character < 0x80 || char.IsLetter(character),
+            character < 0x80 || _textScreens.Contains(name) && char.IsLetter(character),
             $"U+{(int)character:X4} leaked into '{line}'")));
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }
