@@ -28,7 +28,9 @@ public static class KeymapDocument
 
             foreach (var binding in keymap.Bindings.Where(binding => binding.Mode == mode))
             {
-                builder.Append($"| `{binding.Keys}` | {ActionCatalog.FindTitle(binding.Action)} | {LevelWord(binding.Action)} |\n");
+                var title = ActionCatalog.FindTitle(binding.Action);
+
+                builder.Append($"| `{binding.Keys}` | {title} | {LevelWord(binding.Action)} |\n");
             }
         }
 

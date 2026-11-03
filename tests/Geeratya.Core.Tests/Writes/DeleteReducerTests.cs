@@ -18,6 +18,18 @@ public class DeleteReducerTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
+    public void GivenEverydayLevel_WhenPressingTheKeysOfAnAdvancedAction_ThenItStillRuns()
+    {
+        var state = TwoTabs();
+
+        var result = Press(state, "Space", "i", "d");
+
+        Assert.Equal(CommandLevel.Everyday, state.Settings.CommandLevel);
+        Assert.Equal(CommandLevel.Advanced, ActionCatalog.LevelOf(ActionIds.IssueDelete));
+        Assert.IsType<CountSubtasksEffect>(Assert.Single(result.Effects));
+    }
+
+    [Fact]
     public void GivenSelectedRow_WhenPressingTheDeleteKeys_ThenSubtasksAreCountedBeforeAnythingIsAsked()
     {
         var state = TwoTabs();

@@ -734,7 +734,9 @@ public sealed class AppReducer
     /// </summary>
     private AppState CycleCommandLevel(AppState state)
     {
-        var level = state.Settings.CommandLevel == CommandLevel.Everyday ? CommandLevel.Advanced : CommandLevel.Everyday;
+        var level = state.Settings.CommandLevel == CommandLevel.Everyday
+            ? CommandLevel.Advanced
+            : CommandLevel.Everyday;
         var changed = state with
         {
             Settings = state.Settings with { CommandLevel = level },
@@ -746,7 +748,12 @@ public sealed class AppReducer
 
     private int LineCount(AppState state)
     {
-        return state.MessagesOpen ? state.StatusHistory.Count : KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
+        if (state.MessagesOpen)
+        {
+            return state.StatusHistory.Count;
+        }
+
+        return KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
     }
 
     private AppState ScrollHelp(AppState state, int delta)

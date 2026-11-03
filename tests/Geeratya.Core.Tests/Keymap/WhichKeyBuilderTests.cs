@@ -76,6 +76,6 @@ public class WhichKeyBuilderTests
     public void GivenEverydayLevel_WhenAskingForNextKeysUnderAnAllAdvancedGroup_ThenTheListIsEmpty()
     {
         Assert.Empty(_keymap.NextKeys(InputMode.Normal, "Space k", CommandLevel.Everyday));
-        Assert.NotEmpty(_keymap.NextKeys(InputMode.Normal, "Space k", CommandLevel.Advanced));
+        Assert.NotEmpty(_keymap.NextKeys(InputMode.Normal, "Space k"));
     }
 }

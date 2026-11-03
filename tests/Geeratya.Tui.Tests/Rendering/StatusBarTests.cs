@@ -43,7 +43,12 @@ public class StatusBarTests
     {
         var advanced = new StatusHint(InputMode.Normal, ActionIds.IssueDelete, "delete");
         var pair = new StatusHint(InputMode.Normal, ActionIds.RankTop, "rank", HintScope.Global, ActionIds.IssueDelete);
-        var mixed = new StatusHint(InputMode.Normal, ActionIds.IssueDelete, "x", HintScope.Global, ActionIds.NavigateUp);
+        var mixed = new StatusHint(
+            InputMode.Normal,
+            ActionIds.IssueDelete,
+            "x",
+            HintScope.Global,
+            ActionIds.NavigateUp);
 
         Assert.False(StatusBar.IsShownAt(advanced, CommandLevel.Everyday));
         Assert.False(StatusBar.IsShownAt(pair, CommandLevel.Everyday));

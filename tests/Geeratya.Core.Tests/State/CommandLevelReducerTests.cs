@@ -56,18 +56,6 @@ public class CommandLevelReducerTests
     }
 
     [Fact]
-    public void GivenAnAdvancedAction_WhenTheLevelIsEveryday_ThenItsKeyStillRuns()
-    {
-        var pending = Press(Press(AppState.Initial, "Space"), "k");
-
-        var result = Press(pending, "t");
-
-        Assert.Equal(CommandLevel.Everyday, result.Settings.CommandLevel);
-        Assert.Equal(string.Empty, result.PendingKeys);
-        Assert.Equal(KeyResolutionKind.Action, DefaultKeymap.Load().Resolve(InputMode.Normal, "Space k", "t").Kind);
-    }
-
-    [Fact]
     public void GivenSetCommandLevel_WhenSubmittingThePalette_ThenTheLevelChangesAndIsSaved()
     {
         var palette = AppState.Initial with { Mode = InputMode.Command, PaletteText = "set commandlevel advanced" };

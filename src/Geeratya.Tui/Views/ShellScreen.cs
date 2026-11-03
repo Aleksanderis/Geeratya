@@ -114,7 +114,8 @@ public sealed class ShellScreen : Window
         _state = state;
         _now = now;
 
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, HelpLinesFor(state), _keymap, null, now, _glyphs);
+        var helpLines = HelpLinesFor(state);
+        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, helpLines, _keymap, null, now, _glyphs);
 
         if (frame is null)
         {

@@ -64,7 +64,10 @@ public static class ActionCatalog
         new(ActionIds.IssueCreate, "Create an issue (type picker, then the form)"),
         new(ActionIds.IssueCreateSubtask, "Create a sub-task of the selected issue"),
         new(ActionIds.IssueLink, "Link the issue to another issue", CommandLevel.Advanced),
-        new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)", CommandLevel.Advanced),
+        new(
+            ActionIds.IssueUnlink,
+            "Remove the link under the cursor (asks first; Jira cannot undo it)",
+            CommandLevel.Advanced),
         new(ActionIds.IssueJump, "Jump to an issue by key"),
         new(ActionIds.StatusHistory, "Show the message history"),
         new(ActionIds.StatusDismiss, "Dismiss the status message"),
@@ -176,7 +179,8 @@ public static class ActionCatalog
     }
 
     /// <summary>
-    /// The command level of an action; an id the catalog does not know counts as everyday so a stray id is never hidden.
+    /// The command level of an action; an id the catalog does not know counts as everyday, so a stray id is
+    /// never hidden.
     /// </summary>
     public static CommandLevel LevelOf(string id)
     {
@@ -191,7 +195,9 @@ public static class ActionCatalog
         return CommandLevel.Everyday;
     }
 
-    /// <summary>True when the lists of <paramref name="level"/> show the action (a level hides, it never disables).</summary>
+    /// <summary>
+    /// True when the lists of <paramref name="level"/> show the action (a level hides, it never disables).
+    /// </summary>
     public static bool IsShownAt(string id, CommandLevel level)
     {
         return LevelOf(id) <= level;
