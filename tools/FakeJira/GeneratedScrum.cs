@@ -10,7 +10,8 @@ namespace Geeratya.FakeJira;
 /// With <c>--issues n</c>: a read-only Scrum board (id 7, project <c>GEN</c>) over the generated issues. The first
 /// four fifths of the issues sit in consecutive blocks of 3 to 30 sprints (the last one future, the one before it
 /// active, the rest closed), the last fifth is in no sprint, and an unfinished issue of a closed sprint is also in
-/// the backlog, as on the real site. Everything is computed from the issue number, so nothing is stored.
+/// the backlog, as on the real site. Every issue carries a story point estimate; <c>noActiveSprint</c> turns the
+/// active sprint into a closed one. Everything is computed from the issue number, so nothing is stored.
 /// </summary>
 public sealed partial class GeneratedScrum
 {
@@ -27,22 +28,26 @@ public sealed partial class GeneratedScrum
     private const string Values = "values";
     private const string StartAt = "startAt";
     private const string MaxResults = "maxResults";
+    private const string EstimateField = "customfield_10047";
     private const string Closed = "closed";
     private const string Active = "active";
     private const string Self = "https://example.invalid/rest/agile/1.0/";
 
     private static readonly string[] _statuses = ["Backlog", "To Do", "In Progress", "Done"];
+    private static readonly int[] _estimates = [1, 2, 3, 5, 8];
     private static readonly string[] _kinds = ["Task", "Bug", "Story"];
     private static readonly DateTime _firstStart = new(2026, 1, 5, 9, 0, 0, DateTimeKind.Utc);
 
+    private readonly bool _noActiveSprint;
     private readonly int _total;
     private readonly int _sprintCount;
     private readonly int _inSprints;
     private readonly int _block;
     private readonly Func<string, byte[]> _readFixture;
 
-    public GeneratedScrum(int total, Func<string, byte[]> readFixture)
+    public GeneratedScrum(int total, Func<string, byte[]> readFixture, bool noActiveSprint = false)
     {
+        _noActiveSprint = noActiveSprint;
         _total = total;
         _readFixture = readFixture;
         _sprintCount = Math.Clamp(total / IssuesPerSprint, MinSprints, MaxSprints);
@@ -147,7 +152,7 @@ public sealed partial class GeneratedScrum
             return "future";
         }
 
-        return index == _sprintCount - 2 ? Active : Closed;
+        return index == _sprintCount - 2 && !_noActiveSprint ? Active : Closed;
     }
 
     private JsonObject SprintEntry(int id)
@@ -318,6 +323,7 @@ public sealed partial class GeneratedScrum
         writer.WriteEndObject();
         writer.WriteEndObject();
         writer.WriteNull("assignee");
+        writer.WriteNumber(EstimateField, _estimates[number % _estimates.Length]);
 
         if (index < 0)
         {

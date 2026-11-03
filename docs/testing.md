@@ -37,10 +37,11 @@ dotnet run --project tools/FakeJira -- --issues 10000 --latency-ms 50 --rate-lim
 |---|---|
 | `--fixtures <dir>` | Fixture folder; default found by walking up from the binary or the current directory to `tests/Geeratya.Jira.Tests/Fixtures` |
 | `--port <n>` | Listen port; default 0 picks a free one (probe-then-bind, retried on a race) |
-| `--issues <n>` | Search serves `GEN-1..GEN-n` generated issues, paged with `maxResults` (default 50, cap 5000) and `nextPageToken`; `approximate-count` answers `n` |
+| `--issues <n>` | Search serves `GEN-1..GEN-n` generated issues, paged with `maxResults` (default 50, cap 5000) and `nextPageToken`; `approximate-count` answers `n`; the generated issues carry a story point estimate (`customfield_10047`) |
 | `--latency-ms <n>` | Delay added to every reply |
 | `--rate-limit-every <n>` | Every nth request is answered `429` with `Retry-After: 1` |
 | `--drop-write-every <n>` | Every nth write (POST, PUT, DELETE) is applied, then the connection is cut after the headers, so the client fails reading the reply and cannot tell whether the write happened (the "unknown outcome" path) |
+| `--no-active-sprint` | With `--issues`: the generated Scrum board has no active sprint (closed and one future only), for the "No open sprint on this board." state. Takes no value |
 
 Without `--issues`, search serves the recorded three-page fixtures (`search-page1..3-last`). Routes are a fixed table in `FakeJiraRouter` over recorded fixtures: `myself`, `project/search`, `field`, `issuetype`, `filter/my`, `filter/search`, `filter/favourite`, `search/jql` (GET and POST), the agile board list, boards 3 (GTM) and 4 (GCM) with configuration and `epic`, board 3 and 4 `issue` and `backlog` (board 3 from the `hierarchy/` fixtures), `issue/GTM-9` and `issue/GCM-8` (epics) whose `parent = KEY` search answers the `hierarchy/search-epic-children-*` fixtures, a `key = KEY` (or `issuekey`) search of any routed issue, which answers one page holding that recorded issue (also with `--issues`; there `parent = KEY` of an epic likewise answers the recorded children), and `filter/10001` (any other numeric filter id answers the recorded 404 "not available"). Anything else (including a POST to any path except `search/jql`, with `--issues` `search/approximate-count`, and the write routes below) is the recorded 404. It ignores credentials. Add a route when a feature needs one: map the path to a recorded fixture in `FakeJiraRouter`. Point the app at it with a profile whose site URL is the printed address and any token.
 
