@@ -808,11 +808,11 @@ public static class StatusBar
             return $"{step} {form.TestResult}";
         }
 
-        var value = ProfileFormOverlay.Shown(form);
         var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
-        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}_");
+        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}");
+        var window = PromptWindow.Of(ProfileFormOverlay.PromptOf(form, form.Field), Math.Max(0, width - used));
 
-        return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
+        return $"{prefix}{window.Before}{window.Caret}{window.After}";
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>

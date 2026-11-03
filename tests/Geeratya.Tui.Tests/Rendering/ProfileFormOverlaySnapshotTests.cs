@@ -141,6 +141,32 @@ public class ProfileFormOverlaySnapshotTests
         Assert.Contains(FrameBuilder.Build(running, 80, 24, _keymap), line => line.Contains("Testing the connection"));
     }
 
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    public void GivenTheCaretInsideTheToken_WhenBuildingTheFrame_ThenOnlyMaskCharactersAndTheCaretShow(int width, int height)
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.Token, Token = new SecretText(Token), Back = 5 };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+        var lines = FrameBuilder.Build(state, width, height, _keymap);
+        var text = string.Join('\n', lines);
+
+        Assert.DoesNotContain("s3cr3t", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("-token-", text, StringComparison.Ordinal);
+        Assert.Contains("*************|*****", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheCaretInsideAName_WhenBuildingTheFrame_ThenTheBarMarksItInTheText()
+    {
+        var form = ProfileForm.Start with { Name = "workdev", Back = 3 };
+        var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
+
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("work|dev", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void GivenAnyTerminalSize_WhenBuildingTheEditFrame_ThenItNeverThrows()
     {

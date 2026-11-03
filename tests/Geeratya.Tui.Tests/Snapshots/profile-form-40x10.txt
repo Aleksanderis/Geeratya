@@ -7,4 +7,4 @@
 │                                      │
 │                                      │
 ╰──────────────────────────────────────╯
- INSERT  [4/4] API token (hidden): ****_
+ INSERT  [4/4] API token (hidden): …***_

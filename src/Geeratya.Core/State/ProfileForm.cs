@@ -21,6 +21,9 @@ public sealed record ProfileForm(
     /// <summary>The name of the profile being edited, or null when a new one is added.</summary>
     public string? EditingName { get; init; }
 
+    /// <summary>Units between the caret and the end of the focused field's text (0 is the end); see <c>PromptText</c>.</summary>
+    public int Back { get; init; }
+
     /// <summary>The outcome line of the last connection test; cleared by any edit.</summary>
     public string? TestResult { get; init; }
 
