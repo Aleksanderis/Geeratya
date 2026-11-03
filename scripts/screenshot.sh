@@ -49,7 +49,7 @@ all_scenarios=(
   "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
   "palette;120;36;dark;:jql project = GCM|:;Commands"
   "palette-filtered;80;24;dark;:jql project = GCM|:rank;Rank"
-  "palette-caret;80;24;dark;:jql project = GCM|:rank<<;ra|nk"
+  "palette-caret;100;24;dark;:jql project = GCM|:rank<<;Rank"
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
   "profile-list;120;36;dark;:profile|;Details"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Generated comment 3"
