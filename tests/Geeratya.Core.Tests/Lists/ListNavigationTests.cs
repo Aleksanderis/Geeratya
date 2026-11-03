@@ -169,7 +169,7 @@ public class ListNavigationTests
     {
         var state = Loaded(20, 10, null) with { Mode = InputMode.Help };
 
-        var result = Press(state, "j").State;
+        var result = Press(state, "J").State;
 
         Assert.Equal(1, result.HelpScroll);
         Assert.Equal(0, Tab(result).Selected);

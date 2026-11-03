@@ -166,7 +166,8 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.DoesNotContain(lines, line => line.StartsWith("My open issues › GCM-12"));
+        Assert.Contains(lines, line => line.Contains("┌─ Help"));
+        Assert.DoesNotContain(lines, line => line.Contains("Status    In Progress"));
     }
 
     [Fact]

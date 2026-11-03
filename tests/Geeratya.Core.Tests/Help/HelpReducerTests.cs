@@ -22,10 +22,56 @@ public class HelpReducerTests
     [Fact]
     public void GivenHelpOpen_WhenPressingTab_ThenTheNextPageShowsFromItsFirstLine()
     {
-        var state = Press(Press(Opened(), "j"), "Tab");
+        var state = Press(Press(Opened(), "J"), "Tab");
 
         Assert.Equal(1, state.HelpPage);
         Assert.Equal(0, state.HelpScroll);
+    }
+
+    [Fact]
+    public void GivenHelpOpen_WhenPressingJAndK_ThenTheSectionMovesAndStopsAtTheEnds()
+    {
+        var last = HelpPages.Names(Opened(), _keymap).Count - 1;
+        var state = Press(Opened(), "k");
+
+        Assert.Equal(0, state.HelpPage);
+
+        state = Press(Press(Opened(), "J"), "j");
+
+        Assert.Equal(1, state.HelpPage);
+        Assert.Equal(0, state.HelpScroll);
+
+        for (var step = 0; step < last + 3; step++)
+        {
+            state = Press(state, "Down");
+        }
+
+        Assert.Equal(last, state.HelpPage);
+        Assert.Equal(last - 1, Press(state, "Up").HelpPage);
+    }
+
+    [Fact]
+    public void GivenHelpOpen_WhenPressingHalfPageKeys_ThenThePageScrollsAndKeepsItsSection()
+    {
+        var state = Press(Press(Opened(), "j"), "j");
+
+        var down = Press(state, "D");
+        var back = Press(Press(down, "Ctrl-d"), "U");
+
+        Assert.Equal(8, down.HelpScroll);
+        Assert.Equal(8, back.HelpScroll);
+        Assert.Equal(state.HelpPage, back.HelpPage);
+        Assert.Equal(0, Press(Press(down, "Ctrl-u"), "K").HelpScroll);
+    }
+
+    [Fact]
+    public void GivenTheMessagesOverlay_WhenPressingJ_ThenItScrollsAsBefore()
+    {
+        var state = StatusMessages.OpenHistory(AppState.Initial with { MessagesShowSettings = true });
+
+        Assert.Equal(0, Press(state, "k").HelpScroll);
+        Assert.Equal(1, Press(state, "j").HelpScroll);
+        Assert.Equal(0, Press(state, "j").HelpPage);
     }
 
     [Fact]
@@ -80,7 +126,7 @@ public class HelpReducerTests
     {
         var state = Press(Press(Press(Opened(), "/"), "a"), "Enter");
 
-        state = Press(state, "j");
+        state = Press(state, "J");
 
         Assert.False(state.HelpFiltering);
         Assert.Equal("a", state.HelpFilter);
