@@ -1,0 +1,38 @@
+# Settings
+
+Geeratya keeps a few switches in `settings.json` in the configuration directory (next to `profiles.json`; see [customising-keys.md](customising-keys.md) for the paths). There is no settings screen: `:set` (and the command palette) is the interface, and the file can be edited by hand too.
+
+## The settings
+
+This table is generated from the settings registry (`SettingsRegistry` in `Geeratya.Core/Settings`) and a test compares it with the registry, so a new setting is one registry entry and one row here.
+
+| `:set` name | File key | Values | Default | What it does |
+|---|---|---|---|---|
+| `hints` | `statusHints` | on or off | `on` | Show the key hints on the right of the status bar. |
+| `whichkey` | `whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
+| `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
+
+## `:set`
+
+- `:set` lists every setting with its value and default.
+- `:set <name>` shows one setting with the values it accepts and what it does.
+- `:set <name> <value>` changes it at once and saves it. `:set theme <name>` is the same as `:theme <name>`.
+
+## The file
+
+The file is JSON; comments and trailing commas are allowed. Example:
+
+```json
+{
+  // Hide the hints once I know the keys.
+  "statusHints": false,
+  "theme": "nord",
+}
+```
+
+- A change replaces only the value of that key: comments, key order, indentation and trailing commas stay. A key the file lacks is added as its last member. A missing file is created with only that key.
+- Keys the app does not know are left alone.
+- A value that is not valid (wrong type or unknown value) is read as the default and the status line says so; changing that setting writes a valid value over it.
+- A file that does not parse is never written: the status line names the problem and its line, and the defaults are used for the session.
+- If the file changed on disk after the app read it, the app reads it again and asks you to repeat the change; nothing is overwritten blindly.
+- The write goes through a temporary file in the same folder and a rename, so a crash never leaves half a file. A symbolic link is followed and stays a link.
