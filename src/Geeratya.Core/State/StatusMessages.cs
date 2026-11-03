@@ -209,6 +209,15 @@ public static class StatusMessages
     }
 
     /// <summary>
+    /// A cache problem found while running (a file that could not be read or written): it joins the startup problems
+    /// list and the history like the config warnings, and the status line shows it as a warning.
+    /// </summary>
+    public static AppState AddCacheProblem(AppState state, string problem)
+    {
+        return Warn(state with { StartupProblems = [.. state.StartupProblems, problem] }, problem);
+    }
+
+    /// <summary>
     /// Folds the post, the stamp and the expiry into <paramref name="state"/>; <paramref name="now"/> is null when the
     /// command carries no time.
     /// </summary>

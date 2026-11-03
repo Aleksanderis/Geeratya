@@ -130,6 +130,37 @@ public sealed class SiteCacheTests : IDisposable
     }
 
     [Fact]
+    public void GivenTwoCorruptFiles_WhenReading_ThenOneReadProblemIsRaised()
+    {
+        var folder = Path.Combine(_root, "p");
+        var other = new CacheKey(ViewSourceKind.Jql, "project = OTHER");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, SiteCache.ViewFileName(_key)), "not json at all");
+        File.WriteAllText(Path.Combine(folder, SiteCache.ViewFileName(other)), "not json at all");
+        var notices = new List<string>();
+        using var cache = new SiteCache(folder);
+        cache.ReadProblem += notices.Add;
+
+        Assert.Null(cache.Get(_key));
+        Assert.Null(cache.Get(other));
+
+        Assert.Single(notices);
+        Assert.DoesNotContain("Bearer", notices[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenMissingFile_WhenReading_ThenNoReadProblemIsRaised()
+    {
+        var notices = new List<string>();
+        using var cache = new SiteCache(Path.Combine(_root, "p"));
+        cache.ReadProblem += notices.Add;
+
+        Assert.Null(cache.Get(_key));
+
+        Assert.Empty(notices);
+    }
+
+    [Fact]
     public void GivenFileHoldingAnotherKey_WhenReading_ThenItIsIgnoredAndDeleted()
     {
         var folder = Path.Combine(_root, "p");

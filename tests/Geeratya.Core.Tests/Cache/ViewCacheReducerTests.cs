@@ -173,6 +173,18 @@ public class ViewCacheReducerTests
         var result = _reducer.Reduce(AppState.Initial, new CacheWriteFailed("cache broke"));
 
         Assert.Equal("cache broke", result.State.Message);
+        Assert.Equal(["cache broke"], result.State.StartupProblems);
+    }
+
+    [Fact]
+    public void GivenStartupProblem_WhenCacheProblemArrives_ThenBothAreListedAndTheNewOneShows()
+    {
+        var state = StatusMessages.AddStartupProblems(AppState.Initial, ["Keymap: bad"]);
+
+        var result = _reducer.Reduce(state, new CacheWriteFailed("cache broke"));
+
+        Assert.Equal(["Keymap: bad", "cache broke"], result.State.StartupProblems);
+        Assert.Equal("cache broke", result.State.Message);
     }
 
     private static CachedView CachedView(int count)

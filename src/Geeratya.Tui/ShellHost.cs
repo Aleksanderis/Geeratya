@@ -117,6 +117,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _mentionCheck = new MentionCheckHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
         profiles.Caches.WriteFailed += OnCacheWriteFailed;
+        profiles.Caches.ReadProblem += OnCacheWriteFailed;
 
         _startupEffects?.SaveFailed += OnTabsSaveFailed;
 
@@ -127,6 +128,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     public void Dispose()
     {
         _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
+        _profiles.Caches.ReadProblem -= OnCacheWriteFailed;
 
         _startupEffects?.SaveFailed -= OnTabsSaveFailed;
 
