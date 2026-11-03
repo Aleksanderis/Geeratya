@@ -52,6 +52,12 @@ public class KeyTranslatorTests
     }
 
     [Fact]
+    public void GivenCtrlSix_WhenTranslating_ThenCtrlCaret()
+    {
+        Assert.Equal("Ctrl-^", KeyTranslator.Translate(new Key(KeyCode.D6 | KeyCode.CtrlMask)));
+    }
+
+    [Fact]
     public void GivenQuestionMark_WhenTranslating_ThenTheCharacter()
     {
         Assert.Equal("?", KeyTranslator.Translate(new Key('?')));

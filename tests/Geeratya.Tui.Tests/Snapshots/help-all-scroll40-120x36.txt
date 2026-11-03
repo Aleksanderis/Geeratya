@@ -2,6 +2,7 @@
                                                                                                                         
 Help                                                                                                                    
 Global  All actions  Commands                                                                                           
+  Space c    Close the tab                                                                                              
 Navigate                                                                                                                
   j          Move down  (Down)                                                                                          
   k          Move up  (Up)                                                                                              
@@ -32,5 +33,4 @@ Dialogs
   Enter      Run the typed command  (Ctrl-l)                                                                            
   Backspace  Delete the last character                                                                                  
   y          Confirm                                                                                                    
-  n          Decline  (Esc)                                                                                             
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

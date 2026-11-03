@@ -168,10 +168,59 @@ public class TabKeysTests
     }
 
     [Fact]
+    public void GivenTabsVisitedOutOfOrder_WhenPressingCtrlCaretTwice_ThenItFlipsBetweenTheTwoLatest()
+    {
+        var state = OpenTabs(3);
+        var ids = state.Session.Tabs.Select(tab => tab.Id).ToArray();
+        var first = Press(state, "Alt-1").State;
+
+        var flipped = Press(first, "Ctrl-^");
+        var back = Press(flipped.State, "Ctrl-^");
+
+        Assert.Equal(ids[2], flipped.State.Session.Active);
+        Assert.Equal(ids[0], back.State.Session.Active);
+    }
+
+    [Fact]
+    public void GivenSpaceTab_WhenPressed_ThenItFlipsToThePreviousTab()
+    {
+        var state = OpenTabs(2);
+        var ids = state.Session.Tabs.Select(tab => tab.Id).ToArray();
+
+        var result = Press(Press(state, "Space").State, "Tab");
+
+        Assert.Equal(ids[0], result.State.Session.Active);
+    }
+
+    [Fact]
+    public void GivenOneTab_WhenPressingCtrlCaret_ThenTheStatusLineSaysThereIsNoPreviousTab()
+    {
+        var state = OpenTabs(1);
+
+        var result = Press(state, "Ctrl-^");
+
+        Assert.Equal("No previous tab.", result.State.Message);
+        Assert.Equal(state.Session.Active, result.State.Session.Active);
+    }
+
+    [Fact]
+    public void GivenThePreviousTabClosed_WhenPressingCtrlCaret_ThenItGoesToTheNextMostRecentTab()
+    {
+        var state = OpenTabs(3);
+        var ids = state.Session.Tabs.Select(tab => tab.Id).ToArray();
+        var closed = _reducer.Reduce(state, new TabClosed(ids[1])).State;
+
+        var result = Press(closed, "Ctrl-^");
+
+        Assert.Equal(ids[0], result.State.Session.Active);
+    }
+
+    [Fact]
     public void GivenTheTabActions_WhenListingUnimplemented_ThenNoTabActionRemains()
     {
         Assert.DoesNotContain(ActionIds.TabNext, ActionCatalog.Unimplemented);
         Assert.DoesNotContain(ActionIds.TabPrevious, ActionCatalog.Unimplemented);
+        Assert.DoesNotContain(ActionIds.TabLastActive, ActionCatalog.Unimplemented);
         Assert.DoesNotContain(ActionIds.TabGoTo9, ActionCatalog.Unimplemented);
         Assert.DoesNotContain(ActionIds.TabNew, ActionCatalog.Unimplemented);
         Assert.DoesNotContain(ActionIds.TabClose, ActionCatalog.Unimplemented);

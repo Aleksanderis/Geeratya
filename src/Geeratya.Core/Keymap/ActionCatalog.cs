@@ -80,6 +80,7 @@ public static class ActionCatalog
         new(ActionIds.SectionPrevious, "Previous section of the issue"),
         new(ActionIds.TabNext, "Next tab"),
         new(ActionIds.TabPrevious, "Previous tab"),
+        new(ActionIds.TabLastActive, "Previously active tab"),
         new(ActionIds.TabGoTo1, "Go to tab 1"),
         new(ActionIds.TabGoTo2, "Go to tab 2"),
         new(ActionIds.TabGoTo3, "Go to tab 3"),
