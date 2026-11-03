@@ -29,7 +29,7 @@ public class SourcePickerSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"picker-{width}x{height}.txt");
 
-        Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+        Assert.Equal(File.ReadAllText(path), actual);
     }
 
     [Theory]

@@ -29,7 +29,7 @@ public class ListSnapshotTests
 
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ListSnapshotTests
 
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", "list-ascii-40x10.txt"));
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     private static AppState Sample()

@@ -188,7 +188,7 @@ public class IssueDetailRendererTests
 
         var expected = SnapshotFile.Expect(name, actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     private AppState Opened(int width, int height)

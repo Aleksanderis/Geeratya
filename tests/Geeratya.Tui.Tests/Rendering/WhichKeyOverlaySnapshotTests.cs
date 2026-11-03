@@ -16,6 +16,6 @@ public class WhichKeyOverlaySnapshotTests
         var actual = string.Join('\n', FrameBuilder.Build(state, 120, 36, _keymap));
         var expected = SnapshotFile.Expect(name, actual + "\n");
 
-        Assert.Equal(expected.ReplaceLineEndings("\n").TrimEnd(), actual.TrimEnd());
+        Assert.Equal(expected.TrimEnd(), actual.TrimEnd());
     }
 }

@@ -164,7 +164,7 @@ public class HelpPageSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect(name, actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     private static AppState StateFor(string layout)

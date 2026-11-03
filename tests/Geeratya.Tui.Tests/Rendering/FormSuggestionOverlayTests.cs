@@ -34,7 +34,7 @@ public class FormSuggestionOverlayTests
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-suggest-{width}x{height}.txt");
 
-        Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+        Assert.Equal(File.ReadAllText(path), actual);
     }
 
     [Theory]

@@ -1,0 +1,2 @@
+# Snapshot files are compared byte for byte; keep LF on every platform.
+tests/**/Snapshots/** text eol=lf

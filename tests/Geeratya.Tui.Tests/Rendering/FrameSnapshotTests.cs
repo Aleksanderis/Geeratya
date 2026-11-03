@@ -38,7 +38,7 @@ public class FrameSnapshotTests
         var expected = SnapshotFile.Expect($"{mode}-{size}.txt", writer.ToString());
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Theory]
@@ -57,7 +57,7 @@ public class FrameSnapshotTests
         var expected = SnapshotFile.Expect($"help-all-scroll{scroll}-120x36.txt", writer.ToString());
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class FrameSnapshotTests
         var expected = SnapshotFile.Expect("help-commands-120x36.txt", writer.ToString());
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Theory]
@@ -89,7 +89,7 @@ public class FrameSnapshotTests
         var expected = SnapshotFile.Expect($"help-advanced-scroll{scroll}-120x36.txt", writer.ToString());
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Fact]
