@@ -417,7 +417,7 @@ public sealed class AppReducer
 
     /// <summary>
     /// An action typed after a count (<c>docs/ux-keymap.md</c>, "Selection and counts"): a motion or a rank step
-    /// repeats; any other write refuses; every other action ignores the count.
+    /// repeats (so do the help scroll and the overlay highlight moves of a wheel notch); any other write refuses; every other action ignores the count.
     /// </summary>
     private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
     {
