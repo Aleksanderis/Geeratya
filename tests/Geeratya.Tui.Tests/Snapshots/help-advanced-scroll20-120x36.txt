@@ -20,6 +20,8 @@
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │   Space s n  Create a sprint (name, goal, dates)                             │            
             │               │   Space s e  Edit the sprint (name, goal, dates)                             │            
+            │               │   Space s s  Start the sprint (confirms dates and issue count)               │            
+            │               │   Space s c  Complete the sprint (confirms where the open issues go)         │            
             │               │   Space s g  Show the full goal of the sprint                                │            
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
@@ -29,8 +31,6 @@
             │               │   Alt-2      Go to tab 2                                                     │            
             │               │   Alt-3      Go to tab 3                                                     │            
             │               │   Alt-4      Go to tab 4                                                     │            
-            │               │   Alt-5      Go to tab 5                                                     │            
-            │               │   Alt-6      Go to tab 6                                                     │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

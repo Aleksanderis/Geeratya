@@ -18,4 +18,6 @@ public enum OperationKind
     UnlinkIssues,
     CreateSprint,
     EditSprint,
+    StartSprint,
+    CompleteSprint,
 }
