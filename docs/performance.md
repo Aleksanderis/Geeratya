@@ -185,17 +185,17 @@ Both rows of the table above were taken with the fixed `measure.sh`. The section
 
 ## Idle cost (#619)
 
-Native AOT `geeratya` at `main` `d2bbf91`, fake Jira (`--issues 100`), 120x40 tmux, no key presses, a 20 s window after the list was loaded, per-thread `utime+stime` ticks and `voluntary_ctxt_switches` from `/proc/<pid>/task/*` read twice. 10 threads, RSS 47 to 49 MB. Four alternating runs of the 100-row list: 6, 4 (default) and 1, 3 (10 iterations/s) CPU ticks per 20 s, that is 0.2 to 0.3 % of one core at the default (the 22 to 25 ticks quoted in #616 included the first seconds after start, when the connection check, the first load and the JIT-free startup work still ran), and about 8 700 thread wake-ups per 20 s (about 440 a second).
+Native AOT `geeratya` at `main` `d2bbf91`, fake Jira (`--issues 100`), 120x40 tmux, no key presses, a 20 s window after the 100-row list was loaded, per-thread `utime+stime` ticks and `voluntary_ctxt_switches` from `/proc/<pid>/task/*` read twice (`scripts/idle-cpu.sh <binary> <fake url> list`). 10 threads, RSS 47 to 49 MB. Four alternating runs: 6 and 4 CPU ticks per 20 s at the default, 1 and 3 with 10 iterations/s; that is 0.2 to 0.3 % of one core at the default. The 22 to 25 ticks quoted in #616 (and the "about 1 %" of the issue title) were taken over a window that began right after start, when the connection check, the first load and the cache write were still running; a window taken after the screen has settled does not show them. The default runs made 8 664 and 8 926 context switches per 20 s summed over the 10 threads (about 440 a second); one timer expiry costs several of them (timer thread, pool worker, the thread that runs the callback), so the rates below are expiries, not switches.
 
-Wake-ups while idle, by cause:
+Idle timer expiries by cause:
 
 | Cause | Rate | Where |
 |---|---|---|
-| Terminal.Gui input thread polls the terminal every 20 ms (`Task.Delay`, so a timer thread plus a pool worker wake each time) | about 50/s, on three threads | library, `InputImpl.Run` |
-| Terminal.Gui main loop: one iteration per `MaximumIterationsPerSecond` (default 25), each ending in a delay | about 25/s on three threads | library |
-| Our `Tick` timer (message lifetimes, refresh rule, which-key) | 1/s; an idle tick returns the same state and draws nothing | `ShellHost.PostTick` |
+| Terminal.Gui input thread polls the terminal every 20 ms with `Task.Delay` | 50/s | library, `InputImpl.Run` |
+| Terminal.Gui main loop: one iteration per `MaximumIterationsPerSecond` (default 25), each ending in a delay | 25/s | library |
+| Our `Tick` timer (message lifetimes, refresh rule, which-key); the `Application.Invoke` also wakes the main loop | 1/s; an idle tick returns the same state and draws nothing | `ShellHost.PostTick` |
 | Which-key timer | none unless a chord is pending | `ShellHost.ScheduleWhichKey` |
-| Spinners, polling of Jira, file watchers | none; refresh is driven by the `Tick` and only for the active tab | |
-| Cache flush timer | armed only after a write | `SiteCache` |
+| Cache flush timer | one expiry after a cache write (each completed load), none otherwise | `SiteCache` |
+| Spinners, Jira polling, file watchers | none exist | |
 
-Our own timers are about 0.2 % of the wake-ups, so there is nothing cheap left to fix on our side. Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 20 % fewer wake-ups (7 000 against 8 800 per 20 s) and 1 to 3 against 4 to 6 ticks, within noise of the load on the machine, in exchange for a slower first key after a pause (the Gitunia measurement of the same library: 25/s 1.04 %, 10/s 0.91 %, about +30 ms first key). Not applied; whether an idle governor pays off is #624. Reproduce with the sampling described above; no `strace` or `perf` is needed.
+The library accounts for 75 of the 76 expiries a second, so there is nothing cheap left to fix on our side; the switches per expiry are not split by cause (not measured). Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 6 805 and 7 086 switches per 20 s against 8 664 and 8 926 (about 20 % fewer, more than the main-loop share alone predicts, because each iteration also runs a size query and a draw check) and 1 and 3 ticks against 6 and 4, which is within the noise of the machine load (other agents were building). It costs a slower first key after a pause, so it was not applied; whether an idle governor pays off is #624. For comparison only: Gitunia measured the same library at 25/s 1.04 % and 10/s 0.91 % on another workload and a 45 s window, so those figures are not comparable with the ones above.
