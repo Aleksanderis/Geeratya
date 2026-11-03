@@ -77,6 +77,11 @@ public static class MouseHitTester
             return MouseTarget.Banner;
         }
 
+        if (context.JumpChip is { } chip && column >= chip.Start && column < chip.End)
+        {
+            return MouseTarget.JumpChip;
+        }
+
         var button = context.NewTabButton;
 
         if (button is { } cells && column >= cells.Start && column < cells.End)
