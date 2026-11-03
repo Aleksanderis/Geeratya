@@ -340,6 +340,29 @@ public class SelectionTests
     }
 
     [Fact]
+    public void GivenTheColumnsLayout_WhenCtrlClickingACard_ThenOnlyThatCardIsMarkedInPlace()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var placed = new PointerPlaced(5, 3, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+
+        var result = _reducer.Reduce(state, placed).State;
+
+        Assert.Equal(["A-1"], Tab(result).Marks);
+        Assert.Equal("A-1", ColumnsNavigation.SelectedIssue(Tab(result))?.Key);
+    }
+
+    [Fact]
+    public void GivenTheColumnsLayout_WhenCtrlClickingAColumnHeader_ThenNothingIsMarked()
+    {
+        var state = Loaded(ViewLayout.Columns, "A-1", "A-2");
+        var placed = new PointerPlaced(5, 1, 120, new ActionRequested(ActionIds.SelectionMark, 0, _now));
+
+        var result = _reducer.Reduce(state, placed).State;
+
+        Assert.Empty(Tab(result).Marks);
+    }
+
+    [Fact]
     public void GivenADragOverRows_WhenReleasing_ThenVisualModeCoversThemFromPressToRelease()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3", "A-4");

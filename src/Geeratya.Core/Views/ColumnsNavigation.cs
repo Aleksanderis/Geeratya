@@ -37,6 +37,17 @@ public static class ColumnsNavigation
         return Follow(tab, columns, BoardMotion.Place(columns, tab.Cursor, tab.SelectedKey, hit, CardsVisible(tab)));
     }
 
+    /// <summary>True when the body cell is on a card (not a column header or an empty cell).</summary>
+    public static bool IsCardAt(TabState tab, int width, int column, int row)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+
+        var hit = BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null);
+
+        return hit is { Card: not null };
+    }
+
     /// <summary>
     /// A drag: how many columns the pointer moved from the card at the first cell to the column under the second
     /// (positive to the right), or null when the drag did not start on a card, ended outside the columns, or the

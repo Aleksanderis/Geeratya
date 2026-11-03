@@ -407,7 +407,8 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var role = selected ? TextRole.Selected : TextRole.Body;
 
             var nested = group.IsNested(card);
-            var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, group.IsNested(card + 1), inner), inner);
+            var more = group.IsNested(card + 1);
+            var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, more, inner), inner);
             var at = nested ? 2 : 1;
 
             if (selected || line.Length < at + 1)
@@ -596,7 +597,10 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var tail = TextWidth.Pad($"{remainder} ", room - 1 - TextWidth.Of(label));
 
         // The cell before the type name is the set mark: `*` for a marked card (never colour alone).
-        spans.Add(new StyledSpan(marked ? MarkedMark : Blank, marked ? TextRole.Strong : text));
+        var star = marked ? MarkedMark : Blank;
+        var starRole = marked && !selected ? TextRole.Strong : text;
+
+        spans.Add(new StyledSpan(star, starRole));
         spans.Add(new StyledSpan(label, selected ? text : IssueTypeRole.For(issue.IssueType)));
         spans.Add(new StyledSpan(tail, text));
     }
@@ -625,7 +629,9 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var branch = nested ? (more ? "├" : "└") : string.Empty;
         var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
 
-        return CardText.Shorten($"{mark}{branch}{marker}{(marked ? MarkedMark : Blank)}{issue.Key}{parent} {issue.Summary}", width);
+        var star = marked ? MarkedMark : Blank;
+
+        return CardText.Shorten($"{mark}{branch}{marker}{star}{issue.Key}{parent} {issue.Summary}", width);
     }
 
     /// <summary>

@@ -69,7 +69,7 @@ public static class SelectionActions
     /// <summary><c>v</c>: starts Visual mode on the cursor row, or leaves it.</summary>
     public static ReduceResult ToggleVisual(AppState state)
     {
-        var tab = Target(state, out var refusal, false);
+        var tab = Target(state, out var refusal, allowColumns: false);
 
         if (tab is null)
         {
@@ -91,7 +91,7 @@ public static class SelectionActions
     /// </summary>
     public static ReduceResult ToggleMark(AppState state, bool advance)
     {
-        var tab = Target(state, out var refusal, true);
+        var tab = Target(state, out var refusal, allowColumns: true);
 
         if (tab is null)
         {
@@ -152,7 +152,7 @@ public static class SelectionActions
     {
         var started = ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.FromRow, drag.Width));
 
-        if (started is null || state.Mode != InputMode.Normal || Target(started.State, out _, false) is not { } tab)
+        if (started is null || state.Mode != InputMode.Normal || Target(started.State, out _, allowColumns: false) is not { } tab)
         {
             return Result(state);
         }
