@@ -123,6 +123,7 @@ public sealed class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            SettingsReloaded reloaded => SettingsReducer.Reloaded(state, reloaded),
             ThemeApplied applied => SettingsReducer.Applied(state, applied),
             KeymapReloaded reloaded => Result(state with { Message = reloaded.Message }),
             _ => Result(state),
