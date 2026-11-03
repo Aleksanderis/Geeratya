@@ -4,9 +4,6 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Mouse;
-using Geeratya.Core.Profiles;
-using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
@@ -19,7 +16,6 @@ using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
-using Geeratya.Tui.Rendering;
 using Geeratya.Tui.Rendering.Themes;
 using Geeratya.Tui.Views;
 using Terminal.Gui.App;
@@ -33,9 +29,10 @@ namespace Geeratya.Tui;
 /// Runs the Terminal.Gui loop and connects it to the state layer: keys become commands, state becomes a frame.
 /// Nothing here waits on the network; the first frame is drawn before any Jira call exists.
 /// </summary>
-public sealed class ShellHost : ICommandSink, IDisposable
+public sealed partial class ShellHost : ICommandSink, IDisposable
 {
     private static readonly TimeSpan _whichKeyMargin = TimeSpan.FromMilliseconds(5);
+
     private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
 
     private const string CorruptNotice =
@@ -44,42 +41,79 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
+
     private readonly ThemeSwitcher _themes;
+
     private readonly MouseDragTracker _dragTracker = new();
+
     private readonly KeymapLoadResult? _keymapLoad;
+
     private readonly KeymapTable _defaultBindings;
+
     private readonly ColorSupport _colors;
+
     private readonly GlyphSet _glyphs;
+
     private readonly AppReducer _reducer;
+
     private readonly ProfileServices _profiles;
+
     private readonly ProfileEffectHandler _profileEffects;
+
     private readonly HistoryEffectHandler _historyEffects;
+
     private readonly SavedViewEffectHandler? _savedViewEffects;
+
     private readonly StartupEffectHandler? _startupEffects;
+
     private readonly BrowserEffectHandler _browserEffects;
+
     private readonly SettingsEffectHandler? _settingsEffects;
+
     private readonly SiteConnections _connections;
+
     private readonly CancellationTokenSource _shutdown = new();
+
     private readonly CancellationToken _shutdownToken;
+
     private readonly NetworkRunner _network;
+
     private readonly ViewLoadHandler _viewLoads;
+
     private readonly IssueDetailLoadHandler _detailLoads;
+
     private readonly SourceLoadHandler _sourceLoads;
+
     private readonly WriteHandler _writes;
+
     private readonly FormMetadataHandler _formMetadata;
+
     private readonly SuggestionHandler _suggestions;
+
     private readonly MentionCheckHandler _mentionCheck;
+
     private readonly ConnectionCheckHandler _connectionChecks;
+
     private readonly TerminalBackgroundDetector? _background;
+
     private bool? _lightBackground;
+
     private IApplication? _application;
+
     private ShellScreen? _screen;
+
     private AppState _state = AppState.Initial;
+
     private ITimer? _tickTimer;
+
     private ITimer? _whichKeyTimer;
+
     private readonly DragAutoScroller _dragScroller = new(TimeProvider.System);
+
     private DateTimeOffset? _whichKeyTimedFor;
+
     private bool _chipShown;
+
     private bool _quitting;
 
     public ShellHost(
@@ -266,168 +300,6 @@ public sealed class ShellHost : ICommandSink, IDisposable
         Dispatch(new KeyPressed(spelled, TimeProvider.System.GetUtcNow()));
     }
 
-    /// <summary>A pointer event: hit test and mouse table decide; the reducer runs the action like a key.</summary>
-    private void OnMouse(object? sender, Mouse mouse)
-    {
-        var position = mouse.ScreenPosition;
-
-        if (_dragTracker.TrackMotion(mouse.Flags, position.X, position.Y) is { } motion)
-        {
-            OnDragMoved(mouse, motion);
-
-            return;
-        }
-
-        if (MouseFlagTranslator.IsHover(mouse.Flags))
-        {
-            OnHover(position.X, position.Y);
-
-            return;
-        }
-
-        var live = _dragTracker.Moving;
-        var drag = _dragTracker.Track(mouse.Flags, position.X, position.Y);
-
-        if (mouse.Flags.HasFlag(MouseFlags.LeftButtonReleased))
-        {
-            StopDragScroll();
-        }
-
-        if (drag is null && (_dragTracker.SwallowsClick(mouse.Flags)
-            || !MouseFlagTranslator.TryTranslate(mouse.Flags, out _)))
-        {
-            return;
-        }
-
-        var now = TimeProvider.System.GetUtcNow();
-        var context = PointerContext(now);
-        var commands = ResolvePointer(context, drag, live, mouse.Flags, new MouseCell(position.X, position.Y), now);
-
-        if (commands.Count == 0)
-        {
-            return;
-        }
-
-        mouse.Handled = true;
-
-        foreach (var command in commands)
-        {
-            Dispatch(command);
-        }
-    }
-
-    // A pointer move: only the tab row cares, so the context is built only over it or to clear a hover.
-    private void OnHover(int column, int row)
-    {
-        if (row != 0 && _state.HoveredTab is null)
-        {
-            return;
-        }
-
-        var hovered = MouseResolver.Hover(PointerContext(TimeProvider.System.GetUtcNow()), column, row);
-
-        if (hovered.Tab != _state.HoveredTab)
-        {
-            Dispatch(hovered);
-        }
-    }
-
-    private MouseContext PointerContext(DateTimeOffset now)
-    {
-        var size = _application!.Screen.Size;
-
-        var regions = _screen!.OverlayRegions;
-
-        return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
-        {
-            LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
-            RowMenuMarker = _screen.RowMenuMarker,
-        };
-    }
-
-    // The held button moved: the range follows the pointer; outside the body a timer keeps moving the cursor.
-    private void OnDragMoved(Mouse mouse, MouseDragMotion motion)
-    {
-        var context = PointerContext(TimeProvider.System.GetUtcNow());
-        var commands = MouseResolver.ResolveDragMove(
-            context,
-            motion.FromColumn,
-            motion.FromRow,
-            motion.Column,
-            motion.Row,
-            motion.First);
-
-        if (commands.Count > 0)
-        {
-            mouse.Handled = true;
-        }
-
-        foreach (var command in commands)
-        {
-            Dispatch(command);
-        }
-
-        // The speed follows the pointer on every move, also when it is outside the body and nothing else resolves.
-        _dragScroller.Start(MouseResolver.DragScrollStep(context, motion.FromColumn, motion.FromRow, motion.Row));
-
-    }
-
-    /// <summary>Timer thread: hands one auto-scroll step to the UI thread.</summary>
-    private void OnDragScrollStep(object? sender, int rows)
-    {
-        if (!_shutdownToken.IsCancellationRequested)
-        {
-            _application!.Invoke(() => StepDragScroll(rows));
-        }
-    }
-
-    // On the UI thread: a step queued before the release must not move the cursor after it.
-    private void StepDragScroll(int rows)
-    {
-        if (_dragTracker.Held)
-        {
-            Dispatch(new RowsDragScrolled(rows));
-        }
-    }
-
-    private void StopDragScroll()
-    {
-        _dragScroller.Stop();
-    }
-
-    private static IReadOnlyList<AppCommand> ResolvePointer(
-        MouseContext context,
-        MouseDrag? drag,
-        bool live,
-        MouseFlags flags,
-        MouseCell position,
-        DateTimeOffset now)
-    {
-        if (drag is { } dropped)
-        {
-            return MouseResolver.ResolveDrag(
-                context,
-                dropped.FromColumn,
-                dropped.FromRow,
-                dropped.ToColumn,
-                dropped.ToRow,
-                now,
-                live);
-        }
-
-        return MouseFlagTranslator.TryTranslate(flags, out var gesture)
-            ? MouseResolver.Resolve(context, position.Column, position.Row, gesture, now)
-            : [];
-    }
-
-    /// <summary>Bracketed paste arrives as one event, not as keys; the focused view must not also receive it.</summary>
-    private void OnPaste(object? sender, PasteEventArgs e)
-    {
-        e.Handled = true;
-
-        Dispatch(new TextPasted(e.Text));
-    }
-
     private void Dispatch(AppCommand command)
     {
         var result = _reducer.Reduce(_state, command);
@@ -569,189 +441,6 @@ public sealed class ShellHost : ICommandSink, IDisposable
         foreach (var check in checks)
         {
             _ = _connectionChecks.StartAsync(check);
-        }
-    }
-
-    /// <summary>
-    /// Asks the terminal for its background before the UI owns the input, whatever theme is saved. The answer is kept
-    /// for a later <c>:theme auto</c>, because the terminal cannot be asked once the UI runs.
-    /// </summary>
-    private void DetectBackground()
-    {
-        _lightBackground = _background?.IsLight(allowQuery: true);
-    }
-
-    private bool? EnvironmentBackground()
-    {
-        return _background?.IsLight(allowQuery: false);
-    }
-
-    /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
-    private Theme StartTheme()
-    {
-        var start = _themes.Start(_state.Settings.Theme, _lightBackground);
-
-        _state = StatusMessages.AddStartupProblems(
-            _state with
-            {
-                ThemeNames = _themes.Names,
-                SettingsInfo = new SettingsInfo(
-                    _profiles.Settings?.FilePath ?? string.Empty,
-                    _profiles.Keymap?.FilePath ?? string.Empty,
-                    TierOf(_colors)),
-            },
-            start.Notice is null ? [] : [start.Notice]);
-
-        return start.Theme;
-    }
-
-    private static ColourTier TierOf(ColorSupport colors)
-    {
-        return colors switch
-        {
-            ColorSupport.None => ColourTier.None,
-            ColorSupport.Basic16 => ColourTier.Basic16,
-            _ => ColourTier.TrueColour,
-        };
-    }
-
-    /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>
-    private ThemeApplied ApplyTheme(string name, bool preview)
-    {
-        var choice = _themes.Choose(name, _state.Settings.Theme, _lightBackground ?? EnvironmentBackground());
-
-        if (choice.Theme is not null)
-        {
-            _screen?.SetTheme(choice.Theme);
-        }
-
-        return new ThemeApplied(choice.Name, choice.Theme is not null, choice.Message, preview);
-    }
-
-    /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>
-    private KeymapReloaded ReloadKeymap()
-    {
-        var load = UserKeymaps.Apply(_keymap, _defaultBindings, _profiles.Keymap);
-
-        return new KeymapReloaded(load?.Notice ?? "Keymap reloaded", load?.Problems);
-    }
-
-    /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>
-    private void InvalidateCaches(InvalidateCacheEffect effect)
-    {
-        var cache = ActiveCache();
-
-        if (cache is null)
-        {
-            return;
-        }
-
-        foreach (var key in effect.Keys)
-        {
-            cache.RemoveIssue(key);
-        }
-
-        cache.RemoveViews();
-    }
-
-    /// <summary>The cache of the active profile, or null while there is none.</summary>
-    private SiteCache? ActiveCache()
-    {
-        var profile = _state.Profiles.Active;
-
-        return profile is null ? null : _profiles.Caches.For(profile);
-    }
-
-    private void OnTabsSaveFailed(string notice)
-    {
-        Post(new TabsSaveFailed(notice));
-    }
-
-    private void OnCacheProblem(string notice)
-    {
-        Post(new CacheProblem(notice));
-    }
-
-    /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
-    private async Task ConnectAsync()
-    {
-        var failure = await _connections.ActivateAsync(
-            _state.Profiles.Active,
-            _state.Profiles.Profiles.Count,
-            _shutdownToken);
-
-        if (failure is not null && !_shutdownToken.IsCancellationRequested)
-        {
-            _application!.Invoke(() => Dispatch(failure));
-        }
-
-        // After the connection exists, off the first-frame path: the first issue detail finds the field ids ready.
-        _connections.WarmFields();
-    }
-
-    /// <summary>Runs a profile effect off the UI thread and feeds its outcome back as a command.</summary>
-    private async Task RunEffectAsync(Effect effect)
-    {
-        var outcome = await Task.Run(() => RunHandlersAsync(effect));
-
-        if (outcome is not null && !_shutdownToken.IsCancellationRequested)
-        {
-            _application!.Invoke(() => Dispatch(outcome));
-        }
-    }
-
-    private async Task<AppCommand?> RunHandlersAsync(Effect effect)
-    {
-        return _settingsEffects?.Run(effect)
-            ?? await _profileEffects.RunAsync(effect, _shutdownToken)
-            ?? _historyEffects.Run(effect)
-            ?? _savedViewEffects?.Run(effect)
-            ?? _startupEffects?.Run(effect)
-            ?? await _browserEffects.RunAsync(effect, _shutdownToken);
-    }
-
-    private SettingsLoad LoadSettings()
-    {
-        try
-        {
-            return _profiles.Settings?.Read() ?? new SettingsLoad(AppSettings.Default, []);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            return new SettingsLoad(AppSettings.Default, []);
-        }
-    }
-
-
-    private AppState LoadProfiles()
-    {
-        var settingsLoad = LoadSettings();
-        var settings = settingsLoad.Settings;
-
-        try
-        {
-            var loaded = _profiles.Store.Load();
-            var notice = loaded.Status == ProfileLoadStatus.Corrupt ? CorruptNotice : null;
-
-            var started = StatusMessages.Startup(
-                AppState.Initial with
-                {
-                    Settings = settings,
-                    Profiles = loaded.Catalog,
-                    Session = SiteSession.Empty(loaded.Catalog.Active),
-                },
-                notice,
-                settingsLoad.Warnings);
-
-            // With no profile the profile manager is the first screen.
-            return ProfileReducer.FirstRun(started);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            return StatusMessages.Startup(
-                AppState.Initial with { Settings = settings },
-                $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
-                settingsLoad.Warnings);
         }
     }
 }

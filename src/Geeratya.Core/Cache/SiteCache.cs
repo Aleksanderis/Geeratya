@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Cache;
@@ -15,7 +14,7 @@ namespace Geeratya.Core.Cache;
 /// again, so a pending write cannot recreate a folder that was deleted. A cache is never a reason to fail a read:
 /// a file that cannot be read, parsed or mapped is a miss, and a file of another schema is deleted.
 /// </summary>
-public sealed class SiteCache : IDisposable
+public sealed partial class SiteCache : IDisposable
 {
     /// <summary>The most views kept in memory; the least recently used one leaves first.</summary>
     public const int MaxViews = 32;
@@ -27,9 +26,13 @@ public sealed class SiteCache : IDisposable
     public const long DefaultMaxDiskBytes = 20L * 1024 * 1024;
 
     private const string ViewFilePrefix = "view-";
+
     private const string IssueFilePrefix = "issue-";
+
     private const string FileExtension = ".json";
+
     private const string TemporaryExtension = ".tmp";
+
     private const int NameHashLength = 32;
 
     // An ADF description nests up to 64 levels, two JSON levels each; the default depth limit (64) is too low.
@@ -44,22 +47,39 @@ public sealed class SiteCache : IDisposable
     private static readonly TimeSpan _defaultDebounce = TimeSpan.FromSeconds(2);
 
     private readonly string _folder;
+
     private readonly FilePermissions _permissions;
+
     private readonly TimeSpan _debounce;
+
     private readonly long _maxDiskBytes;
+
     private readonly object _memoryLock = new();
+
     private readonly object _diskLock = new();
+
     private readonly Dictionary<CacheKey, MemoryEntry<CachedView>> _views = [];
+
     private readonly Dictionary<CacheKey, CachedView> _pending = [];
+
     private readonly Dictionary<string, MemoryEntry<CachedIssue>> _issues = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Dictionary<string, CachedIssue> _pendingIssues = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly HashSet<string> _removedIssues = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Timer _timer;
+
     private long _stamp;
+
     private bool _disposed;
+
     private bool _viewsRemoved;
+
     private int _viewsRemovedEpoch;
+
     private bool _failureReported;
+
     private bool _readProblemReported;
 
     public SiteCache(
@@ -339,81 +359,6 @@ public sealed class SiteCache : IDisposable
         }
     }
 
-    private (List<string> Removed, bool RemoveViews) DiscardMemory()
-    {
-        List<string> removed;
-        bool removeViews;
-
-        lock (_memoryLock)
-        {
-            _disposed = true;
-            removed = [.. _removedIssues];
-            removeViews = _viewsRemoved;
-            _views.Clear();
-            _pending.Clear();
-            _issues.Clear();
-            _pendingIssues.Clear();
-            _removedIssues.Clear();
-            _viewsRemoved = false;
-        }
-
-        _timer.Dispose();
-
-        return (removed, removeViews);
-    }
-
-    private void DeletePending(List<string> removed, bool removeViews)
-    {
-        if (removeViews)
-        {
-            DeleteViewFiles();
-        }
-
-        foreach (var key in removed)
-        {
-            DeleteQuietly(Path.Combine(_folder, IssueFileName(key)));
-        }
-    }
-
-    /// <summary>Ends the "views removed" state, unless another removal came in while the files were deleted.</summary>
-    private void ClearViewsRemoved(int epoch)
-    {
-        lock (_memoryLock)
-        {
-            if (_viewsRemovedEpoch == epoch)
-            {
-                _viewsRemoved = false;
-            }
-        }
-    }
-
-    private void DeleteViewFiles()
-    {
-        try
-        {
-            foreach (var path in Directory.EnumerateFiles(_folder, $"{ViewFilePrefix}*{FileExtension}"))
-            {
-                DeleteQuietly(path);
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // A folder that cannot be listed (or does not exist yet) has nothing to delete.
-        }
-    }
-
-    private static void DeleteQuietly(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // A cache file that cannot be deleted is left for the next eviction.
-        }
-    }
-
     private void FlushOnTimer(object? state)
     {
         Flush();
@@ -425,264 +370,6 @@ public sealed class SiteCache : IDisposable
         {
             return _disposed;
         }
-    }
-
-    private void Remember(CacheKey key, CachedView view)
-    {
-        lock (_memoryLock)
-        {
-            if (!_disposed)
-            {
-                RememberLocked(key, view);
-            }
-        }
-    }
-
-    private void RememberLocked(CacheKey key, CachedView view)
-    {
-        _views[key] = new MemoryEntry<CachedView>(view) { Stamp = ++_stamp };
-
-        if (_views.Count > MaxViews)
-        {
-            EvictLeastRecent(_views);
-        }
-    }
-
-    /// <summary>Remembers a detail read from disk unless a newer one was stored while the file was read.</summary>
-    private bool RememberIssueIfAbsent(CachedIssue issue)
-    {
-        lock (_memoryLock)
-        {
-            if (_removedIssues.Contains(issue.Detail.Key))
-            {
-                return false;
-            }
-
-            if (!_disposed && !_issues.ContainsKey(issue.Detail.Key) && !_pendingIssues.ContainsKey(issue.Detail.Key))
-            {
-                RememberIssueLocked(issue);
-            }
-
-            return true;
-        }
-    }
-
-    private void RememberIssueLocked(CachedIssue issue)
-    {
-        _issues[issue.Detail.Key] = new MemoryEntry<CachedIssue>(issue) { Stamp = ++_stamp };
-
-        if (_issues.Count > MaxIssues)
-        {
-            EvictLeastRecent(_issues);
-        }
-    }
-
-    private static void EvictLeastRecent<TKey, TValue>(Dictionary<TKey, MemoryEntry<TValue>> entries)
-        where TKey : notnull
-    {
-        var oldest = default(TKey);
-        var oldestStamp = long.MaxValue;
-        var found = false;
-
-        foreach (var (key, entry) in entries)
-        {
-            if (entry.Stamp < oldestStamp)
-            {
-                oldest = key;
-                oldestStamp = entry.Stamp;
-                found = true;
-            }
-        }
-
-        if (found)
-        {
-            entries.Remove(oldest!);
-        }
-    }
-
-    private CachedView? ReadFromDisk(CacheKey key)
-    {
-        var path = Path.Combine(_folder, ViewFileName(key));
-
-        lock (_diskLock)
-        {
-            if (IsDisposed() || !File.Exists(path))
-            {
-                return null;
-            }
-
-            try
-            {
-                using var stream = File.OpenRead(path);
-                var file = JsonSerializer.Deserialize(stream, CacheJsonContext.Default.CachedViewFile);
-                var keyed = file is null ? null : CacheMapper.FromFile(file);
-
-                if (keyed is not null && keyed.Key == key)
-                {
-                    return keyed.View;
-                }
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                ReportReadProblem(exception);
-
-                return null;
-            }
-            catch (Exception exception) when (exception is JsonException or NotSupportedException or ArgumentException)
-            {
-                // Corrupt or foreign content: report it, then fall through to the delete below.
-                ReportReadProblem(exception);
-            }
-
-            DeleteQuietly(path);
-
-            return null;
-        }
-    }
-
-    private CachedIssue? ReadIssueFromDisk(string issueKey)
-    {
-        var path = Path.Combine(_folder, IssueFileName(issueKey));
-
-        lock (_diskLock)
-        {
-            if (IsDisposed() || !File.Exists(path))
-            {
-                return null;
-            }
-
-            try
-            {
-                using var stream = File.OpenRead(path);
-                var file = JsonSerializer.Deserialize(stream, _issueContext.CachedIssueFile);
-                var issue = file is null ? null : IssueCacheMapper.FromFile(file);
-
-                if (issue is not null && string.Equals(issue.Detail.Key, issueKey, StringComparison.OrdinalIgnoreCase))
-                {
-                    return issue;
-                }
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                ReportReadProblem(exception);
-
-                return null;
-            }
-            catch (Exception exception) when (exception is JsonException or NotSupportedException or ArgumentException)
-            {
-                // Corrupt or foreign content: report it, then fall through to the delete below.
-                ReportReadProblem(exception);
-            }
-
-            DeleteQuietly(path);
-
-            return null;
-        }
-    }
-
-    private void WriteAll(Dictionary<CacheKey, CachedView> batch, List<CachedIssue> issues)
-    {
-        try
-        {
-            _permissions.CreateDirectory(_folder);
-
-            foreach (var (key, view) in batch)
-            {
-                WriteFile(
-                    Path.Combine(_folder, ViewFileName(key)),
-                    CacheMapper.ToFile(key, view),
-                    CacheJsonContext.Default.CachedViewFile);
-            }
-
-            foreach (var issue in issues)
-            {
-                WriteIssue(issue);
-            }
-
-            EvictOldest();
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            ReportFailure(exception);
-        }
-    }
-
-    private void WriteIssue(CachedIssue issue)
-    {
-        var path = Path.Combine(_folder, IssueFileName(issue.Detail.Key));
-
-        try
-        {
-            WriteFile(path, IssueCacheMapper.ToFile(issue), _issueContext.CachedIssueFile);
-        }
-        catch (Exception exception) when (exception is JsonException or NotSupportedException)
-        {
-            // A detail that cannot be serialized is simply not cached; the temporary file may be left behind.
-            DeleteQuietly($"{path}{TemporaryExtension}");
-        }
-    }
-
-    private void WriteFile<TFile>(string path, TFile file, JsonTypeInfo<TFile> typeInfo)
-    {
-        var temporary = $"{path}{TemporaryExtension}";
-
-        using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            _permissions.RestrictFile(temporary);
-            JsonSerializer.Serialize(stream, file, typeInfo);
-        }
-
-        File.Move(temporary, path, true);
-    }
-
-    /// <summary>Deletes the oldest files until the folder fits the size cap.</summary>
-    private void EvictOldest()
-    {
-        var files = new DirectoryInfo(_folder).GetFiles().OrderBy(file => file.LastWriteTimeUtc).ToList();
-        var total = files.Sum(file => file.Length);
-
-        foreach (var file in files)
-        {
-            if (total <= _maxDiskBytes)
-            {
-                break;
-            }
-
-            total -= file.Length;
-            DeleteQuietly(file.FullName);
-        }
-    }
-
-    private void ReportReadProblem(Exception exception)
-    {
-        lock (_memoryLock)
-        {
-            if (_readProblemReported)
-            {
-                return;
-            }
-
-            _readProblemReported = true;
-        }
-
-        ReadProblem?.Invoke(
-            $"A local cache file could not be read ({exception.GetType().Name}); the data is loaded from Jira again.");
-    }
-
-    private void ReportFailure(Exception exception)
-    {
-        lock (_memoryLock)
-        {
-            if (_failureReported)
-            {
-                return;
-            }
-
-            _failureReported = true;
-        }
-
-        WriteFailed?.Invoke(
-            $"The local cache could not be written ({exception.GetType().Name}); views still load from Jira.");
     }
 
     private sealed class MemoryEntry<TValue>(TValue value)
