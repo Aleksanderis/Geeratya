@@ -1,6 +1,8 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -71,6 +73,29 @@ public static class FrameOptions
         {
             null or "everyday" => CommandLevel.Everyday,
             "advanced" => CommandLevel.Advanced,
+            _ => null,
+        };
+    }
+
+    /// <summary>Parses a colour tier name (<c>truecolor</c>, <c>16</c>, <c>none</c>); an unknown name gives null.</summary>
+    public static ColorSupport? ParseColors(string? text)
+    {
+        return text switch
+        {
+            "truecolor" => ColorSupport.TrueColor,
+            "16" => ColorSupport.Basic16,
+            "none" => ColorSupport.None,
+            _ => null,
+        };
+    }
+
+    /// <summary>Parses a layout name; null input or an unknown name gives null (the view keeps its own layout).</summary>
+    public static ViewLayout? ParseLayout(string? text)
+    {
+        return text switch
+        {
+            "list" => ViewLayout.List,
+            "columns" => ViewLayout.Columns,
             _ => null,
         };
     }
