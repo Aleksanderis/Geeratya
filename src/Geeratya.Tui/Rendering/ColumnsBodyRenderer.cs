@@ -66,7 +66,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
         var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
-        var grid = new FrameGrid(width, height, panes);
+        var grid = new FrameGrid(width, height, panes, cursor.Column - window.First);
         var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
 
         for (var row = 0; row < cardRows; row++)
@@ -222,13 +222,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         for (var position = 0; position < window.Count; position++)
         {
             var column = window.First + position;
-            var role = column == cursor.Column ? TextRole.Heading : TextRole.Muted;
-            var title = new List<StyledSpan> { new(ColumnTitle(tab, columns[column]), role) };
+            var title = new List<StyledSpan> { new(ColumnTitle(tab, columns[column]), TextRole.Muted) };
             var right = position == window.Count - 1 && hidden.Length > 0
                 ? new List<StyledSpan> { new(hidden, TextRole.Muted) }
                 : null;
 
-            chips.AddRange(FrameGrid.Chips(panes[position], title, right));
+            chips.AddRange(FrameGrid.Chips(panes[position], title, right, column == cursor.Column));
         }
 
         return new StyledLine(grid.Row(0, static (_, _) => [], chips));
@@ -257,7 +256,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     {
         var selected = cursor.Column;
         var corner = $"{grid.Glyph(0, 0)}{HorizontalChar}";
-        var spans = new List<StyledSpan>(5) { new(corner, TextRole.Muted) };
+        var spans = new List<StyledSpan>(5) { new(corner, TextRole.FrameFocus) };
 
         if (selected > 0)
         {
@@ -266,7 +265,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             spans.Add(new StyledSpan(left, TextRole.Muted));
         }
 
-        spans.Add(new StyledSpan(ColumnTitle(tab, columns[selected]), TextRole.Heading));
+        spans.Add(new StyledSpan(ColumnTitle(tab, columns[selected]), TextRole.ChipFocus));
 
         if (selected < columns.Count - 1)
         {
@@ -277,7 +276,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var fitted = Fitted(spans, window.Width - 1, HorizontalChar);
 
-        return new StyledLine([.. fitted.Spans, new StyledSpan(grid.Glyph(0, window.Width - 1), TextRole.Muted)]);
+        return new StyledLine([.. fitted.Spans, new StyledSpan(grid.Glyph(0, window.Width - 1), TextRole.FrameFocus)]);
     }
 
     /// <summary>The spans cut to <paramref name="width"/> columns, then filled with <paramref name="fill"/>.</summary>
@@ -294,7 +293,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             left -= TextWidth.Of(text);
         }
 
-        fitted.Add(new StyledSpan(new string(fill, Math.Max(0, left)), TextRole.Muted));
+        fitted.Add(new StyledSpan(new string(fill, Math.Max(0, left)), TextRole.FrameFocus));
 
         return new StyledLine(fitted);
     }
@@ -364,20 +363,21 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         }
 
         var selected = column == cursor.Column && card == cursor.Cards[column];
+        var quiet = column != cursor.Column && card == Math.Clamp(cursor.Wanted, 0, group.Rows.Count - 1);
         var issue = group.Rows[card];
         var marked = marks.Contains(issue.Key);
         var open = issue.Subtasks.Count > 0 && expanded.Contains(issue.Key);
 
         if (compact)
         {
-            var role = selected ? TextRole.Selected : TextRole.Body;
+            var role = selected ? TextRole.Selected : quiet ? TextRole.SelectedDim : TextRole.Body;
 
             var nested = group.IsNested(card);
             var more = group.IsNested(card + 1);
             var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, more, inner), inner);
             var at = nested ? 2 : 1;
 
-            if (selected || line.Length < at + 1)
+            if (selected || quiet || line.Length < at + 1)
             {
                 spans.Add(new StyledSpan(line, role));
             }
@@ -397,7 +397,29 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
         var nextSelected = column == cursor.Column && card + 1 == cursor.Cards[column] && group.IsNested(card + 1);
 
+        var first = spans.Count;
+
         AddBoxRow(spans, issue, within, selected, marked, open, part, inner, selected || nextSelected);
+
+        if (quiet)
+        {
+            Quieten(spans, first);
+        }
+    }
+
+    /// <summary>
+    /// Marks the card of a column without focus: the text and frame cells of the row become the quiet selection (the
+    /// one-cell margins on each side stay on the page).
+    /// </summary>
+    private static void Quieten(List<StyledSpan> spans, int first)
+    {
+        for (var index = first + 1; index < spans.Count - 1; index++)
+        {
+            if (spans[index].Role is TextRole.Body or TextRole.Muted or TextRole.Strong)
+            {
+                spans[index] = spans[index] with { Role = TextRole.SelectedDim };
+            }
+        }
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
@@ -437,7 +459,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             return;
         }
 
-        var frame = selected ? TextRole.Selected : TextRole.Muted;
+        var frame = selected ? TextRole.FrameFocus : TextRole.Muted;
         var text = selected ? TextRole.Selected : TextRole.Body;
 
         spans.Add(new StyledSpan(new string(' ', Margin), TextRole.Body));
@@ -510,13 +532,13 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             var label = first && within == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
             var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
 
-            spans.Add(new StyledSpan($"{left}{bar}{right}", heavy ? TextRole.Selected : TextRole.Muted));
+            spans.Add(new StyledSpan($"{left}{bar}{right}", heavy ? TextRole.FrameFocus : TextRole.Muted));
 
             return;
         }
 
         var side = selected ? "┃" : Vertical;
-        var frame = selected ? TextRole.Selected : TextRole.Muted;
+        var frame = selected ? TextRole.FrameFocus : TextRole.Muted;
         var text = selected ? TextRole.Selected : first ? TextRole.Strong : TextRole.Body;
 
         spans.Add(new StyledSpan(side, frame));

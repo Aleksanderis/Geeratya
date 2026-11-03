@@ -53,6 +53,49 @@ public class FrameGridTests
     }
 
     [Fact]
+    public void GivenAFocusedPane_WhenReadingBorderRoles_ThenItsWholeBoxIsFocusedIncludingSharedEdges()
+    {
+        var grid = new FrameGrid(
+            22,
+            4,
+            [new PaneRect(0, 0, 4, 8), new PaneRect(0, 7, 4, 8), new PaneRect(0, 14, 4, 8)],
+            1);
+
+        Assert.Equal(TextRole.Border, grid.BorderRole(1, 0));
+        Assert.Equal(TextRole.Border, grid.BorderRole(0, 3));
+        Assert.Equal(TextRole.FrameFocus, grid.BorderRole(1, 7));
+        Assert.Equal(TextRole.FrameFocus, grid.BorderRole(0, 10));
+        Assert.Equal(TextRole.FrameFocus, grid.BorderRole(3, 14));
+        Assert.Equal(TextRole.Border, grid.BorderRole(1, 21));
+    }
+
+    [Fact]
+    public void GivenNoFocusedPane_WhenReadingBorderRoles_ThenEveryBorderIsQuiet()
+    {
+        var grid = new FrameGrid(10, 4, [new PaneRect(0, 0, 4, 10)]);
+
+        Assert.All(
+            grid.Row(0, static (_, _) => _noText),
+            span => Assert.Equal(TextRole.Border, span.Role));
+    }
+
+    [Fact]
+    public void GivenFocusedAndDimChips_WhenPlacing_ThenTheLeftChipIsFilledOnlyWhenFocusedAndTheRightChipIsDim()
+    {
+        var pane = new PaneRect(0, 0, 3, 40);
+        StyledSpan[] left = [new("Backlog", TextRole.Heading)];
+        StyledSpan[] right = [new("8 issues", TextRole.Strong)];
+
+        var focused = FrameGrid.Chips(pane, left, right, true);
+        var dim = FrameGrid.Chips(pane, left, right);
+
+        Assert.All(focused[0].Spans, span => Assert.Equal(TextRole.ChipFocus, span.Role));
+        Assert.All(dim[0].Spans, span => Assert.Equal(TextRole.Muted, span.Role));
+        Assert.All(focused[1].Spans, span => Assert.NotEqual(TextRole.ChipFocus, span.Role));
+        Assert.Equal(focused[0].Width, dim[0].Width);
+    }
+
+    [Fact]
     public void GivenAChipWiderThanThePane_WhenPlacing_ThenItIsCutWithAnEllipsisAndNeverTouchesTheCorners()
     {
         var pane = new PaneRect(0, 0, 3, 12);

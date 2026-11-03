@@ -220,7 +220,7 @@ public class ListBodyRendererTests
         Assert.StartsWith("│  A-1", body[2].PlainText);
         Assert.StartsWith("│> A-3", body[4].PlainText);
         Assert.Contains(body[4].Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("> A-3"));
-        Assert.Equal(TextRole.Muted, body[4].Spans[0].Role);
+        Assert.Equal(TextRole.FrameFocus, body[4].Spans[0].Role);
         Assert.Equal(80, TextWidth.Of(body[4].PlainText));
         Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
     }

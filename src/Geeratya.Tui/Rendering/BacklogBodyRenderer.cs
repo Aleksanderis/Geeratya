@@ -52,6 +52,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         var note = ListBodyRenderer.FooterLine(tab, glyphs);
         var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area));
         var dividers = new List<PaneDivider>();
+        var focusLine = -1;
 
         // Too small for a frame: the title stays a plain line above the column titles.
         if (!framed)
@@ -81,6 +82,11 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
                 var onCursor = index == tab.Selected && tab.FocusedSprintId is null;
 
+                if (onCursor)
+                {
+                    focusLine = lines.Count;
+                }
+
                 lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, inner, glyphs));
 
                 continue;
@@ -89,6 +95,11 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
             if (framed && line == found.Section.FirstLine)
             {
                 dividers.Add(Divider(tab, found.Section, lines.Count, glyphs));
+
+                if (IsOnCursor(tab, found.Section))
+                {
+                    focusLine = lines.Count;
+                }
             }
 
             lines.Add(NonRowLine(tab, found.Section, line, inner, glyphs));
@@ -96,7 +107,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
         var chips = ListBodyRenderer.ChipsOf(tab, note, glyphs);
 
-        return PaneFrame.Build(width, height, chips.Left, chips.Right, lines, dividers);
+        return PaneFrame.Build(width, height, chips.Left, chips.Right, lines, dividers, focusLine);
     }
 
     /// <summary>
@@ -113,7 +124,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         }
 
         var onCursor = IsOnCursor(tab, section);
-        var role = onCursor ? TextRole.Selected : TextRole.Strong;
+        var role = TextRole.Strong;
 
         // The marker says where the cursor is without colour, in the print frame and the ASCII tier.
         name = onCursor ? $"> {name}" : name;

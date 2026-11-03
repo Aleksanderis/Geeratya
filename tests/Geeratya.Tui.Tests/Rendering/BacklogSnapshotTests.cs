@@ -113,12 +113,45 @@ public class BacklogSnapshotTests
     }
 
     [Fact]
-    public void GivenACollapsedSectionUnderTheCursor_WhenBuilding_ThenItsEdgeChipHasTheMarkerAndTheSelectedRole()
+    public void GivenACollapsedSectionUnderTheCursor_WhenBuilding_ThenItsEdgeChipHasTheMarkerAndTheFocusedChipRole()
     {
         var body = FrameBuilder.BuildStyled(Sample(true), 100, 24, _keymap)!.Body;
 
         var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ > ▸ Sprint 1"));
-        Assert.Contains(edge.Spans, span => span.Role == TextRole.Selected && span.Text.Contains("Sprint 1"));
+        Assert.Contains(edge.Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Sprint 1"));
+    }
+
+    [Fact]
+    public void GivenTheCursorInTheFirstSprint_WhenBuilding_ThenOnlyThatPaneIsFocusedAndItsChipIsFilled()
+    {
+        var body = FrameBuilder.BuildStyled(Sample(false), 100, 24, _keymap)!.Body;
+
+        var top = body[0].Spans;
+        var sprint = Assert.Single(body, line => line.PlainText.StartsWith("├─ Sprint 1"));
+        var other = Assert.Single(body, line => line.PlainText.StartsWith("├─ Sprint 2"));
+        var inside = Assert.Single(body, line => line.PlainText.Contains("GCS-3"));
+        var outside = Assert.Single(body, line => line.PlainText.Contains("GCS-2"));
+
+        Assert.Equal(TextRole.Border, top[0].Role);
+        Assert.Contains(sprint.Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Sprint 1"));
+        Assert.Equal(TextRole.FrameFocus, sprint.Spans[0].Role);
+        Assert.Equal(TextRole.FrameFocus, inside.Spans[0].Role);
+        Assert.Equal(TextRole.FrameFocus, other.Spans[0].Role);
+        Assert.DoesNotContain(other.Spans, span => span.Role == TextRole.ChipFocus);
+        Assert.Equal(TextRole.Border, outside.Spans[0].Role);
+        Assert.DoesNotContain(inside.Spans, span => span.Role == TextRole.Border && span.Text.Contains('│'));
+    }
+
+    [Fact]
+    public void GivenTheAsciiTier_WhenBuilding_ThenTheFocusedPaneKeepsTheFocusRoleOnPlainBorderCharacters()
+    {
+        var body = FrameBuilder.BuildStyled(Sample(false), 100, 24, _keymap, null, null, GlyphSet.Ascii)!.Body;
+
+        var inside = Assert.Single(body, line => line.PlainText.Contains("GCS-3"));
+
+        Assert.Equal(TextRole.FrameFocus, inside.Spans[0].Role);
+        Assert.StartsWith("|", inside.Spans[0].Text);
+        Assert.Contains(body[0].Spans, span => span.Role == TextRole.Border && span.Text.StartsWith('+'));
     }
 
     [Fact]

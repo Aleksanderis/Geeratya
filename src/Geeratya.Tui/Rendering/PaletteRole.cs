@@ -51,4 +51,7 @@ public enum PaletteRole
     OverlayChip,
     OverlayChipWarn,
     OverlayChipBad,
+    FrameFocus,
+    ChipFocus,
+    SelectedDim,
 }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -51,6 +52,7 @@ public static class StatusBar
         new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.List),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.List),
         new(InputMode.Normal, ActionIds.IssueCreate, "create", HintScope.List),
+        new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Backlog),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
         new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
         new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
@@ -64,6 +66,7 @@ public static class StatusBar
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
         new(InputMode.Normal, ActionIds.CommentAdd, "comment", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Detail),
     ];
 
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>
@@ -340,6 +343,11 @@ public static class StatusBar
             return HintScope.Columns;
         }
 
+        if (BacklogSections.Applies(tab))
+        {
+            return HintScope.Backlog;
+        }
+
         return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Sprint ? HintScope.ListOnBoard : HintScope.List;
     }
 
@@ -396,7 +404,7 @@ public static class StatusBar
 
     private static bool Applies(HintScope hint, HintScope current)
     {
-        return hint == current || (hint == HintScope.List && current == HintScope.ListOnBoard);
+        return hint == current || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog);
     }
 
     /// <summary>

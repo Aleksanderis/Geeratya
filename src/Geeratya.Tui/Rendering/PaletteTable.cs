@@ -116,6 +116,16 @@ public static class PaletteTable
             ThemeColor.Bad,
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.Chip),
+        [PaletteRole.FrameFocus] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.ChipFocus] = new(
+            ThemeColor.BaseBackground,
+            ThemeColor.Accent,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Chip),
+        [PaletteRole.SelectedDim] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.Selection,
+            RoleStyle.UnderlineWithoutTint),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -167,6 +177,10 @@ public static class PaletteTable
         [TextRole.OverlayChip] = PaletteRole.OverlayChip,
         [TextRole.OverlayChipWarn] = PaletteRole.OverlayChipWarn,
         [TextRole.OverlayChipBad] = PaletteRole.OverlayChipBad,
+        [TextRole.Border] = PaletteRole.Divider,
+        [TextRole.FrameFocus] = PaletteRole.FrameFocus,
+        [TextRole.ChipFocus] = PaletteRole.ChipFocus,
+        [TextRole.SelectedDim] = PaletteRole.SelectedDim,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();
@@ -192,13 +206,20 @@ public static class PaletteTable
         {
             entries[role] = new PaletteEntry(
                 theme.Colors[spec.Foreground],
-                theme.Colors[spec.Background],
+                role == PaletteRole.SelectedDim ? DimSelection(theme) : theme.Colors[spec.Background],
                 Foreground16(theme, spec),
                 Background16(theme, spec),
                 spec.Style);
         }
 
         return entries;
+    }
+
+    // The selection of a pane without focus: the theme's selection tint moved halfway to the page, so it stays a
+    // visible but quiet step (ux-look.md, section 4). Derived, so theme files need no new colour.
+    private static Rgb DimSelection(Theme theme)
+    {
+        return Rgb.Blend(theme.Colors[ThemeColor.Selection], theme.Colors[ThemeColor.BaseBackground], 0.5);
     }
 
     // A filled chip: the page colour in bold on the role's own colour. Bold only (no reverse): the bars are reversed

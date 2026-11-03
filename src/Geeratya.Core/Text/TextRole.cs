@@ -92,4 +92,16 @@ public enum TextRole
 
     /// <summary>The title chip of a destructive confirm.</summary>
     OverlayChipBad,
+
+    /// <summary>The quiet border of a pane that has no focus (<c>docs/ux-look.md</c>, section 4).</summary>
+    Border,
+
+    /// <summary>The whole box of the focused pane: accent, bold.</summary>
+    FrameFocus,
+
+    /// <summary>The title chip of the focused pane: filled accent, bold.</summary>
+    ChipFocus,
+
+    /// <summary>The selected card of a pane without focus: a quieter tint (underlined without a tint).</summary>
+    SelectedDim,
 }

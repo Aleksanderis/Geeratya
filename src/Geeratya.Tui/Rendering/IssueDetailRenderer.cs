@@ -34,10 +34,12 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
         var shown = Math.Max(0, Math.Min(rows, document.Lines.Count - first));
         var lines = new List<StyledLine>(height);
+        var focused = document.Sections.Count == 0 ? -1 : document.SectionAt(top.Cursor);
 
         for (var index = first; index < first + shown; index++)
         {
-            var line = index == top.Cursor ? CursorLine(document.Lines[index]) : document.Lines[index];
+            var drawn = Focus(document, index, focused);
+            var line = index == top.Cursor ? CursorLine(drawn) : drawn;
 
             lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(line) : line);
         }
@@ -48,10 +50,11 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         var chips = new List<StyledSpan>();
+        var inView = document.SectionAt(first);
 
         if (document.PaneTitles.Count > 0)
         {
-            chips.AddRange(document.PaneTitles[document.SectionAt(first)]);
+            chips.AddRange(document.PaneTitles[inView]);
         }
 
         while (lines.Count < rows)
@@ -59,10 +62,48 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             lines.Add(StyledLine.Empty);
         }
 
-        lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, null));
-        lines.Add(PaneFrame.OuterEdge(width, height, false, null, null));
+        lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, null, inView == focused));
+        lines.Add(PaneFrame.OuterEdge(width, height, false, null, null, focused == document.Sections.Count - 1));
 
         return lines;
+    }
+
+    /// <summary>
+    /// The line as drawn for the pane focus (<c>docs/ux-look.md</c>, section 4): the border cells of the focused pane's
+    /// box (the shared edges above and below it included) in the focus role, and the chip of a shared edge filled when it
+    /// titles the focused pane, dim otherwise.
+    /// </summary>
+    private static StyledLine Focus(DetailDocument document, int index, int focused)
+    {
+        var line = document.Lines[index];
+        var section = document.SectionAt(index);
+        var isEdge = document.Sections.Contains(index + 1);
+        var accent = focused == section || (isEdge && focused == section + 1);
+        var spans = line.Spans.ToList();
+
+        if (isEdge && spans.Count > 2 && spans[0].Role == TextRole.Border)
+        {
+            var chip = ChipStyle.Dim(spans.GetRange(1, spans.Count - 2));
+
+            if (focused == section + 1)
+            {
+                chip = ChipStyle.Focused(chip);
+            }
+
+            spans = [spans[0], .. chip, spans[^1]];
+        }
+
+        if (accent)
+        {
+            spans = [.. spans.Select(static span => span.Role == TextRole.Border ? FocusBorder(span) : span)];
+        }
+
+        return new StyledLine(spans);
+    }
+
+    private static StyledSpan FocusBorder(StyledSpan span)
+    {
+        return span with { Role = TextRole.FrameFocus };
     }
 
     /// <summary>
@@ -71,13 +112,14 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     /// </summary>
     private static StyledLine CursorLine(StyledLine line)
     {
-        if (line.Spans.Count > 0 && line.Spans[0] is { Role: TextRole.Muted, Text.Length: > 1 } first
+        if (line.Spans.Count > 0
+            && line.Spans[0] is { Role: TextRole.Border or TextRole.FrameFocus, Text.Length: > 1 } first
             && IsBorder(first.Text[0]))
         {
             // The marker goes into the padding column inside the border, never over it.
             var marked = new List<StyledSpan>(line.Spans.Count + 2)
             {
-                new(first.Text[..1], TextRole.Muted),
+                new(first.Text[..1], first.Role),
                 new(CursorMark, TextRole.Selected),
             };
 
@@ -97,7 +139,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>
     private static StyledLine AsciiBorders(StyledLine line)
     {
-        if (!line.Spans.Any(static span => (span.Role == TextRole.Muted && span.Text.Any(IsBorder))
+        if (!line.Spans.Any(static span => (IsBorderSpan(span) && span.Text.Any(IsBorder))
             || span.Role == TextRole.Editable))
         {
             return line;
@@ -105,10 +147,15 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         return new StyledLine(line.Spans.Select(static span => span.Role switch
         {
-            TextRole.Muted => span with { Text = SwapBorders(span.Text) },
+            TextRole.Border or TextRole.FrameFocus => span with { Text = SwapBorders(span.Text) },
             TextRole.Editable => span with { Text = span.Text.Replace('▾', 'v') },
             _ => span,
         }).ToArray());
+    }
+
+    private static bool IsBorderSpan(StyledSpan span)
+    {
+        return span.Role is TextRole.Border or TextRole.FrameFocus;
     }
 
     private static string SwapBorders(string text)
