@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Tui.Rendering;
@@ -54,9 +55,9 @@ public class ProfileFormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(ProfileFormField.Email, null), 80, 24, _keymap);
         var status = lines[^1];
 
-        Assert.Contains("INSERT [3/4] Account email", status, StringComparison.Ordinal);
+        Assert.Contains("INSERT Account email", status, StringComparison.Ordinal);
         Assert.DoesNotContain("_", status, StringComparison.Ordinal);
-        Assert.Contains(lines, line => line.Contains("> ", StringComparison.Ordinal) && line.Contains('│'));
+        Assert.Contains(lines, line => line.Contains("> Account", StringComparison.Ordinal) && line.Contains('│'));
     }
 
     [Theory]
@@ -85,12 +86,79 @@ public class ProfileFormOverlaySnapshotTests
     [InlineData(ProfileFormField.SiteUrl, "Enter next")]
     [InlineData(ProfileFormField.Email, "Enter next")]
     [InlineData(ProfileFormField.Token, "Enter save")]
-    public void GivenEachStep_WhenBuildingTheFrame_ThenBoxFooterAndStatusHintSayTheSame(ProfileFormField field, string expected)
+    public void GivenEachStep_WhenBuildingTheFrame_ThenTheStatusHintSaysWhatEnterDoes(
+        ProfileFormField field,
+        string expected)
     {
         var lines = FrameBuilder.Build(Sample(field, null), 100, 30, _keymap);
 
-        Assert.Contains(lines, line => line.Contains('│') && line.Contains(expected, StringComparison.Ordinal));
         Assert.Contains(expected, lines[^1], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheEditForm_WhenBuildingTheFrame_ThenItNamesTheProfileAndSaysTheTokenIsKept()
+    {
+        var lines = FrameBuilder.Build(Editing(), 80, 24, _keymap);
+        var text = string.Join('\n', lines);
+
+        Assert.Contains("Edit profile · work", text, StringComparison.Ordinal);
+        Assert.Contains("kept (type to replace)", text, StringComparison.Ordinal);
+        Assert.Contains("https://work.atlassian.net", text, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-s save", text, StringComparison.Ordinal);
+        Assert.Contains("Alt-t test", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheForm_WhenClickingFieldsAndButtons_ThenTheyFocusTestSaveAndCancelLikeTheKeys()
+    {
+        var state = Editing();
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
+        var fields = RegionProbe.Rows(frame, MouseTarget.FormField);
+        var test = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileTestButton)).Region;
+        var save = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileSaveButton)).Region;
+        var cancel = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileCancelButton)).Region;
+
+        var focused = RegionProbe.Click(state, frame, fields[2].Region, MouseGesture.Click)!;
+        var tested = RegionProbe.Click(state, frame, test, MouseGesture.Click)!;
+        var saved = RegionProbe.Click(state, frame, save, MouseGesture.Click)!;
+        var cancelled = RegionProbe.Click(state, frame, cancel, MouseGesture.Click)!;
+
+        Assert.Equal(4, fields.Count);
+        Assert.Contains("Account", fields[2].Text, StringComparison.Ordinal);
+        Assert.Equal(ProfileFormField.Email, focused.State.Form!.Field);
+        Assert.IsType<TestProfileEffect>(Assert.Single(tested.Effects));
+        Assert.IsType<UpdateProfileEffect>(Assert.Single(saved.Effects));
+        Assert.Null(cancelled.State.Form);
+    }
+
+    [Fact]
+    public void GivenATestResultAndANote_WhenBuildingTheFrame_ThenTheBoxShowsThem()
+    {
+        var failed = Editing() with { Form = Editing().Form! with { TestResult = "Failed: 401", TestFailed = true } };
+        var running = Editing() with { Form = Editing().Form! with { Testing = true } };
+
+        Assert.Contains(FrameBuilder.Build(failed, 80, 24, _keymap), line => line.Contains("Failed: 401"));
+        Assert.Contains(FrameBuilder.Build(running, 80, 24, _keymap), line => line.Contains("Testing the connection"));
+    }
+
+    [Fact]
+    public void GivenAnyTerminalSize_WhenBuildingTheEditFrame_ThenItNeverThrows()
+    {
+        for (var width = 0; width <= 40; width++)
+        {
+            for (var height = 0; height <= 14; height++)
+            {
+                FrameBuilder.BuildStyled(Editing(), width, height, _keymap);
+            }
+        }
+    }
+
+    private static AppState Editing()
+    {
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var catalog = ProfileCatalog.Empty.With(profile);
+
+        return AppState.Initial with { Mode = InputMode.Insert, Profiles = catalog, Form = ProfileForm.For(profile) };
     }
 
     private static AppState Sample(ProfileFormField field, string? error)

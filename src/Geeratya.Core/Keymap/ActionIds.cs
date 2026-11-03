@@ -82,6 +82,9 @@ public static class ActionIds
     public const string StatusDismiss = "status.dismiss";
     public const string ViewCycleCommandLevel = "view.cycle-command-level";
     public const string ProfileRemove = "profile.remove";
+    public const string ProfileAdd = "profile.add";
+    public const string ProfileEdit = "profile.edit";
+    public const string ProfileTest = "profile.test";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
     public const string PickerOpenNewTab = "picker.open-new-tab";

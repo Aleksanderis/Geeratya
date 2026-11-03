@@ -78,11 +78,19 @@ public static class StatusBar
     ];
 
     /// <summary>The hints of the profile-add prompt on <paramref name="field"/>; Enter's verb is the box footer's.</summary>
-    public static IReadOnlyList<StatusHint> ProfileHints(ProfileFormField field) =>
-    [
-        new(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(field)),
-        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
-    ];
+    public static IReadOnlyList<StatusHint> ProfileHints(ProfileFormField field)
+    {
+        var enter = new StatusHint(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(field));
+        var test = new StatusHint(InputMode.Insert, ActionIds.ProfileTest, "test");
+        var cancel = new StatusHint(InputMode.Insert, ActionIds.Cancel, "cancel");
+
+        if (field == ProfileFormField.Token)
+        {
+            return [enter, test, cancel];
+        }
+
+        return [enter, new StatusHint(InputMode.Insert, ActionIds.FormSubmit, "save"), test, cancel];
+    }
 
     /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>
     public static IReadOnlyList<StatusHint> HelpHints { get; } =
@@ -495,6 +503,11 @@ public static class StatusBar
         if (form.Error is not null)
         {
             return $"{step} ! {form.Error}";
+        }
+
+        if (form.TestResult is not null)
+        {
+            return $"{step} {form.TestResult}";
         }
 
         var value = ProfileFormOverlay.Shown(form);

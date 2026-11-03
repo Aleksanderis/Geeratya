@@ -134,7 +134,7 @@ public static class FrameBuilder
         if (state is { Mode: InputMode.Insert, Picker: null, Editor: null, Jump: null, Form: { } profileForm }
             && !FormReducer.IsOpen(state))
         {
-            var composed = ProfileFormOverlay.Compose(body, profileForm, keymap, width, bodyHeight);
+            var composed = ProfileFormOverlay.Compose(body, profileForm, keymap, width, bodyHeight, regions);
 
             dialogShown = composed is not null;
             body = Fit(composed ?? body, width, bodyHeight);
