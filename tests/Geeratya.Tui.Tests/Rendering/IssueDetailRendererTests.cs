@@ -322,6 +322,26 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheHeaderPane_WhenBuilding_ThenTheStatusChipKeepsItsCategoryRoleAtTheRightOfTheTopEdge()
+    {
+        var top = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!.Body[0];
+
+        var status = Assert.Single(top.Spans, span => span.Text.Contains("In Progress"));
+        Assert.Equal(TextRole.StatusInProgress, status.Role);
+        Assert.EndsWith("In Progress ─╮", top.PlainText);
+    }
+
+    [Fact]
+    public void GivenScrolledToAnotherPane_WhenBuilding_ThenTheTopEdgeHasNoStatusChip()
+    {
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("G")).State;
+
+        var top = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body[0];
+
+        Assert.DoesNotContain("In Progress", top.PlainText);
+    }
+
+    [Fact]
     public void GivenTheCursorInTheFirstPane_WhenBuilding_ThenItsBoxIsFocusedAndTheNextEdgeChipIsDim()
     {
         var body = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!.Body;

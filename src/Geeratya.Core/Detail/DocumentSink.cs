@@ -13,11 +13,12 @@ internal sealed class DocumentSink
     private readonly List<int> _sections = [];
     private readonly List<int> _edges = [];
     private readonly List<IReadOnlyList<StyledSpan>> _titles = [];
+    private readonly List<IReadOnlyList<StyledSpan>> _rightTitles = [];
 
     public List<StyledLine> Lines { get; } = [];
 
     /// <summary>Appends a panel; <paramref name="content"/> carries the lines and the target of each.</summary>
-    public void AddPanel(IReadOnlyList<StyledSpan> title, PanelContent content, int width)
+    public void AddPanel(IReadOnlyList<StyledSpan> title, PanelContent content, int width, IReadOnlyList<StyledSpan>? right = null)
     {
         var start = Lines.Count;
         var isFirst = _sections.Count == 0;
@@ -30,6 +31,7 @@ internal sealed class DocumentSink
 
         _sections.Add(first);
         _titles.Add(title);
+        _rightTitles.Add(right ?? []);
 
         if (first > start)
         {
@@ -50,7 +52,7 @@ internal sealed class DocumentSink
 
         var stops = Enumerable.Range(0, Lines.Count).Where(line => !_edges.Contains(line)).ToArray();
 
-        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles };
+        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles, PaneRightTitles = _rightTitles };
     }
 
     private void Pad()
