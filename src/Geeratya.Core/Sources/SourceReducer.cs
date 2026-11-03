@@ -168,6 +168,15 @@ public static class SourceReducer
     /// </summary>
     public static ReduceResult OpenSprintPicker(AppState state)
     {
+        return OpenSprintPicker(state, null);
+    }
+
+    /// <summary>
+    /// Opens the same list to choose the sprint the issues <paramref name="moveKeys"/> move into (active and future
+    /// sprints only); null opens the switcher.
+    /// </summary>
+    public static ReduceResult OpenSprintPicker(AppState state, IReadOnlyList<string>? moveKeys)
+    {
         if (state.Profiles.Active is null)
         {
             return Plain(state with { Message = NoProfileMessage });
@@ -182,7 +191,7 @@ public static class SourceReducer
 
         var picker = new SourcePickerState(string.Empty, 0, PickerScope.Sprints, false, null)
         {
-            Sprint = new SprintPickerData(board, tab.Id, null, null, SprintChoices.ClosedPage),
+            Sprint = new SprintPickerData(board, tab.Id, null, null, SprintChoices.ClosedPage) { MoveKeys = moveKeys },
         };
 
         var opened = Close(state) with { Mode = InputMode.Insert, Picker = picker, Message = null };
@@ -191,16 +200,16 @@ public static class SourceReducer
     }
 
     /// <summary>Like <see cref="Accept"/>, but a sprint always opens in a new tab.</summary>
-    public static ReduceResult AcceptInNewTab(AppState state)
+    public static ReduceResult AcceptInNewTab(AppState state, DateTimeOffset at)
     {
-        return state.Picker is { Scope: PickerScope.Sprints } ? AcceptSprint(state, true) : Accept(state);
+        return state.Picker is { Scope: PickerScope.Sprints } ? AcceptSprint(state, true, at) : Accept(state, at);
     }
 
     /// <summary>
     /// Opens the highlighted row in a new tab and closes the picker. In the sprint switcher the row replaces the sprint
     /// of the tab it was opened from when that is a Sprint view, else it opens in a new tab.
     /// </summary>
-    public static ReduceResult Accept(AppState state)
+    public static ReduceResult Accept(AppState state, DateTimeOffset at)
     {
         var picker = state.Picker;
 
@@ -211,7 +220,7 @@ public static class SourceReducer
 
         if (picker.Scope == PickerScope.Sprints)
         {
-            return AcceptSprint(state, false);
+            return AcceptSprint(state, false, at);
         }
 
         var choices = SourceChoices.For(picker, state.Session.Sources);
@@ -238,7 +247,7 @@ public static class SourceReducer
         };
     }
 
-    private static ReduceResult AcceptSprint(AppState state, bool newTab)
+    private static ReduceResult AcceptSprint(AppState state, bool newTab, DateTimeOffset at)
     {
         var picker = state.Picker!;
         var choices = SourceChoices.For(picker, state.Session.Sources);
@@ -259,6 +268,12 @@ public static class SourceReducer
         }
 
         var origin = state.Session.Tabs.FirstOrDefault(tab => tab.Id == data.Origin);
+
+        if (data.MoveKeys is not null)
+        {
+            // The picker chose the target of a move: nothing opens, the confirmed write starts.
+            return SprintMoveActions.Choose(Close(state), data, choice, at);
+        }
 
         if (!newTab && origin is { Definition.Source: ViewSourceKind.Sprint }
             && SprintSource.TryParse(choice.Definition.SourceValue, out var source))

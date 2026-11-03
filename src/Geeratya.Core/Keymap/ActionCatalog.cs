@@ -34,6 +34,8 @@ public static class ActionCatalog
         [ActionIds.RankTop] = ActionScope.Lists,
         [ActionIds.RankBottom] = ActionScope.Lists,
         [ActionIds.RankTo] = ActionScope.Lists,
+        [ActionIds.SprintMoveIssues] = ActionScope.Lists,
+        [ActionIds.SprintMoveToBacklog] = ActionScope.Lists,
         [ActionIds.SelectionVisual] = ActionScope.List | ActionScope.Backlog,
         [ActionIds.SelectionMark] = ActionScope.Lists,
         [ActionIds.IssueDelete] = ActionScope.Views,
@@ -132,6 +134,8 @@ public static class ActionCatalog
         new(ActionIds.PickerNext, "Next row in the picker"),
         new(ActionIds.PickerOpenNewTab, "Open the highlighted sprint in a new tab"),
         new(ActionIds.SprintSwitch, "Switch the sprint shown (active, future, closed)"),
+        new(ActionIds.SprintMoveIssues, "Move the selected issues to a sprint"),
+        new(ActionIds.SprintMoveToBacklog, "Move the selected issues to the backlog"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
@@ -235,7 +239,7 @@ public static class ActionCatalog
 
         return (dot < 0 ? id : id[..dot]) switch
         {
-            "issue" => "Issue",
+            "issue" or "sprint" => "Issue",
             "comment" => "Comment",
             "rank" => "Rank",
             "selection" => "Selection",

@@ -2,9 +2,11 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Alt-k      Rank the issue up (a count moves it that many places)           │            
-            │ > All actions │   Alt-j      Rank the issue down (a count moves it that many places)         │            
-            │   Commands    │   Space k t  Rank the issue to the top of the list or column                 │            
+            │   Global      │   Space m d  Delete the comment under the cursor                             │            
+            │ > All actions │ Rank                                                                         │            
+            │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │            
+            │               │   Alt-j      Rank the issue down (a count moves it that many places)         │            
+            │               │   Space k t  Rank the issue to the top of the list or column                 │            
             │               │   Space k b  Rank the issue to the bottom of the list or column              │            
             │               │   Space k k  Pick up the issue, then drop it at the issue under the cursor   │            
             │               │ Selection                                                                    │            
@@ -29,8 +31,6 @@
             │               │   Alt-7      Go to tab 7                                                     │            
             │               │   Alt-8      Go to tab 8                                                     │            
             │               │   Alt-9      Go to tab 9                                                     │            
-            │               │   Space t    Open the source picker for a new tab                            │            
-            │               │   Space c    Close the tab                                                   │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

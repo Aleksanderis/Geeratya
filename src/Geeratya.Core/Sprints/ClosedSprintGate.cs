@@ -32,6 +32,8 @@ public static class ClosedSprintGate
         ActionIds.RankTo,
         ActionIds.IssueLink,
         ActionIds.IssueUnlink,
+        ActionIds.SprintMoveIssues,
+        ActionIds.SprintMoveToBacklog,
     ];
 
     // The first word of the typed commands that write; the palette rows go through the action ids above.

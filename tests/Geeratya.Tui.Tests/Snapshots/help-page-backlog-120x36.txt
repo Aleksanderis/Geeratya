@@ -25,8 +25,8 @@ Sample · 1 issue
             │               │   v          Start or end Visual mode (a range of rows)                      │            
             │               │   Alt-m      Mark or unmark the selected row and move down                   │            
             │               │   Space i C  Create a sub-task of the selected issue                         │            
-            │               │                                                                              │            
-            │               │                                                                              │            
+            │               │   Space s m  Move the selected issues to a sprint                            │            
+            │               │   Space s b  Move the selected issues to the backlog                         │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            

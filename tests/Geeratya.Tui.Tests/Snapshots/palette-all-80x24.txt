@@ -14,11 +14,11 @@ View · 0 issues
   │   Move the card to the previous column                             Alt-h │  
   │   Create an issue (type picker, then the form)                 Space i c │  
   │   Create a sub-task of the selected issue                      Space i C │  
+  │   Move the selected issues to a sprint                         Space s m │  
+  │   Move the selected issues to the backlog                      Space s b │  
   │   Edit the labels of the issue                                           │  
   │   Change the priority of the issue                                       │  
   │   Change the estimate of the issue                                       │  
   │ Comment                                                                  │  
-  │   Add a comment to the issue                                   Space m a │  
-  │   Edit the comment under the cursor                            Space m e │  
   └──────────────────────────────────────────────────────────────────────────┘  
  COMMAND :                                   Up/Down move  Enter run  Esc cancel

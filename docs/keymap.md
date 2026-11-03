@@ -68,6 +68,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
 | `Space s v` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
+| `Space s m` | Move the selected issues to a sprint | `sprint.move-issues` | everyday |
+| `Space s b` | Move the selected issues to the backlog | `sprint.move-to-backlog` | everyday |
 | `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
 | `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |

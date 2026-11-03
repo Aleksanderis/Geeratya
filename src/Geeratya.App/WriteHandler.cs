@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.Json;
 using Geeratya.Core.Links;
 using Geeratya.Core.State;
@@ -9,6 +10,7 @@ using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Jql;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
 using Geeratya.Jira.Writes.Models;
@@ -338,6 +340,11 @@ public sealed class WriteHandler
             return await RankAsync(services, rank, token);
         }
 
+        if (request is SprintMoveRequest move)
+        {
+            return await SprintMoveAsync(services, move, token);
+        }
+
         if (request is DeleteIssueRequest delete)
         {
             return await services.Edits.DeleteIssueAsync(delete.Key, delete.DeleteSubtasks, token);
@@ -388,6 +395,62 @@ public sealed class WriteHandler
         }
 
         return await services.Transitions.PerformAsync(transition.Key, transition.Choice.Id, fields, null, token);
+    }
+
+    /// <summary>
+    /// Moves the issues (chunks of 50, one after the other). The pipeline settles a write as a whole, so a move that
+    /// did not take every issue fails with a message naming how many moved and which did not; the optimistic rows are
+    /// undone and the tabs reload, which shows what really moved. A chunk with no reply is an unknown outcome.
+    /// </summary>
+    private static async Task<WriteResult<WriteAccepted>> SprintMoveAsync(
+        JiraServices services,
+        SprintMoveRequest move,
+        CancellationToken token)
+    {
+        var result = move.Target is { } target
+            ? await services.SprintMoves.MoveToSprintAsync(target.Id, move.Keys, token)
+            : await services.SprintMoves.MoveToBacklogAsync(move.Keys, token);
+
+        if (!result.IsSuccess)
+        {
+            return WriteResults.Failure<WriteAccepted>(result.Error);
+        }
+
+        var outcome = result.Value;
+
+        if (outcome.AllMoved)
+        {
+            return WriteResults.Success(new WriteAccepted());
+        }
+
+        if (outcome.Unknown.Count > 0)
+        {
+            var lost = outcome.Error ?? new WriteError(WriteErrorKind.UnknownOutcome, null, UnexpectedMessage, [], []);
+
+            return WriteResults.Failure<WriteAccepted>(lost);
+        }
+
+        var message = SprintMoveFailureText(move, outcome);
+
+        return WriteResults.Failure<WriteAccepted>(
+            new WriteError(outcome.Error?.Kind ?? WriteErrorKind.Validation, null, message, [], [message]));
+    }
+
+    private static string SprintMoveFailureText(SprintMoveRequest move, SprintMoveOutcome outcome)
+    {
+        var failed = outcome.Rejected.Select(item => item.Key).Concat(outcome.NotAttempted).ToArray();
+        var reason = outcome.Rejected.SelectMany(item => item.Errors).FirstOrDefault()
+            ?? outcome.Error?.Message
+            ?? "Jira did not move the issue";
+        var moved = outcome.Moved.Count.ToString(CultureInfo.InvariantCulture);
+        var total = move.Keys.Count.ToString(CultureInfo.InvariantCulture);
+
+        if (outcome.Moved.Count == 0 && move.Keys.Count == 1)
+        {
+            return reason;
+        }
+
+        return $"{moved} of {total} moved; {string.Join(", ", failed)} not moved: {reason}";
     }
 
     private static Task<WriteResult<WriteAccepted>> RankAsync(
