@@ -4,6 +4,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
@@ -428,7 +429,8 @@ public static class IssueDocumentBuilder
 
         private static HeaderFields FromIssue(IssueDetail issue)
         {
-            var parent = issue.Parent is { } stub ? $"{stub.Key} {stub.Summary}" : null;
+            var parent = issue.Parent is { } stub ? $"{stub.Key} {stub.Summary}".TrimEnd() : null;
+            var isEpic = issue.Epic is not null;
 
             return new HeaderFields(
                 issue.IssueType.Name,
@@ -438,9 +440,9 @@ public static class IssueDocumentBuilder
                 issue.Assignee?.DisplayName,
                 issue.Reporter?.DisplayName,
                 issue.Labels,
-                parent,
+                isEpic ? null : parent,
                 issue.Updated,
-                issue.Epic is { } epic ? $"{epic.Key} {epic.Summary}".TrimEnd() : null,
+                isEpic ? parent : null,
                 SprintText(issue.Sprints),
                 issue.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
         }
@@ -457,9 +459,9 @@ public static class IssueDocumentBuilder
                 row.Assignee?.DisplayName,
                 null,
                 row.Labels,
-                parent,
+                row.Epic is null ? parent : null,
                 row.Updated,
-                row.Epic is { } epic ? $"{epic.Key} {epic.Summary}".TrimEnd() : null,
+                row.Epic is null ? null : parent,
                 SprintText(row.Sprints),
                 row.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
         }
@@ -473,7 +475,10 @@ public static class IssueDocumentBuilder
             }
 
             var text = $"{current.Name} ({current.State.ToString().ToLowerInvariant()})";
-            var earlier = sprints.Where(sprint => sprint.Id != current.Id).Select(sprint => sprint.Name).ToList();
+            var earlier = sprints
+                .Where(sprint => sprint.Id != current.Id && sprint.State == SprintState.Closed)
+                .Select(sprint => sprint.Name)
+                .ToList();
 
             return earlier.Count == 0 ? text : $"{text}; earlier: {string.Join(", ", earlier)}";
         }

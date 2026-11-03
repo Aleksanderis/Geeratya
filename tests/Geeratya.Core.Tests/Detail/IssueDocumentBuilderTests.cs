@@ -113,6 +113,27 @@ public class IssueDocumentBuilderTests
         Assert.Contains(lines, line => line.Contains("Sprint    Sprint 2 (active); earlier: Sprint 1"));
         Assert.Contains(lines, line => line.Contains("Estimate  5"));
         Assert.Contains(lines, line => line.Contains("Epic      A-0 Onboarding"));
+        Assert.DoesNotContain(lines, line => line.Contains("Parent"));
+    }
+
+    [Fact]
+    public void GivenActiveAndFutureSprints_WhenBuilding_ThenOnlyClosedSprintsAreEarlier()
+    {
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with
+            {
+                Sprints =
+                [
+                    new IssueSprint(2, "Sprint 2", SprintState.Active),
+                    new IssueSprint(3, "Sprint 3", SprintState.Future),
+                ],
+            },
+        };
+
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 140));
+
+        Assert.Contains(lines, line => line.Contains("Sprint 2 (active)") && !line.Contains("earlier"));
     }
 
     [Fact]
