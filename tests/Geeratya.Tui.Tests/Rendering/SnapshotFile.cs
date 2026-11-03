@@ -19,7 +19,7 @@ internal static class SnapshotFile
             return actual;
         }
 
-        return File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
+        return File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name)).ReplaceLineEndings("\n");
     }
 
     private static string SourcePath(string file)

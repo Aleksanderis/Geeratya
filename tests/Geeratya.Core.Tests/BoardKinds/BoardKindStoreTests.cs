@@ -96,7 +96,10 @@ public sealed class BoardKindStoreTests : IDisposable
         File.Delete(path);
         Directory.CreateDirectory(path);
 
-        Assert.ThrowsAny<IOException>(() => store.Save(_work, 2, BoardKind.Kanban));
+        var error = Record.Exception(() => store.Save(_work, 2, BoardKind.Kanban));
+
+        // Windows reports a directory in the way as UnauthorizedAccessException, Linux as IOException.
+        Assert.True(error is IOException or UnauthorizedAccessException, $"Unexpected: {error}");
         Assert.False(File.Exists($"{path}.tmp"));
     }
 
