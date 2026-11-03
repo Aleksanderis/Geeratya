@@ -16,6 +16,7 @@ public sealed class FieldClient(JiraTransport transport)
 
     private static readonly string[] _estimateNames = ["Story point estimate", "Story Points"];
 
+    // The detail has no board, so on a site that fills both estimate fields it can show another number than a board row.
     public async Task<JiraResult<IssueExtraFields>> GetExtraFieldsAsync(
         CancellationToken cancellationToken,
         JiraPriority priority = JiraPriority.User)
@@ -28,7 +29,7 @@ public sealed class FieldClient(JiraTransport transport)
             : JiraResults.Failure<IssueExtraFields>(result.Error);
     }
 
-    internal static IssueExtraFields Map(List<FieldWire.Field>? fields)
+    internal static IssueExtraFields Map(List<FieldWire.Field?>? fields)
     {
         string? sprint = null;
         var estimates = new List<(int Rank, string Id)>();

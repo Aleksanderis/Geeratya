@@ -67,7 +67,7 @@ public sealed class SiteConnections : IDisposable
     }
 
     /// <summary>
-    /// The transport, the board-kind resolver and the field ids of the active profile, read together so they belong to one
+    /// The transport, board-kind resolver and field ids of the active profile, read together so they belong to one
     /// connection. The resolver is seeded from the profile's stored answers and stores each new one.
     /// </summary>
     internal ConnectionParts Snapshot()

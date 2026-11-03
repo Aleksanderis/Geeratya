@@ -33,6 +33,13 @@ internal static class BoardMapper
             ParseType(board.Type),
             board.Location?.ProjectKey ?? string.Empty);
 
+    /// <summary>
+    /// Only a custom field is a story-point estimate; a board estimating by "Original time estimate" names a system
+    /// field in seconds, which is not shown as points.
+    /// </summary>
+    private static string? CustomFieldOrNull(string? fieldId) =>
+        fieldId is not null && fieldId.StartsWith(RankFieldPrefix, StringComparison.Ordinal) ? fieldId : null;
+
     public static BoardConfiguration MapConfiguration(BoardWire.Configuration wire)
     {
         var columns = new List<BoardColumn>();
@@ -55,7 +62,7 @@ internal static class BoardMapper
             wire.Ranking?.RankCustomFieldId is { } rank ? $"{RankFieldPrefix}{rank}" : null,
             wire.ColumnConfig?.ConstraintType)
         {
-            EstimationFieldId = wire.Estimation?.Field?.FieldId is { Length: > 0 } estimation ? estimation : null,
+            EstimationFieldId = CustomFieldOrNull(wire.Estimation?.Field?.FieldId),
         };
     }
 

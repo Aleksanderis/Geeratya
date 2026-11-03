@@ -40,7 +40,7 @@ public sealed record IssueDetail(
     IReadOnlyList<IssueLink> Links,
     IReadOnlyList<IssueAttachment> Attachments)
 {
-    /// <summary>The sprints the Sprint field lists, oldest first; empty when none or the field was not requested.</summary>
+    /// <summary>The sprints the Sprint field lists, oldest first; empty when none or not requested.</summary>
     public IReadOnlyList<IssueSprint> Sprints { get; init; } = [];
 
     /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>

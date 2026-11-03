@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Geeratya.Jira.Paging;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints;
 
@@ -19,7 +20,6 @@ internal static class IssueSummaryMapper
     private const string IdProperty = "id";
     private const string NameProperty = "name";
     private const string StateProperty = "state";
-    private const int EpicHierarchyLevel = 1;
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
@@ -49,7 +49,10 @@ internal static class IssueSummaryMapper
     private static bool HasNext(SearchWire.Response response) =>
         !response.IsLast && !string.IsNullOrEmpty(response.NextPageToken);
 
-    private static IssueSummary MapIssue(SearchWire.Issue issue, Dictionary<string, string> pool, IssueExtraFields? extras)
+    private static IssueSummary MapIssue(
+        SearchWire.Issue issue,
+        Dictionary<string, string> pool,
+        IssueExtraFields? extras)
     {
         var fields = issue.Fields;
 
@@ -90,7 +93,9 @@ internal static class IssueSummaryMapper
             if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(IdProperty, out var id)
                 && id.ValueKind == JsonValueKind.Number && id.TryGetInt64(out var sprintId))
             {
-                result.Add(new IssueSprint(sprintId, TextOf(entry, NameProperty), SprintMapper.ParseState(TextOf(entry, StateProperty))));
+                var state = SprintMapper.ParseState(TextOf(entry, StateProperty));
+
+                result.Add(new IssueSprint(sprintId, TextOf(entry, NameProperty), state));
             }
         }
 
@@ -154,7 +159,7 @@ internal static class IssueSummaryMapper
             return null;
         }
 
-        var isEpic = parent.Stub?.IssueType?.HierarchyLevel == EpicHierarchyLevel;
+        var isEpic = parent.Stub?.IssueType?.HierarchyLevel == IssueDetail.EpicHierarchyLevel;
 
         return new IssueParent(key, parent.Stub?.Summary, isEpic);
     }

@@ -213,6 +213,19 @@ public sealed class SprintFieldMappingTests
         Assert.Equal(expected, result.Value.EstimationFieldId);
     }
 
+    [Fact]
+    public async Task GivenBoardEstimatingByTime_WhenLoadingConfiguration_ThenNoStoryPointFieldIsReported()
+    {
+        const string json =
+            """{"id":9,"name":"B","type":"scrum","estimation":{"type":"field","field":{"fieldId":"timeoriginalestimate"}}}""";
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/agile/1.0/board/9/configuration", FakeResponse.Ok(json));
+
+        var result = await new BoardClient(fixture.Transport).GetConfigurationAsync(9, CancellationToken.None);
+
+        Assert.Null(result.Value.EstimationFieldId);
+    }
+
     private static async Task<Dictionary<string, IssueSummary>> RowsAsync(
         long boardId,
         string fixtureName,
