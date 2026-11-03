@@ -3,7 +3,7 @@ using Geeratya.Core.State;
 
 namespace Geeratya.App;
 
-/// <summary>Writes the settings file for <see cref="SaveSettingsEffect"/>; answers only when that fails.</summary>
+/// <summary>Writes one setting into the settings file for <see cref="SaveSettingsEffect"/>; answers only when that fails.</summary>
 public sealed class SettingsEffectHandler
 {
     private readonly SettingsStore _store;
@@ -23,13 +23,24 @@ public sealed class SettingsEffectHandler
 
         try
         {
-            _store.Save(save.Settings);
+            var written = _store.Write(save.Setting, save.Settings);
 
-            return null;
+            return Answer(written);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return new ProfileOperationFailed($"Could not write settings.json: {exception.Message}");
         }
+    }
+
+    private static Command? Answer(SettingsWrite written)
+    {
+        return written.Outcome switch
+        {
+            SettingsWriteOutcome.Saved => null,
+            SettingsWriteOutcome.Stale when written.Reloaded is { } reloaded =>
+                new SettingsReloaded(reloaded, written.Message ?? string.Empty),
+            _ => new ProfileOperationFailed(written.Message ?? "Could not write settings.json."),
+        };
     }
 }

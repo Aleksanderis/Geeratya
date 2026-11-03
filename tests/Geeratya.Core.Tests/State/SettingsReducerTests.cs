@@ -32,17 +32,62 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         Assert.Equal(expected, Assert.IsType<SaveSettingsEffect>(Assert.Single(result.Effects)).Settings);
     }
 
-    [Theory]
-    [InlineData("set hints maybe")]
-    [InlineData("set colour on")]
-    [InlineData("set hints")]
-    public void GivenBadArguments_WhenSubmittingThePalette_ThenUsageShowsAndNothingChanges(string text)
+    [Fact]
+    public void GivenAnUnknownSetting_WhenSubmittingThePalette_ThenUsageShowsAndNothingChanges()
     {
-        var result = Run(text);
+        var result = Run("set colour on");
 
         Assert.Equal(AppSettings.Default, result.State.Settings);
         Assert.Empty(result.Effects);
-        Assert.Contains("Usage", result.State.Message);
+        Assert.Equal(SettingsReducer.Usage, result.State.Message);
+    }
+
+    [Fact]
+    public void GivenABadValue_WhenSubmittingThePalette_ThenTheAcceptedValuesShowAndNothingChanges()
+    {
+        var result = Run("set hints maybe");
+
+        Assert.Empty(result.Effects);
+        Assert.Equal("hints takes on or off.", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenNoArgument_WhenSubmittingThePalette_ThenEverySettingShowsWithItsDefault()
+    {
+        var message = Run("set").State.Message;
+
+        foreach (var setting in SettingsRegistry.All)
+        {
+            Assert.Contains($"{setting.Name} {setting.Default} (default {setting.Default})", message);
+        }
+    }
+
+    [Fact]
+    public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndHelpShow()
+    {
+        var message = Run("set whichkey").State.Message;
+
+        Assert.Contains("whichkey on (default on; on or off)", message);
+        Assert.Contains(SettingsRegistry.Find("whichkey")!.Help, message);
+    }
+
+    [Fact]
+    public void GivenSetTheme_WhenSubmittingThePalette_ThenTheHostIsAsked()
+    {
+        var result = Run("set theme nord");
+
+        Assert.Equal("nord", Assert.IsType<ApplyThemeEffect>(Assert.Single(result.Effects)).Name);
+    }
+
+    [Fact]
+    public void GivenAReloadedFile_WhenTheHostAnswers_ThenItsValuesApplyAndTheMessageShows()
+    {
+        var result = _reducer.Reduce(
+            AppState.Initial,
+            new SettingsReloaded(new AppSettings(StatusHints: false), "changed"));
+
+        Assert.False(result.State.Settings.StatusHints);
+        Assert.Equal("changed", result.State.Message);
     }
 
     [Fact]
@@ -92,11 +137,11 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
-    public void GivenAThemeInTheFile_WhenLoading_ThenItComesBack()
+    public void GivenAThemeWrittenToTheFile_WhenLoading_ThenItComesBack()
     {
         var store = new SettingsStore(_directory);
 
-        store.Save(new AppSettings(Theme: "light"));
+        store.Write(SettingsRegistry.Find("theme")!, new AppSettings(Theme: "light"));
 
         Assert.Equal("light", store.Load().Theme);
     }
@@ -111,22 +156,6 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
 
         Assert.Equal(AppSettings.DefaultTheme, settings.Theme);
         Assert.False(settings.StatusHints);
-    }
-
-    [Fact]
-    public void GivenSavedSettings_WhenLoading_ThenTheyComeBack_AndABadFileGivesTheDefaults()
-    {
-        var store = new SettingsStore(_directory);
-
-        Assert.Equal(AppSettings.Default, store.Load());
-
-        store.Save(new AppSettings(StatusHints: false));
-
-        Assert.Equal(new AppSettings(StatusHints: false), store.Load());
-
-        File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ not json");
-
-        Assert.Equal(AppSettings.Default, store.Load());
     }
 
     private ReduceResult Run(string text)

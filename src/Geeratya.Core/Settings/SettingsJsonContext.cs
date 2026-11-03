@@ -2,8 +2,5 @@ using System.Text.Json.Serialization;
 
 namespace Geeratya.Core.Settings;
 
-[JsonSourceGenerationOptions(
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    WriteIndented = true)]
-[JsonSerializable(typeof(AppSettings))]
+[JsonSerializable(typeof(string))]
 internal sealed partial class SettingsJsonContext : JsonSerializerContext;
