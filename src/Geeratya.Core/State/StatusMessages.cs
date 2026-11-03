@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 
@@ -90,6 +91,46 @@ public static class StatusMessages
             PendingKeys = string.Empty,
             Count = 0,
             PaletteText = string.Empty,
+        };
+    }
+
+    /// <summary>Opens the overlay with the settings list above the history (<c>:set</c> without an argument).</summary>
+    public static AppState OpenSettings(AppState state)
+    {
+        return OpenHistory(state) with { MessagesShowSettings = true };
+    }
+
+    /// <summary>The scrollable rows of the overlay: the settings and their "Messages" heading when shown, then the history.</summary>
+    public static int OverlayRowCount(AppState state)
+    {
+        var history = Math.Max(state.StatusHistory.Count, state.MessagesShowSettings ? 1 : 0);
+
+        return state.MessagesShowSettings ? SettingsRegistry.All.Count + 1 + history : state.StatusHistory.Count;
+    }
+
+    /// <summary>
+    /// The startup notice and the warnings of reading <c>settings.json</c> as messages: every warning is a history
+    /// entry; the status line shows the notice, else the one warning, else a count that points to the overlay.
+    /// </summary>
+    public static AppState Startup(AppState state, string? notice, IReadOnlyList<string> warnings)
+    {
+        var shown = notice ?? (warnings.Count switch
+        {
+            0 => null,
+            1 => warnings[0],
+            _ => $"{warnings.Count} problems in settings.json (see the Messages overlay)",
+        });
+        var history = warnings
+            .Where(warning => notice is not null || warnings.Count > 1 || warning != shown)
+            .Select(warning => new StatusMessage(warning, StatusSeverity.Warning))
+            .Reverse()
+            .ToList();
+
+        return state with
+        {
+            StatusHistory = history,
+            Message = shown,
+            MessageSeverity = notice is null && shown is not null ? StatusSeverity.Warning : StatusSeverity.Info,
         };
     }
 

@@ -578,23 +578,23 @@ public sealed class ShellHost : ICommandSink, IDisposable
         {
             var loaded = _profiles.Store.Load();
             var notice = loaded.Status == ProfileLoadStatus.Corrupt ? CorruptNotice : null;
-            var warning = settingsLoad.Warnings.Count > 0 ? string.Join(" ", settingsLoad.Warnings) : null;
 
-            return AppState.Initial with
-            {
-                Settings = settings,
-                Profiles = loaded.Catalog,
-                Session = SiteSession.Empty(loaded.Catalog.Active),
-                Message = JoinNotices(notice, warning),
-            };
+            return StatusMessages.Startup(
+                AppState.Initial with
+                {
+                    Settings = settings,
+                    Profiles = loaded.Catalog,
+                    Session = SiteSession.Empty(loaded.Catalog.Active),
+                },
+                notice,
+                settingsLoad.Warnings);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return AppState.Initial with
-            {
-                Settings = settings,
-                Message = $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
-            };
+            return StatusMessages.Startup(
+                AppState.Initial with { Settings = settings },
+                $"Could not read the profiles file: {exception.Message} (adding a profile would replace it)",
+                settingsLoad.Warnings);
         }
     }
 }

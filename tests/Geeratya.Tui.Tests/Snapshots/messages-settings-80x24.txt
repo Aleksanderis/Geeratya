@@ -1,0 +1,24 @@
+                                                                                
+                                                                                
+Settings                                                                        
+hints.statusBar full (default full) - How many key hints the right of the statu…
+hints.whichKey on (default on) - Show the popup of the next keys while a multi-…
+theme auto (default auto) - The colour theme: a built-in one or a file in the t…
+Messages                                                                        
+Saved A-1                                                                       
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ MESSAGES                                                j down  k up  Esc close
