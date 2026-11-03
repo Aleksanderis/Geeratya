@@ -11,7 +11,9 @@ namespace Geeratya.Core.Forms;
 /// A choice field whose current value is only a name (the row shows the priority's name, not its id) is known as
 /// <see cref="FormValue.OfText"/> of that name and is matched to the allowed value of that label.
 /// <paramref name="Only"/> limits the form to one kind of field (the labels pilot), <paramref name="OnlyId"/> to one
-/// field (the priority command).
+/// field (the priority command). <paramref name="EstimateOnly"/> is the estimate command: the form shows the one
+/// number field of the issue that the site or a board uses as its estimate, which the metadata handler picks (the id
+/// is per site), and the write patches the row's estimate.
 /// </summary>
 public sealed record EditFormTarget(
     string Key,
@@ -19,7 +21,8 @@ public sealed record EditFormTarget(
     bool OnlyKnown,
     FormFieldKind? Only,
     string? OnlyId = null,
-    IReadOnlyCollection<string>? ReadOnlyIds = null) : FormTarget
+    IReadOnlyCollection<string>? ReadOnlyIds = null,
+    bool EstimateOnly = false) : FormTarget
 {
     public override string Title => $"Edit {Key}";
 
@@ -27,6 +30,6 @@ public sealed record EditFormTarget(
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
-        return new EditRequest(Key, changes);
+        return new EditRequest(Key, changes, EstimateOnly);
     }
 }

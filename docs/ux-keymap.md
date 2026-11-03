@@ -98,7 +98,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | its palette row | M4 #196 (built; session only, `:set commandlevel` saves) |
 | `Ctrl-p` | `palette.open` | A second key for the command palette (`:` stays); vim's `Ctrl-p` (up a line) is not needed, the arrow keys and `k` do that | E | click the status line | M4 #368 (built) |
 
-The estimate has no key of its own: the `<space>ie` field picker offers the board's estimation field (#183). Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
+The estimate has no key of its own: `:estimate` opens the form limited to the estimate field (#183); `<space>ie` offers it among the other editable fields. Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 

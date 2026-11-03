@@ -163,6 +163,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
 | `:create [subtask]` | Create an issue, or a sub-task of the selected issue (field form) |
 | `:priority` | Change the priority of the selected or shown issue (field form) |
+| `:estimate` | Change the estimate (story points) of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:profile add|list|switch <name>|remove <name>|check` | Manage Jira profiles |

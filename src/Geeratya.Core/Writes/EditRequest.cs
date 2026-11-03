@@ -9,7 +9,8 @@ namespace Geeratya.Core.Writes;
 /// labels are a set, so their order is ignored); the other fields are verified only through those, so a write without any of them
 /// cannot be verified by a read: after a lost reply its check ends as "could not check", never as "not applied".
 /// </summary>
-public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes) : WriteRequest
+public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes, bool EstimateOnly = false)
+    : WriteRequest
 {
     public override OperationKind Kind => OperationKind.EditFields;
 
@@ -32,13 +33,16 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes)
         var summary = TextOf(FormFieldIds.Summary);
         var labels = LabelsOf();
         var priority = PriorityOf();
+        var estimate = EstimateOf();
 
-        if (summary is null && labels is null && priority is null)
+        if (summary is null && labels is null && priority is null && estimate is null)
         {
             return null;
         }
 
-        return new EditRowChange(Key, row.Summary, summary, row.Labels, labels, row.Priority, priority);
+        var estimateEdit = estimate is { } after ? new EstimateEdit(row.Estimate, after.Number) : null;
+
+        return new EditRowChange(Key, row.Summary, summary, row.Labels, labels, row.Priority, priority, estimateEdit);
     }
 
     public override bool IsShownBy(IssueSummary row)
@@ -47,7 +51,9 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes)
         var labels = LabelsOf();
         var priority = PriorityOf();
 
-        if (summary is null && labels is null && priority is null)
+        // The read-back carries no estimate field, so an estimate edit cannot be verified by it (a clear would look
+        // applied by default): it ends as "could not check" after a lost reply.
+        if (EstimateOf() is not null || (summary is null && labels is null && priority is null))
         {
             return false;
         }
@@ -74,10 +80,33 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes)
         return change is { Kind: FormFieldKind.Select, Display: [var name] } ? name : null;
     }
 
+    // The estimate form holds one number field; an empty text clears the estimate. Null when this is no estimate edit
+    // or the text does not read (the form checks that before it saves).
+    private EstimateValue? EstimateOf()
+    {
+        var change = Changes.FirstOrDefault(candidate => candidate.Kind == FormFieldKind.Number);
+
+        if (!EstimateOnly || change is null)
+        {
+            return null;
+        }
+
+        var text = change.Value.Text.Trim();
+
+        if (text.Length == 0)
+        {
+            return new EstimateValue(null);
+        }
+
+        return FormValueParser.TryNumber(text, out var number) ? new EstimateValue(number) : null;
+    }
+
     private IReadOnlyList<string>? LabelsOf()
     {
         var change = Changes.FirstOrDefault(candidate => candidate.FieldId == FormFieldIds.Labels);
 
         return change is { Kind: FormFieldKind.Labels } ? change.Value.Chosen : null;
     }
+
+    private readonly record struct EstimateValue(double? Number);
 }

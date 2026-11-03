@@ -31,6 +31,24 @@ public static class FormOpener
         return Open(state, FormFieldIds.Priority);
     }
 
+    /// <summary><c>:estimate</c>: the edit form limited to the estimate (story points) field of the issue.</summary>
+    public static ReduceResult Estimate(AppState state)
+    {
+        if (Subject.Of(state) is not { } subject)
+        {
+            return Say(state, NoIssueText);
+        }
+
+        var target = new EditFormTarget(
+            subject.Key,
+            new Dictionary<string, FormValue>(),
+            true,
+            FormFieldKind.Number,
+            EstimateOnly: true);
+
+        return FormReducer.Open(state, subject.Tab.Id, target);
+    }
+
     /// <summary><c>issue.assign</c>: the people picker (the form with the searchable Assignee field).</summary>
     public static ReduceResult Assign(AppState state)
     {

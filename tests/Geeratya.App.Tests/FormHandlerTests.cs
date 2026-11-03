@@ -197,6 +197,77 @@ public sealed class FormHandlerTests
         Assert.Single(fixture.Http.Requests);
     }
 
+    [Theory]
+    [InlineData(
+        "metadata/synthetic-editmeta-gcs-story.json",
+        "issues/synthetic-field-values-gcs-estimate.json",
+        "customfield_10047",
+        "5")]
+    [InlineData(
+        "metadata/synthetic-editmeta-gts-task.json",
+        "issues/synthetic-field-values-gts-estimate.json",
+        "customfield_10016",
+        "2.5")]
+    public async Task GivenEstimateOnlyOnEitherBoardKind_WhenTheFormLoads_ThenOnlyThatEstimateFieldIsOffered(
+        string metadataFixture,
+        string valuesFixture,
+        string fieldId,
+        string value)
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture))
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read(valuesFixture)));
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, EstimateTarget()));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var field = Assert.Single(loaded.Fields);
+        Assert.Equal(fieldId, field.Id);
+        Assert.Equal(FormFieldKind.Number, field.Kind);
+        Assert.Equal(value, field.Value.Text);
+        var read = fixture.Http.Requests.Last();
+        Assert.Equal($"fields={fieldId}", Uri.UnescapeDataString(read.Query).TrimStart('?'));
+    }
+
+    [Fact]
+    public async Task GivenAnIssueWithoutAnEstimateOnItsScreen_WhenEstimateOnlyLoads_ThenItFailsSayingWhyAndReadsNoValues()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/synthetic-editmeta-gcs-task.json"))
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json")));
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, EstimateTarget()));
+
+        var failed = Assert.IsType<FormMetadataFailed>(Assert.Single(fixture.Posted));
+        Assert.Contains("A-1 has no estimate to edit", failed.Message);
+        Assert.Equal(2, fixture.Http.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenAnEstimateEdit_WhenExecuted_ThenOnePutSetsTheNumberAndAnEmptyTextSendsNull()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}""")
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+
+        var set = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.OfText("8"));
+        var clear = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.Empty);
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [set], true)));
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(6, new EditRequest("A-1", [clear], true)));
+
+        var bodies = fixture.Http.Bodies.Select(body => body.Replace(" ", string.Empty)).ToArray();
+        Assert.Contains("\"fields\":{\"customfield_10047\":8", bodies[0]);
+        Assert.Contains("\"customfield_10047\":null", bodies[2]);
+    }
+
+    private static EditFormTarget EstimateTarget()
+    {
+        return new EditFormTarget("A-1", new Dictionary<string, FormValue>(), true, FormFieldKind.Number, EstimateOnly: true);
+    }
+
     private static EditFormTarget KnownTarget()
     {
         var known = new Dictionary<string, FormValue>

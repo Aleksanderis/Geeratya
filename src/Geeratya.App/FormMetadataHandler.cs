@@ -17,6 +17,9 @@ public sealed class FormMetadataHandler
     private const string NoLinkTypesMessage = "This site has no issue link types (linking is turned off).";
     private const string NeedsBrowserMessage =
         "This transition asks for a field Geeratya cannot edit yet; do it in the browser (<space>o).";
+    private const string NoEstimateReason =
+        ": no estimate field is known for it, or the field is not on this issue type's screen "
+        + "(a board without story point estimation has none)";
     private const string UnsupportedMessage = "This form cannot be opened yet.";
 
     private readonly NetworkRunner _runner;
@@ -77,9 +80,51 @@ public sealed class FormMetadataHandler
             return new FormMetadataFailed(effect.Tab, effect.RequestId, MessageOf(result.Error, edit.Key));
         }
 
-        var completed = await WithIssueValuesAsync(services, edit, result.Value, token);
+        var chosen = edit;
+
+        if (edit.EstimateOnly)
+        {
+            var estimatePick = await PickEstimateAsync(services, edit, result.Value, token);
+
+            if (estimatePick.Failure is { } failure)
+            {
+                return new FormMetadataFailed(effect.Tab, effect.RequestId, failure);
+            }
+
+            chosen = estimatePick.Target!;
+        }
+
+        var completed = await WithIssueValuesAsync(services, chosen, result.Value, token);
 
         return new FormMetadataLoaded(effect.Tab, effect.RequestId, FormFieldMapper.FromEdit(result.Value, completed));
+    }
+
+    // The estimate is a custom field whose id differs per site and board: take the first candidate the issue's own
+    // screen can edit. None means a board without estimation (or by time tracking), or a type without the field.
+    private static async Task<EstimatePick> PickEstimateAsync(
+        JiraServices services,
+        EditFormTarget edit,
+        IReadOnlyList<EditField> fields,
+        CancellationToken token)
+    {
+        var candidates = await services.Fields.GetEstimateCandidatesAsync(token);
+
+        if (!candidates.IsSuccess)
+        {
+            return new EstimatePick(null, MessageOf(candidates.Error, edit.Key));
+        }
+
+        foreach (var id in candidates.Value)
+        {
+            var field = fields.FirstOrDefault(candidate => candidate.FieldId == id);
+
+            if (field is { IsEditable: true, Kind: EditFieldKind.Number })
+            {
+                return new EstimatePick(edit with { OnlyId = id }, null);
+            }
+        }
+
+        return new EstimatePick(null, $"{edit.Key} has no estimate to edit{NoEstimateReason}");
     }
 
     // The metadata carries no values: the fields the opener does not know are read from the issue, with only those
@@ -192,4 +237,6 @@ public sealed class FormMetadataHandler
             ? $"{key} not found or no access"
             : $"Could not load the fields of {key}: {error.Message}";
     }
+
+    private sealed record EstimatePick(EditFormTarget? Target, string? Failure);
 }
