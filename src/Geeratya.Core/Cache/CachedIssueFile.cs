@@ -24,7 +24,9 @@ public sealed record CachedIssueFile(
     CachedStub? Parent,
     List<CachedStub> Subtasks,
     List<CachedLink> Links,
-    List<CachedAttachment> Attachments);
+    List<CachedAttachment> Attachments,
+    List<CachedSprint> Sprints,
+    double? Estimate);
 
 /// <summary>The JSON shape of a reference to another issue.</summary>
 public sealed record CachedStub(string Key, string Summary, CachedStatus Status, CachedIssueType IssueType);

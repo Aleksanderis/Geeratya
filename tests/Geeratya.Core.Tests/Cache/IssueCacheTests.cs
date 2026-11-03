@@ -11,6 +11,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Tests.Cache;
 
@@ -42,6 +43,34 @@ public sealed class IssueCacheTests : IDisposable
         Assert.Equal(
             AdfTestSupport.PlainLines(AdfRenderer.Render(detail.Description!, 40)),
             AdfTestSupport.PlainLines(AdfRenderer.Render(read.Detail.Description!, 40)));
+    }
+
+    [Fact]
+    public void GivenIssueWithSprintsEstimateAndEpic_WhenReadByANewCache_ThenTheyRoundTrip()
+    {
+        var detail = Detail("A-7", null);
+        detail = new IssueDetail(
+            detail.Id, detail.Key, detail.Summary, detail.Status, detail.IssueType, detail.Priority, detail.Assignee,
+            detail.Reporter, detail.Labels, detail.Created, detail.Updated, detail.ProjectKey, null, detail.Parent,
+            detail.Subtasks, detail.Links, detail.Attachments)
+        {
+            Sprints = [new IssueSprint(3, "Sprint 3", SprintState.Future)],
+            Estimate = 5,
+        };
+        var folder = Path.Combine(_root, "p");
+        using (var writer = new SiteCache(folder))
+        {
+            writer.PutIssue(new CachedIssue(detail, _saved));
+            writer.Flush();
+        }
+
+        using var reader = new SiteCache(folder);
+        var read = reader.GetIssue("A-7")!.Detail;
+
+        Assert.Equal(detail.Sprints, read.Sprints);
+        Assert.Equal("Sprint 3", read.CurrentSprint!.Name);
+        Assert.Equal(5, read.Estimate);
+        Assert.Equal("A-100", read.Epic!.Key);
     }
 
     [Fact]
@@ -267,7 +296,7 @@ public sealed class IssueCacheTests : IDisposable
     public void GivenFileOfAnotherSchema_WhenReading_ThenItIsAMissAndTheFileIsDeleted()
     {
         var folder = Path.Combine(_root, "p");
-        WriteAndRewrite(folder, "A-1", text => text.Replace("\"schema\":1", "\"schema\":99"));
+        WriteAndRewrite(folder, "A-1", text => text.Replace("\"schema\":2", "\"schema\":99"));
         using var reader = new SiteCache(folder);
 
         Assert.Null(reader.GetIssue("A-1"));
