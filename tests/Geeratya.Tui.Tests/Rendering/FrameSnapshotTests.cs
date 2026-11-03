@@ -97,11 +97,12 @@ public class FrameSnapshotTests
     public void GivenAnInvalidCommandLevel_WhenPrintingTheFrame_ThenUsageIsShown()
     {
         using var writer = new StringWriter();
+        using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame", "--command-level", "expert"]);
+        var exitCode = new ApplicationRunner(writer, false, error: error).Run(["--print-frame", "--command-level", "expert"]);
 
         Assert.Equal(2, exitCode);
-        Assert.Contains("--command-level", writer.ToString());
+        Assert.Contains("--command-level", error.ToString());
     }
 
     [Fact]
