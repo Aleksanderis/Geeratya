@@ -59,6 +59,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>p` | Open the parent issue | `issue.open-parent` | everyday |
 | `<space>a` | Open the actions menu of the selected issue | `menu.context` | everyday |
 | `<space>A` | Open the actions menu of the tab and the view | `menu.view` | everyday |
+| `<space>,` | Open or close the settings screen | `settings.open` | everyday |
+| `Alt-r` | Reset the highlighted setting to its default (in the settings screen) | `settings.reset` | everyday |
 | `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
 | `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
 | `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
@@ -123,7 +125,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | Keys | Action | Id | Level |
 |---|---|---|---|
 | `Enter` | Run the typed command | `palette.submit` | everyday |
-| `Backspace` | Delete the last character | `palette.backspace` | everyday |
+| `Backspace` | Delete the character before the caret | `palette.backspace` | everyday |
 | `Up` | Previous row in the picker | `picker.previous` | everyday |
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
@@ -133,6 +135,25 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-l` | Run the typed command | `palette.submit` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
+| `Alt-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Alt-b` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-f` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Ctrl-w` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Ctrl-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-d` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
+| `Left` | Move the cursor left | `editor.left` | everyday |
+| `Right` | Move the cursor right | `editor.right` | everyday |
+| `Home` | Move the cursor to the start of the row | `editor.row-start` | everyday |
+| `End` | Move the cursor to the end of the row | `editor.row-end` | everyday |
+| `Ctrl-a` | Move the cursor to the start of the row | `editor.row-start` | everyday |
+| `Ctrl-e` | Move the cursor to the end of the row | `editor.row-end` | everyday |
+| `Delete` | Delete the character under the cursor | `editor.delete` | everyday |
+| `Ctrl-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Ctrl-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
 
 ## Confirm mode
 
@@ -148,7 +169,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | Keys | Action | Id | Level |
 |---|---|---|---|
 | `Enter` | Accept the field and go to the next | `form.next` | everyday |
-| `Backspace` | Delete the last character | `form.backspace` | everyday |
+| `Backspace` | Delete the character before the caret | `form.backspace` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Cancel or close | `mode.cancel` | everyday |
 | `Up` | Previous row in the picker | `picker.previous` | everyday |
@@ -178,6 +199,16 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
 | `Ctrl-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
 | `Ctrl-o` | Open the issue page in the browser from the form | `form.open-browser` | everyday |
+| `Alt-Left` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-Right` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Alt-b` | Move the cursor to the start of the word | `editor.word-left` | everyday |
+| `Alt-f` | Move the cursor to the end of the word | `editor.word-right` | everyday |
+| `Ctrl-w` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Ctrl-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-Backspace` | Delete the word before the cursor | `editor.delete-word-before` | everyday |
+| `Alt-d` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
+| `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
 
 ## Palette commands
 
@@ -198,6 +229,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:estimate` | Change the estimate (story points) of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
+| `:settings` | Open the settings screen: change the theme and the options |
 | `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
 | `:set [hints.statusBar|hints.whichKey|commandlevel|theme|jump.target|startup.restore] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |

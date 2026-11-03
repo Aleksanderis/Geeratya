@@ -1,6 +1,6 @@
 # Settings
 
-Geeratya keeps a few switches in `settings.json` in the configuration directory (next to `profiles.json`; see [customising-keys.md](customising-keys.md) for the paths). There is no settings screen: `:set` (and the command palette) is the interface, and the file can be edited by hand too.
+Geeratya keeps a few switches in `settings.json` in the configuration directory (next to `profiles.json`; see [customising-keys.md](customising-keys.md) for the paths). The settings screen (`:settings` or `<space>,`) changes them visually; `:set` (and the command palette) does the same from the command line, and the file can be edited by hand too.
 
 ## The settings
 
@@ -14,6 +14,16 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
 | `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
 | `startup.restore` | `startup.restore` | on or off | `on` | Reopen the tabs of the last run on start; off starts on the board picker every time. |
+
+## Settings screen
+
+`:settings`, `<space>,` or the item of the tab and view menu (`<space>A`) opens a full-body screen in the shared frame (tab row shows one `Settings` chip). Categories are on the left, the rows of the selected category on the right, a help row (what the setting does, its default and values) and a hint row below. Under 60 columns the categories collapse into one list with a heading per category.
+
+- The rows come from the registry: every setting, with its name, current value, default and choices. A setting added to `SettingsRegistry` shows up without a change to the screen; its `Category` picks the group (Appearance, Hints and keys, Startup, else Other). After the settings come the Profiles row (Enter opens the profile manager) and the read-only About rows: the path of `settings.json`, the path of `keymap.json` (edit it, then `:keys reload`) and the version.
+- The screen runs in Normal mode with the Normal keys: `j`/`k` (and `gg`, `G`, `Ctrl-d`, `Ctrl-u`) move, `h`/`l` jump to the previous or next category, `Enter` flips a toggle or opens the choice list of a choice, `Alt-r` resets the row to its default, `Esc` closes the list, then the screen. `?`, `:` and `q` work as everywhere; any other key does nothing.
+- A change applies at once and is saved through the same writer as `:set` (comments in the file survive); a value the setting refuses shows what it takes and nothing changes. A choice that is a free text without a list is edited with `:set name value`.
+- The theme list previews: moving over a theme draws it without saving; `Enter` applies and saves it, `Esc` (or leaving the screen another way) draws the saved theme again.
+- Mouse: click a category or a row (a row acts like `Enter`), right-click a row to reset it, click a word of an open list to take it, wheel over the rows to move ([ux-mouse.md](ux-mouse.md)).
 
 ## Command level
 

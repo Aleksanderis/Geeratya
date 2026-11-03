@@ -35,6 +35,9 @@ public sealed class SettingsStore
         _path = Path.Combine(configurationDirectory, FileName);
     }
 
+    /// <summary>The full path of the file (it may not exist yet).</summary>
+    public string FilePath => _path;
+
     /// <summary>The saved settings; see <see cref="Read"/> for the warnings.</summary>
     public AppSettings Load()
     {

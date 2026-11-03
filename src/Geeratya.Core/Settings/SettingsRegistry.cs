@@ -11,6 +11,15 @@ public static class SettingsRegistry
 
     public const string ThemeName = "theme";
 
+    public const string AppearanceCategory = "Appearance";
+
+    public const string HintsCategory = "Hints and keys";
+
+    public const string StartupCategory = "Startup";
+
+    /// <summary>The category of a setting that names none; listed after the others.</summary>
+    public const string OtherCategory = "Other";
+
     private const string Full = "full";
 
     private const string Minimal = "minimal";
@@ -45,7 +54,9 @@ public static class SettingsRegistry
             ApplyHints,
             HintsExpected,
             "statusHints",
-            ["hints"]),
+            ["hints"],
+            [Full, Minimal, Off],
+            HintsCategory),
         new SettingDefinition(
             "hints.whichKey",
             "hints.whichKey",
@@ -56,7 +67,8 @@ public static class SettingsRegistry
             (settings, text) => ParseToggle(text) is { } on ? settings with { WhichKey = on } : null,
             ToggleExpected,
             "whichKey",
-            ["whichkey"]),
+            ["whichkey"],
+            Category: HintsCategory),
         new SettingDefinition(
             "commandlevel",
             "commandLevel",
@@ -65,7 +77,9 @@ public static class SettingsRegistry
             "Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too.",
             settings => settings.CommandLevel == CommandLevel.Advanced ? Advanced : Everyday,
             ApplyLevel,
-            LevelExpected),
+            LevelExpected,
+            Choices: [Everyday, Advanced],
+            Category: HintsCategory),
         new SettingDefinition(
             ThemeName,
             "theme",
@@ -74,7 +88,8 @@ public static class SettingsRegistry
             "The colour theme: a built-in one or a file in the themes folder.",
             settings => settings.Theme,
             ApplyTheme,
-            ThemeExpected),
+            ThemeExpected,
+            Category: AppearanceCategory),
         new SettingDefinition(
             "jump.target",
             "jump.target",
@@ -83,7 +98,9 @@ public static class SettingsRegistry
             "Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab.",
             settings => settings.JumpTarget == JumpTarget.Tab ? TabWord : CurrentWord,
             ApplyJumpTarget,
-            JumpExpected),
+            JumpExpected,
+            Choices: [CurrentWord, TabWord],
+            Category: StartupCategory),
         new SettingDefinition(
             "startup.restore",
             "startup.restore",
@@ -92,7 +109,8 @@ public static class SettingsRegistry
             "Reopen the tabs of the last run on start; off starts on the board picker every time.",
             settings => Word(settings.RestoreTabs),
             (settings, text) => ParseToggle(text) is { } on ? settings with { RestoreTabs = on } : null,
-            ToggleExpected),
+            ToggleExpected,
+            Category: StartupCategory),
     ];
 
     public static SettingDefinition? Find(string name)

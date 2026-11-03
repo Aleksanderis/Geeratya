@@ -1,7 +1,6 @@
                                                                                 
                                                                                 
                                                                                 
-                                                                                
                     +- <space> ------------------------------------------------+
                     | c         Close the tab                                  |
                     | t         Open the source picker for a new tab           |
@@ -16,6 +15,7 @@
                     | r         Refresh the view (also retries after an error) |
                     | l         Switch between list and columns                |
                     | *         Switch the command level for the session       |
+                    | ,         Open or close the settings screen              |
                     | m         +comment (2)                                   |
                     | i         +issue (6)                                     |
                     | s         +sprint (7)                                    |

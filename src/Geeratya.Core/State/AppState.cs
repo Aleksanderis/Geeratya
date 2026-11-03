@@ -5,6 +5,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
@@ -75,6 +76,12 @@ public sealed record AppState(
     /// </summary>
     public IReadOnlyDictionary<string, TokenSourceKind> TokenSources { get; init; } = new Dictionary<string, TokenSourceKind>();
 
+    /// <summary>The open settings screen (Normal mode, a full-body screen), otherwise null.</summary>
+    public SettingsScreenState? SettingsScreen { get; init; }
+
+    /// <summary>The paths the settings screen names; the host sets them at start.</summary>
+    public SettingsInfo SettingsInfo { get; init; } = new();
+
     /// <summary>The open right-click menu (Insert mode), otherwise null.</summary>
     public ContextMenuState? ContextMenu { get; init; }
 
@@ -111,6 +118,12 @@ public sealed record AppState(
 
     /// <summary>The text of the help filter (<c>/</c>); empty when none.</summary>
     public string HelpFilter { get; init; } = string.Empty;
+
+    /// <summary>Units between the caret and the end of <see cref="PaletteText"/> (<see cref="PromptText"/>).</summary>
+    public int PaletteBack { get; init; }
+
+    /// <summary>Units between the caret and the end of <see cref="HelpFilter"/>.</summary>
+    public int HelpFilterBack { get; init; }
 
     /// <summary>
     /// The help filter line is being typed: printable keys are text and <c>Enter</c> keeps the filter.

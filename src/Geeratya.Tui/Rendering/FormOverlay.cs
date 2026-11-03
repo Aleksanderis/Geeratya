@@ -1,4 +1,3 @@
-using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
@@ -23,7 +22,6 @@ public static class FormOverlay
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "not editable here";
     private const string EmptyText = "-";
-    private const string Caret = "_";
     private const int MaxBoxWidth = 100;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
@@ -403,52 +401,59 @@ public static class FormOverlay
 
     private static StyledLine TextLine(FormField field, bool focused, int valueWidth)
     {
-        var text = field.Value.Text.Length == 0 && !focused ? EmptyText : field.Value.Text;
+        if (focused)
+        {
+            return Indented(Caretted(new PromptText(field.Value.Text, field.Back), valueWidth), TextRole.Editable);
+        }
 
-        return Indented(focused ? Tail($"{text}{Caret}", valueWidth) : text, TextRole.Editable);
+        return Indented(field.Value.Text.Length == 0 ? EmptyText : field.Value.Text, TextRole.Editable);
     }
 
-    /// <summary>The end of the text that fits, so the caret stays in view; a cut text starts with an ellipsis.</summary>
-    private static string Tail(string text, int width)
+    /// <summary>The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).</summary>
+    private static string Caretted(PromptText prompt, int width)
     {
-        if (TextWidth.Of(text) <= width || width < 2)
-        {
-            return text;
-        }
+        var window = PromptWindow.Of(prompt, width);
 
-        var starts = StringInfo.ParseCombiningCharacters(text);
-        var start = starts.Length;
-
-        while (start > 0 && TextWidth.Of(text[starts[start - 1]..]) + 1 <= width)
-        {
-            start--;
-        }
-
-        return $"…{text[(start < starts.Length ? starts[start] : text.Length)..]}";
+        return $"{window.Before}{window.Caret}{window.After}";
     }
 
     private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
     {
         var rows = field.Value.Text.Split('\n');
-        string[] shown = focused ? [.. rows.TakeLast(ParagraphRows)] : [rows[0]];
         var lines = new List<StyledLine>();
 
-        for (var index = 0; index < shown.Length; index++)
+        if (!focused)
         {
-            var last = index == shown.Length - 1;
-            var text = shown[index].Length == 0 && !focused ? EmptyText : shown[index];
+            var head = rows[0].Length == 0 ? EmptyText : rows[0];
 
-            var shownText = focused && last ? Tail($"{text}{Caret}", valueWidth) : text;
-
-            lines.Add(Indented(shownText, TextRole.Editable));
+            return [Indented(rows.Length > 1 ? $"{head}…" : head, TextRole.Editable)];
         }
 
-        if (!focused && rows.Length > 1)
+        var prompt = new PromptText(field.Value.Text, field.Back);
+        var caretRow = prompt.Text[..prompt.Caret].Count(character => character == '\n');
+        var first = Math.Clamp(caretRow - ParagraphRows + 1, 0, Math.Max(0, rows.Length - ParagraphRows));
+        var shown = Math.Min(ParagraphRows, rows.Length - first);
+
+        for (var index = first; index < first + shown; index++)
         {
-            lines[^1] = Indented($"{shown[0]}…", TextRole.Editable);
+            lines.Add(Indented(ParagraphRow(prompt, rows[index], index, caretRow, valueWidth), TextRole.Editable));
         }
 
         return lines;
+    }
+
+    // The row with the caret gets the caret mark; the other rows are cut to the width.
+    private static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int valueWidth)
+    {
+        if (index != caretRow)
+        {
+            return PromptWindow.Of(new PromptText(row, 0), valueWidth).Before;
+        }
+
+        var lineStart = prompt.Text[..prompt.Caret].LastIndexOf('\n') + 1;
+        var column = prompt.Caret - lineStart;
+
+        return Caretted(new PromptText(row, row.Length - column), valueWidth);
     }
 
     private static StyledLine ChosenLine(FormField field)
@@ -465,7 +470,7 @@ public static class FormOverlay
 
         if (focused)
         {
-            tokens.Add(Tail($"{field.Entry}{Caret}", valueWidth));
+            tokens.Add(Caretted(new PromptText(field.Entry, field.Back), valueWidth));
         }
 
         if (tokens.Count == 0)

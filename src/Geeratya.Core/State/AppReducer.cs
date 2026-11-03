@@ -17,7 +17,6 @@ using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
-using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 
@@ -43,6 +42,7 @@ public sealed class AppReducer
 
     private const string EscapeKey = "Esc";
     private const int HelpHalfPage = 8;
+    private const string SettingsResetHint = "Open the settings screen first (:settings).";
     private const string ConfirmTooSmallText =
         "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
@@ -56,9 +56,10 @@ public sealed class AppReducer
 
     public ReduceResult Reduce(AppState state, Command command)
     {
+        var reduced = SettingsScreenReducer.RestorePreview(state, ReduceCommand(state, command));
         var result = StartupReducer.Persisted(
             state,
-            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, ReduceCommand(state, command)))));
+            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, reduced))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
         return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
@@ -227,6 +228,7 @@ public sealed class AppReducer
             HelpScroll = 0,
             HelpPage = 0,
             HelpFilter = string.Empty,
+            HelpFilterBack = 0,
             HelpFiltering = false,
             MessagesOpen = false,
             MessagesShowSettings = false,
@@ -236,6 +238,7 @@ public sealed class AppReducer
             Jump = null,
             Editor = null,
             ProfileList = toManager ? state.ProfileList : null,
+            SettingsScreen = null,
             ContextMenu = null,
         };
     }
@@ -254,6 +257,9 @@ public sealed class AppReducer
                 => SourceReducer.Accept(cleared with { Picker = picker with { Selected = clicked.Index } }, clicked.At),
             MouseTarget.JumpRow when cleared.Jump is { } jump
                 => JumpReducer.Accept(cleared with { Jump = jump with { Selected = clicked.Index } }),
+            MouseTarget.SettingsCategory => SettingsScreenReducer.GoToCategory(cleared, clicked.Index),
+            MouseTarget.SettingsRow => SettingsScreenReducer.Clicked(cleared, clicked.Index, clicked.Action),
+            MouseTarget.SettingsChoice => SettingsScreenReducer.ChoiceClicked(cleared, clicked.Index),
             MouseTarget.ProfileRow when clicked.Action == ActionIds.ProfileRemove
                 => ProfileReducer.RemoveHighlighted(cleared, clicked.Index),
             MouseTarget.ProfileRow => ProfileReducer.SwitchHighlighted(cleared, clicked.Index),
@@ -390,7 +396,7 @@ public sealed class AppReducer
             return Result(cleared with { Message = ClosedSprintGate.Refusal });
         }
 
-        if (resolution.Action == ActionIds.IssueUnlink)
+        if (resolution.Action == ActionIds.IssueUnlink && state.SettingsScreen is null)
         {
             // The only action that needs the time of the key: the confirm carries the write that will start.
             return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
@@ -415,6 +421,11 @@ public sealed class AppReducer
     /// </summary>
     private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
     {
+        if (SettingsScreenReducer.Handle(state, action) is { } onScreen)
+        {
+            return onScreen;
+        }
+
         if (EmptySprintFocus.Refuses(state, action))
         {
             return Result(state with { Message = EmptySprintFocus.Refusal });
@@ -481,7 +492,7 @@ public sealed class AppReducer
             return TypeInInsert(state, text);
         }
 
-        return state.Mode == InputMode.Command ? WithPaletteText(state, $"{state.PaletteText}{text}") : state;
+        return state.Mode == InputMode.Command ? PromptEditing.Insert(state, text) : state;
     }
 
     private static AppState TypeText(AppState state, string key)
@@ -498,13 +509,7 @@ public sealed class AppReducer
             return state;
         }
 
-        return WithPaletteText(state, $"{state.PaletteText}{text}");
-    }
-
-    // The filter changed, so the highlight goes back to the first row.
-    private static AppState WithPaletteText(AppState state, string text)
-    {
-        return state with { PaletteText = text, PaletteSelected = 0 };
+        return PromptEditing.Insert(state, text);
     }
 
     private static AppState TypeInInsert(AppState state, string text)
@@ -535,6 +540,11 @@ public sealed class AppReducer
 
     private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
+        if (SettingsScreenReducer.Handle(state, action) is { } onScreen)
+        {
+            return onScreen;
+        }
+
         if (ClosedSprintGate.Refuses(state, action))
         {
             return Result(state with { Message = ClosedSprintGate.Refusal });
@@ -543,6 +553,11 @@ public sealed class AppReducer
         if (EmptySprintFocus.Refuses(state, action))
         {
             return Result(state with { Message = EmptySprintFocus.Refusal });
+        }
+
+        if (state.Editor is null && PromptEditing.OperationOf(action) is { } operation)
+        {
+            return Result(PromptEditing.Apply(state, operation));
         }
 
         return action switch
@@ -560,6 +575,8 @@ public sealed class AppReducer
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
+            ActionIds.SettingsOpen => InNormal(state, () => SettingsScreenReducer.Toggle(state)),
+            ActionIds.SettingsReset => Result(state with { Message = SettingsResetHint }),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
@@ -607,6 +624,9 @@ public sealed class AppReducer
             ActionIds.EditorPageDown => Result(CommentEditing.Move(state, EditorMove.PageDown)),
             ActionIds.EditorWordLeft => Result(CommentEditing.Move(state, EditorMove.WordLeft)),
             ActionIds.EditorWordRight => Result(CommentEditing.Move(state, EditorMove.WordRight)),
+            ActionIds.EditorDeleteWordBefore => Result(CommentEditing.DeleteWordBefore(state)),
+            ActionIds.EditorDeleteWordAfter => Result(CommentEditing.DeleteWordAfter(state)),
+            ActionIds.EditorDeleteToStart => Result(CommentEditing.DeleteToStart(state)),
             ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
@@ -898,7 +918,7 @@ public sealed class AppReducer
             return ToNormal(state);
         }
 
-        return WithPaletteText(state, TextElements.RemoveLast(state.PaletteText));
+        return PromptEditing.Backspace(state);
     }
 
     private AppState MovePalette(AppState state, int delta)
@@ -963,7 +983,7 @@ public sealed class AppReducer
 
         if (row.Kind == PaletteRowKind.Command)
         {
-            return RunCommandLine(state with { PaletteText = row.Id }, at);
+            return RunCommandLine(state with { PaletteText = row.Id, PaletteBack = 0 }, at);
         }
 
         return ReduceRequested(normal, new ActionRequested(row.Id, 1, at));
@@ -972,7 +992,7 @@ public sealed class AppReducer
     /// <summary><c>view.saved-save</c>: the command line with <c>view save </c> typed, ready for the name.</summary>
     private static ReduceResult OpenSaveCommand(AppState state)
     {
-        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.View} save " };
+        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.View} save ", PaletteBack = 0 };
 
         return Result(command);
     }
@@ -1016,6 +1036,7 @@ public sealed class AppReducer
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
+            PaletteCommands.Settings => SettingsScreenReducer.Toggle(normal),
             _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
             _ when IsThemeCommand(text) => SettingsReducer.Theme(normal, text[PaletteCommands.Theme.Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),

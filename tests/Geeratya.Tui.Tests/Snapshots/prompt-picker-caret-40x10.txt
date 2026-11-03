@@ -1,0 +1,10 @@
+                                        
+                                        
+  ╭─ Open a view ────────────────────╮  
+  │ > spr|int                        │  
+  │ Query                            │  
+wo│ > JQL     text ~ "sprint"        │as
+  │                                  │  
+  │                                  │  
+  ╰──────────────────────────────────╯  
+ INSERT  open a view                    

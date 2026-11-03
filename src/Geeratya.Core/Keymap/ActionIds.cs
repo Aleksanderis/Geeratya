@@ -81,6 +81,8 @@ public static class ActionIds
     public const string StatusHistory = "status.history";
     public const string StatusDismiss = "status.dismiss";
     public const string ViewCycleCommandLevel = "view.cycle-command-level";
+    public const string SettingsOpen = "settings.open";
+    public const string SettingsReset = "settings.reset";
     public const string ProfileRemove = "profile.remove";
     public const string ProfileAdd = "profile.add";
     public const string ProfileEdit = "profile.edit";
@@ -108,6 +110,9 @@ public static class ActionIds
     public const string EditorPageDown = "editor.page-down";
     public const string EditorWordLeft = "editor.word-left";
     public const string EditorWordRight = "editor.word-right";
+    public const string EditorDeleteWordBefore = "editor.delete-word-before";
+    public const string EditorDeleteWordAfter = "editor.delete-word-after";
+    public const string EditorDeleteToStart = "editor.delete-to-start";
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";
