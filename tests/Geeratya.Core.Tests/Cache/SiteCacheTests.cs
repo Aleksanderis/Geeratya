@@ -113,6 +113,8 @@ public sealed class SiteCacheTests : IDisposable
     [InlineData("null")]
     [InlineData("""{"schema":2}""")]
     [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":null,"issueType":null,"labels":null,"projectKey":"A"}]}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":null}]}""")]
+    [InlineData("""{"schema":2,"source":"Jql","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[{"id":"1","key":"A-1","summary":"s","status":{"id":"1","name":"n","categoryKey":"new"},"issueType":{"id":"1","name":"t","hierarchyLevel":0,"isSubtask":false},"labels":[],"projectKey":"A","sprints":[null]}]}""")]
     [InlineData("""{"schema":2,"source":"5","sourceValue":"q","savedAt":"2026-01-01T00:00:00Z","rows":[]}""")]
     [InlineData("""{"schema":2,"source":"Jql","sourceValue":null,"savedAt":"2026-01-01T00:00:00Z","rows":null}""")]
     public void GivenCorruptFile_WhenReading_ThenItIsIgnoredAndDeleted(string content)

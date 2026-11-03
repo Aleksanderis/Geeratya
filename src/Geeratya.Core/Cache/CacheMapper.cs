@@ -143,7 +143,7 @@ public static class CacheMapper
     private static bool IsComplete(CachedIssueRow row)
     {
         return row is { Status: not null, IssueType: not null, Labels: not null, Sprints: not null }
-            && row.Sprints.All(sprint => sprint?.Name is not null)
+            && row.Sprints.All(sprint => sprint is { Name: not null })
             && row.Id is not null
             && row.Key is not null
             && row.Summary is not null

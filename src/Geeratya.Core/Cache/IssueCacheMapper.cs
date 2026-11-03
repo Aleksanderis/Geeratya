@@ -167,7 +167,7 @@ public static class IssueCacheMapper
     {
         return file is { Status: not null, IssueType: not null, Labels: not null, Subtasks: not null }
             && file is { Links: not null, Attachments: not null, Sprints: not null }
-            && file.Sprints.All(sprint => sprint?.Name is not null)
+            && file.Sprints.All(sprint => sprint is { Name: not null })
             && file.Id is not null
             && file.Key is not null
             && file.Summary is not null
