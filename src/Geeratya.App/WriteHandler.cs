@@ -509,7 +509,14 @@ public sealed class WriteHandler
         var message = SprintMoveFailureText(move, outcome);
 
         return WriteResults.Failure<WriteAccepted>(
-            new WriteError(outcome.Error?.Kind ?? WriteErrorKind.Validation, null, message, [], [message]));
+            new WriteError(
+                outcome.Error?.Kind ?? WriteErrorKind.Validation,
+                null,
+                message,
+                [],
+                [message],
+                null,
+                [.. outcome.Rejected.Select(item => item.Key).Concat(outcome.NotAttempted)]));
     }
 
     private static string SprintMoveFailureText(SprintMoveRequest move, SprintMoveOutcome outcome)

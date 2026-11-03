@@ -426,7 +426,34 @@ public static class WriteReducer
         var linked = rejected ? state with { Session = state.Session with { Link = new Rejected() } } : state;
         var marked = failed.Error.Kind == WriteErrorKind.NotFound ? MarkStale(linked, operation.Keys) : linked;
 
-        return RolledBack(marked, operation, text, effects, ReloadsAfter(failed.Error));
+        var partial = KeepFailedMarks(marked, operation, failed.Error);
+
+        return RolledBack(partial, operation, text, effects, ReloadsAfter(failed.Error) || !ReferenceEquals(partial, marked));
+    }
+
+    /// <summary>
+    /// A sprint move that took some issues: the moved ones leave the marks and the Visual range, the ones that were
+    /// not moved stay marked so the move can be tried again.
+    /// </summary>
+    private static AppState KeepFailedMarks(AppState state, Operation operation, WriteError error)
+    {
+        if (operation.Kind != OperationKind.SprintMove || error.FailedKeys is not { } failed)
+        {
+            return state;
+        }
+
+        var moved = operation.Keys.Where(key => !IsAmong(failed, key)).ToArray();
+
+        if (moved.Length == 0)
+        {
+            return state;
+        }
+
+        var tabs = state.Session.Tabs
+            .Select(tab => Holds(tab, moved) ? Unselected(tab, moved) : tab)
+            .ToArray();
+
+        return state with { Session = state.Session with { Tabs = tabs } };
     }
 
     /// <summary>Undoes the optimistic rows where they still hold the patched value and ends the operation.</summary>

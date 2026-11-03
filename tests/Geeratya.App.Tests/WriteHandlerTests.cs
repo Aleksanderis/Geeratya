@@ -385,6 +385,7 @@ public sealed class WriteHandlerTests
 
         var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
         Assert.Equal("1 of 2 moved; A-3 not moved: Epic cannot be moved", failed.Error.Message);
+        Assert.Equal(["A-3"], failed.Error.FailedKeys);
     }
 
     [Fact]

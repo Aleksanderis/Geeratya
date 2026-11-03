@@ -1,6 +1,7 @@
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
@@ -231,6 +232,73 @@ public class SprintMoveTests
         var again = Chord(started.State, "Space s b");
 
         Assert.Contains("A-3 is busy", again.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAMoveThatTookSomeIssues_WhenItFails_ThenOnlyTheIssuesNotMovedStayMarkedAndTheTabReloads()
+    {
+        var started = Press(Chord(Marked(Loaded(), "A-1", "A-2", "A-3"), "Space s b").State, "y");
+        var id = started.State.Session.Operations.Single().Id;
+        var error = new WriteError(WriteErrorKind.Validation, null, "1 of 3 moved", [], ["x"], null, ["A-2", "A-3"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(id, _now, error));
+
+        Assert.Equal(["A-2", "A-3"], Tab(failed.State).Marks);
+        Assert.Null(Tab(failed.State).VisualAnchor);
+        Assert.IsType<Loading>(Tab(failed.State).Load);
+    }
+
+    [Fact]
+    public void GivenAMoveThatTookSomeIssues_WhenTheCallEndedWithARateLimit_ThenTheTabStillReloads()
+    {
+        var started = Press(Chord(Marked(Loaded(), "A-1", "A-2"), "Space s b").State, "y");
+        var id = started.State.Session.Operations.Single().Id;
+        var error = new WriteError(WriteErrorKind.RateLimited, 429, "slow down", [], ["x"], null, ["A-2"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(id, _now, error));
+
+        Assert.Equal(["A-2"], Tab(failed.State).Marks);
+        Assert.IsType<Loading>(Tab(failed.State).Load);
+    }
+
+    [Fact]
+    public void GivenAMoveThatTookNothing_WhenItFails_ThenAllMarksStay()
+    {
+        var started = Press(Chord(Marked(Loaded(), "A-2", "A-3"), "Space s b").State, "y");
+        var id = started.State.Session.Operations.Single().Id;
+        var error = new WriteError(WriteErrorKind.Validation, null, "closed", [], ["closed"], null, ["A-2", "A-3"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(id, _now, error));
+
+        Assert.Equal(["A-2", "A-3"], Tab(failed.State).Marks);
+    }
+
+    [Fact]
+    public void GivenTheOpenIssueAndMarksElsewhere_WhenMoving_ThenOnlyTheOpenIssueMovesAndTheMarksStay()
+    {
+        var detail = _reducer.Reduce(At(Marked(Loaded(), "A-1", "A-2"), "A-5"), new KeyPressed("Enter", _now));
+        var opened = Chord(detail.State, "Space s b");
+
+        Assert.NotEmpty(Tab(detail.State).Detail);
+        var request = Request(opened);
+        Assert.Equal(["A-5"], request.Keys);
+        Assert.Equal(["A-1", "A-2"], Tab(opened.State).Marks);
+    }
+
+    [Fact]
+    public void GivenTheSprintPickerInMoveMode_WhenClickingARow_ThenThatSprintIsChosenLikeEnter()
+    {
+        var opened = Chord(At(Loaded(), "A-5"), "Space s m");
+        var loaded = _reducer.Reduce(opened.State, new SprintListLoaded(6, [BacklogFixtures.Future, BacklogFixtures.Active])).State;
+        var rows = SourceChoices.For(loaded.Picker!, loaded.Session.Sources);
+        var index = rows.ToList().FindIndex(row => row.Name == BacklogFixtures.Active.Name);
+
+        var clicked = _reducer.Reduce(loaded, new OverlayRowClicked(MouseTarget.PickerRow, index, ActionIds.FormNext, _now));
+
+        var request = Request(clicked);
+        Assert.Equal(BacklogFixtures.ActiveId, request.Target!.Id);
+        Assert.Equal(["A-5"], request.Keys);
+        Assert.Equal(InputMode.Normal, clicked.State.Mode);
     }
 
     [Fact]
