@@ -462,14 +462,8 @@ public static class StatusBar
             return $"{step} ! {form.Error}";
         }
 
-        var (label, value) = form.Field switch
-        {
-            ProfileFormField.Name => ("Profile name", form.Name),
-            ProfileFormField.SiteUrl => ("Site URL", form.SiteUrl),
-            ProfileFormField.Email => ("Account email", form.Email),
-            _ => ("API token (hidden)", new string('*', form.Token.Length)),
-        };
-        var prefix = $"{step} {label}: ";
+        var value = ProfileFormOverlay.Shown(form);
+        var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
         var used = TextWidth.Of($" {Badge(InputMode.Insert)} {prefix}_");
 
         return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
