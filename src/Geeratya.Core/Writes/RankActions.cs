@@ -1,3 +1,4 @@
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -17,6 +18,8 @@ public static class RankActions
     private const string NothingText = "Nothing to rank here";
     private const string IncompleteText =
         "Not every issue is loaded yet: wait for the rest before ranking to the bottom";
+
+    private const int MaxBlock = 50;
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -39,6 +42,11 @@ public static class RankActions
             return Say(state, NothingText);
         }
 
+        if (RowSelection.HoldsASet(tab))
+        {
+            return StepBlock(state, tab, universe, move, Math.Max(1, count), at);
+        }
+
         var from = universe.Index;
         var to = TargetOf(universe, move, Math.Max(1, count));
 
@@ -55,6 +63,145 @@ public static class RankActions
         }
 
         return Start(state, tab, universe, from, to, at);
+    }
+
+    /// <summary>
+    /// A marked set or Visual range moves as one block, order kept: the issues of the set (in view order) are taken
+    /// out and put together next to a neighbour that is not part of the set. Up lands before the non-set row that
+    /// many places above the first member, down after the one that many places below the last member; a set that is
+    /// scattered is gathered by the first step. Top and bottom refuse a set, and so does a set that is not entirely
+    /// in the list or column.
+    /// </summary>
+    private static ReduceResult StepBlock(
+        AppState state,
+        TabState tab,
+        RankUniverse universe,
+        RankMove move,
+        int steps,
+        DateTimeOffset at)
+    {
+        if (move is RankMove.Top or RankMove.Bottom)
+        {
+            return Say(state, RowSelection.RefusalText(tab));
+        }
+
+        var targets = RowSelection.Targets(tab);
+        var members = new List<int>();
+
+        foreach (var key in targets)
+        {
+            var index = IndexOf(universe.Rows, key);
+
+            if (index >= 0)
+            {
+                members.Add(index);
+            }
+        }
+
+        if (members.Count != targets.Count)
+        {
+            var place = Place(tab);
+
+            return Say(state, $"Not every selected issue is in this {place} or loaded: rank one {place} at a time");
+        }
+
+        if (members.Count > MaxBlock)
+        {
+            return Say(state, $"At most {MaxBlock} issues can be ranked at once: clear some marks");
+        }
+
+        members.Sort();
+
+        var others = Enumerable
+            .Range(0, universe.Rows.Count)
+            .Where(index => !members.Contains(index) && !FollowsMember(universe, members, index))
+            .ToList();
+
+        if (others.Count == 0)
+        {
+            return Say(state, NothingText);
+        }
+
+        var before = move == RankMove.Up;
+        var reference = before
+            ? UpReference(universe, members, others, steps)
+            : DownReference(universe, members, others, steps);
+
+        if (IsUnchanged(members, reference, before))
+        {
+            var edge = before ? "top" : "bottom";
+
+            return Say(state, $"The selected issues are already at the {edge}");
+        }
+
+        var keys = members.Select(index => universe.Rows[index].Key).ToArray();
+        var original = tab.Rows.Select(row => row.Key).ToArray();
+        var request = new RankBlockRequest(
+            keys,
+            universe.Rows[reference].Key,
+            before,
+            tab.Board?.RankFieldId,
+            original);
+        var held = tab.Marks.Count > 0 ? tab : tab with { Marks = keys, VisualAnchor = null };
+        var kept = ViewReducer.Replace(state, held);
+
+        return WriteReducer.Reduce(kept, new WriteRequested(tab.Id, request, at));
+    }
+
+    /// <summary>
+    /// True for a card shown under a selected parent: it travels with the parent's group, so it is never the row the
+    /// block lands next to (a rank next to it would not show).
+    /// </summary>
+    private static bool FollowsMember(RankUniverse universe, List<int> members, int index)
+    {
+        if (!universe.IsNested(index))
+        {
+            return false;
+        }
+
+        return members.Contains(GroupStart(universe, index));
+    }
+
+    private static int UpReference(RankUniverse universe, List<int> members, List<int> others, int steps)
+    {
+        var above = others.Count(index => index < members[0]);
+        var reference = others[Math.Max(0, above - steps)];
+        var start = GroupStart(universe, reference);
+
+        while (members.Contains(start))
+        {
+            start++;
+        }
+
+        return start;
+    }
+
+    private static int DownReference(RankUniverse universe, List<int> members, List<int> others, int steps)
+    {
+        var passed = others.Count(index => index < members[^1]);
+        var reference = others[Math.Min(others.Count - 1, passed - 1 + steps)];
+        var end = GroupEnd(universe, reference);
+
+        while (members.Contains(end))
+        {
+            end--;
+        }
+
+        return end;
+    }
+
+    /// <summary>True when the block already sits together right next to the reference row.</summary>
+    private static bool IsUnchanged(List<int> members, int reference, bool before)
+    {
+        for (var index = 1; index < members.Count; index++)
+        {
+            if (members[index] != members[index - 1] + 1)
+            {
+                return false;
+            }
+        }
+
+        return before ? members[^1] + 1 == reference : members[0] - 1 == reference;
     }
 
     /// <summary>

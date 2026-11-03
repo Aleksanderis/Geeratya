@@ -177,7 +177,7 @@ public class SelectionTests
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var marked = Press(Press(state, "Alt-m").State, "Alt-m").State;
 
-        foreach (var keys in new[] { "Space i d", "Space i a", "Space i s", "Alt-j", "Space i e" })
+        foreach (var keys in new[] { "Space i d", "Space i a", "Space i s", "Space k t", "Space i e" })
         {
             var result = Chord(marked, keys);
 
@@ -199,12 +199,12 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenAVisualRangeOfSeveralRows_WhenPressingARankKey_ThenItRefusesWithoutAWrite()
+    public void GivenAVisualRangeOfSeveralRows_WhenPressingARankToKey_ThenItRefusesWithoutAWrite()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var ranged = Press(Press(state, "v").State, "j").State;
 
-        var result = Press(ranged, "Alt-j");
+        var result = Chord(ranged, "Space k b");
 
         Assert.Equal("2 issues selected; clear the selection first", result.State.Message);
         Assert.Empty(result.Effects);
@@ -212,12 +212,12 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenARefusalWithACount_WhenPressingARankKey_ThenTheSetIsStillRefused()
+    public void GivenAMarkWithACount_WhenPressingAWriteKey_ThenTheSetIsStillRefused()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2", "A-3");
         var marked = Press(state, "Alt-m").State;
 
-        var result = Press(Press(marked, "2").State, "Alt-j");
+        var result = Chord(Press(marked, "2").State, "Space i d");
 
         Assert.Equal("1 issue selected; clear the selection first", result.State.Message);
         Assert.Empty(result.Effects);
