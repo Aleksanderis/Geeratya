@@ -9,7 +9,7 @@ namespace Geeratya.Core.Cache;
 public static class CacheMapper
 {
     /// <summary>The file format version written into every cache file.</summary>
-    public const int Schema = 2;
+    public const int Schema = 3;
 
     public static CachedViewFile ToFile(CacheKey key, CachedView view)
     {
@@ -109,7 +109,8 @@ public static class CacheMapper
             board.FilterId,
             board.SubQuery,
             board.RankFieldId,
-            board.ConstraintType);
+            board.ConstraintType,
+            board.EstimationFieldName);
     }
 
     private static BoardConfiguration FromBoard(CachedBoard board)
@@ -124,7 +125,11 @@ public static class CacheMapper
             board.FilterId,
             board.SubQuery,
             board.RankFieldId,
-            board.ConstraintType);
+            board.ConstraintType)
+        {
+            // Only the label is kept: EstimationRead stays false so a cached board hides nothing (#443).
+            EstimationFieldName = board.EstimationFieldName,
+        };
     }
 
     // JSON can hold nulls where the DTOs promise values, so these checks are not redundant.

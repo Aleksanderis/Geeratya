@@ -9,7 +9,8 @@ public sealed record CachedBoard(
     string FilterId,
     string? SubQuery,
     string? RankFieldId,
-    string? ConstraintType);
+    string? ConstraintType,
+    string? EstimationFieldName = null);
 
 /// <summary>The JSON shape of a board column.</summary>
 public sealed record CachedColumn(string Name, List<string> StatusIds);
