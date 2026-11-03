@@ -215,6 +215,7 @@ public sealed class IssueCreateClientTests
         Assert.Equal(CreateFieldKind.Date, fields["duedate"].Kind);
         Assert.Equal(CreateFieldKind.MultiChoice, fields["components"].Kind);
         Assert.Equal(CreateLookup.Components, fields["components"].Lookup);
+        Assert.Equal(CreateLookup.Versions, fields["fixVersions"].Lookup);
         Assert.Equal(CreateLookup.None, fields["labels"].Lookup);
         Assert.Equal(CreateFieldKind.Fixed, fields["project"].Kind);
         Assert.Equal(CreateFieldKind.Parent, fields["parent"].Kind);
