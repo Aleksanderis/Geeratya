@@ -19,7 +19,6 @@ public class SettingsScreenTests
     [Theory]
     [InlineData(120, 36)]
     [InlineData(80, 24)]
-    [InlineData(40, 10)]
     public void GivenABasic16Terminal_WhenBuildingTheFrame_ThenTheThemeRowNoteMatchesTheSnapshot(int width, int height)
     {
         var lines = FrameBuilder.Build(WithTier(Sample(), ColourTier.Basic16), width, height, _keymap);

@@ -295,7 +295,7 @@ public static class SettingsScreen
         {
             var previewing = $"Previewing {preview}: Enter keeps it, Esc restores {state.Settings.Theme}.";
 
-            return WithTierNote(state, row, previewing);
+            return $"{TierNote(state, row)}{previewing}";
         }
 
         if (row.Setting is not { } setting)
@@ -304,25 +304,30 @@ public static class SettingsScreen
         }
 
         var words = SettingsRows.ChoicesOf(state, setting);
-        var values = words.Count is > 0 and <= 6 ? $" Values: {string.Join(", ", words)}." : string.Empty;
+        var note = TierNote(state, row);
 
-        return WithTierNote(state, row, $"{setting.Help} Default: {setting.Default}.{values}");
+        // With the note the help row has no room for the values; the open list shows them anyway.
+        var values = words.Count is > 0 and <= 6 && note.Length == 0
+            ? $" Values: {string.Join(", ", words)}."
+            : string.Empty;
+
+        return $"{note}{setting.Help} Default: {setting.Default}.{values}";
     }
 
     // The theme row leads with why a theme may look different here (first, so a narrow help row keeps it); other
-    // rows and full colour need no note.
-    private static string WithTierNote(AppState state, SettingsRow row, string text)
+    // rows and full colour have no note.
+    private static string TierNote(AppState state, SettingsRow row)
     {
         if (row.Setting?.Name != SettingsRegistry.ThemeName)
         {
-            return text;
+            return string.Empty;
         }
 
         return state.SettingsInfo.Tier switch
         {
-            ColourTier.Basic16 => $"16 colours here: themes are approximated. {text}",
-            ColourTier.None => $"No colour here: themes change nothing. {text}",
-            _ => text,
+            ColourTier.Basic16 => "16 colours here: themes are approximated. ",
+            ColourTier.None => "No colour here: themes change nothing. ",
+            _ => string.Empty,
         };
     }
 
