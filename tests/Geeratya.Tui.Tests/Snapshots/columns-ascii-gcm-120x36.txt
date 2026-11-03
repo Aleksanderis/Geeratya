@@ -33,4 +33,4 @@
 |                                       |                                       |                                      |
 |                                       |                                       |                                      |
 +---------------------------------------+---------------------------------------+--------------------------------------+
-[NORMAL] GCM board - 24 issues               h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+[NORMAL] col 1/3  card 1/5 - GCM board -.    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
