@@ -76,6 +76,19 @@ public sealed partial class FakeScrumStore
             }
         }
 
+        if (_generated is not null)
+        {
+            var generated = _generated.BoardEntry();
+            var type = generated[TypeFilterName]!.GetValue<string>();
+            var projectOk = !query.TryGetValue(ProjectFilterName, out var wanted) || wanted == "GEN";
+            var typeOk = !query.TryGetValue(TypeFilterName, out var wantedType) || wantedType == type;
+
+            if (projectOk && typeOk)
+            {
+                kept.Add((JsonNode)generated);
+            }
+        }
+
         list[TotalName] = kept.Count;
         list[ValuesName] = kept;
 

@@ -129,7 +129,7 @@ public sealed partial class FakeJiraRouter
     {
         _options = options;
         _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue, IsListedIssue);
-        _scrum = new FakeScrumStore(ReadFixture);
+        _scrum = new FakeScrumStore(ReadFixture, options.GeneratedIssues);
     }
 
     /// <summary>True for the verbs that change data; the server may drop the connection after reading one.</summary>

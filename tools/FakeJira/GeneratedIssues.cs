@@ -111,7 +111,7 @@ public static class GeneratedIssues
 
     public static byte[] Count(int total) => Encoding.UTF8.GetBytes($"{{\"count\":{total}}}");
 
-    private static string CategoryOf(string status)
+    internal static string CategoryOf(string status)
     {
         return status switch
         {
