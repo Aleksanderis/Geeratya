@@ -28,6 +28,7 @@ Two helps, each switched off with `:set hints off` / `:set whichkey off` (and ba
 
 - **Status bar hints** (right side of the status line): the main keys of the active screen (list, columns, issue detail, source picker, field form) plus the global ones (`? help`, `: command`, `q quit`). Each hint names an `ActionId` and a short label; the key shown comes from the keymap, and a hint whose action is unbound is left out. Advanced actions stay out of the hints (`ux-keymap.md`, rule 4). Off hides the whole right side.
 - **Which-key popup**: while a multi-key binding is half typed in Normal mode (`g`, `<space>`, `<space> i`), a box at the bottom of the body lists the keys that continue it: the key, and the action title from `ActionCatalog`, or `+group (n)` for a longer chain. It appears at once (no delay), disappears when the sequence completes or breaks, and is generated from the keymap, never written by hand.
+- **Planned (#372, from Gitunia):** the popup opens 250 ms after the pending prefix instead of at once, lists plain actions in clusters of related actions and then the `+more` groups named by noun, and `:set hints` gets `full`, `minimal` (only `? help  : commands  q quit`) and `off`. The settings behind `:set` become one registry whose writer keeps the user's comments (#373).
 
 ## Focus model and key style
 
@@ -43,6 +44,8 @@ Two helps, each switched off with `:set hints off` / `:set whichkey off` (and ba
 ## Confirm mode
 
 Destructive or hard-to-undo actions (delete, bulk edits, transitions that may fire workflow side effects (a move to a done status, or a screen with nothing to fill in; other single transitions do not ask; see `architecture.md`, "Write pipeline", Confirm flow), changing assignee or sprint for many issues) ask first. The prompt says exactly what will change and that Jira cannot undo it, and answers only to `y`, `n` and `Esc`; `Enter` never confirms. The reducer receives a `ConfirmRequested` command with the question and the action to run on `y`.
+
+**Planned (#370, from Gitunia):** the question moves from the status line to a centred dialog (title, what changes, the warning line, two clickable rows `y` and `n`); the keys stay. A dialog that does not fit the terminal is not shown and the action does not start, because an answer nobody can read is no confirmation.
 
 ## Profiles
 
@@ -63,13 +66,19 @@ The start screen shows the active profile, or `:profile add` when there is none.
 
 `:` opens a one-line prompt. It understands `quit` (or `q`), `help` (or `h`), `profile ...` (see Profiles), `tab ...`, `history clear`, `keys reload` (read the user's `keymap.json` again) and the view commands `jql [query]`, `filter [name]`, `board [name]`, `backlog [name]`, which open a new tab (see [ux-screens.md](ux-screens.md), "Palette commands"; the list is generated in [keymap.md](keymap.md)). Anything else shows "Unknown command: ..." in the status line.
 
+**Planned (#368, from Gitunia):** `:` and `Ctrl-p` open a fuzzy list of every action (title or action id, with its keys, grouped by `ActionCatalog.GroupOf`, the level filter of #196 applied); `Enter` or a click runs the action as its key would. Typed commands with arguments (`jql <query>`, `tab ...`, `profile ...`, `set`) keep working as a command line when the first word is a command name followed by a space.
+
 ## Help
 
 `?` opens an overlay generated from the keymap and the action catalog, grouped by mode; it is never hand-written.
 
+**Planned (#371, from Gitunia):** pages for the active layout, then Global, All actions, Commands and (only with a `keymap.json`) Custom, with a `/` filter; the completeness test of #196 stays the gate.
+
 ## Status bar
 
 The bottom line is a bar of exactly the terminal width. It starts at column 0 with a mode badge (` NORMAL `, ` HELP `, ` COMMAND `, ` CONFIRM `, ` INSERT `), followed by the mode's text: the pending keys or message in Normal mode, `:text` in Command mode, the question and `(y/n)` in Confirm mode, the step, field and typed text (the token masked) in Insert mode. Short key hints are right-aligned: the screen hints of the active tab first, then the global `? help`, `: command`, `q quit`. The screen hints are the main keys of the layout, from the keymap: list `j/k move`, `Enter open`, `Space o browser` (plus `Space l columns` on a board); columns `h/l column`, `j/k card`, `Enter open`, `Space l list`, `Space o browser`; issue detail `j/k scroll`, `Enter open`, `Esc back`, `Space o browser`, `Space p parent`. Each hint names its action id (a pair like `j/k` names two) and a test checks that the default keymap binds it; a remapped key shows up. The global hints are kept as long as they fit; the screen hints are dropped one by one from the end first (as in Gitunia). In Normal mode with no notice or pending keys the text starts with the network word of the active tab (`offline`, `rate limited 25s`, `stale`, `error`, `loading`), then the connection line. When the line is too narrow the hints are dropped first, then the text is cut (wide characters are never split).
+
+**Planned (#369, from Gitunia):** the notice becomes a status message with a severity (info, warning, error), a lifetime (5 s, 15 s, 30 s) and a history of the last 50 (`<space>n` opens it, `<space>x` dismisses). A key press no longer wipes it, so the result of a write that finishes late is still there to read.
 
 ## Colour tiers
 
