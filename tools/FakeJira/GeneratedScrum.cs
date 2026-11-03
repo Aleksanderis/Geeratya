@@ -28,6 +28,7 @@ public sealed partial class GeneratedScrum
     private const string StartAt = "startAt";
     private const string MaxResults = "maxResults";
     private const string Closed = "closed";
+    private const string Active = "active";
     private const string Self = "https://example.invalid/rest/agile/1.0/";
 
     private static readonly string[] _statuses = ["Backlog", "To Do", "In Progress", "Done"];
@@ -146,7 +147,7 @@ public sealed partial class GeneratedScrum
             return "future";
         }
 
-        return index == _sprintCount - 2 ? "active" : Closed;
+        return index == _sprintCount - 2 ? Active : Closed;
     }
 
     private JsonObject SprintEntry(int id)
@@ -176,6 +177,12 @@ public sealed partial class GeneratedScrum
     private FakeReply SprintList(IReadOnlyDictionary<string, string> query)
     {
         var states = query.TryGetValue("state", out var text) ? text.Split(',') : [];
+
+        if (states.Any(state => state is not (Active or Closed or "future")))
+        {
+            return new FakeReply(400, _readFixture("scrum/error-sprints-state-invalid-400.json"));
+        }
+
         var matching = Enumerable.Range(0, _sprintCount)
             .Where(index => states.Length == 0 || states.Contains(StateOfSprint(index)))
             .ToList();
@@ -218,6 +225,13 @@ public sealed partial class GeneratedScrum
         return [.. Enumerable.Range(1, _total).Where(IsBacklog)];
     }
 
+    private bool InState(int number, string state)
+    {
+        var index = SprintIndexOf(number);
+
+        return index >= 0 && StateOfSprint(index) == state;
+    }
+
     private bool IsBacklog(int number)
     {
         var index = SprintIndexOf(number);
@@ -237,7 +251,7 @@ public sealed partial class GeneratedScrum
 
         if (jql.Contains("openSprints()", StringComparison.OrdinalIgnoreCase))
         {
-            return [.. all.Where(number => SprintIndexOf(number) is var index && index >= 0 && StateOfSprint(index) == "active")];
+            return [.. all.Where(number => InState(number, Active))];
         }
 
         if (SprintEqualsJql().Match(jql) is { Success: true } match)
@@ -281,7 +295,6 @@ public sealed partial class GeneratedScrum
     {
         var status = _statuses[number % _statuses.Length];
         var index = SprintIndexOf(number);
-        var category = IsFinished(number) ? "done" : status == "In Progress" ? "indeterminate" : "new";
 
         writer.WriteStartObject();
         writer.WriteString("id", (10000 + number).ToString(CultureInfo.InvariantCulture));
@@ -295,7 +308,7 @@ public sealed partial class GeneratedScrum
         writer.WriteStartObject("status");
         writer.WriteString("name", status);
         writer.WriteStartObject("statusCategory");
-        writer.WriteString("key", category);
+        writer.WriteString("key", GeneratedIssues.CategoryOf(status));
         writer.WriteEndObject();
         writer.WriteEndObject();
         writer.WriteNull("assignee");

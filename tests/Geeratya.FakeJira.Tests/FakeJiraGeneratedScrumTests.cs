@@ -41,13 +41,16 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
         var all = await Json($"{Agile}/board/7/sprint");
         var open = await Json($"{Agile}/board/7/sprint?state=active,future");
         var page = await Json($"{Agile}/board/7/sprint?startAt=8&maxResults=1");
-        var states = all.GetProperty("values").EnumerateArray().Select(sprint => sprint.GetProperty("state").GetString());
+        var states = all.GetProperty("values").EnumerateArray()
+            .Select(sprint => sprint.GetProperty("state").GetString());
+        var bad = await _client.GetAsync($"{_baseUrl}{Agile}/board/7/sprint?state=bogus");
 
         Assert.Equal(10, all.GetProperty("values").GetArrayLength());
         Assert.Equal([.. Enumerable.Repeat("closed", 8), "active", "future"], states);
         Assert.Equal([5009, 5010], [.. open.GetProperty("values").EnumerateArray().Select(IdOf)]);
         Assert.Equal([5009], [.. page.GetProperty("values").EnumerateArray().Select(IdOf)]);
         Assert.False(page.GetProperty("isLast").GetBoolean());
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
     }
 
     [Fact]
