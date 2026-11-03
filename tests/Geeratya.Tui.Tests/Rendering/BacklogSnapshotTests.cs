@@ -61,6 +61,26 @@ public class BacklogSnapshotTests
         Assert.Equal(SnapshotFile.Expect($"backlog-range-{width}x{height}.txt", actual), actual);
     }
 
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenALiveDragThatAutoScrolled_WhenBuildingTheFrame_ThenTheWindowMovedAndTheRangeStaysInItsSection(
+        int width,
+        int height)
+    {
+        var state = Sample(false);
+        var tab = state.Session.Tabs[0] with { VisibleRows = Math.Max(1, height - 6) };
+        var reducer = new AppReducer(_keymap);
+        state = state with { Session = state.Session with { Tabs = [tab] } };
+        var started = reducer.Reduce(state, new RowsDragging(0, 4, 4, width, true)).State;
+        var scrolled = reducer.Reduce(started, new RowsDragScrolled(2)).State;
+
+        var actual = Actual(FrameBuilder.Build(scrolled, width, height, _keymap));
+
+        Assert.Equal(SnapshotFile.Expect($"backlog-dragscroll-{width}x{height}.txt", actual), actual);
+    }
+
     [Fact]
     public void GivenACollapsedSectionUnderTheCursor_WhenBuildingTheFrame_ThenItsHeaderCarriesTheCursor()
     {
