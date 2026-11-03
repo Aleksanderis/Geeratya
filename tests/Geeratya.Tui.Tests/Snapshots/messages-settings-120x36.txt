@@ -1,7 +1,7 @@
                                                                                                                         
                                                                                                                         
 Settings                                                                                                                
-hints.statusBar full (default full) - How many key hints the right of the status bar shows: all of them, only help, comm
+hints.statusBar full (default full) - How many key hints the right of the status bar shows: all of them, only help, com…
 hints.whichKey on (default on) - Show the popup of the next keys while a multi-key binding is half typed.               
 theme auto (default auto) - The colour theme: a built-in one or a file in the themes folder.                            
 Messages                                                                                                                

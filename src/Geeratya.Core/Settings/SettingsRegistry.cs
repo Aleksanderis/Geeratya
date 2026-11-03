@@ -78,14 +78,6 @@ public static class SettingsRegistry
         return SettingsJson.Quote(value);
     }
 
-    /// <summary>Every setting with its value and default, for <c>:set</c> without an argument.</summary>
-    public static string Describe(AppSettings settings)
-    {
-        return string.Join(
-            ", ",
-            All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default})"));
-    }
-
     /// <summary>One line per setting (name, value, default, help), for the Messages overlay.</summary>
     public static IReadOnlyList<string> ListLines(AppSettings settings)
     {

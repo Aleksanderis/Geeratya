@@ -118,7 +118,7 @@ public static class StatusMessages
         {
             0 => null,
             1 => warnings[0],
-            _ => $"{warnings.Count} problems in settings.json (<space>n lists them)",
+            _ => $"{warnings.Count} problems in settings.json (see the Messages overlay)",
         });
         var history = warnings
             .Where(warning => notice is not null || warnings.Count > 1 || warning != shown)

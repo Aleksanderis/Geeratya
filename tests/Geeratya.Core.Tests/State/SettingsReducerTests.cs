@@ -85,7 +85,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var state = StatusMessages.Startup(AppState.Initial, null, ["a is bad.", "b is bad."]);
         var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
 
-        Assert.Equal(["2 problems in settings.json (<space>n lists them)", "b is bad.", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+        Assert.Equal(["2 problems in settings.json (see the Messages overlay)", "b is bad.", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
         Assert.Equal(StatusSeverity.Warning, settled.Status!.Severity);
         Assert.DoesNotContain("a is bad", settled.Status.Text);
         Assert.All(settled.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
@@ -116,6 +116,13 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var rows = StatusMessages.OverlayRowCount(state);
 
         Assert.Equal(SettingsRegistry.All.Count + 2, rows);
+
+        for (var step = 0; step < rows + 5; step++)
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j", DateTimeOffset.UnixEpoch)).State;
+        }
+
+        Assert.Equal(rows - 1, state.HelpScroll);
     }
 
     [Fact]

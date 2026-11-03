@@ -23,7 +23,7 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
 
         if (state.MessagesShowSettings)
         {
-            rows.AddRange(SettingsRegistry.ListLines(state.Settings).Select(line => StyledLine.Of(line)));
+            rows.AddRange(SettingsRegistry.ListLines(state.Settings).Select(line => StyledLine.Of(Fit(line, width))));
             rows.Add(StyledLine.Of(Title, TextRole.Heading));
         }
 
@@ -37,6 +37,33 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
         var heading = state.MessagesShowSettings ? SettingsTitle : Title;
 
         return [StyledLine.Of(heading, TextRole.Heading), .. rows.Skip(state.HelpScroll)];
+    }
+
+    /// <summary>Cuts <paramref name="line"/> to <paramref name="width"/> cells and ends it with an ellipsis, so a cut is visible.</summary>
+    private static string Fit(string line, int width)
+    {
+        if (DisplayWidth.Of(line) <= width)
+        {
+            return line;
+        }
+
+        var cut = new System.Text.StringBuilder();
+        var used = 0;
+
+        foreach (var rune in line.EnumerateRunes())
+        {
+            var cells = DisplayWidth.Of(rune);
+
+            if (used + cells > width - 1)
+            {
+                break;
+            }
+
+            cut.Append(rune.ToString());
+            used += cells;
+        }
+
+        return cut + "\u2026";
     }
 
     private static TextRole RoleOf(StatusSeverity severity)
