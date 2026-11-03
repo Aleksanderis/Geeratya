@@ -183,4 +183,4 @@ Native AOT `geeratya`, `scripts/measure.sh <binary> <fake url> 20`, fake Jira wi
 
 Any figure above taken with the old `measure.sh` on a build that has framed screens (after #612, 2026-11-03) is inflated by up to about 100 ms, in particular the key to frame rows; re-measure before quoting them.
 
-Idle cost (M7 input), start screen and a 100-row list, 20 s windows each, `/proc/<pid>/stat`: 22 and 25 CPU ticks (about 1.1 to 1.3 % of one core, 0.2 s of CPU in 20 s), RSS 47 MB, 10 threads; with the frame on screen and nothing happening the process still uses CPU, which M7 should look at (the refresh tick and the cursor/blink timer are the first suspects, not verified).
+Idle cost (M7 input, #619), start screen and a 100-row list, 20 s windows each, `/proc/<pid>/stat`: 22 and 25 CPU ticks (about 1.1 to 1.3 % of one core, 0.2 s of CPU in 20 s), RSS 47 MB, 10 threads; with the frame on screen and nothing happening the process still uses CPU, registered as #619 (the cause is not investigated).
