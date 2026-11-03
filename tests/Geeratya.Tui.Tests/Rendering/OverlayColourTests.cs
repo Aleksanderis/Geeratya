@@ -13,7 +13,7 @@ public class OverlayColourTests
 {
     // Body text keeps 4.5 on the surface; muted and accent-coloured text keep 3.0 (a raised fill costs them a
     // little, as on the selection tint).
-    private const double SurfaceContrast = 1.3;
+    private const double SurfaceContrast = 1.15;
     private const double MutedDimContrast = 3.0;
     private const double FrameContrast = 3.0;
     private const double TextContrast = 4.5;
@@ -22,14 +22,13 @@ public class OverlayColourTests
 
     [Theory]
     [MemberData(nameof(Themes))]
-    public void GivenATheme_WhenResolvingTheSurface_ThenItIsRaisedFromThePageAndTextReadsOnIt(string name)
+    public void GivenATheme_WhenResolvingTheSurface_ThenItStandsOutFromTheViewBehindAndTextReadsOnIt(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
-        var selection = Contrast.Ratio(theme.Colors[ThemeColor.Selection], theme.PageBackground);
 
         Assert.True(
-            Contrast.Ratio(theme.Surface, theme.PageBackground) >= Math.Min(SurfaceContrast, selection),
-            $"{name}: the surface is not raised from the page");
+            Contrast.Ratio(theme.Surface, theme.ScrimBackground) >= SurfaceContrast,
+            $"{name}: the box does not stand out from the dimmed view");
 
         foreach (var role in new[] { PaletteRole.Body, PaletteRole.Muted, PaletteRole.Key, PaletteRole.Heading })
         {
@@ -53,7 +52,20 @@ public class OverlayColourTests
         Assert.InRange(theme.DimAmount, 0, 0.3);
         Assert.True(Contrast.Ratio(muted.Foreground!.Value, muted.Background!.Value) >= MutedDimContrast, name);
         Assert.NotEqual(Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body).Foreground, body.Foreground);
-        Assert.Equal(Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body).Background, body.Background);
+        Assert.Equal(theme.ScrimBackground, body.Background);
+    }
+
+    [Theory]
+    [MemberData(nameof(Themes))]
+    public void GivenATheme_WhenDrawingAnOverlay_ThenTheBoxKeepsThePageColourUnlessTheFileSetsOne(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var box = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body, SpanGround.Surface, true);
+        var page = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body);
+
+        Assert.Equal(theme.Surface, box.Background);
+        Assert.Equal(theme.Colors[ThemeColor.BaseBackground], page.Background);
+        Assert.NotEqual(theme.Surface, theme.ScrimBackground);
     }
 
     [Theory]

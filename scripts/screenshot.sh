@@ -106,6 +106,9 @@ all_scenarios=(
   "theme-latte;120;36;light;:board GCM|:theme catppuccin-latte|;Theme catppuccin-latte."
   "theme-high-contrast;120;36;dark;:board GCM|:theme high-contrast|;Theme high-contrast."
   "theme-gruvbox;120;36;dark;:board GCM|:theme gruvbox-dark-medium|;Theme gruvbox-dark-medium."
+  "theme-help-mocha;120;36;dark;:board GCM|:theme catppuccin-mocha|?;Help"
+  "theme-help-latte;120;36;light;:board GCM|:theme catppuccin-latte|?;Help"
+  "theme-help-contrast;120;36;dark;:board GCM|:theme high-contrast|?;Help"
   "theme-list;120;36;dark;:theme|;Themes:"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
 )

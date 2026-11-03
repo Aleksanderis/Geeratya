@@ -13,6 +13,7 @@
     "barBackground": "#1a1a1a",
     "selection": "#003a8c",
     "baseForeground": "#ffffff",
-    "baseBackground": "#000000"
+    "baseBackground": "#000000",
+    "overlayBackground": "#1a1a1a"
   }
 }
