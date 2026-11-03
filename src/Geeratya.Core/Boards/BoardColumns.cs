@@ -5,12 +5,16 @@ namespace Geeratya.Core.Boards;
 
 /// <summary>
 /// Sorts issues into the columns of a board. Column order, names and membership come from the configuration only,
-/// never from fixed names: the first column is not necessarily the backlog.
+/// never from fixed names, except that a company-managed Kanban board's leading <see cref="BacklogName"/> column is
+/// hidden (<see cref="HidesBacklogColumn"/>).
 /// </summary>
 public static class BoardColumns
 {
     /// <summary>The name of the trailing column that holds issues whose status is in no board column.</summary>
     public const string UnmappedName = "Unmapped";
+
+    /// <summary>The name of the Backlog column that Jira hides on a company-managed Kanban board.</summary>
+    public const string BacklogName = "Backlog";
 
     private const string AllIssuesName = "Issues";
 
@@ -29,7 +33,7 @@ public static class BoardColumns
         }
 
         var groups = Group(configuration, rows);
-        var columns = HidesBacklogColumn(configuration) ? groups.Columns.Skip(1).ToList() : groups.Columns;
+        var columns = HidesBacklogColumn(configuration) ? [.. groups.Columns.Skip(1)] : groups.Columns;
 
         if (groups.Unmapped.Count == 0)
         {
@@ -48,7 +52,7 @@ public static class BoardColumns
     public static bool HidesBacklogColumn(BoardConfiguration configuration)
     {
         return configuration is { Type: BoardType.Kanban, Columns: [{ Name: var first }, ..] }
-            && string.Equals(first, "Backlog", StringComparison.OrdinalIgnoreCase);
+            && string.Equals(first, BacklogName, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
