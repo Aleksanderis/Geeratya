@@ -39,6 +39,11 @@ public static class MouseHitTester
                 return null;
             }
 
+            if (context.LaneChip is { } lane && column >= lane.Start && column < lane.End)
+            {
+                return new MouseHit(MouseTarget.LaneChip, 0, column);
+            }
+
             var message = context.StatusMessage is { } cells && column >= cells.Start && column < cells.End;
 
             return new MouseHit(message ? MouseTarget.StatusMessage : MouseTarget.Status, 0, column);

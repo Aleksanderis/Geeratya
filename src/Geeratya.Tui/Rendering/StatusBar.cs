@@ -393,6 +393,37 @@ public static class StatusBar
         return new StatusSegment(cells.Start, Math.Min(cells.End, width) - cells.Start, status.Line, role);
     }
 
+    /// <summary>
+    /// The cells of the <c>Lane n/N: Name</c> text in the status line as drawn by <see cref="Render"/>, null when the
+    /// line does not show it whole (no lane, a message or typed keys instead, or the line cut it).
+    /// </summary>
+    public static TabButton? LaneCells(
+        AppState state,
+        int width,
+        KeymapTable keymap,
+        DateTimeOffset? now = null,
+        bool confirmDialogShown = false)
+    {
+        if (state.Mode != InputMode.Normal
+            || ListBodyRenderer.ActiveTab(state) is not { Detail.Count: 0 } tab
+            || BoardViewOptions.LaneLabel(tab) is not { } label)
+        {
+            return null;
+        }
+
+        var line = Render(state, width, keymap, now, confirmDialogShown);
+        var index = line.IndexOf(label, StringComparison.Ordinal);
+
+        if (index < 0)
+        {
+            return null;
+        }
+
+        var start = TextWidth.Of(line[..index]);
+
+        return new TabButton(start, start + TextWidth.Of(label));
+    }
+
     private static string Badge(AppState state)
     {
         if (state.MessagesOpen && state.Mode == InputMode.Help)

@@ -64,6 +64,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | StatusMessage | Right-click | `menu.view` | V | Same as a right-click on the rest of the line |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
 | JumpChip | Click | `issue.jump` | B | Opens the jump prompt, same as `<space>g`; the `[jump]` chip at the right end of the tab bar row, drawn when the bar has room (at least two spare cells after the last tab or the `+`) |
+| LaneChip | Click | `detail.section-next` | B | Columns layout with swimlanes: steps to the next lane (wrapping), same as `]]`; the `Lane n/N: Name` text in the status line, clickable while it is drawn whole (a message, typed keys or a cut line hide it). `[[` stays keyboard-only: the lanes wrap, so stepping back is one click short of a full cycle |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |
 | StatusBadge | Click | `issue.transition` | C | Opens the transition picker for the issue |
 | Assignee | Click | `issue.assign` | C | Opens the people picker |
