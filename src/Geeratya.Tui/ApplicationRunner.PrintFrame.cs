@@ -100,7 +100,10 @@ public sealed partial class ApplicationRunner
 
         var catalog = new ThemeCatalog(services?.ThemesDirectory);
         var name = light && string.IsNullOrWhiteSpace(settings.Theme) ? BuiltInThemes.AutoName : settings.Theme;
-        var theme = new ThemeSwitcher(catalog).Start(name, light).Theme;
+        var theme = new ThemeSwitcher(catalog)
+            .Start(name, light)
+            .Theme
+            .WithTerminalBackground(settings.TransparentBackground);
 
         return AnsiFrameWriter.Write(frame, theme, tier, glyphs != GlyphSet.Ascii);
     }

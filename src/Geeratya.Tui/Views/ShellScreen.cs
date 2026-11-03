@@ -24,7 +24,9 @@ public sealed class ShellScreen : Window
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
+    private Theme _baseTheme;
     private Theme _theme;
+    private bool _transparent;
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
     private IReadOnlyList<OverlayRegion> _regions = [];
     private OverlayRegion? _rowMenuMarker;
@@ -36,6 +38,7 @@ public sealed class ShellScreen : Window
         Theme theme,
         GlyphSet glyphs = GlyphSet.Unicode)
     {
+        _baseTheme = theme;
         _theme = theme;
         _keymap = keymap;
         _colors = colors;
@@ -77,7 +80,8 @@ public sealed class ShellScreen : Window
     /// <summary>Draws with another theme, starting with the next frame (drawn now).</summary>
     public void SetTheme(Theme theme)
     {
-        _theme = theme;
+        _baseTheme = theme;
+        _theme = theme.WithTerminalBackground(_transparent);
         ApplySchemes();
         Render(_state, _now);
     }
@@ -86,6 +90,13 @@ public sealed class ShellScreen : Window
     {
         _state = state;
         _now = now;
+
+        if (state.Settings.TransparentBackground != _transparent)
+        {
+            _transparent = state.Settings.TransparentBackground;
+            _theme = _baseTheme.WithTerminalBackground(_transparent);
+            ApplySchemes();
+        }
 
         var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _keymap, null, now, _glyphs);
 

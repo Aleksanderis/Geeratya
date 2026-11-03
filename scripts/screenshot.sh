@@ -112,6 +112,8 @@ all_scenarios=(
   "theme-help-mocha;120;36;dark;:board GCM|:theme catppuccin-mocha|?;Help"
   "theme-help-latte;120;36;light;:board GCM|:theme catppuccin-latte|?;Help"
   "theme-help-contrast;120;36;dark;:board GCM|:theme high-contrast|?;Help"
+  "transparent-board;120;36;light;:board GCM|:set transparent on|;transparent on."
+  "transparent-palette;120;36;light;:board GCM|:set transparent on|:;Command"
   "theme-list;120;36;dark;:theme|;Themes:"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
   "tab-list;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key| T;Open tabs"
