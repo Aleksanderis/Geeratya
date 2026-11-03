@@ -18,12 +18,10 @@ namespace Geeratya.Tui.Rendering;
 public sealed class ListBodyRenderer : IBodyRenderer
 {
     private const string LoadingMoreWords = "Loading more";
-    private const string LoadingWords = "Loading";
     private const string NoIssuesText = "No issues match.";
     private const string NoBoardIssuesText = "The board has no issues.";
     private const string NoOpenSprintText = "No open sprint on this board.";
     private const string NoOpenSprintHint = "Plan one in the backlog (:backlog).";
-    private const string RetryText = "<space>r to retry";
     private const string TruncatedText = "Load more stopped at 10 000 rows.";
     private const string CouldNotLoadMore = "Could not load more: ";
     private const string KeyTitle = "Key";
@@ -69,7 +67,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         if (tab.Rows.Count == 0)
         {
-            AddBodyMessage(lines, tab, inner, glyphs);
+            AddBodyMessage(lines, tab, context, glyphs);
 
             return Framed(tab, note, glyphs, width, height, lines);
         }
@@ -241,19 +239,18 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
-    internal static void AddBodyMessage(List<StyledLine> lines, TabState tab, int width, Glyphs glyphs)
+    internal static void AddBodyMessage(List<StyledLine> lines, TabState tab, BodyContext context, Glyphs glyphs)
     {
         if (tab.Load is Loading)
         {
-            lines.Add(StyledLine.Of(LoadingWords + glyphs.Ellipsis, TextRole.Loading));
+            lines.Add(StateBody.Loading(glyphs));
 
             return;
         }
 
         if (tab.Load is Failed failed)
         {
-            lines.Add(StyledLine.Of(failed.Message, TextRole.Error));
-            lines.Add(StyledLine.Of(RetryText, TextRole.Muted));
+            lines.AddRange(StateBody.Failure(failed.Message, context.Keymap));
 
             return;
         }
@@ -266,27 +263,15 @@ public sealed class ListBodyRenderer : IBodyRenderer
         // A Scrum board lists only the open sprints, so between sprints it is empty although the project has issues.
         if (tab.Definition.Source == ViewSourceKind.Board && tab.Board is { Type: BoardType.Scrum })
         {
-            lines.Add(Centered(NoOpenSprintText, width));
-            lines.Add(StyledLine.Of(Centered(NoOpenSprintHint, width).PlainText, TextRole.Muted));
+            lines.AddRange(StateBody.Empty(NoOpenSprintText, NoOpenSprintHint));
 
             return;
         }
 
-        var isBoard = tab.Definition.Source.IsBoardBased();
+        var text = tab.Definition.Source.IsBoardBased() ? NoBoardIssuesText : NoIssuesText;
+        var jql = tab.Definition.Source == ViewSourceKind.Jql ? tab.Definition.SourceValue : null;
 
-        lines.Add(Centered(isBoard ? NoBoardIssuesText : NoIssuesText, width));
-
-        if (tab.Definition.Source == ViewSourceKind.Jql)
-        {
-            lines.Add(StyledLine.Of(tab.Definition.SourceValue, TextRole.Muted));
-        }
-    }
-
-    private static StyledLine Centered(string text, int width)
-    {
-        var padding = Math.Max(0, (width - TextWidth.Of(text)) / 2);
-
-        return StyledLine.Of($"{new string(' ', padding)}{text}");
+        lines.AddRange(StateBody.Empty(text, jql));
     }
 
     internal static StyledLine RowLine(

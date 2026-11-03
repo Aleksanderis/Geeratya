@@ -142,7 +142,12 @@ public static class ColumnsNavigation
 
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
 
-        return new ColumnSelection(columns[cursor.Column].Rows, cursor.Card, columns[cursor.Column].Nested);
+        return new ColumnSelection(
+            columns[cursor.Column].Rows,
+            cursor.Card,
+            columns[cursor.Column].Nested,
+            cursor.Column,
+            columns.Count);
     }
 
     /// <summary>The columns the layout draws for the tab's rows.</summary>

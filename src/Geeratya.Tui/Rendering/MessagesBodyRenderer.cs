@@ -20,10 +20,12 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
     public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)
     {
         var rows = new List<StyledLine>();
+        var framed = FrameGrid.CanFrame(width, height);
+        var inner = framed ? width - 3 : width;
 
         if (state.MessagesShowSettings)
         {
-            rows.AddRange(SettingsRegistry.ListLines(state.Settings).Select(line => StyledLine.Of(Fit(line, width))));
+            rows.AddRange(SettingsRegistry.ListLines(state.Settings).Select(line => StyledLine.Of(Fit(line, inner))));
             rows.Add(StyledLine.Of(Title, TextRole.Heading));
         }
 
@@ -32,11 +34,43 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
             rows.Add(StyledLine.Of(EmptyText, TextRole.Muted));
         }
 
-        rows.AddRange(state.StatusHistory.Select(message => StyledLine.Of(message.Line, RoleOf(message.Severity))));
+        rows.AddRange(state.StatusHistory.Select(message => StyledLine.Of(Fit(message.Line, inner), RoleOf(message.Severity))));
 
         var heading = state.MessagesShowSettings ? SettingsTitle : Title;
 
-        return [StyledLine.Of(heading, TextRole.Heading), .. rows.Skip(state.HelpScroll)];
+        var shown = rows.Skip(state.HelpScroll).ToList();
+
+        if (!framed)
+        {
+            return [StyledLine.Of(heading, TextRole.Heading), .. shown];
+        }
+
+        // Settings shows the list of settings, not the history, so only the history carries a count.
+        IReadOnlyList<StyledSpan>? count = null;
+
+        if (!state.MessagesShowSettings && state.StatusHistory.Count > 0)
+        {
+            count = [new StyledSpan(CountText(state.StatusHistory.Count), TextRole.Muted)];
+        }
+
+        return PaneFrame.Build(
+            width,
+            height,
+            [new StyledSpan(heading, TextRole.Heading)],
+            count,
+            shown.Select(Padded).ToList(),
+            []);
+    }
+
+    // One padding column inside the frame, as the list rows have.
+    private static StyledLine Padded(StyledLine line)
+    {
+        return new StyledLine([new StyledSpan(" ", TextRole.Body), .. line.Spans]);
+    }
+
+    private static string CountText(int count)
+    {
+        return count == 1 ? "1 message" : $"{count} messages";
     }
 
     /// <summary>Cuts <paramref name="line"/> to <paramref name="width"/> cells and ends it with an ellipsis, so a cut is visible.</summary>

@@ -200,7 +200,7 @@ public class CommentEditingTests
         var detail = Active(done.State).Detail[0];
         Assert.Equal(["1", "2", "77"], detail.Comments.Select(comment => comment.Id));
         Assert.Equal(3, detail.CommentTotal);
-        Assert.Contains("Comments (3)", Text(detail));
+        Assert.Contains("Comments 3", Text(detail));
         Assert.Empty(done.Effects.OfType<LoadIssueDetailEffect>());
         Assert.Empty(done.Effects.OfType<InvalidateCacheEffect>());
         Assert.False(Active(done.State).IsStale);

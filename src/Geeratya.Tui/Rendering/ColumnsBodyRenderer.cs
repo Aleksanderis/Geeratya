@@ -87,17 +87,15 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     /// <summary>The empty and loading states: the message lines inside the frame, the board title as the chip.</summary>
     private static List<StyledLine> Message(TabState tab, BodyContext context, int width, int height, Glyphs glyphs)
     {
-        var inner = FrameGrid.CanFrame(width, height) ? width - 2 : width;
         var lines = new List<StyledLine>();
 
         if (NoActiveSprint(tab))
         {
-            lines.Add(StyledLine.Of(NoSprintText, TextRole.Muted));
-            lines.Add(StyledLine.Of(NoSprintHint(context.Keymap), TextRole.Muted));
+            lines.AddRange(StateBody.Empty(NoSprintText, NoSprintHint(context.Keymap)));
         }
         else
         {
-            ListBodyRenderer.AddBodyMessage(lines, tab, inner, glyphs);
+            ListBodyRenderer.AddBodyMessage(lines, tab, context, glyphs);
         }
 
         var title = new List<StyledSpan> { new(tab.Definition.Title, TextRole.Heading) };

@@ -1,0 +1,24 @@
+ 1 Board My open issues x   +                        : commands   <space>g jump 
+                                                                                
+╭─ My open issues ────────────────────────────────────────────────── 0 issues ─╮
+│  Key    T Summary                                              Status        │
+│ The board has no issues.                                                     │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q quit

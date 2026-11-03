@@ -1,36 +1,36 @@
                                                                                                              : commands 
                                                                                                                         
-                                                                                                                        
-            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │ > Global      │   ?          Show or hide help                                               │            
-            │   All actions │   q          Quit  (Ctrl-c)                                                  │            
-            │   Commands    │   Esc        Cancel or close                                                 │            
-            │               │   :          Open the command palette  (Ctrl-p)                              │            
-            │               │   <space>A   Open the actions menu of the tab and the view                   │            
-            │               │   Tab        Next tab  (gt)                                                  │            
-            │               │   Shift-Tab  Previous tab  (gT)                                              │            
-            │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │            
-            │               │   Alt-1      Go to tab 1                                                     │            
-            │               │   Alt-2      Go to tab 2                                                     │            
-            │               │   Alt-3      Go to tab 3                                                     │            
-            │               │   Alt-4      Go to tab 4                                                     │            
-            │               │   Alt-5      Go to tab 5                                                     │            
-            │               │   Alt-6      Go to tab 6                                                     │            
-            │               │   Alt-7      Go to tab 7                                                     │            
-            │               │   Alt-8      Go to tab 8                                                     │            
-            │               │   Alt-9      Go to tab 9                                                     │            
-            │               │   <space>t   Open the source picker for a new tab                            │            
-            │               │   <space>c   Close the tab                                                   │            
-            │               │   <space>T   Show a list of open tabs                                        │            
-            │               │   <space>r   Refresh the view (also retries after an error)                  │            
-            │               │   <space>vv  Open a saved view in a new tab                                  │            
-            │               │   <space>vw  Save this view under a name (opens :view save)                  │            
-            │               │   <space>*   Switch the command level for the session                        │            
-            │               │   <space>ic  Create an issue (type picker, then the form)                    │            
-            │               │   <space>g   Jump to an issue by key                                         │            
-            │               │   <space>n   Show the message history                                        │            
-            │               │   <space>x   Dismiss the status message                                      │            
-            │               │   <space>,   Open or close the settings screen                               │            
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-                                                                                                                        
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
+│           │ > Global      │   ?          Show or hide help                                               │           │
+│           │   All actions │   q          Quit  (Ctrl-c)                                                  │           │
+│           │   Commands    │   Esc        Cancel or close                                                 │           │
+│           │               │   :          Open the command palette  (Ctrl-p)                              │           │
+│           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
+│           │               │   Tab        Next tab  (gt)                                                  │           │
+│           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
+│           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
+│           │               │   Alt-1      Go to tab 1                                                     │           │
+│           │               │   Alt-2      Go to tab 2                                                     │           │
+│           │               │   Alt-3      Go to tab 3                                                     │           │
+│           │               │   Alt-4      Go to tab 4                                                     │           │
+│           │               │   Alt-5      Go to tab 5                                                     │           │
+│           │               │   Alt-6      Go to tab 6                                                     │           │
+│           │               │   Alt-7      Go to tab 7                                                     │           │
+│           │               │   Alt-8      Go to tab 8                                                     │           │
+│           │               │   Alt-9      Go to tab 9                                                     │           │
+│           │               │   <space>t   Open the source picker for a new tab                            │           │
+│           │               │   <space>c   Close the tab                                                   │           │
+│           │               │   <space>T   Show a list of open tabs                                        │           │
+│           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
+│           │               │   <space>vv  Open a saved view in a new tab                                  │           │
+│           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
+│           │               │   <space>*   Switch the command level for the session                        │           │
+│           │               │   <space>ic  Create an issue (type picker, then the form)                    │           │
+│           │               │   <space>g   Jump to an issue by key                                         │           │
+│           │               │   <space>n   Show the message history                                        │           │
+│           │               │   <space>x   Dismiss the status message                                      │           │
+│           │               │   <space>,   Open or close the settings screen                               │           │
+│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

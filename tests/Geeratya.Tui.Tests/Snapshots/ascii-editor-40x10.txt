@@ -1,10 +1,10 @@
                                         
                                         
-  +- Comment on A-1 -----------------+  
-  | hi there                         |  
-  | second line                      |  
-  |                                  |  
-  | -------------------------------- |  
-  | Ctrl-s send   Enter new line   E |  
-  +----------------------------------+  
++-+- Comment on A-1 -----------------+-+
+| | hi there                         | |
+| | second line                      | |
+| |                                  | |
+| | -------------------------------- | |
+| | Ctrl-s send   Enter new line   E | |
++-+----------------------------------+-+
 [INSERT] Commenting on A-1              

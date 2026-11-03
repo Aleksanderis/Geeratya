@@ -1,36 +1,36 @@
                                                                                                              : commands 
                                                                                                                         
-                                                                                                                        
-            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │   $          Go to the last column                                           │            
-            │ > All actions │   ]]         Next section of the issue or the Scrum backlog                  │            
-            │   Commands    │   [[         Previous section of the issue or the Scrum backlog              │            
-            │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
-            │               │              section                                                         │            
-            │               │ General                                                                      │            
-            │               │   ?          Show or hide help                                               │            
-            │               │   q          Quit  (Ctrl-c)                                                  │            
-            │               │   Esc        Cancel or close                                                 │            
-            │               │   :          Open the command palette  (Ctrl-p)                              │            
-            │               │   <space>a   Open the actions menu of the selected issue                     │            
-            │               │   <space>n   Show the message history                                        │            
-            │               │   <space>x   Dismiss the status message                                      │            
-            │               │   <space>,   Open or close the settings screen                               │            
-            │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │            
-            │               │              screen)                                                         │            
-            │               │ Dialogs                                                                      │            
-            │               │   Esc        Close help  (q)                                                 │            
-            │               │   /          Filter the help by key, title or action id                      │            
-            │               │   Tab        Next help section                                               │            
-            │               │   Shift-Tab  Previous help section                                           │            
-            │               │   J          Scroll help down a line                                         │            
-            │               │   K          Scroll help up a line                                           │            
-            │               │   D          Scroll help down half a page  (Ctrl-d)                          │            
-            │               │   U          Scroll help up half a page  (Ctrl-u)                            │            
-            │               │   gg         Scroll help to the top                                          │            
-            │               │   G          Scroll help to the bottom                                       │            
-            │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
-            │               │   Backspace  Delete the character before the caret                           │            
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-                                                                                                                        
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
+│           │   Global      │   $          Go to the last column                                           │           │
+│           │ > All actions │   ]]         Next section of the issue or the Scrum backlog                  │           │
+│           │   Commands    │   [[         Previous section of the issue or the Scrum backlog              │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
+│           │               │              section                                                         │           │
+│           │               │ General                                                                      │           │
+│           │               │   ?          Show or hide help                                               │           │
+│           │               │   q          Quit  (Ctrl-c)                                                  │           │
+│           │               │   Esc        Cancel or close                                                 │           │
+│           │               │   :          Open the command palette  (Ctrl-p)                              │           │
+│           │               │   <space>a   Open the actions menu of the selected issue                     │           │
+│           │               │   <space>n   Show the message history                                        │           │
+│           │               │   <space>x   Dismiss the status message                                      │           │
+│           │               │   <space>,   Open or close the settings screen                               │           │
+│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
+│           │               │              screen)                                                         │           │
+│           │               │ Dialogs                                                                      │           │
+│           │               │   Esc        Close help  (q)                                                 │           │
+│           │               │   /          Filter the help by key, title or action id                      │           │
+│           │               │   Tab        Next help section                                               │           │
+│           │               │   Shift-Tab  Previous help section                                           │           │
+│           │               │   J          Scroll help down a line                                         │           │
+│           │               │   K          Scroll help up a line                                           │           │
+│           │               │   D          Scroll help down half a page  (Ctrl-d)                          │           │
+│           │               │   U          Scroll help up half a page  (Ctrl-u)                            │           │
+│           │               │   gg         Scroll help to the top                                          │           │
+│           │               │   G          Scroll help to the bottom                                       │           │
+│           │               │   Enter      Run the typed command  (Ctrl-l)                                 │           │
+│           │               │   Backspace  Delete the character before the caret                           │           │
+│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

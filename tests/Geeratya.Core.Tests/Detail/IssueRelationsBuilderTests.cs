@@ -46,11 +46,11 @@ public class IssueRelationsBuilderTests
             [
                 "A-1 · Epic",
                 "Description",
-                "Sub-tasks (1)",
-                "Epic children (1)",
-                "Linked issues (2)",
-                "Remote links (1)",
-                "Attachments (1)",
+                "Sub-tasks 1",
+                "Epic children 1",
+                "Linked issues 2",
+                "Remote links 1",
+                "Attachments 1",
                 "Comments",
             ],
             titles);
@@ -91,7 +91,7 @@ public class IssueRelationsBuilderTests
 
         var text = Text(Build(detail));
 
-        Assert.Contains("Epic children (1+)", text);
+        Assert.Contains("Epic children 1+", text);
         Assert.Contains("Showing the first children only.", text);
     }
 
@@ -116,8 +116,8 @@ public class IssueRelationsBuilderTests
         var document = Build(failed);
 
         Assert.Contains("No permission to search.", Section(document, "Epic children"));
-        Assert.Contains("Linked issues (2)", Text(document));
-        Assert.Contains("Attachments (1)", Text(document));
+        Assert.Contains("Linked issues 2", Text(document));
+        Assert.Contains("Attachments 1", Text(document));
         Assert.Contains(
             document.Lines.SelectMany(line => line.Spans),
             span => span.Role == TextRole.Error && span.Text == "No permission to search.");
@@ -131,7 +131,7 @@ public class IssueRelationsBuilderTests
 
         Assert.Contains("Network down.", Section(Build(failed), "Remote links"));
         Assert.Contains("Loading…", Section(Build(loading), "Remote links"));
-        Assert.Contains("Attachments (1)", Text(Build(failed)));
+        Assert.Contains("Attachments 1", Text(Build(failed)));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class IssueRelationsBuilderTests
 
         var text = Text(Build(Detail(issue)));
 
-        Assert.Contains("Attachments (3)", text);
+        Assert.Contains("Attachments 3", text);
         Assert.Contains("notes.txt · text/plain · 47 B · 2 d ago", text);
         Assert.Contains("photo.png · image/png · 3.3 MiB", text);
         Assert.Contains("mystery · unknown type · 2.0 KiB", text);

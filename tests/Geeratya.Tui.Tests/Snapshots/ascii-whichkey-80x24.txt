@@ -1,24 +1,24 @@
                                                                     [: commands]
                                                                                 
-                    +- <space> ------------------------------------------------+
-                    | c         Close the tab                                  |
-                    | t         Open the source picker for a new tab           |
-                    | Tab       Previously active tab                          |
-                    | T         Show a list of open tabs                       |
-                    | x         Dismiss the status message                     |
-                    | n         Show the message history                       |
-                    | g         Jump to an issue by key                        |
-                    | o         Open the issue in the browser                  |
-                    | p         Open the parent issue                          |
-                    | a         Open the actions menu of the selected issue    |
-                    | A         Open the actions menu of the tab and the view  |
-                    | r         Refresh the view (also retries after an error) |
-                    | l         Switch between list and columns                |
-                    | *         Switch the command level for the session       |
-                    | ,         Open or close the settings screen              |
-                    | m         +comment (2)                                   |
-                    | i         +issue (6)                                     |
-                    | s         +sprint (7)                                    |
-                    | v         +view (4)                                      |
-                    +----------------------------------------------------------+
++- Geeratya --------+- <space> ------------------------------------------------+
+|                   | c         Close the tab                                  |
+|                   | t         Open the source picker for a new tab           |
+|                   | Tab       Previously active tab                          |
+|                   | T         Show a list of open tabs                       |
+|                   | x         Dismiss the status message                     |
+|                   | n         Show the message history                       |
+|                   | g         Jump to an issue by key                        |
+|                   | o         Open the issue in the browser                  |
+|                   | p         Open the parent issue                          |
+|                   | a         Open the actions menu of the selected issue    |
+|                   | A         Open the actions menu of the tab and the view  |
+|                   | r         Refresh the view (also retries after an error) |
+|                   | l         Switch between list and columns                |
+|                   | *         Switch the command level for the session       |
+|                   | ,         Open or close the settings screen              |
+|                   | m         +comment (2)                                   |
+|                   | i         +issue (6)                                     |
+|                   | s         +sprint (7)                                    |
+|                   | v         +view (4)                                      |
++-------------------+----------------------------------------------------------+
 [NORMAL] <space>                                      ? help  : commands  q quit

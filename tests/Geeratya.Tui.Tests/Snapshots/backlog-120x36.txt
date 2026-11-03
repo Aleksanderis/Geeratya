@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL                    j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q quit
+ NORMAL  1/5               j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q quit

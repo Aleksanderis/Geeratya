@@ -1,0 +1,24 @@
+[1 JQL My open issues . x]  +                       [: commands] [<space>g jump]
+                                                                                
++- My open issues -------------------------------------------------- 0 issues -+
+|  Key    T Summary                                              Status        |
+| Loading...                                                                   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
++------------------------------------------------------------------------------+
+[NORMAL] loading                j/k move  Enter open  ? help  : commands  q quit

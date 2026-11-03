@@ -1,10 +1,10 @@
                                         
                                         
-                                        
-                                        
-  +- Actions ------------------------+  
-wo| > Show or hide help            ? |as
-  |   Edit the issue       <space>ie |  
-  |   Quit                         q |  
-  +----------------------------------+  
++- Geeratya -------------------- work -+
+|                                      |
+|w+- Actions ------------------------+l|
+| | > Show or hide help            ? | |
+| |   Edit the issue       <space>ie | |
+| |   Quit                         q | |
++-+----------------------------------+-+
 [INSERT]                                

@@ -23,6 +23,21 @@ public class ConnectionLineTests
     }
 
     [Fact]
+    public void GivenAnActiveProfile_WhenBuildingTheFramedStartScreen_ThenTheNameIsAChipAndTheBlockSitsInsideTheBorders()
+    {
+        var lines = FrameBuilder.Build(With(new Connected("Test User 1")), 80, 24, _keymap);
+
+        var top = lines.First(line => line.StartsWith("╭─ Geeratya"));
+
+        Assert.Contains("work", top);
+
+        var connected = lines.ToList().FindIndex(line => line.Contains("Connected as Test User 1"));
+
+        Assert.StartsWith("│", lines[connected]);
+        Assert.EndsWith("│", lines[connected]);
+    }
+
+    [Fact]
     public void GivenChecking_WhenBuildingTheStartScreen_ThenCheckingShowsAndNoLineOverflows()
     {
         var lines = FrameBuilder.Build(With(new Checking()), 40, 10, _keymap);

@@ -1,24 +1,24 @@
                                                                      : commands 
                                                                                 
-                                                                                
-                                                                                
-  ╭─ Switch sprint ──────────────────────────────────────────────────────────╮  
-  │ > _                                                                      │  
-  │ Active                                                                   │  
-  │ >         Sprint 12 日本語 (19 Oct - 2 Nov)                              │  
-  │ Future                                                                   │  
-  │           Future F1                                                      │  
-  │ Closed                                                                   │  
-  │           Sprint 12 (19 Oct - 31 Oct, closed 31 Oct)                     │  
-  │           Sprint 11 (19 Oct - 30 Oct, closed 30 Oct)                     │  
-  │           Sprint 10 (19 Oct - 29 Oct, closed 29 Oct)                     │  
-  │           Sprint 9 (19 Oct - 28 Oct, closed 28 Oct)                      │  
-  │           Sprint 8 (19 Oct - 27 Oct, closed 27 Oct)                      │  
-  │           Sprint 7 (19 Oct - 26 Oct, closed 26 Oct)                      │  
-  │           Sprint 6 (19 Oct - 25 Oct, closed 25 Oct)                      │  
-  │           Sprint 5 (19 Oct - 24 Oct, closed 24 Oct)                     ▼│  
-  │ ──────────────────────────────────────────────────────────────────────── │  
-  │ Up/Down choose   Enter open   Ctrl-t new tab   Esc close                 │  
-  ╰──────────────────────────────────────────────────────────────────────────╯  
-                                                                                
+╭─ Geeratya ──────────────────────────────────────────────────────────── work ─╮
+│                                                                              │
+│ ╭─ Switch sprint ──────────────────────────────────────────────────────────╮ │
+│ │ > _                                                                      │ │
+│ │ Active                                                                   │ │
+│ │ >         Sprint 12 日本語 (19 Oct - 2 Nov)                              │ │
+│ │ Future                                                                   │ │
+│ │           Future F1                                                      │ │
+│ │ Closed                                                                   │ │
+│ │           Sprint 12 (19 Oct - 31 Oct, closed 31 Oct)                     │ │
+│ │           Sprint 11 (19 Oct - 30 Oct, closed 30 Oct)                     │ │
+│ │           Sprint 10 (19 Oct - 29 Oct, closed 29 Oct)                     │ │
+│ │           Sprint 9 (19 Oct - 28 Oct, closed 28 Oct)                      │ │
+│ │           Sprint 8 (19 Oct - 27 Oct, closed 27 Oct)                      │ │
+│ │           Sprint 7 (19 Oct - 26 Oct, closed 26 Oct)                      │ │
+│ │           Sprint 6 (19 Oct - 25 Oct, closed 25 Oct)                      │ │
+│ │           Sprint 5 (19 Oct - 24 Oct, closed 24 Oct)                     ▼│ │
+│ │ ──────────────────────────────────────────────────────────────────────── │ │
+│ │ Up/Down choose   Enter open   Ctrl-t new tab   Esc close                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
  INSERT  switch sprint                        Down choose  Enter open  Esc close
