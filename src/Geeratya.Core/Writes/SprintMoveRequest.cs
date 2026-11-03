@@ -6,12 +6,17 @@ namespace Geeratya.Core.Writes;
 /// <summary>
 /// Move issues into a sprint, or out of their sprint into the backlog when <paramref name="Target"/> is null (agile
 /// API; at most 50 keys per call, longer lists are sent in chunks by the handler). Positional like a rank: no search
-/// proves it, so the tabs that show the issues reload afterwards. More than one issue asks first.
+/// proves it, so the tabs that show the issues reload afterwards. More than one issue asks first, and so does a drop.
 /// </summary>
 /// <param name="MoveKeys">The issues to move, in view order.</param>
 /// <param name="Target">The sprint to move into, null for the backlog.</param>
 /// <param name="SourceText">Where the issues are now, for the question, e.g. <c>the backlog</c>.</param>
-public sealed record SprintMoveRequest(IReadOnlyList<string> MoveKeys, IssueSprint? Target, string SourceText)
+/// <param name="Dropped">The target came from a drag with the pointer: asks first even for one issue.</param>
+public sealed record SprintMoveRequest(
+    IReadOnlyList<string> MoveKeys,
+    IssueSprint? Target,
+    string SourceText,
+    bool Dropped = false)
     : WriteRequest
 {
     private const int KeysShown = 8;
@@ -44,9 +49,12 @@ public sealed record SprintMoveRequest(IReadOnlyList<string> MoveKeys, IssueSpri
 
     public override bool ReadsBack => false;
 
-    public override string? AskText => Keys.Count > 1
-        ? $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText}? Jira has no undo."
-        : null;
+    public override string? AskText => (Keys.Count, Dropped) switch
+    {
+        ( > 1, _) => $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText}? Jira has no undo.",
+        (_, true) => $"Move {Keys[0]} from {SourceText} to {TargetText}? Jira has no undo.",
+        _ => null,
+    };
 
     public override string AskLabel => $"Move {Noun}";
 
