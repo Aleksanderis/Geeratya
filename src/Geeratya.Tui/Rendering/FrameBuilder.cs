@@ -19,6 +19,7 @@ public static class FrameBuilder
         new HelpBodyRenderer(),
         new MessagesBodyRenderer(),
         new IssueDetailRenderer(),
+        new BacklogBodyRenderer(),
         new ListBodyRenderer(),
         new ColumnsBodyRenderer(),
         new StartBodyRenderer(),

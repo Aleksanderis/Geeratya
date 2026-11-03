@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
@@ -46,6 +47,7 @@ public static class ViewReducer
             ViewCacheLoaded cached => CacheLoaded(state, cached),
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
             SprintLoaded sprint => SprintArrived(state, sprint),
+            SprintsLoaded sprints => SprintsReceived(state, sprints),
             ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
@@ -229,6 +231,11 @@ public static class ViewReducer
 
     private static TabState Resized(TabState tab, int height)
     {
+        if (BacklogSections.Applies(tab))
+        {
+            return BacklogCursor.Settle(tab, height);
+        }
+
         var position = ListMotion.Reveal(new ListPosition(tab.Selected, tab.Scroll), tab.Rows.Count, height);
 
         return tab with { VisibleRows = height, Selected = position.Selected, Scroll = position.Scroll };
@@ -320,6 +327,24 @@ public static class ViewReducer
         return Replace(state, tab with { Sprint = loaded.Sprint, SprintResolved = !loaded.LookupFailed });
     }
 
+    /// <summary>
+    /// The open and future sprints of a Scrum backlog load: kept in the tab for the section headers, applied only while
+    /// the request is the tab's current one.
+    /// </summary>
+    private static AppState SprintsReceived(AppState state, SprintsLoaded loaded)
+    {
+        var tab = Find(state.Session.Tabs, loaded.Tab);
+
+        if (tab is null || tab.RequestId != loaded.RequestId || tab.Load is not Loading)
+        {
+            return state;
+        }
+
+        var withSprints = tab with { Sprints = loaded.Sprints };
+
+        return Replace(state, tab.Rows.Count == 0 ? withSprints : KeepSelection(withSprints));
+    }
+
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>
     private static AppState TotalLoaded(AppState state, ViewTotalLoaded counted)
     {
@@ -343,6 +368,15 @@ public static class ViewReducer
         }
 
         var index = Math.Clamp(moved.Index, 0, tab.Rows.Count - 1);
+
+        if (BacklogSections.Applies(tab))
+        {
+            var placed = BacklogCursor.Place(tab, index);
+            var shown = Replace(state, placed);
+
+            return WantsNextPage(shown, placed) ? RequestNext(shown, placed, effects) : shown;
+        }
+
         var position = ListMotion.Reveal(new ListPosition(index, tab.Scroll), tab.Rows.Count, tab.VisibleRows);
         var selected = tab with { Selected = index, SelectedKey = tab.Rows[index].Key, Scroll = position.Scroll };
         var next = Replace(state, selected);
@@ -371,6 +405,11 @@ public static class ViewReducer
         if (tab.Definition.Layout == ViewLayout.Columns)
         {
             return MovedInColumns(state, ColumnsNavigation.Move(tab, move));
+        }
+
+        if (BacklogSections.Applies(tab))
+        {
+            return Reduce(state, new SelectionMoved(tab.Id, BacklogCursor.Move(tab, move).Selected));
         }
 
         var position = ListMotion.Move(
@@ -414,6 +453,16 @@ public static class ViewReducer
             var moved = ColumnsNavigation.Place(tab, placed.Width, placed.Column, placed.Row);
 
             return ReferenceEquals(moved, tab) ? null : MovedInColumns(state, moved);
+        }
+
+        if (BacklogSections.Applies(tab))
+        {
+            var line = tab.Scroll + placed.Row - ListLayout.HeaderRows;
+            var row = placed.Row < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows
+                ? null
+                : BacklogCursor.RowAtLine(BacklogSections.Build(tab), line);
+
+            return row is { } found ? Reduce(state, new SelectionMoved(tab.Id, found)) : null;
         }
 
         var index = tab.Scroll + placed.Row - ListLayout.HeaderRows;
@@ -787,7 +836,8 @@ public static class ViewReducer
         // A reply that lands while a write runs (or started before one ended) keeps the tab's own row for its keys.
         var merged = MergedRows(state, tab, loaded, combined, appended);
         var truncated = IsOverCap(combined.Count, loaded.Page.Next);
-        var rows = truncated ? merged.Take(ViewPaging.MaxRowsPerTab).ToArray() : merged;
+        var capped = truncated ? merged.Take(ViewPaging.MaxRowsPerTab).ToArray() : merged;
+        var rows = BacklogSections.Applies(tab) ? BacklogSections.Order(capped) : capped;
         var cursor = truncated ? null : loaded.Page.Next;
 
         var updated = tab with
@@ -812,7 +862,7 @@ public static class ViewReducer
                 : RefreshSchedule.AfterSuccess(loaded.At),
         };
 
-        var selected = appended ? updated : KeepSelection(updated);
+        var selected = appended && !BacklogSections.Applies(tab) ? updated : KeepSelection(updated);
 
         if (!appended)
         {
@@ -874,7 +924,7 @@ public static class ViewReducer
             return state;
         }
 
-        var rows = cached.View.Rows;
+        var rows = BacklogSections.Applies(tab) ? BacklogSections.Order(cached.View.Rows) : cached.View.Rows;
 
         if (rows.Count == 0)
         {
@@ -1051,6 +1101,11 @@ public static class ViewReducer
 
         var found = FindKey(rows, tab.SelectedKey);
         var selected = found >= 0 ? found : Math.Clamp(tab.Selected, 0, rows.Count - 1);
+
+        if (BacklogSections.Applies(tab))
+        {
+            return RowSelection.Pruned(BacklogCursor.Place(tab with { Selected = selected }, selected));
+        }
 
         var position = ListMotion.Reveal(new ListPosition(selected, tab.Scroll), rows.Count, tab.VisibleRows);
 

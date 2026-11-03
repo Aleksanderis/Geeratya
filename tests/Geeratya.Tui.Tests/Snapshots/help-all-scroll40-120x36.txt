@@ -14,8 +14,9 @@ Navigate
   Enter      Open the selected item                                                                                     
   0          Go to the first column                                                                                     
   $          Go to the last column                                                                                      
-  ] ]        Next section of the issue                                                                                  
-  [ [        Previous section of the issue                                                                              
+  ] ]        Next section of the issue or the Scrum backlog                                                             
+  [ [        Previous section of the issue or the Scrum backlog                                                         
+  z a        Collapse or expand the sprint section of the Scrum backlog                                                 
 General                                                                                                                 
   ?          Show or hide help                                                                                          
   q          Quit  (Ctrl-c)                                                                                             
@@ -32,5 +33,4 @@ Dialogs
   Enter      Run the typed command                                                                                      
   Backspace  Delete the last character                                                                                  
   y          Confirm                                                                                                    
-  n          Decline  (Esc)                                                                                             
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

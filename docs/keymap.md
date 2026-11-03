@@ -31,8 +31,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Enter` | Open the selected item | `item.open` | everyday |
 | `0` | Go to the first column | `nav.first-column` | everyday |
 | `$` | Go to the last column | `nav.last-column` | everyday |
-| `] ]` | Next section of the issue | `detail.section-next` | everyday |
-| `[ [` | Previous section of the issue | `detail.section-previous` | everyday |
+| `] ]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
+| `[ [` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
+| `z a` | Collapse or expand the sprint section of the Scrum backlog | `section.toggle` | everyday |
 | `Tab` | Next tab | `tab.next` | everyday |
 | `g t` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |

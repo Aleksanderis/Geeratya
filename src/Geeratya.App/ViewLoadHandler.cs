@@ -4,6 +4,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
@@ -29,6 +30,7 @@ public sealed class ViewLoadHandler
     private const string BacklogWithSprintsJql =
         "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
     private const string UnsupportedSourceMessage = "This kind of view cannot be loaded yet.";
+    private const int MaxSprintPages = 10;
     private const string InvalidBoardMessage = "The board id is not a number.";
 
     private readonly NetworkRunner _runner;
@@ -194,6 +196,11 @@ public sealed class ViewLoadHandler
                 }
             }
 
+            if (effect.Definition.Source == ViewSourceKind.ScrumBacklog && NeedsConfiguration(effect))
+            {
+                await ReportSprintsAsync(services, effect, id, report, token);
+            }
+
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
             var kind = effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog
                 ? BoardKind.Scrum
@@ -235,6 +242,44 @@ public sealed class ViewLoadHandler
         var first = active.IsSuccess && active.Value.Count > 0 ? active.Value[0] : null;
 
         return new SprintLoaded(effect.Tab, effect.RequestId, first, !active.IsSuccess);
+    }
+
+    /// <summary>
+    /// The open and future sprints of the board, for the section headers of the Scrum backlog (dates, goal, sprints
+    /// with no issue yet). A failed list posts nothing: the sections then take their names from the issues.
+    /// </summary>
+    private static async Task ReportSprintsAsync(
+        JiraServices services,
+        LoadViewPageEffect effect,
+        long boardId,
+        Action<Command> report,
+        CancellationToken token)
+    {
+        var sprints = new List<Sprint>();
+        var priority = effect.Background ? JiraPriority.Background : JiraPriority.User;
+        var query = new SprintQuery([SprintState.Active, SprintState.Future], SprintClient.MaxPageSize)
+        {
+            Priority = priority,
+        };
+
+        for (var page = 0; page < MaxSprintPages; page++)
+        {
+            var result = await services.Sprints.ListSprintsAsync(boardId, query, sprints.Count, token);
+
+            if (!result.IsSuccess)
+            {
+                return;
+            }
+
+            sprints.AddRange(result.Value.Items);
+
+            if (result.Value.IsLast || result.Value.Items.Count == 0)
+            {
+                break;
+            }
+        }
+
+        report(new SprintsLoaded(effect.Tab, effect.RequestId, sprints));
     }
 
     private async Task<Command?> BoardPageAsync(

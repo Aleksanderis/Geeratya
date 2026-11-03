@@ -15,6 +15,9 @@ public sealed class ViewLoadHandlerScrumTests
 {
     private const string NoSprints = """{"errorMessages":["The board does not support sprints"],"errors":{}}""";
     private const string SprintPage = """{"maxResults":1,"startAt":0,"isLast":true,"values":[]}""";
+    private const string ActiveAndFutureSprints =
+        """{"maxResults":50,"startAt":0,"isLast":true,"values":[{"id":7,"state":"active","name":"Sprint 1","originBoardId":6},{"id":8,"state":"future","name":"Sprint 2","originBoardId":6}]}""";
+
     private const string OpenSprints = "sprint in openSprints()";
 
     private const string FirstPage =
@@ -182,16 +185,36 @@ public sealed class ViewLoadHandlerScrumTests
         using var fixture = await ConnectedAsync(
             http => http
                 .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.OK, ActiveAndFutureSprints)
                 .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
                 .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
 
-        await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, "6");
+        var state = await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, "6");
 
-        Assert.Equal("/rest/agile/1.0/board/6/issue", fixture.Path(2));
+        Assert.Equal("/rest/agile/1.0/board/6/issue", fixture.Path(3));
         Assert.Contains(
             "jql=sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY",
-            Uri.UnescapeDataString(fixture.Query(2)));
-        Assert.Contains("customfield_10020", fixture.Query(2));
+            Uri.UnescapeDataString(fixture.Query(3)));
+        Assert.Contains("customfield_10020", fixture.Query(3));
+        Assert.Equal(["Sprint 1", "Sprint 2"], state.Session.Tabs[0].Sprints.Select(sprint => sprint.Name));
+    }
+
+    [Fact]
+    public async Task GivenScrumBacklogSource_WhenTheSprintListFails_ThenTheIssuesStillLoadWithoutSprintMetadata()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-gcs-config.json"))
+                .Reply(HttpStatusCode.Forbidden, "{}")
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gcs.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.ScrumBacklog, "6");
+
+        var tab = state.Session.Tabs[0];
+        Assert.Equal(LoadState.Idle, tab.Load);
+        Assert.Empty(tab.Sprints);
+        Assert.Equal(19, tab.Rows.Count);
     }
 
     [Fact]

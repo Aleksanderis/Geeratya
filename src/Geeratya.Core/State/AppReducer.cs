@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.CommandPalette;
@@ -538,8 +539,11 @@ public sealed class AppReducer
             ActionIds.NavigateLastColumn => NavigateColumn(state, BoardColumnMove.Last),
             ActionIds.ViewLayoutToggle => ToggleLayout(state),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
-            ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
-            ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
+            ActionIds.SectionNext => InNormal(state, () => BacklogActions.Jump(state, 1) ?? DetailActions.Section(state, 1)),
+            ActionIds.SectionPrevious => InNormal(
+                state,
+                () => BacklogActions.Jump(state, -1) ?? DetailActions.Section(state, -1)),
+            ActionIds.SectionToggle => InNormal(state, () => BacklogActions.Toggle(state) ?? Result(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
             ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),
@@ -570,7 +574,7 @@ public sealed class AppReducer
     /// </summary>
     private static ReduceResult OpenItem(AppState state)
     {
-        return DetailActions.EnterBrowserRow(state) ?? ViewReducer.OpenSelected(state);
+        return BacklogActions.Enter(state) ?? DetailActions.EnterBrowserRow(state) ?? ViewReducer.OpenSelected(state);
     }
 
     private static ReduceResult InNormal(AppState state, Func<ReduceResult> action)
