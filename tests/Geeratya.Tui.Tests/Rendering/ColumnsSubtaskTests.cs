@@ -281,22 +281,14 @@ public class ColumnsSubtaskTests
 
     private readonly record struct Cell(int Column, int Row);
 
+    // The cell is read from the drawn frame (the line with the fold mark), not from the geometry under test.
     private static Cell SubtaskRowCell(AppState state)
     {
-        var tab = Active(state);
+        var lines = FrameBuilder.Build(state, Width, Height, _keymap);
+        var top = lines.ToList().FindIndex(line => line.StartsWith('╭'));
+        var line = lines.ToList().FindIndex(each => each.Contains("▸ Sub-tasks", StringComparison.Ordinal));
 
-        for (var row = 0; row < Rows + 4; row++)
-        {
-            for (var column = 0; column < Width; column++)
-            {
-                if (ColumnsNavigation.IsSubtaskRowAt(tab, Width, column, row))
-                {
-                    return new Cell(column, row);
-                }
-            }
-        }
-
-        throw new InvalidOperationException("No sub-task row is on screen.");
+        return new Cell(lines[line].IndexOf("▸ Sub-tasks", StringComparison.Ordinal), line - top);
     }
 
     private static async Task<AppState> OpenAsync(string kind, bool filtered, string selectKey)
