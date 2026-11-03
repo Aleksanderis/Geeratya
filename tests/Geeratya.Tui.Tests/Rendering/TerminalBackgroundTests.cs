@@ -126,7 +126,7 @@ public class TerminalBackgroundTests
         var plain = AnsiFrameWriter.Write(frame, BuiltInThemes.Default, tier, true);
         var kept = AnsiFrameWriter.Write(frame, BuiltInThemes.Default.WithTerminalBackground(true), tier, true);
 
-        Assert.DoesNotContain(plain, line => line.Contains(";49", StringComparison.Ordinal));
-        Assert.Contains(kept, line => line.Contains(";49", StringComparison.Ordinal));
+        Assert.DoesNotContain(plain, line => line.Contains(";49m", StringComparison.Ordinal));
+        Assert.Contains(kept, line => line.Contains(";49m", StringComparison.Ordinal));
     }
 }

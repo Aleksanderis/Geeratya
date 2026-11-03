@@ -222,7 +222,7 @@ public static class PaletteTable
                 Foreground16(theme, spec),
                 Background16(theme, spec),
                 spec.Style,
-                IsOnPage(role, spec));
+                IsOnPage(spec));
         }
 
         return entries;
@@ -230,9 +230,9 @@ public static class PaletteTable
 
     // A role on the page background (no fill of its own): the roles that keep the terminal's background when the
     // theme is drawn transparent. Tints (selection, range), the bars and the chips are fills and stay painted.
-    private static bool IsOnPage(PaletteRole role, RoleSpec spec)
+    private static bool IsOnPage(RoleSpec spec)
     {
-        return spec.Background == ThemeColor.BaseBackground && role is not (PaletteRole.SelectedDim or PaletteRole.Range);
+        return spec.Background == ThemeColor.BaseBackground;
     }
 
     // The selection of a pane without focus: the theme's selection tint moved halfway to the page, so it stays a

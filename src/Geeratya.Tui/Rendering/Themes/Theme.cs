@@ -44,7 +44,7 @@ public sealed class Theme
     }
 
     /// <summary>
-    /// The page and the cards keep the terminal's own background (the <c>transparentBackground</c> setting). Text
+    /// The page and the cards keep the terminal's own background (the <c>transparent</c> setting). Text
     /// roles keep the theme's colours, fills (selection, bars, chips) and the overlay box stay painted.
     /// </summary>
     public bool KeepTerminalBackground { get; }

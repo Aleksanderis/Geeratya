@@ -83,8 +83,8 @@ public sealed partial class PrintFrameTests : IDisposable
         new ApplicationRunner(transparent, false, createProfiles: ServicesWithSettings)
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
-        Assert.DoesNotContain(";49", painted.ToString(), StringComparison.Ordinal);
-        Assert.Contains(";49", transparent.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(";49m", painted.ToString(), StringComparison.Ordinal);
+        Assert.Contains(";49m", transparent.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
