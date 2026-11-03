@@ -20,7 +20,7 @@ Layering is `Jira -> Core -> App -> Tui` (Tui references all of them), with `Pla
 
 ## View model
 
-A view is a source plus a layout (`docs/decisions.md`, 2026-11-01). `ViewDefinition(ViewSourceKind Source, string SourceValue, ViewLayout Layout)` in `Core/Views`: sources are JQL, saved filter, board and backlog; layouts are list and columns. Issue details and every write work the same in every view. A new board kind is a new source or layout, not new loading code. All view state belongs to a tab; nothing is global.
+A view is a source plus a layout (`docs/decisions.md`, 2026-11-01). `ViewDefinition(ViewSourceKind Source, string SourceValue, ViewLayout Layout)` in `Core/Views`: sources are JQL, saved filter, board, backlog, sprint (`SprintSource` value `boardId:sprintId` or `boardId:active`, load filtered by `sprint = <id>` or `openSprints()`) and Scrum backlog (every issue of a Scrum board, board id as value); layouts are list and columns (columns also for a sprint). `SprintSwitched` changes a sprint tab to another sprint: the old load is cancelled, a late reply ignored. The sections layout of the Scrum backlog is a later issue. Issue details and every write work the same in every view. A new board kind is a new source or layout, not new loading code. All view state belongs to a tab; nothing is global.
 
 ## Views and tabs
 

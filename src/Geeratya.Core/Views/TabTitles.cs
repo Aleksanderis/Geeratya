@@ -15,7 +15,8 @@ public static class TabTitles
         var prefix = definition.Source switch
         {
             ViewSourceKind.Board => "Board",
-            ViewSourceKind.Backlog => "Backlog",
+            ViewSourceKind.Backlog or ViewSourceKind.ScrumBacklog => "Backlog",
+            ViewSourceKind.Sprint => "Sprint",
             ViewSourceKind.SavedFilter => "Filter",
             _ => "JQL",
         };

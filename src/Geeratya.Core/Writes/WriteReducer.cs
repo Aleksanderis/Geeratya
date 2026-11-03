@@ -607,7 +607,7 @@ public static class WriteReducer
 
     private static bool IsRankOrdered(TabState tab)
     {
-        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+        return tab.Definition.Source.IsBoardBased();
     }
 
     /// <summary>Applies or undoes the order part of a change in every tab; the selection follows its issue.</summary>

@@ -233,7 +233,7 @@ public static class RankActions
             return null;
         }
 
-        if (tab.Definition.Source is not (ViewSourceKind.Board or ViewSourceKind.Backlog))
+        if (!tab.Definition.Source.IsBoardBased())
         {
             refusal = NotRankedText;
 

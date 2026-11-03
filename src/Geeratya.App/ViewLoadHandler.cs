@@ -53,7 +53,7 @@ public sealed class ViewLoadHandler
     {
         var jql = ViewQuery.JqlFor(effect.Definition);
 
-        if (effect.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog)
+        if (effect.Definition.Source.IsBoardBased())
         {
             return _runner.StartReporting(
                 effect.Tab.Value,
@@ -159,7 +159,7 @@ public sealed class ViewLoadHandler
         Action<Command> report,
         CancellationToken token)
     {
-        if (!long.TryParse(effect.Definition.SourceValue, NumberStyles.None, CultureInfo.InvariantCulture, out var id))
+        if (!TryBoardId(effect.Definition, out var id))
         {
             return Failure(effect, InvalidBoardMessage);
         }
@@ -201,7 +201,11 @@ public sealed class ViewLoadHandler
     {
         var query = new BoardIssueQuery();
 
-        if (kind == BoardKind.Scrum)
+        // The sprint sources exist only for Scrum boards, so they read sprints even when the kind probe failed.
+        var scrum = kind == BoardKind.Scrum
+            || effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog;
+
+        if (scrum)
         {
             query = await ScrumQueryAsync(services, effect, id, query, token);
         }
@@ -282,9 +286,42 @@ public sealed class ViewLoadHandler
         var fields = await services.Fields.GetForBoardAsync(id, token, priority);
         var withFields = fields.IsSuccess ? query with { Extras = fields.Value } : query;
 
-        return effect.Definition.Source == ViewSourceKind.Board
-            ? withFields with { Jql = OpenSprintsJql }
-            : withFields;
+        return withFields with { Jql = SprintJql(effect.Definition) };
+    }
+
+    /// <summary>
+    /// The sprint filter of a source: open sprints for a board, one sprint or the open ones for a sprint view, none for
+    /// the backlog endpoint and for the Scrum backlog (which shows every sprint and the backlog).
+    /// </summary>
+    private static string? SprintJql(ViewDefinition definition)
+    {
+        if (definition.Source == ViewSourceKind.Board)
+        {
+            return OpenSprintsJql;
+        }
+
+        if (definition.Source == ViewSourceKind.Sprint
+            && SprintSource.TryParse(definition.SourceValue, out var sprint))
+        {
+            return sprint.SprintId is { } id
+                ? $"sprint = {id.ToString(CultureInfo.InvariantCulture)}"
+                : OpenSprintsJql;
+        }
+
+        return null;
+    }
+
+    private static bool TryBoardId(ViewDefinition definition, out long id)
+    {
+        if (definition.Source == ViewSourceKind.Sprint)
+        {
+            var parsed = SprintSource.TryParse(definition.SourceValue, out var sprint);
+            id = sprint.BoardId;
+
+            return parsed;
+        }
+
+        return long.TryParse(definition.SourceValue, NumberStyles.None, CultureInfo.InvariantCulture, out id);
     }
 
     /// <summary>

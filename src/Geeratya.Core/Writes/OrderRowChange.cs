@@ -89,7 +89,7 @@ public sealed record OrderRowChange(
 
     private static bool IsRankOrdered(TabState tab)
     {
-        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+        return tab.Definition.Source.IsBoardBased();
     }
 
     private static IssueSummary[] Move(

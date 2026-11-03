@@ -39,6 +39,7 @@ public static class ViewReducer
             TabActivated activated => Activate(state, activated.Tab, effects),
             TabClosed closed => Close(state, closed.Tab, effects),
             ViewLayoutChanged changed => ChangeLayout(state, changed),
+            SprintSwitched switched => SwitchSprint(state, switched, effects),
             ViewportChanged viewport => ChangeViewport(state, viewport, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
@@ -120,6 +121,55 @@ public static class ViewReducer
         var neighbour = remaining[Math.Min(index, remaining.Length - 1)];
 
         return Show(closed, neighbour.Id, effects);
+    }
+
+    private static AppState SwitchSprint(AppState state, SprintSwitched switched, List<Effect> effects)
+    {
+        var tab = Find(state.Session.Tabs, switched.Tab);
+        var value = switched.Sprint.ToString();
+
+        if (tab is null || tab.Definition.Source != ViewSourceKind.Sprint || tab.Definition.SourceValue == value)
+        {
+            return state;
+        }
+
+        var requestId = state.Sequence + 1;
+        var definition = tab.Definition with { SourceValue = value, Title = switched.Title };
+
+        // Everything that belonged to the old sprint goes: rows, paging, selection, marks and the cursor. The layout
+        // and the board configuration stay.
+        var reopened = tab with
+        {
+            Definition = definition,
+            Rows = [],
+            PendingRows = null,
+            Next = null,
+            Truncated = false,
+            Selected = 0,
+            SelectedKey = null,
+            Scroll = 0,
+            Load = new Loading(LoadReason.Open),
+            RequestId = requestId,
+            IsStale = false,
+            Failures = 0,
+            NextRefreshAt = null,
+            KeyWidth = 0,
+            Cursor = null,
+            Total = null,
+            TotalIsApproximate = false,
+            Marks = [],
+            VisualAnchor = null,
+            RankPickup = null,
+            ProtectedKeys = [],
+            ProtectedRows = [],
+            RemovedKeys = [],
+            RefreshQueued = false,
+        };
+
+        effects.Add(new CancelTabEffect(tab.Id));
+        effects.Add(new LoadViewPageEffect(tab.Id, definition, null, requestId, LoadReason.Open, false));
+
+        return Replace(state, reopened) with { Sequence = requestId };
     }
 
     private static AppState ChangeLayout(AppState state, ViewLayoutChanged changed)
@@ -233,7 +283,7 @@ public static class ViewReducer
 
     private static bool LoadsAllPages(ViewSourceKind source)
     {
-        return source is ViewSourceKind.Board or ViewSourceKind.Backlog;
+        return source.IsBoardBased();
     }
 
     /// <summary>
@@ -417,7 +467,7 @@ public static class ViewReducer
             return new ReduceResult(state, _noEffects);
         }
 
-        if (layout == ViewLayout.Columns && tab.Definition.Source != ViewSourceKind.Board)
+        if (layout == ViewLayout.Columns && tab.Definition.Source is not (ViewSourceKind.Board or ViewSourceKind.Sprint))
         {
             return new ReduceResult(state with { Message = NoColumnsText }, _noEffects);
         }

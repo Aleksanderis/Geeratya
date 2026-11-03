@@ -132,7 +132,7 @@ public static class HelpPages
             return ActionScope.Columns;
         }
 
-        return tab.Definition.Source == ViewSourceKind.Backlog ? ActionScope.Backlog : ActionScope.List;
+        return tab.Definition.Source is ViewSourceKind.Backlog or ViewSourceKind.ScrumBacklog ? ActionScope.Backlog : ActionScope.List;
     }
 
     private static string NameOf(ActionScope layout)

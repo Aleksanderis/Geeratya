@@ -17,6 +17,12 @@ public sealed record TabActivated(TabId Tab) : ViewCommand;
 /// <summary>Close a tab and cancel its work.</summary>
 public sealed record TabClosed(TabId Tab) : ViewCommand;
 
+/// <summary>
+/// Show another sprint in a sprint tab: the tab's source value becomes <paramref name="Sprint"/> and its first page is
+/// loaded again; the old load is cancelled and its late reply ignored. Does nothing for other tabs or the same sprint.
+/// </summary>
+public sealed record SprintSwitched(TabId Tab, SprintSource Sprint, string Title) : ViewCommand;
+
 /// <summary>Change how a tab shows its rows; everything else is kept.</summary>
 public sealed record ViewLayoutChanged(TabId Tab, ViewLayout Layout) : ViewCommand;
 
