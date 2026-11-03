@@ -291,6 +291,8 @@ GCM board › GCM-12 · Top
 
 ## Tab bar
 
+> The tab rows in the sketches of this document (`[3 JQL: ...]`, a colon after the kind, a bracketed active tab) predate the chip look; the rule is the paragraphs below and [ux-look.md](ux-look.md), section 5.
+
 One line at the top on the bar background (look: [ux-look.md](ux-look.md), section 5). Each tab is a padded chip ` <number> <kind> <name> ` (`Alt-1` to `Alt-9` go there), chips separated by one bar cell. The active chip is filled with the accent and bold (bold without fill in the no-colour tier, where the bar itself is reversed); inactive chips are muted text on the bar. Kinds: `Board`, `Backlog`, `Sprint`, `Filter`, `JQL` (no colon); a label (`<kind> <name>`) is cut to 24 cells, inactive ones shrink towards 8 when the line is short. A chip shows `…` after its label while loading and `!` when its last load failed. An issue opened inside a tab does not rename the tab. At 80 columns and more the active chip ends with ` x` (click closes the tab, `docs/ux-mouse.md`). In the ASCII glyph set the padding cells of every chip become brackets (`[1 Board GCM]`, same width).
 
 Overflow: when the chips do not fit, the window of tabs slides so the active one is fully visible, `‹n` (tabs hidden on the left) and `+n ›` (right) mark the cut ends as dim chips, and inactive labels shrink towards 8 cells before any is hidden. Under 40 columns only the active chip and the `+` remain (no marks; `Alt-N`, `Tab` and `Shift-Tab` still switch). At 120 columns:

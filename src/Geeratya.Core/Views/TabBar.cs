@@ -331,7 +331,7 @@ public static class TabBar
 
             var itemWidth = DisplayWidth.Of(texts[index]);
             var isActive = index == activeIndex;
-            var close = isActive && closeable ? new TabButton(column + itemWidth - CloseMark.Length, column + itemWidth) : (TabButton?)null;
+            var close = CloseCells(isActive && closeable, column + itemWidth);
 
             spans.Add(new StyledSpan(texts[index], isActive ? TextRole.TabActive : TextRole.TabDim));
             areas.Add(new TabArea(tabs[index].Id, column, column + itemWidth, close));
@@ -363,6 +363,11 @@ public static class TabBar
         }
 
         return new BarLayout(new StyledLine(spans), areas, null);
+    }
+
+    private static TabButton? CloseCells(bool shown, int chipEnd)
+    {
+        return shown ? new TabButton(chipEnd - CloseMark.Length, chipEnd) : null;
     }
 
     private static string HiddenLeft(int hidden)

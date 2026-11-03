@@ -62,7 +62,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Tabs | Right-click | `menu.view` | V | Switches to the clicked tab and opens the menu of the tab and the view: close tab, previous tab (with several tabs), toggle layout, jump to an issue, help, quit; same as `<space>A` |
 | Status | Right-click | `menu.view` | V | Opens the same menu of the tab and the view (the command palette stays on a click) |
 | StatusMessage | Right-click | `menu.view` | V | Same as a right-click on the rest of the line |
-| TabClose | Click | `tab.close` | B | The `x` on the active tab chip (drawn from 80 columns): closes that tab, asks like `:tab close` does |
+| TabClose | Click | `tab.close` | B | The `x` on the active tab chip (drawn from 80 columns): closes that tab at once, like `tab.close` (closing a tab is not a Jira write) |
 | NewTabButton | Click | `tab.new` | B | Opens the source picker, same as `<space>t`; the `+` after the last tab, drawn when the bar has a spare cell and shows no hidden-tab mark |
 | JumpChip | Click | `issue.jump` | B | Opens the jump prompt, same as `<space>g`; the ` Space g jump ` chip at the right end of the tab bar row (the keys come from the keymap), drawn when the bar has room (at least one spare cell after the last chip or the `+`) |
 | Banner | Click | `view.refresh` | B | Retries or refreshes, same as `<space>r`; only while the banner row shows a line (offline, rate limited, stale, error) |

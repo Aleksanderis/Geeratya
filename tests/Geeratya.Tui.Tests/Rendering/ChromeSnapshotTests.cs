@@ -14,7 +14,6 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// (<c>docs/ux-look.md</c>, sections 5 and 6). To refresh the snapshots after an intended change, run with
 /// <c>GEERATYA_UPDATE_SNAPSHOTS=1</c> and review the diff.
 /// </summary>
-[Trait("Os", "Independent")]
 public class ChromeSnapshotTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
