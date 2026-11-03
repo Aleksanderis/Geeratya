@@ -17,6 +17,7 @@ public static class StatusBar
     private const string Separator = " · ";
     private const string PickerPrompt = "open a view";
     private const string SprintPrompt = "switch sprint";
+    private const string MovePrompt = "move to sprint";
     private const string JumpPrompt = "jump to an issue";
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
@@ -409,7 +410,12 @@ public static class StatusBar
             return notice;
         }
 
-        return picker.Scope == PickerScope.Sprints ? SprintPrompt : PickerPrompt;
+        if (picker.Scope != PickerScope.Sprints)
+        {
+            return PickerPrompt;
+        }
+
+        return picker.Sprint?.MoveKeys is null ? SprintPrompt : MovePrompt;
     }
 
     /// <summary>

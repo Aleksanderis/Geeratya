@@ -2,7 +2,8 @@ namespace Geeratya.Jira.Writes.Models;
 
 /// <summary>
 /// A failed Jira write. The message never contains credentials or raw HTML. <see cref="FieldErrors"/> is keyed by
-/// field id; <see cref="Messages"/> holds the general <c>errorMessages</c>.
+/// field id; <see cref="Messages"/> holds the general <c>errorMessages</c>. <see cref="FailedKeys"/> is set by
+/// a write over several issues that took some of them: the keys that were not applied (null when unknown or all).
 /// </summary>
 public sealed record WriteError(
     WriteErrorKind Kind,
@@ -10,7 +11,8 @@ public sealed record WriteError(
     string Message,
     IReadOnlyList<WriteFieldError> FieldErrors,
     IReadOnlyList<string> Messages,
-    TimeSpan? RetryAfter = null)
+    TimeSpan? RetryAfter = null,
+    IReadOnlyList<string>? FailedKeys = null)
 {
     /// <summary>
     /// True when the write may have been applied (timeout, lost or unreadable reply). Reload the issue before

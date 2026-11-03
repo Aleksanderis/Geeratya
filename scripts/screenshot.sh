@@ -85,6 +85,7 @@ all_scenarios=(
   "backlog;120;36;dark;:backlog GCM|;GCM"
   "filter;120;36;dark;:filter Filter for GCM|;GCM"
   "backlog-sprints;120;36;dark;:backlog GEN board|;Generated Sprint 3"
+  "sprint-move;120;36;dark;:backlog GEN board| sm;Move to sprint"
   "backlog-sprints-collapsed;120;36;dark;:backlog GEN board|za]];Generated Sprint 3"
   "sprint-form-create;120;36;dark;:backlog GCS board| snSprint 4|Ship it|2026-12-01 09:00;Create sprint"
   "sprint-form-edit;120;36;dark;:backlog GCS board| se;Edit sprint"

@@ -73,6 +73,12 @@ public static class ContextMenus
             actions.Remove(ActionIds.IssueUnlink);
             actions.AddRange(_rankActions);
 
+            if (SprintBoards.BoardOf(tab.Definition) is not null)
+            {
+                actions.Add(ActionIds.SprintMoveIssues);
+                actions.Add(ActionIds.SprintMoveToBacklog);
+            }
+
             if (BacklogSections.Applies(tab))
             {
                 actions.Add(ActionIds.SectionToggle);

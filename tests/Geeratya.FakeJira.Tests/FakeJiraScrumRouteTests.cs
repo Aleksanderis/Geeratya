@@ -234,6 +234,22 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenTeamManagedBacklogIssue_WhenMovedToActiveSprintTwiceAndBack_ThenTheFakeKeepsOneMembershipAndNoError()
+    {
+        var first = await Send(HttpMethod.Post, $"{Agile}/sprint/10/issue", """{"issues":["GTS-22"]}""");
+        var again = await Send(HttpMethod.Post, $"{Agile}/sprint/10/issue", """{"issues":["GTS-22"]}""");
+        var active = Keys(await Json($"{Agile}/sprint/10/issue"));
+        var back = await Send(HttpMethod.Post, $"{Agile}/backlog/issue", """{"issues":["GTS-22"]}""");
+        var backlog = Keys(await Json($"{Agile}/board/5/backlog"));
+
+        Assert.Equal(HttpStatusCode.NoContent, first.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, again.StatusCode);
+        Assert.Single(active, key => key == "GTS-22");
+        Assert.Equal(HttpStatusCode.NoContent, back.StatusCode);
+        Assert.Contains("GTS-22", backlog);
+    }
+
+    [Fact]
     public async Task GivenUnknownIssueAmongKeys_WhenMoved_ThenBadRequestAndNoneMoves()
     {
         var move = await Send(HttpMethod.Post, $"{Agile}/sprint/8/issue", """{"issues":["GCS-18","GCS-999"]}""");
