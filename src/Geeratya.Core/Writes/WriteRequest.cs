@@ -13,6 +13,9 @@ public abstract record WriteRequest
     /// <summary>The issues the write changes; a second write on any of them is refused while this one runs.</summary>
     public abstract IReadOnlyList<string> Keys { get; }
 
+    /// <summary>Extra field ids the read-back must request so <see cref="IsShownBy"/> can see the change.</summary>
+    public virtual IReadOnlyList<string> ReadBackFieldIds => [];
+
     /// <summary>
     /// Whether the write changes what the list rows and the issue header show. False for a write that only touches
     /// the issue's comments: no row is marked stale, no search is read and the issue is not reloaded.

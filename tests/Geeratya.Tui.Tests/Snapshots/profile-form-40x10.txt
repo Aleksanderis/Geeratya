@@ -1,0 +1,10 @@
+                                        
+                                        
+  ┌─ Add profile  [4/4] ─────────────┐  
+  │ Your Jira API token (hidden).    │  
+  │ > ******************_            │  
+  │                                  │  
+  │ Enter save   Esc cancel          │  
+  └──────────────────────────────────┘  
+                                        
+ INSERT [4/4] API token (hidden)        

@@ -1,10 +1,10 @@
  [1 Board: Sample]  +            [jump] 
                                         
-Help                                    
-Columns  Global  All actions  Commands  
-  j          Move down  (Down)          
-  k          Move up  (Up)              
-  h          Move left  (Left)          
-  l          Move right  (Right)        
-  g g        Go to the top  (Home)      
+Sample · 1 issue                        
+  ┌─ Help ───────────────────────────┐  
+  │ > Columns     │   j              │  
+  │   Global      │         Move     │  
+  │   All actions │         down     │  
+  └──────────────────────────────────┘  
+└──────────────────────────────────────┘
  HELP                                   

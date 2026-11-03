@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -7,6 +8,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Tui.Rendering;
 using Xunit.Abstractions;
 
@@ -50,6 +52,28 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         var state = Active(Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false));
 
         Report("list 10k rows, nav key + frame", TimeKeys(state, ["Ctrl-d", "j"]));
+    }
+
+    [MeasurementFact]
+    public void ScrumBacklogOf10kRowsInTwentySprints_NavKeyThroughReducerAndFrame()
+    {
+        var sprints = Enumerable.Range(1, 20)
+            .Select(id => new IssueSprint(id, $"Sprint {id}", SprintState.Future))
+            .ToArray();
+        var rows = Issues(false)
+            .Select(row => row with { })
+            .Select((row, index) => index % 21 == 20 ? row : WithSprint(row, sprints[index % 21]))
+            .ToArray();
+        var definition = new ViewDefinition(ViewSourceKind.ScrumBacklog, "7", ViewLayout.List, "View");
+        var tab = TabState.Opened(new TabId(1), definition, 1, 1, Height - 4) with
+        {
+            Load = LoadState.Idle,
+            Rows = BacklogSections.Order(rows),
+            SelectedKey = rows[0].Key,
+            KeyWidth = 7,
+        };
+
+        Report("scrum backlog 10k rows, 21 sections, nav key + frame", TimeKeys(Active(tab), ["Ctrl-d", "j"]));
     }
 
     [MeasurementTheory]
@@ -109,6 +133,11 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         }
 
         return rows;
+    }
+
+    private static IssueSummary WithSprint(IssueSummary row, IssueSprint sprint)
+    {
+        return row with { Sprints = [sprint] };
     }
 
     private static TabState Tab(ViewLayout layout, ViewSourceKind kind, bool withParents)

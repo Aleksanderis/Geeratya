@@ -1,24 +1,24 @@
  [1 JQL: Sample]  +                                                      [jump] 
                                                                                 
-Help                                                                            
-List  Global  All actions  Commands  Custom                                     
-  Unbound: q                                                                    
-  Ctrl-q     Quit (app.quit)                                                    
+Sample · 1 issue                                                                
+  ┌─ Help ───────────────────────────────────────────────────────────────────┐  
+  │   List        │   Unbound: q                                             │  
+  │   Global      │   Ctrl-q     Quit (app.quit)                             │  
+  │   All actions │                                                          │  
+  │   Commands    │                                                          │  
+  │ > Custom      │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  │               │                                                          │  
+  └──────────────────────────────────────────────────────────────────────────┘  
                                                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- HELP                                Tab page  / filter  j down  k up  Esc close
+ HELP                                   j section  J scroll  / filter  Esc close

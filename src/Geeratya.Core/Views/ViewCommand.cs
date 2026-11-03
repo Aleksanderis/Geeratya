@@ -64,6 +64,12 @@ public sealed record SprintLoaded(TabId Tab, long RequestId, Sprint? Sprint, boo
     : ViewCommand;
 
 /// <summary>
+/// The open and future sprints of a Scrum backlog, reported ahead of its first issue page; applied only while
+/// <paramref name="RequestId"/> is the tab's current request.
+/// </summary>
+public sealed record SprintsLoaded(TabId Tab, long RequestId, IReadOnlyList<Sprint> Sprints) : ViewCommand;
+
+/// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab
 /// refreshes; time is only ever read from here and from the replies.
 /// </summary>

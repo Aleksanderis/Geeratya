@@ -47,7 +47,7 @@ public sealed class SourceLoadHandlerTests
 
         await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(6));
 
-        var loaded = Assert.IsType<SprintsLoaded>(Assert.Single(fixture.Posted));
+        var loaded = Assert.IsType<SprintListLoaded>(Assert.Single(fixture.Posted));
         Assert.Equal(6, loaded.BoardId);
         Assert.Equal(["S1", "S2"], loaded.Sprints.Select(sprint => sprint.Name));
         var request = Assert.Single(fixture.Http.Requests);
@@ -68,7 +68,7 @@ public sealed class SourceLoadHandlerTests
 
         await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(board));
 
-        var loaded = Assert.IsType<SprintsLoaded>(Assert.Single(fixture.Posted));
+        var loaded = Assert.IsType<SprintListLoaded>(Assert.Single(fixture.Posted));
         Assert.True(loaded.Sprints.Count >= minimum);
         Assert.Contains(loaded.Sprints, sprint => sprint.State == SprintState.Closed);
         Assert.Contains(loaded.Sprints, sprint => sprint.State == SprintState.Active);

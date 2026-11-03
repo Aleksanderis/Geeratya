@@ -15,7 +15,6 @@ public static class StatusBar
 {
     private const string HintGap = "  ";
     private const string Separator = " · ";
-    private const int FieldCount = 4;
     private const string PickerPrompt = "open a view";
     private const string SprintPrompt = "switch sprint";
     private const string JumpPrompt = "jump to an issue";
@@ -77,13 +76,19 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints of the profile-add prompt on <paramref name="field"/>; Enter's verb is the box footer's.</summary>
+    public static IReadOnlyList<StatusHint> ProfileHints(ProfileFormField field) =>
+    [
+        new(InputMode.Insert, ActionIds.FormNext, ProfileFormOverlay.AcceptVerb(field)),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
     /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>
     public static IReadOnlyList<StatusHint> HelpHints { get; } =
     [
-        new(InputMode.Help, ActionIds.HelpPageNext, "page"),
+        new(InputMode.Help, ActionIds.NavigateDown, "section"),
+        new(InputMode.Help, ActionIds.HelpScrollDown, "scroll"),
         new(InputMode.Help, ActionIds.HelpFilter, "filter"),
-        new(InputMode.Help, ActionIds.NavigateDown, "down"),
-        new(InputMode.Help, ActionIds.NavigateUp, "up"),
         new(InputMode.Help, ActionIds.HelpClose, "close"),
     ];
 
@@ -206,6 +211,11 @@ public static class StatusBar
             return new HintList([], TextsOf(HelpHints, state.Mode, HintScope.Global, keymap, level));
         }
 
+        if (state is { Mode: InputMode.Insert, Form: { } profile })
+        {
+            return new HintList([], TextsOf(ProfileHints(profile.Field), state.Mode, HintScope.Global, keymap, level));
+        }
+
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
 
         return state.Mode == InputMode.Normal
@@ -310,18 +320,23 @@ public static class StatusBar
     }
 
     /// <summary>
-    /// The message to paint in its severity colour inside the bar (warnings and errors; an info message keeps the bar's
-    /// own colours), or null.
+    /// The message to paint in its severity role inside the bar, or null. Info is drawn in the success role and, for the
+    /// first <see cref="StatusMessages.FreshFor"/> after it was posted, as a filled chip (bold reverse, so the
+    /// no-colour tier shows it too); warnings and errors keep their roles.
     /// </summary>
-    public static StatusSegment? MessageSegment(AppState state, int width)
+    public static StatusSegment? MessageSegment(AppState state, int width, DateTimeOffset? now = null)
     {
-        if (StatusMessages.Cells(state) is not { } cells || state.Status is not { } status
-            || status.Severity == StatusSeverity.Info || cells.Start >= width)
+        if (StatusMessages.Cells(state) is not { } cells || state.Status is not { } status || cells.Start >= width)
         {
             return null;
         }
 
-        var role = status.Severity == StatusSeverity.Error ? PaletteRole.Error : PaletteRole.Warning;
+        var role = status.Severity switch
+        {
+            StatusSeverity.Error => PaletteRole.Error,
+            StatusSeverity.Warning => PaletteRole.Warning,
+            _ => now is { } at && StatusMessages.IsFresh(state, at) ? PaletteRole.SuccessChip : PaletteRole.Success,
+        };
 
         return new StatusSegment(cells.Start, Math.Min(cells.End, width) - cells.Start, status.Line, role);
     }
@@ -366,6 +381,7 @@ public static class StatusBar
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
+            InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now),
         };
@@ -461,28 +477,22 @@ public static class StatusBar
             return string.Empty;
         }
 
-        var step = $"[{(int)form.Field + 1}/{FieldCount}]";
+        var step = $"[{(int)form.Field + 1}/{ProfileFormOverlay.FieldCount}]";
 
         if (form.Error is not null)
         {
             return $"{step} ! {form.Error}";
         }
 
-        var (label, value) = form.Field switch
-        {
-            ProfileFormField.Name => ("Profile name", form.Name),
-            ProfileFormField.SiteUrl => ("Site URL", form.SiteUrl),
-            ProfileFormField.Email => ("Account email", form.Email),
-            _ => ("API token (hidden)", new string('*', form.Token.Length)),
-        };
-        var prefix = $"{step} {label}: ";
+        var value = ProfileFormOverlay.Shown(form);
+        var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
         var used = TextWidth.Of($" {Badge(InputMode.Insert)} {prefix}_");
 
         return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>
-    private static string Tail(string text, int width)
+    internal static string Tail(string text, int width)
     {
         var starts = StringInfo.ParseCombiningCharacters(text);
         var used = 0;

@@ -46,7 +46,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
-| HelpPage | Click | `help.page-next` | O | Help overlay: shows the clicked page (a page name in the row under the title), from its first line; same as `Tab` or `Shift-Tab` until that page; the filter stays |
+| HelpPage | Click | `help.page-next` | O | Help popup: shows the clicked section (an entry of the menu on the left), from its first line; same as `Tab` or `Shift-Tab` until that section; the filter stays |
 | ConfirmYes | Click | `confirm.yes` | O | Confirm dialog: the `y` row runs the action, same as `y` (the dialog closes first) |
 | ConfirmNo | Click | `confirm.no` | O | Confirm dialog: the `n` row cancels, same as `n` |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
@@ -66,7 +66,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | CommentsAdd | Click | `comment.add` | C | Opens the comment editor |
 | Comment | Click | `comment.edit` | C | Edits the comment under the pointer |
 | Lists | Drag | `issue.transition-next` | M | Columns layout (a drag in the list or backlog layout is `Drag rows`): drag a card onto the next or previous column, same as `Alt-l` / `Alt-h` (a single matching transition is sent as the key does, otherwise the picker or form opens); further columns, the same column and a one-column window do nothing |
-| Lists | Ctrl-click | `selection.mark` | B | List or backlog layout: marks or unmarks the row under the pointer in place (the cursor moves there; unlike `Alt-m` it does not move down); marks may be scattered |
+| Lists | Ctrl-click | `selection.mark` | B | List, backlog or columns layout: marks or unmarks the row or card under the pointer in place (the cursor moves there; unlike `Alt-m` it does not move down); marks may be scattered |
 | Lists | Drag rows | `selection.visual` | B | List or backlog layout: drag over rows to select them, same as `v` and the motions (Visual mode from the row where the button went down to the row where it was released) |
 | ContextMenu | Click | `view.layout-toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
@@ -86,6 +86,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `rank.down` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.top` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `rank.bottom` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `section.toggle` | M | Item of the right-click menu on a row of a Scrum backlog: collapses or expands the section of the row, same as `z a` |
+| ContextMenu | Click | `rank.to` | M | Right-click the issue, pick `Pick up the issue, then drop it at the issue under the cursor`; right-click the target row and pick the same entry to drop (above it when the target is above the picked-up issue, else below); `Esc` cancels. Same as `<space>kk` |
 | ContextMenu | Click | `comment.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `tab.close` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `tab.previous` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
@@ -94,7 +96,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 
 ## Without a path
 
-Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), `help.page-previous` (a click on the page name), `help.filter` (the filter is typed text; the page names are the mouse path), `picker.open-new-tab` (sprint switcher only: a click on a row opens it like `Enter`; the key adds the new tab) and `view.cycle-command-level` (its palette row: click the status line, then the row). `rank.to` has no pointer path yet: `Ctrl`-click now marks rows (`selection.mark`), and dragging a row to its place comes with #182.
+Actions with no row of their own, each with the reason (a test checks this list against `DefaultMouseMap.Exclusions`): the motions `nav.left`, `nav.right`, `nav.top`, `nav.bottom`, `nav.page-down`, `nav.page-up`, `nav.first-column` and `nav.last-column` (the pointer places the cursor and the wheel scrolls), `nav.up` and `nav.down` (the wheel rows), `detail.section-next` and `detail.section-previous` (a click on a section title), `tab.go-to.1` to `tab.go-to.9` (a click on tab N), `tab.last-active` (a click on any tab reaches it directly), `help.page-previous` (a click on the section name), `help.scroll-down`, `help.scroll-up`, `help.half-page-down` and `help.half-page-up` (the wheel does nothing while help is open), `help.filter` (the filter is typed text; the section names are the mouse path), `picker.open-new-tab` (sprint switcher only: a click on a row opens it like `Enter`; the key adds the new tab) and `view.cycle-command-level` (its palette row: click the status line, then the row).
 
 ## Checks and terminal selection
 

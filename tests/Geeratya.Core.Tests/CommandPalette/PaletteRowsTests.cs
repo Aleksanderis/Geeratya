@@ -5,6 +5,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.CommandPalette;
@@ -277,6 +278,29 @@ public class PaletteRowsTests
         var rows = PaletteRows.For(Palette("Theme:"), _keymap);
 
         Assert.DoesNotContain(rows, row => row.Id.StartsWith("theme ", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, true)]
+    public void GivenABoardTab_WhenListing_ThenEstimateIsHiddenOnlyForABoardReadWithoutEstimation(
+        bool read,
+        bool hasField,
+        bool listed)
+    {
+        var state = WithTab(Palette(string.Empty));
+        var board = new BoardConfiguration(4, "B", BoardType.Scrum, [], "1", null, null, null)
+        {
+            EstimationRead = read,
+            EstimationFieldId = hasField ? "customfield_10047" : null,
+        };
+        var tab = state.Session.Tabs[0] with { Board = board };
+        var shown = state with { Session = state.Session with { Tabs = [tab] } };
+
+        var rows = PaletteRows.For(shown, _keymap);
+
+        Assert.Equal(listed, rows.Any(row => row.Id == PaletteCommands.Estimate));
     }
 
     private static AppState Palette(string text, CommandLevel level = CommandLevel.Everyday)

@@ -100,7 +100,7 @@ public class WhichKeyOverlayTests
     public void GivenEveryHintList_WhenCheckingTheDefaultKeymap_ThenEachNamedActionIsBoundInItsMode()
     {
         IEnumerable<StatusHint> all =
-            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.HelpHints, .. StatusBar.FormHints];
+            [.. StatusBar.Hints, .. StatusBar.ScreenHints, .. StatusBar.PickerHints, .. StatusBar.HelpHints, .. StatusBar.FormHints, .. StatusBar.ProfileHints(ProfileFormField.Name), .. StatusBar.ProfileHints(ProfileFormField.Token)];
 
         foreach (var hint in all)
         {
@@ -111,6 +111,17 @@ public class WhichKeyOverlayTests
                 Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.SecondActionId));
             }
         }
+    }
+
+    [Fact]
+    public void GivenAnOpenPopup_WhenBuilding_ThenTheBoxSitsFlushRight()
+    {
+        var lines = Build(Opened("Space"), 120, 36);
+        var top = lines.Single(line => line.Contains("┌─ Space "));
+
+        Assert.EndsWith("┐", top.TrimEnd());
+        Assert.True(top.IndexOf('┌') > 40);
+        Assert.Equal(120, top.Length);
     }
 
     /// <summary>A state with <paramref name="keys"/> pending and the popup open (the delay has passed).</summary>

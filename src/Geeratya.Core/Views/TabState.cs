@@ -126,6 +126,18 @@ public sealed record TabState(
     /// </summary>
     public bool SprintResolved { get; init; }
 
+    /// <summary>
+    /// The open and future sprints of a Scrum backlog tab, ordered as Jira lists them: the metadata for the section
+    /// headers (dates, goal) and the sprints that have no loaded issue yet. Empty until the sprint list arrives.
+    /// </summary>
+    public IReadOnlyList<Sprint> Sprints { get; init; } = [];
+
+    /// <summary>
+    /// The keys of the collapsed sections of a Scrum backlog tab (<c>BacklogSections</c>). Scoped to the tab, like the
+    /// selection; a reload keeps them.
+    /// </summary>
+    public IReadOnlyList<string> CollapsedSections { get; init; } = [];
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

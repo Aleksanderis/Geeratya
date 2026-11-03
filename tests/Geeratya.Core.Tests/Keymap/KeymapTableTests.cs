@@ -145,7 +145,7 @@ public class KeymapTableTests
     {
         var keymap = DefaultKeymap.Load();
 
-        Assert.Equal(KeyResolutionKind.None, keymap.Resolve(InputMode.Normal, string.Empty, "z").Kind);
+        Assert.Equal(KeyResolutionKind.None, keymap.Resolve(InputMode.Normal, string.Empty, "w").Kind);
         Assert.Equal(KeyResolutionKind.None, keymap.Resolve(InputMode.Normal, "g", "x").Kind);
     }
 }

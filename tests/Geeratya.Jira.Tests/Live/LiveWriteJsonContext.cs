@@ -10,6 +10,7 @@ namespace Geeratya.Jira.Tests.Live;
 [JsonSerializable(typeof(LiveTransitionList))]
 [JsonSerializable(typeof(LiveDoneState))]
 [JsonSerializable(typeof(LiveAccount))]
+[JsonSerializable(typeof(LiveSprintIssue))]
 public sealed partial class LiveWriteJsonContext : JsonSerializerContext;
 
 public sealed record LiveCreatedIssue(string Id, string Key);
@@ -33,3 +34,9 @@ public sealed record LiveDoneFields(LiveStatus Status, LiveNamed? Resolution, IR
 public sealed record LiveNamed(string Name);
 
 public sealed record LiveAccount(string AccountId);
+
+public sealed record LiveSprintIssue(LiveSprintIssueFields Fields);
+
+public sealed record LiveSprintIssueFields(LiveSprintRef? Sprint);
+
+public sealed record LiveSprintRef(long Id);

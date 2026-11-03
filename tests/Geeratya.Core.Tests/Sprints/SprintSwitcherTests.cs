@@ -174,7 +174,7 @@ public class SprintSwitcherTests
     {
         var opened = Press(Press(Press(OnBoard(), "Space"), "s"), "v").State;
 
-        var result = _reducer.Reduce(opened, new SprintsLoaded(99, Sprints(closed: 1)));
+        var result = _reducer.Reduce(opened, new SprintListLoaded(99, Sprints(closed: 1)));
 
         Assert.Null(result.State.Picker!.Sprint!.Sprints);
     }
@@ -185,7 +185,7 @@ public class SprintSwitcherTests
         var opened = Press(Press(Press(OnBoard(), "Space"), "s"), "v").State;
         var closed = Press(opened, "Esc").State;
 
-        var result = _reducer.Reduce(closed, new SprintsLoaded(BoardId, Sprints(closed: 1)));
+        var result = _reducer.Reduce(closed, new SprintListLoaded(BoardId, Sprints(closed: 1)));
 
         Assert.Null(result.State.Picker);
         Assert.Equal(InputMode.Normal, result.State.Mode);
@@ -301,7 +301,7 @@ public class SprintSwitcherTests
     {
         var opened = Press(Press(Press(board, "Space"), "s"), "v");
 
-        return _reducer.Reduce(opened.State, new SprintsLoaded(BoardId, sprints)).State;
+        return _reducer.Reduce(opened.State, new SprintListLoaded(BoardId, sprints)).State;
     }
 
     private AppState Type(AppState state, string text)

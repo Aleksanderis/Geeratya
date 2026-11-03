@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
@@ -34,6 +35,7 @@ public static class ContextMenus
         ActionIds.RankDown,
         ActionIds.RankTop,
         ActionIds.RankBottom,
+        ActionIds.RankTo,
     ];
 
     /// <summary>The menu for the cursor of the active tab, null when there is no issue under it.</summary>
@@ -70,6 +72,11 @@ public static class ContextMenus
         {
             actions.Remove(ActionIds.IssueUnlink);
             actions.AddRange(_rankActions);
+
+            if (BacklogSections.Applies(tab))
+            {
+                actions.Add(ActionIds.SectionToggle);
+            }
         }
 
         var items = actions.Select(Item).ToList();

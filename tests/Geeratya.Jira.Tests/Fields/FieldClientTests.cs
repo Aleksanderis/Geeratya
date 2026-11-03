@@ -59,18 +59,51 @@ public sealed class FieldClientTests
     }
 
     [Fact]
-    public async Task GivenFailedRead_WhenSiteFieldsAreAskedAgain_ThenTheFailureIsNotRemembered()
+    public async Task GivenFailedRead_WhenAskedAgainWithinTheFailureMemory_ThenNoSecondRequestIsSent()
     {
         using var fixture = Serving(FixtureFiles.Read("metadata/field-list.json"));
         fixture.Handler.Script(HttpMethod.Get, FieldPath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, "{}"));
-        var fields = new SiteFields(new FieldClient(fixture.Transport));
+        var clock = new MovableClock();
+        var fields = new SiteFields(new FieldClient(fixture.Transport), clock);
 
         var failed = await fields.GetAsync(CancellationToken.None);
-        var retried = await fields.GetAsync(CancellationToken.None);
+        clock.Advance(SiteFields.FailureMemory / 2);
+        var again = await fields.GetAsync(CancellationToken.None);
 
         Assert.Equal(JiraErrorKind.Forbidden, failed.Error.Kind);
+        Assert.Equal(JiraErrorKind.Forbidden, again.Error.Kind);
+        Assert.Single(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenFailedRead_WhenTheFailureMemoryHasPassed_ThenItAsksAgainAndKeepsTheAnswer()
+    {
+        using var fixture = Serving(FixtureFiles.Read("metadata/field-list.json"));
+        fixture.Handler.Script(HttpMethod.Get, FieldPath, FakeResponse.WithStatus(HttpStatusCode.Forbidden, "{}"));
+        var clock = new MovableClock();
+        var fields = new SiteFields(new FieldClient(fixture.Transport), clock);
+
+        await fields.GetAsync(CancellationToken.None);
+        clock.Advance(SiteFields.FailureMemory + TimeSpan.FromSeconds(1));
+        var retried = await fields.GetAsync(CancellationToken.None);
+        await fields.GetAsync(CancellationToken.None);
+
         Assert.True(retried.IsSuccess);
         Assert.Equal(2, fixture.Handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenWarmUp_WhenTheIdsAreAsked_ThenTheyShareOneRequest()
+    {
+        using var fixture = Serving(FixtureFiles.Read("metadata/field-list.json"));
+        var fields = new SiteFields(new FieldClient(fixture.Transport));
+
+        fields.Warm();
+        var asked = await fields.GetAsync(CancellationToken.None);
+        await fields.GetAsync(CancellationToken.None);
+
+        Assert.True(asked.IsSuccess);
+        Assert.Single(fixture.Handler.Requests);
     }
 
     [Fact]
@@ -94,4 +127,13 @@ public sealed class FieldClientTests
 
         return fixture;
     }
+}
+
+file sealed class MovableClock : TimeProvider
+{
+    private DateTimeOffset _now = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
+
+    public override DateTimeOffset GetUtcNow() => _now;
+
+    public void Advance(TimeSpan span) => _now += span;
 }

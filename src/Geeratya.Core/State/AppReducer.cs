@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.CommandPalette;
@@ -39,6 +40,7 @@ public sealed class AppReducer
     ];
 
     private const string EscapeKey = "Esc";
+    private const int HelpHalfPage = 8;
     private const string ConfirmTooSmallText =
         "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
@@ -266,9 +268,23 @@ public sealed class AppReducer
             return placement;
         }
 
+        // A mark needs a card under the pointer: a column header only moves the cursor there.
+        if (action.Action == ActionIds.SelectionMark && !CardUnderPointer(cleared, placed))
+        {
+            return placement;
+        }
+
         var acted = ReduceRequested(placement.State, action);
 
         return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    private static bool CardUnderPointer(AppState before, PointerPlaced placed)
+    {
+        var tab = before.Session.Active is { } id ? ViewReducer.Find(before.Session.Tabs, id) : null;
+
+        return tab is not { Detail.Count: 0, Definition.Layout: ViewLayout.Columns }
+            || ColumnsNavigation.IsCardAt(tab, placed.Width, placed.Column, placed.Row);
     }
 
     private static AppState Unpended(AppState state)
@@ -500,6 +516,10 @@ public sealed class AppReducer
             ActionIds.HelpFilter => Result(HelpReducer.OpenFilter(state)),
             ActionIds.HelpPageNext => Result(HelpReducer.Step(state, _keymap, 1)),
             ActionIds.HelpPagePrevious => Result(HelpReducer.Step(state, _keymap, -1)),
+            ActionIds.HelpScrollDown => Result(ScrollHelp(state, 1)),
+            ActionIds.HelpScrollUp => Result(ScrollHelp(state, -1)),
+            ActionIds.HelpHalfPageDown => Result(ScrollHelp(state, HelpHalfPage)),
+            ActionIds.HelpHalfPageUp => Result(ScrollHelp(state, -HelpHalfPage)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
@@ -551,14 +571,18 @@ public sealed class AppReducer
             ActionIds.NavigateLastColumn => NavigateColumn(state, BoardColumnMove.Last),
             ActionIds.ViewLayoutToggle => ToggleLayout(state),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
-            ActionIds.SectionNext => InNormal(state, () => DetailActions.Section(state, 1)),
-            ActionIds.SectionPrevious => InNormal(state, () => DetailActions.Section(state, -1)),
+            ActionIds.SectionNext => InNormal(state, () => BacklogActions.Jump(state, 1) ?? DetailActions.Section(state, 1)),
+            ActionIds.SectionPrevious => InNormal(
+                state,
+                () => BacklogActions.Jump(state, -1) ?? DetailActions.Section(state, -1)),
+            ActionIds.SectionToggle => InNormal(state, () => BacklogActions.Toggle(state) ?? Result(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
             ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),
             ActionIds.IssueTransitionPrevious => InNormal(state, () => TransitionForms.MoveCard(state, -1)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
+            ActionIds.TabLastActive => ViewReducer.LastActiveTab(state),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
@@ -583,7 +607,7 @@ public sealed class AppReducer
     /// </summary>
     private static ReduceResult OpenItem(AppState state)
     {
-        return DetailActions.EnterBrowserRow(state) ?? ViewReducer.OpenSelected(state);
+        return BacklogActions.Enter(state) ?? DetailActions.EnterBrowserRow(state) ?? ViewReducer.OpenSelected(state);
     }
 
     private static ReduceResult InNormal(AppState state, Func<ReduceResult> action)
@@ -705,6 +729,11 @@ public sealed class AppReducer
     /// </summary>
     private ReduceResult Navigate(AppState state, ListMove move, int helpDelta)
     {
+        if (state is { Mode: InputMode.Help, MessagesOpen: false } && move is ListMove.Down or ListMove.Up)
+        {
+            return Result(HelpReducer.Select(state, _keymap, helpDelta));
+        }
+
         if (state.Mode == InputMode.Help)
         {
             return Result(ScrollHelp(state, helpDelta));

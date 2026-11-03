@@ -6,7 +6,7 @@ using Geeratya.Jira.Transport;
 namespace Geeratya.Core.Sprints;
 
 /// <summary>The sprints of a board arrived for the open sprint switcher.</summary>
-public sealed record SprintsLoaded(long BoardId, IReadOnlyList<Sprint> Sprints) : SourceCommand;
+public sealed record SprintListLoaded(long BoardId, IReadOnlyList<Sprint> Sprints) : SourceCommand;
 
 /// <summary>The sprints of a board could not be loaded.</summary>
 public sealed record SprintsFailed(long BoardId, JiraError Error) : SourceCommand;

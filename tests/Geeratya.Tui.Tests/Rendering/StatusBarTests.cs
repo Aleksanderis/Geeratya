@@ -192,11 +192,12 @@ public class StatusBarTests
     }
 
     [Fact]
-    public void GivenHelpPages_WhenRenderingTheStatusLine_ThenTheHintsNameThePageAndFilterKeys()
+    public void GivenHelpPages_WhenRenderingTheStatusLine_ThenTheHintsNameTheSectionScrollAndFilterKeys()
     {
         var line = StatusBar.Render(AppState.Initial with { Mode = InputMode.Help }, 80, _keymap);
 
-        Assert.Contains("Tab page", line);
+        Assert.Contains("j section", line);
+        Assert.Contains("J scroll", line);
         Assert.Contains("/ filter", line);
     }
 
@@ -221,7 +222,8 @@ public class StatusBarTests
 
         Assert.Contains("INSERT [4/4] API token (hidden): ***_", line);
         Assert.DoesNotContain("abc", line);
-        Assert.Contains("Enter next", line);
+        Assert.Contains("Enter save", line);
+        Assert.DoesNotContain("Enter next", line);
         Assert.Contains("Esc cancel", line);
     }
 

@@ -25,7 +25,7 @@ public static class SourceReducer
 
     public static ReduceResult Reduce(AppState state, SourceCommand command)
     {
-        if (command is SprintsLoaded or SprintsFailed)
+        if (command is SprintListLoaded or SprintsFailed)
         {
             return Plain(SprintsArrived(state, command));
         }
@@ -291,7 +291,7 @@ public static class SourceReducer
 
         var updated = command switch
         {
-            SprintsLoaded loaded when loaded.BoardId == data.BoardId => data with { Sprints = loaded.Sprints, Error = null },
+            SprintListLoaded loaded when loaded.BoardId == data.BoardId => data with { Sprints = loaded.Sprints, Error = null },
             SprintsFailed failed when failed.BoardId == data.BoardId && data.Sprints is null
                 => data with { Error = LoadErrorText.For(failed.Error) },
             _ => data,

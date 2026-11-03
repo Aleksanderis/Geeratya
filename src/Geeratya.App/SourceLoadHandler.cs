@@ -83,7 +83,7 @@ public sealed class SourceLoadHandler
                 return new SprintsFailed(board, result.Error);
             }
 
-            return new SprintsLoaded(board, result.Value);
+            return new SprintListLoaded(board, result.Value);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

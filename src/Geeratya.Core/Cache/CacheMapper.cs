@@ -1,6 +1,7 @@
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Cache;
 
@@ -8,7 +9,7 @@ namespace Geeratya.Core.Cache;
 public static class CacheMapper
 {
     /// <summary>The file format version written into every cache file.</summary>
-    public const int Schema = 1;
+    public const int Schema = 3;
 
     public static CachedViewFile ToFile(CacheKey key, CachedView view)
     {
@@ -52,9 +53,11 @@ public static class CacheMapper
             row.Priority,
             row.Assignee is null ? null : new CachedPerson(row.Assignee.AccountId, row.Assignee.DisplayName),
             [.. row.Labels],
-            row.Parent is null ? null : new CachedParent(row.Parent.Key, row.Parent.Summary),
+            row.Parent is null ? null : new CachedParent(row.Parent.Key, row.Parent.Summary, row.Parent.IsEpic),
             row.Updated,
-            row.ProjectKey);
+            row.ProjectKey,
+            [.. row.Sprints.Select(ToSprint)],
+            row.Estimate);
     }
 
     private static IssueSummary FromRow(CachedIssueRow row)
@@ -72,9 +75,28 @@ public static class CacheMapper
             row.Priority,
             row.Assignee is null ? null : new IssueAssignee(row.Assignee.AccountId, row.Assignee.DisplayName),
             [.. row.Labels],
-            row.Parent is null ? null : new IssueParent(row.Parent.Key, row.Parent.Summary),
+            row.Parent is null ? null : new IssueParent(row.Parent.Key, row.Parent.Summary, row.Parent.IsEpic),
             row.Updated,
-            row.ProjectKey);
+            row.ProjectKey)
+        {
+            Sprints = [.. row.Sprints.Select(FromSprint)],
+            Estimate = row.Estimate,
+        };
+    }
+
+    /// <summary>Converts a sprint to its DTO. Shared with <see cref="IssueCacheMapper"/>.</summary>
+    internal static CachedSprint ToSprint(IssueSprint sprint)
+    {
+        return new CachedSprint(sprint.Id, sprint.Name, sprint.State.ToString());
+    }
+
+    /// <summary>Converts a sprint DTO back; an unknown state name reads as <see cref="SprintState.Unknown"/>.</summary>
+    internal static IssueSprint FromSprint(CachedSprint sprint)
+    {
+        return new IssueSprint(
+            sprint.Id,
+            sprint.Name,
+            TryParse<SprintState>(sprint.State, out var state) ? state : SprintState.Unknown);
     }
 
     private static CachedBoard ToBoard(BoardConfiguration board)
@@ -87,7 +109,8 @@ public static class CacheMapper
             board.FilterId,
             board.SubQuery,
             board.RankFieldId,
-            board.ConstraintType);
+            board.ConstraintType,
+            board.EstimationFieldName);
     }
 
     private static BoardConfiguration FromBoard(CachedBoard board)
@@ -102,7 +125,11 @@ public static class CacheMapper
             board.FilterId,
             board.SubQuery,
             board.RankFieldId,
-            board.ConstraintType);
+            board.ConstraintType)
+        {
+            // Only the label is kept: EstimationRead stays false so a cached board hides nothing (#443).
+            EstimationFieldName = board.EstimationFieldName,
+        };
     }
 
     // JSON can hold nulls where the DTOs promise values, so these checks are not redundant.
@@ -120,7 +147,8 @@ public static class CacheMapper
 
     private static bool IsComplete(CachedIssueRow row)
     {
-        return row is { Status: not null, IssueType: not null, Labels: not null }
+        return row is { Status: not null, IssueType: not null, Labels: not null, Sprints: not null }
+            && row.Sprints.All(sprint => sprint is { Name: not null })
             && row.Id is not null
             && row.Key is not null
             && row.Summary is not null

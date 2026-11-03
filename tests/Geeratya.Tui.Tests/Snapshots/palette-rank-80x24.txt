@@ -11,10 +11,10 @@ View · 0 issues
   │                                                                          │  
   │ Issue                                                                    │  
   │   Create an issue (type picker, then the form)                 Space i c │  
+  │                                                                          │  
+  │ Navigate                                                                 │  
+  │   Collapse or expand the sprint section of the Scrum backlog         z a │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
-                                                                                
-                                                                                
                                                                                 
                                                                                 
                                                                                 

@@ -5,6 +5,7 @@ using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Tui.Rendering;
@@ -20,6 +21,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string LoadingWords = "Loading";
     private const string NoIssuesText = "No issues match.";
     private const string NoBoardIssuesText = "The board has no issues.";
+    private const string NoOpenSprintText = "No open sprint on this board.";
+    private const string NoOpenSprintHint = "Plan one in the backlog (:backlog).";
     private const string RetryText = "<space>r to retry";
     private const string TruncatedText = "Load more stopped at 10 000 rows.";
     private const string CouldNotLoadMore = "Could not load more: ";
@@ -118,7 +121,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return FirstRow(tab) + shown >= tab.Rows.Count;
     }
 
-    private static StyledLine HeaderLine(TabState tab, StyledLine? note, Glyphs glyphs)
+    internal static StyledLine HeaderLine(TabState tab, StyledLine? note, Glyphs glyphs)
     {
         var spans = new List<StyledSpan>
         {
@@ -154,7 +157,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return count == 1 ? "1 issue" : $"{count} issues";
     }
 
-    private static StyledLine TitlesLine(ListColumns columns)
+    internal static StyledLine TitlesLine(ListColumns columns)
     {
         var statusTitle = columns.Status == ListColumns.FullStatus ? StatusTitle : StatusGlyphTitle;
         var text = string.Concat(
@@ -215,6 +218,15 @@ public sealed class ListBodyRenderer : IBodyRenderer
             return;
         }
 
+        // A Scrum board lists only the open sprints, so between sprints it is empty although the project has issues.
+        if (tab.Definition.Source == ViewSourceKind.Board && tab.Board is { Type: BoardType.Scrum })
+        {
+            lines.Add(Centered(NoOpenSprintText, width));
+            lines.Add(StyledLine.Of(Centered(NoOpenSprintHint, width).PlainText, TextRole.Muted));
+
+            return;
+        }
+
         var isBoard = tab.Definition.Source.IsBoardBased();
 
         lines.Add(Centered(isBoard ? NoBoardIssuesText : NoIssuesText, width));
@@ -232,7 +244,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return StyledLine.Of($"{new string(' ', padding)}{text}");
     }
 
-    private static StyledLine RowLine(
+    internal static StyledLine RowLine(
         IssueSummary row,
         ListColumns columns,
         bool selected,
@@ -307,7 +319,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return text;
     }
 
-    private static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
+    internal static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
     {
         if (marks.Contains(row.Key))
         {
@@ -344,7 +356,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
-    private enum SetMark
+    internal enum SetMark
     {
         None,
         Marked,

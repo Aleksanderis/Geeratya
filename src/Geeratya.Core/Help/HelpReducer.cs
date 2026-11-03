@@ -36,6 +36,14 @@ public static class HelpReducer
         return IsPages(state) ? Show(state, HelpPages.Step(state, keymap, direction)) : state;
     }
 
+    /// <summary>Moves to the next (<paramref name="direction"/> 1) or previous (-1) section, stopping at the ends like a list.</summary>
+    public static AppState Select(AppState state, KeymapTable keymap, int direction)
+    {
+        var last = HelpPages.Names(state, keymap).Count - 1;
+
+        return IsPages(state) ? Show(state, Math.Clamp(HelpPages.Current(state, keymap) + direction, 0, last)) : state;
+    }
+
     /// <summary>Shows the page at <paramref name="index"/> (a click on its name).</summary>
     public static AppState Show(AppState state, int index)
     {
