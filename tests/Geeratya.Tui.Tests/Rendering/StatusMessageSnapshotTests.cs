@@ -24,7 +24,7 @@ public class StatusMessageSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"messages-{width}x{height}.txt");
 
-        Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+        Assert.Equal(File.ReadAllText(path), actual);
     }
 
     [Theory]
@@ -37,7 +37,7 @@ public class StatusMessageSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect($"messages-settings-{width}x{height}.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     private static AppState HistoryState()

@@ -25,7 +25,7 @@ public class ProfileFormOverlaySnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect($"profile-form-{width}x{height}.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Theory]

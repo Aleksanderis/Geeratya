@@ -35,10 +35,10 @@ public class FrameSnapshotTests
         using var writer = new StringWriter();
 
         var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame", "--size", size, "--mode", mode]);
-        var expected = SnapshotFile.Expect($"{mode}-{size}.txt", writer.ToString());
+        var expected = SnapshotFile.Expect($"{mode}-{size}.txt", Normalize(writer.ToString()));
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Theory]
@@ -54,10 +54,10 @@ public class FrameSnapshotTests
             "--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "1", "--help-scroll",
             scroll.ToString(),
         ]);
-        var expected = SnapshotFile.Expect($"help-all-scroll{scroll}-120x36.txt", writer.ToString());
+        var expected = SnapshotFile.Expect($"help-all-scroll{scroll}-120x36.txt", Normalize(writer.ToString()));
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Fact]
@@ -67,10 +67,10 @@ public class FrameSnapshotTests
 
         var exitCode = new ApplicationRunner(writer, false)
             .Run(["--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "2"]);
-        var expected = SnapshotFile.Expect("help-commands-120x36.txt", writer.ToString());
+        var expected = SnapshotFile.Expect("help-commands-120x36.txt", Normalize(writer.ToString()));
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Theory]
@@ -86,10 +86,10 @@ public class FrameSnapshotTests
             "--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "1", "--help-scroll",
             scroll.ToString(), "--command-level", "advanced",
         ]);
-        var expected = SnapshotFile.Expect($"help-advanced-scroll{scroll}-120x36.txt", writer.ToString());
+        var expected = SnapshotFile.Expect($"help-advanced-scroll{scroll}-120x36.txt", Normalize(writer.ToString()));
 
         Assert.Equal(0, exitCode);
-        Assert.Equal(Normalize(expected), Normalize(writer.ToString()));
+        Assert.Equal(expected, Normalize(writer.ToString()));
     }
 
     [Fact]

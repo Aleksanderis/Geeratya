@@ -35,7 +35,7 @@ public class ColumnsSnapshotTests
         var name = $"columns-{kind}-{width}x{height}.txt";
         var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Snapshots", name));
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Theory]
@@ -53,7 +53,7 @@ public class ColumnsSnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var expected = SnapshotFile.Expect($"columns-ascii-{kind}-{width}x{height}.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
     }

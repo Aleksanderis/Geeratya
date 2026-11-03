@@ -62,7 +62,7 @@ public class AsciiScreenSnapshotTests
 
         var expected = SnapshotFile.Expect($"ascii-{name}-{width}x{height}.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
         Assert.All(lines, line => Assert.All(line, character => Assert.True(
             character < 0x80 || _textScreens.Contains(name) && char.IsLetter(character),
             $"U+{(int)character:X4} leaked into '{line}'")));

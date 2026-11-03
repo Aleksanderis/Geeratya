@@ -31,7 +31,7 @@ public class FormOverlaySnapshotTests
         var actual = string.Join('\n', lines) + "\n";
         var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-{width}x{height}.txt");
 
-        Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), actual);
+        Assert.Equal(File.ReadAllText(path), actual);
     }
 
     [Fact]

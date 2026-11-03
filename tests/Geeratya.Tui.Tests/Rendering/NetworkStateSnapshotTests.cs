@@ -50,7 +50,7 @@ public class NetworkStateSnapshotTests
 
         var expected = SnapshotFile.Expect(file, actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Theory]

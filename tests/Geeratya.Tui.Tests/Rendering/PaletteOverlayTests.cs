@@ -36,7 +36,7 @@ public class PaletteOverlayTests
         var name = $"palette-{Slug(text)}-{width}x{height}.txt";
         var expected = SnapshotFile.Expect(name, actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class PaletteOverlayTests
         var actual = string.Join('\n', FrameBuilder.Build(state, 80, 24, _keymap)) + "\n";
         var expected = SnapshotFile.Expect("palette-themes-80x24.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]

@@ -29,7 +29,7 @@ public class SprintPickerSnapshotTests
         var actual = string.Join('\n', FrameBuilder.Build(Sample(12), width, height, _keymap)) + "\n";
         var expected = SnapshotFile.Expect($"sprint-picker-{width}x{height}.txt", actual);
 
-        Assert.Equal(expected.ReplaceLineEndings("\n"), actual);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
