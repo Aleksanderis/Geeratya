@@ -367,6 +367,32 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
+    public void GivenOpenIssue_WhenEscArrives_ThenItRoutesToBackOutAndPopsTheStack()
+    {
+        var opened = Press(ListState(), "Enter").State;
+
+        var route = InputRouting.Route(opened, "Esc", DefaultKeymap.Load());
+        var back = Press(opened, "Esc").State;
+
+        Assert.Equal(KeyRouteKind.BackOut, route.Kind);
+        Assert.Empty(Active(back).Detail);
+    }
+
+    [Fact]
+    public void GivenOpenIssueAndATypedCount_WhenPressingEsc_ThenTheCountIsClearedFirstAndTheIssueStaysOpen()
+    {
+        var opened = Press(ListState(), "Enter").State;
+        var counted = Press(opened, "3").State;
+
+        var route = InputRouting.Route(counted, "Esc", DefaultKeymap.Load());
+        var cleared = Press(counted, "Esc").State;
+
+        Assert.NotEqual(KeyRouteKind.BackOut, route.Kind);
+        Assert.Equal(0, cleared.Count);
+        Assert.Single(Active(cleared).Detail);
+    }
+
+    [Fact]
     public void GivenOpenIssue_WhenPressingEscAndEscAgain_ThenTheListReturnsWithSelectionAndEscAtTheViewDoesNothing()
     {
         var state = Move(ListState(), 2);

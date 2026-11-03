@@ -285,44 +285,28 @@ public sealed class AppReducer
 
     private ReduceResult ReduceKey(AppState state, string key, DateTimeOffset at)
     {
-        if (state.Editor?.Suggest is not null && state.Mode == InputMode.Insert
-            && EditorSuggestions.Key(state, _keymap.Resolve(state.Mode, state.PendingKeys, key).Action) is { } popup)
+        var route = InputRouting.Route(state, key, _keymap);
+
+        switch (route.Kind)
         {
-            return popup;
-        }
+            case KeyRouteKind.SuggestionPopup:
+                return route.Popup!;
+            case KeyRouteKind.Form:
+                return FormReducer.Key(state, key, at, _keymap);
+            case KeyRouteKind.Count:
+                return Result(state with { Count = Counts.Append(state.Count, key), Message = null });
+            case KeyRouteKind.ChordPrefix:
+                var since = state.PendingKeys.Length == 0 ? at : state.PendingSince;
 
-        if (FormReducer.IsOpen(state))
-        {
-            return FormReducer.Key(state, key, at, _keymap);
-        }
-
-        if (Counts.IsDigit(state, key))
-        {
-            return Result(state with { Count = Counts.Append(state.Count, key), Message = null });
-        }
-
-        var resolution = _keymap.Resolve(state.Mode, state.PendingKeys, key);
-
-        if (resolution.Kind == KeyResolutionKind.Prefix)
-        {
-            var since = state.PendingKeys.Length == 0 ? at : state.PendingSince;
-
-            var pending = Join(state.PendingKeys, key);
-
-            return Result(state with { PendingKeys = pending, PendingSince = since, Message = null });
-        }
-
-        if (IsBackOut(state, resolution))
-        {
-            return ViewReducer.Reduce(state, new IssueDetailBackRequested(state.Session.Active!.Value));
-        }
-
-        if (IsDismiss(state, resolution))
-        {
-            return Result(StatusMessages.Dismiss(state));
+                return Result(state with { PendingKeys = Join(state.PendingKeys, key), PendingSince = since, Message = null });
+            case KeyRouteKind.BackOut:
+                return ViewReducer.Reduce(state, new IssueDetailBackRequested(state.Session.Active!.Value));
+            case KeyRouteKind.Dismiss:
+                return Result(StatusMessages.Dismiss(state));
         }
 
         var cleared = state with { PendingKeys = string.Empty, Count = 0 };
+        var resolution = route.Resolution!;
 
         if (resolution.Action == ActionIds.IssueUnlink)
         {
@@ -330,7 +314,7 @@ public sealed class AppReducer
             return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
         }
 
-        if (resolution.Kind == KeyResolutionKind.None)
+        if (route.Kind == KeyRouteKind.Text)
         {
             return Result(TypeText(cleared, key));
         }
@@ -385,36 +369,6 @@ public sealed class AppReducer
         }
 
         return current;
-    }
-
-    /// <summary>Esc in Normal mode with nothing typed, no rank pickup and a notice showing ends the notice.</summary>
-    private static bool IsDismiss(AppState state, KeyResolution resolution)
-    {
-        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
-
-        return resolution.Kind == KeyResolutionKind.Action
-            && resolution.Action == ActionIds.Cancel
-            && state.Mode == InputMode.Normal
-            && state.PendingKeys.Length == 0
-            && state.Count == 0
-            && state.Editor is null
-            && (state.Status is not null || state.Message is not null)
-            && tab?.RankPickup is null;
-    }
-
-    /// <summary>
-    /// Esc in Normal mode with nothing typed and no notice to clear pops the issue stack of the active tab
-    /// (<c>docs/ux.md</c>, "Focus model and key style").
-    /// </summary>
-    private static bool IsBackOut(AppState state, KeyResolution resolution)
-    {
-        return resolution.Kind == KeyResolutionKind.Action
-            && resolution.Action == ActionIds.Cancel
-            && state.Mode == InputMode.Normal
-            && state.PendingKeys.Length == 0
-            && state.Status is null
-            && state.Message is null
-            && ViewReducer.CanGoBack(state);
     }
 
     /// <summary>
