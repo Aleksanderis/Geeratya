@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -59,7 +60,10 @@ public static class TransitionForms
 
         var to = from + step;
 
-        if (to < 0 || to >= board.Columns.Count)
+        // The hidden Backlog column is not a target: the layout does not draw it.
+        var firstShown = BoardColumns.HidesBacklogColumn(board) ? 1 : 0;
+
+        if (to < firstShown || to >= board.Columns.Count)
         {
             return Say(state, $"{issue.Key} is already in the {(step > 0 ? "last" : "first")} column");
         }
