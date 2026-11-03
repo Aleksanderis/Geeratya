@@ -1,15 +1,13 @@
  [1 JQL: My open issues]  +                                                                                      [jump] 
                                                                                                                         
-My open issues › GCM-12 · Top                                                                                           
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
-> Fix login redirect after token refresh                                                                               │
+│>Fix login redirect after token refresh                                                                               │
 │                                                                                                                      │
 │ Status    In Progress ▾                                    Priority  High ▾                                          │
 │ Assignee  Jane Doe ▾                                       Reporter  Ola Nordmann                                    │
 │ Labels    auth, bug-bash ▾                                 Parent    GCM-17 Reporting overhaul                       │
 │ Updated   2 h ago                                                                                                    │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+├─ Description ────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Heading one                                                                                                          │
 │                                                                                                                      │
 │ Heading three                                                                                                        │
@@ -33,4 +31,6 @@ My open issues › GCM-12 · Top
 │ var x = 1;                                                                                                           │
 │ Console.WriteLine(x);                                                                                                │
 │ ```                                                                                                                  │
- NORMAL                    j/k scroll  Enter open  Esc back  Space o browser  Space p parent  ? help  : commands  q quit
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ NORMAL My open issues › GCM-12 · Top      j/k scroll  Enter open  Esc back  Space o browser  ? help  : commands  q quit

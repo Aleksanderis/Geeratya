@@ -1,10 +1,10 @@
  [1 Backlog: Scrum board]  +     [jump] 
                                         
-Scrum board · 5 issues                  
-  Key   T Summary                      S
-  - Sprint 1 · active · 2 Nov - 16 Nov ·
-    Goal: Ship the login 日本語         
-> GCS-3 S Fix login redirect after tok ○
-  GCS-4 S As a user I can filter by la ○
-  - Sprint 2 · no dates · 2 issues · 3 p
+╭─ Scrum board ───────────── 5 issues ─╮
+│  Key   T Summary                    S│
+├─ Sprint 1 · active ─ 2 Nov - 16 No… ─┤
+│    Goal: Ship the login 日本語       │
+│> GCS-3 S Fix login redirect after t ○│
+│  GCS-4 S As a user I can filter by  ○│
+╰──────────────────────────────────────╯
  NORMAL       ? help  : commands  q quit

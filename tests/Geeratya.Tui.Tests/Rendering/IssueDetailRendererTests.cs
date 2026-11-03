@@ -69,9 +69,10 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        var marked = lines.Where(line => line.StartsWith("> ")).ToList();
+        var marked = lines.Where(line => line.StartsWith("│>")).ToList();
         Assert.Single(marked);
-        Assert.StartsWith("> ", lines[FrameBuilder.HeaderRows + 3]);
+        Assert.StartsWith("│>", lines[FrameBuilder.HeaderRows + 2]);
+        Assert.DoesNotContain(lines, line => line.StartsWith('>'));
         Assert.Contains(lines, line => line.StartsWith("│ Fix login"));
         Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12"));
     }
@@ -89,9 +90,10 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenAnOpenIssue_WhenBuilding_ThenTheBreadcrumbNamesTheViewAndTheKey()
     {
-        var lines = FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap);
+        var lines = FrameBuilder.Build(Loaded(160, 30), 160, 30, _keymap);
 
-        Assert.StartsWith("My open issues › GCM-12", lines[FrameBuilder.HeaderRows]);
+        Assert.Contains("My open issues › GCM-12", lines[^1]);
+        Assert.StartsWith("╭─ GCM-12", lines[FrameBuilder.HeaderRows]);
     }
 
     [Fact]
@@ -100,10 +102,12 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(Loaded(80, 24), 80, 24, _keymap, null, GlyphSet.Ascii);
 
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(9).ToList();
-        Assert.StartsWith("+- GCM-12 - Task ", body[1]);
-        Assert.StartsWith("> Fix login", body[2]);
-        Assert.StartsWith("| ", body[3]);
-        Assert.StartsWith("+--", body[8]);
+        Assert.StartsWith("+- GCM-12 - Task ", body[0]);
+        Assert.StartsWith("|>Fix login", body[1]);
+        Assert.StartsWith("| ", body[2]);
+        Assert.StartsWith("+- Description ", body[7]);
+        Assert.EndsWith("-+", body[0]);
+        Assert.EndsWith("-+", body[7].TrimEnd());
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
         Assert.Contains(lines, line => line.Contains("In Progress v"));
         Assert.DoesNotContain(lines, line => line.Contains('▾'));
@@ -113,19 +117,19 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenOnlyTheRowIsKnown_WhenBuilding_ThenTheRowFieldsShowWithLoadingMarks()
     {
-        var state = Opened(100, 30);
+        var state = Opened(160, 30);
 
-        var lines = FrameBuilder.Build(state, 100, 30, _keymap);
+        var lines = FrameBuilder.Build(state, 160, 30, _keymap);
 
-        Assert.Contains("Loading…", lines[FrameBuilder.HeaderRows]);
+        Assert.Contains("Loading…", lines[^1]);
         Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12 · Task "));
-        Assert.Contains(lines, line => line.StartsWith("> Row summary"));
+        Assert.Contains(lines, line => line.StartsWith("│>Row summary"));
     }
 
     [Fact]
     public void GivenScrolledDocument_WhenBuilding_ThenTheWindowStartsAtTheScrollAndTheRulerSaysSo()
     {
-        var state = Loaded(80, 12);
+        var state = Loaded(160, 12);
         var bottom = _reducer.Reduce(state, new KeyPressed("G")).State;
         var middle = state;
 
@@ -135,13 +139,13 @@ public class IssueDetailRendererTests
         }
 
 
-        var top = FrameBuilder.Build(state, 80, 12, _keymap);
-        var end = FrameBuilder.Build(bottom, 80, 12, _keymap);
-        var half = FrameBuilder.Build(middle, 80, 12, _keymap);
+        var top = FrameBuilder.Build(state, 160, 12, _keymap);
+        var end = FrameBuilder.Build(bottom, 160, 12, _keymap);
+        var half = FrameBuilder.Build(middle, 160, 12, _keymap);
 
-        Assert.EndsWith("Top", top[FrameBuilder.HeaderRows].TrimEnd());
-        Assert.EndsWith("Bot", end[FrameBuilder.HeaderRows].TrimEnd());
-        Assert.Matches(@"\d+%$", half[FrameBuilder.HeaderRows].TrimEnd());
+        Assert.Contains(" Top", top[^1]);
+        Assert.Contains(" Bot", end[^1]);
+        Assert.Matches(@" \d+%", half[^1]);
         Assert.NotEqual(top[FrameBuilder.HeaderRows + 1], end[FrameBuilder.HeaderRows + 1]);
         Assert.Contains("second paragraph", string.Join('\n', end));
     }
@@ -157,6 +161,62 @@ public class IssueDetailRendererTests
 
         Assert.Equal(height, lines.Count);
         Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+    }
+
+    [Theory]
+    [InlineData(GlyphSet.Unicode)]
+    [InlineData(GlyphSet.Ascii)]
+    public void GivenOpenIssue_WhenBuildingAtEverySmallSize_ThenEveryLineKeepsTheWidth(GlyphSet glyphs)
+    {
+        var state = Loaded(80, 24);
+
+        for (var width = 1; width <= 130; width++)
+        {
+            for (var height = 1; height <= 14; height++)
+            {
+                var lines = FrameBuilder.Build(state, width, height, _keymap, null, glyphs);
+
+                Assert.Equal(height, lines.Count);
+                Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+            }
+        }
+    }
+
+    [Fact]
+    public void GivenScrolledOpenIssue_WhenBuilding_ThenTheTopEdgeNamesThePaneInViewAndTheFrameStaysClosed()
+    {
+        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("G")).State;
+
+        var body = FrameBuilder.Build(state, 160, 12, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.StartsWith("╭", body[0]);
+        Assert.DoesNotContain("GCM-12", body[0]);
+        Assert.Matches(@"^╭─ (Description|Comments)", body[0]);
+        Assert.StartsWith("╰", body[^2]);
+        Assert.EndsWith("╯", body[^2]);
+    }
+
+    [Fact]
+    public void GivenASectionJump_WhenBuilding_ThenTheTopEdgeNamesTheSectionAndNoSecondEdgeFollowsIt()
+    {
+        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("]")).State;
+
+        state = _reducer.Reduce(state, new KeyPressed("]")).State;
+
+        var body = FrameBuilder.Build(state, 160, 12, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.StartsWith("╭─ Description", body[0]);
+        Assert.False(body[1].StartsWith('├'), body[1]);
+    }
+
+    [Fact]
+    public void GivenNarrowTerminal_WhenOpenIssue_ThenTheRulerAndKeyStillShowInTheStatusBar()
+    {
+        var lines = FrameBuilder.Build(Loaded(80, 12), 80, 12, _keymap);
+
+        Assert.Contains("GCM-12", lines[^1]);
+        Assert.Contains("Top", lines[^1]);
+        Assert.Contains("q quit", lines[^1]);
     }
 
     [Fact]
@@ -199,7 +259,9 @@ public class IssueDetailRendererTests
             Session = SiteSession.Empty(_profile),
         };
 
-        state = _reducer.Reduce(state, new ViewportChanged(height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows, width)).State;
+        state = _reducer.Reduce(state, new ViewportChanged(
+            height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows,
+            width)).State;
 
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));

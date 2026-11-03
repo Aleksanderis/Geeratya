@@ -19,12 +19,31 @@ public static class Panel
     /// <summary>Top edge columns besides the title: corner, rule, space before it; space, rule, corner after.</summary>
     private const int TitleChrome = 6;
 
-    public const string TopLeft = "╭";
-    public const string TopRight = "╮";
-    public const string BottomLeft = "╰";
-    public const string BottomRight = "╯";
+    public const string JoinLeft = "├";
+    public const string JoinRight = "┤";
     public const string Horizontal = "─";
     public const string Vertical = "│";
+
+    /// <summary>The title spans cut to the room of a top edge of <paramref name="width"/> columns.</summary>
+    public static IReadOnlyList<StyledSpan> FitTitle(IReadOnlyList<StyledSpan> title, int width)
+    {
+        var room = width - TitleChrome;
+        var spans = new List<StyledSpan>(title.Count);
+        var used = 0;
+
+        foreach (var span in title)
+        {
+            var text = Fit(span.Text, room - used);
+
+            if (text.Length > 0)
+            {
+                spans.Add(new StyledSpan(text, span.Role));
+                used += DisplayWidth.Of(text);
+            }
+        }
+
+        return spans;
+    }
 
     /// <summary>The columns available to content inside a panel of <paramref name="width"/>.</summary>
     public static int InnerWidth(int width)
@@ -34,13 +53,16 @@ public static class Panel
 
     /// <summary>
     /// Appends the panel to <paramref name="lines"/>. <paramref name="content"/> lines must be at most
-    /// <see cref="InnerWidth"/> columns wide.
+    /// <see cref="InnerWidth"/> columns wide. The panels of a document share the one frame the renderer draws around
+    /// the visible window: the <paramref name="first"/> panel has no edge of its own (its title goes into the top
+    /// edge of the frame) and each later one starts with the shared edge that carries its title, <c>├─ Title ─┤</c>.
     /// </summary>
     public static void Add(
         List<StyledLine> lines,
         IReadOnlyList<StyledSpan> title,
         IReadOnlyList<StyledLine> content,
-        int width)
+        int width,
+        bool first)
     {
         if (width < MinFramedWidth)
         {
@@ -50,20 +72,21 @@ public static class Panel
             return;
         }
 
-        lines.Add(Top(title, width));
+        if (!first)
+        {
+            lines.Add(Divider(title, width));
+        }
 
         foreach (var line in content)
         {
             lines.Add(Side(line, width));
         }
-
-        lines.Add(Edge(BottomLeft, BottomRight, width));
     }
 
-    private static StyledLine Top(IReadOnlyList<StyledSpan> title, int width)
+    private static StyledLine Divider(IReadOnlyList<StyledSpan> title, int width)
     {
         var room = width - TitleChrome;
-        var spans = new List<StyledSpan> { new($"{TopLeft}{Horizontal} ", TextRole.Muted) };
+        var spans = new List<StyledSpan> { new($"{JoinLeft}{Horizontal} ", TextRole.Muted) };
         var used = 0;
 
         foreach (var span in title)
@@ -79,7 +102,7 @@ public static class Panel
 
         var fill = room - used;
 
-        spans.Add(new StyledSpan($" {Repeat(Horizontal, fill)}{Horizontal}{TopRight}", TextRole.Muted));
+        spans.Add(new StyledSpan($" {Repeat(Horizontal, fill)}{Horizontal}{JoinRight}", TextRole.Muted));
 
         return new StyledLine(spans);
     }
@@ -94,11 +117,6 @@ public static class Panel
         spans.Add(new StyledSpan($" {Vertical}", TextRole.Muted));
 
         return new StyledLine(spans);
-    }
-
-    private static StyledLine Edge(string left, string right, int width)
-    {
-        return StyledLine.Of($"{left}{Repeat(Horizontal, width - 2)}{right}", TextRole.Muted);
     }
 
     private static string Repeat(string text, int count)

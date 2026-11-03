@@ -207,7 +207,7 @@ public class IssueDetailNavigationTests
         var jumped = Press(Press(state, "]").State, "]").State;
 
         Assert.Equal(sections[1], Top(jumped).Cursor);
-        Assert.Equal(sections[1] - 1, Top(jumped).Scroll);
+        Assert.Equal(sections[1], Top(jumped).Scroll);
     }
 
     [Fact]

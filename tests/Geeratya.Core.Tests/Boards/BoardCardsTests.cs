@@ -6,12 +6,12 @@ namespace Geeratya.Core.Tests.Boards;
 public class BoardCardsTests
 {
     [Theory]
-    [InlineData(0, 0)]
-    [InlineData(6, 5)]
-    [InlineData(9, 8)]
-    [InlineData(10, 1)]
-    [InlineData(20, 3)]
-    [InlineData(34, 6)]
+    [InlineData(0, 1)]
+    [InlineData(6, 7)]
+    [InlineData(8, 9)]
+    [InlineData(9, 2)]
+    [InlineData(17, 3)]
+    [InlineData(31, 6)]
     public void GivenCardAreaHeight_WhenCounting_ThenCompactBelowTwelveBodyRowsElseFiveRowsPerCard(
         int rows,
         int expected)
@@ -22,8 +22,8 @@ public class BoardCardsTests
     [Fact]
     public void GivenTheCompactThreshold_WhenAskingThePitch_ThenFullCardsStartAtTwelveBodyRows()
     {
-        Assert.Equal(5, BoardCards.Pitch(10, 2));
-        Assert.Equal(1, BoardCards.Pitch(9, 2));
+        Assert.Equal(5, BoardCards.Pitch(9, 2));
+        Assert.Equal(1, BoardCards.Pitch(8, 2));
     }
 
     [Theory]

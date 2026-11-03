@@ -1,6 +1,6 @@
  [1 Backlog: Sample]  +                                                  [jump] 
                                                                                 
-Sample · 1 issue                                                                
+╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
   ┌─ Help ───────────────────────────────────────────────────────────────────┐  
   │ > Backlog     │   j          Move down  (Down)                           │  
   │   Global      │   k          Move up  (Up)                               │  
@@ -20,5 +20,5 @@ Sample · 1 issue
   │               │   Space v f  Cycle the quick filter of the board (off,   │  
   │               │              then each filter in turn)                   │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
+╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

@@ -12,6 +12,7 @@ internal sealed class DocumentSink
     private readonly List<DetailTarget?> _targets = [];
     private readonly List<int> _sections = [];
     private readonly List<int> _edges = [];
+    private readonly List<IReadOnlyList<StyledSpan>> _titles = [];
 
     public List<StyledLine> Lines { get; } = [];
 
@@ -19,23 +20,27 @@ internal sealed class DocumentSink
     public void AddPanel(IReadOnlyList<StyledSpan> title, PanelContent content, int width)
     {
         var start = Lines.Count;
+        var isFirst = _sections.Count == 0;
 
-        Panel.Add(Lines, title, content.Lines, width);
+        Panel.Add(Lines, title, content.Lines, width, isFirst);
 
-        _sections.Add(start + 1);
-        _edges.Add(start);
+        // The first framed panel has no title line (the frame's top edge carries it); every other panel starts with
+        // its title line (the shared edge when framed), so its content starts one line later.
+        var first = width >= Panel.MinFramedWidth && isFirst ? start : start + 1;
 
-        if (width >= Panel.MinFramedWidth)
+        _sections.Add(first);
+        _titles.Add(title);
+
+        if (first > start)
         {
-            _edges.Add(Lines.Count - 1);
+            _edges.Add(start);
         }
 
-        // The title line always comes first, framed or not, so content line i is panel line i + 1.
         Pad();
 
         for (var index = 0; index < content.Targets.Count; index++)
         {
-            _targets[start + 1 + index] = content.Targets[index];
+            _targets[first + index] = content.Targets[index];
         }
     }
 
@@ -45,7 +50,7 @@ internal sealed class DocumentSink
 
         var stops = Enumerable.Range(0, Lines.Count).Where(line => !_edges.Contains(line)).ToArray();
 
-        return new DetailDocument(width, Lines, _targets, _sections, stops);
+        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles };
     }
 
     private void Pad()

@@ -29,9 +29,9 @@ public class FormOverlaySnapshotTests
     {
         var lines = FrameBuilder.Build(Sample(), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
-        var path = Path.Combine(AppContext.BaseDirectory, "Snapshots", $"form-{width}x{height}.txt");
+        var name = $"form-{width}x{height}.txt";
 
-        Assert.Equal(File.ReadAllText(path), actual);
+        Assert.Equal(SnapshotFile.Expect(name, actual), actual);
     }
 
     [Fact]

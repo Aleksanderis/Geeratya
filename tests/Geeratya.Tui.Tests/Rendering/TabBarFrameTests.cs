@@ -36,7 +36,7 @@ public class TabBarFrameTests
         var lines = FrameBuilder.Build(State(1, 50), 80, height, _keymap);
 
         var shown = lines.Count(line => line.Contains("A-", StringComparison.Ordinal));
-        var bodyRows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows;
+        var bodyRows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows;
         Assert.Equal(bodyRows, shown);
     }
 

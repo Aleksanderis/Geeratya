@@ -1,7 +1,6 @@
  [1 Board: GCM board]  +                                                                                         [jump] 
                                                                                                                         
-GCM board · 24 issues                                                                                                   
-┌─ To Do 5 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 3 ─────────────────────────────┐
+╭─ To Do 5 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 3 ─────────────────────────────╮
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-10 Sign up with email ────┐ │
 │ ┃ Epic GCM-8                        ┃ │ │ Epic GCM-9                        │ │ │ Sub-task GCM-18                  │ │
 │ ┃ Seed: Onboarding flow             ┃ │ │ Seed: Reporting                   │ │ │ Build the form                   │ │
@@ -32,5 +31,6 @@ GCM board · 24 issues
 │                                       │                                       │                                      │
 │                                       │                                       │                                      │
 │                                       │                                       │                                      │
-└───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────┘
- NORMAL    h/l column  j/k card  Enter open  Space l list  Space o browser  Space i c create  ? help  : commands  q quit
+│                                       │                                       │                                      │
+╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
+ NORMAL GCM board · 24 issues                 h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit

@@ -49,22 +49,29 @@ public sealed class ListBodyRenderer : IBodyRenderer
     {
         var tab = ActiveTab(state)!;
         var glyphs = Glyphs.For(context.Glyphs);
-        var area = Math.Max(0, height - ListLayout.HeaderRows);
-        var columns = OptionalColumns(tab, width, area);
+        var framed = FrameGrid.CanFrame(width, height);
+        var inner = framed ? width - 2 : width;
+        var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
+        var columns = OptionalColumns(tab, inner, area);
         var footer = FooterLine(tab, glyphs);
         var shown = tab.Rows.Count == 0 ? 0 : Math.Min(area, tab.Rows.Count - FirstRow(tab));
         var footerFits = footer is not null && tab.Rows.Count > 0 && shown < area && LastRowShown(tab, shown);
-        var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area))
+        var note = footerFits ? null : footer;
+        var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area));
+
+        // Too small for a frame: the title stays a plain line above the column titles, as the layout always had it.
+        if (!framed)
         {
-            HeaderLine(tab, footerFits ? null : footer, glyphs),
-            TitlesLine(columns),
-        };
+            lines.Add(HeaderLine(tab, note, glyphs));
+        }
+
+        lines.Add(TitlesLine(columns));
 
         if (tab.Rows.Count == 0)
         {
-            AddBodyMessage(lines, tab, width, glyphs);
+            AddBodyMessage(lines, tab, inner, glyphs);
 
-            return lines;
+            return Framed(tab, note, glyphs, width, height, lines);
         }
 
         var first = FirstRow(tab);
@@ -77,7 +84,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
             var row = tab.Rows[index];
             var set = SetMarkOf(row, index, marks, range);
 
-            lines.Add(RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, width, glyphs));
+            lines.Add(RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, inner, glyphs));
         }
 
         if (footerFits)
@@ -85,7 +92,39 @@ public sealed class ListBodyRenderer : IBodyRenderer
             lines.Add(footer!);
         }
 
-        return lines;
+        return Framed(tab, note, glyphs, width, height, lines);
+    }
+
+    /// <summary>The title chips of a one-pane frame: the source on the left, count, options and note on the right.</summary>
+    internal static TitleChips ChipsOf(TabState tab, StyledLine? note, Glyphs glyphs)
+    {
+        var right = new List<StyledSpan> { new(CountText(tab), TextRole.Muted) };
+
+        if (BoardViewOptions.Summary(tab, glyphs.Separator) is { Length: > 0 } options)
+        {
+            right.Add(new StyledSpan($"{glyphs.Separator}{options}", TextRole.Strong));
+        }
+
+        if (note is not null)
+        {
+            right.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
+            right.AddRange(note.Spans);
+        }
+
+        return new TitleChips([new StyledSpan(tab.Definition.Title, TextRole.Heading)], right);
+    }
+
+    private static List<StyledLine> Framed(
+        TabState tab,
+        StyledLine? note,
+        Glyphs glyphs,
+        int width,
+        int height,
+        List<StyledLine> content)
+    {
+        var chips = ChipsOf(tab, note, glyphs);
+
+        return PaneFrame.Build(width, height, chips.Left, chips.Right, content, []);
     }
 
     // Sprint, estimate and epic columns show only while a row in view has the value, so a Kanban list stays as before.

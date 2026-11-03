@@ -13,6 +13,8 @@ Part of the interface specification; start at [ux.md](ux.md). This is the visual
 
 ## 2. Frame (`FrameGrid`; #524)
 
+Implemented (#524): `FrameGrid` (pane rectangles, plain junctions, rounded outer corners, chips written into top edges) draws the board; `PaneFrame` draws the one-column screens (list, backlog, empty states) around their content lines, with shared edges where a section starts; the issue detail document carries its own sides and shared edges (`Panel`) and the renderer adds the top and bottom edge. Differences from the mockups below, kept on purpose: the backlog's top edge carries the source and count (the first sprint's header is the shared edge under the column titles) so that the list and the backlog keep one geometry; the title chips are plain text in the heading role for the focused pane and muted for the others (the filled chips and the focus box are #525); the board's title line moved to the status bar, which gives it what the key hints leave over (the mode badge, hints and colours of the bars are #527); in the detail the first pane's title is the top edge of the frame and a long document shows the title of the pane in view there; the selection marker `>` replaces the first padding cell (the content follows it directly). The start screen and the messages screen are not framed yet.
+
 Every pane is a box and neighbouring boxes share their edge, so the body is one frame divided into panes. A `FrameGrid` (Tui layer, pure geometry plus a draw function; `--print-frame` uses the same) takes the body rectangle and a list of pane rectangles that tile it, and draws each shared edge once with the right junction.
 
 ```
@@ -341,9 +343,9 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 
 | Screen | Today | Spec section | Issue |
 |---|---|---|---|
-| Board | Columns share edges and have titles in the top edge, but corners are square (`┌ ┐ └ ┘`), the title line `GCM board · 24 issues` sits outside the frame above it, the selected card uses a heavy `┏` box | 2, 3 | #524, #525 |
-| Detail | Separate rounded boxes with a blank row between, no shared edges; the `>` cursor overwrites the left border; titles are inside the top edge but without chips or focus | 2, 4 | #524, #525 |
-| Backlog and list | No frame at all; sprint headers are text rows with `-` markers; no chips | 2, 3 | #524, #525 |
+| Board | Done in #524: one rounded frame, shared edges, column chips in the top edge, the title line is in the status bar. Open: the selected card keeps the heavy `┏` box (spec keeps it), chips are not filled (#525) | 2, 3 | #524, #525 |
+| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Open: chips are not filled and the focused pane is not accent (#525), the status chip on the right of the header | 2, 4 | #524, #525 |
+| Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Open: filled and focus chips (#525) | 2, 3 | #524, #525 |
 | Tab row | Plain text `[1 Board: GCM board]  +`, active tab marked by a tint only, followed by a blank row | 5 | #527 |
 | Status bar | Mode badge is plain text on a bar close to the page colour; hints are plain text | 5 | #527 |
 | Palette | Square-cornered grey box, rows blanked left and right of it, no subheader styling, no count | 7 | #526, #527 |

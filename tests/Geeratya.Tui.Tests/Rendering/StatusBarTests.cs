@@ -4,6 +4,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -280,11 +281,11 @@ public class StatusBarTests
     [Fact]
     public void GivenColumnsLayout_WhenRendering120Wide_ThenTheColumnsHintsShowBeforeTheGlobalOnes()
     {
-        var line = StatusBar.Render(With(ViewLayout.Columns), 120, _keymap);
+        var line = StatusBar.Render(With(ViewLayout.Columns), 150, _keymap);
 
         Assert.Contains("h/l column  j/k card  Enter open  Space l list  Space o browser", line);
         Assert.EndsWith("? help  : commands  q quit", line);
-        Assert.Equal(120, line.Length);
+        Assert.Equal(150, line.Length);
     }
 
     [Fact]
@@ -330,7 +331,7 @@ public class StatusBarTests
     {
         var counts = new List<int>();
 
-        for (var width = 120; width >= 60; width -= 4)
+        for (var width = 150; width >= 60; width -= 4)
         {
             var line = StatusBar.Render(With(ViewLayout.Columns), width, _keymap);
 
@@ -361,11 +362,29 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenABoardWithAQuickFilter_WhenRendering80Wide_ThenTheFilterShowsAndTheGlobalHintsStay()
+    {
+        var state = With(ViewLayout.Columns);
+        var tab = state.Session.Tabs[0] with
+        {
+            QuickFilters = [new QuickFilter(5, "Mine", "assignee = me", 0)],
+            ActiveQuickFilters = [5],
+        };
+        var filtered = state with { Session = state.Session with { Tabs = [tab] } };
+
+        var line = StatusBar.Render(filtered, 80, _keymap);
+
+        Assert.Contains("Filter: Mine", line);
+        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.Equal(80, line.Length);
+    }
+
+    [Fact]
     public void GivenAnIssueOpen_WhenRendering_ThenTheDetailHintsReplaceTheViewOnes()
     {
         var state = With(ViewLayout.Columns, detail: true);
 
-        var line = StatusBar.Render(state, 120, _keymap);
+        var line = StatusBar.Render(state, 150, _keymap);
 
         Assert.Contains("j/k scroll  Enter open  Esc back  Space o browser  Space p parent", line);
         Assert.DoesNotContain("card", line);

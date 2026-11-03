@@ -1,10 +1,10 @@
  [1 Board: GCM board]  +         [jump] 
                                         
-GCM board · 24 issues                 2›
-┌─To Do 5  In Progress 4 ›─────────────┐
+╭─To Do 5  In Progress 4 ›─────────────╮
 │>E GCM-8 Seed: Onboarding flow        │
 │ ├S GCM-11 Welcome screen             │
 │ └T GCM-13 Review onboarding copy     │
 │ s GCM-19 ↑GCM-10 Validate the email  │
-└──────────────────────────────────────┘
+│ B GCM-17 ↑GCM-9 Wrong date format in…│
+╰──────────────────────────────────────╯
  NORMAL       ? help  : commands  q quit

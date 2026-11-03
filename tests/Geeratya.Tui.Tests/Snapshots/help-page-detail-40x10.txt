@@ -1,10 +1,10 @@
  [1 JQL: Sample]  +              [jump] 
                                         
-Sample › A-1 · Loading… · Top           
+╭─ A-1 · Task ─────────────────────────╮
   ┌─ Help ───────────────────────────┐  
   │ > Issue detail │   j             │  
   │   Global       │        Move     │  
   │   All actions  │        down     │  
   └──────────────────────────────────┘  
-╭─ Description ────────────────────────╮
+╰──────────────────────────────────────╯
  HELP                                   

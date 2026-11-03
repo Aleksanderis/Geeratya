@@ -1,10 +1,10 @@
  [1 Backlog: Sample]  +          [jump] 
                                         
-Sample · 1 issue                        
+╭─ Sample ─────────────────── 1 issue ─╮
   ┌─ Help ───────────────────────────┐  
   │ > Backlog     │   j              │  
   │   Global      │         Move     │  
   │   All actions │         down     │  
   └──────────────────────────────────┘  
-                                        
+╰──────────────────────────────────────╯
  HELP                                   

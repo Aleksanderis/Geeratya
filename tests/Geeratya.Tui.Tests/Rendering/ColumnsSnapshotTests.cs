@@ -74,15 +74,15 @@ public class ColumnsSnapshotTests
 
         if (kind == "gcm")
         {
-            Assert.DoesNotContain("Backlog", lines[3], StringComparison.Ordinal);
+            Assert.DoesNotContain("Backlog", lines[2], StringComparison.Ordinal);
         }
 
         var positions = new[] { first, second, third, fourth }.OfType<string>()
-            .Select(name => lines[3].IndexOf(name, StringComparison.Ordinal))
+            .Select(name => lines[2].IndexOf(name, StringComparison.Ordinal))
             .ToArray();
         Assert.All(positions, position => Assert.True(position >= 0));
         Assert.Equal(positions.Order(), positions);
-        Assert.Contains(lines.Skip(4), line => line.Contains('┃', StringComparison.Ordinal));
+        Assert.Contains(lines.Skip(3), line => line.Contains('┃', StringComparison.Ordinal));
     }
 
     [Theory]
@@ -106,7 +106,7 @@ public class ColumnsSnapshotTests
 
     private static Task<AppState> OpenAsync(string kind, int height)
     {
-        var rows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows;
+        var rows = height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows;
 
         return kind == "gcm" ? BoardStateFixtures.CompanyManagedAsync(rows) : BoardStateFixtures.TeamManagedAsync(rows);
     }

@@ -157,7 +157,7 @@ public class ListBodyRendererTests
     [Fact]
     public void GivenOneRow_WhenBuilding_ThenTheCountIsSingular()
     {
-        Assert.StartsWith("project = A · 1 issue ", Frame(Tab(LoadState.Idle, 1))[0]);
+        Assert.StartsWith("project = A · 1 issue", Frame(Tab(LoadState.Idle, 1))[0]);
     }
 
     [Fact]
@@ -217,9 +217,10 @@ public class ListBodyRendererTests
     {
         var body = Render(Tab(LoadState.Idle, 3) with { Selected = 2 }, 80, 10);
 
-        Assert.StartsWith("  A-1", body[2].PlainText);
-        Assert.StartsWith("> A-3", body[4].PlainText);
-        Assert.Equal(TextRole.Selected, Assert.Single(body[4].Spans).Role);
+        Assert.StartsWith("│  A-1", body[2].PlainText);
+        Assert.StartsWith("│> A-3", body[4].PlainText);
+        Assert.Contains(body[4].Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("> A-3"));
+        Assert.Equal(TextRole.Muted, body[4].Spans[0].Role);
         Assert.Equal(80, TextWidth.Of(body[4].PlainText));
         Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
     }
@@ -247,11 +248,11 @@ public class ListBodyRendererTests
     {
         var tab = Tab(LoadState.Idle, 2) with { Rows = [Issue(1, assignee: "Jane Doe")] };
 
-        Assert.Contains("Jane Doe", Frame(tab)[2]);
-        Assert.DoesNotContain("Jane Doe", Frame(tab, 99)[2]);
-        Assert.Contains("To Do", Frame(tab, 56)[2]);
-        Assert.DoesNotContain("To Do", Frame(tab, 55)[2]);
-        Assert.EndsWith("○", Frame(tab, 40)[2].TrimEnd());
+        Assert.Contains("Jane Doe", Frame(tab, 102)[2]);
+        Assert.DoesNotContain("Jane Doe", Frame(tab, 101)[2]);
+        Assert.Contains("To Do", Frame(tab, 58)[2]);
+        Assert.DoesNotContain("To Do", Frame(tab, 57)[2]);
+        Assert.EndsWith("○", Frame(tab, 42)[2].TrimEnd());
     }
 
     [Fact]
@@ -290,7 +291,8 @@ public class ListBodyRendererTests
 
         Assert.Equal(20, body.Count);
         Assert.Contains("A-4996", body[2].PlainText);
-        Assert.Contains("A-5013", body[19].PlainText);
+        Assert.Contains("A-5012", body[18].PlainText);
+        Assert.StartsWith("╰", body[19].PlainText);
     }
 
     [Fact]
@@ -406,7 +408,9 @@ public class ListBodyRendererTests
             {
                 for (var height = 1; height <= 8; height++)
                 {
-                    var lines = Body(state, width, height);
+                    var lines = FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _keymap)
+                        .Skip(FrameBuilder.HeaderRows)
+                        .ToList();
 
                     Assert.Equal(height, lines.Count);
                     Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
@@ -426,7 +430,7 @@ public class ListBodyRendererTests
 
         var lines = Render(tab, 40, 6, GlyphSet.Ascii);
 
-        Assert.EndsWith($" {glyph}", lines[2].PlainText.TrimEnd());
+        Assert.EndsWith($" {glyph}", lines[2].PlainText.TrimEnd('│').TrimEnd());
     }
 
     [Fact]
@@ -448,7 +452,7 @@ public class ListBodyRendererTests
         {
             foreach (var width in new[] { 40, 80, 120 })
             {
-                var lines = Render(tab, width, 10, GlyphSet.Ascii).Select(line => line.PlainText);
+                var lines = Render(tab, width, 10, GlyphSet.Ascii).Select(line => Glyphs.ToAscii(line.PlainText));
 
                 Assert.All(lines, line => Assert.True(line.All(character => character < 128), line));
             }
@@ -517,7 +521,7 @@ public class ListBodyRendererTests
     /// <summary>The frame without its header lines, so the rows below them keep their meaning.</summary>
     private static List<string> Body(AppState state, int width, int height)
     {
-        return [.. FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _keymap)
-            .Skip(FrameBuilder.HeaderRows)];
+        return FrameText.Unframe(FrameBuilder.Build(state, width, height + FrameBuilder.HeaderRows, _keymap)
+            .Skip(FrameBuilder.HeaderRows));
     }
 }

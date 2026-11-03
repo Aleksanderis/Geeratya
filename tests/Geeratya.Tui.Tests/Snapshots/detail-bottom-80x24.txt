@@ -1,6 +1,7 @@
  [1 JQL: My open issues]  +                                              [jump] 
                                                                                 
-My open issues › GCM-12 · Bot                                                   
+╭─ Description ────────────────────────────────────────────────────────────────╮
+│ ----------------------------------------                                     │
 │                                                                              │
 │ | H1 | H2 |                                                                  │
 │ |----|----|                                                                  │
@@ -10,8 +11,7 @@ My open issues › GCM-12 · Bot
 │   hidden                                                                     │
 │                                                                              │
 │ https://example.com/card                                                     │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments (3) ───────────────────────────────────────────────────────────────╮
+├─ Comments (3) ───────────────────────────────────────────────────────────────┤
 │ Jane Doe · 1 d ago                                                           │
 │ Found it: the redirect target is dropped after the refresh.                  │
 │                                                                              │
@@ -19,6 +19,6 @@ My open issues › GCM-12 · Bot
 │ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
 │                                                                              │
 │ Ola Nordmann · 5 min ago                                                     │
-> See also café and 😀 in the second paragraph, which is long enough to wrap.  │
+│>See also café and 😀 in the second paragraph, which is long enough to wrap.  │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL             j/k scroll  Enter open  Esc back  ? help  : commands  q quit
+ NORMAL My open issues › GCM-12 · Bot     j/k scroll  ? help  : commands  q quit

@@ -837,7 +837,11 @@ public class IssueDetailReducerTests
 
     private static string Text(DetailState detail)
     {
-        return string.Join('\n', detail.Document!.Lines.Select(line => line.PlainText));
+        var document = detail.Document!;
+        var titles = document.PaneTitles.Select(title => string.Concat(title.Select(span => span.Text)));
+
+        // The first panel's title is drawn in the top edge of the screen frame, so it is not a document line.
+        return string.Join('\n', titles.Concat(document.Lines.Select(line => line.PlainText)));
     }
 
     private static IssueSummary Row(int number)

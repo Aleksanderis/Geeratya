@@ -7,6 +7,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -19,6 +20,8 @@ public static class StatusBar
     private const string SprintPrompt = "switch sprint";
     private const string MovePrompt = "move to sprint";
     private const string JumpPrompt = "jump to an issue";
+    private const int MinViewRoom = 8;
+    private const int MaxViewReserve = 40;
 
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
@@ -127,9 +130,42 @@ public static class StatusBar
             return string.Empty;
         }
 
-        var text = Text(state, width, keymap, now ?? DateTimeOffset.UnixEpoch, confirmDialogShown);
+        var clock = now ?? DateTimeOffset.UnixEpoch;
+        var text = Text(state, width, keymap, clock, confirmDialogShown, 0);
+        var wanted = TextWidth.Of(Text(state, width, keymap, clock, confirmDialogShown, int.MaxValue))
+            - TextWidth.Of(text);
+
+        // The view text (source, count, filter and lane, breadcrumb, ruler) is state the user needs: up to
+        // MaxViewReserve cells are kept for it and the screen hints drop from the end to make room (the global
+        // hints stay while they fit).
+        var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
         var left = $" {Badge(state)} {text}".TrimEnd();
-        var hints = ShownHints(state, keymap, width - TextWidth.Of(left));
+        var room = width - TextWidth.Of(left);
+        var hints = ShownHints(state, keymap, room - reserve);
+
+        // The global hints never give way to the view text: shrink the reserve until they fit again.
+        while (hints.Length == 0 && reserve > 0 && ShownHints(state, keymap, room).Length > 0)
+        {
+            reserve--;
+            hints = ShownHints(state, keymap, room - reserve);
+        }
+
+        var spare = width - TextWidth.Of(left) - TextWidth.Of(hints) - Separator.Length;
+
+        if (hints.Length > 0)
+        {
+            spare -= HintGap.Length;
+        }
+
+        var shown = wanted > 0 && spare >= MinViewRoom
+            ? Text(state, width, keymap, clock, confirmDialogShown, spare)
+            : text;
+
+        if (shown != text)
+        {
+            left = $" {Badge(state)} {shown}".TrimEnd();
+        }
+
         var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
 
         if (hints.Length == 0 || gap < HintGap.Length)
@@ -387,7 +423,8 @@ public static class StatusBar
         int width,
         KeymapTable keymap,
         DateTimeOffset now,
-        bool confirmDialogShown)
+        bool confirmDialogShown,
+        int viewRoom)
     {
         return state.Mode switch
         {
@@ -399,7 +436,7 @@ public static class StatusBar
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
-            _ => NormalText(state, now),
+            _ => NormalText(state, now, viewRoom),
         };
     }
 
@@ -430,7 +467,7 @@ public static class StatusBar
     /// Pending keys, a count and a rank pickup win (they echo what the user is typing); then the notice; otherwise the network word of the active tab (first, so it survives a cut)
     /// and the result of the connection check show.
     /// </summary>
-    private static string NormalText(AppState state, DateTimeOffset now)
+    private static string NormalText(AppState state, DateTimeOffset now, int viewRoom)
     {
         if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
@@ -454,6 +491,12 @@ public static class StatusBar
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
+        var view = viewRoom > 0 ? ViewText(state, now, viewRoom) : string.Empty;
+
+        if (view.Length > 0)
+        {
+            line = line.Length == 0 ? view : $"{view}{Separator}{line}";
+        }
 
         if (ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } selecting && RowSelection.Count(selecting) > 0)
         {
@@ -467,6 +510,30 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
+    }
+
+    /// <summary>
+    /// What the screen no longer draws as a title line of its own: the source and its count on a board, the
+    /// breadcrumb and the ruler in the issue detail (<c>docs/ux-look.md</c>, sections 2 and 5).
+    /// </summary>
+    private static string ViewText(AppState state, DateTimeOffset now, int room)
+    {
+        if (ListBodyRenderer.ActiveTab(state) is not { } tab)
+        {
+            return string.Empty;
+        }
+
+        if (tab.Detail.Count > 0)
+        {
+            return CardText.Shorten(DetailStatus.Text(tab, room), room);
+        }
+
+        if (tab.Definition.Layout != ViewLayout.Columns)
+        {
+            return string.Empty;
+        }
+
+        return CardText.Shorten(ColumnsBodyRenderer.StatusText(tab, Glyphs.For(GlyphSet.Unicode), now), room);
     }
 
     private static string SelectedText(TabState tab)

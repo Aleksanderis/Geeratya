@@ -9,11 +9,11 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class BoardHits
 {
-    /// <summary>The header row of the columns inside the body (the title is row 0).</summary>
-    public const int HeaderRow = 1;
+    /// <summary>The header row of the columns inside the body: the top edge of the frame, where the titles sit.</summary>
+    public const int HeaderRow = 0;
 
     /// <summary>
-    /// The hit at a body cell, or null on the title, below the cards or outside the drawn columns.
+    /// The hit at a body cell, or null below the cards or outside the drawn columns.
     /// <paramref name="cursor"/> must be resolved for <paramref name="columns"/>.
     /// </summary>
     public static BoardHit? At(
@@ -45,7 +45,7 @@ public static class BoardHits
         }
 
         var pitch = BoardCards.Pitch(visibleRows, ListLayout.HeaderRows);
-        var offset = row - ListLayout.HeaderRows;
+        var offset = row - BoardCards.TopRows;
         var shown = BoardCards.Visible(visibleRows, ListLayout.HeaderRows);
         var card = cursor.Scrolls[chosen] + (offset / pitch);
 

@@ -1,6 +1,6 @@
  [1 JQL: Sample]  +                                                      [jump] 
                                                                                 
-Sample › A-1 · Loading…                                                         
+╭─ A-1 · Task ─────────────────────────────────────────────────────────────────╮
   ┌─ Help ───────────────────────────────────────────────────────────────────┐  
   │ > Issue detail │   j          Move down  (Down)                          │  
   │   Global       │   k          Move up  (Up)                              │  
@@ -20,5 +20,5 @@ Sample › A-1 · Loading…
   │                │   Space i e  Edit fields of the issue (summary,         │  
   │                │              labels, priority, description)             │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
+╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

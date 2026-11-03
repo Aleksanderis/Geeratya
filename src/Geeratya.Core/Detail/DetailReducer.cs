@@ -343,14 +343,17 @@ internal static class DetailReducer
 
     /// <summary>
     /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
-    /// breadcrumb row is 0), without scrolling. Null for rows outside the document.
+    /// top edge of the frame is row 0), without scrolling. Null for rows outside the document, the bottom edge included.
     /// </summary>
     public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
     {
         var top = tab.Detail[^1];
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
 
-        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows || line >= document.Lines.Count)
+        var shown = DetailLayout.ViewportRows(tab.VisibleRows);
+
+        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows
+            || bodyRow >= DetailLayout.HeaderRows + shown || line >= document.Lines.Count)
         {
             return null;
         }
@@ -359,8 +362,8 @@ internal static class DetailReducer
     }
 
     /// <summary>
-    /// Puts the cursor on <paramref name="line"/> and scrolls so that the panel edge above it is the first visible
-    /// line when the document is long enough (a section jump shows the section from its top).
+    /// Puts the cursor on <paramref name="line"/> and scrolls so that it is the first visible line when the document
+    /// is long enough (a section jump shows the section from its top; the top edge of the frame carries its title).
     /// </summary>
     public static AppState JumpTo(AppState state, TabState tab, int line)
     {
@@ -368,7 +371,7 @@ internal static class DetailReducer
         var lines = top.Document?.Lines.Count ?? 0;
         var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
         var cursor = top.Document?.Snap(Math.Clamp(line, 0, Math.Max(0, lines - 1))) ?? 0;
-        var scroll = Math.Clamp(cursor - 1, 0, Math.Max(0, lines - viewport));
+        var scroll = Math.Clamp(cursor, 0, Math.Max(0, lines - viewport));
 
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
     }

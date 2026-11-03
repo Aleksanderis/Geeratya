@@ -1,7 +1,6 @@
  [1 Board: GTM board]  +                                                                                         [jump] 
                                                                                                                         
-GTM board · 16 issues                                                                                                   
-┌─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done 3 ───────────────────┐
+╭─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done 3 ───────────────────╮
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
 │ ┃ Epic GTM-9              ┃ │ │ Epic GTM-10             │ │ │ Task GTM-21             │ │ │ Story GTM-13           │ │
 │ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
@@ -32,5 +31,6 @@ GTM board · 16 issues
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │
-└─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────┘
- NORMAL    h/l column  j/k card  Enter open  Space l list  Space o browser  Space i c create  ? help  : commands  q quit
+│                             │                             │                             │                            │
+╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
+ NORMAL GTM board · 16 issues                 h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit
