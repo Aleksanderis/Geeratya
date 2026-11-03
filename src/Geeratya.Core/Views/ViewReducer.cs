@@ -16,7 +16,6 @@ namespace Geeratya.Core.Views;
 public static partial class ViewReducer
 {
     private const string NoColumnsText = "This view has no columns layout";
-
     private const string RefreshQueuedText = "Refresh after the write";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];

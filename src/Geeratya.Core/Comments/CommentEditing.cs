@@ -22,20 +22,13 @@ internal static partial class CommentEditing
     public const string DiscardAction = "comment.discard";
 
     private const string OpenIssueText = "Open an issue first.";
-
     private const string NoCommentText = "Put the cursor on a comment first.";
-
     private const string EmptyText = "A comment cannot be empty.";
-
     private const string NoChangeText = "No change to save.";
-
     private const string LostFormattingText =
         "This comment has formatting the editor cannot show; saving replaces it with the text below.";
-
     private const string NotYoursText = "Not your comment: Jira refuses unless you may edit all comments.";
-
     private const int QuoteLength = 30;
-
     private const string Ellipsis = "…";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];

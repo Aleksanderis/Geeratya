@@ -1,4 +1,3 @@
-
 namespace Geeratya.Jira.Adf;
 
 public static partial class AdfMarkdownParser

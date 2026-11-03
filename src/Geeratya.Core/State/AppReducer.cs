@@ -18,7 +18,6 @@ namespace Geeratya.Core.State;
 public sealed partial class AppReducer
 {
     private static readonly IReadOnlyList<Effect> _noEffects = [];
-
     private static readonly IReadOnlyList<Effect> _quitEffects = [new QuitEffect()];
 
     // A click on a sub-task row runs the key's handler (mouse table: SubtaskRow).
@@ -34,14 +33,10 @@ public sealed partial class AppReducer
     ];
 
     private const string EscapeKey = "Esc";
-
     private const int HelpHalfPage = 8;
-
     private const string SettingsResetHint = "Open the settings screen first (:settings).";
-
     private const string ConfirmTooSmallText =
         "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
-
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
 
     private readonly KeymapTable _keymap;

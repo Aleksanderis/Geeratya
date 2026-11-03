@@ -14,13 +14,9 @@ namespace Geeratya.Core.Writes;
 public static partial class RankActions
 {
     private const string NotRankedText = "Ranking works in a board or backlog view";
-
     private const string InsideIssueText = "Ranking works on a list or a board, not inside an issue";
-
     private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
-
     private const string NothingText = "Nothing to rank here";
-
     private const string IncompleteText =
         "Not every issue is loaded yet: wait for the rest before ranking to the bottom";
 

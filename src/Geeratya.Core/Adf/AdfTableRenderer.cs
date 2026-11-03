@@ -10,25 +10,15 @@ namespace Geeratya.Core.Adf;
 internal static partial class AdfTableRenderer
 {
     private const int NaturalWidth = 10_000;
-
     private const int MinColumnWidth = 8;
-
     private const int SeparatorWidth = 3;
-
     private const int BorderWidth = 1;
-
     private const string RowStart = "| ";
-
     private const string CellSeparator = " | ";
-
     private const string RowEnd = " |";
-
     private const char HeaderRuleCharacter = '-';
-
     private const string StackedBullet = "- ";
-
     private const string StackedIndent = "  ";
-
     private const string LabelSuffix = ": ";
 
     public static void Render(AdfTable table, RenderContext context, List<StyledLine> output)
