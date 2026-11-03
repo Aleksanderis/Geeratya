@@ -128,6 +128,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `sprint.move-to-backlog` | M | Item of the right-click menu on a row of a board, backlog or sprint view: moves the issue, the marks or the Visual range to the backlog, same as `<space>sb` |
 | ContextMenu | Click | `comment.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `tab.close` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `tab.rename` | V | Item of the same menu: opens the command line with `tab rename <current name>` typed, like `Ctrl-w r` |
 | ContextMenu | Click | `tab.previous` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `help.toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `app.quit` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |

@@ -21,6 +21,35 @@ public static class TabTitles
         return OneLine($"{Kind(definition)} {definition.Title}");
     }
 
+    /// <summary>The label of a tab chip: its own name when it has one, else <see cref="Label(ViewDefinition)"/>.</summary>
+    public static string Label(TabState tab)
+    {
+        return tab.Name is { Length: > 0 } name ? OneLine(name) : Label(tab.Definition);
+    }
+
+    /// <summary>
+    /// The suffix that tells a tab from an earlier one with the same label: empty for the first, <c> (2)</c> for the
+    /// second, and so on.
+    /// </summary>
+    public static string Qualifier(IReadOnlyList<TabState> tabs, int index)
+    {
+        var label = Label(tabs[index]);
+        var earlier = 0;
+
+        for (var other = 0; other < index; other++)
+        {
+            earlier += Label(tabs[other]) == label ? 1 : 0;
+        }
+
+        return earlier == 0 ? string.Empty : $" ({earlier + 1})";
+    }
+
+    /// <summary>The label with its qualifier, as the tab list shows it.</summary>
+    public static string Qualified(IReadOnlyList<TabState> tabs, int index)
+    {
+        return $"{Label(tabs[index])}{Qualifier(tabs, index)}";
+    }
+
     /// <summary>
     /// Cuts <paramref name="text"/> to at most <paramref name="width"/> columns, ending in an ellipsis when it was
     /// cut; a wide character is never split.

@@ -141,7 +141,8 @@ public static class StartupReducer
                 && ReferenceEquals(pair.First.Definition, pair.Second.Definition)
                 && ReferenceEquals(pair.First.ActiveQuickFilters, pair.Second.ActiveQuickFilters)
                 && pair.First.Swimlane == pair.Second.Swimlane
-                && pair.First.Lane == pair.Second.Lane);
+                && pair.First.Lane == pair.Second.Lane
+                && pair.First.Name == pair.Second.Name);
     }
 
     private static ReduceResult FirstStart(AppState state)

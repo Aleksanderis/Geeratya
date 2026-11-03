@@ -32,7 +32,8 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
                 tab.Definition.Title,
                 tab.ActiveQuickFilters.Count == 0 ? null : tab.ActiveQuickFilters,
                 tab.Swimlane == SwimlaneKind.None ? null : tab.Swimlane.ToString(),
-                tab.Swimlane == SwimlaneKind.None ? null : tab.Lane))
+                tab.Swimlane == SwimlaneKind.None ? null : tab.Lane,
+                tab.Name))
             .ToArray();
 
         var active = session.Tabs.ToList().FindIndex(tab => tab.Id == session.Active);
@@ -104,6 +105,7 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             && left.Title == right.Title
             && left.Swimlane == right.Swimlane
             && left.Lane == right.Lane
+            && left.Name == right.Name
             && (left.QuickFilters ?? []).SequenceEqual(right.QuickFilters ?? []);
     }
 
@@ -121,7 +123,8 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             new ViewDefinition(source, tab.SourceValue, layout, tab.Title ?? tab.SourceValue),
             tab.QuickFilters ?? [],
             swimlane,
-            swimlane == SwimlaneKind.None ? null : tab.Lane);
+            swimlane == SwimlaneKind.None ? null : tab.Lane,
+            TabNames.Clean(tab.Name));
     }
 
     private static bool TryParse<TEnum>(string? text, out TEnum value)

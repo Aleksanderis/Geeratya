@@ -467,6 +467,7 @@ public static class ViewReducer
                     ActiveQuickFilters = entry.QuickFilters,
                     Swimlane = entry.Swimlane,
                     Lane = entry.Lane,
+                    Name = entry.Name,
                 });
         }
 

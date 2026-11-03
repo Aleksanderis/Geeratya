@@ -698,6 +698,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabLastActive => ViewReducer.LastActiveTab(state),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
+            ActionIds.TabRename => InNormal(state, () => OpenRenameCommand(state)),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.TabList => TabListReducer.Open(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
@@ -1031,6 +1032,19 @@ public sealed class AppReducer
         return Result(command);
     }
 
+    /// <summary><c>tab.rename</c>: the command line with <c>tab rename </c> and the current name typed.</summary>
+    private static ReduceResult OpenRenameCommand(AppState state)
+    {
+        if (TabRenameReducer.ActiveTab(state) is not { } tab)
+        {
+            return TabRenameReducer.NoTab(state);
+        }
+
+        var text = TabRenameReducer.CommandFor(tab);
+
+        return Result(ToNormal(state) with { Mode = InputMode.Command, PaletteText = text, PaletteBack = 0 });
+    }
+
     private static ReduceResult RunCommandLine(AppState state, DateTimeOffset at)
     {
         var text = state.PaletteText.Trim();
@@ -1132,12 +1146,17 @@ public sealed class AppReducer
         return text == "tab" || text.StartsWith("tab ", StringComparison.Ordinal);
     }
 
-    /// <summary><c>:tab new|close|next|prev|&lt;n&gt;</c>: the same handlers as the tab keys.</summary>
+    /// <summary><c>:tab new|rename [name]|close|next|prev|&lt;n&gt;</c>: the same handlers as the tab keys.</summary>
     private static ReduceResult TabCommand(AppState state, string argument)
     {
         if (argument == "new")
         {
             return SourceReducer.OpenPicker(state);
+        }
+
+        if (argument == "rename" || argument.StartsWith("rename ", StringComparison.Ordinal))
+        {
+            return TabRenameReducer.Rename(state, argument["rename".Length..]);
         }
 
         if (argument == "close")
@@ -1155,7 +1174,7 @@ public sealed class AppReducer
             return ViewReducer.GoToTab(state, number);
         }
 
-        return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+        return Result(state with { Message = "Usage: :tab new|rename [name]|close|next|prev|<n>" });
     }
 
     private static bool IsThemeCommand(string text)

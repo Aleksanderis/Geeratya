@@ -142,6 +142,8 @@ public static class ContextMenus
             actions.Add(ActionIds.SprintGoal);
         }
 
+        actions.Add(ActionIds.TabRename);
+
         if (state.Session.Tabs.Count > 1)
         {
             actions.Add(ActionIds.TabPrevious);

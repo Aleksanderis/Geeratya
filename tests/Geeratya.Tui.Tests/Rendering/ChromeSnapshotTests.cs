@@ -56,6 +56,19 @@ public class ChromeSnapshotTests
     }
 
     [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenIdenticalLabelsAndARenamedTab_WhenBuildingTheFrame_ThenTheTabRowMatchesTheSnapshot(int width, int height)
+    {
+        var lines = FrameBuilder.Build(SameSourceState(), width, height, _keymap);
+        var row = $"{lines[0]}\n";
+        var name = $"chrome-tabs-same-{width}x{height}.txt";
+
+        Assert.Equal(SnapshotFile.Expect(name, row), row);
+    }
+
+    [Theory]
     [InlineData(ColorSupport.TrueColor)]
     [InlineData(ColorSupport.Basic16)]
     public void GivenAColourTier_WhenResolvingTheBars_ThenChipsAreFilledAndTheBarsShareTheBarBackground(ColorSupport tier)
@@ -136,6 +149,21 @@ public class ChromeSnapshotTests
         var line = StatusBar.RenderStyled(state, 100, _keymap, _now);
 
         Assert.Contains(line.Spans, span => span.Role == role && span.Text.EndsWith("Saved A-1", StringComparison.Ordinal));
+    }
+
+    private static AppState SameSourceState()
+    {
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = GEN", ViewLayout.List, "project = GEN");
+        var tabs = Enumerable.Range(1, 3)
+            .Select(index => TabState.Opened(new TabId(index), definition, index, index, 10) with { Load = LoadState.Idle })
+            .ToList();
+
+        tabs[2] = tabs[2] with { Name = "Release 12" };
+
+        var session = SiteSession.Empty(profile) with { Tabs = tabs, Active = tabs[1].Id };
+
+        return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile), Session = session };
     }
 
     private static AppState State()

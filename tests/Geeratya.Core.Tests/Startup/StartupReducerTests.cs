@@ -332,6 +332,25 @@ public class StartupReducerTests
     }
 
     [Fact]
+    public void GivenATabIsRenamed_WhenTheStartIsDone_ThenTheNameIsSavedAndReopenedOnTheNextStart()
+    {
+        var opened = _reducer.Reduce(Done(), new ViewOpenRequested(Jql()));
+        var named = _reducer.Reduce(opened.State, new KeyPressed(":"));
+
+        foreach (var character in "tab rename Mine")
+        {
+            named = _reducer.Reduce(named.State, new KeyPressed(character == ' ' ? "Space" : character.ToString()));
+        }
+
+        var renamed = _reducer.Reduce(named.State, new KeyPressed("Enter"));
+        var save = Assert.Single(renamed.Effects.OfType<SaveTabsEffect>());
+        var reopened = _reducer.Reduce(Begin(Initial()), new TabsLoaded(_work, save.Tabs));
+
+        Assert.Equal("Mine", Assert.Single(save.Tabs.Items).Name);
+        Assert.Equal("Mine", Assert.Single(reopened.State.Session.Tabs).Name);
+    }
+
+    [Fact]
     public void GivenTheRememberedTabsAreStillBeingRead_WhenATabOpens_ThenTheFileIsNotOverwritten()
     {
         var result = _reducer.Reduce(Begin(Initial()), new ViewOpenRequested(Jql()));

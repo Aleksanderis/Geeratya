@@ -85,7 +85,7 @@ public static class PromptEditing
             return state with { Picker = Changed(picker, edited) };
         }
 
-        return state;
+        return state.Form is not null ? ProfileReducer.Edit(state, change) : state;
     }
 
     private static SourcePickerState Changed(SourcePickerState picker, PromptText edited)

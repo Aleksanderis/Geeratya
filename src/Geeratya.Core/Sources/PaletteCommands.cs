@@ -42,7 +42,7 @@ public static class PaletteCommands
             View,
             "view [name]|save <name>|rename <old> <new>|delete <name>",
             "Open, save, rename or delete a saved view (source and layout)"),
-        new(Tab, "tab new|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
+        new(Tab, "tab new|rename [name]|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
         new(Edit, "edit", "Edit the fields of the selected or shown issue (field form)"),
         new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
