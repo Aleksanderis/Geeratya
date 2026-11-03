@@ -18,4 +18,5 @@ public enum OperationKind
     UnlinkIssues,
     CreateSprint,
     EditSprint,
+    RankMove,
 }

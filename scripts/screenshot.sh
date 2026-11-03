@@ -91,6 +91,7 @@ all_scenarios=(
   "sprint-form-edit;120;36;dark;:backlog GCS board| se;Edit sprint"
   "sprint-created;120;36;dark;:backlog GCS board| snSprint 4~;Created sprint"
   "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
+  "rank-across-sections;120;36;dark;:backlog GEN board|]]^j^{;Jira has no undo"
   "rank-board;120;36;dark;:board GCM|};Ranked"
   "rank-board-team;120;36;dark;:board GTM|};Ranked"
   "theme-latte;120;36;light;:board GCM|:theme catppuccin-latte|;Theme catppuccin-latte."

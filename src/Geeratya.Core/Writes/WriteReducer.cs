@@ -627,7 +627,7 @@ public static class WriteReducer
     /// </summary>
     private static AppState QueueRankReload(AppState state, Operation operation)
     {
-        if (operation.Kind is not (OperationKind.Rank or OperationKind.SprintMove))
+        if (operation.Kind is not (OperationKind.Rank or OperationKind.SprintMove or OperationKind.RankMove))
         {
             return state;
         }
@@ -645,7 +645,7 @@ public static class WriteReducer
     /// </summary>
     private static AppState ClearSelection(AppState state, Operation operation)
     {
-        if (operation.Kind != OperationKind.SprintMove)
+        if (operation.Kind is not (OperationKind.SprintMove or OperationKind.RankMove))
         {
             return state;
         }

@@ -438,6 +438,50 @@ public sealed class WriteHandlerTests
         Assert.Equal("Cannot rank an epic here", failed.Error.Message);
     }
 
+    [Fact]
+    public async Task GivenARankIntoAnotherSprint_WhenExecuting_ThenTheMoveGoesFirstAndTheRankSecond()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.NoContent, string.Empty));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, CrossRequest()));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["POST", "PUT"], fixture.Http.Methods);
+        Assert.EndsWith("/rest/agile/1.0/sprint/8/issue", fixture.Http.Requests.ElementAt(0).AbsolutePath);
+        Assert.Contains("\"A-1\"", fixture.Http.Bodies.ElementAt(0));
+        Assert.EndsWith("/rest/agile/1.0/issue/rank", fixture.Http.Requests.ElementAt(1).AbsolutePath);
+        Assert.Contains("\"rankBeforeIssue\":\"A-2\"", fixture.Http.Bodies.ElementAt(1));
+    }
+
+    [Fact]
+    public async Task GivenARankIntoAnotherSprintWhoseMoveFails_WhenExecuting_ThenNoRankIsSent()
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Forbidden, string.Empty));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, CrossRequest()));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.Permission, failed.Error.Kind);
+        Assert.Equal(["POST"], fixture.Http.Methods);
+    }
+
+    [Fact]
+    public async Task GivenARankIntoAnotherSprintWhoseRankFails_WhenExecuting_ThenTheFailureSaysTheIssueMoved()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.BadRequest, """{"errorMessages":["Gone"],"errors":{}}"""));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, CrossRequest()));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(WriteErrorKind.Validation, failed.Error.Kind);
+        Assert.StartsWith("Moved to sprint \"Sprint 2\" but not ranked", failed.Error.Message, StringComparison.Ordinal);
+        Assert.Equal(["POST", "PUT"], fixture.Http.Methods);
+    }
+
     [Theory]
     [InlineData(HttpStatusCode.BadRequest, WriteErrorKind.Validation)]
     [InlineData(HttpStatusCode.Forbidden, WriteErrorKind.Permission)]
@@ -567,6 +611,13 @@ public sealed class WriteHandlerTests
             new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)));
 
         return new Fixture(connections, new ScriptedJiraHandler());
+    }
+
+    private static RankMoveRequest CrossRequest()
+    {
+        var target = new IssueSprint(8, "Sprint 2", SprintState.Future);
+
+        return new RankMoveRequest(["A-1"], "A-2", true, null, ["A-1", "A-2"], target, "the backlog");
     }
 
     private static async Task<Fixture> ConnectedAsync(Action<ScriptedJiraHandler> script, int maxRetries = 0)
