@@ -80,15 +80,14 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
-    public void GivenSettingsWarnings_WhenStarting_ThenEachIsAWarningEntryAndTheStatusLineIsNotJoined()
+    public void GivenSettingsWarnings_WhenStarting_ThenEachIsAWarningEntryAndTheStatusLineCountsTheOthers()
     {
         var state = StatusMessages.Startup(AppState.Initial, null, ["a is bad.", "b is bad."]);
         var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
 
-        Assert.Equal(["2 problems in settings.json (see the Messages overlay)", "b is bad.", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
-        Assert.Equal(StatusSeverity.Warning, settled.Status!.Severity);
-        Assert.DoesNotContain("a is bad", settled.Status.Text);
-        Assert.All(settled.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
+        Assert.Equal("Warning: a is bad. (+1 more, <space>n)", settled.Status!.Line);
+        Assert.Equal(["b is bad.", "a is bad."], settled.StatusHistory.Select(message => message.Text).ToList());
+        Assert.All(settled.StatusHistory, message => Assert.Equal(StatusSeverity.Warning, message.Severity));
     }
 
     [Fact]
@@ -101,12 +100,30 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
-    public void GivenANoticeAndWarnings_WhenStarting_ThenTheNoticeShowsAndTheWarningsAreInTheHistory()
+    public void GivenANoticeAndWarnings_WhenStarting_ThenTheNoticeShowsFirstAndAllAreInTheHistory()
     {
         var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, "Profiles corrupt", ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
 
-        Assert.Equal("Profiles corrupt", settled.Status!.Text);
-        Assert.Equal(["Profiles corrupt", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+        Assert.Equal("Profiles corrupt (+1 more, <space>n)", settled.Status!.Text);
+        Assert.Equal(["a is bad.", "Profiles corrupt"], settled.StatusHistory.Select(message => message.Text).ToList());
+    }
+
+    [Fact]
+    public void GivenSettingsKeymapAndThemeProblems_WhenStarting_ThenOneWarningCountsTwoMoreAndTheHistoryListsAllThree()
+    {
+        var state = StatusMessages.Startup(AppState.Initial, null, ["settings.json: hints must be an object; its settings use their defaults."]);
+        state = StatusMessages.KeymapStartup(state, new KeymapLoadResult([], ["row 1 is bad"]));
+        state = StatusMessages.AddStartupProblems(state, ["Theme nosuch: not found; using catppuccin-mocha."]);
+
+        var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal(
+            "Warning: settings.json: hints must be an object; its settings use their defaults. (+2 more, <space>n)",
+            settled.Status!.Line);
+        Assert.Equal(3, settled.StatusHistory.Count);
+        Assert.StartsWith("Theme nosuch", settled.StatusHistory[0].Text, StringComparison.Ordinal);
+        Assert.StartsWith("keymap.json: row 1", settled.StatusHistory[1].Text, StringComparison.Ordinal);
+        Assert.StartsWith("settings.json: hints", settled.StatusHistory[2].Text, StringComparison.Ordinal);
     }
 
     [Fact]

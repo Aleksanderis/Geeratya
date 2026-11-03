@@ -53,6 +53,8 @@ The file is JSON; comments and trailing commas are allowed. Example:
 - A change replaces only the value of that key: comments, key order, indentation and trailing commas stay. A key the file lacks is added as its last member. A missing file is created with only that key.
 - Settings are grouped: `hints.statusBar` is the member `statusBar` of the object `hints`. A change creates a missing parent object; a parent that is not an object (`"hints": 3`) is never overwritten: the status line says so and nothing is written.
 - Older files with the flat names `statusHints` and `whichKey` still load (the grouped key wins when both exist). The flat key is not rewritten or removed; the next change to that setting writes the grouped key. The old `:set hints` and `:set whichkey` names still work.
+- A group that is not an object (`"hints": 3`) is reported at start (`settings.json: hints must be an object; its settings use their defaults.`) and its settings use the defaults.
+- Every problem found at start (settings, keymap, theme, profiles file) is a warning in the Messages overlay (`<space>n`); the status line shows the first with a count of the others, for example `(+2 more, <space>n)`.
 - Keys the app does not know are left alone.
 - A value that is not valid (wrong type or unknown value) is read as the default and the status line says so; changing that setting writes a valid value over it.
 - A file that does not parse is never written: the status line names the problem and its line, and the defaults are used for the session.

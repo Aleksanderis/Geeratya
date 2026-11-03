@@ -14,10 +14,10 @@ public static class Palette
 
     /// <summary>
     /// Resolves a role where it sits: on the page, on an overlay's raised surface (the page background of the role
-    /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (text blended
-    /// towards the page at 24 bits; faint, or bright black when <paramref name="faintSupported"/> is false, at 16
-    /// colours;
-    /// unchanged without colour). The ground never changes the page background at 16 colours or without colour.
+    /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (the page
+    /// background becomes the scrim and text is blended towards it at 24 bits; a box under another overlay keeps its
+    /// surface and only its text is dimmed; faint, or bright black when <paramref name="faintSupported"/> is false,
+    /// at 16 colours; unchanged without colour). The ground never changes the page background at 16 colours or without colour.
     /// </summary>
     public static ResolvedStyle Resolve(
         Theme theme,
@@ -27,14 +27,13 @@ public static class Palette
         bool faintSupported)
     {
         var entry = theme.Entry(role);
-        var onPage = entry.TrueBackground == theme.PageBackground;
         var dim = ground.HasFlag(SpanGround.Dim);
 
         switch (tier)
         {
             case ColorSupport.TrueColor:
                 var foreground = dim ? theme.Dimmed(entry.TrueForeground) : entry.TrueForeground;
-                var background = onPage && ground.HasFlag(SpanGround.Surface) ? theme.Surface : entry.TrueBackground;
+                var background = PageBackground(theme, entry, ground);
 
                 return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry, true));
             case ColorSupport.Basic16:
@@ -51,6 +50,22 @@ public static class Palette
             default:
                 return new ResolvedStyle(null, null, Ansi16Color.Gray, Ansi16Color.Black, LowTier(entry.NoColorStyle));
         }
+    }
+
+    // The page colour of a role becomes the scrim behind an overlay or the overlay's own fill; a fill of its own stays.
+    private static Rgb PageBackground(Theme theme, PaletteEntry entry, SpanGround ground)
+    {
+        if (entry.TrueBackground != theme.PageBackground)
+        {
+            return entry.TrueBackground;
+        }
+
+        if (ground.HasFlag(SpanGround.Surface))
+        {
+            return theme.Surface;
+        }
+
+        return ground.HasFlag(SpanGround.Dim) ? theme.ScrimBackground : entry.TrueBackground;
     }
 
     // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because

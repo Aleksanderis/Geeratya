@@ -13,6 +13,7 @@
     "barBackground": "#1f1d2e",
     "selection": "#403d52",
     "baseForeground": "#e0def4",
-    "baseBackground": "#191724"
+    "baseBackground": "#191724",
+    "overlayBackground": "#1f1d2e"
   }
 }
