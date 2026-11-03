@@ -5,6 +5,6 @@
   ╭─ Commands ──────────────── 1/68 ─╮  
   │ : search_                        │  
   ├──────────────────────────────────┤  
-  │ > Assign the issue: s  Space i a │  
+  │ > Assign the issue: s  Space i a▲│  
   ╰──────────────────────────────────╯  
  COMMAND  :search                       

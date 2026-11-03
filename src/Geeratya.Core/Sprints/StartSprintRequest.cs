@@ -35,6 +35,8 @@ public sealed record StartSprintRequest(
 
     public override string AskLabel => "Start sprint";
 
+    public override string AskHeading => $"Start \"{Sprint.Name}\"";
+
     /// <summary>
     /// What happens: the sprint, its issues and points, its dates, and that Jira has no undo. Null for an end that is
     /// not after the start, which the write refuses before sending.

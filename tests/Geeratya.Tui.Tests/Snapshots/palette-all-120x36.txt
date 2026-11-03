@@ -16,7 +16,7 @@
 │                   │   Move the card to the next column                                     Alt-l │                   │
 │                   │   Move the card to the previous column                                 Alt-h │                   │
 │                   │   Create an issue (type picker, then the form)                     Space i c │                   │
-│                   │   Create a sub-task of the selected issue                          Space i C │                   │
+│                   │   Create a sub-task of the selected issue                          Space i C▼│                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Up/Down move  Enter run  Esc cancel                                          │                   │
 │                   ╰──────────────────────────────────────────────────────────────────────────────╯                   │

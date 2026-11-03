@@ -32,6 +32,7 @@ public static class SourcePickerOverlay
     private const int FooterMinimumInner = 8;
     private const int KindColumn = 8;
     private const int TopGap = 2;
+    private const int MaxBoxHeight = 18;
 
     /// <summary>Draws the picker of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -51,7 +52,7 @@ public static class SourcePickerOverlay
         }
 
         var rows = Rows(picker, state.Session.Sources, boxWidth - 4);
-        var inner = Math.Min(height, rows.Lines.Count + 1 + FooterHeight + 2) - 2;
+        var inner = Math.Min(Math.Min(height, MaxBoxHeight), rows.Lines.Count + 1 + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
         var box = BoxLines(picker, rows, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
@@ -86,9 +87,13 @@ public static class SourcePickerOverlay
         var first = FirstVisible(rows, area);
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker), contentWidth) };
 
-        foreach (var line in rows.Lines.Skip(first).Take(Math.Max(0, area)))
+        var shown = rows.Lines.Skip(first).Take(Math.Max(0, area)).ToList();
+
+        for (var row = 0; row < shown.Count; row++)
         {
-            lines.Add(OverlayBox.Wall(line, contentWidth));
+            var marker = OverlayBox.ScrollMarker(row, area, first, rows.Lines.Count);
+
+            lines.Add(OverlayBox.Wall(shown[row], contentWidth, marker));
         }
 
         while (lines.Count < inner + 1 - footer)
@@ -101,7 +106,7 @@ public static class SourcePickerOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(keymap, picker), TextRole.Muted), contentWidth));
+            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap, picker)), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));

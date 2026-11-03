@@ -143,7 +143,7 @@ public static class FormOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(StyledLine.Of(FooterText(form, keymap), TextRole.Muted), contentWidth));
+            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(form, keymap)), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));

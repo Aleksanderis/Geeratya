@@ -5,6 +5,6 @@
   │ Active                           │  
 wo│ >         Sprint 12 日本語 (19 O │as
   │ Future                           │  
-  │           Future F1              │  
+  │           Future F1             ▼│  
   ╰──────────────────────────────────╯  
  INSERT  switch sprint                  

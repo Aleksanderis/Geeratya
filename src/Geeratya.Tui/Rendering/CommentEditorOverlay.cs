@@ -106,7 +106,7 @@ public static class CommentEditorOverlay
         lines.AddRange(TextLines(editor, rows, area).Select(line => OverlayBox.Wall(line, contentWidth)));
         lines.AddRange(notes.Select(note => OverlayBox.Wall(note, contentWidth)));
         lines.Add(OverlayBox.Wall(Divider(contentWidth), contentWidth));
-        lines.Add(OverlayBox.Wall(StyledLine.Of(footer, TextRole.Muted), contentWidth));
+        lines.Add(OverlayBox.Wall(OverlayBox.Hints(footer), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;

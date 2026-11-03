@@ -16,13 +16,13 @@
           │           Sprint 8 (19 Oct - 27 Oct, closed 27 Oct)                                              │          
           │           Sprint 7 (19 Oct - 26 Oct, closed 26 Oct)                                              │          
           │           Sprint 6 (19 Oct - 25 Oct, closed 25 Oct)                                              │          
-          │           Sprint 5 (19 Oct - 24 Oct, closed 24 Oct)                                              │          
-          │           Sprint 4 (19 Oct - 23 Oct, closed 23 Oct)                                              │          
-          │           Sprint 3 (19 Oct - 22 Oct, closed 22 Oct)                                              │          
-          │           2 more closed sprints                                                                  │          
+          │           Sprint 5 (19 Oct - 24 Oct, closed 24 Oct)                                             ▼│          
           │ ──────────────────────────────────────────────────────────────────────────────────────────────── │          
           │ Up/Down choose   Enter open   Ctrl-t new tab   Esc close                                         │          
           ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯          
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
                                                                                                                         
                                                                                                                         
                                                                                                                         

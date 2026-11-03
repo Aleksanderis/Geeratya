@@ -14,12 +14,15 @@ public static class ConfirmDialog
     public const string StatusText = "Confirm";
 
     /// <summary>The widest box; wider terminals get more margin, not longer lines.</summary>
-    public const int MaxBoxWidth = 64;
+    public const int MaxBoxWidth = 62;
 
     /// <summary>The narrowest box that is still readable.</summary>
     public const int MinBoxWidth = 24;
 
     private const int Margin = 4;
+    private const int AnswerChrome = 3;
+    private const int TitleChrome = 5;
+    private const int MinContentWidth = 30;
     private const int NoticeChrome = 4;
     private const string FallbackLabel = "Confirm";
 
@@ -43,14 +46,26 @@ public static class ConfirmDialog
             var rows = NoticeRows(request.Message, text, bodyRows);
             var notice = new ConfirmDialogLayout(boxWidth, rows, [], LabelOf(request), request.Title, true);
 
-            return notice.Height <= bodyRows ? notice : null;
+            return notice.Height <= bodyRows ? Shrunk(notice) : null;
         }
 
         var split = Split(request.Message);
         var question = Wrap(split.Question, text);
-        var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request));
+        var heading = string.IsNullOrWhiteSpace(request.Heading) ? Title : request.Heading;
+        var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request), heading);
 
-        return layout.Height <= bodyRows ? layout : null;
+        return layout.Height <= bodyRows ? Shrunk(layout) : null;
+    }
+
+    // The box is as wide as its longest line (text, answers, title chip), not wider than it was wrapped for.
+    private static ConfirmDialogLayout Shrunk(ConfirmDialogLayout layout)
+    {
+        var answers = DisplayWidth.Of(layout.YesLabel) + AnswerChrome;
+        var longest = layout.Question.Concat(layout.Warning).Select(DisplayWidth.Of).Append(answers).Max();
+        var wanted = Math.Max(longest + 4, DisplayWidth.Of(layout.Title) + TitleChrome);
+        var width = Math.Min(layout.BoxWidth, Math.Max(MinContentWidth, wanted));
+
+        return layout with { BoxWidth = width };
     }
 
     /// <summary>
