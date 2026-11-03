@@ -30,6 +30,17 @@ public class SprintHeaderTextTests
     }
 
     [Fact]
+    public void GivenAClosedSprintWithCompletionDate_WhenAskingDaysLeft_ThenTheCompletionDateShows()
+    {
+        var sprint = Sprint(SprintState.Closed, null, 10) with
+        {
+            CompleteDate = new DateTimeOffset(2026, 11, 2, 17, 21, 0, TimeSpan.Zero),
+        };
+
+        Assert.Equal("closed 2 Nov", SprintHeaderText.DaysLeft(sprint, _now));
+    }
+
+    [Fact]
     public void GivenAClosedSprintOrNoEnd_WhenAskingDaysLeft_ThenNothingShows()
     {
         Assert.Equal(string.Empty, SprintHeaderText.DaysLeft(Sprint(SprintState.Closed, null, 10), _now));

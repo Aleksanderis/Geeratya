@@ -1,7 +1,9 @@
 using System.Net;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
@@ -32,6 +34,51 @@ public sealed class SourceLoadHandlerTests
         Assert.Equal(2, boards.Boards.Count);
         Assert.NotEmpty(filters.Filters);
         Assert.Contains(fixture.Http.Requests, request => request.AbsolutePath.EndsWith("/rest/agile/1.0/board", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GivenSprintsRequested_WhenLoaded_ThenEverySprintOfTheBoardIsPostedWithoutAStateFilter()
+    {
+        const string reply = """
+            {"startAt": 0, "isLast": true, "values": [
+              {"id": 7, "state": "closed", "name": "S1"}, {"id": 8, "state": "active", "name": "S2"}]}
+            """;
+        using var fixture = await ConnectedAsync(http => http.Reply(HttpStatusCode.OK, reply));
+
+        await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(6));
+
+        var loaded = Assert.IsType<SprintsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(6, loaded.BoardId);
+        Assert.Equal(["S1", "S2"], loaded.Sprints.Select(sprint => sprint.Name));
+        var request = Assert.Single(fixture.Http.Requests);
+        Assert.EndsWith("/rest/agile/1.0/board/6/sprint", request.AbsolutePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("state=", request.Query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenSprintsReplyForbidden_WhenLoaded_ThenAFailureForTheBoardIsPosted()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http.Reply(HttpStatusCode.Forbidden, """{"errorMessages":["no"],"errors":{}}"""));
+
+        await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(6));
+
+        var failed = Assert.IsType<SprintsFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(6, failed.BoardId);
+        Assert.Equal(JiraErrorKind.Forbidden, failed.Error.Kind);
+    }
+
+    [Fact]
+    public async Task GivenAKanbanBoardRemembered_WhenSprintsAreRequested_ThenNoRequestIsMadeAndTheFailureSaysSo()
+    {
+        using var fixture = await ConnectedAsync(_ => { });
+        JiraServices.Create(fixture.Connections)!.BoardKinds.Remember(6, BoardKind.Kanban);
+
+        await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(6));
+
+        var failed = Assert.IsType<SprintsFailed>(Assert.Single(fixture.Posted));
+        Assert.Contains("Kanban", failed.Error.Message, StringComparison.Ordinal);
+        Assert.Empty(fixture.Http.Requests);
     }
 
     [Fact]
