@@ -331,7 +331,7 @@ public static class ViewReducer
     }
 
     /// <summary>
-    /// The open and future sprints of a Scrum backlog load: kept in the tab for the section headers, applied only while
+    /// The open and future sprints of a Scrum backlog or Sprint view load (#504): kept in the tab for the section headers, applied only while
     /// the request is the tab's current one.
     /// </summary>
     private static AppState SprintsReceived(AppState state, SprintsLoaded loaded)

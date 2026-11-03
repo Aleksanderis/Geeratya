@@ -91,6 +91,7 @@ all_scenarios=(
   "sprint-form-edit;120;36;dark;:backlog GCS board| se;Edit sprint"
   "sprint-created;120;36;dark;:backlog GCS board| snSprint 4~;Created sprint"
   "sprint-complete-form;120;36;dark;:backlog GCS board| sc;Open issues go to"
+  "sprint-view-complete-form;120;36;dark;:board GEN| sv| sc;Open issues go to"
   "sprint-complete-confirm;120;36;dark;:backlog GCS board| sc~;Jira cannot undo"
   "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
   "rank-across-sections;120;36;dark;:backlog GEN board|]]^j^{;Jira has no undo"

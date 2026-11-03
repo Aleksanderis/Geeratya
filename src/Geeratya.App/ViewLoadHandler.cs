@@ -200,7 +200,15 @@ public sealed class ViewLoadHandler
 
                 if (effect.Definition.Source == ViewSourceKind.Sprint)
                 {
-                    report(await FindSprintAsync(services, effect, id, token));
+                    var found = await FindSprintAsync(services, effect, id, token);
+                    report(found);
+
+                    // The future sprints let Complete offer the next one as the destination (#504). Only an active
+                    // sprint (or an unresolved one) can be completed, so a closed or future sprint skips the request.
+                    if (found.Sprint is null || found.Sprint.State == SprintState.Active)
+                    {
+                        await ReportSprintsAsync(services, effect, id, report, token);
+                    }
                 }
             }
 
@@ -287,7 +295,7 @@ public sealed class ViewLoadHandler
 
     /// <summary>
     /// The open and future sprints of the board, for the section headers of the Scrum backlog (dates, goal, sprints
-    /// with no issue yet). A failed list posts nothing: the sections then take their names from the issues.
+    /// with no issue yet) and for Complete on a Sprint view (#504). A failed list posts nothing: the sections then take their names from the issues.
     /// </summary>
     private static async Task ReportSprintsAsync(
         JiraServices services,

@@ -127,7 +127,7 @@ public sealed record TabState(
     public bool SprintResolved { get; init; }
 
     /// <summary>
-    /// The open and future sprints of a Scrum backlog tab, ordered as Jira lists them: the metadata for the section
+    /// The open and future sprints of a Scrum backlog or Sprint view tab (the latter for Complete, #504), ordered as Jira lists them: the metadata for the section
     /// headers (dates, goal) and the sprints that have no loaded issue yet. Empty until the sprint list arrives.
     /// </summary>
     public IReadOnlyList<Sprint> Sprints { get; init; } = [];
