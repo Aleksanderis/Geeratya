@@ -4,7 +4,7 @@
 │  Key    T Summary                   S│
 │ +GCM-12 T Fix login redirect after  ◐│
 │ +GCM-14 B Crash when the board has  ○│
-│>+GCM-15 S As a user I can filter by ○│
+│>+GCM-15 S As a user I can filter b...│
 │  GCM-17 E Reporting overhaul with a ◐│
 ╰──────────────────────────────────────╯
  VISUAL  loading · 3 selected           

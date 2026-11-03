@@ -341,6 +341,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
         {
             LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
+            RowMenuMarker = _screen.RowMenuMarker,
         };
     }
 

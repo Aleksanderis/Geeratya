@@ -39,6 +39,13 @@ public enum MouseTarget
     /// </summary>
     SubtaskRow,
 
+    /// <summary>
+    /// The <c>...</c> marker at the end of the selected row, card or cursor line (a click opens its actions menu without
+    /// moving the cursor, same as <c>&lt;space&gt;a</c>). It lies inside <see cref="Lists"/> or <see cref="Detail"/>:
+    /// the renderer reports its cells (<see cref="MouseContext.RowMenuMarker"/>), so the hit test never guesses.
+    /// </summary>
+    RowMenuButton,
+
     /// <summary>The body while an issue is opened (sections, comments, links).</summary>
     Detail,
 

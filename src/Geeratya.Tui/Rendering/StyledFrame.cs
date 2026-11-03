@@ -15,6 +15,9 @@ public sealed record StyledFrame(
     /// <summary>The clickable rectangles of the open overlay in screen cells (header rows included), later on top.</summary>
     public IReadOnlyList<OverlayRegion> Regions { get; init; } = [];
 
+    /// <summary>The cells of the <c>...</c> row menu marker in screen cells (header rows included), null when none is drawn.</summary>
+    public OverlayRegion? RowMenuMarker { get; init; }
+
     /// <summary>The status bar as styled spans (badge chip, message in its severity role, hint chips); null draws <see cref="StatusLine"/> plain.</summary>
     public StyledLine? StatusStyled { get; init; }
 

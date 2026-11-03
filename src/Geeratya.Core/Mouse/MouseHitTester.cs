@@ -54,6 +54,11 @@ public static class MouseHitTester
             return OverlayHit(context, column, row);
         }
 
+        if (context.RowMenuMarker is { } marker && marker.Contains(column, row))
+        {
+            return new MouseHit(MouseTarget.RowMenuButton, row - header, column);
+        }
+
         var bodyTarget = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists;
 
         return new MouseHit(bodyTarget, row - header, column);

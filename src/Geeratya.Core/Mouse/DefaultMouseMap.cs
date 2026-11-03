@@ -60,6 +60,7 @@ public static class DefaultMouseMap
         new(MouseTarget.Detail, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.ContextMenuOpen, 1, 'M'),
         new(MouseTarget.Detail, MouseGesture.RightClick, ActionIds.ContextMenuOpen, 1, 'M'),
+        new(MouseTarget.RowMenuButton, MouseGesture.Click, ActionIds.ContextMenuOpen, 1, 'M'),
         new(MouseTarget.Tabs, MouseGesture.Click, ActionIds.TabNext, 1, 'B'),
         new(MouseTarget.Tabs, MouseGesture.RightClick, ActionIds.ViewMenuOpen, 1, 'V'),
         new(MouseTarget.Status, MouseGesture.RightClick, ActionIds.ViewMenuOpen, 1, 'V'),
