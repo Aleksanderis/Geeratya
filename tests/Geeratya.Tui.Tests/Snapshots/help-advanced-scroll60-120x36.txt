@@ -3,8 +3,9 @@
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │   Global      │   <space>T   Show a list of open tabs                                        │           │
-│           │ > All actions │ Navigate                                                                     │           │
-│           │   Commands    │   j          Move down  (Down)                                               │           │
+│           │ > All actions │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
+│           │   Commands    │ Navigate                                                                     │           │
+│           │               │   j          Move down  (Down)                                               │           │
 │           │               │   k          Move up  (Up)                                                   │           │
 │           │               │   h          Move left  (Left)                                               │           │
 │           │               │   l          Move right  (Right)                                             │           │
@@ -30,7 +31,6 @@
 │           │               │   <space>,   Open or close the settings screen                               │           │
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
-│           │               │ Dialogs                                                                      │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

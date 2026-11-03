@@ -8,4 +8,5 @@ public sealed record RestoredTab(
     ViewDefinition Definition,
     IReadOnlyList<long> QuickFilters,
     SwimlaneKind Swimlane,
-    string? Lane);
+    string? Lane,
+    string? Name = null);

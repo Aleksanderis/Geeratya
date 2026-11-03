@@ -698,6 +698,7 @@ public sealed class AppReducer
             ActionIds.TabPrevious => ViewReducer.StepTab(state, -1),
             ActionIds.TabLastActive => ViewReducer.LastActiveTab(state),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
+            ActionIds.TabRename => InNormal(state, () => OpenRenameCommand(state)),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
             ActionIds.TabList => TabListReducer.Open(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
@@ -1031,6 +1032,22 @@ public sealed class AppReducer
         return Result(command);
     }
 
+    /// <summary><c>tab.rename</c>: the command line with <c>tab rename </c> and the current name typed, ready to edit.</summary>
+    private static ReduceResult OpenRenameCommand(AppState state)
+    {
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
+
+        if (tab is null)
+        {
+            return Result(state with { Message = "No tab to rename: open one first.", MessageSeverity = StatusSeverity.Warning });
+        }
+
+        var current = TabTitles.Label(tab);
+        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.Tab} rename {current}", PaletteBack = 0 };
+
+        return Result(command);
+    }
+
     private static ReduceResult RunCommandLine(AppState state, DateTimeOffset at)
     {
         var text = state.PaletteText.Trim();
@@ -1132,12 +1149,17 @@ public sealed class AppReducer
         return text == "tab" || text.StartsWith("tab ", StringComparison.Ordinal);
     }
 
-    /// <summary><c>:tab new|close|next|prev|&lt;n&gt;</c>: the same handlers as the tab keys.</summary>
+    /// <summary><c>:tab new|rename [name]|close|next|prev|&lt;n&gt;</c>: the same handlers as the tab keys.</summary>
     private static ReduceResult TabCommand(AppState state, string argument)
     {
         if (argument == "new")
         {
             return SourceReducer.OpenPicker(state);
+        }
+
+        if (argument == "rename" || argument.StartsWith("rename ", StringComparison.Ordinal))
+        {
+            return ViewReducer.RenameActiveTab(state, argument["rename".Length..]);
         }
 
         if (argument == "close")
@@ -1155,7 +1177,7 @@ public sealed class AppReducer
             return ViewReducer.GoToTab(state, number);
         }
 
-        return Result(state with { Message = "Usage: :tab new|close|next|prev|<n>" });
+        return Result(state with { Message = "Usage: :tab new|rename [name]|close|next|prev|<n>" });
     }
 
     private static bool IsThemeCommand(string text)

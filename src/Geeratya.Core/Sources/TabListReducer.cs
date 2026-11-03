@@ -30,7 +30,7 @@ public static class TabListReducer
         for (var index = 0; index < tabs.Count; index++)
         {
             var number = (index + 1).ToString(CultureInfo.InvariantCulture);
-            var name = $"{number} {TabTitles.Label(tabs[index].Definition)}";
+            var name = $"{number} {TabTitles.Qualified(tabs, index)}";
 
             choices.Add(new SourceChoice(SourceChoiceKind.Tab, name, string.Empty, tabs[index].Definition)
             {

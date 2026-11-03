@@ -467,6 +467,7 @@ public static class ViewReducer
                     ActiveQuickFilters = entry.QuickFilters,
                     Swimlane = entry.Swimlane,
                     Lane = entry.Lane,
+                    Name = entry.Name,
                 });
         }
 
@@ -792,6 +793,21 @@ public static class ViewReducer
         }
 
         return Reduce(state, new TabActivated(tabs[number - 1].Id));
+    }
+
+    /// <summary>Names the active tab; an empty name restores the source label. Local only, nothing goes to Jira.</summary>
+    public static ReduceResult RenameActiveTab(AppState state, string name)
+    {
+        if (state.Session.Active is not { } id || Find(state.Session.Tabs, id) is not { } tab)
+        {
+            return new ReduceResult(state with { Message = "No tab to rename.", MessageSeverity = StatusSeverity.Warning }, _noEffects);
+        }
+
+        var clean = TabNames.Clean(name);
+        var renamed = Replace(state, tab with { Name = clean });
+        var message = clean is null ? "Tab name cleared: showing the source label." : $"Tab renamed to \"{clean}\".";
+
+        return new ReduceResult(renamed with { Message = message }, _noEffects);
     }
 
     /// <summary>Closes the active tab (cancelling its work); without one the status line says so.</summary>

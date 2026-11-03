@@ -44,6 +44,8 @@
     { "mode": "normal", "keys": "Alt-8", "action": "tab.go-to.8" },
     { "mode": "normal", "keys": "Alt-9", "action": "tab.go-to.9" },
     { "mode": "normal", "keys": "Space t", "action": "tab.new" },
+    { "mode": "normal", "keys": "Ctrl-t", "action": "tab.new" },
+    { "mode": "normal", "keys": "Ctrl-w r", "action": "tab.rename" },
     { "mode": "normal", "keys": "Space c", "action": "tab.close" },
     { "mode": "normal", "keys": "Space T", "action": "tab.list" },
     { "mode": "normal", "keys": "Space r", "action": "view.refresh" },

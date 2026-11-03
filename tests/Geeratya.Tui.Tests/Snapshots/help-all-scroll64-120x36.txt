@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   $          Go to the last column                                           │           │
-│           │ > All actions │   ]]         Next section of the issue or the Scrum backlog                  │           │
-│           │   Commands    │   [[         Previous section of the issue or the Scrum backlog              │           │
+│           │   Global      │   0          Go to the first column                                          │           │
+│           │ > All actions │   $          Go to the last column                                           │           │
+│           │   Commands    │   ]]         Next section of the issue or the Scrum backlog                  │           │
+│           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
 │           │               │              section                                                         │           │
 │           │               │ General                                                                      │           │
@@ -30,7 +31,6 @@
 │           │               │   gg         Scroll help to the top                                          │           │
 │           │               │   G          Scroll help to the bottom                                       │           │
 │           │               │   Enter      Run the typed command  (Ctrl-l)                                 │           │
-│           │               │   Backspace  Delete the character before the caret                           │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

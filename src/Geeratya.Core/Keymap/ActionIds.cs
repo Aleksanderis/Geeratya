@@ -52,6 +52,7 @@ public static class ActionIds
     public const string TabGoTo8 = "tab.go-to.8";
     public const string TabGoTo9 = "tab.go-to.9";
     public const string TabNew = "tab.new";
+    public const string TabRename = "tab.rename";
     public const string TabClose = "tab.close";
     public const string TabList = "tab.list";
     public const string ViewRefresh = "view.refresh";

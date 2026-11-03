@@ -11,7 +11,7 @@ The flows of Milestone 1 (read your board), step by step. Screens and their stat
 
 ## 1. Open a view
 
-By picker: `<space>t` (or `:tab new`), type to filter, `Up`/`Down`, `Ctrl-p`/`Ctrl-n` or `Ctrl-j`/`Ctrl-k` to choose, `Enter` opens it in a new tab, `Esc` closes. The picker also lists the latest 10 recent JQL queries of the profile (group `Recent`, filtered by the typed text) before the typed query row. By palette: `:jql <query>`, `:filter [name]`, `:board [name]`, `:backlog [name]`, which open a new tab too. A new tab becomes active at once and shows `Loading…` (or its cache); a failure shows the error body in that tab only, other tabs are untouched.
+By picker: `<space>t` (or `Ctrl-t`, or `:tab new`), type to filter, `Up`/`Down`, `Ctrl-p`/`Ctrl-n` or `Ctrl-j`/`Ctrl-k` to choose, `Enter` opens it in a new tab, `Esc` closes. The picker also lists the latest 10 recent JQL queries of the profile (group `Recent`, filtered by the typed text) before the typed query row. By palette: `:jql <query>`, `:filter [name]`, `:board [name]`, `:backlog [name]`, which open a new tab too. A new tab becomes active at once and shows `Loading…` (or its cache); a failure shows the error body in that tab only, other tabs are untouched.
 
 A board opens in Columns, everything else in List. `<space>l` switches a board between Columns and List.
 
