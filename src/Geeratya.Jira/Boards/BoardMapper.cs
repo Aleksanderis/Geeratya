@@ -62,6 +62,7 @@ internal static class BoardMapper
             wire.Ranking?.RankCustomFieldId is { } rank ? $"{RankFieldPrefix}{rank}" : null,
             wire.ColumnConfig?.ConstraintType)
         {
+            EstimationRead = true,
             EstimationFieldId = CustomFieldOrNull(wire.Estimation?.Field?.FieldId),
             EstimationFieldName = string.IsNullOrWhiteSpace(wire.Estimation?.Field?.DisplayName)
                 ? null

@@ -245,6 +245,33 @@ public sealed class FormHandlerTests
     }
 
     [Fact]
+    public async Task GivenTheBoardsEstimateFieldIsNotOnTheScreen_WhenEstimateOnlyLoads_ThenItFailsInsteadOfOfferingAnotherField()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/synthetic-editmeta-gcs-story.json"))
+            .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json")));
+
+        await fixture.Metadata.StartAsync(
+            new LoadFormMetadataEffect(_tab, 7, EstimateTarget() with { EstimateFieldId = "customfield_10016" }));
+
+        var failed = Assert.IsType<FormMetadataFailed>(Assert.Single(fixture.Posted));
+        Assert.Contains("A-1 has no estimate to edit", failed.Message);
+    }
+
+    [Fact]
+    public async Task GivenAnEstimateEdit_WhenExecuted_ThenTheReadBackAsksForTheWrittenEstimateField()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+
+        var set = new FieldChange("customfield_10047", FormFieldKind.Number, FormValue.OfText("8"));
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [set], true)));
+
+        Assert.Contains("customfield_10047", Uri.UnescapeDataString(fixture.Http.Requests.Last().Query) + fixture.Http.Bodies.Last());
+    }
+
+    [Fact]
     public async Task GivenAnEstimateEdit_WhenExecuted_ThenOnePutSetsTheNumberAndAnEmptyTextSendsNull()
     {
         using var fixture = await ConnectedAsync(h => h

@@ -16,6 +16,16 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
 
     public override IReadOnlyList<string> Keys => [Key];
 
+    public override IReadOnlyList<string> ReadBackFieldIds
+    {
+        get
+        {
+            var change = Changes.FirstOrDefault(candidate => candidate.Kind == FormFieldKind.Number);
+
+            return EstimateOnly && change is not null ? [change.FieldId] : [];
+        }
+    }
+
     public override string BusyText => "editing";
 
     public override string StartedText => $"Saving {Key}";
@@ -51,9 +61,10 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
         var labels = LabelsOf();
         var priority = PriorityOf();
 
-        // The read-back carries no estimate field, so an estimate edit cannot be verified by it (a clear would look
-        // applied by default): it ends as "could not check" after a lost reply.
-        if (EstimateOf() is not null || (summary is null && labels is null && priority is null))
+        var estimate = EstimateOf();
+
+        // The read-back asks for the estimate field (ReadBackFieldIds), so the row shows it.
+        if (estimate is null && summary is null && labels is null && priority is null)
         {
             return false;
         }
@@ -62,7 +73,9 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
         var labelsShown = labels is null || row.Labels.ToHashSet().SetEquals(labels);
         var priorityShown = priority is null || row.Priority == priority;
 
-        return summaryShown && labelsShown && priorityShown;
+        var estimateShown = estimate is not { } wanted || row.Estimate == wanted.Number;
+
+        return summaryShown && labelsShown && priorityShown && estimateShown;
     }
 
     private string? TextOf(string fieldId)
