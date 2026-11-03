@@ -166,6 +166,12 @@ public sealed class SuggestionHandler
             SuggestionKind.AssignableUsers when source.IssueKey is null && source.ProjectKey is { } project
                 => services.Suggestions.SearchAssignableUsersForProjectAsync(project, effect.Query, token),
             SuggestionKind.AssignableUsers => services.Suggestions.SearchAssignableUsersAsync(key, effect.Query, token),
+            SuggestionKind.ProjectUsers when source.ProjectKey is { } project
+                => services.Suggestions.SearchProjectUsersAsync(project, effect.Query, token),
+            SuggestionKind.Components when source.ProjectKey is { } project
+                => services.Suggestions.SearchComponentsAsync(project, effect.Query, token),
+            SuggestionKind.Versions when source.ProjectKey is { } project
+                => services.Suggestions.SearchVersionsAsync(project, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
             _ when source.IssueKey is null && source.ProjectKey is { } project
                 => SearchProjectIssuesAsync(services, project, effect.Query, token),

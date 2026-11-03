@@ -1,4 +1,5 @@
 using Geeratya.Core.Forms;
+using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -141,6 +142,22 @@ public class FormFieldMapperTests
         Assert.Equal(["priority", "customfield_5"], mapped.Select(field => field.Id));
         Assert.Equal("High", mapped[0].Options[0].Label);
         Assert.False(mapped[1].IsEditable);
+    }
+
+    [Theory]
+    [InlineData(CreateLookup.Components, SuggestionKind.Components)]
+    [InlineData(CreateLookup.Versions, SuggestionKind.Versions)]
+    public void GivenCreateFieldsWithAProjectList_WhenMapped_ThenTheFieldKeepsItsLookup(
+        CreateLookup lookup,
+        SuggestionKind expected)
+    {
+        var field = new CreateField("components", "Components", false, false, CreateFieldKind.MultiChoice, [], null, lookup);
+        var plain = new CreateField("customfield_1", "Pick", false, false, CreateFieldKind.MultiChoice, [], null);
+
+        var mapped = FormFieldMapper.FromCreate([field, plain]);
+
+        Assert.Equal(expected, mapped[0].Lookup);
+        Assert.Null(mapped[1].Lookup);
     }
 
     [Theory]

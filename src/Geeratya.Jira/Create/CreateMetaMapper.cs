@@ -63,7 +63,8 @@ internal static class CreateMetaMapper
                 field.HasDefaultValue ?? false,
                 kind,
                 MapAllowedValues(field.AllowedValues),
-                field.AutoCompleteUrl));
+                field.AutoCompleteUrl,
+                LookupOf(kind, field.Schema)));
         }
 
         return result;
@@ -96,6 +97,21 @@ internal static class CreateMetaMapper
             TypeNumber => CreateFieldKind.Number,
             TypeArray => ArrayKind(schema),
             _ => CreateFieldKind.Unsupported,
+        };
+    }
+
+    private static CreateLookup LookupOf(CreateFieldKind kind, CreateWire.Schema? schema)
+    {
+        if (kind != CreateFieldKind.MultiChoice)
+        {
+            return CreateLookup.None;
+        }
+
+        return schema?.Items switch
+        {
+            TypeComponent => CreateLookup.Components,
+            TypeVersion => CreateLookup.Versions,
+            _ => CreateLookup.None,
         };
     }
 

@@ -1,3 +1,4 @@
+using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -87,7 +88,8 @@ public static class FormFieldMapper
         {
             var options = field.AllowedValues.Select(value => new FieldOption(value.Id, value.Label)).ToArray();
 
-            var mapped = FormField.Create(field.FieldId, field.Name, CreateKind(field.Kind), field.Required, options);
+            var created = FormField.Create(field.FieldId, field.Name, CreateKind(field.Kind), field.Required, options);
+            var mapped = created with { Lookup = LookupKind(field.Lookup) };
             var isParent = field.Kind == CreateFieldKind.Parent && parentKey is not null;
 
             result.Add(isParent ? mapped.WithInitial(FormValue.OfChosen([parentKey!])) : mapped);
@@ -134,6 +136,16 @@ public static class FormFieldMapper
             EditFieldKind.Labels => FormFieldKind.Labels,
             EditFieldKind.Parent => FormFieldKind.Parent,
             _ => FormFieldKind.Unsupported,
+        };
+    }
+
+    private static SuggestionKind? LookupKind(CreateLookup lookup)
+    {
+        return lookup switch
+        {
+            CreateLookup.Components => SuggestionKind.Components,
+            CreateLookup.Versions => SuggestionKind.Versions,
+            _ => null,
         };
     }
 
