@@ -23,4 +23,7 @@ public enum PickerScope
 
     /// <summary>The sprints of the active tab's Scrum board (<c>&lt;space&gt;sv</c>).</summary>
     Sprints,
+
+    /// <summary>The open tabs (the <c>+n ›</c> overflow chip, <c>&lt;space&gt;T</c>).</summary>
+    Tabs,
 }

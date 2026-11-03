@@ -12,4 +12,7 @@ public sealed record SourceChoice(SourceChoiceKind Kind, string Name, string Det
 {
     /// <summary>The sprint a <see cref="SourceChoiceKind.Sprint"/> row stands for.</summary>
     public Sprint? Sprint { get; init; }
+
+    /// <summary>The tab a <see cref="SourceChoiceKind.Tab"/> row stands for.</summary>
+    public TabId? Tab { get; init; }
 }

@@ -348,7 +348,7 @@ public class ListBodyRendererTests
         var lines = Frame(Tab(new Loading(LoadReason.Open)));
 
         Assert.StartsWith("project = A · 0 issues", lines[0]);
-        Assert.StartsWith("Loading…", lines[2]);
+        Assert.StartsWith(" Loading…", lines[2]);
     }
 
     [Fact]
@@ -382,18 +382,17 @@ public class ListBodyRendererTests
     {
         var lines = Frame(Tab(new Failed(JiraErrorKind.Unauthorized, "Jira rejected the credentials.")));
 
-        Assert.StartsWith("Jira rejected the credentials.", lines[2]);
-        Assert.StartsWith("<space>r to retry", lines[3]);
+        Assert.StartsWith(" Jira rejected the credentials.", lines[2]);
+        Assert.StartsWith(" <space>r to retry", lines[3]);
     }
 
     [Fact]
-    public void GivenEmptyJqlTab_WhenBuilding_ThenTheMessageIsCentredAndTheQueryShown()
+    public void GivenEmptyJqlTab_WhenBuilding_ThenTheMessageIsPaddedAndTheQueryShown()
     {
         var lines = Frame(Tab(LoadState.Idle), 60);
 
-        Assert.Equal("No issues match.", lines[2].Trim());
-        Assert.StartsWith(" ", lines[2]);
-        Assert.StartsWith("project = A", lines[3]);
+        Assert.Equal(" No issues match.", lines[2].TrimEnd());
+        Assert.Equal(" project = A", lines[3].TrimEnd());
     }
 
     [Fact]

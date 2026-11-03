@@ -1,0 +1,36 @@
+[1 JQL My open issues ! x]  +                                                               [: commands] [<space>g jump]
+ ERROR  Jira rejected the token (401). Replace it: :profile edit work and type the token again.                         
++- My open issues ------------------------------------------------------------------------------------------ 0 issues -+
+|  Key    T Summary                                                                     Status         Assignee        |
+| Jira rejected the credentials.                                                                                       |
+| <space>r to retry                                                                                                    |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
+|                                                                                                                      |
++----------------------------------------------------------------------------------------------------------------------+
+[NORMAL] error                      j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

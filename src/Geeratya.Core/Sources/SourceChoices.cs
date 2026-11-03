@@ -21,6 +21,11 @@ public static class SourceChoices
         var text = picker.Text.Trim();
         var choices = new List<SourceChoice>();
 
+        if (picker.Scope == PickerScope.Tabs)
+        {
+            return TabListReducer.Choices(picker);
+        }
+
         if (picker.Scope == PickerScope.Sprints)
         {
             return picker.Sprint is { } data ? SprintChoices.For(data, text) : choices;

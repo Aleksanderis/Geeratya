@@ -53,6 +53,7 @@ public static class ActionIds
     public const string TabGoTo9 = "tab.go-to.9";
     public const string TabNew = "tab.new";
     public const string TabClose = "tab.close";
+    public const string TabList = "tab.list";
     public const string ViewRefresh = "view.refresh";
     public const string ViewLayoutToggle = "view.layout-toggle";
     public const string ViewQuickFilter = "view.quick-filter";

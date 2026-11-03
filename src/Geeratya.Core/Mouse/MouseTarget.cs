@@ -11,8 +11,11 @@ public enum MouseTarget
     /// <summary>The <c>+</c> button after the last tab.</summary>
     NewTabButton,
 
-    /// <summary>The <c>x</c> on the active tab chip (closes that tab, same as <c>tab.close</c>).</summary>
+    /// <summary>The <c>x</c> on the active or hovered tab chip (closes that tab, same as <c>tab.close</c>).</summary>
     TabClose,
+
+    /// <summary>The <c>‹n</c> and <c>+n ›</c> chips of tabs the bar has no room for (open the tab list).</summary>
+    TabOverflow,
 
     /// <summary>The <c> : commands </c> chip at the right end of the tab bar row (opens the command palette).</summary>
     CommandsChip,

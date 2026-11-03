@@ -6,6 +6,9 @@ public enum MouseGesture
     Click,
     DoubleClick,
     RightClick,
+
+    /// <summary>The middle button (wheel press) clicked.</summary>
+    MiddleClick,
     CtrlClick,
     WheelUp,
     WheelDown,

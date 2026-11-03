@@ -1,0 +1,24 @@
+[1 JQL My open issues x]  +                         [: commands] [<space>g jump]
+                                                                                
++- My open issues -------------------------------------------------- 0 issues -+
+|  Key    T Summary                                              Status        |
+| No issues match.                                                             |
+| project = GCM                                                                |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
++------------------------------------------------------------------------------+
+[NORMAL]      j/k move  Enter open  <space>o browser  ? help  : commands  q quit

@@ -458,7 +458,7 @@ public class ColumnsBodyRendererTests
 
         var body = RenderSprint(tab, 100, 20);
 
-        Assert.Contains(body, line => line.PlainText.StartsWith("│No active sprint", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.StartsWith("│ No active sprint", StringComparison.Ordinal));
         Assert.Contains(body, line => line.PlainText.Contains("backlog", StringComparison.Ordinal));
     }
 

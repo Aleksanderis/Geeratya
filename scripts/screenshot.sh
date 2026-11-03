@@ -113,6 +113,7 @@ all_scenarios=(
   "theme-help-contrast;120;36;dark;:board GCM|:theme high-contrast|?;Help"
   "theme-list;120;36;dark;:theme|;Themes:"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
+  "tab-list;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key| T;Open tabs"
 )
 
 usage() {
