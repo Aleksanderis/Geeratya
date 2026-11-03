@@ -17,6 +17,49 @@ public class ApplicationRunnerTests
         Assert.Equal($"geeratya {ApplicationInfo.Version}{Environment.NewLine}", writer.ToString());
     }
 
+    [Theory]
+    [InlineData("--help")]
+    [InlineData("-h")]
+    public void GivenHelpFlag_WhenRunningWithoutATerminal_ThenPrintsUsageAndSucceeds(string flag)
+    {
+        using var writer = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false).Run([flag]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("--print-frame", writer.ToString());
+        Assert.Contains("--version", writer.ToString());
+        Assert.DoesNotContain("interactive terminal", writer.ToString());
+    }
+
+    [Theory]
+    [InlineData("--bogus")]
+    [InlineData("GEN-1")]
+    public void GivenUnknownArgument_WhenRunning_ThenNamesItPrintsUsageAndExitsTwo(string argument)
+    {
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false, error: error).Run([argument]);
+
+        Assert.Equal(2, exitCode);
+        Assert.Contains($"'{argument}'", error.ToString());
+        Assert.Contains("Usage:", error.ToString());
+        Assert.DoesNotContain("interactive terminal", writer.ToString());
+    }
+
+    [Fact]
+    public void GivenPrintFrameValueThatLooksLikeAnArgument_WhenRunning_ThenItIsNotReportedUnknown()
+    {
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false, error: error).Run(["--print-frame", "--size", "40x10"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(string.Empty, error.ToString());
+    }
+
     [Fact]
     public void GivenPrintKeymapFlag_WhenRunning_ThenPrintsTheGeneratedKeyReference()
     {
