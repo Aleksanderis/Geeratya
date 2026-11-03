@@ -162,7 +162,6 @@ public class PaletteOverlayTests
         }
     }
 
-    // The text between the walls of each row of the box, between its top and bottom edges.
     [Fact]
     public void GivenAFilter_WhenBuildingTheFrame_ThenTheTopEdgeCarriesTheCountAndTheQueryLineTheText()
     {

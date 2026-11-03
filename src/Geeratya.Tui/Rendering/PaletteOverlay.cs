@@ -68,7 +68,7 @@ public static class PaletteOverlay
         var shown = lines.Skip(first).Take(area).ToList();
         var stable = StableRows(state, keymap, boxWidth - 4, area);
 
-        while (shown.Count < Math.Max(stable, 0))
+        while (shown.Count < stable)
         {
             shown.Add(new ListLine(StyledLine.Empty, -1, false));
         }
