@@ -355,6 +355,10 @@ public sealed class ShellHost : ICommandSink, IDisposable
             {
                 _ = _viewLoads.StartAsync(load, ActiveCache());
             }
+            else if (effect is LoadQuickFiltersEffect quickFilters)
+            {
+                _ = _viewLoads.StartQuickFiltersAsync(quickFilters);
+            }
             else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect
                 or LoadIssueChildrenEffect)
             {

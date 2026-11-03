@@ -53,6 +53,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space c` | Close the tab | `tab.close` | everyday |
 | `Space r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
 | `Space l` | Switch between list and columns | `view.layout-toggle` | everyday |
+| `Space v f` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
+| `Space v s` | Group the board columns into lanes (none, assignee, epic) | `view.swimlane` | everyday |
 | `Space o` | Open the issue in the browser | `issue.open-in-browser` | everyday |
 | `Space p` | Open the parent issue | `issue.open-parent` | everyday |
 | `Space a` | Open the actions menu of the selected issue | `menu.context` | everyday |

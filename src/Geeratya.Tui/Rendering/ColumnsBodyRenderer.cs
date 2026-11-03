@@ -205,6 +205,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
             new($"{tab.Definition.Title}{glyphs.Separator}{ListBodyRenderer.CountText(tab)}", TextRole.Heading),
         };
 
+        if (BoardViewOptions.Summary(tab, glyphs.Separator) is { Length: > 0 } options)
+        {
+            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
+            spans.Add(new StyledSpan(options, TextRole.Strong));
+        }
+
         if (ListBodyRenderer.FooterLine(tab, glyphs) is { } note)
         {
             spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));

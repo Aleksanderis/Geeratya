@@ -2,9 +2,11 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Alt-6      Go to tab 6                                                     │            
-            │ > All actions │   Alt-7      Go to tab 7                                                     │            
-            │   Commands    │   Alt-8      Go to tab 8                                                     │            
+            │   Global      │   Alt-4      Go to tab 4                                                     │            
+            │ > All actions │   Alt-5      Go to tab 5                                                     │            
+            │   Commands    │   Alt-6      Go to tab 6                                                     │            
+            │               │   Alt-7      Go to tab 7                                                     │            
+            │               │   Alt-8      Go to tab 8                                                     │            
             │               │   Alt-9      Go to tab 9                                                     │            
             │               │   Space t    Open the source picker for a new tab                            │            
             │               │   Space c    Close the tab                                                   │            
@@ -29,8 +31,6 @@
             │               │   Esc        Cancel or close                                                 │            
             │               │   :          Open the command palette  (Ctrl-p)                              │            
             │               │   Space a    Open the actions menu of the selected issue                     │            
-            │               │   Space n    Show the message history                                        │            
-            │               │   Space x    Dismiss the status message                                      │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

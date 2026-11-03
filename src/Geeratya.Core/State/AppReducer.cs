@@ -611,11 +611,19 @@ public sealed class AppReducer
             ActionIds.NavigateFirstColumn => NavigateColumn(state, BoardColumnMove.First),
             ActionIds.NavigateLastColumn => NavigateColumn(state, BoardColumnMove.Last),
             ActionIds.ViewLayoutToggle => ToggleLayout(state),
+            ActionIds.ViewQuickFilter => InNormal(state, () => BoardViewOptions.CycleFilter(state)),
+            ActionIds.ViewSwimlane => InNormal(state, () => BoardViewOptions.CycleSwimlane(state)),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
-            ActionIds.SectionNext => InNormal(state, () => BacklogActions.Jump(state, 1) ?? DetailActions.Section(state, 1)),
+            ActionIds.SectionNext => InNormal(
+                state,
+                () => BacklogActions.Jump(state, 1)
+                    ?? BoardViewOptions.StepLane(state, 1)
+                    ?? DetailActions.Section(state, 1)),
             ActionIds.SectionPrevious => InNormal(
                 state,
-                () => BacklogActions.Jump(state, -1) ?? DetailActions.Section(state, -1)),
+                () => BacklogActions.Jump(state, -1)
+                    ?? BoardViewOptions.StepLane(state, -1)
+                    ?? DetailActions.Section(state, -1)),
             ActionIds.SectionToggle => InNormal(state, () => BacklogActions.Toggle(state) ?? Result(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
@@ -995,6 +1003,9 @@ public sealed class AppReducer
             PaletteCommands.Assign => FormOpener.Assign(normal),
             PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
+            _ when IsQuickFilterCommand(text) => BoardViewOptions.FilterCommand(
+                normal,
+                text["quickfilter".Length..].Trim()),
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
@@ -1031,6 +1042,11 @@ public sealed class AppReducer
         var key = text["browse".Length..].Trim().ToUpperInvariant();
 
         return key.Length == 0 ? null : key;
+    }
+
+    private static bool IsQuickFilterCommand(string text)
+    {
+        return text == "quickfilter" || text.StartsWith("quickfilter ", StringComparison.Ordinal);
     }
 
     private static bool IsLayoutCommand(string text)

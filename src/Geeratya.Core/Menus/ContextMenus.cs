@@ -140,6 +140,12 @@ public static class ContextMenus
             actions.Add(ActionIds.TabPrevious);
         }
 
+        if (active is not null && active.Definition.Source.IsBoardBased())
+        {
+            actions.Add(ActionIds.ViewQuickFilter);
+            actions.Add(ActionIds.ViewSwimlane);
+        }
+
         actions.AddRange(
         [
             ActionIds.ViewLayoutToggle,

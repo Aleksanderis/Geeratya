@@ -234,6 +234,20 @@ public sealed class SuggestionHandlerTests
     }
 
     [Fact]
+    public async Task GivenALinkFormQuery_WhenLookedUp_ThenTheIssueItselfIsNotOffered()
+    {
+        var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, picker));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-6", []);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 4, source, "login", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.NotEmpty(loaded.Items);
+        Assert.DoesNotContain(loaded.Items, row => row.Detail == "GCM-6");
+    }
+
+    [Fact]
     public async Task GivenACreateFormUserQuery_WhenLookedUp_ThenProjectAssignableUsersAreAsked()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Users()));

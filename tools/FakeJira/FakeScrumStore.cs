@@ -83,6 +83,10 @@ public sealed partial class FakeScrumStore
     private const string InvalidPayloadFixture = "scrum/error-sprint-complete-moveissuesto-400.json";
     private const string MissingIssueFixture = "boards/rank-400-missing-issue.json";
     private const string BacklogFixture = "scrum/backlog-gts.json";
+    private const string MyselfFixture = "myself/myself.json";
+    private const string QuickFilterPart = "quickfilter";
+    private const string QuickFiltersWithFixture = "scrum/quickfilters-gcs.json";
+    private const string QuickFiltersNoneFixture = "scrum/quickfilters-gts.json";
 
     private static readonly FakeScrumBoard[] _boards =
     [

@@ -14,6 +14,7 @@ public sealed partial class FakeJiraRouter
     private const string BoardPrefix = "/rest/agile/1.0/board/";
     private const string BoardIssuesPath = "/rest/agile/1.0/board/4/issue";
     private const string StartAtName = "startAt";
+    private const string MyselfPath = "myself/myself.json";
     private const int BoardPageSize = 10;
     private const string CountPath = "/rest/api/3/search/approximate-count";
     private const string NotFoundFixture = "errors/issue-404.json";
@@ -65,6 +66,8 @@ public sealed partial class FakeJiraRouter
         ["/rest/agile/1.0/board/3/configuration"] = "boards/board-gtm-config.json",
         ["/rest/agile/1.0/board/4/configuration"] = "boards/board-gcm-config.json",
         ["/rest/agile/1.0/board/4/backlog"] = "boards/board-gcm-backlog.json",
+        ["/rest/agile/1.0/board/3/quickfilter"] = "scrum/quickfilters-gts.json",
+        ["/rest/agile/1.0/board/4/quickfilter"] = "scrum/quickfilters-gcs.json",
         ["/rest/agile/1.0/board/3/issue"] = "hierarchy/agile-board-gtm-issues.json",
         ["/rest/agile/1.0/board/3/backlog"] = "hierarchy/agile-board-gtm-backlog.json",
         ["/rest/agile/1.0/board/3/epic"] = "hierarchy/agile-board-epics-gtm.json",
@@ -527,9 +530,48 @@ public sealed partial class FakeJiraRouter
             start = 0;
         }
 
+        if (query.TryGetValue(JqlName, out var jql) && FakeQuickFilters.Applies(jql))
+        {
+            return NarrowedBoardIssues(jql, start);
+        }
+
         var page = Math.Min(start / BoardPageSize, _boardIssuePages.Length - 1);
 
         return new FakeReply(200, ReadFixture(_boardIssuePages[page]));
+    }
+
+    /// <summary>
+    /// The board's issues narrowed by the quick filter clauses of <paramref name="jql"/> over every recorded page, cut
+    /// again into pages of <see cref="BoardPageSize"/> from <paramref name="start"/> (the agile <c>total</c> is the
+    /// narrowed count).
+    /// </summary>
+    private FakeReply NarrowedBoardIssues(string jql, int start)
+    {
+        var account = JsonNode.Parse(ReadFixture(MyselfPath))!["accountId"]!.GetValue<string>();
+        var matching = new List<JsonNode>();
+        var first = JsonNode.Parse(ReadFixture(_boardIssuePages[0]))!.AsObject();
+
+        foreach (var pagePath in _boardIssuePages)
+        {
+            var issues = JsonNode.Parse(ReadFixture(pagePath))!["issues"]!.AsArray();
+
+            matching.AddRange(
+                issues.Where(issue => FakeQuickFilters.Matches(issue!, jql, account, DateTimeOffset.UtcNow))
+                    .Select(issue => issue!.DeepClone()));
+        }
+
+        var window = new JsonArray();
+
+        foreach (var issue in matching.Skip(start).Take(BoardPageSize))
+        {
+            window.Add(issue);
+        }
+
+        first["issues"] = window;
+        first["startAt"] = start;
+        first["total"] = matching.Count;
+
+        return new FakeReply(200, Encoding.UTF8.GetBytes(first.ToJsonString()));
     }
 
     private FakeReply GeneratedPage(IReadOnlyDictionary<string, string> parameters, string? token)

@@ -128,6 +128,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
             new($"{tab.Definition.Title}{glyphs.Separator}{CountText(tab)}", TextRole.Heading),
         };
 
+        if (BoardViewOptions.Summary(tab, glyphs.Separator) is { Length: > 0 } options)
+        {
+            spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));
+            spans.Add(new StyledSpan(options, TextRole.Strong));
+        }
+
         if (note is not null)
         {
             spans.Add(new StyledSpan(glyphs.Separator, TextRole.Muted));

@@ -122,7 +122,25 @@ public static class ColumnsNavigation
     /// <summary>The columns the layout draws for the tab's rows.</summary>
     public static IReadOnlyList<BoardColumnGroup> ColumnsOf(TabState tab)
     {
-        return BoardColumns.Visible(tab.Board, tab.Rows);
+        return BoardColumns.Visible(tab.Board, Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows));
+    }
+
+    /// <summary>
+    /// Drops the marks (they would stay on cards no longer shown), puts the cursor back on the first column and a card of the columns now drawn (another lane was chosen), and
+    /// makes the tab's selected row follow it.
+    /// </summary>
+    public static TabState Resync(TabState tab)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, null, null, CardsVisible(tab));
+        var first = columns.FirstOrDefault(column => column.Rows.Count > 0)?.Rows[0].Key;
+
+        if (first is not null)
+        {
+            cursor = BoardMotion.Follow(columns, cursor, first, CardsVisible(tab));
+        }
+
+        return Follow(tab with { Cursor = null, Marks = [], VisualAnchor = null }, columns, cursor);
     }
 
     private static int CardsVisible(TabState tab)

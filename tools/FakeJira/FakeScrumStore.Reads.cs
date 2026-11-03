@@ -34,6 +34,7 @@ public sealed partial class FakeScrumStore
         {
             (2, _) => Raw(Ok, scrum.BoardFixture),
             (3, ConfigurationPart) => Raw(Ok, scrum.ConfigurationFixture),
+            (3, QuickFilterPart) => Raw(Ok, scrum.Id == 6 ? QuickFiltersWithFixture : QuickFiltersNoneFixture),
             (3, EpicPart) => Raw(Ok, scrum.EpicsFixture),
             (3, SprintPart) => SprintList(scrum, query),
             (3, IssuePart) => BoardIssues(scrum, query),
@@ -280,6 +281,22 @@ public sealed partial class FakeScrumStore
     }
 
     private bool InJql(string key, string jql)
+    {
+        if (!InSprintJql(key, jql))
+        {
+            return false;
+        }
+
+        return !FakeQuickFilters.Applies(jql)
+            || FakeQuickFilters.Matches(_issues[key], jql, MyAccountId(), DateTimeOffset.UtcNow);
+    }
+
+    private string MyAccountId()
+    {
+        return ParseFixture(MyselfFixture)["accountId"]!.GetValue<string>();
+    }
+
+    private bool InSprintJql(string key, string jql)
     {
         if (jql.Contains(FutureSprintsJql, StringComparison.OrdinalIgnoreCase)
             && jql.Contains(EmptySprintJql, StringComparison.OrdinalIgnoreCase))

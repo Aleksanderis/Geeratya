@@ -37,6 +37,15 @@ internal static class BoardWire
 
     internal sealed record EstimationField(string? FieldId, string? DisplayName);
 
+    internal sealed record QuickFilterList(
+        List<QuickFilterItem>? Values,
+        int? StartAt,
+        int? MaxResults,
+        int? Total,
+        bool? IsLast);
+
+    internal sealed record QuickFilterItem(long? Id, string? Name, string? Jql, string? Description, int? Position);
+
     /// <summary>Board issues and backlog: issues with <c>startAt</c> and <c>total</c>.</summary>
     internal sealed record IssuePage(List<SearchWire.Issue>? Issues, int? StartAt, int? MaxResults, int? Total);
 }

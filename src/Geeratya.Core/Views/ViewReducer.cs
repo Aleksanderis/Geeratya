@@ -46,6 +46,7 @@ public static class ViewReducer
             SelectionMoved moved => MoveSelection(state, moved, effects),
             ViewCacheLoaded cached => CacheLoaded(state, cached),
             BoardConfigurationLoaded configured => ConfigurationLoaded(state, configured),
+            QuickFiltersLoaded filters => QuickFiltersArrived(state, filters, effects),
             SprintLoaded sprint => SprintArrived(state, sprint),
             SprintsLoaded sprints => SprintsReceived(state, sprints),
             BacklogBecameScrum scrum => BecameScrum(state, scrum),
@@ -142,9 +143,52 @@ public static class ViewReducer
 
         // Everything that belonged to the old sprint goes: rows, paging, selection, marks and the cursor. The layout
         // and the board configuration stay.
-        var reopened = tab with
+        var reopened = Emptied(tab with { Definition = definition }, requestId) with
         {
-            Definition = definition,
+            Sprint = null,
+            SprintResolved = false,
+        };
+
+        effects.Add(new CancelTabEffect(tab.Id));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                definition,
+                null,
+                requestId,
+                LoadReason.Open,
+                false,
+                QuickFilterJql.For(tab)));
+
+        return Replace(state, reopened) with { Sequence = requestId };
+    }
+
+    /// <summary>
+    /// Loads the first page of the tab again from scratch (the quick filters changed): the old load is cancelled and
+    /// its late reply ignored, rows, paging, selection and marks go, the layout, board and filters stay.
+    /// </summary>
+    internal static AppState Reopen(AppState state, TabState tab, List<Effect> effects)
+    {
+        var requestId = state.Sequence + 1;
+
+        effects.Add(new CancelTabEffect(tab.Id));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                null,
+                requestId,
+                LoadReason.Open,
+                false,
+                QuickFilterJql.For(tab)));
+
+        return Replace(state, Emptied(tab, requestId)) with { Sequence = requestId };
+    }
+
+    private static TabState Emptied(TabState tab, long requestId)
+    {
+        return tab with
+        {
             Rows = [],
             PendingRows = null,
             Next = null,
@@ -170,14 +214,7 @@ public static class ViewReducer
             RefreshQueued = false,
             Detail = [],
             LoadedAt = null,
-            Sprint = null,
-            SprintResolved = false,
         };
-
-        effects.Add(new CancelTabEffect(tab.Id));
-        effects.Add(new LoadViewPageEffect(tab.Id, definition, null, requestId, LoadReason.Open, false));
-
-        return Replace(state, reopened) with { Sequence = requestId };
     }
 
     private static AppState ChangeLayout(AppState state, ViewLayoutChanged changed)
@@ -263,7 +300,15 @@ public static class ViewReducer
         var requestId = state.Sequence + 1;
         var loading = tab with { Load = new Loading(LoadReason.NextPage), RequestId = requestId };
 
-        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, tab.Next, requestId, LoadReason.NextPage, false));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                tab.Next,
+                requestId,
+                LoadReason.NextPage,
+                false,
+                QuickFilterJql.For(tab)));
 
         return Replace(state, loading) with { Sequence = requestId };
     }
@@ -315,6 +360,41 @@ public static class ViewReducer
         return Replace(
             state,
             DetailReducer.WithEstimateLabel(tab with { Board = configured.Configuration }, state.ViewportColumns));
+    }
+
+    /// <summary>
+    /// The quick filters of the board: kept in the tab (the lookup has no request id; the runner drops the replies
+    /// of an old site). A filter that is switched on but no longer offered is switched off (the next load goes
+    /// without it).
+    /// </summary>
+    private static AppState QuickFiltersArrived(AppState state, QuickFiltersLoaded loaded, List<Effect> effects)
+    {
+        var tab = Find(state.Session.Tabs, loaded.Tab);
+
+        if (tab is null)
+        {
+            return state;
+        }
+
+        if (loaded.Failure is not null)
+        {
+            return state with { Message = loaded.Failure, MessageSeverity = StatusSeverity.Warning };
+        }
+
+        var active = tab.ActiveQuickFilters.Where(id => loaded.Filters.Any(filter => filter.Id == id)).ToArray();
+        var stored = Replace(
+            state,
+            tab with { QuickFilters = loaded.Filters, QuickFiltersKnown = true, ActiveQuickFilters = active });
+
+        if (!loaded.Apply || state.Session.Active != tab.Id)
+        {
+            return stored;
+        }
+
+        var applied = BoardViewOptions.CycleFilter(stored);
+        effects.AddRange(applied.Effects);
+
+        return applied.State;
     }
 
     /// <summary>The sprint of a Sprint view: kept in the tab while the request is the tab's current one.</summary>
@@ -714,7 +794,15 @@ public static class ViewReducer
             PendingRows = null,
         };
 
-        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, null, requestId, LoadReason.Refresh, background));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                null,
+                requestId,
+                LoadReason.Refresh,
+                background,
+                QuickFilterJql.For(tab)));
 
         return Replace(state, loading) with { Sequence = requestId };
     }
@@ -802,7 +890,15 @@ public static class ViewReducer
         var requestId = state.Sequence + 1;
         var loading = tab with { Load = new Loading(LoadReason.Retry), RequestId = requestId, Next = null };
 
-        effects.Add(new LoadViewPageEffect(tab.Id, tab.Definition, null, requestId, LoadReason.Retry, false));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                null,
+                requestId,
+                LoadReason.Retry,
+                false,
+                QuickFilterJql.For(tab)));
 
         return Replace(state, loading) with { Sequence = requestId };
     }
@@ -843,7 +939,8 @@ public static class ViewReducer
                 cursor,
                 requestId,
                 LoadReason.Refresh,
-                loading.Background));
+                loading.Background,
+                QuickFilterJql.For(tab)));
 
         return EnforceTotal(Replace(state, gathering) with { Sequence = requestId }, effects);
     }
@@ -913,7 +1010,8 @@ public static class ViewReducer
 
         var selected = appended && !BacklogSections.Applies(tab) ? updated : KeepSelection(updated);
 
-        if (!appended)
+        // A page narrowed by quick filters is not the board's view, so it never goes to the cache.
+        if (!appended && tab.ActiveQuickFilters.Count == 0)
         {
             effects.Add(FirstPageWrite(tab.Definition, tab.Board, combined, loaded.At));
         }
@@ -1080,7 +1178,15 @@ public static class ViewReducer
             var requestId = ++sequence;
 
             shown = shown with { Cold = false, Load = new Loading(LoadReason.Open), RequestId = requestId };
-            effects.Add(new LoadViewPageEffect(id, tab.Definition, null, requestId, LoadReason.Open, false));
+            effects.Add(
+                new LoadViewPageEffect(
+                    id,
+                    tab.Definition,
+                    null,
+                    requestId,
+                    LoadReason.Open,
+                    false,
+                    QuickFilterJql.For(tab)));
         }
 
         var session = state.Session with { Active = id };

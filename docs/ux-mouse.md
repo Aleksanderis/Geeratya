@@ -76,6 +76,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Lists | Drag to sprint | `sprint.move-issues` | M | Scrum backlog layout: drag a row onto the header, goal line or a row of another active or future sprint section: asks to move that row (the marks or the Visual range when the pressed row is in them) there, same as `<space>sm`; the Confirm dialog always shows, even for one issue, and nothing is sent before `y` |
 | Lists | Drag to backlog | `sprint.move-to-backlog` | M | Scrum backlog layout: the same drag released on the backlog section: asks to move the issues to the backlog, same as `<space>sb` |
 | ContextMenu | Click | `view.layout-toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `view.quick-filter` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `view.swimlane` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.open-parent` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.edit` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |

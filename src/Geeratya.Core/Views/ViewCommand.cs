@@ -57,6 +57,17 @@ public sealed record BoardConfigurationLoaded(TabId Tab, long RequestId, BoardCo
     : ViewCommand;
 
 /// <summary>
+/// The quick filters of the tab's board arrived (<see cref="LoadQuickFiltersEffect"/>). <paramref name="Apply"/> says
+/// a filter key started the lookup, so the key's action goes on with them; <paramref name="Failure"/> is the text for
+/// the status line when the lookup failed.
+/// </summary>
+public sealed record QuickFiltersLoaded(
+    TabId Tab,
+    IReadOnlyList<QuickFilter> Filters,
+    bool Apply,
+    string? Failure = null) : ViewCommand;
+
+/// <summary>
 /// The sprint a Sprint view shows arrived (null: the board has no active sprint; <paramref name="LookupFailed"/> when the lookup failed instead), after the
 /// board configuration; applied only while <paramref name="RequestId"/> is the tab's current request.
 /// </summary>

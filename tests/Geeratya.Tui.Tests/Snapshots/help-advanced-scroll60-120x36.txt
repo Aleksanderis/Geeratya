@@ -2,9 +2,11 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   k          Move up  (Up)                                                   │            
-            │ > All actions │   h          Move left  (Left)                                               │            
-            │   Commands    │   l          Move right  (Right)                                             │            
+            │   Global      │ Navigate                                                                     │            
+            │ > All actions │   j          Move down  (Down)                                               │            
+            │   Commands    │   k          Move up  (Up)                                                   │            
+            │               │   h          Move left  (Left)                                               │            
+            │               │   l          Move right  (Right)                                             │            
             │               │   g g        Go to the top  (Home)                                           │            
             │               │   G          Go to the bottom  (End)                                         │            
             │               │   Ctrl-d     Page down  (PageDown)                                           │            
@@ -29,8 +31,6 @@
             │               │   Tab        Next help section                                               │            
             │               │   Shift-Tab  Previous help section                                           │            
             │               │   J          Scroll help down a line                                         │            
-            │               │   K          Scroll help up a line                                           │            
-            │               │   D          Scroll help down half a page  (Ctrl-d)                          │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
