@@ -1,5 +1,6 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Tests.Fakes;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
@@ -72,15 +73,12 @@ public sealed class SiteCacheTests : IDisposable
     public void GivenDebounce_WhenTheTimerFires_ThenThePendingViewIsWrittenOffTheCallingThread()
     {
         var folder = Path.Combine(_root, "p");
-        var written = new ManualResetEventSlim();
-        var permissions = new FilePermissions(
-            path => Directory.CreateDirectory(path),
-            _ => written.Set());
+        using var permissions = new RecordingFilePermissions();
         using var cache = new SiteCache(folder, permissions, TimeSpan.FromMilliseconds(20));
 
         cache.Put(_key, new CachedView([Issue(1)], null, _saved));
 
-        Assert.True(written.Wait(TimeSpan.FromSeconds(10)));
+        Assert.True(permissions.Restricted.Wait(TimeSpan.FromSeconds(10)));
     }
 
     [Fact]
@@ -259,22 +257,14 @@ public sealed class SiteCacheTests : IDisposable
     public void GivenAFolderAndFiles_WhenWriting_ThenThePermissionHooksRunForBoth()
     {
         var folder = Path.Combine(_root, "p");
-        var folders = new List<string>();
-        var files = new List<string>();
-        var permissions = new FilePermissions(
-            path =>
-            {
-                folders.Add(path);
-                Directory.CreateDirectory(path);
-            },
-            files.Add);
+        using var permissions = new RecordingFilePermissions();
         using var cache = new SiteCache(folder, permissions);
 
         cache.Put(_key, new CachedView([Issue(1)], null, _saved));
         cache.Flush();
 
-        Assert.Equal([folder], folders);
-        Assert.StartsWith(folder, Assert.Single(files), StringComparison.Ordinal);
+        Assert.Equal([folder], permissions.Folders);
+        Assert.StartsWith(folder, Assert.Single(permissions.Files), StringComparison.Ordinal);
     }
 
     [Fact]

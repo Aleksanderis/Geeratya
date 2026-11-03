@@ -4,7 +4,6 @@ using Geeratya.Core.State;
 using Geeratya.Jira;
 using Geeratya.Jira.Fields;
 using Geeratya.Jira.Sprints;
-using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Secrets;
 
@@ -269,7 +268,7 @@ public sealed class SiteConnections : IDisposable
     {
         var resolver = new BoardKindResolver(
             new SprintClient(transport),
-            (boardId, kind) => SaveKind(profile, boardId, kind));
+            new BoardKindSaver(profile, _boardKinds));
 
         if (_boardKinds is not null)
         {
@@ -280,19 +279,6 @@ public sealed class SiteConnections : IDisposable
         }
 
         return resolver;
-    }
-
-    /// <summary>The answers are a convenience: a file that cannot be written only means one more probe next run.</summary>
-    private void SaveKind(Profile profile, long boardId, BoardKind kind)
-    {
-        try
-        {
-            _boardKinds?.Save(profile, boardId, kind);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // Not reported: see above.
-        }
     }
 
     private void OnRateLimitWaitChanged(int generation, JiraTransport transport)

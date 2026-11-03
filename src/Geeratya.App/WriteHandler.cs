@@ -25,22 +25,16 @@ public sealed partial class WriteHandler
 
     private readonly NetworkRunner _runner;
     private readonly TimeProvider _clock;
-    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly HashSet<Task> _running = [];
     private readonly Lock _lock = new();
     private readonly ConcurrentDictionary<long, DateTimeOffset> _createSubmitted = new();
 
     /// <param name="runner">Runs the writes.</param>
-    /// <param name="clock">Stamps the replies.</param>
-    /// <param name="delay">The wait of <see cref="WaitForRunningAsync"/>; tests inject one they control.</param>
-    public WriteHandler(
-        NetworkRunner runner,
-        TimeProvider? clock = null,
-        Func<TimeSpan, CancellationToken, Task>? delay = null)
+    /// <param name="clock">Stamps the replies and times the wait of <see cref="WaitForRunningAsync"/>.</param>
+    public WriteHandler(NetworkRunner runner, TimeProvider? clock = null)
     {
         _runner = runner;
         _clock = clock ?? TimeProvider.System;
-        _delay = delay ?? Task.Delay;
     }
 
     /// <summary>True while a write or verification has been started and has not ended.</summary>
@@ -75,7 +69,7 @@ public sealed partial class WriteHandler
 
         using var give = CancellationTokenSource.CreateLinkedTokenSource(token);
         var all = Task.WhenAll(pending);
-        var timer = _delay(timeout, give.Token);
+        var timer = Task.Delay(timeout, _clock, give.Token);
         var first = await Task.WhenAny(all, timer);
 
         await give.CancelAsync();

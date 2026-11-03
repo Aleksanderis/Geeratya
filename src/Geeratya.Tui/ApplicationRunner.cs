@@ -56,7 +56,7 @@ public sealed partial class ApplicationRunner
     private readonly TextWriter _output;
     private readonly TextWriter _error;
     private readonly bool _isInteractive;
-    private readonly Func<ProfileServices> _createProfiles;
+    private readonly IProfileServicesFactory _profileFactory;
     private readonly ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly TerminalBackgroundDetector? _background;
@@ -65,7 +65,7 @@ public sealed partial class ApplicationRunner
 
     public ApplicationRunner(
         RunnerContext context,
-        Func<ProfileServices>? createProfiles = null,
+        IProfileServicesFactory? profileFactory = null,
         ITransportFactory? transports = null)
     {
         _environment = context.Environment ?? EnvironmentReader.ForProcess();
@@ -76,7 +76,7 @@ public sealed partial class ApplicationRunner
         _isInteractive = context.IsInteractive;
         _colors = context.Colors;
         _glyphs = context.Glyphs;
-        _createProfiles = createProfiles ?? ProfileServices.CreateForProcess;
+        _profileFactory = profileFactory ?? new ProcessProfileServicesFactory();
     }
 
     public int Run(string[] arguments)
@@ -135,7 +135,7 @@ public sealed partial class ApplicationRunner
 
         try
         {
-            profiles = _createProfiles();
+            profiles = _profileFactory.Create();
         }
         catch (InvalidOperationException exception)
         {

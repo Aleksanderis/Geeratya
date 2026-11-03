@@ -112,7 +112,7 @@ public sealed partial class ApplicationRunner
     {
         try
         {
-            return _createProfiles();
+            return _profileFactory.Create();
         }
         catch (InvalidOperationException)
         {

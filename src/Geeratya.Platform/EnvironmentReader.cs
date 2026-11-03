@@ -1,19 +1,22 @@
 namespace Geeratya.Platform;
 
-/// <summary>Reads environment variables through an injected lookup, so tests never touch the process.</summary>
+/// <summary>
+/// Reads environment variables through a lookup that defaults to the process environment; tests inject one so they
+/// never touch the process.
+/// </summary>
 public sealed class EnvironmentReader
 {
     private readonly Func<string, string?> _lookup;
 
-    public EnvironmentReader(Func<string, string?> lookup)
+    public EnvironmentReader(Func<string, string?>? lookup = null)
     {
-        _lookup = lookup;
+        _lookup = lookup ?? Environment.GetEnvironmentVariable;
     }
 
     /// <summary>Creates a reader over the environment of the running process.</summary>
     public static EnvironmentReader ForProcess()
     {
-        return new EnvironmentReader(Environment.GetEnvironmentVariable);
+        return new EnvironmentReader();
     }
 
     /// <summary>Returns the value, or null when the variable is missing or empty.</summary>

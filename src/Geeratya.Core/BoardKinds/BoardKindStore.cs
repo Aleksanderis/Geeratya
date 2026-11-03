@@ -20,14 +20,14 @@ public sealed class BoardKindStore
     private const string KanbanName = "kanban";
 
     private readonly string _root;
-    private readonly FilePermissions _permissions;
+    private readonly IFilePermissions _permissions;
     private readonly object _lock = new();
     private readonly HashSet<string> _removed = [];
 
-    public BoardKindStore(string root, FilePermissions? permissions = null)
+    public BoardKindStore(string root, IFilePermissions? permissions = null)
     {
         _root = root;
-        _permissions = permissions ?? FilePermissions.Plain;
+        _permissions = permissions ?? PlainFilePermissions.Instance;
     }
 
     public IReadOnlyDictionary<long, BoardKind> Load(Profile profile)
