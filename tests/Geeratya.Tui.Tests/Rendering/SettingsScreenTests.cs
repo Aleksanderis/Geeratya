@@ -20,6 +20,19 @@ public class SettingsScreenTests
     [InlineData(120, 36)]
     [InlineData(80, 24)]
     [InlineData(40, 10)]
+    public void GivenABasic16Terminal_WhenBuildingTheFrame_ThenTheThemeRowNoteMatchesTheSnapshot(int width, int height)
+    {
+        var lines = FrameBuilder.Build(WithTier(Sample(), ColourTier.Basic16), width, height, _keymap);
+        var actual = string.Join('\n', lines) + "\n";
+        var expected = SnapshotFile.Expect($"settings-basic16-{width}x{height}.txt", actual);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(120, 36)]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
     public void GivenTheOpenScreen_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
         var lines = FrameBuilder.Build(Sample(), width, height, _keymap);
