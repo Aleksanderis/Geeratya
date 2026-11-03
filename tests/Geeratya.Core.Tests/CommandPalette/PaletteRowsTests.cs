@@ -215,6 +215,27 @@ public class PaletteRowsTests
         Assert.Empty(PaletteRows.For(Palette("😀"), _keymap));
     }
 
+    [Fact]
+    public void GivenThemeNames_WhenListing_ThenEachThemeHasARowInGeneralThatRunsItsCommandLine()
+    {
+        var state = Palette("Theme:") with { ThemeNames = ["dracula", "nord"] };
+
+        var rows = PaletteRows.For(state, _keymap);
+        var themes = rows.Where(row => row.Kind == PaletteRowKind.Command).ToList();
+
+        Assert.Equal(["Theme: dracula", "Theme: nord"], themes.Select(row => row.Title));
+        Assert.Equal(["theme dracula", "theme nord"], themes.Select(row => row.Id));
+        Assert.Equal("General", rows[0].Title);
+    }
+
+    [Fact]
+    public void GivenNoThemeNames_WhenListing_ThenNoThemeRowShows()
+    {
+        var rows = PaletteRows.For(Palette("Theme:"), _keymap);
+
+        Assert.DoesNotContain(rows, row => row.Id.StartsWith("theme ", StringComparison.Ordinal));
+    }
+
     private static AppState Palette(string text, CommandLevel level = CommandLevel.Everyday)
     {
         return AppState.Initial with

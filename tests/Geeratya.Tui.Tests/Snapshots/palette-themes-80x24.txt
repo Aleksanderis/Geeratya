@@ -1,0 +1,24 @@
+ [1 JQL: View]  +                                                        [jump] 
+                                                                                
+View · 0 issues                                                                 
+  ┌─ Commands ───────────────────────────────────────────────────────────────┐  
+  │ General                                                                  │  
+  │ > Theme: catppuccin-mocha                                                │  
+  │   Theme: dracula                                                         │  
+  │   Theme: nord                                                            │  
+  └──────────────────────────────────────────────────────────────────────────┘  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ COMMAND :theme:                             Up/Down move  Enter run  Esc cancel
