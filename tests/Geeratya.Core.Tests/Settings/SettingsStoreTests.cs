@@ -123,6 +123,29 @@ public sealed class SettingsStoreTests : IDisposable // Dispose removes the temp
         Assert.NotEmpty(bad.Warnings);
     }
 
+    [Theory]
+    [InlineData("{ \"hints\": 3 }", "hints")]
+    [InlineData("{ \"jump\": \"tab\" }", "jump")]
+    [InlineData("{ \"startup\": [1] }", "startup")]
+    [InlineData("{ \"hints\": null }", "hints")]
+    public void GivenAGroupThatIsNotAnObject_WhenReading_ThenOneWarningNamesItAndDefaultsApply(string json, string group)
+    {
+        Create(json);
+
+        var load = new SettingsStore(_directory).Read();
+
+        Assert.Contains($"settings.json: {group} must be an object", Assert.Single(load.Warnings));
+        Assert.Equal(AppSettings.Default, load.Settings);
+    }
+
+    [Fact]
+    public void GivenAGroupOfObjects_WhenReading_ThenNothingIsReported()
+    {
+        Create("{ \"hints\": { \"statusBar\": \"off\" }, \"startup\": {} }");
+
+        Assert.Empty(new SettingsStore(_directory).Read().Warnings);
+    }
+
     [Fact]
     public void GivenAnInvalidValue_WhenReading_ThenTheDefaultAndAWarningComeBack_AndWritingFixesIt()
     {
