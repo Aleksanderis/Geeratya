@@ -18,6 +18,12 @@ public static class KeyTranslator
         var code = key.KeyCode & ~(KeyCode.ShiftMask | KeyCode.AltMask | KeyCode.CtrlMask);
         var name = NameOf(code);
 
+        if (name == "Enter" && key.IsCtrl && !key.IsAlt)
+        {
+            // Ctrl-j is the line feed (0x0A); Terminal.Gui reports it as Ctrl+Enter, distinct from Enter (0x0D).
+            return "Ctrl-j";
+        }
+
         // Terminals send Ctrl-^ as 0x1E, which Terminal.Gui reports as Ctrl+6 (a real Ctrl-6 is the same key).
         if (key.IsCtrl && !key.IsAlt && code == KeyCode.D6)
         {

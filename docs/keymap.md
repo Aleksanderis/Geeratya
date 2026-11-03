@@ -109,6 +109,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-n` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-j` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
+| `Ctrl-l` | Run the typed command | `palette.submit` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
 
@@ -133,6 +136,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-n` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-j` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
+| `Ctrl-l` | Accept the field and go to the next | `form.next` | everyday |
 | `Ctrl-x` | Remove the highlighted profile (asks first; the stored token is deleted) | `profile.remove` | everyday |
 | `Tab` | Next field of the form | `form.field-next` | everyday |
 | `Shift-Tab` | Previous field of the form | `form.field-previous` | everyday |
