@@ -69,7 +69,7 @@ public static class FrameOptions
             InputMode.Confirm => AppState.Initial with
             {
                 Mode = mode,
-                Confirm = new ConfirmRequest("Delete PROJ-1? Jira cannot undo this", "issue.delete"),
+                Confirm = new ConfirmRequest("Delete PROJ-1? Jira cannot undo this", "issue.delete", Label: "Delete issue"),
             },
             InputMode.Insert => AppState.Initial with
             {

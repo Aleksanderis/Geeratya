@@ -69,7 +69,7 @@ public static class DeleteReducer
 
         // The time of the question stands in for the start of the operation: the reducer reads no clock.
         var confirmed = new WriteRequested(pending.Tab, request, counted.At);
-        var confirm = new ConfirmRequest(request.ConfirmText, ActionIds.IssueDelete, pending.Key, confirmed);
+        var confirm = new ConfirmRequest(request.ConfirmText, ActionIds.IssueDelete, pending.Key, confirmed, "Delete issue");
 
         return new ReduceResult(
             cleared with { Mode = InputMode.Confirm, Confirm = confirm, PendingKeys = string.Empty, Message = null },

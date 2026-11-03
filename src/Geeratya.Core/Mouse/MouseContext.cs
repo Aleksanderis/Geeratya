@@ -25,6 +25,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The clickable rectangles of the open overlay as drawn, later ones on top; may be empty.</summary>
     public IReadOnlyList<OverlayRegion> Regions { get; init; } = [];
 
+    /// <summary>The Confirm dialog is open: a click anywhere outside its box, the status line included, cancels.</summary>
+    public bool ConfirmOpen { get; init; }
+
     public static MouseContext From(
         AppState state,
         int width,
@@ -43,6 +46,7 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             NewTabButton = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, width),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],
+            ConfirmOpen = state.Mode == InputMode.Confirm && state.Confirm is not null,
         };
     }
 }

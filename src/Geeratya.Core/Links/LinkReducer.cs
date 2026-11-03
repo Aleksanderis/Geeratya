@@ -42,7 +42,8 @@ public static class LinkReducer
             request.ConfirmText,
             ActionIds.IssueUnlink,
             shown.Key,
-            new WriteRequested(tab.Id, request, at));
+            new WriteRequested(tab.Id, request, at),
+            "Remove link");
 
         return new ReduceResult(
             state with { Mode = InputMode.Confirm, Confirm = confirm, PendingKeys = string.Empty, Message = null },

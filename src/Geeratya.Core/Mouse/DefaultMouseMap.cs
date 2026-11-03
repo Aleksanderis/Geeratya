@@ -28,6 +28,8 @@ public static class DefaultMouseMap
         new(MouseTarget.FormField, MouseGesture.Click, ActionIds.FormFieldNext, 1, 'O'),
         new(MouseTarget.FormChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.EditorChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
+        new(MouseTarget.ConfirmYes, MouseGesture.Click, ActionIds.ConfirmYes, 1, 'O'),
+        new(MouseTarget.ConfirmNo, MouseGesture.Click, ActionIds.ConfirmNo, 1, 'O'),
         new(MouseTarget.Lists, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
         new(MouseTarget.Detail, MouseGesture.DoubleClick, ActionIds.ItemOpen, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.RightClick, ActionIds.ContextMenuOpen, 1, 'M'),

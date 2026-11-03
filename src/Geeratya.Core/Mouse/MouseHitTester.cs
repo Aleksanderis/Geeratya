@@ -28,6 +28,11 @@ public static class MouseHitTester
 
         if (row == statusRow)
         {
+            if (context.ConfirmOpen)
+            {
+                return new MouseHit(MouseTarget.Backdrop, 0, column);
+            }
+
             return context.OverlayOpen ? null : new MouseHit(MouseTarget.Status, 0, column);
         }
 
@@ -54,7 +59,8 @@ public static class MouseHitTester
             }
         }
 
-        return null;
+        // Outside the Confirm box a click answers no: the dialog covers the question, so the body is only a backdrop.
+        return context.ConfirmOpen ? new MouseHit(MouseTarget.Backdrop, row, column) : null;
     }
 
     private static MouseTarget HeaderTarget(MouseContext context, int row, int column)
