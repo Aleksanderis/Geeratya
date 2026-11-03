@@ -153,7 +153,7 @@ public static class ProfileReducer
         {
             var field = siteProblem is null ? ProfileFormField.Email : ProfileFormField.SiteUrl;
 
-            return Plain(state with { Form = form with { Field = field, Error = siteProblem ?? emailProblem } });
+            return Plain(state with { Form = form with { Field = field, Back = 0, Error = siteProblem ?? emailProblem } });
         }
 
         var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
@@ -163,12 +163,12 @@ public static class ProfileReducer
 
         if (typed is null && original is null)
         {
-            return Plain(state with { Form = form with { Field = ProfileFormField.Token, Error = TokenMissing } });
+            return Plain(state with { Form = form with { Field = ProfileFormField.Token, Back = 0, Error = TokenMissing } });
         }
 
         if (typed is null && original!.CredentialKey != profile.CredentialKey)
         {
-            var asking = form with { Field = ProfileFormField.Token, Error = TokenForChangedSite };
+            var asking = form with { Field = ProfileFormField.Token, Back = 0, Error = TokenForChangedSite };
 
             return Plain(state with { Form = asking });
         }
@@ -246,12 +246,10 @@ public static class ProfileReducer
         return state with { Mode = InputMode.Normal, ProfileList = null, PendingKeys = string.Empty };
     }
 
-    /// <summary>Typed or pasted text goes in at the caret of the focused field; line breaks are dropped.</summary>
+    /// <summary>Typed or pasted text goes in at the caret of the focused field.</summary>
     public static AppState Type(AppState state, string text)
     {
-        var line = text.Replace("\r", string.Empty).Replace("\n", string.Empty);
-
-        return line.Length == 0 ? state : Edit(state, prompt => prompt.Insert(line));
+        return text.Length == 0 ? state : Edit(state, prompt => prompt.Insert(text));
     }
 
     public static AppState Backspace(AppState state)
@@ -318,7 +316,7 @@ public static class ProfileReducer
 
         if (FirstProblem(form, state.Profiles) is { } problem)
         {
-            return Plain(state with { Form = form with { Field = problem.Field, Error = problem.Text } });
+            return Plain(state with { Form = form with { Field = problem.Field, Back = 0, Error = problem.Text } });
         }
 
         var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());

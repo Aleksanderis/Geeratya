@@ -428,7 +428,26 @@ public class ProfileEditTests
     }
 
     [Fact]
-    public void GivenAPastedTokenWithLineBreaks_WhenTyping_ThenNoBreakReachesTheToken()
+    public void GivenTheCaretMidToken_WhenSavingWithABadSite_ThenFocusMovesAndTheCaretIsAtTheEnd()
+    {
+        var form = ProfileForm.Start with
+        {
+            Field = ProfileFormField.Token,
+            Name = "dev",
+            SiteUrl = "http://x",
+            Email = "a@b.test",
+            Token = new SecretText("abcdef"),
+            Back = 3,
+        };
+
+        var saved = _reducer.Reduce(AppState.Initial with { Mode = InputMode.Insert, Form = form }, new KeyPressed("Ctrl-s"));
+
+        Assert.Equal(ProfileFormField.SiteUrl, saved.State.Form!.Field);
+        Assert.Equal(0, saved.State.Form.Back);
+    }
+
+    [Fact]
+    public void GivenATokenWithAnEmojiAndKeys_WhenMovingTheCaret_ThenTheMaskCaretStepsByLetter()
     {
         var state = AppState.Initial with
         {
@@ -436,9 +455,12 @@ public class ProfileEditTests
             Form = ProfileForm.Start with { Field = ProfileFormField.Token },
         };
 
-        var typed = _reducer.Reduce(state, new TextPasted("tok\nen")).State;
+        state = Type(state, "a\U0001F600b").State;
+        state = Press(state, "Left").State;
+        state = Press(state, "Left").State;
 
-        Assert.DoesNotContain('\n', typed.Form!.Token.Reveal());
+        Assert.Equal(2, state.Form!.Token.ElementsAfter(state.Form.Back));
+        Assert.Equal(3, state.Form.Back);
     }
 
     [Fact]

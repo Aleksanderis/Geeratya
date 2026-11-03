@@ -156,6 +156,29 @@ public class ProfileFormOverlaySnapshotTests
         Assert.Contains("*************|*****", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public void GivenATokenTypedWithKeys_WhenMovingTheCaretLeft_ThenOnlyMaskAndCaretShow(int width, int height)
+    {
+        var reducer = new AppReducer(_keymap);
+        var state = AppState.Initial with
+        {
+            Mode = InputMode.Insert,
+            Form = ProfileForm.Start with { Field = ProfileFormField.Token },
+        };
+
+        foreach (var key in new[] { "q", "w", "e", "r", "t", "Left", "Left" })
+        {
+            state = reducer.Reduce(state, new KeyPressed(key)).State;
+        }
+
+        var text = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap));
+
+        Assert.DoesNotContain("qwert", text, StringComparison.Ordinal);
+        Assert.Contains(width == 80 ? "***|**" : "|", text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GivenTheCaretInsideAName_WhenBuildingTheFrame_ThenTheBarMarksItInTheText()
     {
