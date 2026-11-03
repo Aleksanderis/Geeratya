@@ -53,18 +53,20 @@ public class StatusMessageRenderingTests
     }
 
     [Theory]
-    [InlineData(StatusSeverity.Info, 0)]
-    [InlineData(StatusSeverity.Info, 2000)]
-    [InlineData(StatusSeverity.Warning, 0)]
-    [InlineData(StatusSeverity.Error, 2000)]
+    [InlineData(StatusSeverity.Info, 0, PaletteRole.SuccessChip)]
+    [InlineData(StatusSeverity.Info, 2000, PaletteRole.Success)]
+    [InlineData(StatusSeverity.Warning, 0, PaletteRole.Warning)]
+    [InlineData(StatusSeverity.Error, 2000, PaletteRole.Error)]
     public void GivenAMessage_WhenBuildingTheStyledFrame_ThenTheSegmentCarriesItsRoleAndText(
         StatusSeverity severity,
-        int ageMs)
+        int ageMs,
+        PaletteRole role)
     {
         var now = _now.AddMilliseconds(ageMs);
         var frame = FrameBuilder.BuildStyled(Posted("Saved A-1", severity), 80, 24, _keymap, null, now);
 
         Assert.NotNull(frame?.StatusSegment);
+        Assert.Equal(role, frame.StatusSegment.Role);
         Assert.EndsWith("Saved A-1", frame.StatusSegment.Text);
         Assert.StartsWith(StatusMessages.PrefixOf(severity), frame.StatusSegment.Text);
     }
@@ -196,5 +198,23 @@ public class StatusMessageRenderingTests
         var state = AppState.Initial with { Message = text, MessageSeverity = severity };
 
         return reducer.Reduce(state, new Tick(_now)).State;
+    }
+
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    public void GivenAColourTier_WhenResolvingTheChip_ThenItIsFilledUnlikeTheSettledText(ColorSupport tier)
+    {
+        foreach (var name in BuiltInThemes.Names)
+        {
+            var theme = BuiltInThemes.Find(name)!.Theme!;
+            var chip = Palette.Resolve(theme, tier, PaletteRole.SuccessChip);
+            var success = Palette.Resolve(theme, tier, PaletteRole.Success);
+            var body = Palette.Resolve(theme, tier, PaletteRole.Body);
+
+            Assert.NotEqual(success.Background, chip.Background);
+            Assert.NotEqual(body.Background, chip.Background);
+            Assert.NotEqual(chip.Foreground, chip.Background);
+        }
     }
 }

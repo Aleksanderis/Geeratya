@@ -114,7 +114,7 @@ public sealed class ShellScreen : Window
         SetNeedsDraw();
     }
 
-    // The warning or error message sits on top of the bar in its own role; an info message is drawn in the success role (a filled chip while fresh).
+    // The message sits on top of the bar in its own role: success (a filled chip while fresh), warning or error.
     private void ShowMessage(StatusSegment? segment)
     {
         if (segment is null)
