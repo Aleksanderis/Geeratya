@@ -160,6 +160,7 @@ public static class ContextMenus
             ActionIds.ViewSavedSave,
             ActionIds.IssueJump,
             ActionIds.StatusHistory,
+            ActionIds.SettingsOpen,
             ActionIds.StatusDismiss,
             ActionIds.HelpToggle,
             ActionIds.Quit,

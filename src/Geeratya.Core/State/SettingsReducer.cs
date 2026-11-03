@@ -52,6 +52,11 @@ public static class SettingsReducer
             return Say(state, applied.Message);
         }
 
+        if (applied.Preview)
+        {
+            return new ReduceResult(state, []);
+        }
+
         var changed = state.Settings with { Theme = applied.Name };
 
         return new ReduceResult(
@@ -65,7 +70,8 @@ public static class SettingsReducer
         return Say(state with { Settings = reloaded.Settings with { Theme = state.Settings.Theme } }, reloaded.Message);
     }
 
-    private static ReduceResult Change(AppState state, SettingDefinition setting, string value)
+    /// <summary>Applies the value to the setting, saves it and says so; a value it does not accept is refused with what it takes.</summary>
+    public static ReduceResult Change(AppState state, SettingDefinition setting, string value)
     {
         if (setting.Name == SettingsRegistry.ThemeName)
         {

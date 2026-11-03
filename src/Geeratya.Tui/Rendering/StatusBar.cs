@@ -87,6 +87,17 @@ public static class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
+    private const string SettingsText = "Settings: a change applies at once and is saved";
+
+    /// <summary>The hints shown while the settings screen is open (Normal mode, <see cref="AppState.SettingsScreen"/>).</summary>
+    public static readonly IReadOnlyList<StatusHint> SettingsHints =
+    [
+        new(InputMode.Normal, ActionIds.NavigateDown, "move", HintScope.Global, ActionIds.NavigateUp),
+        new(InputMode.Normal, ActionIds.ItemOpen, "change"),
+        new(InputMode.Normal, ActionIds.SettingsReset, "reset"),
+        new(InputMode.Normal, ActionIds.Cancel, "close"),
+    ];
+
     /// <summary>The hints shown while the comment editor is open (Insert mode, <see cref="AppState.Editor"/>).</summary>
     public static IReadOnlyList<StatusHint> EditorHints { get; } =
     [
@@ -293,6 +304,11 @@ public static class StatusBar
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
         var level = state.Settings.CommandLevel;
+
+        if (state is { SettingsScreen: not null, Mode: InputMode.Normal })
+        {
+            return new HintList([], TextsOf(SettingsHints, state.Mode, HintScope.Global, keymap, level));
+        }
 
         if (state.Editor is not null && state.Mode == InputMode.Insert)
         {
@@ -630,6 +646,11 @@ public static class StatusBar
         if (state.PendingKeys.Length > 0 || state.Count > 0)
         {
             return PendingText(state);
+        }
+
+        if (state.SettingsScreen is not null)
+        {
+            return state.Status?.Line ?? state.Message ?? SettingsText;
         }
 
         if (ListBodyRenderer.ActiveTab(state)?.RankPickup is { } picked)

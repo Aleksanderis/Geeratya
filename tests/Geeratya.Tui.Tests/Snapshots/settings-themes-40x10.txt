@@ -1,0 +1,10 @@
+ Settings                               
+                                        
+╭─ Settings ───────────────────────────╮
+│ Appearance                           │
+│ > theme             auto             │
+│     > ● auto                         │
+│         dark                         │
+│ j/k move  Enter keep  Esc cancel     │
+╰──────────────────────────────────────╯
+ NORMAL  Settings: a change applies at o

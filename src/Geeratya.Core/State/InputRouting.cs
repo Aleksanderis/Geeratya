@@ -109,6 +109,7 @@ public static class InputRouting
         return resolution.Kind == KeyResolutionKind.Action
             && resolution.Action == ActionIds.Cancel
             && state.Mode == InputMode.Normal
+            && state.SettingsScreen is null
             && state.PendingKeys.Length == 0
             && state.Count == 0
             && state.Editor is null
@@ -123,6 +124,7 @@ public static class InputRouting
         return resolution.Kind == KeyResolutionKind.Action
             && resolution.Action == ActionIds.Cancel
             && state.Mode == InputMode.Normal
+            && state.SettingsScreen is null
             && state.PendingKeys.Length == 0
             && state.Count == 0
             && state.Status is null

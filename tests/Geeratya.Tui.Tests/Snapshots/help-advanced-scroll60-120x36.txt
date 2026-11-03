@@ -25,12 +25,12 @@
             │               │   <space>a   Open the actions menu of the selected issue                     │            
             │               │   <space>n   Show the message history                                        │            
             │               │   <space>x   Dismiss the status message                                      │            
+            │               │   <space>,   Open or close the settings screen                               │            
+            │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │            
+            │               │              screen)                                                         │            
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
             │               │   /          Filter the help by key, title or action id                      │            
-            │               │   Tab        Next help section                                               │            
-            │               │   Shift-Tab  Previous help section                                           │            
-            │               │   J          Scroll help down a line                                         │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

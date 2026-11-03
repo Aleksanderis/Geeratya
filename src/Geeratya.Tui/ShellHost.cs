@@ -432,7 +432,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             }
             else if (effect is ApplyThemeEffect themeEffect)
             {
-                themed = ApplyTheme(themeEffect.Name);
+                themed = ApplyTheme(themeEffect.Name, themeEffect.Preview);
             }
             else if (effect is CheckConnectionEffect check)
             {
@@ -497,14 +497,20 @@ public sealed class ShellHost : ICommandSink, IDisposable
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
         _state = WithNotice(
-            _state with { ThemeNames = _themes.Names },
+            _state with
+            {
+                ThemeNames = _themes.Names,
+                SettingsInfo = new SettingsInfo(
+                    _profiles.Settings?.FilePath ?? string.Empty,
+                    _profiles.Keymap?.FilePath ?? string.Empty),
+            },
             StatusMessages.JoinNotices(_state.Message, start.Notice));
 
         return start.Theme;
     }
 
     /// <summary>Switches the screen to the chosen theme and reports the outcome for the reducer.</summary>
-    private ThemeApplied ApplyTheme(string name)
+    private ThemeApplied ApplyTheme(string name, bool preview)
     {
         var choice = _themes.Choose(name, _state.Settings.Theme, _lightBackground ?? EnvironmentBackground());
 
@@ -513,7 +519,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
             _screen?.SetTheme(choice.Theme);
         }
 
-        return new ThemeApplied(choice.Name, choice.Theme is not null, choice.Message);
+        return new ThemeApplied(choice.Name, choice.Theme is not null, choice.Message, preview);
     }
 
     /// <summary>Applies the user's keymap file to the shared table and reports the outcome for the status line.</summary>

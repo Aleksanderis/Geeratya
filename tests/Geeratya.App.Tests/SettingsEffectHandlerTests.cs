@@ -1,3 +1,4 @@
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 
@@ -21,10 +22,37 @@ public sealed class SettingsEffectHandlerTests : IDisposable
         var store = new SettingsStore(_directory);
         var settings = new AppSettings(StatusHints: HintLevel.Off);
 
-        var outcome = new SettingsEffectHandler(store).Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, settings));
+        var outcome = new SettingsEffectHandler(store)
+            .Run(new SaveSettingsEffect(SettingsRegistry.Find("hints")!, settings));
 
         Assert.Null(outcome);
         Assert.Equal(settings, store.Load());
+    }
+
+    [Fact]
+    public void GivenTheSettingsScreen_WhenChangingAToggleAndAHintOption_ThenBothAreSavedAndLoadAfterARestart()
+    {
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var handler = new SettingsEffectHandler(new SettingsStore(_directory));
+        var state = reducer.Reduce(AppState.Initial, new ActionRequested(ActionIds.SettingsOpen, 1, default)).State;
+
+        foreach (var name in new[] { "hints.whichKey", "startup.restore" })
+        {
+            var rows = SettingsRows.Build(state).ToList();
+            var opened = state with { SettingsScreen = new SettingsScreenState(
+                rows.FindIndex(row => row.Setting?.Name == name)) };
+            var result = reducer.Reduce(opened, new KeyPressed("Enter"));
+
+            state = result.State;
+
+            Assert.All(result.Effects, effect => Assert.Null(handler.Run(effect)));
+        }
+
+        var restarted = new SettingsStore(_directory).Load();
+
+        Assert.False(state.Settings.WhichKey);
+        Assert.Equal(state.Settings, restarted);
+        Assert.False(restarted.RestoreTabs);
     }
 
     [Fact]

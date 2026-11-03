@@ -354,6 +354,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Help | Done in #525: rounded accent frame over the dimmed view | 7 | #525 |
 | Confirm | Done in #525: rounded frame (`bad`, `warn` or accent), view dimmed around it. Done in #539: shrinks to content, `bad` for side-effecting transitions, sprint completion and multi-issue sprint moves, chip names action and target | 7 | #525, #539 |
 | Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box. Done in #539: hint chips in the footer, `▲`/`▼` scroll markers and the 18-row cap (picker, jump); the mouse wheel does not scroll the picker rows yet | 7 | #525 |
+| Settings | Done in #556: two-pane full-body screen like the profile manager (categories 20 columns, rows, help row, hint row), a `Settings` chip in the tab row, the open choice list under its row; under 60 columns one list with category headings | 7 (settings) | #556 |
 | Profiles | Done in #535: two-pane full-body manager with details pane and the `Profiles` chip; the form and the remove question draw over it | 7 (profile manager) | #528 (form and keys), #535 (two-pane screen) |
 
 ## 10. Reconciliation with the other parts, and what stays open

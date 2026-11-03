@@ -149,3 +149,9 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (profile manager screen, #535)
 
 **UI:** The profile manager stays open under the profile form and the remove question and is the first screen when no profile exists; its details pane shows the token source only (looked up by the host, never the token) and, for inactive profiles, no connection status (no request goes to an inactive site). Why: a screen that vanishes on Ctrl-a loses the list the user is editing; the first run needs one place to add a profile.
+
+## 2026-11-03 (settings screen, #556)
+
+**UI:** The Settings screen (reverses the "not adopted" note in `ux.md`, owner request) runs in Normal mode on the Normal keys, not in Insert mode like the profile manager; `<space>,` opens it (as in Gitunia), `Alt-r` resets a row (`r` is vim's). Why: it has no text field, so the existing motion keys apply and nothing new is modal.
+**UI:** The theme list previews through `ApplyThemeEffect(Preview: true)` (drawn, never saved or kept in the settings); Esc or any other way out redraws the saved theme (`SettingsScreenReducer.RestorePreview`). Why: the reducer cannot see the screen, so restoring is a rule on every command.
+**UI:** Rows come from `SettingsRegistry` (new `Choices` and `Category` fields); a free-text setting without choices is not edited in place (`:set`). Why: the registry has none today and a text prompt needs Insert mode; registered as a follow-up.
