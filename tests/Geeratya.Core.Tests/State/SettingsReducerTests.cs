@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -52,14 +53,69 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
-    public void GivenNoArgument_WhenSubmittingThePalette_ThenEverySettingShowsWithItsDefault()
+    public void GivenNoArgument_WhenSubmittingThePalette_ThenTheMessagesOverlayOpensWithEverySettingOnItsOwnLine()
     {
-        var message = Run("set").State.Message;
+        var state = Run("set").State;
+        var lines = SettingsRegistry.ListLines(state.Settings);
+
+        Assert.True(state.MessagesOpen);
+        Assert.True(state.MessagesShowSettings);
+        Assert.Equal(InputMode.Help, state.Mode);
+        Assert.Null(state.Message);
+        Assert.Equal(SettingsRegistry.All.Count, lines.Count);
 
         foreach (var setting in SettingsRegistry.All)
         {
-            Assert.Contains($"{setting.Name} {setting.Default} (default {setting.Default})", message);
+            Assert.Contains(lines, line => line.StartsWith($"{setting.Name} {setting.Default} (default {setting.Default}) - {setting.Help}", StringComparison.Ordinal));
         }
+    }
+
+    [Fact]
+    public void GivenTheSettingsList_WhenClosingIt_ThenTheNextHistoryOverlayHasNoSettings()
+    {
+        var closed = _reducer.Reduce(Run("set").State, new KeyPressed("Esc", DateTimeOffset.UnixEpoch)).State;
+
+        Assert.False(closed.MessagesOpen);
+        Assert.False(closed.MessagesShowSettings);
+    }
+
+    [Fact]
+    public void GivenSettingsWarnings_WhenStarting_ThenEachIsAWarningEntryAndTheStatusLineIsNotJoined()
+    {
+        var state = StatusMessages.Startup(AppState.Initial, null, ["a is bad.", "b is bad."]);
+        var settled = _reducer.Reduce(state, new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal(["2 problems in settings.json (<space>n lists them)", "b is bad.", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+        Assert.Equal(StatusSeverity.Warning, settled.Status!.Severity);
+        Assert.DoesNotContain("a is bad", settled.Status.Text);
+        Assert.All(settled.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
+    }
+
+    [Fact]
+    public void GivenOneSettingsWarning_WhenStarting_ThenItIsTheStatusMessageAndRecordedOnce()
+    {
+        var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, null, ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal("Warning: a is bad.", settled.Status!.Line);
+        Assert.Single(settled.StatusHistory);
+    }
+
+    [Fact]
+    public void GivenANoticeAndWarnings_WhenStarting_ThenTheNoticeShowsAndTheWarningsAreInTheHistory()
+    {
+        var settled = _reducer.Reduce(StatusMessages.Startup(AppState.Initial, "Profiles corrupt", ["a is bad."]), new Tick(DateTimeOffset.UnixEpoch)).State;
+
+        Assert.Equal("Profiles corrupt", settled.Status!.Text);
+        Assert.Equal(["Profiles corrupt", "a is bad."], settled.StatusHistory.Select(m => m.Text).ToList());
+    }
+
+    [Fact]
+    public void GivenTheSettingsList_WhenScrolling_ThenItReachesTheLastHistoryRow()
+    {
+        var state = Run("set").State;
+        var rows = StatusMessages.OverlayRowCount(state);
+
+        Assert.Equal(SettingsRegistry.All.Count + 2, rows);
     }
 
     [Fact]

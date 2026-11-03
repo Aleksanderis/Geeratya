@@ -78,6 +78,9 @@ public sealed record AppState(
     /// <summary>The help overlay shows the message history instead of the key reference.</summary>
     public bool MessagesOpen { get; init; }
 
+    /// <summary>The Messages overlay lists every setting (value, default, help) above the history (<c>:set</c> without an argument).</summary>
+    public bool MessagesShowSettings { get; init; }
+
     /// <summary>The highlighted row of the command palette, counted over its selectable rows (Command mode).</summary>
     public int PaletteSelected { get; init; }
 

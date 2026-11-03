@@ -86,6 +86,12 @@ public static class SettingsRegistry
             All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default})"));
     }
 
+    /// <summary>One line per setting (name, value, default, help), for the Messages overlay.</summary>
+    public static IReadOnlyList<string> ListLines(AppSettings settings)
+    {
+        return [.. All.Select(setting => $"{setting.Name} {setting.Read(settings)} (default {setting.Default}) - {setting.Help}")];
+    }
+
     /// <summary>One setting with its value, default, accepted values and help, for <c>:set name</c>.</summary>
     public static string Describe(SettingDefinition setting, AppSettings settings)
     {

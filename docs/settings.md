@@ -14,7 +14,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 
 ## `:set`
 
-- `:set` lists every setting with its value and default.
+- `:set` opens the Messages overlay (`<space>n`) with every setting, one line each with value, default and help.
 - `:set <name>` shows one setting with the values it accepts and what it does.
 - `:set <name> <value>` changes it at once and saves it. `:set theme <name>` is the same as `:theme <name>`.
 
