@@ -38,7 +38,7 @@ public class JumpReducerTests
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.Equal(string.Empty, result.State.Jump!.Text);
         Assert.Equal(["A-1", "A-2"], Rows(result.State).Select(row => row.Key));
-        Assert.Empty(result.Effects);
+        Assert.IsType<LoadHistoryEffect>(Assert.Single(result.Effects));
     }
 
     [Fact]
@@ -215,6 +215,49 @@ public class JumpReducerTests
     }
 
     [Fact]
+    public void GivenProfileHistoryNotLoaded_WhenOpeningThePrompt_ThenTheHistoryIsRequested()
+    {
+        var result = Press(WithList(), "Space", "g");
+
+        Assert.Equal(_work, Assert.Single(result.Effects.OfType<LoadHistoryEffect>()).Profile);
+    }
+
+    [Fact]
+    public void GivenProfileHistory_WhenThePromptIsEmpty_ThenRecentKeysComeFirstNewestFirstAndEnterOpensOne()
+    {
+        var state = WithHistory(WithList(), "H-2", "H-1");
+
+        var opened = Press(state, "Space", "g");
+
+        Assert.Empty(opened.Effects);
+        Assert.Equal(["H-2", "H-1", "A-1", "A-2"], Rows(opened.State).Select(row => row.Key));
+        Assert.Equal(JumpOrigin.Recent, Rows(opened.State)[0].Origin);
+        Assert.Equal("H-1", Active(Press(opened.State, "Down", "Enter").State).Detail[0].Key);
+    }
+
+    [Fact]
+    public void GivenARecentKeyTheTabKnows_WhenThePromptIsEmpty_ThenTheRowKeepsTheTabTitle()
+    {
+        var state = WithHistory(WithList(), "A-2");
+
+        var rows = Rows(Press(state, "Space", "g").State);
+
+        Assert.Equal(["A-2", "A-1"], rows.Select(row => row.Key));
+        Assert.NotEmpty(rows[0].Title);
+        Assert.Equal(JumpOrigin.Recent, rows[0].Origin);
+    }
+
+    [Fact]
+    public void GivenProfileHistoryAndSessionKeys_WhenTyping_ThenTheyFilterWithoutRepeats()
+    {
+        var state = WithHistory(Remember(WithList(), "H-2"), "H-2", "H-10", "B-1");
+
+        var typed = Press(state, "Space", "g", "h", "-").State;
+
+        Assert.Equal(["H-2", "H-10"], Rows(typed).Where(row => row.Origin == JumpOrigin.Recent).Select(row => row.Key));
+    }
+
+    [Fact]
     public void GivenAChosenCompletion_WhenPressingEnter_ThenThatKeyOpensNotTheTypedOne()
     {
         var state = Remember(WithList(), "B-7", "B-70");
@@ -303,6 +346,14 @@ public class JumpReducerTests
     private static AppState Remember(AppState state, params string[] keys)
     {
         return keys.Aggregate(state, JumpReducer.Remember);
+    }
+
+    private static AppState WithHistory(AppState state, params string[] newestFirst)
+    {
+        var history = new SiteHistory([], newestFirst);
+        var sources = state.Session.Sources with { History = history };
+
+        return state with { Session = state.Session with { Sources = sources } };
     }
 
     private static TabState Active(AppState state)
