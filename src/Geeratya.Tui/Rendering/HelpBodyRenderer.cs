@@ -28,7 +28,7 @@ public sealed class HelpBodyRenderer : IBodyRenderer
         var lines = new List<StyledLine>
         {
             StyledLine.Of(Title, TextRole.Heading),
-            PageNames(state, context.Keymap),
+            PageNames(state, context.Keymap, width),
         };
 
         if (state.HelpFilter.Length > 0 || state.HelpFiltering)
@@ -52,7 +52,9 @@ public sealed class HelpBodyRenderer : IBodyRenderer
         var column = 0;
         var names = HelpPages.Names(state, keymap);
 
-        for (var index = 0; index < names.Count && column < width; index++)
+        var first = FirstVisible(names, HelpPages.Current(state, keymap), width);
+
+        for (var index = first; index < names.Count && column < width; index++)
         {
             var cells = DisplayWidth.Of(names[index]);
 
@@ -65,15 +67,42 @@ public sealed class HelpBodyRenderer : IBodyRenderer
         return regions;
     }
 
-    private static StyledLine PageNames(AppState state, KeymapTable keymap)
+    /// <summary>
+    /// The first page name shown, so the selected one is fully visible: names scroll off to the left only as far as needed.
+    /// </summary>
+    private static int FirstVisible(IReadOnlyList<string> names, int current, int width)
+    {
+        var first = 0;
+
+        while (first < current && RowWidth(names, first, current) > width)
+        {
+            first++;
+        }
+
+        return first;
+    }
+
+    private static int RowWidth(IReadOnlyList<string> names, int first, int last)
+    {
+        var total = 0;
+
+        for (var index = first; index <= last; index++)
+        {
+            total += DisplayWidth.Of(names[index]) + (index > first ? PageSeparator.Length : 0);
+        }
+
+        return total;
+    }
+
+    private static StyledLine PageNames(AppState state, KeymapTable keymap, int width)
     {
         var names = HelpPages.Names(state, keymap);
         var current = HelpPages.Current(state, keymap);
         var spans = new List<StyledSpan>();
 
-        for (var index = 0; index < names.Count; index++)
+        for (var index = FirstVisible(names, current, width); index < names.Count; index++)
         {
-            if (index > 0)
+            if (spans.Count > 0)
             {
                 spans.Add(new StyledSpan(PageSeparator, TextRole.Body));
             }
