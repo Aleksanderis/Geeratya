@@ -112,12 +112,19 @@ public static class StatusMessages
             settled = settled with { Status = status };
         }
 
-        if (status.PostedAt is { } posted && now is { } at && at - posted >= LifetimeOf(status.Severity))
+        if (Expired(status, now))
         {
             return settled with { Status = null, Message = null };
         }
 
         return settled;
+    }
+
+    /// <summary>True once <paramref name="now"/> is at or past the message's lifetime; an explicit repeat (a warning or error post) then counts as a new post.
+    /// A plain repeat of an info text is indistinguishable from the text the settle step keeps in <c>Message</c>.</summary>
+    private static bool Expired(StatusMessage status, DateTimeOffset? now)
+    {
+        return status.PostedAt is { } posted && now is { } at && at - posted >= LifetimeOf(status.Severity);
     }
 
     private static AppState Posted(AppState state, DateTimeOffset? now)
@@ -135,7 +142,7 @@ public static class StatusMessages
             return state.MessageSeverity == StatusSeverity.Info ? state : state with { MessageSeverity = StatusSeverity.Info };
         }
 
-        if (state.Status is { } current && current.Text == text)
+        if (state.Status is { } current && current.Text == text && !(Expired(current, now) && state.MessageSeverity != StatusSeverity.Info))
         {
             return state.MessageSeverity == StatusSeverity.Info ? state : state with { MessageSeverity = StatusSeverity.Info };
         }
