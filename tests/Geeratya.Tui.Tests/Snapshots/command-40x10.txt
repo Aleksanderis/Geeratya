@@ -5,6 +5,6 @@
   ╭─ Commands ───────────────────────╮  
   │ Issue                            │  
   │ > Assign the issue: s  Space i a │  
-  │ Navigate                         │  
+  │                                  │  
   ╰──────────────────────────────────╯  
  COMMAND :search                        

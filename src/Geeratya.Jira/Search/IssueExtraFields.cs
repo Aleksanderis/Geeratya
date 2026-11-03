@@ -11,9 +11,17 @@ public sealed record IssueExtraFields(string? SprintFieldId, IReadOnlyList<strin
     /// <summary>No extra fields: what every request asked for before sprints were read.</summary>
     public static IssueExtraFields None { get; } = new(null, []);
 
+    /// <summary>Also read the <c>subtasks</c> field (the columns layout shows a sub-task row on a card).</summary>
+    public bool IncludeSubtasks { get; init; }
+
     /// <summary>The extra ids to append to a field list, without repeats.</summary>
     public IEnumerable<string> Ids()
     {
+        if (IncludeSubtasks)
+        {
+            yield return IssueFields.Subtasks;
+        }
+
         if (SprintFieldId is { Length: > 0 } sprint)
         {
             yield return sprint;

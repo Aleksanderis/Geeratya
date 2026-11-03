@@ -160,6 +160,11 @@ public sealed record TabState(
     /// <summary>How the columns layout groups the cards into lanes (#192); one lane is shown at a time.</summary>
     public SwimlaneKind Swimlane { get; init; }
 
+    /// <summary>
+    /// The keys of the cards whose sub-task list is expanded in the columns layout (<c>z a</c>, #520); kept per tab.
+    /// </summary>
+    public IReadOnlyList<string> ExpandedSubtasks { get; init; } = [];
+
     /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
     public string? Lane { get; init; }
 

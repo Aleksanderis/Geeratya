@@ -14,8 +14,8 @@
 │ │               │              backlog                                     │ │
 │ │               │   [ [        Previous section of the issue or the Scrum  │ │
 │ │               │              backlog                                     │ │
-│ │               │   z a        Collapse or expand the sprint section of    │ │
-│ │               │              the Scrum backlog                           │ │
+│ │               │   z a        Fold a backlog section or the sub-tasks of  │ │
+│ │               │              a card                                      │ │
 │ │               │   Space l    Switch between list and columns             │ │
 │ │               │   Space v f  Cycle the quick filter of the board (off,   │ │
 │ │               │              then each filter in turn)                   │ │

@@ -15,7 +15,7 @@ public static class BoardHeaderText
     /// <summary>The column name, its card count and a <c>+</c> while more rows can still load.</summary>
     public static string Title(BoardColumnGroup column, bool moreLoads)
     {
-        return $"{column.Name} {column.Rows.Count}{(moreLoads ? MoreMark : string.Empty)}";
+        return $"{column.Name} {column.Rows.Count(row => !row.IsListed)}{(moreLoads ? MoreMark : string.Empty)}";
     }
 
     /// <summary>The previous column as named left of the title of a one-column header.</summary>
