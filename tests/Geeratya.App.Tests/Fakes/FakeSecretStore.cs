@@ -8,13 +8,16 @@ public sealed class FakeSecretStore : ISecretStore
     private readonly Dictionary<string, string> _secrets = [];
     private readonly bool _throwsCancellation;
     private readonly bool _throwsUnexpected;
+    private readonly bool _failsOnDelete;
 
     public FakeSecretStore(
         bool isAvailable = true,
         bool fails = false,
         bool throwsCancellation = false,
-        bool throwsUnexpected = false)
+        bool throwsUnexpected = false,
+        bool failsOnDelete = false)
     {
+        _failsOnDelete = failsOnDelete;
         _throwsCancellation = throwsCancellation;
         _throwsUnexpected = throwsUnexpected;
         IsAvailable = isAvailable;
@@ -61,6 +64,11 @@ public sealed class FakeSecretStore : ISecretStore
 
     public Task DeleteAsync(string key, CancellationToken cancellationToken)
     {
+        if (_failsOnDelete)
+        {
+            throw new SecretStoreException("keyring locked");
+        }
+
         _secrets.Remove(key);
 
         return Task.CompletedTask;

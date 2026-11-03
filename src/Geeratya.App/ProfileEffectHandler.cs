@@ -136,16 +136,34 @@ public sealed class ProfileEffectHandler
 
         _services.Store.Save(update.Catalog);
 
+        var leftover = string.Empty;
+
         if (keyChanged && !update.OldKeyShared)
         {
-            await store.DeleteAsync(update.Old.CredentialKey, cancellationToken);
-            _services.Caches.Delete(update.Old);
-            DeleteHistory(update.Old);
+            leftover = await CleanUpOldAsync(update, cancellationToken);
         }
 
         var replaced = update.NewToken is not null && update.Catalog.ActiveName == update.New.Name;
 
-        return new ProfilesChanged(update.Catalog, UpdatedMessage(update, stored), replaced);
+        return new ProfilesChanged(update.Catalog, $"{UpdatedMessage(update, stored)}{leftover}", replaced);
+    }
+
+    /// <summary>The profile is already saved: a failing cleanup is reported, not turned into a failed save.</summary>
+    private async Task<string> CleanUpOldAsync(UpdateProfileEffect update, CancellationToken cancellationToken)
+    {
+        _services.Caches.Delete(update.Old);
+        DeleteHistory(update.Old);
+
+        try
+        {
+            await _services.Tokens.Store.DeleteAsync(update.Old.CredentialKey, cancellationToken);
+        }
+        catch (SecretStoreException)
+        {
+            return " The old token could not be deleted from the secret store.";
+        }
+
+        return string.Empty;
     }
 
     private bool HasEnvironmentToken()
@@ -172,14 +190,17 @@ public sealed class ProfileEffectHandler
 
         if (token is null && test.StoredKey is not null)
         {
-            var resolved = await _services.Tokens.ResolveAsync(test.StoredKey, test.AllowEnvironment, cancellationToken);
+            var resolved = await _services.Tokens.ResolveAsync(
+                test.StoredKey,
+                test.AllowEnvironment,
+                cancellationToken);
 
             token = resolved.Token;
         }
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new ProfileTested(false, NoStoredTokenMessage);
+            return new ProfileTested(test.Profile, false, NoStoredTokenMessage);
         }
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -197,20 +218,20 @@ public sealed class ProfileEffectHandler
             {
                 var name = ConnectionText.Sanitize(result.Value.DisplayName);
 
-                return new ProfileTested(true, $"Connected as {name}.");
+                return new ProfileTested(test.Profile, true, $"Connected as {name}.");
             }
 
             var failure = ConnectionText.Failure(result.Error, test.Profile.SiteUrl);
 
-            return new ProfileTested(false, $"Failed: {failure.Hint}");
+            return new ProfileTested(test.Profile, false, $"Failed: {failure.Hint}");
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return new ProfileTested(false, "Failed: the site did not answer in time.");
+            return new ProfileTested(test.Profile, false, "Failed: the site did not answer in time.");
         }
         catch (Exception exception) when (exception is ArgumentException or UriFormatException)
         {
-            return new ProfileTested(false, "Failed: the site address cannot be used.");
+            return new ProfileTested(test.Profile, false, "Failed: the site address cannot be used.");
         }
     }
 

@@ -119,7 +119,8 @@ public static class MouseResolver
     {
         return target is MouseTarget.PickerRow or MouseTarget.JumpRow or MouseTarget.ProfileRow
             or MouseTarget.ProfileAddButton or MouseTarget.ProfileEditButton or MouseTarget.ProfileTestButton
-            or MouseTarget.ProfileSaveButton or MouseTarget.ProfileCancelButton or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice or MouseTarget.ContextMenu
+            or MouseTarget.ProfileSaveButton or MouseTarget.ProfileCancelButton
+            or MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.EditorChoice or MouseTarget.ContextMenu
             or MouseTarget.ConfirmYes or MouseTarget.ConfirmNo or MouseTarget.PaletteRow or MouseTarget.HelpPage;
     }
 

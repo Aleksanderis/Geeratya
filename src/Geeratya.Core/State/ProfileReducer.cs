@@ -27,6 +27,9 @@ public static class ProfileReducer
 
     private const string TokenMissing = "The API token cannot be empty.";
 
+    private const string TokenForChangedSite =
+        "Type the token to test a changed site or account: the stored one is sent only to the saved site.";
+
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
     /// <summary>Runs <c>profile ...</c>; <paramref name="arguments"/> is the text after the word profile.</summary>
@@ -124,7 +127,10 @@ public static class ProfileReducer
         return state with { Form = Normalize(form) with { Field = (ProfileFormField)index } };
     }
 
-    /// <summary>Alt-t in the form: checks the typed site, account and token (or the stored one) without saving.</summary>
+    /// <summary>
+    /// Alt-t in the form: checks the typed site, account and token (or the stored one) without saving. The stored token
+    /// is only sent to the saved site and account: a changed site or account needs a typed token.
+    /// </summary>
     public static ReduceResult TestConnection(AppState state)
     {
         if (state.Form is not { } form || form.Testing)
@@ -132,11 +138,14 @@ public static class ProfileReducer
             return Plain(state);
         }
 
-        var problem = FirstProblem(form, state.Profiles);
+        var siteProblem = ValidateSite(form.SiteUrl);
+        var emailProblem = ValidateEmail(form.Email.Trim());
 
-        if (problem is { } found && found.Field != ProfileFormField.Name)
+        if (siteProblem is not null || emailProblem is not null)
         {
-            return Plain(state with { Form = form with { Field = found.Field, Error = found.Text } });
+            var field = siteProblem is null ? ProfileFormField.Email : ProfileFormField.SiteUrl;
+
+            return Plain(state with { Form = form with { Field = field, Error = siteProblem ?? emailProblem } });
         }
 
         var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
@@ -149,6 +158,13 @@ public static class ProfileReducer
             return Plain(state with { Form = form with { Field = ProfileFormField.Token, Error = TokenMissing } });
         }
 
+        if (typed is null && original!.CredentialKey != profile.CredentialKey)
+        {
+            var asking = form with { Field = ProfileFormField.Token, Error = TokenForChangedSite };
+
+            return Plain(state with { Form = asking });
+        }
+
         var tested = form with { Testing = true, TestResult = null, TestFailed = false, Error = null };
 
         return new ReduceResult(
@@ -156,10 +172,13 @@ public static class ProfileReducer
             [new TestProfileEffect(profile, typed, original?.CredentialKey, allowEnvironment)]);
     }
 
-    /// <summary>The answer of a connection test; dropped when the form is closed.</summary>
+    /// <summary>
+    /// The answer of a connection test; dropped when the form is closed, was edited since (an edit ends the test) or
+    /// now holds other values than the ones tested.
+    /// </summary>
     public static ReduceResult Tested(AppState state, ProfileTested tested)
     {
-        if (state.Form is not { Testing: true } form)
+        if (state.Form is not { Testing: true } form || !Matches(form, tested.Profile))
         {
             return Plain(state);
         }
@@ -262,7 +281,7 @@ public static class ProfileReducer
         return Save(state);
     }
 
-    /// <summary>Ctrl-s: validates every field (focusing the first problem) and saves the profile through an effect.</summary>
+    /// <summary>Ctrl-s: validates every field (focusing the first problem), then saves the profile by an effect.</summary>
     public static ReduceResult Save(AppState state)
     {
         if (state.Form is not { } form)
@@ -583,7 +602,9 @@ public static class ProfileReducer
 
         var error = empty ? null : Validate(form, state.Profiles);
 
-        return state with { Form = form with { Error = error, TestResult = null, TestFailed = false } };
+        var edited = form with { Error = error, Testing = false, TestResult = null, TestFailed = false };
+
+        return state with { Form = edited };
     }
 
     private static string? ValidateName(string name, string? editing, ProfileCatalog catalog)
@@ -638,7 +659,10 @@ public static class ProfileReducer
         };
     }
 
-    private static ProfileForm EditField(ProfileForm form, Func<string, string> text, Func<SecretText, SecretText> secret)
+    private static ProfileForm EditField(
+        ProfileForm form,
+        Func<string, string> text,
+        Func<SecretText, SecretText> secret)
     {
         return form.Field switch
         {
@@ -669,6 +693,13 @@ public static class ProfileReducer
     private static ReduceResult Plain(AppState state)
     {
         return new ReduceResult(state, _noEffects);
+    }
+
+    private static bool Matches(ProfileForm form, Profile tested)
+    {
+        var site = TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl;
+
+        return site == tested.SiteUrl && form.Email.Trim() == tested.Email;
     }
 
     private sealed record FieldProblem(ProfileFormField Field, string Text);

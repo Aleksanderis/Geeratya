@@ -38,7 +38,9 @@ public sealed class ProfileEditHandlerTests : IDisposable
         var fixture = Create(store);
         var catalog = ProfileCatalog.Empty.With(_work);
 
-        await fixture.Handler.RunAsync(new AddProfileEffect(_work, new SecretText(Token), catalog), CancellationToken.None);
+        await fixture.Handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText(Token), catalog),
+            CancellationToken.None);
 
         var moved = new Profile("work", "https://new.atlassian.net", "me@work.test");
         var changed = ProfileCatalog.Empty.With(moved);
@@ -92,7 +94,8 @@ public sealed class ProfileEditHandlerTests : IDisposable
             new AddProfileEffect(_work, new SecretText("old-token"), ProfileCatalog.Empty.With(_work)),
             CancellationToken.None);
 
-        var update = new UpdateProfileEffect(_work, _work, new SecretText(Token), ProfileCatalog.Empty.With(_work), false);
+        var catalog = ProfileCatalog.Empty.With(_work);
+        var update = new UpdateProfileEffect(_work, _work, new SecretText(Token), catalog, false);
 
         var outcome = Assert.IsType<ProfilesChanged>(await fixture.Handler.RunAsync(update, CancellationToken.None));
 
@@ -124,7 +127,9 @@ public sealed class ProfileEditHandlerTests : IDisposable
         var twin = new Profile("twin", _work.SiteUrl, _work.Email);
         var both = ProfileCatalog.Empty.With(_work).With(twin);
 
-        await fixture.Handler.RunAsync(new AddProfileEffect(_work, new SecretText(Token), both), CancellationToken.None);
+        await fixture.Handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText(Token), both),
+            CancellationToken.None);
         fixture.Profiles.BoardKinds.Save(_work, 7, BoardKind.Scrum);
 
         var moved = new Profile("work", "https://new.atlassian.net", _work.Email);
@@ -158,10 +163,37 @@ public sealed class ProfileEditHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenTheOldTokenCannotBeDeleted_WhenTheUrlChanges_ThenTheEditIsStillReportedAsSaved()
+    {
+        var store = new FakeSecretStore();
+        var fixture = Create(store);
+
+        await fixture.Handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText(Token), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        var failing = new FakeSecretStore(failsOnDelete: true);
+        var other = Create(failing);
+
+        await failing.SetAsync(_work.CredentialKey, Token, CancellationToken.None);
+
+        var moved = new Profile("work", "https://new.atlassian.net", _work.Email);
+        var update = new UpdateProfileEffect(_work, moved, null, ProfileCatalog.Empty.With(moved), false);
+
+        var outcome = await other.Handler.RunAsync(update, CancellationToken.None);
+
+        var changed = Assert.IsType<ProfilesChanged>(outcome);
+
+        Assert.Contains("old token could not be deleted", changed.Message);
+        Assert.Equal("https://new.atlassian.net", other.Profiles.Store.Load().Catalog.Active!.SiteUrl);
+    }
+
+    [Fact]
     public async Task GivenAFailingStore_WhenEditingWithANewToken_ThenTheCatalogIsNotSaved()
     {
         var fixture = Create(new FakeSecretStore(fails: true));
-        var update = new UpdateProfileEffect(_work, _work, new SecretText(Token), ProfileCatalog.Empty.With(_work), false);
+        var catalog = ProfileCatalog.Empty.With(_work);
+        var update = new UpdateProfileEffect(_work, _work, new SecretText(Token), catalog, false);
 
         var outcome = await fixture.Handler.RunAsync(update, CancellationToken.None);
 
@@ -187,7 +219,10 @@ public sealed class ProfileEditHandlerTests : IDisposable
         Assert.True(tested.Succeeded);
         Assert.Equal("Connected as Test User 1.", tested.Message);
         Assert.Empty(store.Secrets);
-        Assert.Contains(http.Requests, request => request.Host == "work.atlassian.net" && request.AbsolutePath.EndsWith("/myself"));
+        var request = Assert.Single(http.Requests);
+
+        Assert.Equal("work.atlassian.net", request.Host);
+        Assert.EndsWith("/myself", request.AbsolutePath);
         Assert.Empty(fixture.Profiles.Store.Load().Catalog.Profiles);
     }
 
@@ -203,11 +238,11 @@ public sealed class ProfileEditHandlerTests : IDisposable
             CancellationToken.None);
 
         var outcome = await fixture.Handler.RunAsync(
-            new TestProfileEffect(_work with { SiteUrl = "https://new.atlassian.net" }, null, _work.CredentialKey, false),
+            new TestProfileEffect(_work, null, _work.CredentialKey, false),
             CancellationToken.None);
 
         Assert.True(Assert.IsType<ProfileTested>(outcome).Succeeded);
-        Assert.Contains(http.Requests, request => request.Host == "new.atlassian.net");
+        Assert.Equal("work.atlassian.net", Assert.Single(http.Requests).Host);
     }
 
     [Fact]

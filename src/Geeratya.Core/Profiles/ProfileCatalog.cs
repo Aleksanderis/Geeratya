@@ -32,7 +32,8 @@ public sealed record ProfileCatalog(string? ActiveName, IReadOnlyList<Profile> P
     }
 
     /// <summary>
-    /// Replaces the profile named <paramref name="oldName"/> in place (same position); the active mark follows a rename.
+    /// Replaces the profile named <paramref name="oldName"/> in place (same position); the active mark
+    /// follows a rename.
     /// </summary>
     public ProfileCatalog Replace(string oldName, Profile profile)
     {

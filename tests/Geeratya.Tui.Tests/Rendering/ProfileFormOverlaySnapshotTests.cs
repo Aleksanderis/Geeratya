@@ -86,7 +86,9 @@ public class ProfileFormOverlaySnapshotTests
     [InlineData(ProfileFormField.SiteUrl, "Enter next")]
     [InlineData(ProfileFormField.Email, "Enter next")]
     [InlineData(ProfileFormField.Token, "Enter save")]
-    public void GivenEachStep_WhenBuildingTheFrame_ThenTheStatusHintSaysWhatEnterDoes(ProfileFormField field, string expected)
+    public void GivenEachStep_WhenBuildingTheFrame_ThenTheStatusHintSaysWhatEnterDoes(
+        ProfileFormField field,
+        string expected)
     {
         var lines = FrameBuilder.Build(Sample(field, null), 100, 30, _keymap);
 

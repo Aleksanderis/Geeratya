@@ -84,9 +84,12 @@ public static class StatusBar
         var test = new StatusHint(InputMode.Insert, ActionIds.ProfileTest, "test");
         var cancel = new StatusHint(InputMode.Insert, ActionIds.Cancel, "cancel");
 
-        return field == ProfileFormField.Token
-            ? [enter, test, cancel]
-            : [enter, new StatusHint(InputMode.Insert, ActionIds.FormSubmit, "save"), test, cancel];
+        if (field == ProfileFormField.Token)
+        {
+            return [enter, test, cancel];
+        }
+
+        return [enter, new StatusHint(InputMode.Insert, ActionIds.FormSubmit, "save"), test, cancel];
     }
 
     /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>

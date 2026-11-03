@@ -178,17 +178,56 @@ public class ProfileEditTests
     public void GivenAnEditWithoutAToken_WhenTesting_ThenTheEffectReadsTheStoredTokenOfTheOldKey()
     {
         var opened = Palette(WithProfiles(_work, _dev), "profile edit work").State;
-        var changed = opened with { Form = opened.Form! with { SiteUrl = "https://other.atlassian.net" } };
 
-        var result = Press(changed, "Alt-t");
+        var result = Press(opened, "Alt-t");
 
         var effect = Assert.IsType<TestProfileEffect>(Assert.Single(result.Effects));
 
         Assert.Null(effect.Token);
         Assert.Equal(_work.CredentialKey, effect.StoredKey);
-        Assert.Equal("https://other.atlassian.net", effect.Profile.SiteUrl);
+        Assert.Equal(_work.SiteUrl, effect.Profile.SiteUrl);
         Assert.False(effect.AllowEnvironment);
         Assert.True(result.State.Form!.Testing);
+    }
+
+    [Fact]
+    public void GivenAChangedSiteAndNoTypedToken_WhenTesting_ThenTheStoredTokenIsNotSentAndTheTokenFieldAsks()
+    {
+        var opened = Palette(WithProfiles(_work), "profile edit work").State;
+        var changed = opened with { Form = opened.Form! with { SiteUrl = "https://other.atlassian.net" } };
+
+        var result = Press(changed, "Alt-t");
+
+        Assert.Empty(result.Effects);
+        Assert.Equal(ProfileFormField.Token, result.State.Form!.Field);
+        Assert.Contains("Type the token", result.State.Form.Error);
+    }
+
+    [Fact]
+    public void GivenAnEditWhileTesting_WhenTheOldAnswerArrives_ThenItIsDropped()
+    {
+        var opened = Palette(WithProfiles(_work), "profile edit work").State;
+        var testing = Press(opened, "Alt-t").State;
+        var siteFocused = testing with { Form = testing.Form! with { Field = ProfileFormField.SiteUrl } };
+        var edited = Type(siteFocused, "x").State;
+
+        var late = _reducer.Reduce(edited, new ProfileTested(_work, true, "Connected as Me.")).State;
+
+        Assert.False(late.Form!.Testing);
+        Assert.Null(late.Form.TestResult);
+    }
+
+    [Fact]
+    public void GivenAnAnswerForOtherValues_WhenItArrivesWhileTesting_ThenItIsDropped()
+    {
+        var opened = Palette(WithProfiles(_work), "profile edit work").State;
+        var testing = Press(opened, "Alt-t").State;
+        var other = new Profile("work", "https://other.atlassian.net", _work.Email);
+
+        var late = _reducer.Reduce(testing, new ProfileTested(other, true, "Connected as Me.")).State;
+
+        Assert.True(late.Form!.Testing);
+        Assert.Null(late.Form.TestResult);
     }
 
     [Fact]
@@ -211,7 +250,7 @@ public class ProfileEditTests
     {
         var opened = Palette(WithProfiles(_work), "profile edit work").State;
         var testing = Press(opened, "Alt-t").State;
-        var tested = new ProfileTested(false, "Failed: Token or email rejected (401).");
+        var tested = new ProfileTested(_work, false, "Failed: Token or email rejected (401).");
 
         var answered = _reducer.Reduce(testing, tested).State;
 
@@ -227,7 +266,7 @@ public class ProfileEditTests
     [Fact]
     public void GivenAClosedForm_WhenATestAnswerArrives_ThenItIsDropped()
     {
-        var result = _reducer.Reduce(WithProfiles(_work), new ProfileTested(true, "Connected as Me."));
+        var result = _reducer.Reduce(WithProfiles(_work), new ProfileTested(_work, true, "Connected as Me."));
 
         Assert.Null(result.State.Form);
     }

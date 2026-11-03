@@ -81,7 +81,7 @@ public static class ProfileFormOverlay
     /// <summary>The short status-line text while the box is drawn: the focused field.</summary>
     public static string StatusText(ProfileForm form)
     {
-        return $"{Label(form.Field)}";
+        return Label(form.Field);
     }
 
     /// <summary>The name of a field as the form and the status line show it.</summary>
@@ -96,7 +96,7 @@ public static class ProfileFormOverlay
         };
     }
 
-    /// <summary>What the typed value of the focused field is shown as: the text, or one <c>*</c> per token character.</summary>
+    /// <summary>What the typed value of the focused field is shown as: the text, or one <c>*</c> per token letter.</summary>
     public static string Shown(ProfileForm form)
     {
         return ShownOf(form, form.Field);
