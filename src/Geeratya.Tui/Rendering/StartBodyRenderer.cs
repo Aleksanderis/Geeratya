@@ -18,23 +18,53 @@ public sealed class StartBodyRenderer : IBodyRenderer
 
     public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)
     {
+        if (!FrameGrid.CanFrame(width, height))
+        {
+            return Block(state, context, width, height, true);
+        }
+
+        // The profile chip is the frame's title; the block inside keeps the profile line, connection and hints.
+        IReadOnlyList<StyledSpan>? profile = null;
+
+        if (state.Profiles.Active is { } active)
+        {
+            profile = [new StyledSpan(active.Name, TextRole.Muted)];
+        }
+
+        return PaneFrame.Build(
+            width,
+            height,
+            [new StyledSpan(Title, TextRole.Heading)],
+            profile,
+            Block(state, context, width - 2, height - 2, false),
+            []);
+    }
+
+    private static List<StyledLine> Block(AppState state, BodyContext context, int width, int height, bool withTitle)
+    {
         var lines = Enumerable.Repeat(StyledLine.Empty, Math.Max(0, height)).ToList();
         var hints = string.Join(HintGap, StatusBar.HintsFor(InputMode.Normal, context.Keymap));
         var hint = Center(hints, width, TextRole.Muted);
 
         var connection = ConnectionText.Line(state.Session);
-        var blockHeight = connection.Length == 0 ? BlockHeight : BlockHeight + 1;
+        var blockHeight = (connection.Length == 0 ? BlockHeight : BlockHeight + 1) - (withTitle ? 0 : 1);
 
         if (height >= blockHeight)
         {
             var top = (height - blockHeight) / 2;
 
-            lines[top] = Center(Title, width, TextRole.Heading);
-            lines[top + 1] = Center(ProfileLine(state, context.Keymap), width, TextRole.Body);
+            var next = top;
+
+            if (withTitle)
+            {
+                lines[next++] = Center(Title, width, TextRole.Heading);
+            }
+
+            lines[next++] = Center(ProfileLine(state, context.Keymap), width, TextRole.Body);
 
             if (connection.Length > 0)
             {
-                lines[top + 2] = Center(connection, width, ConnectionRole(state.Session.Connection));
+                lines[next] = Center(connection, width, ConnectionRole(state.Session.Connection));
             }
 
             lines[top + blockHeight - 1] = hint;

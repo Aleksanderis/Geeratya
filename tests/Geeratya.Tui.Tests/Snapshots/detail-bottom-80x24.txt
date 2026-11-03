@@ -11,7 +11,7 @@
 │   hidden                                                                     │
 │                                                                              │
 │ https://example.com/card                                                     │
-├─ Comments (3) ───────────────────────────────────────────────────────────────┤
+├─ Comments 3 ─────────────────────────────────────────────────────────────────┤
 │ Jane Doe · 1 d ago                                                           │
 │ Found it: the redirect target is dropped after the refresh.                  │
 │                                                                              │

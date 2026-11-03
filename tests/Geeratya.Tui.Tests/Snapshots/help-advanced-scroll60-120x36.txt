@@ -1,36 +1,36 @@
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │ Navigate                                                                     │            
-            │ > All actions │   j          Move down  (Down)                                               │            
-            │   Commands    │   k          Move up  (Up)                                                   │            
-            │               │   h          Move left  (Left)                                               │            
-            │               │   l          Move right  (Right)                                             │            
-            │               │   gg         Go to the top  (Home)                                           │            
-            │               │   G          Go to the bottom  (End)                                         │            
-            │               │   Ctrl-d     Page down  (PageDown)                                           │            
-            │               │   Ctrl-u     Page up  (PageUp)                                               │            
-            │               │   Enter      Open the selected item                                          │            
-            │               │   0          Go to the first column                                          │            
-            │               │   $          Go to the last column                                           │            
-            │               │   ]]         Next section of the issue or the Scrum backlog                  │            
-            │               │   [[         Previous section of the issue or the Scrum backlog              │            
-            │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
-            │               │              section                                                         │            
-            │               │ General                                                                      │            
-            │               │   ?          Show or hide help                                               │            
-            │               │   q          Quit  (Ctrl-c)                                                  │            
-            │               │   Esc        Cancel or close                                                 │            
-            │               │   :          Open the command palette  (Ctrl-p)                              │            
-            │               │   <space>a   Open the actions menu of the selected issue                     │            
-            │               │   <space>n   Show the message history                                        │            
-            │               │   <space>x   Dismiss the status message                                      │            
-            │               │   <space>,   Open or close the settings screen                               │            
-            │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │            
-            │               │              screen)                                                         │            
-            │               │ Dialogs                                                                      │            
-            │               │   Esc        Close help  (q)                                                 │            
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-                                                                                                                        
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
+│           │   Global      │ Navigate                                                                     │           │
+│           │ > All actions │   j          Move down  (Down)                                               │           │
+│           │   Commands    │   k          Move up  (Up)                                                   │           │
+│           │               │   h          Move left  (Left)                                               │           │
+│           │               │   l          Move right  (Right)                                             │           │
+│           │               │   gg         Go to the top  (Home)                                           │           │
+│           │               │   G          Go to the bottom  (End)                                         │           │
+│           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
+│           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
+│           │               │   Enter      Open the selected item                                          │           │
+│           │               │   0          Go to the first column                                          │           │
+│           │               │   $          Go to the last column                                           │           │
+│           │               │   ]]         Next section of the issue or the Scrum backlog                  │           │
+│           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
+│           │               │              section                                                         │           │
+│           │               │ General                                                                      │           │
+│           │               │   ?          Show or hide help                                               │           │
+│           │               │   q          Quit  (Ctrl-c)                                                  │           │
+│           │               │   Esc        Cancel or close                                                 │           │
+│           │               │   :          Open the command palette  (Ctrl-p)                              │           │
+│           │               │   <space>a   Open the actions menu of the selected issue                     │           │
+│           │               │   <space>n   Show the message history                                        │           │
+│           │               │   <space>x   Dismiss the status message                                      │           │
+│           │               │   <space>,   Open or close the settings screen                               │           │
+│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
+│           │               │              screen)                                                         │           │
+│           │               │ Dialogs                                                                      │           │
+│           │               │   Esc        Close help  (q)                                                 │           │
+│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

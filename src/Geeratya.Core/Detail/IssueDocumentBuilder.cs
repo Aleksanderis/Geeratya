@@ -289,8 +289,8 @@ public static class IssueDocumentBuilder
         }
 
         return detail.CommentTotal is { } total && total > loaded
-            ? $"{CommentsTitle} ({loaded} of {total})"
-            : $"{CommentsTitle} ({loaded})";
+            ? $"{CommentsTitle} {loaded} of {total}"
+            : $"{CommentsTitle} {loaded}";
     }
 
     /// <summary>One comment; every line of it opens the comment, so the edit and delete keys find it.</summary>

@@ -1,6 +1,6 @@
  1 JQL My open issues   +               
                                         
-╭─ Attachments (2) ────────────────────╮
+╭─ Attachments 2 ──────────────────────╮
 │ B · 2 d ago                          │
 │ screenshot.png · image/png · 3.3 MiB │
 │ · 5 h ago                            │

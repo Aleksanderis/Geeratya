@@ -93,7 +93,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var text = Text(detail);
         Assert.Contains("Heading one", text);
         Assert.Contains("Survey4 task with rich ADF", text);
-        Assert.Contains("Comments (2)", text);
+        Assert.Contains("Comments 2", text);
         Assert.Contains("Test User 1", text);
         Assert.Equal(LoadState.Idle, detail.IssueLoad);
         Assert.Equal(LoadState.Idle, detail.CommentsLoad);
@@ -235,7 +235,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var text = Text(Top(state));
         Assert.Contains("No description.", text);
         Assert.Contains("Parent    GCM-1", text);
-        Assert.Contains("Comments (3)", text);
+        Assert.Contains("Comments 3", text);
         Assert.Contains("Written by an inactive account", text);
         Assert.Contains("żółć 日本語", text);
     }
@@ -285,14 +285,14 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var text = Text(Top(state));
         Assert.Contains($"Epic      {parent}", text);
-        Assert.Contains("Sub-tasks (2)", text);
+        Assert.Contains("Sub-tasks 2", text);
         Assert.Contains(firstSubtask, text);
-        Assert.Contains("Linked issues (2)", text);
+        Assert.Contains("Linked issues 2", text);
         Assert.Contains($"is blocked by {blockedBy} ", text);
         Assert.Contains("relates to ", text);
-        Assert.Contains($"Remote links ({linkCount})", text);
+        Assert.Contains($"Remote links {linkCount}", text);
         Assert.Contains(linkTitle, text);
-        Assert.Contains("Attachments (1)", text);
+        Assert.Contains("Attachments 1", text);
         Assert.Contains("seed-notes.txt · ", text);
         Assert.Contains(" · 47 B", text);
         Assert.DoesNotContain("Epic children", text);
@@ -319,7 +319,7 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var detail = Top(state);
         var text = Text(detail);
-        Assert.Contains("Epic children (2)", text);
+        Assert.Contains("Epic children 2", text);
         Assert.Contains(firstChild, text);
         Assert.Contains(secondChild, text);
         Assert.DoesNotContain("Remote links", text);
@@ -400,7 +400,7 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var tab = Tab(state);
         Assert.Equal("GCM-6", Assert.Single(tab.Detail).Key);
-        Assert.Contains("Comments (3)", Text(Top(state)));
+        Assert.Contains("Comments 3", Text(Top(state)));
         Assert.Equal(["GCM-6"], state.Session.RecentKeys);
         Assert.Null(state.Jump);
         Assert.Equal(InputMode.Normal, state.Mode);
@@ -508,7 +508,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var parent = await PumpAsync(await PumpAsync(story, new KeyPressed("Space")), new KeyPressed("p"));
 
         Assert.Equal(["GCM-10", "GCM-8"], Tab(parent).Detail.Select(detail => detail.Key));
-        Assert.Contains("Epic children (2)", Text(Top(parent)));
+        Assert.Contains("Epic children 2", Text(Top(parent)));
 
         var back = await PumpAsync(parent, new KeyPressed("Esc"));
 
@@ -539,7 +539,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var back = await PumpAsync(opened, new KeyPressed("Esc"));
 
         Assert.Equal("GCM-10", Top(back).Key);
-        Assert.Contains("Sub-tasks (2)", Text(Top(back)));
+        Assert.Contains("Sub-tasks 2", Text(Top(back)));
     }
 
     private void ServeStory(string key, string fixture)

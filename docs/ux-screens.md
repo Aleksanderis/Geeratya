@@ -80,35 +80,40 @@ My open issues · 10 of about 340
 - **Narrow terminals.** Columns drop in this order as the width shrinks: assignee (below 100 columns), then status shrinks to the category glyph (below 56), then the key never drops. At 80 columns:
 
 ```text
- 1 Board: GCM board  2 Backlog  [3 JQL: assignee = currentUser() AND resolution…
-My open issues · 10 of about 340
-  Key      T Summary                                              Status
-> GCM-12   T Fix login redirect after token refresh               In Progress
-  GCM-14   B Crash when the board has no columns                  To Do
-  GCM-15   S As a user I can filter by label 日本語ラベル         To Do
-  GCM-17   E Reporting overhaul                                   In Progress
-  GCM-18   s Write the CSV exporter                               Done
-  GCM-21   T Upgrade the build image                              Backlog
-  GCM-22   B Tooltip overlaps the header on small screens         To Do
-  GCM-23   T Document the release checklist                       Done
+ 1 JQL My open issues … x   +                                     <space>g jump
 
-
- NORMAL  j/k move  Enter open  <space>o browser  ? help  : commands  q quit
+╭─ My open issues ─────────────────────────────────────────────────────── 10+ ─╮
+│  Key    T Summary                                              Status        │
+│  GCM-12 T Fix login redirect after token refresh               In Progress   │
+│  GCM-14 B Crash when the board has no columns                  To Do         │
+│> GCM-15 S As a user I can filter by label 日本語ラベル         To Do         │
+│  GCM-17 E Reporting overhaul with a very long summary that nev In Progress   │
+│  GCM-18 s Write the CSV exporter 😀 é                          Done          │
+│  GCM-21 ? Upgrade the build image                              Backlog       │
+│  GCM-22 B Tooltip overlaps the header on small screens         To Do         │
+│  GCM-23 T Document the release checklist                       Done          │
+│  GCM-25 S As an admin I can see who changed a setting          In Progress   │
+│  GCM-26 T Remove the legacy export flag                        To Do         │
+│Loading more…                                                                 │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  loading                j/k move  Enter open  ? help  : commands  q quit
 ```
 
   At 40 columns (and 10 rows):
 
 ```text
- ‹2 [3 JQL: assignee = curr…] 4 Filter……
-My open issues · 10+
-  GCM-12   T Fix login redirect after… ◐
-> GCM-14   B Crash when the board has… ○
-  GCM-15   S As a user I can filter b… ○
-  GCM-17   E Reporting overhaul        ◐
-  GCM-18   s Write the CSV exporter    ●
-  GCM-21   T Upgrade the build image   ○
-  GCM-22   B Tooltip overlaps the hea… ○
- NORMAL  ? help  : commands  q quit
+ 1 JQL My open issues …   +
+
+╭─ My open issues ─ 10+ · Loading mo… ─╮
+│  Key    T Summary                   S│
+│  GCM-12 T Fix login redirect after  ◐│
+│  GCM-14 B Crash when the board has  ○│
+│> GCM-15 S As a user I can filter by ○│
+│  GCM-17 E Reporting overhaul with a ◐│
+╰──────────────────────────────────────╯
+ NORMAL  loading
 ```
 
   Below 40 columns the type marker drops too. The column-title row drops below 12 rows (as in this 40x10 sketch), so at 10 rows seven issues show.
@@ -118,15 +123,25 @@ My open issues · 10+
 The backlog of a Scrum board (`scrum` boards from the picker and `:backlog`; a team-managed board reports `simple`; opening its backlog runs the sprint probe and a Scrum answer turns the tab into the sections, a Kanban answer keeps the plain backlog; a failed probe is retried on the next refresh and the tab swaps to the sections then) is one list in sections: the active sprints, the future sprints by id, then the backlog (`ViewSourceKind.ScrumBacklog`, layout List; closed sprints are never loaded). Each section has a header that is the shared edge of its pane, `├─ Sprint 1 · active ── 2 Nov - 16 Nov · 8 issues · 21 pts ─┤` (a collapsed section marks its chip with `▸`; ASCII `>`); the top edge of the frame carries the source and the count and the column titles follow in the first content row (`ux-look.md` section 2 shows the first sprint's chip there instead; here it is the source, so the geometry of the list and the backlog is the same). The header carries: name, `active` for the running sprint, the dates (`no dates` for a sprint never given any), the issues loaded and the story points (the sum of the estimates, omitted when no issue has one). An expanded sprint with a goal shows `Goal: ...` under the header; a sprint without issues shows `No issues in this sprint.` so it can still be seen. While more pages are coming the counts read `N+`.
 
 ```
-Scrum board · 5 issues
-  Key   T Summary                                                 Status
-  - Sprint 1 · active · 2 Nov - 16 Nov · 2 issues · 8 pts
-    Goal: Ship the login
-> GCS-3 S Fix login redirect after token refresh                  To Do
-  GCS-4 S As a user I can filter by label                         To Do
-  + Sprint 2 · no dates · 2 issues · 3 pts
-  - Backlog · 1 issue · 1.5 pts
-  GCS-5 S Tidy the release notes                                  To Do
+ 1 Backlog Scrum board x   +                                      <space>g jump
+
+╭─ Scrum board ───────────────────────────────────────────────────── 5 issues ─╮
+│  Key   T Summary                                         Status         Pts  │
+├─ Sprint 1 · active ────────────────────── 2 Nov - 16 Nov · 2 issues · 8 pts ─┤
+│    Goal: Ship the login 日本語                                               │
+│> GCS-3 S Fix login redirect after token refresh          To Do              5│
+│  GCS-4 S As a user I can filter by label 日本語ラベル    To Do              3│
+├─ Sprint 2 ───────────────────────────────────── no dates · 2 issues · 3 pts ─┤
+│  GCS-2 S Reporting overhaul with a very long summary tha To Do              3│
+│  GCS-6 S Crash when the board has no columns             To Do               │
+├─ Sprint 3 ───────────────────────────────────────────── no dates · 0 issues ─┤
+│    No issues in this sprint.                                                 │
+├─ Backlog ──────────────────────────────────────────────── 1 issue · 1.5 pts ─┤
+│  GCS-5 S Tidy the release notes                          To Do            1.5│
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q quit
 ```
 
 - **Rows.** The tab keeps its rows in section order (rank order inside a section), so everything that acts on the row under the cursor (open, edit, marks, Visual) works as in any list. The sprint of a row is the one its `Sprint` field says is current: active, else future, else the backlog; the sprint list (`GET board/{id}/sprint?state=active,future`, read once per open or manual refresh) supplies dates, goal and sprints with no issue yet. When it fails the sections take their names from the issues.
@@ -146,10 +161,9 @@ A Sprint view (Scrum, #176) uses the same columns; its first line is the sprint 
 One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). On a company-managed Kanban board whose first column is `Backlog` that column is hidden, as Jira does (those issues are in the `:backlog` view; `BoardColumns.HidesBacklogColumn`). Moving a card to the previous column stops at the first shown column. A team-managed board shows its `Backlog` column like any other.
 
 ```text
- [1 Board: GTM board]
+ 1 Board GTM board x   +                                          <space>g jump
 
-GTM board · 16 issues
-┌─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done 3 ─────────┐
+╭─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done 3 ─────────╮
 │ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-10 … ─┐ │
 │ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
 │ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
@@ -168,8 +182,9 @@ GTM board · 16 issues
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
-└───────────────────┴───────────────────┴───────────────────┴──────────────────┘
- NORMAL              h/l column  j/k card  Enter open  ? help  : commands  q quit
+│                   │                   │                   │                  │
+╰───────────────────┴───────────────────┴───────────────────┴──────────────────╯
+ NORMAL  GTM board · 16 iss…    h/l column  j/k card  ? help  : commands  q quit
 ```
 
 The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third); the cursor is on the first card.
@@ -204,65 +219,48 @@ GCM board · 24 issues                 3›
 
 ## Issue detail
 
-Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). The breadcrumb `GCM board › GCM-12` (with `Loading…` or `Some parts failed to load` and the `Top`/`NN%`/`Bot` ruler) is in the status bar. The screen is one rounded frame divided into panes (header, description, relations, comments) that share their edges (`ux-look.md` section 2) in one scrolling column, so it reads as a form with parts rather than as a text dump. The mockup below predates the shared frame: panes are drawn as in `ux-look.md`, with the title of the pane at the top of the window in the top edge of the frame. The mockup is the target layout: the relation panels (sub-tasks, children, links, remote links, attachments) are built (#88) and the cursor row (`>`) with section jumps and openable rows (#216). The border turning bright on the focused panel is not built; the `>` marker carries the focus.
+Enter on a list row or card opens the issue in the same tab; the tab's view is kept underneath as a stack (`Esc` pops, see workflow 4). The breadcrumb `GCM board › GCM-12` (with `Loading…` or `Some parts failed to load` and the `Top`/`NN%`/`Bot` ruler) is in the status bar. The screen is one rounded frame divided into panes (header, description, relations, comments) that share their edges (`ux-look.md` section 2) in one scrolling column, so it reads as a form with parts rather than as a text dump. The mockup is the 80x24 snapshot of an epic with every relation pane: the relation panels (sub-tasks, children, links, remote links, attachments) are built (#88) and the cursor row (`>`) with section jumps and openable rows (#216). The border turning bright on the focused panel is not built; the `>` marker carries the focus.
 
 Survey that shaped it (what comparable tools do): lazygit and k9s draw every part in a bordered box with the title set into the top edge and mark the focused box by border colour; `gh dash` and jira-cli show a field table next to or under the title and keep long text in its own titled block; the Jira web page groups the same parts into cards with headings. Taken over: titled rounded panels, a label column for the fields, long text in panels of its own, a muted border that turns into a bright one on the focused panel (not built: the cursor row marker is enough, see "Cursor and scrolling"). Not taken over: side-by-side panes (the detail needs the width for prose, and one scrolling column works in the 40-column case).
 
 ```text
- [1 Board: GCM board]  2 Backlog: GCM board  3 JQL: assignee = currentUser() AND resolution = Unres…
+ 1 JQL My open issues x   +                                       <space>g jump
 
-GCM board › GCM-12                                                                              Top
-╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────╮
-│ Fix login redirect after token refresh                                                           │
-│                                                                                                  │
-│ Status    In Progress ▾                        Priority  High ▾                                  │
-│ Assignee  Jane Doe ▾                           Reporter  Ola Nordmann                            │
-│ Labels    auth, bug-bash ▾                     Parent    GCM-17 Reporting overhaul               │
-│ Updated   2 h ago                                                                                │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ────────────────────────────────────────────────────────────────────────────────────╮
-│ After the token refresh the user lands on /login instead of the page they came from.            │
-│ - reproduce: let the session expire, then open a deep link                                       │
-│ - expected: the deep link opens after the refresh                                                │
-│ [image] screenshot.png                                                                           │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Sub-tasks (1) ──────────────────────────────────────────────────────────────────────────────────╮
-│ GCM-18 Write the migration · To Do                                                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Linked issues (2) ──────────────────────────────────────────────────────────────────────────────╮
-│ blocks GCM-30 Launch · To Do                                                                     │
-│ is blocked by GCM-9 Legal review · Done                                                          │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Remote links (1) ───────────────────────────────────────────────────────────────────────────────╮
-│ Design spec · Confluence                                                                         │
-│ https://example.com/spec                                                                         │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Attachments (1) ────────────────────────────────────────────────────────────────────────────────╮
-│ screenshot.png · image/png · 3.3 MiB · 5 h ago                                                   │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments (2 of 7) ──────────────────────────────────────────────────────────────────────────────╮
-│ Jane Doe · 3 d ago                                                                               │
-│ Can you check the refresh path?                                                                  │
-│                                                                                                  │
-│ Ola Nordmann · 1 d ago                                                                           │
-│ Found it, the redirect target is dropped.                                                        │
-│                                                                                                  │
-│ Load more comments (Enter)                                                                       │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  j/k scroll  Enter open  Esc back  <space>o browser  <space>p parent  ? help  : commands  q quit
+╭─ GCM-12 · Epic ──────────────────────────────────────────────── In Progress ─╮
+│ Updated   2 h ago                                                            │
+├─ Description ────────────────────────────────────────────────────────────────┤
+│ No description.                                                              │
+├─ Sub-tasks 1 ────────────────────────────────────────────────────────────────┤
+│ GCM-18 Write the migration · To Do                                           │
+├─ Epic children 2 ────────────────────────────────────────────────────────────┤
+│ GCM-21 Child story · In Progress · Task                                      │
+│ GCM-22 Another child · In Progress · Task                                    │
+├─ Linked issues 2 ────────────────────────────────────────────────────────────┤
+│ blocks GCM-30 Launch · To Do                                                 │
+│ is blocked by GCM-9 Legal review · Done                                      │
+├─ Remote links 1 ─────────────────────────────────────────────────────────────┤
+│ Design spec · Confluence                                                     │
+│ https://example.com/spec                                                     │
+├─ Attachments 2 ──────────────────────────────────────────────────────────────┤
+│ 日本語のノート.txt · text/plain · 47 B · 2 d ago                             │
+│ screenshot.png · image/png · 3.3 MiB · 5 h ago                               │
+├─ Comments ───────────────────────────────────────────────────────────────────┤
+│>No comments.                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  My open issues › GCM-12 · Bot    j/k scroll  ? help  : commands  q quit
 ```
 
 - **Panels.** A rounded frame (`╭ ╮ ╰ ╯ ─ │`, `+ - |` on terminals without Unicode, one cell for one cell) with one column of padding inside the sides and the title in the top edge. Borders are `Border` (`FrameFocus` on the pane that holds the cursor), titles are chips (`ChipFocus` filled for that pane, dim otherwise; the header panel's title is the key and the type). Panels follow each other without a gap. Below 12 columns the frames are dropped and the titles stay as plain lines. Content never touches the border: it wraps at the inner width, and a title that does not fit is cut with `…`.
 - **Header.** The panel title is `KEY · Type`; inside, the summary (wrapped, bold), a blank line and the fields as a table with a 10-cell label column in `FieldLabel` (steel blue, apart from the values, which are `Strong` or the status colour; `StatusToDo` is bright, not muted, so a To Do value is never mistaken for a label): status (category role), priority, assignee, reporter, labels, parent (`KEY summary`, opens with `<space>p`), the parent line is labelled `Epic` instead of `Parent` when the parent is an epic, sprint (the current sprint with its state, then `; earlier: ` the other sprints the issue was carried through), estimate (the number; the board's field name is not carried yet, #439), updated time. Sprint, estimate and epic are left out when absent (#179). From 60 inner columns two fields that fit half the panel share a row; a field that does not fit (a long parent, many labels) takes a row of its own and wraps under its value. Below 24 inner columns the label and value run together as `Label: value`. Missing values are omitted, not shown as empty. Fields that can be changed (status, priority, assignee, labels) end with a ` ▾` marker (`v` on terminals without Unicode) in the `Editable` role (amber); read-only fields (reporter, parent, updated) have none. The editing keys arrive with the write issues; the marker only shows what is editable.
 - **Description.** In the `Description` panel: the ADF rendered as formatted text (`docs/jira-layer.md` "ADF in real data"). Media nodes show as `[image] name` or `[image]` when no name can be matched; nothing is rendered as an image. A missing description shows `No description.` in `Muted`.
-- **Sections, in order:** Sub-tasks (from the issue's `subtasks`), Epic children (`parent = KEY`, see below), Linked issues, Remote links, Attachments, Comments. Each is its own panel with `Name (n)` in the title and is drawn only when it has entries; with none of them the document goes from Description to Comments.
+- **Sections, in order:** Sub-tasks (from the issue's `subtasks`), Epic children (`parent = KEY`, see below), Linked issues, Remote links, Attachments, Comments. Each is its own panel with `Name n` in the title chip and is drawn only when it has entries; with none of them the document goes from Description to Comments.
   - A sub-task or child row reads `KEY summary · Status` (the status in its category colour; children also end with `· Type`).
   - A link row starts with the link type's wording for this issue's side, `blocks GCM-30 Launch · To Do` or `is blocked by GCM-9 Legal review · Done`; the direction comes from which side Jira sent (jira-layer.md "Issue links"). `<space>iu` on such a row removes the link after a Confirm (workflow 11, #190); `<space>il` adds one.
   - A remote link is its title (`Strong`) and the application (`Muted`, Confluence and similar) on one line and the URL (`Link`) on the next, wrapped by character.
   - An attachment is `name · type · size · age`: the file name, the media type (`unknown type` when Jira sent none), the size in binary units (`47 B`, `1.5 KiB`, `3.3 MiB`) and the relative time. Nothing is fetched or drawn from the file; the row opens the issue page in the browser (the API download URL needs the auth header, jira-layer.md "Links").
   - Epic children are loaded when the issue arrives and only for an issue type with hierarchy level 1 or above (an epic, in both project kinds), by `parent = KEY ORDER BY Rank`, the first 50. A longer list is marked `Epic children (50+)` and `Showing the first children only.`; one level only, a grandchild is not shown. Level 0 issues (Story, Task, Bug) show their `subtasks` instead and make no search. The legacy Epic Link field is ignored (`parent` is the link in both kinds).
   - While remote links or children load, their panel shows `Loading…`; if the load fails the panel shows the error text and the other panels stay. A loaded empty list draws no panel.
-- **Comments.** The `Comments` panel; oldest first, newest last, 50 per page. A thread with more comments ends with `Load more comments (Enter)`; `Enter` loads the next page below. The title reads `Comments (n)`, or `Comments (n of total)` while pages are missing; a thread is cut at 1000 comments with `Showing the first comments only.` A comment shows author, relative time (against the time of the last reply, so it does not tick on its own), `(edited)` when it changed more than a minute after writing, and the rendered ADF body, a blank line between comments. A failed page shows its error with `(Enter to retry)`. Every line of a comment (byline and body) belongs to that comment: the comment keys act on the comment under the cursor, `Enter` on it does nothing more than on a plain line, and `<space>o` opens the issue.
+- **Comments.** The `Comments` panel; oldest first, newest last, 50 per page. A thread with more comments ends with `Load more comments (Enter)`; `Enter` loads the next page below. The title reads `Comments n`, or `Comments n of total` while pages are missing; a thread is cut at 1000 comments with `Showing the first comments only.` A comment shows author, relative time (against the time of the last reply, so it does not tick on its own), `(edited)` when it changed more than a minute after writing, and the rendered ADF body, a blank line between comments. A failed page shows its error with `(Enter to retry)`. Every line of a comment (byline and body) belongs to that comment: the comment keys act on the comment under the cursor, `Enter` on it does nothing more than on a plain line, and `<space>o` opens the issue.
 - **Comment keys (#167).** `<space>m a` adds a comment to the shown issue (the cursor may be anywhere), `<space>m e` edits the comment under the cursor, `<space>m d` deletes it; without a comment under the cursor the status line says `Put the cursor on a comment first.`, with no issue open `Open an issue first.`. Delete asks in Confirm mode (`y`/`n`/`Esc`, never `Enter`): `Delete the GCM-3 comment? Jira cannot undo this. By Eve: "first words"`; the comment goes when Jira accepts (no optimistic removal), a refusal leaves it in place with the reason in the status line. The three writes never touch the list rows or the issue header: they do not mark a list stale and do not reload the issue.
 - **Comment editor (#167).** A box over the issue (`Comment on GCM-3` or `Edit comment on GCM-3` in its top edge), Insert mode: printable keys and paste are text (a paste keeps its line breaks, a tab becomes four spaces), `Enter` is a new line, `Backspace`/`Delete` remove a character, `Left`/`Right`/`Up`/`Down`/`Home`/`End` move the cursor (by character, never inside an emoji or combining sequence; up and down by visual row, keeping the display column; `PageUp`/`PageDown` move half a screen of rows, `Ctrl-Left`/`Ctrl-Right` move by word, `Home`/`End` go to the start and end of the row), `Ctrl-s` (or `Alt-Enter`, for a terminal that swallows `Ctrl-s`) saves, `Esc` cancels. The text is Markdown-like (`AdfMarkdownWriter` and `AdfMarkdownParser`: bold, italic, code, links, lists, quotes, code blocks, tasks, mentions), the same as the description editor will use. The cursor is a `Selected` cell; a long line wraps after its last space (a word longer than the row wraps by character), the last column of a row is kept free for the cursor, and the box scrolls so the cursor row stays visible. Under the text the box shows, in order: `Saving…`, the error of the last save (`Error`), a warning (`Stale` role): `This comment has formatting the editor cannot show; saving replaces it with the text below.` for a comment whose ADF does not survive the text round trip (a table, panel, media, colour, date, status or unknown node; `AdfRoundTrip`), and `Not your comment: Jira refuses unless you may edit all comments.` when the author is not the signed-in account (Jira lets project administrators edit others' comments, so the editor opens and Jira decides). The footer shows `Ctrl-s send` (`save` when editing), `Enter new line`, `Esc cancel`. Inline suggestions (#215): typing `@` (at the start of a word) opens the people who can see the issue and narrows with the name typed after it; `#` and a project key (`#GCM`, then `#GCM-12`) opens issues. Up to five rows show under the text (`>` marks the chosen one, then a `searching…`, `lookup failed` or `No match` line) and the footer reads `Down/Up choose   Tab/Enter accept   Esc close list`. `Down`/`Up` (`Ctrl-n`/`Ctrl-p`) choose, `Tab` or `Enter` replace the trigger with a mention (`@[Name](mention:id)`, sent as a Jira mention) or a link to the issue (`[KEY](site/browse/KEY)`; the `#` is dropped), `Esc` closes only the list (the same trigger does not reopen it). With no rows `Enter` is a new line. A mention or issue link is one unit for `Left`/`Right`/`Backspace`/`Delete`, and the box shows it in its short form (`@Olga Other`, `GCM-12`; #339): wrapping, the cursor column and `Up`/`Down` use that width (`EditorLayout.Cells`), the cursor on it selects the whole short form, and the saved text is unchanged. Only people who can see the issue are offered, so a new mention never goes to someone who cannot. Mentions already in a comment you edit can name someone who cannot see the issue: opening the editor asks Jira once per distinct person (`viewissue/search` by the name in the token, #340) and a `Stale` line `May not see GCM-3, so the mention may do nothing: <names>.` lists those not found; it is a hint (a failed lookup or a full page of 20 matches flags nobody, a renamed person may be flagged wrongly), deleting the mention clears it, and saving is never blocked. Mouse: none yet; clicking a popup row arrives with the mouse part (#200).
   - **Saving waits for the reply.** `Ctrl-s` starts one write (it takes the issue like any write: a second write on it is refused with `A-1 is busy (...)` shown in the box) and the box shows `Saving…`; typing, saving and `Esc` do nothing until the answer. On success the box closes, the status line says `Added a comment to A-1` / `Saved the comment on A-1`, and the comment list changes from the reply: the new comment is appended (only when no further pages are unloaded; else the count grows and `Load more comments` brings it), an edited one is replaced in place, a deleted one is removed, in every tab that shows the issue. On a definite failure (403, 404, 400, 429, offline) the box stays open with the text and the reason (`No permission to edit the comment on A-1: <Jira's reason>`) and can be saved again. On a lost reply the box keeps `Saving…` while the comments are read (not the search index): the comment found means done, not found means `A-1: the comment was not added` in the box, and an unreadable thread means `could not check the result; reload to see the current state`. The write is never repeated by itself.

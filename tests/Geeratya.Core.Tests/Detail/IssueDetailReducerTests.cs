@@ -237,7 +237,7 @@ public class IssueDetailReducerTests
         Assert.Contains("Reporter  Rita Reporter", text);
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
-        Assert.Contains("Comments (2)", text);
+        Assert.Contains("Comments 2", text);
         Assert.Contains("Writer 2 · 2 h ago", text);
         Assert.Contains("Comment body 2", text);
         Assert.Equal(LoadState.Idle, Active(state).Detail[0].IssueLoad);
@@ -554,7 +554,7 @@ public class IssueDetailReducerTests
         Assert.Empty(again.Effects);
         var loaded = Active(arrived).Detail[0];
         Assert.Equal(5, loaded.Comments.Count);
-        Assert.Contains("Comments (5)", Text(loaded));
+        Assert.Contains("Comments 5", Text(loaded));
         Assert.DoesNotContain("Load more comments", Text(loaded));
     }
 
@@ -683,7 +683,7 @@ public class IssueDetailReducerTests
         Assert.True(detail.ChildrenMore);
         Assert.Equal(LoadState.Idle, detail.ChildrenLoad);
         Assert.Equal(0, detail.ChildrenRequest);
-        Assert.Contains("Epic children (2+)", Text(detail));
+        Assert.Contains("Epic children 2+", Text(detail));
         Assert.Contains("A-21 Issue 21", Text(detail));
     }
 
@@ -741,7 +741,7 @@ public class IssueDetailReducerTests
         state = Deliver(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [link], _now));
 
         var text = Text(Active(state).Detail[0]);
-        Assert.Contains("Remote links (1)", text);
+        Assert.Contains("Remote links 1", text);
         Assert.Contains("Design spec · Confluence", text);
         Assert.Contains("https://example.com/spec", text);
     }

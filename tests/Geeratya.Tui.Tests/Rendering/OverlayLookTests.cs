@@ -241,7 +241,7 @@ public class OverlayLookTests
     {
         var spans = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body.SelectMany(line => line.Spans);
 
-        return spans.First(
+        return spans.Last(
             span => span.Text.StartsWith('╭') && span.Role is not (TextRole.Muted or TextRole.Heading)).Role;
     }
 

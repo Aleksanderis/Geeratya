@@ -114,7 +114,7 @@ internal static class IssueRelationsBuilder
 
         var count = detail.ChildrenMore ? $"{children.Count}+" : children.Count.ToString();
 
-        lines.AddPanel([new StyledSpan($"{ChildrenTitle} ({count})", TextRole.Heading)], content, width);
+        lines.AddPanel([new StyledSpan($"{ChildrenTitle} {count}", TextRole.Heading)], content, width);
     }
 
     private static void AddLinks(DocumentSink lines, IReadOnlyList<IssueLink> links, int width, int inner)
@@ -262,6 +262,6 @@ internal static class IssueRelationsBuilder
 
     private static StyledSpan[] Title(string name, int count)
     {
-        return [new StyledSpan($"{name} ({count})", TextRole.Heading)];
+        return [new StyledSpan($"{name} {count}", TextRole.Heading)];
     }
 }
