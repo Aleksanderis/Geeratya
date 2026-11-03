@@ -20,6 +20,8 @@ public static class ActionIds
     public const string HelpScrollUp = "help.scroll-up";
     public const string HelpHalfPageDown = "help.half-page-down";
     public const string HelpHalfPageUp = "help.half-page-up";
+    public const string HelpTop = "help.top";
+    public const string HelpBottom = "help.bottom";
     public const string Quit = "app.quit";
     public const string Cancel = "mode.cancel";
     public const string PaletteOpen = "palette.open";

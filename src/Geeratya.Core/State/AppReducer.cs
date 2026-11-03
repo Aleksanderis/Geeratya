@@ -437,6 +437,14 @@ public sealed class AppReducer
                 return Repeat(state, ListMove.Down, count);
             case ActionIds.NavigateUp:
                 return Repeat(state, ListMove.Up, count);
+            case ActionIds.HelpScrollDown:
+                return Result(ScrollHelp(state, count));
+            case ActionIds.HelpScrollUp:
+                return Result(ScrollHelp(state, -count));
+            case ActionIds.PickerNext:
+                return Result(MovePicker(state, count));
+            case ActionIds.PickerPrevious:
+                return Result(MovePicker(state, -count));
             case ActionIds.RankUp:
                 return InNormal(state, () => RankActions.Step(state, RankMove.Up, count, at));
             case ActionIds.RankDown:
@@ -572,6 +580,8 @@ public sealed class AppReducer
             ActionIds.HelpScrollUp => Result(ScrollHelp(state, -1)),
             ActionIds.HelpHalfPageDown => Result(ScrollHelp(state, HelpHalfPage)),
             ActionIds.HelpHalfPageUp => Result(ScrollHelp(state, -HelpHalfPage)),
+            ActionIds.HelpTop => Result(ScrollHelp(state, int.MinValue / 2)),
+            ActionIds.HelpBottom => Result(ScrollHelp(state, int.MaxValue / 2)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),

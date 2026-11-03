@@ -182,6 +182,22 @@ click "Board   GCM board"
 wait_for "In Progress"
 wait_gone "Open a view"
 
+# Wheel (#570): a notch over the open help scrolls the page (the frame changes), wherever the pointer is; gg jumps back.
+send "?"
+wait_for "Help"
+before=$(frame)
+printf -v seq '\033[<65;60;20M'
+tmux -L "$socket" send-keys -t s -l "$seq$seq"
+sleep 0.4
+[ "$(frame)" != "$before" ] || fail "the wheel did not scroll the help"
+echo "ok: the wheel scrolled the help"
+send "gg"
+sleep 0.3
+[ "$(frame)" = "$before" ] || fail "gg did not return the help to the top"
+echo "ok: gg returned the help to the top"
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Help"
+
 # Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
 # motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
 # swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
