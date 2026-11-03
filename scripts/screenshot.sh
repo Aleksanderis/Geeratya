@@ -38,6 +38,7 @@ all_scenarios=(
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated goal"
+  # sprint-points reuses the columns view and waits for a card estimate
   "sprint-points;120;36;dark;:board GEN| sv|;5p"
   "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."
   "sprint-goal;120;36;dark;:board GEN| sv| sg;Sprint goal"

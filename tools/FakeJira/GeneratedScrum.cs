@@ -10,7 +10,8 @@ namespace Geeratya.FakeJira;
 /// With <c>--issues n</c>: a read-only Scrum board (id 7, project <c>GEN</c>) over the generated issues. The first
 /// four fifths of the issues sit in consecutive blocks of 3 to 30 sprints (the last one future, the one before it
 /// active, the rest closed), the last fifth is in no sprint, and an unfinished issue of a closed sprint is also in
-/// the backlog, as on the real site. Everything is computed from the issue number, so nothing is stored.
+/// the backlog, as on the real site. Every issue carries a story point estimate; <c>noActiveSprint</c> turns the
+/// active sprint into a closed one. Everything is computed from the issue number, so nothing is stored.
 /// </summary>
 public sealed partial class GeneratedScrum
 {
