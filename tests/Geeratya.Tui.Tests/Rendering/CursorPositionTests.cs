@@ -101,7 +101,7 @@ public class CursorPositionTests
         Assert.Equal(width, line.Length);
         Assert.EndsWith(GlobalHints, line);
 
-        if (width >= 80)
+        if (width >= 120)
         {
             Assert.Contains("5/40", line);
         }
@@ -112,9 +112,28 @@ public class CursorPositionTests
     {
         var line = StatusBar.Render(ActiveOf(BoardTab("A-2")), 80, _keymap);
 
-        Assert.Contains("col 1/3  card 2/3 · ", line);
+        Assert.Contains("h/l column  j/k card", line);
         Assert.EndsWith(GlobalHints, line);
         Assert.Equal(80, line.Length);
+    }
+
+    [Fact]
+    public void GivenABoardAt180Columns_WhenRendering_ThenThePositionShowsWithoutDroppingAScreenHint()
+    {
+        var withoutPosition = StatusBar.Render(ActiveOf(BoardTab("A-2") with { Definition = Plain() }), 180, _keymap);
+        var line = StatusBar.Render(ActiveOf(BoardTab("A-2")), 180, _keymap);
+
+        Assert.Contains("col 1/3  card 2/3", line);
+        Assert.Contains("<space>l list", line);
+        Assert.Contains("h/l column  j/k card", withoutPosition);
+    }
+
+    [Fact]
+    public void GivenAFocusedSprintSection_WhenGettingTheText_ThenThereIsNoPosition()
+    {
+        var tab = BacklogTab() with { FocusedSprintId = 9 };
+
+        Assert.Equal(string.Empty, CursorPosition.Text(tab));
     }
 
     [Fact]
@@ -125,6 +144,11 @@ public class CursorPositionTests
             Assert.Equal(width, StatusBar.Render(ActiveOf(BoardTab("A-2")), width, _keymap).Length);
             Assert.Equal(width, StatusBar.Render(ActiveOf(BacklogTab()), width, _keymap).Length);
         }
+    }
+
+    private static ViewDefinition Plain()
+    {
+        return new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
     }
 
     private static AppState ActiveOf(TabState tab)

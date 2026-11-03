@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
-[NORMAL] rate limited 25s - 1/3             j/k move  ? help  : commands  q quit
+[NORMAL] rate limited 25s       j/k move  Enter open  ? help  : commands  q quit

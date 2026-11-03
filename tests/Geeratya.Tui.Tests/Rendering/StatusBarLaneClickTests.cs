@@ -36,8 +36,8 @@ public class StatusBarLaneClickTests
     public void GivenANarrowLineThatCutsTheLaneName_WhenClickingTheShownPart_ThenTheNextLaneShows()
     {
         var state = Lanes(FirstLane);
-        var line = StatusBar.Render(state, 124, _keymap, _now);
-        var cells = StatusBar.LaneCells(state, 124, _keymap, _now)!.Value;
+        var line = StatusBar.Render(state, 177, _keymap, _now);
+        var cells = StatusBar.LaneCells(state, 177, _keymap, _now)!.Value;
 
         Assert.Contains("Al …", line);
         Assert.True(cells.End <= line.IndexOf('…'));
