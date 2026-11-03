@@ -24,15 +24,11 @@ public sealed partial class ViewLoadHandler
     // Active and future sprints plus the backlog; closed sprints (thousands of done issues) are left out.
     private const string BacklogWithSprintsJql =
         "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
-
     private const string UnsupportedSourceMessage = "This kind of view cannot be loaded yet.";
-
     private const int MaxSprintPages = 10;
-
     private const string InvalidBoardMessage = "The board id is not a number.";
 
     private readonly NetworkRunner _runner;
-
     private readonly TimeProvider _clock;
 
     public ViewLoadHandler(NetworkRunner runner, TimeProvider? clock = null)

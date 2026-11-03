@@ -20,21 +20,14 @@ namespace Geeratya.App;
 public sealed partial class WriteHandler
 {
     private const string NoConnectionMessage = "Not connected to Jira: check the profile and its API token (:profile).";
-
     private const int MaxKeysNamed = 8;
-
     private const string UnexpectedMessage = "The write failed unexpectedly";
 
     private readonly NetworkRunner _runner;
-
     private readonly TimeProvider _clock;
-
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
-
     private readonly HashSet<Task> _running = [];
-
     private readonly Lock _lock = new();
-
     private readonly ConcurrentDictionary<long, DateTimeOffset> _createSubmitted = new();
 
     /// <param name="runner">Runs the writes.</param>

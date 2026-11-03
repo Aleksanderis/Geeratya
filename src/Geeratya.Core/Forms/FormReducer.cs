@@ -14,11 +14,8 @@ namespace Geeratya.Core.Forms;
 public static partial class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
-
     private const string NoPageText = "No issue page to open";
-
     private const string NothingChangedText = "Nothing changed";
-
     private const string DetachedText = "Closed the form; the save continues";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];

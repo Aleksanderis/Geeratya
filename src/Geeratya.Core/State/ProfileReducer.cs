@@ -13,23 +13,15 @@ namespace Geeratya.Core.State;
 public static partial class ProfileReducer
 {
     public const string RemoveAction = ActionIds.ProfileRemove;
-
     public const string SwitchAction = "profile.switch";
 
     private const string AddVerb = "add";
-
     private const string ListVerb = "list";
-
     private const string SwitchVerb = "switch";
-
     private const string RemoveVerb = "remove";
-
     private const string CheckVerb = "check";
-
     private const string EditVerb = "edit";
-
     private const string BusyMessage = "Still saving the previous profile change; try again in a moment.";
-
     private const string Usage = "Usage: profile [list] | add | edit [name] | switch <name> | remove <name> | check";
 
     private const string TokenMissing = "The API token cannot be empty.";

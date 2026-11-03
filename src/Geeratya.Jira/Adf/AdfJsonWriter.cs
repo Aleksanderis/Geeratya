@@ -16,13 +16,9 @@ namespace Geeratya.Jira.Adf;
 public static partial class AdfJsonWriter
 {
     private const string LocalIdProperty = "localId";
-
     private const string TaskListIdPrefix = "tl";
-
     private const string TaskItemIdPrefix = "t";
-
     private const string DecisionListIdPrefix = "dl";
-
     private const string DecisionItemIdPrefix = "d";
 
     private static readonly JsonWriterOptions _writerOptions = new()

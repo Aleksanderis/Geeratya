@@ -1,4 +1,3 @@
-
 namespace Geeratya.Jira.Adf;
 
 /// <summary>
@@ -11,17 +10,11 @@ namespace Geeratya.Jira.Adf;
 public static partial class AdfMarkdownParser
 {
     private const int MaxIndent = 3;
-
     private const int MaxOrderDigits = 9;
-
     private const int DocumentVersion = 1;
-
     private const int MinRuleLength = 3;
-
     private const string RuleCharacters = "-*_";
-
     private const string BulletCharacters = "-*+";
-
     private const string TaskDoneUppercase = "[X] ";
 
     public static AdfDocument Parse(string? text)

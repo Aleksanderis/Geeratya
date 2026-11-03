@@ -1,4 +1,3 @@
-
 namespace Geeratya.Core.Cache;
 
 public sealed partial class SiteCache

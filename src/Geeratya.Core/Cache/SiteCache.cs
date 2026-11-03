@@ -26,13 +26,9 @@ public sealed partial class SiteCache : IDisposable
     public const long DefaultMaxDiskBytes = 20L * 1024 * 1024;
 
     private const string ViewFilePrefix = "view-";
-
     private const string IssueFilePrefix = "issue-";
-
     private const string FileExtension = ".json";
-
     private const string TemporaryExtension = ".tmp";
-
     private const int NameHashLength = 32;
 
     // An ADF description nests up to 64 levels, two JSON levels each; the default depth limit (64) is too low.
@@ -47,39 +43,22 @@ public sealed partial class SiteCache : IDisposable
     private static readonly TimeSpan _defaultDebounce = TimeSpan.FromSeconds(2);
 
     private readonly string _folder;
-
     private readonly FilePermissions _permissions;
-
     private readonly TimeSpan _debounce;
-
     private readonly long _maxDiskBytes;
-
     private readonly object _memoryLock = new();
-
     private readonly object _diskLock = new();
-
     private readonly Dictionary<CacheKey, MemoryEntry<CachedView>> _views = [];
-
     private readonly Dictionary<CacheKey, CachedView> _pending = [];
-
     private readonly Dictionary<string, MemoryEntry<CachedIssue>> _issues = new(StringComparer.OrdinalIgnoreCase);
-
     private readonly Dictionary<string, CachedIssue> _pendingIssues = new(StringComparer.OrdinalIgnoreCase);
-
     private readonly HashSet<string> _removedIssues = new(StringComparer.OrdinalIgnoreCase);
-
     private readonly Timer _timer;
-
     private long _stamp;
-
     private bool _disposed;
-
     private bool _viewsRemoved;
-
     private int _viewsRemovedEpoch;
-
     private bool _failureReported;
-
     private bool _readProblemReported;
 
     public SiteCache(

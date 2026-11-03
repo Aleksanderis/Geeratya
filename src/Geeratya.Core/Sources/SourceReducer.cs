@@ -15,17 +15,11 @@ namespace Geeratya.Core.Sources;
 public static partial class SourceReducer
 {
     private const string NoProfileMessage = "No profile yet: add one with :profile add.";
-
     private const string NothingToOpenMessage = "Nothing to open: type JQL, or press Esc.";
-
     private const string NoOpenSprintMessage = "No active or future sprint on this board.";
-
     private const string NoBoardMessage = "No board here: open a Scrum board first (:board).";
-
     private const string LoadingMessage = "Still loading: wait a moment, or press Esc.";
-
     private const char DoubleQuote = '"';
-
     private const char SingleQuote = '\'';
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];

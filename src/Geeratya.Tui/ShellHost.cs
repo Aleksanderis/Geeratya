@@ -32,7 +32,6 @@ namespace Geeratya.Tui;
 public sealed partial class ShellHost : ICommandSink, IDisposable
 {
     private static readonly TimeSpan _whichKeyMargin = TimeSpan.FromMilliseconds(5);
-
     private static readonly TimeSpan _tickInterval = TimeSpan.FromSeconds(1);
 
     private const string CorruptNotice =
@@ -41,79 +40,42 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private static readonly TimeSpan _quitWait = TimeSpan.FromSeconds(5);
 
     private readonly KeymapTable _keymap;
-
     private readonly ThemeSwitcher _themes;
-
     private readonly MouseDragTracker _dragTracker = new();
-
     private readonly KeymapLoadResult? _keymapLoad;
-
     private readonly KeymapTable _defaultBindings;
-
     private readonly ColorSupport _colors;
-
     private readonly GlyphSet _glyphs;
-
     private readonly AppReducer _reducer;
-
     private readonly ProfileServices _profiles;
-
     private readonly ProfileEffectHandler _profileEffects;
-
     private readonly HistoryEffectHandler _historyEffects;
-
     private readonly SavedViewEffectHandler? _savedViewEffects;
-
     private readonly StartupEffectHandler? _startupEffects;
-
     private readonly BrowserEffectHandler _browserEffects;
-
     private readonly SettingsEffectHandler? _settingsEffects;
-
     private readonly SiteConnections _connections;
-
     private readonly CancellationTokenSource _shutdown = new();
-
     private readonly CancellationToken _shutdownToken;
-
     private readonly NetworkRunner _network;
-
     private readonly ViewLoadHandler _viewLoads;
-
     private readonly IssueDetailLoadHandler _detailLoads;
-
     private readonly SourceLoadHandler _sourceLoads;
-
     private readonly WriteHandler _writes;
-
     private readonly FormMetadataHandler _formMetadata;
-
     private readonly SuggestionHandler _suggestions;
-
     private readonly MentionCheckHandler _mentionCheck;
-
     private readonly ConnectionCheckHandler _connectionChecks;
-
     private readonly TerminalBackgroundDetector? _background;
-
     private bool? _lightBackground;
-
     private IApplication? _application;
-
     private ShellScreen? _screen;
-
     private AppState _state = AppState.Initial;
-
     private ITimer? _tickTimer;
-
     private ITimer? _whichKeyTimer;
-
     private readonly DragAutoScroller _dragScroller = new(TimeProvider.System);
-
     private DateTimeOffset? _whichKeyTimedFor;
-
     private bool _chipShown;
-
     private bool _quitting;
 
     public ShellHost(

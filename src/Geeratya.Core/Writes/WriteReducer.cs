@@ -17,9 +17,7 @@ namespace Geeratya.Core.Writes;
 public static partial class WriteReducer
 {
     private const string NotConnectedText = "Not connected to Jira: cannot tell which account is yours.";
-
     private const string ConfirmWriteAction = "write";
-
     private const string NoProfileText = "No profile is active.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
