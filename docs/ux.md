@@ -118,7 +118,28 @@ Screens produce styled text, not colours: Core's `TextRole` (body, muted, headin
 
 ## Not adopted from Gitunia
 
-Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-settings.md` there; issues #368 to #373) was adopted where Geeratya had diverged without a reason. Left out on purpose: a Settings screen (not in the README features; `:set` and the palette are the UI), per-view key rows and a `view` field in the user file (the same keys work in every view, so contextual help uses an applies-to tag on the action), repeat mode and pane focus keys (no panes to resize, no steppers), a third command level (two are enough until the keymap grows), and one merged `config.json` (`keymap.json` is never written by the app and already ships, `settings.json` is app-written, so they stay two files).
+Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-settings.md`, `ux-look.md`, `ux-mouse.md` there; issues #368 to #373) was adopted where Geeratya had diverged without a reason. The whole-product audit #560 compared the live binary with Gitunia area by area; every gap it found is an issue, and these differences are intended:
+
+| Gitunia | Geeratya | Why |
+|---|---|---|
+| Repeat mode (bare step keys after one step) | none; rank steps take counts (`3 Alt-k`) | the only steppers are rank keys; there is nothing to resize or nudge |
+| Pane focus keys (`Ctrl-h/j/k/l`, `Ctrl-w`), pane resize, zoom, drag to resize | `h`/`l` between columns, `] ]` and `[ [` between sections; no resize | panes are content-driven (columns, sections), not a fixed pane set |
+| In-view find (`/`, `n`, `N`), clipboard copy (`y`, OSC 52), character selection (`Alt-v`) | not included (decision #467) | README Features does not list them; JQL, saved views and `<space>g` find issues |
+| Per-view key rows and a `view` field in the user file | the same keys in every view; an applies-to tag on the action drives contextual help | one key set to learn |
+| Three command levels | two (`everyday`, `advanced`) | two are enough until the keymap grows |
+| One `config.json` with `keys` | `keymap.json` (never written by the app) and `settings.json` (app-written) | different writers; the keymap already shipped |
+| `<space>m` message history, `<space>.` actions menu, help scroll by `J/K/D/U` only | `<space>n`, `<space>a` (issue) and `<space>A` (tab and view), `Tab`/`Shift-Tab` pages with `j`/`k` sections (decisions #465, #466, #468) | `<space>m` is the comment group; already built and taught |
+| Visual as an input mode | a state of the tab over Normal mode | its keys are exactly the Normal keys |
+| Graph lanes, branch label caps, diff colours, `labelCaps` | issue-type and status-category colours, no Powerline caps | Geeratya must not look like a Git client |
+| Repository picker with pins, recents and discovered folders (`scanRoots`) | source picker with boards, filters, saved views and recents; profiles instead of repositories | Jira nouns; one site is active at a time |
+| Fetch, pull and push chips, operation banner, dirty and ahead/behind markers, file polling | network banner, `<space>r` refresh, `!` stale and `…` loading tab markers, refresh of the active tab only | there are no remotes or working trees; a Jira view is stale by age |
+| Session restore of tabs, the active tab and focus | remembered tab definitions (`tabs.json`); rows come from the cache | views reload, so a stored cursor or scroll position could point at other rows |
+| No right-, middle- or Ctrl-click bindings (#479 there) | right-click menus, Ctrl-click marks (owner choice in #200), plus a visible `...` marker as the click path | Geeratya's owner wants them; the marker is for multiplexers that swallow them |
+| Double-click accepts a picker row | a single click on a picker, jump or palette row runs it | picker rows are one-step choices; a double-click would be a second request |
+| Commit message box pane, conflict editor | comment editor overlay | no commit or merge in Jira |
+| Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | measured idle cost is about 1 % of a core (JIT build); re-measure with the release numbers (#211) |
+
+Not intended and no longer left out: the Settings screen (requested by the owner, #556). The other gaps (single-line prompt caret, Visual range look, cursor position in the status bar, wheel in help and messages, live drag, row menu marker, commands button, tab rename and labels, startup problems, command line, print-frame colours, rules and docs) are open issues listed in the comment on #560.
 
 ## Print frame
 
