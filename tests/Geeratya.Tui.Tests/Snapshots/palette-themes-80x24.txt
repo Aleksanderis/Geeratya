@@ -6,10 +6,10 @@ View · 0 issues
   │ > Theme: catppuccin-mocha                                                │  
   │   Theme: dracula                                                         │  
   │   Theme: nord                                                            │  
+  │                                                                          │  
+  │ View                                                                     │  
+  │   Save this view under a name (opens :view save)               Space v w │  
   └──────────────────────────────────────────────────────────────────────────┘  
-                                                                                
-                                                                                
-                                                                                
                                                                                 
                                                                                 
                                                                                 

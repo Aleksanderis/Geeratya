@@ -95,7 +95,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>sc` | `sprint.complete` | Complete the active sprint: when it has open issues and a future sprint exists a form asks where they go (backlog by default, or the next future sprint); then the Confirm says done and open counts, the destination, that it is two steps (complete, then move) and that Jira cannot undo it. Built (#186) | E | view menu; header button waits for #178 | M5 #186 |
 | `<space>vf` | `view.quick-filter` | Toggle board quick filters | E | click a filter chip | M6 #192 |
 | `<space>vs` | `view.swimlane` | Choose the swimlane grouping | A | click the swimlane header | M6 #192 |
-| `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open or save a saved view | E | tab picker | M6 #191 |
+| `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open a saved view in a new tab (the picker lists the saved views first); save the active tab's view (the command line opens with `view save ` typed, then the name). Built (#191) | E | view menu (right-click a tab or the status line) | M6 #191 |
 | `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M5 #393 (built) |
 | `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M5 #393 (built) |
 | `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | its palette row | M4 #196 (built; session only, `:set commandlevel` saves) |

@@ -2,9 +2,11 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   l          Move right  (Right)                                             │            
-            │ > All actions │   g g        Go to the top  (Home)                                           │            
-            │   Commands    │   G          Go to the bottom  (End)                                         │            
+            │   Global      │   k          Move up  (Up)                                                   │            
+            │ > All actions │   h          Move left  (Left)                                               │            
+            │   Commands    │   l          Move right  (Right)                                             │            
+            │               │   g g        Go to the top  (Home)                                           │            
+            │               │   G          Go to the bottom  (End)                                         │            
             │               │   Ctrl-d     Page down  (PageDown)                                           │            
             │               │   Ctrl-u     Page up  (PageUp)                                               │            
             │               │   Enter      Open the selected item                                          │            
@@ -29,8 +31,6 @@
             │               │   J          Scroll help down a line                                         │            
             │               │   K          Scroll help up a line                                           │            
             │               │   D          Scroll help down half a page  (Ctrl-d)                          │            
-            │               │   U          Scroll help up half a page  (Ctrl-u)                            │            
-            │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -37,6 +37,7 @@ public sealed class AppReducer
         PaletteCommands.Filter,
         PaletteCommands.Board,
         PaletteCommands.Backlog,
+        PaletteCommands.View,
     ];
 
     private const string EscapeKey = "Esc";
@@ -561,6 +562,8 @@ public sealed class AppReducer
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
             ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state, at),
             ActionIds.SprintGoal => InNormal(state, () => Result(SprintGoalNotice.Open(state))),
+            ActionIds.ViewSavedOpen => InNormal(state, () => SourceReducer.OpenSavedViews(state)),
+            ActionIds.ViewSavedSave => InNormal(state, () => OpenSaveCommand(state)),
             ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
             ActionIds.SprintMoveIssues => InNormal(state, () => SprintMoveActions.OpenPicker(state)),
             ActionIds.SprintMoveToBacklog => InNormal(state, () => SprintMoveActions.ToBacklog(state, at)),
@@ -929,6 +932,14 @@ public sealed class AppReducer
         }
 
         return ReduceRequested(normal, new ActionRequested(row.Id, 1, at));
+    }
+
+    /// <summary><c>view.saved-save</c>: the command line with <c>view save </c> typed, ready for the name.</summary>
+    private static ReduceResult OpenSaveCommand(AppState state)
+    {
+        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.View} save " };
+
+        return Result(command);
     }
 
     private static ReduceResult RunCommandLine(AppState state, DateTimeOffset at)

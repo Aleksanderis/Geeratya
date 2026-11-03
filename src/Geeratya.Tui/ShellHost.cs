@@ -53,6 +53,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private readonly ProfileServices _profiles;
     private readonly ProfileEffectHandler _profileEffects;
     private readonly HistoryEffectHandler _historyEffects;
+    private readonly SavedViewEffectHandler? _savedViewEffects;
     private readonly BrowserEffectHandler _browserEffects;
     private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
@@ -96,6 +97,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _profileEffects = new ProfileEffectHandler(profiles);
         _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
         _historyEffects = new HistoryEffectHandler(profiles.Histories);
+        _savedViewEffects = profiles.SavedViews is { } savedViews ? new SavedViewEffectHandler(savedViews) : null;
         _browserEffects = new BrowserEffectHandler(
             BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens, boardKinds: profiles.BoardKinds);
@@ -564,6 +566,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return _settingsEffects?.Run(effect)
             ?? await _profileEffects.RunAsync(effect, _shutdownToken)
             ?? _historyEffects.Run(effect)
+            ?? _savedViewEffects?.Run(effect)
             ?? await _browserEffects.RunAsync(effect, _shutdownToken);
     }
 

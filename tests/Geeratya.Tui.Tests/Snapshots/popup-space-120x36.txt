@@ -9,16 +9,15 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
                                                             ┌─ Space ──────────────────────────────────────────────────┐
                                                             │ c         Close the tab                                  │
                                                             │ t         Open the source picker for a new tab           │
                                                             │ Tab       Previously active tab                          │
                                                             │                                                          │
-                                                        Geer│ x         Dismiss the status message                     │
-                                              No profile yet│ n         Show the message history                       │
-                                              ? help   : com│                                                          │
-                                                            │ g         Jump to an issue by key                        │
+                                                            │ x         Dismiss the status message                     │
+                                                        Geer│ n         Show the message history                       │
+                                              No profile yet│                                                          │
+                                              ? help   : com│ g         Jump to an issue by key                        │
                                                             │ o         Open the issue in the browser                  │
                                                             │ p         Open the parent issue                          │
                                                             │                                                          │
@@ -32,5 +31,6 @@
                                                             │ m         +comment (2)                                   │
                                                             │ i         +issue (6)                                     │
                                                             │ s         +sprint (7)                                    │
+                                                            │ v         +view (2)                                      │
                                                             └──────────────────────────────────────────────────────────┘
  NORMAL Space                                                                                 ? help  : commands  q quit

@@ -2,6 +2,7 @@ using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
@@ -115,6 +116,24 @@ public class SourcePickerSnapshotTests
             && line.Contains("project = GCM", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Loading", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Boards", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenSavedViews_WhenBuildingThePickerFrames_ThenTheyShowUnderTheirOwnHeadingWithoutBoards()
+    {
+        var sample = Sample(string.Empty);
+        var views = new SavedViewList([new SavedView("Team board", "Board", "4", "Columns")]);
+        var lists = sample.Session.Sources with { SavedViews = views };
+        var all = sample with { Session = sample.Session with { Sources = lists } };
+        var only = all with { Picker = new SourcePickerState(string.Empty, 0, PickerScope.Views, false, null) };
+
+        var allText = string.Join('\n', FrameBuilder.Build(all, 100, 30, _keymap));
+        var onlyText = string.Join('\n', FrameBuilder.Build(only, 100, 30, _keymap));
+
+        Assert.Contains("Saved views", allText);
+        Assert.Contains("Team board (board, columns)", allText);
+        Assert.Contains("Team board (board, columns)", onlyText);
+        Assert.DoesNotContain("GCM board", onlyText);
     }
 
     private static AppState Sample(string text)

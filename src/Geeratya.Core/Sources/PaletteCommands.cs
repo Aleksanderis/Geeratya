@@ -12,6 +12,7 @@ public static class PaletteCommands
     public const string Board = "board";
     public const string Backlog = "backlog";
     public const string History = "history";
+    public const string View = "view";
     public const string Tab = "tab";
     public const string Labels = "labels";
     public const string Create = "create";
@@ -36,6 +37,10 @@ public static class PaletteCommands
         new(Board, "board [name]", "Open a board as columns in a new tab"),
         new(Backlog, "backlog [name]", "Open a board's backlog in a new tab"),
         new(History, "history clear", "Forget the recent JQL queries and issues of this profile"),
+        new(
+            View,
+            "view [name]|save <name>|rename <old> <new>|delete <name>",
+            "Open, save, rename or delete a saved view (source and layout)"),
         new(Tab, "tab new|close|next|prev|<n>", "Open the source picker, close or switch tabs"),
         new(Edit, "edit", "Edit the fields of the selected or shown issue (field form)"),
         new(Status, "status [next|prev]", "Change the status of the selected or shown issue; next or prev moves the card a column"),
