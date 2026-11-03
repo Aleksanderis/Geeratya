@@ -183,4 +183,19 @@ Native AOT `geeratya`, `scripts/measure.sh <binary> <fake url> 20`, fake Jira wi
 
 Both rows of the table above were taken with the fixed `measure.sh`. The sections above this one (M1, detail open, Scrum paths) were taken before #612 merged (2026-11-03), on builds without framed screens, so they are not affected. Figures taken with the old `measure.sh` on a build from #612 on (the 137 ms of #589) are inflated by up to about 100 ms, in particular the key to frame rows; re-measure before quoting them. `scripts/screenshot.sh` had the same slow check and was fixed alike (it only made screenshots slower).
 
-Idle cost (M7 input, #619), start screen and a 100-row list, 20 s windows each, `/proc/<pid>/stat`: 22 and 25 CPU ticks (about 1.1 to 1.3 % of one core, 0.2 s of CPU in 20 s), RSS 47 MB, 10 threads; with the frame on screen and nothing happening the process still uses CPU, registered as #619 (the cause is not investigated).
+## Idle cost (#619)
+
+Native AOT `geeratya` at `main` `d2bbf91`, fake Jira (`--issues 100`), 120x40 tmux, no key presses, a 20 s window after the list was loaded, per-thread `utime+stime` ticks and `voluntary_ctxt_switches` from `/proc/<pid>/task/*` read twice. 10 threads, RSS 47 to 49 MB. Four alternating runs of the 100-row list: 6, 4 (default) and 1, 3 (10 iterations/s) CPU ticks per 20 s, that is 0.2 to 0.3 % of one core at the default (the 22 to 25 ticks quoted in #616 included the first seconds after start, when the connection check, the first load and the JIT-free startup work still ran), and about 8 700 thread wake-ups per 20 s (about 440 a second).
+
+Wake-ups while idle, by cause:
+
+| Cause | Rate | Where |
+|---|---|---|
+| Terminal.Gui input thread polls the terminal every 20 ms (`Task.Delay`, so a timer thread plus a pool worker wake each time) | about 50/s, on three threads | library, `InputImpl.Run` |
+| Terminal.Gui main loop: one iteration per `MaximumIterationsPerSecond` (default 25), each ending in a delay | about 25/s on three threads | library |
+| Our `Tick` timer (message lifetimes, refresh rule, which-key) | 1/s; an idle tick returns the same state and draws nothing | `ShellHost.PostTick` |
+| Which-key timer | none unless a chord is pending | `ShellHost.ScheduleWhichKey` |
+| Spinners, polling of Jira, file watchers | none; refresh is driven by the `Tick` and only for the active tab | |
+| Cache flush timer | armed only after a write | `SiteCache` |
+
+Our own timers are about 0.2 % of the wake-ups, so there is nothing cheap left to fix on our side. Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 20 % fewer wake-ups (7 000 against 8 800 per 20 s) and 1 to 3 against 4 to 6 ticks, within noise of the load on the machine, in exchange for a slower first key after a pause (the Gitunia measurement of the same library: 25/s 1.04 %, 10/s 0.91 %, about +30 ms first key). Not applied; whether an idle governor pays off is #624. Reproduce with the sampling described above; no `strace` or `perf` is needed.
