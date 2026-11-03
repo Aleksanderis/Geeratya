@@ -4,7 +4,8 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, a row dragged onto another backlog section (asks first), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
+# popup row, a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
+# backlog, checked in the fake's own backlog list), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -15,7 +16,7 @@ binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
 if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-mouse-overlays.sh: only Linux is supported" >&2; exit 3; fi
-for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-mouse-overlays.sh: missing tool: $tool" >&2; exit 3; }; done
+for tool in tmux dotnet curl; do command -v "$tool" > /dev/null || { echo "smoke-mouse-overlays.sh: missing tool: $tool" >&2; exit 3; }; done
 
 now_ms() { echo $(($(date +%s%N) / 1000000)); }
 work=$(mktemp -d)
@@ -144,6 +145,33 @@ wait_for "Jira has no undo"
 wait_for "Move GEN-14"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Jira has no undo"
+
+# Confirmed drop (#506), both project kinds: a row of the future sprint dragged onto the backlog section, answered with y,
+# appears in the fake's backlog list (the fake's reply is the check, not only the frame).
+fake_get() { curl -fsS --max-time 5 "$fake_url/rest/agile/1.0/$1"; }
+fake_lists() { fake_get "$1" | tr -d ' \n' | grep -qF -- "\"key\":\"$2\""; }
+for kind in "GCS 6" "GTS 5"; do
+  project=${kind% *}
+  board=${kind#* }
+  start "$one"
+  wait_for "fake: fake@example.com"
+  send ":backlog $project board|"
+  wait_for "Backlog · "
+  size=$(frame | grep -o "Backlog · [0-9]* issues" | tr -dc 0-9)
+  key=$(frame | awk '/Seed Sprint 3 ·/ { found = 1; next } found { print $1; exit }')
+  [[ $key =~ ^[A-Z]+-[0-9]+$ ]] || fail "no row in Seed Sprint 3 of $project (got '$key')"
+  fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
+  drag_to "$key " "Backlog · $size issues"
+  wait_for "Jira has no undo"
+  wait_for "Move $key"
+  fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
+  send "y"
+  wait_gone "Jira has no undo"
+  wait_for "Backlog · $((size + 1)) issues"
+  fake_lists "board/$board/backlog" "$key" || fail "$key is not in the fake's backlog after y"
+  echo "ok: $project drop on the backlog with y moved $key"
+done
+
 start "$one"
 wait_for "fake: fake@example.com"
 
