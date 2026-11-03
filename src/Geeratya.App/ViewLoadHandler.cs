@@ -92,6 +92,15 @@ public sealed class ViewLoadHandler
 
         var view = cache.Get(CacheKey.For(effect.Definition));
 
+        if (view is null && effect.Definition.Source == ViewSourceKind.Backlog)
+        {
+            // A team-managed Scrum backlog opens as a plain backlog and is cached under the Scrum key.
+            var scrumKey = CacheKey.For(effect.Definition with { Source = ViewSourceKind.ScrumBacklog });
+            var scrum = cache.Get(scrumKey);
+
+            return scrum is null ? null : new ViewCacheLoaded(effect.Tab, effect.RequestId, scrum, true);
+        }
+
         return view is null ? null : new ViewCacheLoaded(effect.Tab, effect.RequestId, view);
     }
 
@@ -195,6 +204,21 @@ public sealed class ViewLoadHandler
                 }
             }
 
+            BoardKind? probed = null;
+
+            if (effect.Definition.Source == ViewSourceKind.Backlog && loaded is not null)
+            {
+                // A team-managed Scrum board is typed "simple", so only the sprint probe tells it from Kanban.
+                probed = await ResolveKindAsync(services, id, loaded, effect.Background, token);
+
+                if (probed == BoardKind.Scrum)
+                {
+                    report(new BacklogBecameScrum(effect.Tab, effect.RequestId));
+                    var scrumDefinition = effect.Definition with { Source = ViewSourceKind.ScrumBacklog };
+                    effect = effect with { Definition = scrumDefinition };
+                }
+            }
+
             if (effect.Definition.Source == ViewSourceKind.ScrumBacklog && NeedsConfiguration(effect))
             {
                 await ReportSprintsAsync(services, effect, id, report, token);
@@ -203,7 +227,7 @@ public sealed class ViewLoadHandler
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
             var kind = effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog
                 ? BoardKind.Scrum
-                : await ResolveKindAsync(services, id, loaded, effect.Background, token);
+                : probed ?? await ResolveKindAsync(services, id, loaded, effect.Background, token);
 
             return await BoardPageAsync(services, effect, id, kind, token);
         }
