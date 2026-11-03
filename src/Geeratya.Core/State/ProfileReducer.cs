@@ -1,8 +1,8 @@
-using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Startup;
+using Geeratya.Core.Text;
 using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
@@ -121,7 +121,7 @@ public static class ProfileReducer
         var count = Enum.GetValues<ProfileFormField>().Length;
         var next = (ProfileFormField)(((int)form.Field + delta + count) % count);
 
-        return state with { Form = Normalize(form) with { Field = next } };
+        return state with { Form = Normalize(form) with { Field = next, Back = 0 } };
     }
 
     /// <summary>A click on a field: focuses it.</summary>
@@ -132,7 +132,7 @@ public static class ProfileReducer
             return state;
         }
 
-        return state with { Form = Normalize(form) with { Field = (ProfileFormField)index } };
+        return state with { Form = Normalize(form) with { Field = (ProfileFormField)index, Back = 0 } };
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public static class ProfileReducer
         {
             var field = siteProblem is null ? ProfileFormField.Email : ProfileFormField.SiteUrl;
 
-            return Plain(state with { Form = form with { Field = field, Error = siteProblem ?? emailProblem } });
+            return Plain(state with { Form = form with { Field = field, Back = 0, Error = siteProblem ?? emailProblem } });
         }
 
         var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
@@ -163,12 +163,12 @@ public static class ProfileReducer
 
         if (typed is null && original is null)
         {
-            return Plain(state with { Form = form with { Field = ProfileFormField.Token, Error = TokenMissing } });
+            return Plain(state with { Form = form with { Field = ProfileFormField.Token, Back = 0, Error = TokenMissing } });
         }
 
         if (typed is null && original!.CredentialKey != profile.CredentialKey)
         {
-            var asking = form with { Field = ProfileFormField.Token, Error = TokenForChangedSite };
+            var asking = form with { Field = ProfileFormField.Token, Back = 0, Error = TokenForChangedSite };
 
             return Plain(state with { Form = asking });
         }
@@ -246,28 +246,34 @@ public static class ProfileReducer
         return state with { Mode = InputMode.Normal, ProfileList = null, PendingKeys = string.Empty };
     }
 
+    /// <summary>Typed or pasted text goes in at the caret of the focused field.</summary>
     public static AppState Type(AppState state, string text)
     {
-        var form = state.Form;
-
-        if (form is null)
-        {
-            return state;
-        }
-
-        return Typed(state, EditField(form, current => $"{current}{text}", secret => secret.Append(text)));
+        return text.Length == 0 ? state : Edit(state, prompt => prompt.Insert(text));
     }
 
     public static AppState Backspace(AppState state)
     {
-        var form = state.Form;
+        return Apply(state, PromptOperation.Backspace);
+    }
 
-        if (form is null)
+    /// <summary>An editing key (caret moves, deletes) in the focused field.</summary>
+    public static AppState Apply(AppState state, PromptOperation operation)
+    {
+        return Edit(state, prompt => prompt.Apply(operation));
+    }
+
+    /// <summary>Runs one edit on the focused field; a changed text re-validates, a caret move keeps the notes.</summary>
+    public static AppState Edit(AppState state, Func<PromptText, PromptText> change)
+    {
+        if (state.Form is not { } form)
         {
             return state;
         }
 
-        return Typed(state, EditField(form, RemoveLastElement, secret => secret.RemoveLast()));
+        var (edited, changed) = EditField(form, change);
+
+        return changed ? Typed(state, edited) : state with { Form = edited };
     }
 
     /// <summary>Enter: validates the current field and moves on; on the last one the profile is saved.</summary>
@@ -289,7 +295,7 @@ public static class ProfileReducer
 
         if (form.Field != ProfileFormField.Token)
         {
-            return Plain(state with { Form = Normalize(form) with { Field = form.Field + 1, Error = null } });
+            return Plain(state with { Form = Normalize(form) with { Field = form.Field + 1, Back = 0, Error = null } });
         }
 
         return Save(state);
@@ -310,7 +316,7 @@ public static class ProfileReducer
 
         if (FirstProblem(form, state.Profiles) is { } problem)
         {
-            return Plain(state with { Form = form with { Field = problem.Field, Error = problem.Text } });
+            return Plain(state with { Form = form with { Field = problem.Field, Back = 0, Error = problem.Text } });
         }
 
         var profile = new Profile(form.Name.Trim(), TryNormalizeSite(form.SiteUrl) ?? form.SiteUrl, form.Email.Trim());
@@ -724,30 +730,32 @@ public static class ProfileReducer
         };
     }
 
-    private static ProfileForm EditField(
-        ProfileForm form,
-        Func<string, string> text,
-        Func<SecretText, SecretText> secret)
+    private static (ProfileForm Form, bool Changed) EditField(ProfileForm form, Func<PromptText, PromptText> change)
     {
-        return form.Field switch
+        if (form.Field == ProfileFormField.Token)
         {
-            ProfileFormField.Name => form with { Name = text(form.Name), Error = null },
-            ProfileFormField.SiteUrl => form with { SiteUrl = text(form.SiteUrl), Error = null },
-            ProfileFormField.Email => form with { Email = text(form.Email), Error = null },
-            _ => form with { Token = secret(form.Token), Error = null },
-        };
-    }
+            var (secret, back) = form.Token.Edit(form.Back, change);
+            var tokenChanged = !ReferenceEquals(secret, form.Token);
 
-    private static string RemoveLastElement(string text)
-    {
-        if (text.Length == 0)
-        {
-            return text;
+            return (form with { Token = secret, Back = back, Error = tokenChanged ? null : form.Error }, tokenChanged);
         }
 
-        var starts = StringInfo.ParseCombiningCharacters(text);
+        var current = form.Field switch
+        {
+            ProfileFormField.Name => form.Name,
+            ProfileFormField.SiteUrl => form.SiteUrl,
+            _ => form.Email,
+        };
+        var prompt = change(new PromptText(current, form.Back));
+        var textChanged = prompt.Text != current;
+        var moved = form with { Back = prompt.Back, Error = textChanged ? null : form.Error };
 
-        return text[..starts[^1]];
+        return form.Field switch
+        {
+            ProfileFormField.Name => (moved with { Name = prompt.Text }, textChanged),
+            ProfileFormField.SiteUrl => (moved with { SiteUrl = prompt.Text }, textChanged),
+            _ => (moved with { Email = prompt.Text }, textChanged),
+        };
     }
 
     private static AppState Say(AppState state, string message)
