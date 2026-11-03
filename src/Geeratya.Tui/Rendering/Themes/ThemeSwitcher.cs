@@ -43,8 +43,8 @@ public sealed class ThemeSwitcher(ThemeCatalog catalog)
 
     /// <summary>
     /// What <c>:theme [name]</c> does. No name: the families on offer. An exact name (or <c>dark</c>, <c>light</c>)
-    /// switches. <c>auto</c> switches to the theme for the background (light or dark, null counts as dark) and keeps the
-    /// name <c>auto</c> for saving. Anything else lists the names that contain the text, and nothing changes.
+    /// switches. <c>auto</c> switches to the theme for the background (light, else dark) and keeps the name <c>auto</c> for
+    /// saving. Anything else lists the names that contain the text, and nothing changes.
     /// </summary>
     public ThemeChoice Choose(string name, string current, bool? lightBackground = null)
     {

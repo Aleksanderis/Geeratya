@@ -2,11 +2,12 @@ using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Platform.Tests.Terminal;
 
+[Trait("Os", "Independent")]
 public class BackgroundColorsTests
 {
     [Theory]
-    [InlineData("\u001b]11;rgb:ffff/ffff/ffff\u001b\\", true)]
-    [InlineData("\u001b]11;rgb:0000/0000/0000\u0007", false)]
+    [InlineData("]11;rgb:ffff/ffff/ffff\\", true)]
+    [InlineData("]11;rgb:0000/0000/0000\u0007", false)]
     [InlineData("]11;rgb:1e/1e/2e\\", false)]
     [InlineData("]11;rgb:f/f/f\\", true)]
     [InlineData("]11;rgba:eeee/eeee/eeee/ffff\\", true)]

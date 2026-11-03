@@ -408,15 +408,12 @@ public sealed class ShellHost : ICommandSink, IDisposable
     }
 
     /// <summary>
-    /// Asks the terminal for its background before the UI owns the input, only when the saved theme is <c>auto</c>.
-    /// The answer is kept for a later <c>:theme auto</c>, because the terminal cannot be asked once the UI runs.
+    /// Asks the terminal for its background before the UI owns the input, whatever theme is saved. The answer is kept
+    /// for a later <c>:theme auto</c>, because the terminal cannot be asked once the UI runs.
     /// </summary>
     private void DetectBackground()
     {
-        if (BuiltInThemes.IsAuto(_state.Settings.Theme))
-        {
-            _lightBackground = _background?.IsLight(allowQuery: true);
-        }
+        _lightBackground = _background?.IsLight(allowQuery: true);
     }
 
     private bool? EnvironmentBackground()

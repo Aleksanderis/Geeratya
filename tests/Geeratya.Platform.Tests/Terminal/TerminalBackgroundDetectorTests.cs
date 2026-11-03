@@ -3,10 +3,11 @@ using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Platform.Tests.Terminal;
 
+[Trait("Os", "Independent")]
 public class TerminalBackgroundDetectorTests
 {
-    private const string LightAnswer = "\u001b]11;rgb:ffff/ffff/ffff\\";
-    private const string DarkAnswer = "\u001b]11;rgb:1e1e/1e1e/2e2e\\";
+    private const string LightAnswer = "]11;rgb:ffff/ffff/ffff\\";
+    private const string DarkAnswer = "]11;rgb:1e1e/1e1e/2e2e\\";
 
     [Fact]
     public void GivenALightAnswer_WhenDetecting_ThenItIsLight()

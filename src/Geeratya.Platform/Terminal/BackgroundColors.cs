@@ -2,7 +2,10 @@ using System.Globalization;
 
 namespace Geeratya.Platform.Terminal;
 
-/// <summary>Reads "light or dark" out of the two ways a terminal can tell its background: an OSC 11 answer and <c>COLORFGBG</c>.</summary>
+/// <summary>
+/// Reads "light or dark" out of the two ways a terminal can tell its background: an OSC 11 answer and
+/// <c>COLORFGBG</c>.
+/// </summary>
 public static class BackgroundColors
 {
     private const int AnsiLightestIndex = 15;
@@ -13,6 +16,7 @@ public static class BackgroundColors
     private const double RedWeight = 0.2126;
     private const double GreenWeight = 0.7152;
     private const double BlueWeight = 0.0722;
+    private static readonly double[] _weights = [RedWeight, GreenWeight, BlueWeight];
     private static readonly char[] _answerEnds = ['\u0007', '\u001b', '\\'];
 
     /// <summary>
@@ -46,19 +50,19 @@ public static class BackgroundColors
         }
 
         var luminance = 0.0;
-        double[] weights = [RedWeight, GreenWeight, BlueWeight];
 
         for (var i = 0; i < ChannelCount; i++)
         {
             var digits = parts[i];
 
-            if (digits.Length is < 1 or > MaxChannelDigits
-                || !int.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value))
+            var parsed = int.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value);
+
+            if (digits.Length is < 1 or > MaxChannelDigits || !parsed)
             {
                 return null;
             }
 
-            luminance += weights[i] * value / (Math.Pow(16, digits.Length) - 1);
+            luminance += _weights[i] * value / (Math.Pow(16, digits.Length) - 1);
         }
 
         return luminance > LightThreshold;

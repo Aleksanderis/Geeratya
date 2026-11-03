@@ -14,7 +14,7 @@ var background = new TerminalBackgroundDetector(
     environment,
     capabilities.IsInteractive,
     operatingSystem,
-    new ConsoleBackgroundQuery());
+    new ConsoleBackgroundQuery(environment));
 
 return new ApplicationRunner(
     Console.Out,
