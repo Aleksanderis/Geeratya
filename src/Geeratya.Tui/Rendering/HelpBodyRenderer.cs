@@ -52,7 +52,9 @@ public sealed class HelpBodyRenderer : IBodyRenderer
         var column = 0;
         var names = HelpPages.Names(state, keymap);
 
-        for (var index = FirstVisible(names, HelpPages.Current(state, keymap), width); index < names.Count && column < width; index++)
+        var first = FirstVisible(names, HelpPages.Current(state, keymap), width);
+
+        for (var index = first; index < names.Count && column < width; index++)
         {
             var cells = DisplayWidth.Of(names[index]);
 
