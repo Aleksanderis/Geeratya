@@ -29,7 +29,15 @@ public sealed class StartupEffectHandler
     /// <summary>The reply of a read effect, or null when the effect is not one.</summary>
     public Command? Run(Effect effect)
     {
-        return effect is LoadTabsEffect load ? new TabsLoaded(load.Profile, _store.Load(load.Profile)) : null;
+        if (effect is not LoadTabsEffect load)
+        {
+            return null;
+        }
+
+        // A save still queued (a profile edit reconnects at once) must reach the file before it is read.
+        Flush();
+
+        return new TabsLoaded(load.Profile, _store.Load(load.Profile));
     }
 
     /// <summary>Queues a save and returns at once.</summary>

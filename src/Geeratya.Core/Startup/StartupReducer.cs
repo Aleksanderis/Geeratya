@@ -46,7 +46,12 @@ public static class StartupReducer
 
         if (state.Session.Tabs.Count > 0)
         {
-            return Plain(WithPhase(state, StartupPhase.Done));
+            // Tabs opened while the file was read: the file still holds the old ones, so write these.
+            var opened = WithPhase(state, StartupPhase.Done);
+
+            return state.Settings.RestoreTabs
+                ? new ReduceResult(opened, [new SaveTabsEffect(loaded.Profile, RememberedTabs.Of(opened.Session))])
+                : Plain(opened);
         }
 
         var (tabs, active) = loaded.Tabs.ToRestored();
@@ -80,7 +85,7 @@ public static class StartupReducer
     {
         var tab = before.Session.Tabs.FirstOrDefault(candidate => candidate.Id == failed.Tab);
 
-        if (tab is not { Restored: true, LoadedAt: null, Load: Loading { Reason: LoadReason.Open } }
+        if (tab is not { Restored: true, Load: Loading { Reason: LoadReason.Open } }
             || tab.RequestId != failed.RequestId || failed.Error.Kind != JiraErrorKind.NotFound)
         {
             return result;
@@ -113,6 +118,11 @@ public static class StartupReducer
             return result;
         }
 
+        if (SameDefinitions(before.Session.Tabs, after.Session.Tabs) && before.Session.Active == after.Session.Active)
+        {
+            return result;
+        }
+
         var current = RememberedTabs.Of(after.Session);
 
         if (current.SameAs(RememberedTabs.Of(before.Session)))
@@ -121,6 +131,17 @@ public static class StartupReducer
         }
 
         return new ReduceResult(after, [.. result.Effects, new SaveTabsEffect(profile, current)]);
+    }
+
+    // Cheap check before the snapshots: rows, cursors and loads replace the tab but not its definition or options.
+    private static bool SameDefinitions(IReadOnlyList<TabState> before, IReadOnlyList<TabState> after)
+    {
+        return before.Count == after.Count
+            && before.Zip(after).All(pair => pair.First.Id == pair.Second.Id
+                && ReferenceEquals(pair.First.Definition, pair.Second.Definition)
+                && ReferenceEquals(pair.First.ActiveQuickFilters, pair.Second.ActiveQuickFilters)
+                && pair.First.Swimlane == pair.Second.Swimlane
+                && pair.First.Lane == pair.Second.Lane);
     }
 
     private static ReduceResult FirstStart(AppState state)

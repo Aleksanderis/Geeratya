@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
@@ -7,6 +8,7 @@ using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
+using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Users;
 
@@ -168,7 +170,7 @@ public class StartupReducerTests
     }
 
     [Fact]
-    public void GivenARestoredQuickFilterLookupThatFails_WhenItArrives_ThenThePageLoadsWithoutFilters()
+    public void GivenARestoredQuickFilterLookupThatFails_WhenItArrives_ThenThePageLoadsWithoutTheFilterClause()
     {
         var remembered = new RememberedTabs([new RememberedTab("Board", "4", "Columns", "GCM board", [7L])]);
         var restored = _reducer.Reduce(Begin(Initial()), new TabsLoaded(_work, remembered));
@@ -177,7 +179,6 @@ public class StartupReducerTests
         var failed = _reducer.Reduce(restored.State, new QuickFiltersLoaded(tab.Id, [], false, "Quick filters failed"));
 
         Assert.Null(Assert.Single(failed.Effects.OfType<LoadViewPageEffect>()).ExtraJql);
-        Assert.Empty(failed.State.Session.Tabs[0].ActiveQuickFilters);
     }
 
     [Fact]
@@ -193,6 +194,45 @@ public class StartupReducerTests
         Assert.Equal(PickerScope.Boards, result.State.Picker!.Scope);
         Assert.Contains("Old board", result.State.Message);
         Assert.Equal(StatusSeverity.Warning, result.State.Status!.Severity);
+    }
+
+    [Fact]
+    public void GivenARestoredBoardServedFromTheCache_WhenTheNetworkSaysNotFound_ThenTheTabIsDropped()
+    {
+        var remembered = new RememberedTabs([new RememberedTab("Board", "99", "Columns", "Old board")]);
+        var restored = _reducer.Reduce(Connected(Begin(Initial())), new TabsLoaded(_work, remembered));
+        var tab = Assert.Single(restored.State.Session.Tabs);
+        var cached = _reducer.Reduce(restored.State, new ViewCacheLoaded(tab.Id, tab.RequestId, new CachedView([CachedIssue()], null, _now)));
+
+        Assert.NotNull(Assert.Single(cached.State.Session.Tabs).LoadedAt);
+
+        var result = _reducer.Reduce(cached.State, Failure(tab, JiraErrorKind.NotFound));
+
+        Assert.Empty(result.State.Session.Tabs);
+        Assert.Equal(PickerScope.Boards, result.State.Picker!.Scope);
+    }
+
+    [Fact]
+    public void GivenARestoredQuickFilterLookupThatFails_WhenItArrives_ThenTheRememberedFilterIdsStayAndNothingDropsThem()
+    {
+        var remembered = new RememberedTabs([new RememberedTab("Board", "4", "Columns", "GCM board", [7L])]);
+        var restored = _reducer.Reduce(Begin(Initial()), new TabsLoaded(_work, remembered));
+        var tab = Assert.Single(restored.State.Session.Tabs);
+
+        var failed = _reducer.Reduce(restored.State, new QuickFiltersLoaded(tab.Id, [], false, "Quick filters failed"));
+
+        Assert.Equal([7L], failed.State.Session.Tabs[0].ActiveQuickFilters);
+        Assert.Empty(failed.Effects.OfType<SaveTabsEffect>());
+    }
+
+    [Fact]
+    public void GivenATabOpenedWhileTheFileWasRead_WhenTheFileArrives_ThenTheOpenTabsAreSaved()
+    {
+        var opened = _reducer.Reduce(Begin(Initial()), new ViewOpenRequested(Jql()));
+        var result = _reducer.Reduce(opened.State, new TabsLoaded(_work, Two()));
+
+        Assert.Single(result.State.Session.Tabs);
+        Assert.Equal("A", Assert.Single(Assert.Single(result.Effects.OfType<SaveTabsEffect>()).Tabs.Items).Title);
     }
 
     [Fact]
@@ -364,6 +404,14 @@ public class StartupReducerTests
         return new RememberedTabs(
             [new RememberedTab("Jql", "project = A", "List", "A"), new RememberedTab("Board", "4", "Columns", "GCM board")],
             1);
+    }
+
+    private static IssueSummary CachedIssue()
+    {
+        var status = new IssueStatus("1", "To Do", "new");
+        var type = new IssueTypeSummary("10", "Task", 0, false);
+
+        return new IssueSummary("1", "A-1", "Issue 1", status, type, null, null, [], null, null, "A");
     }
 
     private static JiraUser User()

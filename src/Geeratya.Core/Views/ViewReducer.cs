@@ -410,9 +410,16 @@ public static class ViewReducer
     private static AppState FiltersForFirstPage(AppState state, TabState tab, QuickFiltersLoaded loaded, List<Effect> effects)
     {
         var known = loaded.Failure is null;
+
+        // A failed lookup keeps the remembered ids (the file must not lose them over one offline start).
         var active = known
             ? tab.ActiveQuickFilters.Where(id => loaded.Filters.Any(filter => filter.Id == id)).ToArray()
-            : [];
+            : tab.ActiveQuickFilters;
+
+        if (tab.Load is not Loading { Reason: LoadReason.Open })
+        {
+            return Replace(state, tab with { AwaitingFilters = false });
+        }
 
         var ready = tab with
         {
@@ -1066,6 +1073,7 @@ public static class ViewReducer
             RequestId = 0,
             IsStale = false,
             LoadedAt = loaded.At,
+            Restored = false,
             PendingRows = null,
             ProtectedKeys = [],
             ProtectedRows = [],
