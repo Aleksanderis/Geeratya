@@ -43,6 +43,42 @@ public sealed class NetworkRunnerTests
     }
 
     [Fact]
+    public async Task GivenReadAndWriteInFlight_WhenCancellingReads_ThenOnlyTheReadIsCancelled()
+    {
+        using var fixture = await ConnectedAsync(_a);
+        var gate = new TaskCompletionSource();
+        var readToken = new TaskCompletionSource<CancellationToken>();
+        var writeToken = new TaskCompletionSource<CancellationToken>();
+
+        var read = fixture.Runner.Start(1, async (_, token) =>
+        {
+            readToken.SetResult(token);
+            await gate.Task;
+
+            return _reply;
+        });
+
+        var write = fixture.Runner.StartDetached(async (_, token) =>
+        {
+            writeToken.SetResult(token);
+            await gate.Task;
+
+            return _reply;
+        });
+
+        var seenRead = await readToken.Task;
+        var seenWrite = await writeToken.Task;
+
+        fixture.Runner.CancelReads();
+        gate.SetResult();
+        await Task.WhenAll(read, write);
+
+        Assert.True(seenRead.IsCancellationRequested);
+        Assert.False(seenWrite.IsCancellationRequested);
+        Assert.Equal([_reply], fixture.Posted);
+    }
+
+    [Fact]
     public async Task GivenPendingWork_WhenCancellingAll_ThenTokenIsCancelledAndNothingPosted()
     {
         using var fixture = await ConnectedAsync(_a);

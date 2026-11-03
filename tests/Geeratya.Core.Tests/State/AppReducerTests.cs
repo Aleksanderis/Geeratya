@@ -134,7 +134,7 @@ public class AppReducerTests
     [InlineData(InputMode.Normal)]
     [InlineData(InputMode.Help)]
     [InlineData(InputMode.Command)]
-    public void GivenAnyNonConfirmMode_WhenPressingCtrlC_ThenQuitEffect(InputMode mode)
+    public void GivenNormalHelpOrCommandMode_WhenPressingCtrlC_ThenQuitEffect(InputMode mode)
     {
         var result = Press(AppState.Initial with { Mode = mode }, "Ctrl-c");
 
@@ -186,6 +186,23 @@ public class AppReducerTests
 
         Assert.Null(result.State.Message);
         Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenConfirmMode_WhenPressingCtrlC_ThenQuitsAtOnce()
+    {
+        var result = Press(Confirming(ActionIds.IssueTransition), "Ctrl-c");
+
+        Assert.Single(result.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenInsertMode_WhenPressingCtrlC_ThenItCancelsAndNeverQuits()
+    {
+        var result = Press(AppState.Initial with { Mode = InputMode.Insert }, "Ctrl-c");
+
+        Assert.Empty(result.Effects.OfType<QuitEffect>());
+        Assert.Equal(InputMode.Normal, result.State.Mode);
     }
 
     [Fact]

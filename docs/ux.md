@@ -15,7 +15,7 @@ The input mode decides which keys act. It lives in `AppState.Mode`; Help, Comman
 | Normal | start, or leaving any other mode | the Normal table in `keymap.md` | (home mode) |
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `?`, `q` and `Esc` close | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
-| Confirm | a destructive action asks | only `y`, `n` and `Esc` act; every other key is swallowed, `Enter` never confirms; the two rows and the backdrop are clickable | `y` (runs the action), `n`, `Esc`, a click outside the box (cancel) |
+| Confirm | a destructive action asks | only `y`, `n`, `Esc` and `Ctrl-c` (quit) act; every other key is swallowed, `Enter` never confirms; the two rows and the backdrop are clickable | `y` (runs the action), `n`, `Esc`, a click outside the box (cancel), `Ctrl-c` (quits; asks first while writes run) |
 | Insert | `:profile add` (the first editable form), the jump-to-issue prompt (`<space>g`, same choose keys as the picker), the source picker (`<space>t`, adds `Up`/`Down`/`Ctrl-p`/`Ctrl-n` to choose), the comment editor (`<space>m a`/`m e`; `Enter` is a new line, `Ctrl-s` saves, arrows move; `Esc` asks first when the text changed), the link form (`<space>il`) and the field form (`<space>ie`, `<space>ia`, `:edit`, `:priority`, `:labels`, `:assign`; adds `Tab`/`Shift-Tab` for fields and `Ctrl-s` to save, see [ux-screens.md](ux-screens.md), "Field form overlay") | printable keys and `Space` are text; `Enter` accepts the field, `Backspace` deletes, `Esc` and `Ctrl-c` cancel (never quit) | last `Enter`, `Esc`, `Ctrl-c` |
 
 In Insert mode printable keys are text and only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
@@ -34,8 +34,8 @@ Two helps, each set with `:set hints.statusBar full|minimal|off` and `:set hints
 - Keys are spelled out everywhere: `Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`; never `^d` or `c-d`.
 - Exactly one place has focus: the overlay when one is open, otherwise the body. An overlay takes every key; nothing falls through to the body.
 - `Esc` backs out one level: it clears a half-typed sequence or ends the status message (`<space>x` does too), closes an overlay or cancels Command and Confirm mode. In a tab it also pops the issue stack (issue detail back to the view it was opened from). In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
-- `Ctrl-c` quits from Normal, Help and Command mode (never from Confirm).
-- `q` quits only in Normal mode. In Help it closes the overlay; in Command mode it is text; in Confirm mode it does nothing.
+- `Ctrl-c` quits from Normal, Help, Command and Confirm mode. In a text form (Insert mode) it cancels and never quits. A quit cancels the running read loads at once; running writes are not cancelled (see below).
+- `q` quits only in Normal mode. In Help it closes the overlay first (a second `q` quits); in Command mode it is text; in Confirm mode it does nothing (the question is answered with `y`, `n` or `Esc`).
 - Every quit (`q`, `Ctrl-c`, `:q`) asks first while writes are running (`1 write is still running; its result will not be shown. Quit anyway?`, `y`/`n`/`Esc`); after the `y` the app waits up to 5 s for them to finish before it exits; so do `:profile switch` and removing the active profile.
 - Multi-key bindings (`g g`) show the typed prefix in the status line; any key that does not continue the binding drops it.
 - A key that no mode binds is ignored silently.
@@ -46,7 +46,7 @@ Destructive or hard-to-undo actions (delete, bulk edits, transitions that may fi
 
 The dialog (`ConfirmOverlay`, sized by `ConfirmDialog` in Core) is a box centred over the body: the title `Confirm`, the question wrapped to the box (it names issue keys and counts), a blank row and the warning (the sentences that say nothing can be undone, in the warning colour, bold in the no-colour tier), a blank row, then `y  <name of the action>` and `n  Cancel`. The wording of each question is the one the request carries (`ConfirmRequest`); the label of the `y` row is its `Label` (`Delete issue`, `Remove link`, ...). The box is at most 64 columns wide and needs 4 columns of margin.
 
-- Only `y` runs the action, after the dialog has closed; `n` and `Esc` cancel; every other key is swallowed and nothing behind the dialog moves.
+- Only `y` runs the action, after the dialog has closed; `n` and `Esc` cancel; `Ctrl-c` quits (it asks first while writes run); every other key is swallowed and nothing behind the dialog moves.
 - Mouse: the `y` and `n` rows are clickable (same as the keys); a click anywhere outside the box, the status line included, cancels like `n`; a click inside the box but off the rows does nothing (`ux-mouse.md`).
 - What the action does is fixed when the dialog opens (the request carries the write), not when `y` is pressed. The input mode before the dialog is restored when it closes (the comment editor gets its text back).
 - If the dialog does not fit the terminal (under 28 columns, or fewer rows between the tab bar and banner and the status line than the wrapped text needs, 8 for a short question) it is not shown and the action does not start: the status line says `Terminal too small to confirm. Nothing was done; enlarge it and try again.` An answer nobody can read is no confirmation. A dialog that stops fitting after a resize is closed unanswered, with a warning in the status line, and nothing runs. Until the first size is reported (the first frame) the check is skipped and the status line keeps the whole question.

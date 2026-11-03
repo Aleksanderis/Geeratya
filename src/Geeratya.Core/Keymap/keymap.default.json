@@ -92,6 +92,7 @@
     { "mode": "confirm", "keys": "y", "action": "confirm.yes" },
     { "mode": "confirm", "keys": "n", "action": "confirm.no" },
     { "mode": "confirm", "keys": "Esc", "action": "confirm.no" },
+    { "mode": "confirm", "keys": "Ctrl-c", "action": "app.quit" },
 
     { "mode": "insert", "keys": "Enter", "action": "form.next" },
     { "mode": "insert", "keys": "Backspace", "action": "form.backspace" },
