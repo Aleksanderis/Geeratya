@@ -61,6 +61,17 @@ public static class FrameOptions
         return int.TryParse(text, out var value) && value >= 0 ? value : null;
     }
 
+    /// <summary>Parses a command level name; null input gives everyday, an unknown name gives null.</summary>
+    public static CommandLevel? ParseLevel(string? text)
+    {
+        return text switch
+        {
+            null or "everyday" => CommandLevel.Everyday,
+            "advanced" => CommandLevel.Advanced,
+            _ => null,
+        };
+    }
+
     public static AppState SampleState(InputMode mode)
     {
         return mode switch

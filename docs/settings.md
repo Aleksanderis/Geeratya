@@ -10,7 +10,12 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 |---|---|---|---|---|
 | `hints` | `statusHints` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
 | `whichkey` | `whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
+| `commandlevel` | `commandLevel` | everyday or advanced | `everyday` | Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
+
+## Command level
+
+`commandLevel` hides the rare or risky actions (delete, unlink, rank to the top, bottom or a place, delete a comment) from the lists that teach keys: help, the palette's default list, the which-key popup and the status bar hints. It never disables anything: every key keeps working and the palette finds an advanced action as soon as you type part of its name. `<space>*` switches the level for the current session only and says which level is on; `:set commandlevel advanced` makes it permanent.
 
 ## `:set`
 

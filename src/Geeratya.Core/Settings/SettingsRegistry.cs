@@ -1,3 +1,5 @@
+using Geeratya.Core.Keymap;
+
 namespace Geeratya.Core.Settings;
 
 /// <summary>Every setting the app knows. A new setting is one more entry here and a row in <c>docs/settings.md</c>.</summary>
@@ -19,6 +21,12 @@ public static class SettingsRegistry
 
     private const string ThemeExpected = "a theme name";
 
+    private const string Everyday = "everyday";
+
+    private const string Advanced = "advanced";
+
+    private const string LevelExpected = "everyday or advanced";
+
     public static IReadOnlyList<SettingDefinition> All { get; } =
     [
         new SettingDefinition(
@@ -39,6 +47,15 @@ public static class SettingsRegistry
             settings => Word(settings.WhichKey),
             (settings, text) => ParseToggle(text) is { } on ? settings with { WhichKey = on } : null,
             ToggleExpected),
+        new SettingDefinition(
+            "commandlevel",
+            "commandLevel",
+            SettingKind.Choice,
+            Everyday,
+            "Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too.",
+            settings => settings.CommandLevel == CommandLevel.Advanced ? Advanced : Everyday,
+            ApplyLevel,
+            LevelExpected),
         new SettingDefinition(
             ThemeName,
             "theme",
@@ -117,6 +134,18 @@ public static class SettingsRegistry
         };
 
         return level is { } value ? settings with { StatusHints = value } : null;
+    }
+
+    private static AppSettings? ApplyLevel(AppSettings settings, string text)
+    {
+        CommandLevel? level = text switch
+        {
+            Everyday => CommandLevel.Everyday,
+            Advanced => CommandLevel.Advanced,
+            _ => null,
+        };
+
+        return level is { } value ? settings with { CommandLevel = value } : null;
     }
 
     private static string Word(bool on)

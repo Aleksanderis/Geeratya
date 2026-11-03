@@ -28,6 +28,7 @@ public sealed class ShellScreen : Window
     private readonly Label _statusMessage;
     private PaletteRole _messageRole = PaletteRole.Error;
     private IReadOnlyList<string> _helpLines;
+    private IReadOnlyList<string> _advancedHelpLines;
     private readonly KeymapTable _keymap;
     private AppState _state = AppState.Initial;
     private Size _size;
@@ -47,6 +48,7 @@ public sealed class ShellScreen : Window
         _colors = colors;
         _glyphs = glyphs;
         _helpLines = KeymapDocument.RenderHelpLines(keymap);
+        _advancedHelpLines = KeymapDocument.RenderHelpLines(keymap, CommandLevel.Advanced);
         _size = initialSize;
         BorderStyle = LineStyle.None;
         Width = Dim.Fill();
@@ -91,6 +93,12 @@ public sealed class ShellScreen : Window
     public void RefreshHelp()
     {
         _helpLines = KeymapDocument.RenderHelpLines(_keymap);
+        _advancedHelpLines = KeymapDocument.RenderHelpLines(_keymap, CommandLevel.Advanced);
+    }
+
+    private IReadOnlyList<string> HelpLinesFor(AppState state)
+    {
+        return state.Settings.CommandLevel == CommandLevel.Advanced ? _advancedHelpLines : _helpLines;
     }
 
     /// <summary>Draws with another theme, starting with the next frame (drawn now).</summary>
@@ -106,7 +114,7 @@ public sealed class ShellScreen : Window
         _state = state;
         _now = now;
 
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _helpLines, _keymap, null, now, _glyphs);
+        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, HelpLinesFor(state), _keymap, null, now, _glyphs);
 
         if (frame is null)
         {

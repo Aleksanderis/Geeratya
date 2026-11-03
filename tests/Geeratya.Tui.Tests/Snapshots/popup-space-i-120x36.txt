@@ -22,15 +22,15 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
 ┌─ Space i ──────────────────────────────────────┐                                                                      
 │ m         Assign the issue to me               │                                                                      
 │ a         Assign the issue: search people, or  │                                                                      
 │ s         Change the status of the issue       │                                                                      
 │ C         Create a sub-task of the selected is │                                                                      
 │ c         Create an issue (type picker, then t │                                                                      
-│ d         Delete the issue (asks first; Jira c │                                                                      
 │ e         Edit fields of the issue (summary, l │                                                                      
-│ l         Link the issue to another issue      │                                                                      
-│ u         Remove the link under the cursor (as │                                                                      
 └────────────────────────────────────────────────┘                                                                      
  NORMAL Space i                                                                               ? help  : commands  q quit

@@ -46,6 +46,7 @@ public static class ActionCatalog
         new(ActionIds.TabClose, "Close the tab"),
         new(ActionIds.ViewRefresh, "Refresh the view (also retries after an error)"),
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
+        new(ActionIds.ViewCycleCommandLevel, "Switch the command level for the session"),
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.IssueEdit, "Edit fields of the issue (summary, labels, priority, description)"),
@@ -56,14 +57,14 @@ public static class ActionCatalog
         new(ActionIds.IssueTransitionPrevious, "Move the card to the previous column"),
         new(ActionIds.RankUp, "Rank the issue up (a count moves it that many places)"),
         new(ActionIds.RankDown, "Rank the issue down (a count moves it that many places)"),
-        new(ActionIds.RankTop, "Rank the issue to the top of the list or column"),
-        new(ActionIds.RankBottom, "Rank the issue to the bottom of the list or column"),
-        new(ActionIds.RankTo, "Pick up the issue, then drop it at the issue under the cursor"),
-        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)"),
+        new(ActionIds.RankTop, "Rank the issue to the top of the list or column", CommandLevel.Advanced),
+        new(ActionIds.RankBottom, "Rank the issue to the bottom of the list or column", CommandLevel.Advanced),
+        new(ActionIds.RankTo, "Pick up the issue, then drop it at the issue under the cursor", CommandLevel.Advanced),
+        new(ActionIds.IssueDelete, "Delete the issue (asks first; Jira cannot undo it)", CommandLevel.Advanced),
         new(ActionIds.IssueCreate, "Create an issue (type picker, then the form)"),
         new(ActionIds.IssueCreateSubtask, "Create a sub-task of the selected issue"),
-        new(ActionIds.IssueLink, "Link the issue to another issue"),
-        new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)"),
+        new(ActionIds.IssueLink, "Link the issue to another issue", CommandLevel.Advanced),
+        new(ActionIds.IssueUnlink, "Remove the link under the cursor (asks first; Jira cannot undo it)", CommandLevel.Advanced),
         new(ActionIds.IssueJump, "Jump to an issue by key"),
         new(ActionIds.StatusHistory, "Show the message history"),
         new(ActionIds.StatusDismiss, "Dismiss the status message"),
@@ -72,7 +73,7 @@ public static class ActionCatalog
         new(ActionIds.PickerNext, "Next row in the picker"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
-        new(ActionIds.CommentDelete, "Delete the comment under the cursor"),
+        new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
         new(ActionIds.EditorLeft, "Move the cursor left"),
         new(ActionIds.EditorRight, "Move the cursor right"),
         new(ActionIds.EditorRowStart, "Move the cursor to the start of the row"),
@@ -172,6 +173,28 @@ public static class ActionCatalog
             "help" or "app" or "palette" or "mode" or "status" => "General",
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// The command level of an action; an id the catalog does not know counts as everyday so a stray id is never hidden.
+    /// </summary>
+    public static CommandLevel LevelOf(string id)
+    {
+        foreach (var definition in All)
+        {
+            if (definition.Id == id)
+            {
+                return definition.Level;
+            }
+        }
+
+        return CommandLevel.Everyday;
+    }
+
+    /// <summary>True when the lists of <paramref name="level"/> show the action (a level hides, it never disables).</summary>
+    public static bool IsShownAt(string id, CommandLevel level)
+    {
+        return LevelOf(id) <= level;
     }
 
     public static string? FindTitle(string id)

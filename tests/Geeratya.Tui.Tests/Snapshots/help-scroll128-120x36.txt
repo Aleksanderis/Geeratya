@@ -1,8 +1,6 @@
                                                                                                                         
                                                                                                                         
 Help                                                                                                                    
-  :backlog [name]                                                                                                       
-      Open a board's backlog in a new tab                                                                               
   :history clear                                                                                                        
       Forget the recent JQL queries and issues of this profile                                                          
   :tab new|close|next|prev|<n>                                                                                          
@@ -23,8 +21,10 @@ Help
       Assign the selected or shown issue to me                                                                          
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
-  :set hints|whichkey on|off                                                                                            
-      Show or hide the status bar hints or the which-key popup (saved)                                                  
+  :set [hints|whichkey|commandlevel|theme] [value]                                                                      
+      List the settings, show one, or change one (saved)                                                                
+  :theme [name]                                                                                                         
+      Switch the colour theme (no name: list the families); saved                                                       
   :keys reload                                                                                                          
       Read keymap.json again and apply it                                                                               
   :help                                                                                                                 

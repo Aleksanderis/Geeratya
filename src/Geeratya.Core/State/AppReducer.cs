@@ -501,6 +501,7 @@ public sealed class AppReducer
             ActionIds.HelpClose => Result(ToNormal(state)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
+            ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
@@ -727,9 +728,25 @@ public sealed class AppReducer
         return ToNormal(state) with { Mode = InputMode.Help };
     }
 
+    /// <summary>
+    /// Switches the command level for the session (not saved; <c>:set commandlevel</c> saves) and says which level is
+    /// on. The help scroll stays inside the shorter or longer help.
+    /// </summary>
+    private AppState CycleCommandLevel(AppState state)
+    {
+        var level = state.Settings.CommandLevel == CommandLevel.Everyday ? CommandLevel.Advanced : CommandLevel.Everyday;
+        var changed = state with
+        {
+            Settings = state.Settings with { CommandLevel = level },
+            Message = $"Command level: {level.ToString().ToLowerInvariant()}",
+        };
+
+        return changed with { HelpScroll = Math.Clamp(changed.HelpScroll, 0, Math.Max(0, LineCount(changed) - 1)) };
+    }
+
     private int LineCount(AppState state)
     {
-        return state.MessagesOpen ? state.StatusHistory.Count : KeymapDocument.RenderHelpLines(_keymap).Count;
+        return state.MessagesOpen ? state.StatusHistory.Count : KeymapDocument.RenderHelpLines(_keymap, state.Settings.CommandLevel).Count;
     }
 
     private AppState ScrollHelp(AppState state, int delta)

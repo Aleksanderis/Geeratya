@@ -112,6 +112,7 @@ public static class PaletteOverlay
                     lines.Add(new ListLine(StyledLine.Of(row.Title, TextRole.Heading), -1, false));
                     break;
                 case PaletteRowKind.Usage:
+                case PaletteRowKind.Note:
                     lines.Add(new ListLine(StyledLine.Of(row.Title, TextRole.Muted), -1, false));
                     break;
                 default:

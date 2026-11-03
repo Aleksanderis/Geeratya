@@ -15,9 +15,11 @@ public sealed class ApplicationRunner
     private const string SizeFlag = "--size";
     private const string ModeFlag = "--mode";
     private const string HelpScrollFlag = "--help-scroll";
+    private const string LevelFlag = "--command-level";
 
     private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
-        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>] (scroll needs --mode help)";
+        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpScrollFlag} <line>] (scroll needs --mode help) "
+        + $"[{LevelFlag} everyday|advanced]";
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
@@ -111,16 +113,22 @@ public sealed class ApplicationRunner
         }
 
         var scroll = FrameOptions.ParseScroll(ValueOf(arguments, HelpScrollFlag));
+        var level = FrameOptions.ParseLevel(ValueOf(arguments, LevelFlag));
 
-        if (scroll is null)
+        if (scroll is null || level is null)
         {
             _output.WriteLine(Usage);
 
             return 2;
         }
 
-        var state = FrameOptions.SampleState(mode.Value) with { HelpScroll = scroll.Value };
-        var helpLines = KeymapDocument.RenderHelpLines(keymap);
+        var sample = FrameOptions.SampleState(mode.Value);
+        var state = sample with
+        {
+            HelpScroll = scroll.Value,
+            Settings = sample.Settings with { CommandLevel = level.Value },
+        };
+        var helpLines = KeymapDocument.RenderHelpLines(keymap, state.Settings.CommandLevel);
         var lines = FrameBuilder.Build(state, size.Width, size.Height, helpLines, keymap, null, _glyphs);
 
         foreach (var line in lines)

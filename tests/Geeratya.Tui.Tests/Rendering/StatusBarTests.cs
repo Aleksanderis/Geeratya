@@ -27,6 +27,31 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenEveryDefaultHint_WhenCheckingTheLevel_ThenNoneIsAdvanced()
+    {
+        var all = StatusBar.Hints
+            .Concat(StatusBar.ScreenHints)
+            .Concat(StatusBar.PickerHints)
+            .Concat(StatusBar.EditorHints)
+            .Concat(StatusBar.FormHints);
+
+        Assert.All(all, hint => Assert.True(StatusBar.IsShownAt(hint, CommandLevel.Everyday), hint.ActionId));
+    }
+
+    [Fact]
+    public void GivenHintsOfAdvancedActions_WhenCheckingTheLevel_ThenOnlyAllAdvancedOnesAreLeftOutAtEveryday()
+    {
+        var advanced = new StatusHint(InputMode.Normal, ActionIds.IssueDelete, "delete");
+        var pair = new StatusHint(InputMode.Normal, ActionIds.RankTop, "rank", HintScope.Global, ActionIds.IssueDelete);
+        var mixed = new StatusHint(InputMode.Normal, ActionIds.IssueDelete, "x", HintScope.Global, ActionIds.NavigateUp);
+
+        Assert.False(StatusBar.IsShownAt(advanced, CommandLevel.Everyday));
+        Assert.False(StatusBar.IsShownAt(pair, CommandLevel.Everyday));
+        Assert.True(StatusBar.IsShownAt(mixed, CommandLevel.Everyday));
+        Assert.True(StatusBar.IsShownAt(advanced, CommandLevel.Advanced));
+    }
+
+    [Fact]
     public void GivenNormalMode_WhenRendering_ThenBadgeStartsAtColumnZeroAndHintsAreRightAligned()
     {
         var line = StatusBar.Render(AppState.Initial, 60, _keymap);

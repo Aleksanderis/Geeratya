@@ -12,16 +12,20 @@ public static class WhichKeyBuilder
 
     private static readonly IComparer<WhichKeyRow> _rowOrder = Comparer<WhichKeyRow>.Create(CompareRows);
 
-    public static IReadOnlyList<WhichKeyRow> Build(KeymapTable keymap, InputMode mode, string pending)
+    public static IReadOnlyList<WhichKeyRow> Build(
+        KeymapTable keymap,
+        InputMode mode,
+        string pending,
+        CommandLevel level = CommandLevel.Advanced)
     {
         var plain = new List<(string Prefix, WhichKeyRow Row)>();
         var groups = new List<WhichKeyRow>();
 
-        foreach (var next in keymap.NextKeys(mode, pending))
+        foreach (var next in keymap.NextKeys(mode, pending, level))
         {
             if (next.Action is null)
             {
-                var noun = Noun(keymap, mode, $"{pending} {next.Key}");
+                var noun = Noun(keymap, mode, $"{pending} {next.Key}", level);
 
                 groups.Add(new WhichKeyRow(next.Key, $"{GroupMarker}{noun} ({next.Count})"));
             }
@@ -87,14 +91,14 @@ public static class WhichKeyBuilder
         return dot < 0 ? action : action[..dot];
     }
 
-    private static string Noun(KeymapTable keymap, InputMode mode, string pending)
+    private static string Noun(KeymapTable keymap, InputMode mode, string pending, CommandLevel level)
     {
-        var next = keymap.NextKeys(mode, pending);
+        var next = keymap.NextKeys(mode, pending, level);
 
         while (next.Count > 0 && next[0].Action is null)
         {
             pending = $"{pending} {next[0].Key}";
-            next = keymap.NextKeys(mode, pending);
+            next = keymap.NextKeys(mode, pending, level);
         }
 
         var prefix = next.Count > 0 ? PrefixOf(next[0].Action!) : "keys";

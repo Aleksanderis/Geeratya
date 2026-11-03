@@ -12,13 +12,13 @@ View · 0 issues
   │   Change the status of the issue                               Space i s │  
   │   Move the card to the next column                                 Alt-l │  
   │   Move the card to the previous column                             Alt-h │  
-  │   Delete the issue (asks first; Jira cannot undo it)           Space i d │  
   │   Create an issue (type picker, then the form)                 Space i c │  
   │   Create a sub-task of the selected issue                      Space i C │  
-  │   Link the issue to another issue                              Space i l │  
-  │   Remove the link under the cursor (asks first; Jira cannot u  Space i u │  
   │   Edit the labels of the issue                                           │  
   │   Change the priority of the issue                                       │  
   │ Comment                                                                  │  
+  │   Add a comment to the issue                                   Space m a │  
+  │   Edit the comment under the cursor                            Space m e │  
+  │ Rank                                                                     │  
   └──────────────────────────────────────────────────────────────────────────┘  
  COMMAND :                                   Up/Down move  Enter run  Esc cancel

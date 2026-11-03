@@ -1,6 +1,7 @@
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -20,7 +21,9 @@ public class PaletteRowsTests
     [Fact]
     public void GivenNoFilter_WhenListing_ThenEveryNonModalActionHasARowWithItsKeys()
     {
-        var rows = PaletteRows.For(Palette(string.Empty), _keymap).Where(row => row.Kind == PaletteRowKind.Action).ToList();
+        var rows = PaletteRows.For(Palette(string.Empty, CommandLevel.Advanced), _keymap)
+            .Where(row => row.Kind == PaletteRowKind.Action)
+            .ToList();
         var expected = ActionCatalog.All
             .Where(definition => !ActionCatalog.IsModalOnly(definition.Id) && !_hidden.Contains(definition.Id))
             .Select(definition => definition.Id);
@@ -28,6 +31,49 @@ public class PaletteRowsTests
         Assert.Equal(expected.Order(), rows.Select(row => row.Id).Order());
         Assert.Equal("Space i s", rows.Single(row => row.Id == ActionIds.IssueTransition).Keys);
         Assert.Equal("j, Down", rows.Single(row => row.Id == ActionIds.NavigateDown).Keys);
+    }
+
+    [Fact]
+    public void GivenEverydayLevelAndNoFilter_WhenListing_ThenAdvancedActionsAreLeftOutAndCounted()
+    {
+        var rows = PaletteRows.For(Palette(string.Empty), _keymap);
+        var advanced = ActionCatalog.All.Where(definition => definition.Level == CommandLevel.Advanced).ToList();
+
+        Assert.NotEmpty(advanced);
+        Assert.All(advanced, definition => Assert.DoesNotContain(rows, row => row.Id == definition.Id));
+        Assert.Contains(rows, row => row.Id == ActionIds.IssueTransition);
+
+        var note = rows[^1];
+
+        Assert.Equal(PaletteRowKind.Note, note.Kind);
+        Assert.False(note.IsSelectable);
+        Assert.Equal($"{advanced.Count} advanced commands hidden; type to find them", note.Title);
+    }
+
+    [Fact]
+    public void GivenEverydayLevelAndAFilter_WhenListing_ThenAdvancedActionsStillMatchSoTheyRunFromThePalette()
+    {
+        var rows = PaletteRows.For(Palette("delete the issue"), _keymap);
+
+        Assert.Contains(rows, row => row.Id == ActionIds.IssueDelete);
+        Assert.DoesNotContain(rows, row => row.Kind == PaletteRowKind.Note);
+    }
+
+    [Fact]
+    public void GivenAdvancedLevelAndNoFilter_WhenListing_ThenAdvancedActionsShowAndNoNoteEnds()
+    {
+        var rows = PaletteRows.For(Palette(string.Empty, CommandLevel.Advanced), _keymap);
+
+        Assert.Contains(rows, row => row.Id == ActionIds.IssueDelete);
+        Assert.DoesNotContain(rows, row => row.Kind == PaletteRowKind.Note);
+    }
+
+    [Fact]
+    public void GivenAnyLevel_WhenListing_ThenTheLevelNeverMakesAnActionUnavailable()
+    {
+        var rows = PaletteRows.For(Palette("rank to the top"), _keymap);
+
+        Assert.True(rows.Single(row => row.Id == ActionIds.RankTop).Enabled);
     }
 
     [Fact]
@@ -169,9 +215,14 @@ public class PaletteRowsTests
         Assert.Empty(PaletteRows.For(Palette("😀"), _keymap));
     }
 
-    private static AppState Palette(string text)
+    private static AppState Palette(string text, CommandLevel level = CommandLevel.Everyday)
     {
-        return AppState.Initial with { Mode = InputMode.Command, PaletteText = text };
+        return AppState.Initial with
+        {
+            Mode = InputMode.Command,
+            PaletteText = text,
+            Settings = AppSettings.Default with { CommandLevel = level },
+        };
     }
 
     private static AppState WithTab(AppState state)

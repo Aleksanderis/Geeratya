@@ -29,9 +29,13 @@ public static class WhichKeyOverlay
     /// The text rows of the popup (<c>key  label</c>, blank rows between clusters); empty when nothing continues.
     /// The blank rows are dropped when the popup would not fit with them (<paramref name="room"/> rows).
     /// </summary>
-    public static IReadOnlyList<string> Rows(string pending, KeymapTable keymap, int room = int.MaxValue)
+    public static IReadOnlyList<string> Rows(
+        string pending,
+        KeymapTable keymap,
+        int room = int.MaxValue,
+        CommandLevel level = CommandLevel.Everyday)
     {
-        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, pending);
+        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, pending, level);
 
         if (rows.Count > room)
         {
@@ -48,7 +52,7 @@ public static class WhichKeyOverlay
         int width,
         int height)
     {
-        var rows = Rows(state.PendingKeys, keymap, height - 2);
+        var rows = Rows(state.PendingKeys, keymap, height - 2, state.Settings.CommandLevel);
         var boxWidth = Math.Min(width, MaxBoxWidth);
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)

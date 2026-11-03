@@ -127,6 +127,7 @@ public static class DefaultMouseMap
             [ActionIds.TabGoTo7] = tabClick,
             [ActionIds.TabGoTo8] = tabClick,
             [ActionIds.TabGoTo9] = tabClick,
+            [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
 
         return new ReadOnlyDictionary<string, string>(exclusions);

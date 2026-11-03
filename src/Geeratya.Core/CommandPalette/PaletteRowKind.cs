@@ -14,4 +14,7 @@ public enum PaletteRowKind
 
     /// <summary>The usage line of a typed command (its name and a space were typed); not selectable.</summary>
     Usage,
+
+    /// <summary>A closing line that says what the command level hides; not selectable.</summary>
+    Note,
 }
