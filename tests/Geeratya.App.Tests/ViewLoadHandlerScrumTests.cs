@@ -329,6 +329,34 @@ public sealed class ViewLoadHandlerScrumTests
         Assert.Empty(state.Session.Tabs[0].Sprints);
     }
 
+    [Fact]
+    public async Task GivenFailedProbe_WhenPlainBacklogRefreshesInBackground_ThenItProbesAgainAndBecomesScrumBacklog()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("boards/board-gtm-config.json"))
+                .Reply(HttpStatusCode.Forbidden, "{}")
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("boards/rows-gtm-issues.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("boards/board-gtm-config.json"))
+                .Reply(HttpStatusCode.OK, SprintPage)
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/sprints-gts.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("metadata/field-list.json"))
+                .Reply(HttpStatusCode.OK, RecordedFixtures.Read("scrum/board-issues-gts.json")));
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Backlog, "5");
+        var tab = state.Session.Tabs[0];
+        Assert.Equal(ViewSourceKind.Backlog, tab.Definition.Source);
+        Assert.Null(fixture.Services.BoardKinds.Recall(5));
+
+        fixture.Posted.Clear();
+        var refresh = new LoadViewPageEffect(tab.Id, tab.Definition, null, tab.RequestId + 1, LoadReason.Refresh, true);
+        await fixture.Handler.StartAsync(refresh);
+
+        Assert.Contains(fixture.Posted, command => command is BacklogBecameScrum);
+        Assert.Equal(BoardKind.Scrum, fixture.Services.BoardKinds.Recall(5));
+        Assert.Equal("/rest/agile/1.0/board/5/issue", fixture.Path(7));
+    }
+
     private static ViewDefinition Definition(ViewSourceKind source, string id)
     {
         return new ViewDefinition(source, id, ViewLayout.Columns, "Board");

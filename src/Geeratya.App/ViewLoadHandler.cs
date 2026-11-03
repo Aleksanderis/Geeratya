@@ -206,28 +206,42 @@ public sealed class ViewLoadHandler
 
             BoardKind? probed = null;
 
-            if (effect.Definition.Source == ViewSourceKind.Backlog && loaded is not null)
+            var switched = false;
+            var probeTried = false;
+
+            var probeBacklog = loaded is not null || NeedsRetriedProbe(services, effect, id);
+
+            if (effect.Definition.Source == ViewSourceKind.Backlog && probeBacklog)
             {
                 // A team-managed Scrum board is typed "simple", so only the sprint probe tells it from Kanban.
+                probeTried = true;
                 probed = await ResolveKindAsync(services, id, loaded, effect.Background, token);
 
                 if (probed == BoardKind.Scrum)
                 {
+                    switched = true;
                     report(new BacklogBecameScrum(effect.Tab, effect.RequestId));
                     var scrumDefinition = effect.Definition with { Source = ViewSourceKind.ScrumBacklog };
                     effect = effect with { Definition = scrumDefinition };
                 }
             }
 
-            if (effect.Definition.Source == ViewSourceKind.ScrumBacklog && NeedsConfiguration(effect))
+            if (effect.Definition.Source == ViewSourceKind.ScrumBacklog && (switched || NeedsConfiguration(effect)))
             {
                 await ReportSprintsAsync(services, effect, id, report, token);
             }
 
             // The sprint sources are Scrum by definition, so the kind needs no lookup.
-            var kind = effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog
-                ? BoardKind.Scrum
-                : probed ?? await ResolveKindAsync(services, id, loaded, effect.Background, token);
+            var kind = probed;
+
+            if (effect.Definition.Source is ViewSourceKind.Sprint or ViewSourceKind.ScrumBacklog)
+            {
+                kind = BoardKind.Scrum;
+            }
+            else if (!probeTried)
+            {
+                kind = await ResolveKindAsync(services, id, loaded, effect.Background, token);
+            }
 
             return await BoardPageAsync(services, effect, id, kind, token);
         }
@@ -444,6 +458,15 @@ public sealed class ViewLoadHandler
     /// Only an opening (or restarting) load and a refresh by hand fetch the configuration; a refresh by the clock
     /// keeps the one in the tab.
     /// </summary>
+    /// <summary>
+    /// A plain backlog whose board kind is still unknown (the probe failed earlier) probes again on a refresh, so a
+    /// team-managed Scrum board swaps to the Scrum backlog once Jira answers. Later pages never probe.
+    /// </summary>
+    private static bool NeedsRetriedProbe(JiraServices services, LoadViewPageEffect effect, long id)
+    {
+        return effect.Cursor is null && services.BoardKinds.Recall(id) is null;
+    }
+
     private static bool NeedsConfiguration(LoadViewPageEffect effect)
     {
         if (effect.Cursor is not null)
