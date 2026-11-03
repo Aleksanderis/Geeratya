@@ -45,7 +45,7 @@ public static class ContextMenus
             ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id)
             : null;
 
-        if (tab is null)
+        if (tab is null || (tab.FocusedSprintId is not null && tab.Detail.Count == 0))
         {
             return null;
         }

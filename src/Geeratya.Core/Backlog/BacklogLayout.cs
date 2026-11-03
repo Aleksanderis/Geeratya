@@ -32,10 +32,13 @@ public sealed class BacklogLayout
     /// </summary>
     public IReadOnlyList<CursorItem> Items => _items;
 
-    /// <summary>The section of the empty sprint <paramref name="sprintId"/>, null when it has rows or is unknown.</summary>
+    /// <summary>
+    /// The section of the empty sprint <paramref name="sprintId"/>, null when it has rows or is unknown.
+    /// </summary>
     public BacklogSection? EmptySprint(long sprintId)
     {
-        return Sections.FirstOrDefault(section => section is { HasRows: false, Sprint: { } sprint } && sprint.Id == sprintId);
+        return Sections.FirstOrDefault(
+            section => section is { HasRows: false, Sprint: { } sprint } && sprint.Id == sprintId);
     }
 
     /// <summary>The section that holds <paramref name="row"/>, null when no section does (no rows loaded).</summary>

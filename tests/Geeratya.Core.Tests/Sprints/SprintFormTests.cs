@@ -77,6 +77,9 @@ public class SprintFormTests
     [InlineData("Space i e")]
     [InlineData("Space i d")]
     [InlineData("Space i s")]
+    [InlineData("v")]
+    [InlineData("Alt-m")]
+    [InlineData("z a")]
     public void GivenTheCursorOnAnEmptySprint_WhenAKeyWouldActOnTheRowBehindIt_ThenItIsRefused(string keys)
     {
         var onEmpty = Press(Backlog(), "j", "j", "j", "j");
@@ -88,6 +91,26 @@ public class SprintFormTests
         Assert.Null(Active(result.State).Form);
         Assert.Empty(Active(result.State).Detail);
         Assert.Equal(EmptySprintFocus.Refusal, result.State.Message);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAnEmptySprint_WhenTheContextMenuOpens_ThenNoIssueMenuShows()
+    {
+        var onEmpty = Press(Backlog(), "j", "j", "j", "j");
+
+        Assert.Null(ContextMenus.For(onEmpty.State));
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAnEmptySprint_WhenTheRowsAreReloaded_ThenTheCursorStaysOnIt()
+    {
+        var onEmpty = Press(Backlog(), "j", "j", "j", "j").State;
+        var tab = Active(onEmpty);
+
+        Sprint[] sprints = [BacklogFixtures.Active, BacklogFixtures.Future, BacklogFixtures.EmptyFuture];
+        var reloaded = _reducer.Reduce(onEmpty, new SprintsLoaded(tab.Id, tab.RequestId, sprints)).State;
+
+        Assert.Equal(BacklogFixtures.EmptyFutureId, Active(reloaded).FocusedSprintId);
     }
 
     [Fact]

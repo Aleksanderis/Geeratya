@@ -71,7 +71,9 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
                 var row = BusyMarks.Mark(tab.Rows[index], busy, glyphs);
                 var set = ListBodyRenderer.SetMarkOf(row, index, marks, range);
 
-                lines.Add(ListBodyRenderer.RowLine(row, columns, index == tab.Selected && tab.FocusedSprintId is null, set, width, glyphs));
+                var onCursor = index == tab.Selected && tab.FocusedSprintId is null;
+
+                lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, width, glyphs));
 
                 continue;
             }

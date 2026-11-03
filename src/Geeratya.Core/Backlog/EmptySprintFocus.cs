@@ -19,6 +19,9 @@ public static class EmptySprintFocus
         ActionIds.IssueOpenInBrowser,
         ActionIds.SelectionVisual,
         ActionIds.SelectionMark,
+        ActionIds.SectionToggle,
+        ActionIds.SectionNext,
+        ActionIds.SectionPrevious,
     ];
 
     /// <summary>True when the cursor is on an empty sprint and <paramref name="action"/> targets a row.</summary>

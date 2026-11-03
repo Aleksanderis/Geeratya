@@ -1158,6 +1158,17 @@ public static class ViewReducer
 
         if (BacklogSections.Applies(tab))
         {
+            // The cursor stays on an empty sprint it stands on, however the rows moved.
+            if (tab.FocusedSprintId is { } focused)
+            {
+                var refocused = BacklogCursor.FocusSprint(tab with { Selected = selected }, focused);
+
+                if (refocused.FocusedSprintId is not null)
+                {
+                    return RowSelection.Pruned(refocused);
+                }
+            }
+
             return RowSelection.Pruned(BacklogCursor.Place(tab with { Selected = selected }, selected));
         }
 

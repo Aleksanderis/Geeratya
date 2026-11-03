@@ -40,7 +40,14 @@ public static class BacklogCursor
 
         if (tab.Rows.Count == 0)
         {
-            return tab with { Selected = 0, SelectedKey = null, Scroll = 0, VisibleRows = viewport, FocusedSprintId = null };
+            return tab with
+            {
+                Selected = 0,
+                SelectedKey = null,
+                Scroll = 0,
+                VisibleRows = viewport,
+                FocusedSprintId = null,
+            };
         }
 
         var row = Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1);
@@ -88,7 +95,9 @@ public static class BacklogCursor
         return layout.EmptySprint(sprintId) is { } section ? Focus(tab, layout, section, tab.VisibleRows) : tab;
     }
 
-    /// <summary>The empty sprint a click on display line <paramref name="line"/> (header, goal or note) points at.</summary>
+    /// <summary>
+    /// The empty sprint a click on display line <paramref name="line"/> (header, goal or note) points at.
+    /// </summary>
     public static long? EmptySprintAtLine(BacklogLayout layout, int line)
     {
         if (layout.LineAt(line) is not { Row: null, Section: { HasRows: false, Sprint: { } sprint } })

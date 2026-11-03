@@ -68,7 +68,7 @@ public sealed class SprintWriteClientTests
     }
 
     [Fact]
-    public async Task GivenACleared_End_WhenReplacing_ThenPutsTheWholeSprintWithoutTheEnd()
+    public async Task GivenAClearedEnd_WhenReplacing_ThenPutsTheWholeSprintWithoutTheEnd()
     {
         using var fixture = new TransportFixture();
         fixture.Handler.Serve(HttpMethod.Put, $"{SprintPath}/3", FakeResponse.Ok(SprintJson));
