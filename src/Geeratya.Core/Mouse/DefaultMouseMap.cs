@@ -52,7 +52,8 @@ public static class DefaultMouseMap
         new(MouseTarget.CommentsAdd, MouseGesture.Click, ActionIds.CommentAdd, 1, 'C'),
         new(MouseTarget.Comment, MouseGesture.Click, ActionIds.CommentEdit, 1, 'C'),
         new(MouseTarget.Lists, MouseGesture.Drag, ActionIds.IssueTransitionNext, 1, 'M'),
-        new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.RankTo, 1, 'C'),
+        new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.SelectionMark, 0, 'B'),
+        new(MouseTarget.Lists, MouseGesture.DragRows, ActionIds.SelectionVisual, 1, 'B'),
         ContextMenuRow(ActionIds.ViewLayoutToggle, 'V'),
         ContextMenuRow(ActionIds.IssueOpenInBrowser),
         ContextMenuRow(ActionIds.IssueOpenParent),
@@ -131,6 +132,7 @@ public static class DefaultMouseMap
             [ActionIds.TabGoTo9] = tabClick,
             [ActionIds.HelpPagePrevious] = "a click on the page name shows that page",
             [ActionIds.HelpFilter] = "the filter is typed text; the page names are the mouse path",
+            [ActionIds.RankTo] = "no pointer path yet: Ctrl-click marks rows; dragging a row to its place comes with #182",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
 

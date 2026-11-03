@@ -90,6 +90,7 @@ public class MouseMapTests
             MouseGesture.DoubleClick => "Double-click",
             MouseGesture.RightClick => "Right-click",
             MouseGesture.CtrlClick => "Ctrl-click",
+            MouseGesture.DragRows => "Drag rows",
             _ => gesture.ToString(),
         };
     }

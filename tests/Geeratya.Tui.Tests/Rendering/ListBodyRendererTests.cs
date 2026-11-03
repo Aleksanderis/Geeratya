@@ -40,6 +40,30 @@ public class ListBodyRendererTests
     }
 
     [Fact]
+    public void GivenMarksAndAVisualRange_WhenBuilding_ThenMarkedRowsShowAStarAndRangeRowsAPlus()
+    {
+        var tab = Tab(LoadState.Idle, 5) with { Selected = 3, VisualAnchor = "A-3", Marks = ["A-1"] };
+
+        var lines = Frame(tab, 120);
+
+        Assert.Matches(@"^ \*A-1 ", lines[2]);
+        Assert.Matches(@"^  A-2 ", lines[3]);
+        Assert.Matches(@"^ \+A-3 ", lines[4]);
+        Assert.Matches(@"^>\+A-4 ", lines[5]);
+        Assert.Matches(@"^  A-5 ", lines[6]);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAMarkedRow_WhenBuilding_ThenTheRowShowsBothTheCursorAndTheStar()
+    {
+        var tab = Tab(LoadState.Idle, 2) with { Selected = 0, Marks = ["A-1"] };
+
+        var lines = Frame(tab, 120);
+
+        Assert.Matches(@"^>\*A-1 ", lines[2]);
+    }
+
+    [Fact]
     public void GivenARunningWriteOnAnIssue_WhenBuilding_ThenOnlyThatRowShowsTheBusyMarker()
     {
         var state = Active(Tab(LoadState.Idle, 3));

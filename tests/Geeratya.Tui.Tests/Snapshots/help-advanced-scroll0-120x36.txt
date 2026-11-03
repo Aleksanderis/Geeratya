@@ -27,10 +27,10 @@ Rank
   Space k t  Rank the issue to the top of the list or column                                                            
   Space k b  Rank the issue to the bottom of the list or column                                                         
   Space k k  Pick up the issue, then drop it at the issue under the cursor                                              
+Selection                                                                                                               
+  v          Start or end Visual mode (a range of rows)                                                                 
+  Alt-m      Mark or unmark the selected row and move down                                                              
 View                                                                                                                    
   Space A    Open the actions menu of the tab and the view                                                              
   Space r    Refresh the view (also retries after an error)                                                             
-  Space l    Switch between list and columns                                                                            
-  Space *    Switch the command level for the session                                                                   
-Tabs                                                                                                                    
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

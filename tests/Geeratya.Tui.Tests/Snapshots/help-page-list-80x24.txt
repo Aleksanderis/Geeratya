@@ -18,7 +18,7 @@ List  Global  All actions  Commands
   Space i s  Change the status of the issue                                     
   Alt-k      Rank the issue up (a count moves it that many places)              
   Alt-j      Rank the issue down (a count moves it that many places)            
+  v          Start or end Visual mode (a range of rows)                         
+  Alt-m      Mark or unmark the selected row and move down                      
   Space i C  Create a sub-task of the selected issue                            
-                                                                                
-                                                                                
  HELP                                Tab page  / filter  j down  k up  Esc close

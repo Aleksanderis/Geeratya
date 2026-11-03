@@ -113,3 +113,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 ## 2026-11-03 (later)
 
 **Process:** Milestones renumbered again (owner decision): Keymap and discoverability is M4 and runs first, Scrum M5, More views M6, Release M7; issue numbers unchanged. Older text saying "M4" meant Scrum and "M6" meant Keymap.
+
+## 2026-11-03 (Visual mode)
+
+**UI:** Visual mode (#393) is a state of the tab (`TabState.VisualAnchor`) over Normal mode, not an `InputMode` of its own as in Gitunia (`VisualReducer`, key mode Visual). Why: Geeratya's Visual keys are exactly the Normal keys (motions extend the range, write keys act on the set), so a second mode would duplicate every Normal row and every Normal-only check for no difference in behaviour; the badge still reads `VISUAL`. Revisit if Visual ever needs keys Normal must not have. Rank steps refuse a set until a follow-up adds the block move.

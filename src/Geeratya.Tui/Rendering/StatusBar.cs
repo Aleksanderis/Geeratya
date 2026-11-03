@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Selection;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -326,7 +327,15 @@ public static class StatusBar
 
     private static string Badge(AppState state)
     {
-        return state.MessagesOpen && state.Mode == InputMode.Help ? "MESSAGES" : Badge(state.Mode);
+        if (state.MessagesOpen && state.Mode == InputMode.Help)
+        {
+            return "MESSAGES";
+        }
+
+        // Visual mode is a state of the tab over Normal mode (docs/ux.md, "Modes").
+        var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { VisualAnchor: not null };
+
+        return visual ? "VISUAL" : Badge(state.Mode);
     }
 
     private static string Badge(InputMode mode)
@@ -400,6 +409,11 @@ public static class StatusBar
             return state.Message;
         }
 
+        if (ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } selecting && RowSelection.Count(selecting) > 0)
+        {
+            return SelectedText(selecting);
+        }
+
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
         var line = ConnectionText.Line(state.Session);
 
@@ -409,6 +423,11 @@ public static class StatusBar
         }
 
         return line.Length == 0 ? word : $"{word}{Separator}{line}";
+    }
+
+    private static string SelectedText(TabState tab)
+    {
+        return $"{RowSelection.Count(tab)} selected";
     }
 
     /// <summary>The typed count and keys of a multi-key binding: <c>3</c>, <c>g</c>, <c>3 Space k</c>.</summary>
