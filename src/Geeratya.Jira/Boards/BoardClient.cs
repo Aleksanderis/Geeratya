@@ -100,7 +100,10 @@ public sealed class BoardClient(JiraTransport transport)
         {
             var url = $"{BoardPath}/{Number(boardId)}/{QuickFilterSuffix}?startAt={Number(received)}";
             var request = JiraRequest.Get(url) with { Priority = priority };
-            var result = await transport.SendAsync(request, BoardJsonContext.Default.QuickFilterList, cancellationToken);
+            var result = await transport.SendAsync(
+                request,
+                BoardJsonContext.Default.QuickFilterList,
+                cancellationToken);
 
             if (!result.IsSuccess)
             {

@@ -14,7 +14,7 @@ public static class FakeQuickFilters
     private const string UpdatedClause = "updatedDate >= -1d";
     private const string FieldsName = "fields";
 
-    /// <summary>True when the issue (with a <c>fields</c> object) passes every clause named in <paramref name="jql"/>.</summary>
+    /// <summary>True when the issue passes every clause named in <paramref name="jql"/>.</summary>
     public static bool Matches(JsonNode issue, string jql, string accountId, DateTimeOffset now)
     {
         var fields = issue[FieldsName];
@@ -28,7 +28,11 @@ public static class FakeQuickFilters
         if (jql.Contains(UpdatedClause, StringComparison.OrdinalIgnoreCase))
         {
             var text = fields?["updated"]?.GetValue<string>();
-            var parsed = DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var updated);
+            var parsed = DateTimeOffset.TryParse(
+                text,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var updated);
 
             return parsed && updated >= now.AddDays(-1);
         }

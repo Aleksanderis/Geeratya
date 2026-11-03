@@ -188,6 +188,17 @@ public class BoardViewOptionsTests
     }
 
     [Fact]
+    public void GivenMarkedCards_WhenTheLaneChanges_ThenTheMarksAreDroppedSoNoWriteHitsAHiddenCard()
+    {
+        var lanes = PressKeys(Loaded(Rows()), "Space", "v", "s").State;
+        var marked = lanes with { Session = lanes.Session with { Tabs = [Tab(lanes) with { Marks = ["A-1", "A-3"] }] } };
+
+        var next = PressKeys(marked, "]", "]").State;
+
+        Assert.Empty(Tab(next).Marks);
+    }
+
+    [Fact]
     public void GivenSwimlanes_WhenCyclingPastEpicAndBack_ThenAllCardsShowAgain()
     {
         var state = Loaded(Rows());
@@ -197,7 +208,7 @@ public class BoardViewOptionsTests
         var none = PressKeys(epic.State, "Space", "v", "s");
 
         Assert.Equal(SwimlaneKind.Epic, Tab(epic.State).Swimlane);
-        Assert.Equal("Swimlanes by epic: 1 lanes (]] and [[ change the lane).", epic.State.Message);
+        Assert.Equal("Swimlanes by epic: 1 lane (]] and [[ change the lane).", epic.State.Message);
         Assert.Equal(SwimlaneKind.None, Tab(none.State).Swimlane);
         Assert.Equal(4, ColumnsNavigation.ColumnsOf(Tab(none.State)).Sum(column => column.Rows.Count));
         Assert.Equal(string.Empty, BoardViewOptions.Summary(Tab(none.State), "|"));

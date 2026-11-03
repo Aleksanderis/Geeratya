@@ -363,8 +363,9 @@ public static class ViewReducer
     }
 
     /// <summary>
-    /// The quick filters of the board: kept in the tab while the request is the tab's current one. A filter that is
-    /// switched on but no longer offered is switched off (the next load goes without it).
+    /// The quick filters of the board: kept in the tab (the lookup has no request id; the runner drops the replies
+    /// of an old site). A filter that is switched on but no longer offered is switched off (the next load goes
+    /// without it).
     /// </summary>
     private static AppState QuickFiltersArrived(AppState state, QuickFiltersLoaded loaded, List<Effect> effects)
     {

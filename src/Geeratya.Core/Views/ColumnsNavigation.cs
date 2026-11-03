@@ -126,7 +126,7 @@ public static class ColumnsNavigation
     }
 
     /// <summary>
-    /// Puts the cursor back on the first column and a card of the columns now drawn (another lane was chosen), and
+    /// Drops the marks (they would stay on cards no longer shown), puts the cursor back on the first column and a card of the columns now drawn (another lane was chosen), and
     /// makes the tab's selected row follow it.
     /// </summary>
     public static TabState Resync(TabState tab)
@@ -140,7 +140,7 @@ public static class ColumnsNavigation
             cursor = BoardMotion.Follow(columns, cursor, first, CardsVisible(tab));
         }
 
-        return Follow(tab with { Cursor = null }, columns, cursor);
+        return Follow(tab with { Cursor = null, Marks = [], VisualAnchor = null }, columns, cursor);
     }
 
     private static int CardsVisible(TabState tab)

@@ -143,9 +143,10 @@ public static class BoardViewOptions
         var kind = Swimlanes.Next(tab.Swimlane);
         var grouped = ColumnsNavigation.Resync(tab with { Swimlane = kind, Lane = null });
         var lanes = Swimlanes.Lanes(kind, grouped.Rows);
+        var noun = lanes.Count == 1 ? "lane" : "lanes";
         var text = kind == SwimlaneKind.None
             ? "Swimlanes off."
-            : $"Swimlanes by {Swimlanes.Label(kind)}: {lanes.Count} lanes ({LaneKeysText}).";
+            : $"Swimlanes by {Swimlanes.Label(kind)}: {lanes.Count} {noun} ({LaneKeysText}).";
 
         return new ReduceResult(ViewReducer.Replace(state, grouped) with { Message = text }, _noEffects);
     }

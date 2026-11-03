@@ -160,7 +160,7 @@ public sealed record TabState(
     /// <summary>How the columns layout groups the cards into lanes (#192); one lane is shown at a time.</summary>
     public SwimlaneKind Swimlane { get; init; }
 
-    /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished lane shows the first.</summary>
+    /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
     public string? Lane { get; init; }
 
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>

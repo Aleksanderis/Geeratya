@@ -79,7 +79,7 @@ public static class Swimlanes
         return [.. order.Select(key => new SwimlaneLane(key, names[key], counts[key]))];
     }
 
-    /// <summary>The lane <paramref name="laneKey"/> names, or the first lane when it is null or no longer exists.</summary>
+    /// <summary>The lane <paramref name="laneKey"/> names, or the first lane when it is null or has vanished.</summary>
     public static SwimlaneLane? Current(IReadOnlyList<SwimlaneLane> lanes, string? laneKey)
     {
         if (lanes.Count == 0)

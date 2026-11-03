@@ -13,8 +13,8 @@ namespace Geeratya.Core.Views;
 /// <param name="RequestId">The id the reply must carry.</param>
 /// <param name="Reason">Why the page is loaded.</param>
 /// <param name="Background">Run in the background lane (refreshes) rather than the user lane.</param>
-/// <param name="ExtraJql">The JQL of the switched-on quick filters, null when none (#192); it is not part of the cache key,
-/// so a load with it neither reads nor writes the view cache.</param>
+/// <param name="ExtraJql">The JQL of the switched-on quick filters, null when none (#192). Not part of the cache
+/// key, so a load with it neither reads nor writes the view cache.</param>
 public sealed record LoadViewPageEffect(
     TabId Tab,
     ViewDefinition Definition,
