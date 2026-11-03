@@ -22,6 +22,7 @@ public sealed partial class FakeJiraRouter
     private const string PageTokenName = "nextPageToken";
     private const string JqlName = "jql";
     private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
+    private const string RemoteLinkPart = "remotelink";
     private const string IssuePrefix = "/rest/api/3/issue/";
     private const string Get = "GET";
     private const string Post = "POST";
@@ -234,7 +235,7 @@ public sealed partial class FakeJiraRouter
             2 when parts[1] == "comment" => new FakeReply(
                 200,
                 GeneratedIssues.Comments(number, IntOf(query, StartAtName, 0), IntOf(query, MaxResultsName, DefaultPageSize))),
-            2 when parts[1] == "remotelink" => new FakeReply(200, GeneratedIssues.RemoteLinks(number)),
+            2 when parts[1] == RemoteLinkPart => new FakeReply(200, GeneratedIssues.RemoteLinks(number)),
             _ => null,
         };
     }
@@ -333,6 +334,24 @@ public sealed partial class FakeJiraRouter
         var parts = path[IssuePrefix.Length..].Split('/');
         var key = parts[0];
         var recorded = _routes.TryGetValue(path, out var fixture) ? ReadFixture(fixture) : null;
+
+        if (parts.Length == 1 && _scrum.IssueDetail(key) is { } scrumIssue)
+        {
+            return new FakeReply(200, scrumIssue);
+        }
+
+        if (parts.Length == 2 && _scrum.IssueDetail(key) is not null && !_writes.Knows(key))
+        {
+            if (parts[1] == CommentPart)
+            {
+                return new FakeReply(200, ReadFixture("comments/comments-empty.json"));
+            }
+
+            if (parts[1] == RemoteLinkPart)
+            {
+                return new FakeReply(200, ReadFixture("links/remotelink-list-empty.json"));
+            }
+        }
 
         if (parts.Length == 1)
         {
@@ -564,6 +583,8 @@ public sealed partial class FakeJiraRouter
 
         var key = match.Groups[1].Value;
         var recorded = _routes.TryGetValue(IssuePrefix + key, out var fixture) ? ReadFixture(fixture) : null;
+
+        recorded ??= _scrum.IssueDetail(key);
 
         if ((_writes.Issue(key, recorded) ?? recorded) is not { } bytes)
         {
