@@ -143,9 +143,37 @@ public static class SprintMoveActions
             return Say(state, NothingText);
         }
 
-        var request = new SprintMoveRequest(keys, target, SourceOf(state, keys), dropped);
+        var movable = keys.Where(key => !IsIn(state, key, target)).ToList();
+
+        if (movable.Count == 0)
+        {
+            return Say(state, keys.Count == 1
+                ? $"That issue is already in {TargetName(target)}"
+                : $"Those issues are already in {TargetName(target)}");
+        }
+
+        var request = new SprintMoveRequest(movable, target, SourceOf(state, movable), dropped);
 
         return WriteReducer.Reduce(state, new WriteRequested(tab.Id, request, at));
+    }
+
+    // Issues already in the target are left out, so the Confirm dialog counts exactly what will be sent. A row that is
+    // not loaded stays in: Jira decides.
+    private static bool IsIn(AppState state, string key, IssueSprint? target)
+    {
+        if (FindRow(state, key) is not { } row)
+        {
+            return false;
+        }
+
+        var sprint = row.CurrentSprint is { State: SprintState.Active or SprintState.Future } open ? open : null;
+
+        return target is null ? sprint is null : sprint is not null && sprint.Id == target.Id;
+    }
+
+    private static string TargetName(IssueSprint? target)
+    {
+        return target is null ? BacklogText : Quoted(target.Name);
     }
 
     private static IReadOnlyList<string>? KeysOf(AppState state, out string? refusal)
