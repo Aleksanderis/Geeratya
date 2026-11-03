@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Geeratya.Core.Sources;
 
-namespace Geeratya.Tui.PrintFrame;
+namespace Geeratya.App.PrintFrame;
 
 /// <summary>What <c>--print-frame --source</c> opens: a board by name, a JQL query or one issue.</summary>
 public sealed partial record ScreenSource(ScreenSourceKind Kind, string Value)

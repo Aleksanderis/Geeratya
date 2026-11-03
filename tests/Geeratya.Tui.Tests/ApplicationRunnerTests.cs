@@ -1,6 +1,5 @@
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
-using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Tests;
 
@@ -11,7 +10,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, true).Run(["--version"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, true)).Run(["--version"]);
 
         Assert.Equal(0, exitCode);
         Assert.Equal($"geeratya {ApplicationInfo.Version}{Environment.NewLine}", writer.ToString());
@@ -24,7 +23,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run([flag]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run([flag]);
 
         Assert.Equal(0, exitCode);
         Assert.Contains("--print-frame", writer.ToString());
@@ -40,7 +39,7 @@ public class ApplicationRunnerTests
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error).Run([argument]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error)).Run([argument]);
 
         Assert.Equal(2, exitCode);
         Assert.Contains($"'{argument}'", error.ToString());
@@ -54,7 +53,7 @@ public class ApplicationRunnerTests
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error).Run(["--print-frame", "--size", "40x10"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error)).Run(["--print-frame", "--size", "40x10"]);
 
         Assert.Equal(0, exitCode);
         Assert.Equal(string.Empty, error.ToString());
@@ -65,7 +64,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--print-keymap-doc"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(["--print-keymap-doc"]);
 
         Assert.Equal(0, exitCode);
         Assert.Equal(KeymapDocument.RenderMarkdown(DefaultKeymap.Load()), writer.ToString());
@@ -76,7 +75,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run([]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run([]);
 
         Assert.Equal(1, exitCode);
         Assert.Contains("interactive terminal", writer.ToString());
@@ -87,7 +86,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(["--print-frame"]);
 
         var lines = writer.ToString().ReplaceLineEndings("\n").TrimEnd('\n').Split('\n');
 
@@ -106,7 +105,7 @@ public class ApplicationRunnerTests
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error).Run(["--print-frame", flag, value]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error)).Run(["--print-frame", flag, value]);
 
         Assert.Equal(2, exitCode);
         Assert.Contains("Usage:", error.ToString());
@@ -119,8 +118,7 @@ public class ApplicationRunnerTests
         using var writer = new StringWriter();
 
         var exitCode = new ApplicationRunner(
-            writer,
-            true,
+            new RunnerContext(writer, true),
             createProfiles: () => throw new InvalidOperationException("profiles read")).Run(["--help"]);
 
         Assert.Equal(0, exitCode);
@@ -132,7 +130,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--bogus", "--help"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(["--bogus", "--help"]);
 
         Assert.Equal(0, exitCode);
         Assert.Contains("Usage:", writer.ToString());
@@ -145,10 +143,7 @@ public class ApplicationRunnerTests
         using var error = new StringWriter();
 
         var exitCode = new ApplicationRunner(
-            output,
-            true,
-            ColorSupport.TrueColor,
-            error,
+            new RunnerContext(output, true, Error: error),
             () => throw new InvalidOperationException("Cannot locate the user's home directory.")).Run([]);
 
         Assert.NotEqual(0, exitCode);
@@ -161,10 +156,7 @@ public class ApplicationRunnerTests
     {
         using var writer = new StringWriter();
         var runner = new ApplicationRunner(
-            writer,
-            false,
-            ColorSupport.TrueColor,
-            TextWriter.Null,
+            new RunnerContext(writer, false, Error: TextWriter.Null),
             () => throw new InvalidOperationException("no home"));
 
         Assert.Equal(0, runner.Run(["--version"]));

@@ -1,4 +1,4 @@
-namespace Geeratya.Tui.PrintFrame;
+namespace Geeratya.App.PrintFrame;
 
 public enum ScreenSourceKind
 {

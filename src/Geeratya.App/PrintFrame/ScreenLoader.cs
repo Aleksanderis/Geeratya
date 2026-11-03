@@ -1,5 +1,3 @@
-using Geeratya.App;
-using Geeratya.App.PrintFrame;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
@@ -7,9 +5,8 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
-using Geeratya.Tui.Rendering;
 
-namespace Geeratya.Tui.PrintFrame;
+namespace Geeratya.App.PrintFrame;
 
 /// <summary>
 /// Opens a source of a profile in a headless session (reducer plus the Jira load handlers, no terminal) and returns
@@ -26,12 +23,13 @@ public sealed class ScreenLoader
         _transports = transports;
     }
 
+    /// <summary>Opens <paramref name="source"/> and returns the loaded state, sized to <paramref name="viewport"/>.</summary>
     public async Task<AppState> LoadAsync(
         Profile profile,
         AppSettings settings,
         ScreenSource source,
         ViewLayout? layout,
-        FrameSize size,
+        ViewportChanged viewport,
         CancellationToken cancellationToken)
     {
         var tokens = new TokenProvider(new FixedSecretStore(), new EnvironmentReader(_ => null));
@@ -51,11 +49,6 @@ public sealed class ScreenLoader
         {
             state = await session.RunAsync(state, failure);
         }
-
-        var viewport = new ViewportChanged(
-            FrameBuilder.ListRows(size.Height),
-            size.Width,
-            FrameBuilder.BodyHeight(size.Height));
 
         state = await session.RunAsync(state, viewport);
         state = await session.RunAsync(
