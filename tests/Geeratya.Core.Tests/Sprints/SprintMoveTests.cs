@@ -137,11 +137,11 @@ public class SprintMoveTests
     [Fact]
     public void GivenMarksAndACursorElsewhere_WhenMoving_ThenTheCursorRowIsNotAdded()
     {
-        var state = At(Marked(Loaded(), "A-1", "A-2"), "A-5");
+        var state = At(Marked(Loaded(), "A-4", "A-2"), "A-5");
 
         var result = Press(Chord(state, "Space s b").State, "y");
 
-        Assert.Equal(["A-1", "A-2"], Request(result).Keys.OrderBy(key => key));
+        Assert.Equal(["A-2", "A-4"], Request(result).Keys.OrderBy(key => key));
     }
 
     [Fact]
@@ -228,9 +228,11 @@ public class SprintMoveTests
     [Fact]
     public void GivenARunningMove_WhenMovingTheSameIssueAgain_ThenItIsBusy()
     {
-        var started = Chord(At(Loaded(), "A-3"), "Space s b");
+        var state = WithSprints(Loaded());
+        var started = Drag(state, "A-3", SectionLine(state, BacklogFixtures.EmptyFutureId));
+        var yes = Press(started.State, "y");
 
-        var again = Chord(started.State, "Space s b");
+        var again = Drag(yes.State, "A-3", SectionLine(yes.State, BacklogFixtures.FutureId));
 
         Assert.Contains("A-3 is busy", again.State.Message, StringComparison.Ordinal);
     }
@@ -238,7 +240,7 @@ public class SprintMoveTests
     [Fact]
     public void GivenAMoveThatTookSomeIssues_WhenItFails_ThenOnlyTheIssuesNotMovedStayMarkedAndTheTabReloads()
     {
-        var started = Press(Chord(Marked(Loaded(), "A-1", "A-2", "A-3"), "Space s b").State, "y");
+        var started = Press(Chord(Marked(Loaded(), "A-4", "A-2", "A-3"), "Space s b").State, "y");
         var id = started.State.Session.Operations.Single().Id;
         var error = new WriteError(WriteErrorKind.Validation, null, "1 of 3 moved", [], ["x"], null, ["A-2", "A-3"]);
 
@@ -252,7 +254,7 @@ public class SprintMoveTests
     [Fact]
     public void GivenAMoveThatTookSomeIssues_WhenTheCallEndedWithARateLimit_ThenTheTabStillReloads()
     {
-        var started = Press(Chord(Marked(Loaded(), "A-1", "A-2"), "Space s b").State, "y");
+        var started = Press(Chord(Marked(Loaded(), "A-4", "A-2"), "Space s b").State, "y");
         var id = started.State.Session.Operations.Single().Id;
         var error = new WriteError(WriteErrorKind.RateLimited, 429, "slow down", [], ["x"], null, ["A-2"]);
 
@@ -277,13 +279,13 @@ public class SprintMoveTests
     [Fact]
     public void GivenTheOpenIssueAndMarksElsewhere_WhenMoving_ThenOnlyTheOpenIssueMovesAndTheMarksStay()
     {
-        var detail = _reducer.Reduce(At(Marked(Loaded(), "A-1", "A-2"), "A-5"), new KeyPressed("Enter", _now));
+        var detail = _reducer.Reduce(At(Marked(Loaded(), "A-2", "A-3"), "A-4"), new KeyPressed("Enter", _now));
         var opened = Chord(detail.State, "Space s b");
 
         Assert.NotEmpty(Tab(detail.State).Detail);
         var request = Request(opened);
-        Assert.Equal(["A-5"], request.Keys);
-        Assert.Equal(["A-1", "A-2"], Tab(opened.State).Marks);
+        Assert.Equal(["A-4"], request.Keys);
+        Assert.Equal(["A-2", "A-3"], Tab(opened.State).Marks);
     }
 
     [Fact]
@@ -375,6 +377,69 @@ public class SprintMoveTests
         Assert.NotEqual(InputMode.Confirm, result.State.Mode);
         Assert.Empty(result.Effects);
         Assert.NotNull(Tab(result.State).VisualAnchor);
+    }
+
+    [Fact]
+    public void GivenMarksSpanningTheTargetSection_WhenDropped_ThenIssuesAlreadyThereAreLeftOutOfTheQuestionAndRequest()
+    {
+        var state = WithSprints(Marked(Loaded(), "A-2", "A-3"));
+        var home = Tab(state).Rows.Single(row => row.Key == "A-3").CurrentSprint!.Id;
+
+        var result = Drag(state, "A-2", SectionLine(state, home));
+
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Contains("Move A-2 from", result.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Equal(["A-2"], Request(Press(result.State, "y")).Keys);
+    }
+
+    [Fact]
+    public void GivenOneIssueAlreadyInTheBacklog_WhenMovingToTheBacklog_ThenItSaysSoAndSendsNothing()
+    {
+        var result = Chord(At(Loaded(), "A-5"), "Space s b");
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("That issue is already in the backlog", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenRowsWithoutSprintData_WhenMovingToTheBacklog_ThenNothingIsFilteredAndJiraDecides()
+    {
+        var state = Loaded();
+        var tab = Tab(state);
+        var rows = tab.Rows.Select(row => row with { Sprints = [] }).ToArray();
+        state = Marked(Replace(state, tab with { Rows = rows }), "A-2", "A-3");
+
+        var result = Chord(state, "Space s b");
+
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Contains("Move 2 issues", result.State.Confirm!.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenOnlyIssuesAlreadyInTheBacklog_WhenMovingToTheBacklog_ThenNothingIsAskedOrSent()
+    {
+        var state = Marked(Loaded(), "A-3");
+        var backlog = Tab(state).Rows.First(row => row.CurrentSprint is null).Key;
+        state = Marked(state, backlog);
+
+        var result = Chord(state, "Space s b");
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("already in the backlog", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenMarksPartlyInTheBacklog_WhenMovingToTheBacklog_ThenOnlyTheSprintIssuesAreSent()
+    {
+        var state = Loaded();
+        var backlog = Tab(state).Rows.First(row => row.CurrentSprint is null).Key;
+        state = Marked(state, "A-3", backlog);
+
+        var result = Chord(state, "Space s b");
+
+        Assert.Equal(["A-3"], Request(result).Keys);
     }
 
     private ReduceResult Drag(AppState state, string fromKey, int toLine)
