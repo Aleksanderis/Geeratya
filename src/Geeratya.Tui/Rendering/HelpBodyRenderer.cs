@@ -38,7 +38,9 @@ public sealed class HelpBodyRenderer : IBodyRenderer
             lines.Add(StyledLine.Of($"{FilterPrefix}{state.HelpFilter}{cursor}", TextRole.Strong));
         }
 
-        lines.AddRange(HelpPages.Lines(state, context.Keymap).Skip(state.HelpScroll).Select(line => StyledLine.Of(line)));
+        var page = HelpPages.Lines(state, context.Keymap).Skip(state.HelpScroll);
+
+        lines.AddRange(page.Select(line => StyledLine.Of(line)));
 
         return lines;
     }
@@ -54,7 +56,9 @@ public sealed class HelpBodyRenderer : IBodyRenderer
         {
             var cells = DisplayWidth.Of(names[index]);
 
-            regions.Add(new OverlayRegion(MouseTarget.HelpPage, PageRow, column, Math.Min(cells, width - column), 1, index));
+            var visible = Math.Min(cells, width - column);
+
+            regions.Add(new OverlayRegion(MouseTarget.HelpPage, PageRow, column, visible, 1, index));
             column += cells + PageSeparator.Length;
         }
 

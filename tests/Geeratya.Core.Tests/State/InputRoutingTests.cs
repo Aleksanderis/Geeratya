@@ -30,6 +30,22 @@ public class InputRoutingTests
         Assert.Equal(string.Empty, result.State.PendingKeys);
     }
 
+    [Theory]
+    [InlineData("q", KeyRouteKind.HelpFilter)]
+    [InlineData("j", KeyRouteKind.HelpFilter)]
+    [InlineData("Enter", KeyRouteKind.HelpFilter)]
+    [InlineData("Ctrl-c", KeyRouteKind.Action)]
+    public void GivenTheHelpFilterIsTyped_WhenAKeyArrives_ThenTheFilterTakesItExceptTheQuitKey(
+        string key,
+        KeyRouteKind expected)
+    {
+        var state = AppState.Initial with { Mode = InputMode.Help, HelpFiltering = true };
+
+        var route = InputRouting.Route(state, key, DefaultKeymap.Load());
+
+        Assert.Equal(expected, route.Kind);
+    }
+
     [Fact]
     public void GivenCommandMode_WhenTypingChordKeys_ThenTheyAreTextAndNeverFireChords()
     {

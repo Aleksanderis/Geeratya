@@ -16,7 +16,9 @@ public static class HelpReducer
     private const string NextPageKey = "Tab";
     private const string PreviousPageKey = "Shift-Tab";
 
-    /// <summary>True while the filter line is typed and takes the printable keys (the Messages overlay has no filter).</summary>
+    /// <summary>
+    /// True while the filter line is typed and takes the printable keys (the Messages overlay has no filter).
+    /// </summary>
     public static bool TakesKeys(AppState state)
     {
         return state is { Mode: InputMode.Help, HelpFiltering: true, MessagesOpen: false };

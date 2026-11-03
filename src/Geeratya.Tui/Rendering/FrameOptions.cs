@@ -50,7 +50,10 @@ public static class FrameOptions
         };
     }
 
-    /// <summary>Parses the first visible help line or the help page index; null input gives 0, a negative or invalid number gives null.</summary>
+    /// <summary>
+    /// Parses the first visible help line or the help page index; null input gives 0, a negative or invalid number
+    /// gives null.
+    /// </summary>
     public static int? ParseScroll(string? text)
     {
         if (text is null)

@@ -19,7 +19,8 @@ public sealed class ApplicationRunner
     private const string LevelFlag = "--command-level";
 
     private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
-        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpPageFlag} <page>] [{HelpScrollFlag} <line>] (page and scroll need --mode help) "
+        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpPageFlag} <page>] "
+        + $"[{HelpScrollFlag} <line>] (page and scroll need --mode help) "
         + $"[{LevelFlag} everyday|advanced]";
 
     private readonly TextWriter _output;

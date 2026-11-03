@@ -3,6 +3,48 @@ namespace Geeratya.Core.Keymap;
 /// <summary>Every action a key can run, with its title.</summary>
 public static class ActionCatalog
 {
+    private static readonly Dictionary<string, ActionScope> _scopes = new()
+    {
+        [ActionIds.NavigateDown] = ActionScope.Views,
+        [ActionIds.NavigateUp] = ActionScope.Views,
+        [ActionIds.NavigateTop] = ActionScope.Views,
+        [ActionIds.NavigateBottom] = ActionScope.Views,
+        [ActionIds.NavigatePageDown] = ActionScope.Views,
+        [ActionIds.NavigatePageUp] = ActionScope.Views,
+        [ActionIds.NavigateLeft] = ActionScope.Columns,
+        [ActionIds.NavigateRight] = ActionScope.Columns,
+        [ActionIds.NavigateFirstColumn] = ActionScope.Columns,
+        [ActionIds.NavigateLastColumn] = ActionScope.Columns,
+        [ActionIds.ItemOpen] = ActionScope.Views,
+        [ActionIds.SectionNext] = ActionScope.Detail,
+        [ActionIds.SectionPrevious] = ActionScope.Detail,
+        [ActionIds.ContextMenuOpen] = ActionScope.Views,
+        [ActionIds.ViewLayoutToggle] = ActionScope.Lists,
+        [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
+        [ActionIds.IssueOpenParent] = ActionScope.Detail,
+        [ActionIds.IssueEdit] = ActionScope.Views,
+        [ActionIds.IssueAssign] = ActionScope.Views,
+        [ActionIds.IssueAssignMe] = ActionScope.Views,
+        [ActionIds.IssueTransition] = ActionScope.Views,
+        [ActionIds.IssueTransitionNext] = ActionScope.Columns,
+        [ActionIds.IssueTransitionPrevious] = ActionScope.Columns,
+        [ActionIds.RankUp] = ActionScope.Lists,
+        [ActionIds.RankDown] = ActionScope.Lists,
+        [ActionIds.RankTop] = ActionScope.Lists,
+        [ActionIds.RankBottom] = ActionScope.Lists,
+        [ActionIds.RankTo] = ActionScope.Lists,
+        [ActionIds.IssueDelete] = ActionScope.Views,
+        [ActionIds.IssueCreateSubtask] = ActionScope.Views,
+        [ActionIds.IssueLink] = ActionScope.Views,
+        [ActionIds.IssueUnlink] = ActionScope.Detail,
+        [ActionIds.CommentAdd] = ActionScope.Detail,
+        [ActionIds.CommentEdit] = ActionScope.Detail,
+        [ActionIds.CommentDelete] = ActionScope.Detail,
+    };
+
+    /// <summary>The ids the scope table names (for the test that checks them against the catalog).</summary>
+    public static IReadOnlyCollection<string> ScopedIds => _scopes.Keys;
+
     public static IReadOnlyList<ActionDefinition> All { get; } =
     [
         new(ActionIds.NavigateDown, "Move down"),
@@ -137,45 +179,6 @@ public static class ActionCatalog
         ActionIds.FormOpenBrowser,
     ];
 
-    private static readonly Dictionary<string, ActionScope> _scopes = new()
-    {
-        [ActionIds.NavigateDown] = ActionScope.Views,
-        [ActionIds.NavigateUp] = ActionScope.Views,
-        [ActionIds.NavigateTop] = ActionScope.Views,
-        [ActionIds.NavigateBottom] = ActionScope.Views,
-        [ActionIds.NavigatePageDown] = ActionScope.Views,
-        [ActionIds.NavigatePageUp] = ActionScope.Views,
-        [ActionIds.NavigateLeft] = ActionScope.Columns,
-        [ActionIds.NavigateRight] = ActionScope.Columns,
-        [ActionIds.NavigateFirstColumn] = ActionScope.Columns,
-        [ActionIds.NavigateLastColumn] = ActionScope.Columns,
-        [ActionIds.ItemOpen] = ActionScope.Views,
-        [ActionIds.SectionNext] = ActionScope.Detail,
-        [ActionIds.SectionPrevious] = ActionScope.Detail,
-        [ActionIds.ContextMenuOpen] = ActionScope.Views,
-        [ActionIds.ViewLayoutToggle] = ActionScope.Lists,
-        [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
-        [ActionIds.IssueOpenParent] = ActionScope.Detail,
-        [ActionIds.IssueEdit] = ActionScope.Views,
-        [ActionIds.IssueAssign] = ActionScope.Views,
-        [ActionIds.IssueAssignMe] = ActionScope.Views,
-        [ActionIds.IssueTransition] = ActionScope.Views,
-        [ActionIds.IssueTransitionNext] = ActionScope.Columns,
-        [ActionIds.IssueTransitionPrevious] = ActionScope.Columns,
-        [ActionIds.RankUp] = ActionScope.Lists,
-        [ActionIds.RankDown] = ActionScope.Lists,
-        [ActionIds.RankTop] = ActionScope.Lists,
-        [ActionIds.RankBottom] = ActionScope.Lists,
-        [ActionIds.RankTo] = ActionScope.Lists,
-        [ActionIds.IssueDelete] = ActionScope.Views,
-        [ActionIds.IssueCreateSubtask] = ActionScope.Views,
-        [ActionIds.IssueLink] = ActionScope.Views,
-        [ActionIds.IssueUnlink] = ActionScope.Detail,
-        [ActionIds.CommentAdd] = ActionScope.Detail,
-        [ActionIds.CommentEdit] = ActionScope.Detail,
-        [ActionIds.CommentDelete] = ActionScope.Detail,
-    };
-
     public static bool IsModalOnly(string id)
     {
         return ModalOnly.Contains(id);
@@ -232,9 +235,6 @@ public static class ActionCatalog
     {
         return _scopes.GetValueOrDefault(id, ActionScope.Global);
     }
-
-    /// <summary>The ids the scope table names (for the test that checks them against the catalog).</summary>
-    public static IReadOnlyCollection<string> ScopedIds => _scopes.Keys;
 
     /// <summary>
     /// The command level of an action; an id the catalog does not know counts as everyday, so a stray id is

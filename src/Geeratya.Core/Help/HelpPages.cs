@@ -6,8 +6,8 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.Help;
 
 /// <summary>
-/// The pages of the help overlay (<c>docs/ux.md</c>, "Help"), generated from the keymap and the action catalog and never
-/// written by hand: the keys of the active layout, Global, every action, the palette commands and, when a
+/// The pages of the help overlay (<c>docs/ux.md</c>, "Help"), generated from the keymap and the action catalog and
+/// never written by hand: the keys of the active layout, Global, every action, the palette commands and, when a
 /// <c>keymap.json</c> changed something, Custom. Pure.
 /// </summary>
 public static class HelpPages
@@ -22,7 +22,10 @@ public static class HelpPages
     private const int KeyColumnWidth = 10;
     private const string OthersSeparator = ", ";
 
-    /// <summary>The page names in order: the active layout (when a tab is open), Global, All actions, Commands, Custom (when used).</summary>
+    /// <summary>
+    /// The page names in order: the active layout (when a tab is open), Global, All actions, Commands, Custom (when
+    /// used).
+    /// </summary>
     public static IReadOnlyList<string> Names(AppState state, KeymapTable keymap)
     {
         var names = new List<string>();
@@ -44,7 +47,9 @@ public static class HelpPages
         return names;
     }
 
-    /// <summary>The index of the page that shows: <see cref="AppState.HelpPage"/> kept inside the pages that exist.</summary>
+    /// <summary>
+    /// The index of the page that shows: <see cref="AppState.HelpPage"/> kept inside the pages that exist.
+    /// </summary>
     public static int Current(AppState state, KeymapTable keymap)
     {
         return Math.Clamp(state.HelpPage, 0, Names(state, keymap).Count - 1);
@@ -220,7 +225,8 @@ public static class HelpPages
                 continue;
             }
 
-            var mode = row.Mode == InputMode.Normal ? string.Empty : $" [{row.Mode.ToString().ToLowerInvariant()} mode]";
+            var modeName = row.Mode.ToString().ToLowerInvariant();
+            var mode = row.Mode == InputMode.Normal ? string.Empty : $" [{modeName} mode]";
 
             lines.Add(row.Action is null
                 ? $"{RowIndent}Unbound: {row.Keys}{mode}"
