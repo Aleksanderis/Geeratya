@@ -204,6 +204,47 @@ public class SprintSwitcherTests
         Assert.Equal(InputMode.Normal, status.State.Mode);
     }
 
+    [Theory]
+    [InlineData("status")]
+    [InlineData("status next")]
+    [InlineData("assign")]
+    [InlineData("assign-me")]
+    [InlineData("edit")]
+    [InlineData("estimate")]
+    [InlineData("create")]
+    public void GivenAClosedSprintTab_WhenAWriteCommandIsTyped_ThenItIsRefusedAsReadOnly(string command)
+    {
+        var closed = WithSprint(Open(Start(), SprintView(1, "Closed 1")), SprintState.Closed);
+
+        var result = Type(Press(closed, ":").State, command);
+        var run = Press(result, "Enter");
+
+        Assert.Equal(ClosedSprintGate.Refusal, run.State.Message);
+        Assert.Equal(InputMode.Normal, run.State.Mode);
+        Assert.Null(run.State.Form);
+    }
+
+    [Fact]
+    public void GivenAClosedSprintTab_WhenALinkKeyIsPressed_ThenItIsRefused()
+    {
+        var closed = WithSprint(Open(Start(), SprintView(1, "Closed 1")), SprintState.Closed);
+
+        var unlink = Press(Press(Press(closed, "Space"), "i"), "u");
+
+        Assert.Equal(ClosedSprintGate.Refusal, unlink.State.Message);
+    }
+
+    [Fact]
+    public void GivenLoadedSprints_WhenALateFailureArrives_ThenTheListKeepsItsErrorFreeState()
+    {
+        var picker = Loaded(OnBoard(), Sprints(closed: 1));
+
+        var result = _reducer.Reduce(picker, new SprintsFailed(BoardId, new JiraError(JiraErrorKind.Network, null, "x")));
+
+        Assert.Null(result.State.Picker!.Sprint!.Error);
+        Assert.NotNull(result.State.Picker.Sprint.Sprints);
+    }
+
     [Fact]
     public void GivenAnActiveSprintTab_WhenAWriteKeyIsPressed_ThenItIsNotRefused()
     {

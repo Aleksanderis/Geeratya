@@ -7,7 +7,6 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Jump;
-using Geeratya.Core.Sprints;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Links;
@@ -15,6 +14,7 @@ using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -340,6 +340,11 @@ public sealed class AppReducer
         if (resolution.Action is { } written && SelectionActions.Refusal(cleared, written) is { } refusal)
         {
             return Result(cleared with { Message = refusal });
+        }
+
+        if (resolution.Action is { } keyed && ClosedSprintGate.Refuses(cleared, keyed))
+        {
+            return Result(cleared with { Message = ClosedSprintGate.Refusal });
         }
 
         if (resolution.Action == ActionIds.IssueUnlink)
@@ -873,6 +878,11 @@ public sealed class AppReducer
     {
         var text = state.PaletteText.Trim();
         var normal = ToNormal(state);
+
+        if (ClosedSprintGate.RefusesCommand(state, text))
+        {
+            return Result(normal with { Message = ClosedSprintGate.Refusal });
+        }
 
         return text switch
         {

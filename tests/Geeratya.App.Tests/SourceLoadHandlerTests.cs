@@ -55,6 +55,38 @@ public sealed class SourceLoadHandlerTests
         Assert.DoesNotContain("state=", request.Query, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(6, "scrum/sprints-gcs.json", 4)]
+    [InlineData(5, "scrum/sprints-gts.json", 3)]
+    public async Task GivenRecordedSprintsOfBothScrumKinds_WhenLoaded_ThenEveryStateIsPosted(
+        long board,
+        string fixtureFile,
+        int minimum)
+    {
+        using var fixture = await ConnectedAsync(
+            http => http.Reply(HttpStatusCode.OK, RecordedFixtures.Read(fixtureFile)));
+
+        await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(board));
+
+        var loaded = Assert.IsType<SprintsLoaded>(Assert.Single(fixture.Posted));
+        Assert.True(loaded.Sprints.Count >= minimum);
+        Assert.Contains(loaded.Sprints, sprint => sprint.State == SprintState.Closed);
+        Assert.Contains(loaded.Sprints, sprint => sprint.State == SprintState.Active);
+    }
+
+    [Fact]
+    public async Task GivenAKanbanBoardOfUnknownKind_WhenSprintsAreRequested_ThenTheFailureIsPostedWithJirasMessage()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http.Reply(HttpStatusCode.BadRequest, RecordedFixtures.Read("scrum/error-sprints-gcm-kanban-400.json")));
+
+        await fixture.Handler.StartSprintsAsync(new LoadSprintsEffect(4));
+
+        var failed = Assert.IsType<SprintsFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(JiraErrorKind.BadRequest, failed.Error.Kind);
+        Assert.False(string.IsNullOrWhiteSpace(failed.Error.Message));
+    }
+
     [Fact]
     public async Task GivenSprintsReplyForbidden_WhenLoaded_ThenAFailureForTheBoardIsPosted()
     {

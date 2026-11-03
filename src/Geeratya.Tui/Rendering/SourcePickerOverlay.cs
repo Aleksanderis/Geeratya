@@ -79,7 +79,7 @@ public static class SourcePickerOverlay
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
         var first = FirstVisible(rows, area);
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, picker.Scope == PickerScope.Sprints ? SprintTitle : Title), OverlayBox.Wall(Prompt(picker), contentWidth) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker), contentWidth) };
 
         foreach (var line in rows.Lines.Skip(first).Take(Math.Max(0, area)))
         {
@@ -102,6 +102,11 @@ public static class SourcePickerOverlay
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;
+    }
+
+    private static string TitleOf(SourcePickerState picker)
+    {
+        return picker.Scope == PickerScope.Sprints ? SprintTitle : Title;
     }
 
     private static int FirstVisible(PickerRows rows, int area)

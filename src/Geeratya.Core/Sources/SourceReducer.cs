@@ -292,7 +292,8 @@ public static class SourceReducer
         var updated = command switch
         {
             SprintsLoaded loaded when loaded.BoardId == data.BoardId => data with { Sprints = loaded.Sprints, Error = null },
-            SprintsFailed failed when failed.BoardId == data.BoardId => data with { Error = LoadErrorText.For(failed.Error) },
+            SprintsFailed failed when failed.BoardId == data.BoardId && data.Sprints is null
+                => data with { Error = LoadErrorText.For(failed.Error) },
             _ => data,
         };
 
