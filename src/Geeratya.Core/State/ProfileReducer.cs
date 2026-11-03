@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Startup;
 using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
@@ -347,7 +348,7 @@ public static class ProfileReducer
             effects.Add(new CheckConnectionEffect(current));
         }
 
-        return new ReduceResult(replaced, effects);
+        return StartupReducer.Begin(new ReduceResult(replaced, effects));
     }
 
     /// <summary>
@@ -381,7 +382,7 @@ public static class ProfileReducer
             checkedState = checkedState with { Session = checkedState.Session with { Link = new Online() } };
         }
 
-        return Plain(checkedState);
+        return StartupReducer.Connected(Plain(checkedState));
     }
 
     /// <summary>A failure for a profile that is no longer active is dropped.</summary>

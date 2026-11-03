@@ -13,6 +13,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 | `commandlevel` | `commandLevel` | everyday or advanced | `everyday` | Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |
 | `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
+| `startup.restore` | `startup.restore` | on or off | `on` | Reopen the tabs of the last run on start; off starts on the board picker every time. |
 
 ## Command level
 

@@ -4,6 +4,7 @@ using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
+using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
@@ -376,6 +377,11 @@ public static class ViewReducer
             return state;
         }
 
+        if (tab.AwaitingFilters)
+        {
+            return FiltersForFirstPage(state, tab, loaded, effects);
+        }
+
         if (loaded.Failure is not null)
         {
             return state with { Message = loaded.Failure, MessageSeverity = StatusSeverity.Warning };
@@ -395,6 +401,78 @@ public static class ViewReducer
         effects.AddRange(applied.Effects);
 
         return applied.State;
+    }
+
+    /// <summary>
+    /// The filters a restored tab waited for arrived (or failed): its first page now loads with their clauses, or
+    /// without any when they are gone.
+    /// </summary>
+    private static AppState FiltersForFirstPage(AppState state, TabState tab, QuickFiltersLoaded loaded, List<Effect> effects)
+    {
+        var known = loaded.Failure is null;
+
+        // A failed lookup keeps the remembered ids (the file must not lose them over one offline start).
+        var active = known
+            ? tab.ActiveQuickFilters.Where(id => loaded.Filters.Any(filter => filter.Id == id)).ToArray()
+            : tab.ActiveQuickFilters;
+
+        if (tab.Load is not Loading { Reason: LoadReason.Open })
+        {
+            return Replace(state, tab with { AwaitingFilters = false });
+        }
+
+        var ready = tab with
+        {
+            AwaitingFilters = false,
+            QuickFilters = known ? loaded.Filters : [],
+            QuickFiltersKnown = known,
+            ActiveQuickFilters = active,
+        };
+
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                tab.Definition,
+                null,
+                tab.RequestId,
+                LoadReason.Open,
+                false,
+                QuickFilterJql.For(ready)));
+
+        var stored = Replace(state, ready);
+
+        return known ? stored : stored with { Message = loaded.Failure, MessageSeverity = StatusSeverity.Warning };
+    }
+
+    /// <summary>
+    /// Reopens the remembered tabs without loading any of them but the active one (the others load when shown, from
+    /// the cache first). The tabs are marked <see cref="TabState.Restored"/>.
+    /// </summary>
+    internal static AppState Restore(AppState state, IReadOnlyList<RestoredTab> restored, int active, List<Effect> effects)
+    {
+        var sequence = state.Sequence;
+        var tabs = new List<TabState>();
+
+        foreach (var entry in restored)
+        {
+            var id = new TabId(++sequence);
+            var opened = TabState.Opened(id, entry.Definition, 0, ++sequence, state.ViewportRows);
+
+            tabs.Add(
+                opened with
+                {
+                    Load = LoadState.Idle,
+                    Cold = true,
+                    Restored = true,
+                    ActiveQuickFilters = entry.QuickFilters,
+                    Swimlane = entry.Swimlane,
+                    Lane = entry.Lane,
+                });
+        }
+
+        var shown = WithSession(state, tabs, null, sequence);
+
+        return Show(shown, tabs[Math.Clamp(active, 0, tabs.Count - 1)].Id, effects);
     }
 
     /// <summary>The sprint of a Sprint view: kept in the tab while the request is the tab's current one.</summary>
@@ -995,6 +1073,7 @@ public static class ViewReducer
             RequestId = 0,
             IsStale = false,
             LoadedAt = loaded.At,
+            Restored = false,
             PendingRows = null,
             ProtectedKeys = [],
             ProtectedRows = [],
@@ -1178,15 +1257,25 @@ public static class ViewReducer
             var requestId = ++sequence;
 
             shown = shown with { Cold = false, Load = new Loading(LoadReason.Open), RequestId = requestId };
-            effects.Add(
-                new LoadViewPageEffect(
-                    id,
-                    tab.Definition,
-                    null,
-                    requestId,
-                    LoadReason.Open,
-                    false,
-                    QuickFilterJql.For(tab)));
+
+            if (tab.ActiveQuickFilters.Count > 0 && !tab.QuickFiltersKnown)
+            {
+                // A restored tab: the first page needs the filter clauses, so the filters are read first.
+                shown = shown with { AwaitingFilters = true };
+                effects.Add(new LoadQuickFiltersEffect(id, tab.Definition, false));
+            }
+            else
+            {
+                effects.Add(
+                    new LoadViewPageEffect(
+                        id,
+                        tab.Definition,
+                        null,
+                        requestId,
+                        LoadReason.Open,
+                        false,
+                        QuickFilterJql.For(tab)));
+            }
         }
 
         var session = state.Session with { Active = id };

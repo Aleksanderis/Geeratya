@@ -127,7 +127,7 @@ public sealed class ConnectionCheckHandlerTests : IDisposable
         var changed = new ProfilesChanged(ProfileCatalog.Empty.With(_a), "Added.");
 
         var added = reducer.Reduce(AppState.Initial, changed);
-        var effect = Assert.IsType<CheckConnectionEffect>(Assert.Single(added.Effects));
+        var effect = Assert.Single(added.Effects.OfType<CheckConnectionEffect>());
 
         await handler.StartAsync(effect);
 

@@ -1,5 +1,6 @@
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Startup;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 
@@ -40,6 +41,9 @@ public sealed record SiteSession(
     /// Issue keys opened on this site, newest first, for the jump prompt's completion. Dropped with the session.
     /// </summary>
     public IReadOnlyList<string> RecentKeys { get; init; } = [];
+
+    /// <summary>Where the start of this session is (reading the remembered tabs, choosing the first view).</summary>
+    public StartupPhase Startup { get; init; }
 
     public static SiteSession None { get; } = new(null, null, [], null, new Online(), new Unchecked(), SourceLists.Empty);
 

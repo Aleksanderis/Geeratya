@@ -168,6 +168,18 @@ public sealed record TabState(
     /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
     public string? Lane { get; init; }
 
+    /// <summary>
+    /// The tab came back from the remembered tabs and has not loaded from the network yet: a board that no longer
+    /// exists drops it instead of showing an error.
+    /// </summary>
+    public bool Restored { get; init; }
+
+    /// <summary>
+    /// The first page waits for the quick filters of the board (a restored tab with filters on): their clauses are
+    /// part of the first request.
+    /// </summary>
+    public bool AwaitingFilters { get; init; }
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

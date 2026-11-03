@@ -16,6 +16,7 @@ using Geeratya.Core.Mouse;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
+using Geeratya.Core.Startup;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -55,7 +56,9 @@ public sealed class AppReducer
 
     public ReduceResult Reduce(AppState state, Command command)
     {
-        var result = ChordEnded(GuardConfirm(state, ReduceCommand(state, command)));
+        var result = StartupReducer.Persisted(
+            state,
+            ChordEnded(GuardConfirm(state, ReduceCommand(state, command))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
         return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
@@ -136,10 +139,14 @@ public sealed class AppReducer
                 PendingKeys = string.Empty,
             }),
             TextPasted pasted => Pasted(state, pasted.Text),
+            ViewLoadFailed failed => StartupReducer.AfterLoadFailed(state, failed, ViewReducer.Reduce(state, failed)),
             ViewCommand view => ViewReducer.Reduce(state, view),
             FormCommand form => EditorSuggestions.Reply(state, form) ?? FormReducer.Reduce(state, form),
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
+            StartupRequested => StartupReducer.Begin(Result(state)),
+            TabsLoaded loaded => StartupReducer.Loaded(state, loaded),
+            TabsSaveFailed failed => Result(StatusMessages.Warn(state, failed.Message)),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             ProfileTested tested => ProfileReducer.Tested(state, tested),

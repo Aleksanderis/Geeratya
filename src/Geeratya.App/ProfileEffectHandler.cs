@@ -103,6 +103,7 @@ public sealed class ProfileEffectHandler
         DeleteQuietly(() => _services.BoardKinds.Delete(profile));
         DeleteQuietly(() => _services.Histories.Delete(profile));
         DeleteQuietly(() => _services.SavedViews?.Delete(profile));
+        DeleteQuietly(() => _services.Tabs?.Delete(profile));
     }
 
     /// <summary>
