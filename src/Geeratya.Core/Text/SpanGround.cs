@@ -16,8 +16,8 @@ public enum SpanGround
     Dim = 2,
 
     /// <summary>
-    /// On the selected row: the span keeps its own colours over the selection tint (a whole-row selection role
-    /// where the tier has no tint to draw).
+    /// On the selected row: the span keeps its own colours over the selection tint; without colour the whole
+    /// row is reversed.
     /// </summary>
     Selection = 4,
 

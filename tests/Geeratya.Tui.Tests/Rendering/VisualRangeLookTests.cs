@@ -122,6 +122,20 @@ public class VisualRangeLookTests
         Assert.True(style.HasFlag(RoleStyle.Bold));
     }
 
+    [Theory]
+    [MemberData(nameof(Themes))]
+    public void GivenARowBehindAnOverlay_WhenResolvingTheTint_ThenItsTextIsDimmedLikeTheRestOfTheView(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var ground = SpanGround.Range | SpanGround.Dim;
+
+        var lit = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body, SpanGround.Range, true);
+        var dimmed = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body, ground, true);
+
+        Assert.Equal(lit.Background, dimmed.Background);
+        Assert.NotEqual(lit.Foreground, dimmed.Foreground);
+    }
+
     [Fact]
     public void GivenTheRangeTextRole_WhenMappingIt_ThenItUsesTheRangePaletteRole()
     {

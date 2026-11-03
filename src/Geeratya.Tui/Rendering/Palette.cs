@@ -32,7 +32,7 @@ public static class Palette
 
         return (ground & (SpanGround.Selection | SpanGround.Range | SpanGround.Cursor)) == 0
             ? style
-            : Tinted(theme, tier, style, ground);
+            : Tinted(theme, tier, style, ground, faintSupported);
     }
 
     private static ResolvedStyle ResolveRole(
@@ -71,7 +71,12 @@ public static class Palette
     // A span on the selected row or in the Visual range keeps its own colours over the tint where they stay readable
     // (contrast 3.0), else it takes the tint's text colour. Without colour the whole row is the selection role
     // (reversed). The cursor row of a range is underlined in every tier.
-    private static ResolvedStyle Tinted(Theme theme, ColorSupport tier, ResolvedStyle style, SpanGround ground)
+    private static ResolvedStyle Tinted(
+        Theme theme,
+        ColorSupport tier,
+        ResolvedStyle style,
+        SpanGround ground,
+        bool faintSupported)
     {
         var underline = ground.HasFlag(SpanGround.Cursor) ? RoleStyle.Underline : RoleStyle.None;
 
@@ -80,7 +85,8 @@ public static class Palette
             return style with { Style = style.Style | underline };
         }
 
-        var tint = Resolve(theme, tier, ground.HasFlag(SpanGround.Range) ? PaletteRole.Range : PaletteRole.Selected);
+        var tintRole = ground.HasFlag(SpanGround.Range) ? PaletteRole.Range : PaletteRole.Selected;
+        var tint = Resolve(theme, tier, tintRole, ground & SpanGround.Dim, faintSupported);
 
         switch (tier)
         {
