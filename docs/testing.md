@@ -103,7 +103,7 @@ For screenshots and manual tmux runs use the same pattern (`testing` skill, "Dri
 
 ## Print frame against the fake
 
-`geeratya --print-frame --size WxH --colors truecolor|16|none --source board:<name>|jql:<query>|issue:<KEY> [--layout list|columns] [--profile <name>]` draws a real screen without a terminal (`docs/ux.md`, "Print frame"): start `fakejira` (with `--fixtures`, see above), seed a profile whose site is its address into a private `XDG_CONFIG_HOME`, and run it with `GEERATYA_LIVE_HOSTS=127.0.0.1`. It is the cheap way to look at colours and layouts; the tmux pipeline below is for keys and the live shell. A site outside `GEERATYA_LIVE_HOSTS` is refused before any request. Tests: `PrintFrameTests` (ANSI snapshots per tier `ansi-<tier>-60x12.txt`, the refusal, a board through the in-process Jira fake).
+`geeratya --print-frame --size WxH --colors truecolor|16|none --source board:<name>|jql:<query>|issue:<KEY> [--layout list|columns] [--profile <name>]` draws a real screen without a terminal (`docs/ux.md`, "Print frame"): start `fakejira` (see above), seed a profile whose site is its address into a private `XDG_CONFIG_HOME`, and run it with `GEERATYA_LIVE_HOSTS=127.0.0.1`. It is the cheap way to look at colours and layouts; the tmux pipeline below is for keys and the live shell. A site outside `GEERATYA_LIVE_HOSTS` is refused before any request. Tests: `PrintFrameTests` (ANSI snapshots per tier `ansi-<tier>-60x12.txt`, the refusal, a board through the in-process Jira fake).
 
 ## Screenshot pipeline
 

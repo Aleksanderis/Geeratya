@@ -91,7 +91,10 @@ public sealed partial class PrintFrameTests : IDisposable
         using var error = new StringWriter();
 
         var exitCode = Runner(writer, error, http).Run(
-            ["--print-frame", "--size", "100x24", "--colors", "16", "--source", "board:GCM board", "--profile", "work"]);
+        [
+            "--print-frame", "--size", "100x24", "--colors", "16", "--source", "board:GCM board",
+            "--profile", "work",
+        ]);
         var plain = Escapes().Replace(writer.ToString(), string.Empty);
 
         Assert.Equal(0, exitCode);
@@ -99,7 +102,9 @@ public sealed partial class PrintFrameTests : IDisposable
         Assert.Contains("\u001b[", writer.ToString());
         Assert.Contains("GCM board", plain);
         Assert.Contains("GCM-1", plain);
-        Assert.Contains(http.Requests, request => request.AbsolutePath.EndsWith("/board/4/issue", StringComparison.Ordinal));
+        Assert.Contains(
+            http.Requests,
+            request => request.AbsolutePath.EndsWith("/board/4/issue", StringComparison.Ordinal));
         Assert.All(http.Requests, request => Assert.Equal("work.atlassian.net", request.Host));
     }
 
@@ -112,7 +117,10 @@ public sealed partial class PrintFrameTests : IDisposable
         using var error = new StringWriter();
 
         var exitCode = Runner(writer, error, BoardHandler()).Run(
-            ["--print-frame", "--size", "100x24", "--source", "board:GCM board", "--layout", "list", "--profile", "work"]);
+        [
+            "--print-frame", "--size", "100x24", "--source", "board:GCM board", "--layout", "list",
+            "--profile", "work",
+        ]);
 
         Assert.Equal(0, exitCode);
         Assert.Contains("Summary", writer.ToString());
@@ -198,6 +206,105 @@ public sealed partial class PrintFrameTests : IDisposable
         Assert.Contains("Usage:", error.ToString());
     }
 
+    [Fact]
+    public async Task GivenAnIssueSource_WhenPrintingTheFrame_ThenTheIssueDetailIsDrawn()
+    {
+        await WriteProfilesAsync();
+
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = Runner(writer, error, IssueHandler()).Run(
+            ["--print-frame", "--size", "100x24", "--colors", "16", "--source", "issue:GCM-1", "--profile", "work"]);
+        var plain = Escapes().Replace(writer.ToString(), string.Empty);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Description", plain);
+        Assert.Contains(" · Story", plain);
+        Assert.Contains("Description", plain);
+    }
+
+    [Fact]
+    public async Task GivenAJqlSource_WhenPrintingTheFrame_ThenTheResultsAreListed()
+    {
+        await WriteProfilesAsync();
+
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = Runner(writer, error, IssueHandler()).Run(
+            ["--print-frame", "--size", "100x24", "--source", "jql:key = GCM-10", "--profile", "work"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("GCM-1", writer.ToString());
+        Assert.Contains("Summary", writer.ToString());
+    }
+
+    [Fact]
+    public async Task GivenTheColumnsLayoutOnAList_WhenPrintingTheFrame_ThenTheViewKeepsItsLayoutAndAFailureShows()
+    {
+        await WriteProfilesAsync();
+
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = Runner(writer, error, IssueHandler()).Run(
+            ["--print-frame", "--source", "jql:key = GCM-10", "--layout", "columns", "--profile", "work"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("GCM-1", writer.ToString());
+    }
+
+    [Fact]
+    public async Task GivenAnUnknownBoard_WhenPrintingARealScreen_ThenItFailsWithExitOne()
+    {
+        await WriteProfilesAsync();
+
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = Runner(writer, error, BoardHandler())
+            .Run(["--print-frame", "--source", "board:Nope", "--profile", "work"]);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("did not open", error.ToString());
+        Assert.Equal(string.Empty, writer.ToString());
+    }
+
+    [Fact]
+    public async Task GivenAsciiAndColours_WhenPrintingARealScreen_ThenNoBoxDrawingCharacterIsLeft()
+    {
+        await WriteProfilesAsync();
+
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = Runner(writer, error, BoardHandler()).Run(
+        [
+            "--print-frame", "--size", "100x24", "--colors", "16", "--ascii", "--source", "board:GCM board",
+            "--profile", "work",
+        ]);
+        var plain = Escapes().Replace(writer.ToString(), string.Empty);
+
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain(plain, character => character is >= '\u2500' and <= '\u257f');
+        Assert.Contains("GCM-1", plain);
+    }
+
+    [Theory]
+    [InlineData("issue:GCM-10 OR 1=1")]
+    [InlineData("issue:x")]
+    public void GivenABadIssueKey_WhenPrintingTheFrame_ThenUsageIsShown(string source)
+    {
+        using var writer = new StringWriter();
+        using var error = new StringWriter();
+
+        var exitCode = new ApplicationRunner(writer, false, error: error, createProfiles: Services)
+            .Run(["--print-frame", "--source", source]);
+
+        Assert.Equal(2, exitCode);
+    }
+
     private ApplicationRunner Runner(StringWriter writer, StringWriter error, RoutedJiraHandler http)
     {
         return new ApplicationRunner(
@@ -235,6 +342,15 @@ public sealed partial class PrintFrameTests : IDisposable
             .Fixture("/rest/agile/1.0/board", "boards/board-list.json")
             .Fixture("/rest/agile/1.0/board/4/configuration", "boards/board-gcm-config.json")
             .Fixture("/rest/agile/1.0/board/4/issue", "boards/rows-gcm-issues.json");
+    }
+
+    private static RoutedJiraHandler IssueHandler()
+    {
+        return new RoutedJiraHandler()
+            .Fixture("/rest/api/3/search/jql", "search/search-rows-gcm.json")
+            .Fixture("/rest/api/3/issue/GCM-1", "issues/issue-gcm10.json")
+            .Fixture("/rest/api/3/issue/GCM-1/comment", "comments/comments-empty.json")
+            .Fixture("/rest/api/3/field", "metadata/field-list.json");
     }
 
     private static string Normalize(string text)

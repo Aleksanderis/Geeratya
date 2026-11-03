@@ -77,7 +77,7 @@ public static class FrameOptions
         };
     }
 
-    /// <summary>Parses a colour tier name (<c>truecolor</c>, <c>16</c>, <c>none</c>); an unknown name gives null.</summary>
+    /// <summary>Parses a colour tier name (<c>truecolor</c>, <c>16</c> or <c>none</c>); unknown gives null.</summary>
     public static ColorSupport? ParseColors(string? text)
     {
         return text switch
@@ -89,7 +89,7 @@ public static class FrameOptions
         };
     }
 
-    /// <summary>Parses a layout name; null input or an unknown name gives null (the view keeps its own layout).</summary>
+    /// <summary>Parses a layout name; null or an unknown name gives null (the view keeps its layout).</summary>
     public static ViewLayout? ParseLayout(string? text)
     {
         return text switch

@@ -52,7 +52,10 @@ public sealed class ScreenLoader
             state = await session.RunAsync(state, failure);
         }
 
-        var viewport = new ViewportChanged(FrameBuilder.ListRows(size.Height), size.Width, FrameBuilder.BodyHeight(size.Height));
+        var viewport = new ViewportChanged(
+            FrameBuilder.ListRows(size.Height),
+            size.Width,
+            FrameBuilder.BodyHeight(size.Height));
 
         state = await session.RunAsync(state, viewport);
         state = await session.RunAsync(

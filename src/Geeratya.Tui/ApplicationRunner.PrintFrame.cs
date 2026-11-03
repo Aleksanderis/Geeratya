@@ -14,7 +14,9 @@ using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui;
 
-/// <summary><c>--print-frame</c>: the frame as plain text, with ANSI colours, or of a real screen from a profile.</summary>
+/// <summary>
+/// <c>--print-frame</c>: the frame as plain text, with ANSI colours, or of a real screen from a profile.
+/// </summary>
 public sealed partial class ApplicationRunner
 {
     private static readonly TimeSpan _screenTimeout = TimeSpan.FromSeconds(30);
@@ -69,7 +71,9 @@ public sealed partial class ApplicationRunner
 
         var frame = FrameBuilder.BuildStyled(state, size.Width, size.Height, keymap, null, null, glyphs);
 
-        foreach (var line in Lines(frame, colors, arguments.Contains(LightFlag), SettingsOf(services), services, glyphs))
+        var light = arguments.Contains(LightFlag);
+
+        foreach (var line in Lines(frame, colors, light, SettingsOf(services), services, glyphs))
         {
             _output.WriteLine(line);
         }
@@ -133,8 +137,8 @@ public sealed partial class ApplicationRunner
         if (!Uri.TryCreate(profile.SiteUrl, UriKind.Absolute, out var site) || !allowed.Contains(site.Host))
         {
             _error.WriteLine(
-                $"{ApplicationInfo.Name}: {profile.SiteUrl} is not in {JiraHostAllowList.EnvironmentVariable}; "
-                + "--source reads from a fake or dev Jira only, so the screen was not loaded.");
+                $"{ApplicationInfo.Name}: {profile.SiteUrl} is not in {JiraHostAllowList.EnvironmentVariable}, "
+                + "so the screen was not loaded (the token is a placeholder: use a fake Jira).");
 
             return null;
         }
@@ -142,9 +146,32 @@ public sealed partial class ApplicationRunner
         var loader = new ScreenLoader(DefaultKeymap.Load(), _transports ?? new AllowListedTransportFactory(allowed));
         using var timeout = new CancellationTokenSource(_screenTimeout);
 
-        return loader.LoadAsync(profile, SettingsOf(services), source, layout, size, timeout.Token)
+        var state = loader.LoadAsync(profile, SettingsOf(services), source, layout, size, timeout.Token)
             .GetAwaiter()
             .GetResult();
+
+        return Failure(state) is { } problem ? Refuse(problem) : state;
+    }
+
+    private AppState? Refuse(string problem)
+    {
+        _error.WriteLine($"{ApplicationInfo.Name}: {problem}");
+
+        return null;
+    }
+
+    // The loaded screen is only worth drawing when the source opened and its load ended; otherwise scripts see exit 1.
+    private static string? Failure(AppState state)
+    {
+        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
+
+        return tab?.Load switch
+        {
+            null => $"the source did not open ({state.Message ?? "no tab"}).",
+            Loading => "the load did not finish in time.",
+            Failed failed => $"the load failed: {failed.Message}",
+            _ => null,
+        };
     }
 
     private Profile? FindProfile(ProfileServices? services, string? name)

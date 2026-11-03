@@ -29,9 +29,15 @@ public static class AnsiFrameWriter
     /// </summary>
     public static IReadOnlyList<string> Write(StyledFrame frame, Theme theme, ColorSupport tier, bool faintSupported)
     {
-        var lines = frame.Header.Concat(frame.Body).Append(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine));
+        var status = frame.StatusStyled ?? StyledLine.Of(frame.StatusLine);
+        var lines = frame.Header.Concat(frame.Body)
+            .Select(line => WriteLine(line, theme, tier, faintSupported))
+            .ToList();
 
-        return [.. lines.Select(line => WriteLine(line, theme, tier, faintSupported))];
+        // The shell resolves the status bar with faint support whatever the glyph set is.
+        lines.Add(WriteLine(status, theme, tier, true));
+
+        return lines;
     }
 
     private static string WriteLine(StyledLine line, Theme theme, ColorSupport tier, bool faintSupported)

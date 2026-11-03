@@ -47,9 +47,11 @@ public sealed partial class ApplicationRunner
         $"      [{ModeFlag} normal|help|command|confirm|insert]",
         $"      [{HelpPageFlag} <page>] [{HelpScrollFlag} <line>]   need {ModeFlag} help",
         $"      [{LevelFlag} everyday|advanced]",
-        $"      [{ColorsFlag} truecolor|16|none] [{LightFlag}] [{AsciiFlag}]   write ANSI colours (none: attributes only)",
+        $"      [{ColorsFlag} truecolor|16|none] [{LightFlag}] [{AsciiFlag}]",
+        "          write ANSI colours (none: attributes only); --light needs theme auto or no theme",
         $"      [{SourceFlag} board:<name>|jql:<query>|issue:<KEY>] [{LayoutFlag} list|columns] [{ProfileFlag} <name>]",
-        "          draw a real screen from a profile; its site must be in GEERATYA_LIVE_HOSTS");
+        "          draw a real screen from a profile (a fake Jira); its site must be in GEERATYA_LIVE_HOSTS;",
+        $"          {ProfileFlag} and {LayoutFlag} need {SourceFlag}");
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;

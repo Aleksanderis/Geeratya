@@ -34,7 +34,7 @@ public static class FrameBuilder
         return Math.Max(0, height - 1 - Math.Min(HeaderRows, height - 1));
     }
 
-    /// <summary>The issue rows a list can show in a terminal of <paramref name="height"/> rows (never negative).</summary>
+    /// <summary>The issue rows a list can show in <paramref name="height"/> terminal rows (never negative).</summary>
     public static int ListRows(int height)
     {
         return Math.Max(0, height - 1 - HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows);
