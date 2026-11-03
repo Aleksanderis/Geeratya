@@ -16,7 +16,7 @@ public class InputRoutingTests
     [Theory]
     [InlineData("q")]
     [InlineData(":")]
-    [InlineData("g")]
+    [InlineData("x")]
     [InlineData("1")]
     public void GivenHelpOpen_WhenAnyKeyArrives_ThenTheBodyNeverGetsIt(string key)
     {

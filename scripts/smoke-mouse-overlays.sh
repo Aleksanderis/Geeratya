@@ -112,6 +112,44 @@ drag_to() {
   echo "dragged '$from' to the line of '$to'"
 }
 
+# hold_drag <from text> <to text>: press on the line of <from text> and move to the line of <to text> without releasing
+# (SGR press, then motion with button 32), so the range can be checked while the button is held; release_at releases.
+hold_drag() {
+  local from=$1 to=$2 line from_row col prefix seq
+  line=$(frame | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
+  from_row=${line%%:*}
+  line=${line#*:}
+  prefix=${line%%"$from"*}
+  col=$((${#prefix} + 2))
+  if [[ $to =~ ^[0-9]+$ ]]; then to_row=$to; else to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1); fi
+  [ -n "$to_row" ] || fail "no line with '$to' to move to"
+  printf -v seq '\033[<0;%d;%dM\033[<32;%d;%dM\033[<32;%d;%dM' "$col" "$from_row" "$col" "$from_row" "$col" "$to_row"
+  tmux -L "$socket" send-keys -t s -l "$seq"
+  sleep 0.4
+  held_col=$col
+  held_row=$to_row
+  echo "holding the button from '$from' to the line of '$to'"
+}
+release_held() {
+  local seq
+  printf -v seq '\033[<0;%d;%dm' "$held_col" "$held_row"
+  tmux -L "$socket" send-keys -t s -l "$seq"
+  sleep 0.4
+}
+
+# The start screen opens the "Open a view" picker on its own once the connection is checked; it would take the keys of
+# the next step, so wait briefly for it and close it with Esc (nothing to do when it does not come).
+dismiss_start_picker() {
+  local waited=0
+  while ! frame | grep -qF -- "Open a view"; do
+    waited=$((waited + 1))
+    [ "$waited" -le 15 ] || return 0
+    sleep 0.15
+  done
+  tmux -L "$socket" send-keys -t s Escape
+  sleep 0.4
+}
+
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
 dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
@@ -126,6 +164,9 @@ mkdir -p "$work/config/geeratya" "$work/state" "$work/cache"
 start() {
   tmux -L "$socket" kill-server 2> /dev/null || true
   sleep 0.5
+  # No saved tabs from the step before: a restored view would hide the start screen the steps wait for.
+  rm -rf "$work/state" "$work/cache"
+  mkdir -p "$work/state" "$work/cache"
   printf '{"activeName":"fake","profiles":[%s]}\n' "$1" > "$work/config/geeratya/profiles.json"
   tmux -L "$socket" -f /dev/null new-session -d -s s -x 120 -y 36 \
     "env -i HOME=$work PATH=$PATH COLORTERM=truecolor TERM=tmux-256color \
@@ -136,6 +177,31 @@ two="$one,{\"name\":\"second\",\"siteUrl\":\"$fake_url\",\"email\":\"second@exam
 
 start "$one"
 wait_for "fake: fake@example.com"
+dismiss_start_picker
+
+# Live range (#571): the range shows while the button is held, and the release keeps it.
+start "$one"
+wait_for "fake: fake@example.com"
+dismiss_start_picker
+send ":jql project = GCM|"
+wait_for "issues"
+hold_drag "GEN-1 " "GEN-3 "
+wait_for "3 selected"
+release_held
+wait_for "3 selected"
+echo "ok: live range while the button is held, kept on release"
+
+# Auto-scroll: a held button on the status row (below the body) keeps moving the cursor; after the release it stops.
+tmux -L "$socket" send-keys -t s Escape
+sleep 0.3
+hold_drag "GEN-1 " 36
+wait_for "GEN-40 "
+release_held
+sleep 0.6
+before=$(frame)
+sleep 0.6
+[ "$before" = "$(frame)" ] || fail "the list kept scrolling after the release"
+echo "ok: auto-scroll below the body, stopped by the release"
 
 # Scrum backlog (#394): a row dragged onto another section asks first, nothing is sent before y; Esc keeps everything.
 send ":backlog GEN board|"
@@ -148,6 +214,16 @@ wait_gone "Jira has no undo"
 
 # Confirmed drop (#506), both project kinds: a row of the future sprint dragged onto the backlog section, answered with y,
 # appears in the fake's backlog list (the fake's reply is the check, not only the frame).
+# The header line of the backlog section shows its issue count ("├─ Backlog ──── 8 issues · 33 pts ─┤").
+wait_for_backlog_size() {
+  local start
+  start=$(now_ms)
+  while ! frame | grep -F "├─ Backlog " | grep -qF -- "$1 issues"; do
+    [ $(($(now_ms) - start)) -le "$timeout_ms" ] || fail "the backlog section did not reach $1 issues"
+    sleep 0.15
+  done
+  echo "ok: backlog section has $1 issues"
+}
 fake_get() { curl -fsS --max-time 5 "$fake_url/rest/agile/1.0/$1"; }
 fake_lists() { fake_get "$1" | tr -d ' \n' | grep -qF -- "\"key\":\"$2\""; }
 for kind in "GCS 6" "GTS 5"; do
@@ -155,25 +231,27 @@ for kind in "GCS 6" "GTS 5"; do
   board=${kind#* }
   start "$one"
   wait_for "fake: fake@example.com"
+  dismiss_start_picker
   send ":backlog $project board|"
-  wait_for "Backlog · "
-  size=$(frame | grep -o "Backlog · [0-9]* issues" | tr -dc 0-9)
-  key=$(frame | awk '/Seed Sprint 3 ·/ { found = 1; next } found { print $1; exit }')
+  wait_for "├─ Backlog "
+  size=$(frame | grep -F "├─ Backlog " | grep -o "[0-9]* issues" | tr -dc 0-9)
+  key=$(frame | awk '/Seed Sprint 3 / { found = 1; next } found && $2 ~ /^[A-Z]+-[0-9]+$/ { print $2; exit }')
   [[ $key =~ ^[A-Z]+-[0-9]+$ ]] || fail "no row in Seed Sprint 3 of $project (got '$key')"
   fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
-  drag_to "$key " "Backlog · $size issues"
+  drag_to "$key " "├─ Backlog "
   wait_for "Jira has no undo"
   wait_for "Move $key"
   fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
   send "y"
   wait_gone "Jira has no undo"
-  wait_for "Backlog · $((size + 1)) issues"
+  wait_for_backlog_size $((size + 1))
   fake_lists "board/$board/backlog" "$key" || fail "$key is not in the fake's backlog after y"
   echo "ok: $project drop on the backlog with y moved $key"
 done
 
 start "$one"
 wait_for "fake: fake@example.com"
+dismiss_start_picker
 
 # Source picker: <space>t, click a row.
 send " t"
@@ -182,14 +260,30 @@ click "Board   GCM board"
 wait_for "In Progress"
 wait_gone "Open a view"
 
+# Wheel (#570): a notch over the open help scrolls the page (the frame changes), wherever the pointer is; gg jumps back.
+send "?"
+wait_for "Help"
+before=$(frame)
+printf -v seq '\033[<65;60;20M'
+tmux -L "$socket" send-keys -t s -l "$seq$seq"
+sleep 0.4
+[ "$(frame)" != "$before" ] || fail "the wheel did not scroll the help"
+echo "ok: the wheel scrolled the help"
+send "gg"
+sleep 0.3
+[ "$(frame)" = "$before" ] || fail "gg did not return the help to the top"
+echo "ok: gg returned the help to the top"
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Help"
+
 # Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
 # motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
 # swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
-drag "Story GCM-11" 30 motion
+drag "Story GCM-11" 40 motion
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
-drag "Story GCM-11" 30
+drag "Story GCM-11" 40
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
@@ -233,14 +327,15 @@ wait_for "Test User 3"
 # Profile list: right-click asks to remove (Esc keeps it), click switches.
 start "$two"
 wait_for "fake: fake@example.com"
+dismiss_start_picker
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "second  " 2
 wait_for "Remove profile second"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+# The profile screen stays open under the dialog: Esc and Cancel only close the dialog.
+wait_for "─ Details ─"
 
 # Confirm dialog buttons (#379): a click on the Cancel row closes it and keeps the profile; a click on the answer row
 # ("Remove profile", below the question that starts with the same words) confirms and removes it (the inactive profile,
@@ -249,19 +344,18 @@ click "second  " 2
 wait_for "Remove profile second"
 click "Cancel"
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+# The profile screen stays open under the dialog: Esc and Cancel only close the dialog.
+wait_for "─ Details ─"
 frame | grep -qF -- "second  " || fail "the profile was removed by a click on Cancel"
 click "second  "
 wait_for "second: second@example.com"
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "fake  " 2
 wait_for "Remove profile fake"
 click "Remove profile  "
 wait_gone "Remove profile fake"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "Profiles 1" # the screen stays open and lists the remaining profile
 frame | grep -qF -- "fake  " && fail "the profile is still listed after a click on the yes row"
 echo "ok: confirm dialog click on Cancel keeps, click on yes removes"
 echo "PASS"

@@ -100,7 +100,11 @@ public static class IssueDocumentBuilder
             title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
         }
 
-        sink.AddPanel(title, Wrap(content), width);
+        IReadOnlyList<StyledSpan>? status = header.Status is { Name.Length: > 0 } current
+            ? [new StyledSpan(Clean(current.Name), StatusRoles.Of(current))]
+            : null;
+
+        sink.AddPanel(title, Wrap(content), width, status);
     }
 
     private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference, string? estimateLabel)

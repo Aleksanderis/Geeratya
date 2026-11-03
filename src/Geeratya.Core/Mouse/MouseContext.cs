@@ -46,6 +46,12 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The Confirm dialog is open: a click outside its box, the status line included, cancels.</summary>
     public bool ConfirmOpen { get; init; }
 
+    /// <summary>
+    /// The overlay a wheel notch scrolls or moves wherever the pointer is (help, messages, context menu), null when the
+    /// open overlay (if any) does not take the wheel.
+    /// </summary>
+    public MouseTarget? WheelTarget { get; init; }
+
     public static MouseContext From(
         AppState state,
         int width,
@@ -71,7 +77,23 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],
             ColumnsLayout = tab?.Definition.Layout == ViewLayout.Columns,
+            WheelTarget = WheelTargetOf(state),
             ConfirmOpen = state.Mode == InputMode.Confirm && state.Confirm is not null,
         };
+    }
+
+    private static MouseTarget? WheelTargetOf(AppState state)
+    {
+        if (state.ContextMenu is not null)
+        {
+            return MouseTarget.ContextMenu;
+        }
+
+        if (state.Mode != InputMode.Help)
+        {
+            return null;
+        }
+
+        return state.MessagesOpen ? MouseTarget.MessagesBody : MouseTarget.HelpBody;
     }
 }

@@ -57,4 +57,31 @@ public sealed record CardDragged(int FromColumn, int FromRow, int ToColumn, int 
 /// <param name="ToRow">The body row where it was released.</param>
 /// <param name="Width">The screen width the body was drawn for.</param>
 /// <param name="At">When it was released.</param>
-public sealed record RowsDragged(int Column, int FromRow, int ToRow, int Width, DateTimeOffset At = default) : Command;
+/// <param name="Live">The range was already built while the button was held (<see cref="RowsDragging"/>), so the
+/// release only moves the cursor; the press row may have scrolled away.</param>
+public sealed record RowsDragged(
+    int Column,
+    int FromRow,
+    int ToRow,
+    int Width,
+    DateTimeOffset At = default,
+    bool Live = false) : Command;
+
+/// <summary>
+/// The held button moved over a list or backlog row: Visual mode starts on the pressed row at the first move and the
+/// cursor follows the pointer, so the range shows while the button is down. On a Scrum backlog the cursor stays inside
+/// the section of the pressed row (a drop on another section is asked for on release).
+/// </summary>
+/// <param name="Column">The screen column where the button went down.</param>
+/// <param name="FromRow">The body row where the button went down.</param>
+/// <param name="ToRow">The body row under the pointer.</param>
+/// <param name="Width">The screen width the body was drawn for.</param>
+/// <param name="First">The first move of this drag: the range starts on the pressed row.</param>
+public sealed record RowsDragging(int Column, int FromRow, int ToRow, int Width, bool First) : Command;
+
+/// <summary>
+/// One auto-scroll step of a drag whose pointer rests outside the list body: the cursor moves by that many rows (the
+/// view scrolls with it) and the range follows. Nothing moves at either end of the list.
+/// </summary>
+/// <param name="Rows">Rows to move, negative upwards.</param>
+public sealed record RowsDragScrolled(int Rows) : Command;

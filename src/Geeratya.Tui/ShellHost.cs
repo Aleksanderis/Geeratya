@@ -77,6 +77,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
     private ITimer? _whichKeyTimer;
+    private readonly DragAutoScroller _dragScroller = new(TimeProvider.System);
     private DateTimeOffset? _whichKeyTimedFor;
     private bool _chipShown;
     private bool _quitting;
@@ -120,6 +121,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _startupEffects?.SaveFailed += OnTabsSaveFailed;
 
         _connections.RateLimitChanged += OnRateLimitChanged;
+        _dragScroller.Stepped += OnDragScrollStep;
     }
 
     public void Dispose()
@@ -131,6 +133,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _connections.RateLimitChanged -= OnRateLimitChanged;
         _tickTimer?.Dispose();
         _whichKeyTimer?.Dispose();
+        _dragScroller.Stepped -= OnDragScrollStep;
+        _dragScroller.Dispose();
         _profiles.Caches.Dispose();
         _network.Dispose();
         _connections.Dispose();
@@ -264,7 +268,21 @@ public sealed class ShellHost : ICommandSink, IDisposable
     private void OnMouse(object? sender, Mouse mouse)
     {
         var position = mouse.ScreenPosition;
+
+        if (_dragTracker.TrackMotion(mouse.Flags, position.X, position.Y) is { } motion)
+        {
+            OnDragMoved(mouse, motion);
+
+            return;
+        }
+
+        var live = _dragTracker.Moving;
         var drag = _dragTracker.Track(mouse.Flags, position.X, position.Y);
+
+        if (mouse.Flags.HasFlag(MouseFlags.LeftButtonReleased))
+        {
+            StopDragScroll();
+        }
 
         if (drag is null && (_dragTracker.SwallowsClick(mouse.Flags)
             || !MouseFlagTranslator.TryTranslate(mouse.Flags, out _)))
@@ -272,14 +290,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
             return;
         }
 
-        var size = _application!.Screen.Size;
         var now = TimeProvider.System.GetUtcNow();
-        var regions = _screen!.OverlayRegions;
-        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
-        {
-            LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
-        };
-        var commands = ResolvePointer(context, drag, mouse.Flags, new MouseCell(position.X, position.Y), now);
+        var context = PointerContext(now);
+        var commands = ResolvePointer(context, drag, live, mouse.Flags, new MouseCell(position.X, position.Y), now);
 
         if (commands.Count == 0)
         {
@@ -294,9 +307,72 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
     }
 
+    private MouseContext PointerContext(DateTimeOffset now)
+    {
+        var size = _application!.Screen.Size;
+
+        var regions = _screen!.OverlayRegions;
+
+        return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
+        {
+            LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
+        };
+    }
+
+    // The held button moved: the range follows the pointer; outside the body a timer keeps moving the cursor.
+    private void OnDragMoved(Mouse mouse, MouseDragMotion motion)
+    {
+        var context = PointerContext(TimeProvider.System.GetUtcNow());
+        var commands = MouseResolver.ResolveDragMove(
+            context,
+            motion.FromColumn,
+            motion.FromRow,
+            motion.Column,
+            motion.Row,
+            motion.First);
+
+        if (commands.Count > 0)
+        {
+            mouse.Handled = true;
+        }
+
+        foreach (var command in commands)
+        {
+            Dispatch(command);
+        }
+
+        // The speed follows the pointer on every move, also when it is outside the body and nothing else resolves.
+        _dragScroller.Start(MouseResolver.DragScrollStep(context, motion.FromColumn, motion.FromRow, motion.Row));
+
+    }
+
+    /// <summary>Timer thread: hands one auto-scroll step to the UI thread.</summary>
+    private void OnDragScrollStep(object? sender, int rows)
+    {
+        if (!_shutdownToken.IsCancellationRequested)
+        {
+            _application!.Invoke(() => StepDragScroll(rows));
+        }
+    }
+
+    // On the UI thread: a step queued before the release must not move the cursor after it.
+    private void StepDragScroll(int rows)
+    {
+        if (_dragTracker.Held)
+        {
+            Dispatch(new RowsDragScrolled(rows));
+        }
+    }
+
+    private void StopDragScroll()
+    {
+        _dragScroller.Stop();
+    }
+
     private static IReadOnlyList<AppCommand> ResolvePointer(
         MouseContext context,
         MouseDrag? drag,
+        bool live,
         MouseFlags flags,
         MouseCell position,
         DateTimeOffset now)
@@ -309,7 +385,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
                 dropped.FromRow,
                 dropped.ToColumn,
                 dropped.ToRow,
-                now);
+                now,
+                live);
         }
 
         return MouseFlagTranslator.TryTranslate(flags, out var gesture)

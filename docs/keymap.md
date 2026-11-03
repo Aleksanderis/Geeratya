@@ -113,6 +113,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-d` | Scroll help down half a page | `help.half-page-down` | everyday |
 | `U` | Scroll help up half a page | `help.half-page-up` | everyday |
 | `Ctrl-u` | Scroll help up half a page | `help.half-page-up` | everyday |
+| `gg` | Scroll help to the top | `help.top` | everyday |
+| `G` | Scroll help to the bottom | `help.bottom` | everyday |
 | `Tab` | Next help section | `help.page-next` | everyday |
 | `Shift-Tab` | Previous help section | `help.page-previous` | everyday |
 | `<space>*` | Switch the command level for the session | `view.cycle-command-level` | everyday |

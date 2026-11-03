@@ -103,6 +103,8 @@
     { "mode": "help", "keys": "Ctrl-d", "action": "help.half-page-down" },
     { "mode": "help", "keys": "U", "action": "help.half-page-up" },
     { "mode": "help", "keys": "Ctrl-u", "action": "help.half-page-up" },
+    { "mode": "help", "keys": "g g", "action": "help.top" },
+    { "mode": "help", "keys": "G", "action": "help.bottom" },
     { "mode": "help", "keys": "Tab", "action": "help.page-next" },
     { "mode": "help", "keys": "Shift-Tab", "action": "help.page-previous" },
     { "mode": "help", "keys": "Space *", "action": "view.cycle-command-level" },

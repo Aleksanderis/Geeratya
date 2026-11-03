@@ -49,12 +49,14 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             return lines;
         }
 
+        IReadOnlyList<StyledSpan>? right = null;
         var chips = new List<StyledSpan>();
         var inView = document.SectionAt(first);
 
         if (document.PaneTitles.Count > 0)
         {
             chips.AddRange(document.PaneTitles[inView]);
+            right = inView < document.PaneRightTitles.Count ? document.PaneRightTitles[inView] : null;
         }
 
         while (lines.Count < rows)
@@ -62,7 +64,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             lines.Add(StyledLine.Empty);
         }
 
-        lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, null, inView == focused));
+        lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, right, inView == focused));
         lines.Add(PaneFrame.OuterEdge(width, height, false, null, null, focused == document.Sections.Count - 1));
 
         return lines;

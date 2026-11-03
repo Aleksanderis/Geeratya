@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
@@ -171,6 +172,75 @@ public static class SelectionActions
         }
 
         return new ReduceResult(ended.State, [.. started.Effects, .. ended.Effects]);
+    }
+
+    /// <summary>
+    /// The held button moved: the first move starts Visual mode on the pressed row, later ones keep the anchor and move
+    /// the cursor to the row under the pointer. On a Scrum backlog the cursor never leaves the pressed row's section.
+    /// </summary>
+    public static ReduceResult Dragging(AppState state, RowsDragging drag)
+    {
+        if (drag.First)
+        {
+            var started = Dragged(state, new RowsDragged(drag.Column, drag.FromRow, drag.FromRow, drag.Width));
+
+            return drag.ToRow == drag.FromRow ? started : Dragging(started.State, drag with { First = false });
+        }
+
+        if (ActiveTab(state) is not { VisualAnchor: not null } tab || state.Mode != InputMode.Normal
+            || tab.Detail.Count > 0 || !SameSection(tab, drag))
+        {
+            return Result(state);
+        }
+
+        return ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.ToRow, drag.Width)) ?? Result(state);
+    }
+
+    /// <summary>
+    /// The button came up after a live range: the cursor goes to the release row when the pointer is on a row, and the
+    /// range stays. Without a range (nothing started it) the drag selects from press to release as before.
+    /// </summary>
+    public static ReduceResult DragEnded(AppState state, RowsDragged drag)
+    {
+        if (ActiveTab(state) is not { VisualAnchor: not null } || state.Mode != InputMode.Normal)
+        {
+            return Dragged(state, drag);
+        }
+
+        return Dragging(state, new RowsDragging(drag.Column, drag.FromRow, drag.ToRow, drag.Width, false));
+    }
+
+    /// <summary>
+    /// One auto-scroll step: the cursor moves by the rows (clamped to the list) and the range follows. Not on a Scrum
+    /// backlog, whose sections would swallow the range.
+    /// </summary>
+    public static ReduceResult DragScrolled(AppState state, RowsDragScrolled scrolled)
+    {
+        if (ActiveTab(state) is not { VisualAnchor: not null } tab || state.Mode != InputMode.Normal
+            || tab.Detail.Count > 0 || tab.Rows.Count == 0 || tab.Definition.Layout == ViewLayout.Columns
+            || BacklogSections.Applies(tab))
+        {
+            return Result(state);
+        }
+
+        var target = Math.Clamp(tab.Selected + scrolled.Rows, 0, tab.Rows.Count - 1);
+
+        return target == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, target));
+    }
+
+    // Outside a sectioned backlog every row is in range; inside one the pointer must stay in the pressed row's section.
+    private static bool SameSection(TabState tab, RowsDragging drag)
+    {
+        if (!BacklogSections.Applies(tab))
+        {
+            return true;
+        }
+
+        var layout = BacklogSections.Build(tab);
+        var from = layout.LineAt(tab.Scroll + drag.FromRow - ListLayout.HeaderRows);
+        var to = layout.LineAt(tab.Scroll + drag.ToRow - ListLayout.HeaderRows);
+
+        return from is not null && to is not null && from.Value.Section.Key == to.Value.Section.Key;
     }
 
     private static TabState Toggled(TabState tab, IReadOnlyList<string> keys)

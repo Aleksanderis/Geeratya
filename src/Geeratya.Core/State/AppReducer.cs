@@ -122,7 +122,8 @@ public sealed class AppReducer
     // A drop on another section of a Scrum backlog asks to move the issues; any other drag selects rows.
     private static ReduceResult RowsDrag(AppState state, RowsDragged dragged)
     {
-        return SprintMoveActions.Dropped(state, dragged, dragged.At) ?? SelectionActions.Dragged(state, dragged);
+        return SprintMoveActions.Dropped(state, dragged, dragged.At)
+            ?? (dragged.Live ? SelectionActions.DragEnded(state, dragged) : SelectionActions.Dragged(state, dragged));
     }
 
     private ReduceResult ReduceCommand(AppState state, Command command)
@@ -133,6 +134,8 @@ public sealed class AppReducer
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
             RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
+            RowsDragging dragging => Followed(state, SelectionActions.Dragging(Unpended(state), dragging)),
+            RowsDragScrolled scrolled => Followed(state, SelectionActions.DragScrolled(state, scrolled)),
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
@@ -436,7 +439,7 @@ public sealed class AppReducer
 
     /// <summary>
     /// An action typed after a count (<c>docs/ux-keymap.md</c>, "Selection and counts"): a motion or a rank step
-    /// repeats; any other write refuses; every other action ignores the count.
+    /// repeats (so do the help scroll and the overlay highlight moves of a wheel notch); any other write refuses; every other action ignores the count.
     /// </summary>
     private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
     {
@@ -456,6 +459,14 @@ public sealed class AppReducer
                 return Repeat(state, ListMove.Down, count);
             case ActionIds.NavigateUp:
                 return Repeat(state, ListMove.Up, count);
+            case ActionIds.HelpScrollDown:
+                return Result(ScrollHelp(state, count));
+            case ActionIds.HelpScrollUp:
+                return Result(ScrollHelp(state, -count));
+            case ActionIds.PickerNext:
+                return Result(MovePicker(state, count));
+            case ActionIds.PickerPrevious:
+                return Result(MovePicker(state, -count));
             case ActionIds.RankUp:
                 return InNormal(state, () => RankActions.Step(state, RankMove.Up, count, at));
             case ActionIds.RankDown:
@@ -591,6 +602,8 @@ public sealed class AppReducer
             ActionIds.HelpScrollUp => Result(ScrollHelp(state, -1)),
             ActionIds.HelpHalfPageDown => Result(ScrollHelp(state, HelpHalfPage)),
             ActionIds.HelpHalfPageUp => Result(ScrollHelp(state, -HelpHalfPage)),
+            ActionIds.HelpTop => Result(ScrollHelp(state, int.MinValue / 2)),
+            ActionIds.HelpBottom => Result(ScrollHelp(state, int.MaxValue / 2)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),

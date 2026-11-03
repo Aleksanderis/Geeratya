@@ -13,6 +13,32 @@ public sealed class MouseDragTracker
 
     private MouseCell? _start;
     private bool _dragged;
+    private bool _moved;
+
+    /// <summary>True from the first motion of the held button until the release: a live range is on screen.</summary>
+    public bool Moving => _moved;
+
+    /// <summary>True while the left button is held after a press.</summary>
+    public bool Held => _start is not null;
+
+    /// <summary>
+    /// The motion a held-button position report makes, null for any other event, for motion on the press cell before
+    /// the first move, and when no press was seen.
+    /// </summary>
+    public MouseDragMotion? TrackMotion(MouseFlags flags, int column, int row)
+    {
+        if (!flags.HasFlag(MouseFlags.LeftButtonPressed) || !flags.HasFlag(MouseFlags.PositionReport)
+            || _start is not { } start || (!_moved && start.Column == column && start.Row == row))
+        {
+            return null;
+        }
+
+        var first = !_moved;
+
+        _moved = true;
+
+        return new MouseDragMotion(start.Column, start.Row, column, row, first);
+    }
 
     /// <summary>The drag a button event completes, null for every other event.</summary>
     public MouseDrag? Track(MouseFlags flags, int column, int row)
@@ -27,6 +53,7 @@ public sealed class MouseDragTracker
         {
             _start = new MouseCell(column, row);
             _dragged = false;
+            _moved = false;
 
             return null;
         }
@@ -36,10 +63,16 @@ public sealed class MouseDragTracker
             return null;
         }
 
+        var wasMoved = _moved;
+
         _start = null;
+        _moved = false;
 
         if (start.Column == column && start.Row == row)
         {
+            // After a live move the click that follows the release must not act either.
+            _dragged = wasMoved;
+
             return null;
         }
 

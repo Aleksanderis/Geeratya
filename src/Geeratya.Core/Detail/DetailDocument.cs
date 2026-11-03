@@ -20,6 +20,9 @@ public sealed record DetailDocument(
     /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
 
+    /// <summary>The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).</summary>
+    public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneRightTitles { get; init; } = [];
+
     /// <summary>The index of the section that holds <paramref name="line"/>; a shared edge line still belongs to the pane above it.</summary>
     public int SectionAt(int line)
     {

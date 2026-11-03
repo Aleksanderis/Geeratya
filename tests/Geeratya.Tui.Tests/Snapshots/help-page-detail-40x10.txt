@@ -1,6 +1,6 @@
  1 JQL Sample   +         <space>g jump 
                                         
-╭─ A-1 · Task ─────────────────────────╮
+╭─ A-1 · Task ───────────────── To Do ─╮
 │>╭─ Help ───────────────────────────╮ │
 │ │ > Issue detail │   j             │ │
 │ │   Global       │        Move     │ │
