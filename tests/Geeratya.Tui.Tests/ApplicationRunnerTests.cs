@@ -120,7 +120,8 @@ public class ApplicationRunnerTests
 
         var exitCode = new ApplicationRunner(
             new RunnerContext(writer, true),
-            profileFactory: new FakeProfileServicesFactory(() => throw new InvalidOperationException("profiles read"))).Run(["--help"]);
+            profileFactory: new FakeProfileServicesFactory(
+                () => throw new InvalidOperationException("profiles read"))).Run(["--help"]);
 
         Assert.Equal(0, exitCode);
         Assert.Contains("Usage:", writer.ToString());

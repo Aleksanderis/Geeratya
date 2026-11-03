@@ -36,7 +36,9 @@ public sealed partial class PrintFrameTests : IDisposable
     public void GivenAColourTier_WhenPrintingTheFrame_ThenItMatchesTheSnapshot(string tier)
     {
         using var writer = new StringWriter();
-        var runner = new ApplicationRunner(new RunnerContext(writer, false), profileFactory: new FakeProfileServicesFactory(Services));
+        var runner = new ApplicationRunner(
+            new RunnerContext(writer, false),
+            profileFactory: new FakeProfileServicesFactory(Services));
 
         var exitCode = runner.Run(["--print-frame", "--size", "60x12", "--mode", "normal", "--colors", tier]);
         var expected = SnapshotFile.Expect($"ansi-{tier}-60x12.txt", Normalize(writer.ToString()));
@@ -51,7 +53,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var coloured = new StringWriter();
         using var plain = new StringWriter();
 
-        new ApplicationRunner(new RunnerContext(coloured, false), profileFactory: new FakeProfileServicesFactory(Services))
+        new ApplicationRunner(
+            new RunnerContext(coloured, false),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "80x24", "--mode", "help", "--colors", "truecolor"]);
         new ApplicationRunner(new RunnerContext(plain, false)).Run(["--print-frame", "--size", "80x24", "--mode", "help"]);
 
@@ -75,13 +79,17 @@ public sealed partial class PrintFrameTests : IDisposable
         using var painted = new StringWriter();
         using var transparent = new StringWriter();
 
-        new ApplicationRunner(new RunnerContext(painted, false), profileFactory: new FakeProfileServicesFactory(Services))
+        new ApplicationRunner(
+            new RunnerContext(painted, false),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Directory.CreateDirectory(_directory);
         File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ \"transparent\": true }");
 
-        new ApplicationRunner(new RunnerContext(transparent, false), profileFactory: new FakeProfileServicesFactory(ServicesWithSettings))
+        new ApplicationRunner(
+            new RunnerContext(transparent, false),
+            profileFactory: new FakeProfileServicesFactory(ServicesWithSettings))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Assert.DoesNotContain(";49m", painted.ToString(), StringComparison.Ordinal);
@@ -214,7 +222,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), profileFactory: new FakeProfileServicesFactory(Services))
+        var exitCode = new ApplicationRunner(
+            new RunnerContext(writer, false, Error: error),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", flag, value]);
 
         Assert.Equal(2, exitCode);
@@ -314,7 +324,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), profileFactory: new FakeProfileServicesFactory(Services))
+        var exitCode = new ApplicationRunner(
+            new RunnerContext(writer, false, Error: error),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--source", source]);
 
         Assert.Equal(2, exitCode);
