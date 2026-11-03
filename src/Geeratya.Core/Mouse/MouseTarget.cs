@@ -14,6 +14,9 @@ public enum MouseTarget
     /// <summary>The <c>x</c> on the active tab chip (closes that tab, same as <c>tab.close</c>).</summary>
     TabClose,
 
+    /// <summary>The <c> : commands </c> chip at the right end of the tab bar row (opens the command palette).</summary>
+    CommandsChip,
+
     /// <summary>The jump chip at the right end of the tab bar row (opens the jump prompt).</summary>
     JumpChip,
 

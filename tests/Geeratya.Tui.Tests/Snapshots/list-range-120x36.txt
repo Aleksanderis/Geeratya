@@ -1,4 +1,4 @@
- 1 JQL My open issues … x   +                                                                             <space>g jump 
+ 1 JQL My open issues … x   +                                                                : commands   <space>g jump 
                                                                                                                         
 ╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────────── 10+ ─╮
 │  Key    T Summary                                                                     Status         Assignee        │

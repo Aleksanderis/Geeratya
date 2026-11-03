@@ -1,4 +1,4 @@
- 1 JQL My open issues x   +                                                                               <space>g jump 
+ 1 JQL My open issues x   +                                                                  : commands   <space>g jump 
                                                                                                                         
 ╭─ GCM-12 · Epic ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Fix login redirect after token refresh                                                                               │

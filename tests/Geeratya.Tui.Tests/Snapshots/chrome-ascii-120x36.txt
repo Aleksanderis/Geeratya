@@ -1,2 +1,2 @@
-[1 Board GCM board] [2 JQL project = GEN x] [3 Backlog GEN board]  +                                     [<space>g jump]
+[1 Board GCM board] [2 JQL project = GEN x] [3 Backlog GEN board]  +                        [: commands] [<space>g jump]
 [NORMAL]                            j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

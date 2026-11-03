@@ -1,2 +1,2 @@
- 1 Board GCM board   2 JQL project = GEN x   3 Backlog GEN board   +            
+ 1 Board GCM board   2 JQL project = GEN x   3 Backlog GEN board     : commands 
  NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q quit

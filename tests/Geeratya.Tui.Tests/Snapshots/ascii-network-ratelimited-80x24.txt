@@ -1,4 +1,4 @@
-[1 JQL My open issues x]  +                                      [<space>g jump]
+[1 JQL My open issues x]  +                         [: commands] [<space>g jump]
  RATE LIMITED  Waiting for the Jira rate limit. Retrying in 25 s.               
 +- My open issues -------------------------------------------------- 3 issues -+
 |  Key    T Summary                                              Status        |

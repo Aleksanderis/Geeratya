@@ -422,6 +422,27 @@ public class MousePlacementTests
     }
 
     [Fact]
+    public void GivenWideTabBar_WhenClickingTheCommandsChip_ThenTheCommandPaletteOpens()
+    {
+        var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
+        var chip = TabBar.CommandsChip(state.Session.Tabs, state.Session.Active, 80)!.Value;
+
+        var (result, _) = Resolve(state, 80, 24, chip.End - 1, 0, MouseGesture.Click);
+
+        Assert.Equal(InputMode.Command, result.Mode);
+    }
+
+    [Fact]
+    public void GivenNarrowTabBar_WhenClickingWhereTheChipWouldBe_ThenThePaletteStaysClosed()
+    {
+        var state = Loaded(ViewLayout.List, 40, 24, "1:A-1");
+
+        var (result, _) = Resolve(state, 40, 24, 39, 0, MouseGesture.Click);
+
+        Assert.NotEqual(InputMode.Command, result.Mode);
+    }
+
+    [Fact]
     public void GivenWideTabBar_WhenBuildingWithTheChip_ThenTheChipTextSitsExactlyOnItsCells()
     {
         var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
