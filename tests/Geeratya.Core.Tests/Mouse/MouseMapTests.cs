@@ -91,6 +91,8 @@ public class MouseMapTests
             MouseGesture.RightClick => "Right-click",
             MouseGesture.CtrlClick => "Ctrl-click",
             MouseGesture.DragRows => "Drag rows",
+            MouseGesture.DragToSprint => "Drag to sprint",
+            MouseGesture.DragToBacklog => "Drag to backlog",
             _ => gesture.ToString(),
         };
     }

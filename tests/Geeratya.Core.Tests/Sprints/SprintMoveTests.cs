@@ -1,5 +1,6 @@
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
@@ -310,6 +311,95 @@ public class SprintMoveTests
         Assert.Contains(board.Items, item => item.Action == ActionIds.SprintMoveIssues);
         Assert.Contains(board.Items, item => item.Action == ActionIds.SprintMoveToBacklog);
         Assert.DoesNotContain(jql.Items, item => item.Action == ActionIds.SprintMoveIssues);
+    }
+
+    [Fact]
+    public void GivenARowDraggedOntoAnotherSectionHeader_WhenDropped_ThenItAsksBeforeMovingThatRowOnly()
+    {
+        var state = WithSprints(Marked(Loaded(), "A-5"));
+
+        var result = Drag(state, "A-3", SectionLine(state, BacklogFixtures.EmptyFutureId));
+
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("Move A-3 from sprint \"Sprint 1\" to sprint \"Sprint 3\"? Jira has no undo.", result.State.Confirm!.Message, StringComparison.Ordinal);
+        var yes = Press(result.State, "y");
+        Assert.Equal(["A-3"], Request(yes).Keys);
+        Assert.Equal(BacklogFixtures.EmptyFutureId, Request(yes).Target!.Id);
+    }
+
+    [Fact]
+    public void GivenMarkedRows_WhenDraggingAMarkedRowToTheBacklogSection_ThenAllMarksAreAskedAboutAndNothingIsSentYet()
+    {
+        var state = WithSprints(Marked(Loaded(), "A-2", "A-3"));
+
+        var result = Drag(state, "A-3", SectionLine(state, null));
+
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("Move 2 issues", result.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Contains("to the backlog", result.State.Confirm.Message, StringComparison.Ordinal);
+        Assert.Null(Request(Press(result.State, "y")).Target);
+    }
+
+    [Fact]
+    public void GivenTheSprintListNotLoadedYet_WhenDroppingOnASprintSection_ThenItSaysSoAndAsksNothing()
+    {
+        var state = Loaded();
+
+        var result = Drag(state, "A-3", SectionLine(state, BacklogFixtures.FutureId));
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("still loading", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenADropInsideTheSameSection_WhenReleased_ThenRowsAreSelectedAndNothingIsAsked()
+    {
+        var state = WithSprints(Loaded());
+        var tab = Tab(state);
+        var layout = BacklogSections.Build(tab);
+        var section = layout.SectionOfRow(tab.Rows.ToList().FindIndex(row => row.Key == "A-2"))!;
+        var rows = Enumerable.Range(section.FirstRow, section.RowCount).ToArray();
+        Assert.True(rows.Length > 1);
+
+        var result = _reducer.Reduce(
+            state,
+            new RowsDragged(0, Screen(tab, layout.LineOfRow(rows[0])), Screen(tab, layout.LineOfRow(rows[1])), 80, _now));
+
+        Assert.NotEqual(InputMode.Confirm, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.NotNull(Tab(result.State).VisualAnchor);
+    }
+
+    private ReduceResult Drag(AppState state, string fromKey, int toLine)
+    {
+        var tab = Tab(state);
+        var layout = BacklogSections.Build(tab);
+        var from = layout.LineOfRow(tab.Rows.ToList().FindIndex(row => row.Key == fromKey));
+
+        return _reducer.Reduce(state, new RowsDragged(0, Screen(tab, from), Screen(tab, toLine), 80, _now));
+    }
+
+    private static int Screen(TabState tab, int line)
+    {
+        return ListLayout.HeaderRows + line - tab.Scroll;
+    }
+
+    private static int SectionLine(AppState state, long? sprintId)
+    {
+        var key = sprintId is { } id ? BacklogSections.SprintKey(id) : BacklogSections.BacklogKey;
+
+        return BacklogSections.Build(Tab(state)).Sections.Single(section => section.Key == key).FirstLine;
+    }
+
+    private static AppState WithSprints(AppState state, params Sprint[] overrides)
+    {
+        Sprint[] sprints = [BacklogFixtures.Active, BacklogFixtures.Future, BacklogFixtures.EmptyFuture];
+        var merged = sprints.Select(sprint => overrides.FirstOrDefault(over => over.Id == sprint.Id) ?? sprint).ToArray();
+
+        return Replace(state, Tab(state) with { Sprints = merged });
     }
 
     private static Sprint Closed(long id)
