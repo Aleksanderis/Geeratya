@@ -1,0 +1,212 @@
+using Geeratya.Core.Lists;
+using Geeratya.Core.State;
+using Geeratya.Core.Views;
+
+namespace Geeratya.Core.Detail;
+
+internal static partial class DetailReducer
+{
+    /// <summary>
+    /// Moves the cursor of the top issue of the active tab by line or page; the window follows it, scrolling only
+    /// when the cursor would leave it.
+    /// </summary>
+    public static AppState MoveCursor(AppState state, TabState tab, ListMove move)
+    {
+        var top = tab.Detail[^1];
+        var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+
+        if (top.Document is not { } document)
+        {
+            return state;
+        }
+
+        var target = move switch
+        {
+            ListMove.Down => document.StopAfter(top.Cursor),
+            ListMove.Up => document.StopBefore(top.Cursor),
+            ListMove.PageDown => document.Snap(top.Cursor + Math.Max(1, viewport / 2)),
+            ListMove.PageUp => document.StopBefore(top.Cursor - Math.Max(1, viewport / 2) + 1),
+            ListMove.Top => document.Snap(0),
+            _ => document.Stops.Count == 0 ? 0 : document.Stops[^1],
+        };
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
+    }
+
+    /// <summary>
+    /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
+    /// top edge of the frame is row 0), without scrolling. Null for rows outside the document, the bottom edge included.
+    /// </summary>
+    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
+    {
+        var top = tab.Detail[^1];
+        var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
+
+        var shown = DetailLayout.ViewportRows(tab.VisibleRows);
+
+        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows
+            || bodyRow >= DetailLayout.HeaderRows + shown || line >= document.Lines.Count)
+        {
+            return null;
+        }
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));
+    }
+
+    /// <summary>
+    /// Puts the cursor on <paramref name="line"/> and scrolls so that it is the first visible line when the document
+    /// is long enough (a section jump shows the section from its top; the top edge of the frame carries its title).
+    /// </summary>
+    public static AppState JumpTo(AppState state, TabState tab, int line)
+    {
+        var top = tab.Detail[^1];
+        var lines = top.Document?.Lines.Count ?? 0;
+        var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+        var cursor = top.Document?.Snap(Math.Clamp(line, 0, Math.Max(0, lines - 1))) ?? 0;
+        var scroll = Math.Clamp(cursor, 0, Math.Max(0, lines - viewport));
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
+    }
+
+    private static DetailState WithCursor(DetailState detail, int target, int viewport)
+    {
+        var lines = detail.Document?.Lines.Count ?? 0;
+        var cursor = detail.Document?.Snap(Math.Clamp(target, 0, Math.Max(0, lines - 1))) ?? 0;
+        var scroll = detail.Scroll;
+
+        if (detail.Document is { Stops.Count: > 0 } stops && cursor == stops.Stops[^1])
+        {
+            scroll = lines;
+        }
+        else if (detail.Document is { Stops.Count: > 0 } first && cursor == first.Stops[0])
+        {
+            scroll = 0;
+        }
+        else if (cursor < scroll)
+        {
+            scroll = cursor;
+        }
+        else if (cursor >= scroll + viewport)
+        {
+            scroll = cursor - viewport + 1;
+        }
+
+        return detail with { Cursor = cursor, Scroll = Math.Clamp(scroll, 0, Math.Max(0, lines - viewport)) };
+    }
+
+    /// <summary>
+    /// After a viewport change: the top issue of every tab is laid out for the new width and re-clamped.
+    /// </summary>
+    public static TabState Resized(TabState tab, int columns)
+    {
+        if (tab.Detail.Count == 0)
+        {
+            return tab;
+        }
+
+        var top = tab.Detail[^1];
+        var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
+        var sameWidth = top.Document?.Width == width;
+        var resized = sameWidth ? Clamp(top, tab.VisibleRows) : Layout(top, columns, tab.VisibleRows);
+
+        return ReplaceTop(tab, resized);
+    }
+
+    /// <summary>What Enter opens on the cursor line of <paramref name="detail"/>, null on a plain line.</summary>
+    public static DetailTarget? TargetOf(DetailState detail)
+    {
+        var targets = detail.Document?.Targets;
+
+        if (targets is null || detail.Cursor < 0 || detail.Cursor >= targets.Count)
+        {
+            return null;
+        }
+
+        return targets[detail.Cursor];
+    }
+
+    /// <summary>
+    /// The board configuration arrived after issues were opened: the open details that fell back to the generic
+    /// estimate label take the board's name for it, without reopening (#470).
+    /// </summary>
+    public static TabState WithEstimateLabel(TabState tab, int columns)
+    {
+        var label = tab.Board?.EstimationFieldName;
+
+        if (label is null || tab.Detail.All(detail => detail.EstimateLabel is not null))
+        {
+            return tab;
+        }
+
+        var stack = tab.Detail
+            .Select(detail => detail.EstimateLabel is null
+                ? Layout(detail with { EstimateLabel = label }, columns, tab.VisibleRows)
+                : detail)
+            .ToArray();
+
+        return tab with { Detail = stack };
+    }
+
+    private static DetailState Layout(DetailState detail, int columns, int listRows)
+    {
+        var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
+
+        var document = IssueDocumentBuilder.Build(detail, width);
+        var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
+
+        return Clamp(detail with { Document = document, Cursor = anchored }, listRows);
+    }
+
+    /// <summary>
+    /// The cursor line in <paramref name="document"/> that shows the same row as the cursor did in
+    /// <paramref name="old"/> (same target, same offset inside a wrapped row), so data arriving above the cursor does
+    /// not move it onto another row. A plain line keeps its line number.
+    /// </summary>
+    private static int Anchored(DetailState detail, DetailDocument old, DetailDocument document)
+    {
+        if (detail.Cursor < 0 || detail.Cursor >= old.Targets.Count || old.Targets[detail.Cursor] is not { } target)
+        {
+            return detail.Cursor;
+        }
+
+        var start = detail.Cursor;
+
+        while (start > 0 && Equals(old.Targets[start - 1], target))
+        {
+            start--;
+        }
+
+        for (var line = 0; line < document.Targets.Count; line++)
+        {
+            if (Equals(document.Targets[line], target))
+            {
+                return Math.Min(line + detail.Cursor - start, document.Targets.Count - 1);
+            }
+        }
+
+        return detail.Cursor;
+    }
+
+    private static DetailState Clamp(DetailState detail, int listRows)
+    {
+        var lines = detail.Document?.Lines.Count ?? 0;
+        var viewport = DetailLayout.ViewportRows(listRows);
+        var scrolled = detail with { Scroll = Math.Clamp(detail.Scroll, 0, Math.Max(0, lines - viewport)) };
+
+        return WithCursor(scrolled, detail.Cursor, viewport);
+    }
+
+    private static TabState ReplaceTop(TabState tab, DetailState top)
+    {
+        var stack = tab.Detail.ToArray();
+
+        stack[^1] = top;
+
+        return tab with { Detail = stack };
+    }
+
+    private static TabState? ActiveTab(AppState state)
+    {
+        return state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+    }
+}
