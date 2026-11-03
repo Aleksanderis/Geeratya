@@ -136,6 +136,7 @@ public static class ActionCatalog
         new(ActionIds.SprintSwitch, "Switch the sprint shown (active, future, closed)"),
         new(ActionIds.SprintCreate, "Create a sprint (name, goal, dates)"),
         new(ActionIds.SprintEdit, "Edit the sprint (name, goal, dates)", CommandLevel.Advanced),
+        new(ActionIds.SprintGoal, "Show the full goal of the sprint"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
@@ -225,7 +226,7 @@ public static class ActionCatalog
     /// </summary>
     public static string? GroupOf(string id)
     {
-        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id.StartsWith("view.", StringComparison.Ordinal))
+        if (id == ActionIds.ViewMenuOpen || id == ActionIds.SprintSwitch || id == ActionIds.SprintGoal || id.StartsWith("view.", StringComparison.Ordinal))
         {
             return "View";
         }

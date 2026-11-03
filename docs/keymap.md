@@ -70,6 +70,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space s v` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
 | `Space s n` | Create a sprint (name, goal, dates) | `sprint.create` | everyday |
 | `Space s e` | Edit the sprint (name, goal, dates) | `sprint.edit` | advanced |
+| `Space s g` | Show the full goal of the sprint | `sprint.goal` | everyday |
 | `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
 | `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |

@@ -84,6 +84,7 @@ public static class ActionIds
     public const string SprintSwitch = "sprint.switch";
     public const string SprintCreate = "sprint.create";
     public const string SprintEdit = "sprint.edit";
+    public const string SprintGoal = "sprint.goal";
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";

@@ -68,6 +68,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.SprintSwitch, 'V'),
         ContextMenuRow(ActionIds.SprintCreate, 'V'),
         ContextMenuRow(ActionIds.SprintEdit, 'V'),
+        ContextMenuRow(ActionIds.SprintGoal, 'V'),
         ContextMenuRow(ActionIds.StatusHistory, 'V'),
         ContextMenuRow(ActionIds.StatusDismiss, 'V'),
         ContextMenuRow(ActionIds.RankUp),

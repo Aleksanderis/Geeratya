@@ -10,6 +10,7 @@
             │               │   Space *    Switch the command level for the session                        │            
             │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │   Space s n  Create a sprint (name, goal, dates)                             │            
+            │               │   Space s g  Show the full goal of the sprint                                │            
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
@@ -30,7 +31,6 @@
             │               │   k          Move up  (Up)                                                   │            
             │               │   h          Move left  (Left)                                               │            
             │               │   l          Move right  (Right)                                             │            
-            │               │   g g        Go to the top  (Home)                                           │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   Enter      Open the selected item                                          │            
-            │ > All actions │   0          Go to the first column                                          │            
-            │   Commands    │   $          Go to the last column                                           │            
+            │   Global      │   Ctrl-u     Page up  (PageUp)                                               │            
+            │ > All actions │   Enter      Open the selected item                                          │            
+            │   Commands    │   0          Go to the first column                                          │            
+            │               │   $          Go to the last column                                           │            
             │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
             │               │   [ [        Previous section of the issue or the Scrum backlog              │            
             │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
@@ -30,7 +31,6 @@
             │               │   y          Confirm                                                         │            
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
-            │               │   Backspace  Delete the last character                                       │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close
