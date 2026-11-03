@@ -1,36 +1,36 @@
                                                                                                              : commands 
                                                                                                                         
-                                                                                                                        
-            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │ Issue                                                                        │            
-            │ > All actions │   <space>o   Open the issue in the browser                                   │            
-            │   Commands    │   <space>p   Open the parent issue                                           │            
-            │               │   <space>ie  Edit fields of the issue (summary, labels, priority,            │            
-            │               │              description)                                                    │            
-            │               │   <space>ia  Assign the issue: search people, or unassign                    │            
-            │               │   <space>im  Assign the issue to me                                          │            
-            │               │   <space>is  Change the status of the issue                                  │            
-            │               │   Alt-l      Move the card to the next column                                │            
-            │               │   Alt-h      Move the card to the previous column                            │            
-            │               │   <space>ic  Create an issue (type picker, then the form)                    │            
-            │               │   <space>iC  Create a sub-task of the selected issue                         │            
-            │               │   <space>g   Jump to an issue by key                                         │            
-            │               │   <space>sm  Move the selected issues to a sprint                            │            
-            │               │   <space>sb  Move the selected issues to the backlog                         │            
-            │               │ Comment                                                                      │            
-            │               │   <space>ma  Add a comment to the issue                                      │            
-            │               │   <space>me  Edit the comment under the cursor                               │            
-            │               │ Rank                                                                         │            
-            │               │   Alt-k      Rank the issue up (a count moves it that many places)           │            
-            │               │   Alt-j      Rank the issue down (a count moves it that many places)         │            
-            │               │ Selection                                                                    │            
-            │               │   v          Start or end Visual mode (a range of rows)                      │            
-            │               │   Alt-m      Mark or unmark the selected row and move down                   │            
-            │               │ View                                                                         │            
-            │               │   <space>A   Open the actions menu of the tab and the view                   │            
-            │               │   <space>r   Refresh the view (also retries after an error)                  │            
-            │               │   <space>l   Switch between list and columns                                 │            
-            │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │            
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-                                                                                                                        
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
+│           │   Global      │ Issue                                                                        │           │
+│           │ > All actions │   <space>o   Open the issue in the browser                                   │           │
+│           │   Commands    │   <space>p   Open the parent issue                                           │           │
+│           │               │   <space>ie  Edit fields of the issue (summary, labels, priority,            │           │
+│           │               │              description)                                                    │           │
+│           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
+│           │               │   <space>im  Assign the issue to me                                          │           │
+│           │               │   <space>is  Change the status of the issue                                  │           │
+│           │               │   Alt-l      Move the card to the next column                                │           │
+│           │               │   Alt-h      Move the card to the previous column                            │           │
+│           │               │   <space>ic  Create an issue (type picker, then the form)                    │           │
+│           │               │   <space>iC  Create a sub-task of the selected issue                         │           │
+│           │               │   <space>g   Jump to an issue by key                                         │           │
+│           │               │   <space>sm  Move the selected issues to a sprint                            │           │
+│           │               │   <space>sb  Move the selected issues to the backlog                         │           │
+│           │               │ Comment                                                                      │           │
+│           │               │   <space>ma  Add a comment to the issue                                      │           │
+│           │               │   <space>me  Edit the comment under the cursor                               │           │
+│           │               │ Rank                                                                         │           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
+│           │               │ Selection                                                                    │           │
+│           │               │   v          Start or end Visual mode (a range of rows)                      │           │
+│           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
+│           │               │ View                                                                         │           │
+│           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
+│           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
+│           │               │   <space>l   Switch between list and columns                                 │           │
+│           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
+│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -1,24 +1,24 @@
                                                                      : commands 
                                                                                 
-Settings                                                                        
-hints.statusBar full (default full) - How many key hints the right of the statu…
-hints.whichKey on (default on) - Show the popup of the next keys while a multi-…
-commandlevel everyday (default everyday) - Which actions help, the palette, whi…
-theme auto (default auto) - The colour theme: a built-in one or a file in the t…
-jump.target current (default current) - Where the jump prompt (<space>g) opens …
-startup.restore on (default on) - Reopen the tabs of the last run on start; off…
-Messages                                                                        
-Saved A-1                                                                       
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+╭─ Settings ───────────────────────────────────────────────────────────────────╮
+│ hints.statusBar full (default full) - How many key hints the right of the st…│
+│ hints.whichKey on (default on) - Show the popup of the next keys while a mul…│
+│ commandlevel everyday (default everyday) - Which actions help, the palette, …│
+│ theme auto (default auto) - The colour theme: a built-in one or a file in th…│
+│ jump.target current (default current) - Where the jump prompt (<space>g) ope…│
+│ startup.restore on (default on) - Reopen the tabs of the last run on start; …│
+│ Messages                                                                     │
+│ Saved A-1                                                                    │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
  MESSAGES                                                j down  k up  Esc close

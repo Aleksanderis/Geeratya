@@ -1,36 +1,36 @@
                                                                                                              : commands 
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                        Geeratya                                                        
-                                              No profile yet: :profile add                                              
-                                              ? help   : commands   q quit                                              
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
-                                         ╭─ <space>i ──────────────────────────────────────────────────────────────────╮
-                                         │ m         Assign the issue to me                                            │
-                                         │ a         Assign the issue: search people, or unassign                      │
-                                         │ s         Change the status of the issue                                    │
-                                         │ C         Create a sub-task of the selected issue                           │
-                                         │ c         Create an issue (type picker, then the form)                      │
-                                         │ e         Edit fields of the issue (summary, labels, priority, description) │
-                                         ╰─────────────────────────────────────────────────────────────────────────────╯
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                             No profile yet: :profile add                                             │
+│                                             ? help   : commands   q quit                                             │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                        ╭─ <space>i ──────────────────────────────────────────────────────────────────╮
+│                                        │ m         Assign the issue to me                                            │
+│                                        │ a         Assign the issue: search people, or unassign                      │
+│                                        │ s         Change the status of the issue                                    │
+│                                        │ C         Create a sub-task of the selected issue                           │
+│                                        │ c         Create an issue (type picker, then the form)                      │
+│                                        │ e         Edit fields of the issue (summary, labels, priority, description) │
+╰────────────────────────────────────────╰─────────────────────────────────────────────────────────────────────────────╯
  NORMAL  <space>i                                                                             ? help  : commands  q quit

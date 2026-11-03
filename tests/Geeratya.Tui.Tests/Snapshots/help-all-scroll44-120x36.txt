@@ -1,36 +1,36 @@
                                                                                                              : commands 
                                                                                                                         
-                                                                                                                        
-            ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮            
-            │   Global      │   Alt-4      Go to tab 4                                                     │            
-            │ > All actions │   Alt-5      Go to tab 5                                                     │            
-            │   Commands    │   Alt-6      Go to tab 6                                                     │            
-            │               │   Alt-7      Go to tab 7                                                     │            
-            │               │   Alt-8      Go to tab 8                                                     │            
-            │               │   Alt-9      Go to tab 9                                                     │            
-            │               │   <space>t   Open the source picker for a new tab                            │            
-            │               │   <space>c   Close the tab                                                   │            
-            │               │ Navigate                                                                     │            
-            │               │   j          Move down  (Down)                                               │            
-            │               │   k          Move up  (Up)                                                   │            
-            │               │   h          Move left  (Left)                                               │            
-            │               │   l          Move right  (Right)                                             │            
-            │               │   gg         Go to the top  (Home)                                           │            
-            │               │   G          Go to the bottom  (End)                                         │            
-            │               │   Ctrl-d     Page down  (PageDown)                                           │            
-            │               │   Ctrl-u     Page up  (PageUp)                                               │            
-            │               │   Enter      Open the selected item                                          │            
-            │               │   0          Go to the first column                                          │            
-            │               │   $          Go to the last column                                           │            
-            │               │   ]]         Next section of the issue or the Scrum backlog                  │            
-            │               │   [[         Previous section of the issue or the Scrum backlog              │            
-            │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │            
-            │               │              section                                                         │            
-            │               │ General                                                                      │            
-            │               │   ?          Show or hide help                                               │            
-            │               │   q          Quit  (Ctrl-c)                                                  │            
-            │               │   Esc        Cancel or close                                                 │            
-            │               │   :          Open the command palette  (Ctrl-p)                              │            
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-                                                                                                                        
+╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
+│           │   Global      │   Alt-4      Go to tab 4                                                     │           │
+│           │ > All actions │   Alt-5      Go to tab 5                                                     │           │
+│           │   Commands    │   Alt-6      Go to tab 6                                                     │           │
+│           │               │   Alt-7      Go to tab 7                                                     │           │
+│           │               │   Alt-8      Go to tab 8                                                     │           │
+│           │               │   Alt-9      Go to tab 9                                                     │           │
+│           │               │   <space>t   Open the source picker for a new tab                            │           │
+│           │               │   <space>c   Close the tab                                                   │           │
+│           │               │ Navigate                                                                     │           │
+│           │               │   j          Move down  (Down)                                               │           │
+│           │               │   k          Move up  (Up)                                                   │           │
+│           │               │   h          Move left  (Left)                                               │           │
+│           │               │   l          Move right  (Right)                                             │           │
+│           │               │   gg         Go to the top  (Home)                                           │           │
+│           │               │   G          Go to the bottom  (End)                                         │           │
+│           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
+│           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
+│           │               │   Enter      Open the selected item                                          │           │
+│           │               │   0          Go to the first column                                          │           │
+│           │               │   $          Go to the last column                                           │           │
+│           │               │   ]]         Next section of the issue or the Scrum backlog                  │           │
+│           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
+│           │               │              section                                                         │           │
+│           │               │ General                                                                      │           │
+│           │               │   ?          Show or hide help                                               │           │
+│           │               │   q          Quit  (Ctrl-c)                                                  │           │
+│           │               │   Esc        Cancel or close                                                 │           │
+│           │               │   :          Open the command palette  (Ctrl-p)                              │           │
+│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

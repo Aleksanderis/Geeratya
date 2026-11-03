@@ -1,24 +1,24 @@
                                                                      : commands 
                                                                                 
-                                                                                
-  ╭─ Help ───────────────────────────────────────────────────────────────────╮  
-  │ > Global      │   ?          Show or hide help                           │  
-  │   All actions │   q          Quit  (Ctrl-c)                              │  
-  │   Commands    │   Esc        Cancel or close                             │  
-  │               │   :          Open the command palette  (Ctrl-p)          │  
-  │               │   <space>A   Open the actions menu of the tab and the    │  
-  │               │              view                                        │  
-  │               │   Tab        Next tab  (gt)                              │  
-  │               │   Shift-Tab  Previous tab  (gT)                          │  
-  │               │   Ctrl-^     Previously active tab  (<space><Tab>)       │  
-  │               │   Alt-1      Go to tab 1                                 │  
-  │               │   Alt-2      Go to tab 2                                 │  
-  │               │   Alt-3      Go to tab 3                                 │  
-  │               │   Alt-4      Go to tab 4                                 │  
-  │               │   Alt-5      Go to tab 5                                 │  
-  │               │   Alt-6      Go to tab 6                                 │  
-  │               │   Alt-7      Go to tab 7                                 │  
-  │               │   Alt-8      Go to tab 8                                 │  
-  ╰──────────────────────────────────────────────────────────────────────────╯  
-                                                                                
+╭─ Geeratya ───────────────────────────────────────────────────────────────────╮
+│ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
+│ │ > Global      │   ?          Show or hide help                           │ │
+│ │   All actions │   q          Quit  (Ctrl-c)                              │ │
+│ │   Commands    │   Esc        Cancel or close                             │ │
+│ │               │   :          Open the command palette  (Ctrl-p)          │ │
+│ │               │   <space>A   Open the actions menu of the tab and the    │ │
+│ │               │              view                                        │ │
+│ │               │   Tab        Next tab  (gt)                              │ │
+│ │               │   Shift-Tab  Previous tab  (gT)                          │ │
+│ │               │   Ctrl-^     Previously active tab  (<space><Tab>)       │ │
+│ │               │   Alt-1      Go to tab 1                                 │ │
+│ │               │   Alt-2      Go to tab 2                                 │ │
+│ │               │   Alt-3      Go to tab 3                                 │ │
+│ │               │   Alt-4      Go to tab 4                                 │ │
+│ │               │   Alt-5      Go to tab 5                                 │ │
+│ │               │   Alt-6      Go to tab 6                                 │ │
+│ │               │   Alt-7      Go to tab 7                                 │ │
+│ │               │   Alt-8      Go to tab 8                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

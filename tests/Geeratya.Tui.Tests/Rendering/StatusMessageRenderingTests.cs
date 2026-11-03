@@ -127,12 +127,22 @@ public class StatusMessageRenderingTests
 
         var lines = FrameBuilder.Build(state, 60, 12, _keymap);
 
-        var heading = lines.ToList().FindIndex(line => line.StartsWith("Messages"));
+        var heading = lines.ToList().FindIndex(line => line.StartsWith("╭─ Messages"));
 
         Assert.True(heading >= 0);
-        Assert.StartsWith("Error: Second failed", lines[heading + 1]);
-        Assert.StartsWith("First", lines[heading + 2]);
+        Assert.StartsWith("│ Error: Second failed", lines[heading + 1]);
+        Assert.StartsWith("│ First", lines[heading + 2]);
         Assert.StartsWith(" MESSAGES", lines[^1]);
+    }
+
+    [Fact]
+    public void GivenOneMessage_WhenOpeningTheHistory_ThenTheCountChipIsSingular()
+    {
+        var state = StatusMessages.OpenHistory(Posted("First", StatusSeverity.Info));
+
+        var lines = FrameBuilder.Build(state, 60, 12, _keymap);
+
+        Assert.Contains(lines, line => line.StartsWith("╭─ Messages") && line.Contains(" 1 message "));
     }
 
     [Fact]
@@ -140,7 +150,7 @@ public class StatusMessageRenderingTests
     {
         var lines = FrameBuilder.Build(StatusMessages.OpenHistory(AppState.Initial), 60, 12, _keymap);
 
-        Assert.Contains(lines, line => line.StartsWith("No messages yet."));
+        Assert.Contains(lines, line => line.StartsWith("│ No messages yet."));
     }
 
     [Fact]

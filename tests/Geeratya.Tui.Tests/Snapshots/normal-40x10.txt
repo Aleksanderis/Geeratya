@@ -1,10 +1,10 @@
                                         
                                         
-                                        
-                                        
-                Geeratya                
-      No profile yet: :profile add      
-      ? help   : commands   q quit      
-                                        
-                                        
+╭─ Geeratya ───────────────────────────╮
+│                                      │
+│     No profile yet: :profile add     │
+│     ? help   : commands   q quit     │
+│                                      │
+│                                      │
+╰──────────────────────────────────────╯
  NORMAL       ? help  : commands  q quit

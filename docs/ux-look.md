@@ -13,7 +13,7 @@ Part of the interface specification; start at [ux.md](ux.md). This is the visual
 
 ## 2. Frame (`FrameGrid`; #524)
 
-Implemented (#524): `FrameGrid` (pane rectangles, plain junctions, rounded outer corners, chips written into top edges) draws the board; `PaneFrame` draws the one-column screens (list, backlog, empty states) around their content lines, with shared edges where a section starts; the issue detail document carries its own sides and shared edges (`Panel`) and the renderer adds the top and bottom edge. Differences from the mockups below, kept on purpose: the backlog's top edge carries the source and count (the first sprint's header is the shared edge under the column titles) so that the list and the backlog keep one geometry; the title chips, focus box and quiet borders were added by #526 (section 4); the board's title line moved to the status bar, which gives it what the key hints leave over (the mode badge, hints and colours of the bars are #527); in the detail the first pane's title is the top edge of the frame and a long document shows the title of the pane in view there; the selection marker `>` replaces the first padding cell (the content follows it directly). The start screen and the messages screen are not framed yet.
+Implemented (#524): `FrameGrid` (pane rectangles, plain junctions, rounded outer corners, chips written into top edges) draws the board; `PaneFrame` draws the one-column screens (list, backlog, empty states) around their content lines, with shared edges where a section starts; the issue detail document carries its own sides and shared edges (`Panel`) and the renderer adds the top and bottom edge. Differences from the mockups below, kept on purpose: the backlog's top edge carries the source and count (the first sprint's header is the shared edge under the column titles) so that the list and the backlog keep one geometry; the title chips, focus box and quiet borders were added by #526 (section 4); the board's title line moved to the status bar, which gives it what the key hints leave over (the mode badge, hints and colours of the bars are #527); in the detail the first pane's title is the top edge of the frame and a long document shows the title of the pane in view there; the selection marker `>` replaces the first padding cell (the content follows it directly). The start screen (chip `Geeratya`, the active profile name as the dim right-hand chip, the block centred inside) and the messages screen (chip `Messages` or `Settings`, dim `N messages` on the right) are framed by #537.
 
 Every pane is a box and neighbouring boxes share their edge, so the body is one frame divided into panes. A `FrameGrid` (Tui layer, pure geometry plus a draw function; `--print-frame` uses the same) takes the body rectangle and a list of pane rectangles that tile it, and draws each shared edge once with the right junction.
 
@@ -94,7 +94,7 @@ The panes are the sections the detail already has (header and fields, Descriptio
  NORMAL  GEN board 29  ·  Connected as Test User 1      ? help  : commands  q quit
 ```
 
-The sprint goal is the pane's first content line (`Goal: ...`, muted) when set. The column header line (`Key T Summary ...`) is shown once in the top pane's first content row and repeats nowhere. A section collapsed with `za` stays a pane that is only its title edge, with `▸` (ASCII `>`) before the chip text; `j`/`k` step over all sections as in `ux-screens.md`.
+The mockup draws the first sprint's chip in the top edge; the render keeps the source and count there and the first sprint's chip on the shared edge under the column titles, so the list and the backlog share one geometry (decided in #537, see `ux-screens.md` for the snapshot). The sprint goal is the pane's first content line (`Goal: ...`, muted) when set. The column header line (`Key T Summary ...`) is shown once in the top pane's first content row and repeats nowhere. A section collapsed with `za` stays a pane that is only its title edge, with `▸` (ASCII `>`) before the chip text; `j`/`k` step over all sections as in `ux-screens.md`.
 
 **List (JQL and filters).** One pane; chip: the source (`project = GCM`), right-hand chip the count `40 issues`. Header row inside the pane as in the backlog.
 
@@ -109,8 +109,8 @@ A chip is the text of a title, written into a top edge as `─ text ─` (one `�
 | Board | column | `To Do 5` (name, issue count, `/limit` when the column has a WIP limit: `In Progress 4/3`, over the limit in the `warn` role) | none |
 | Board (Scrum) | column | as above; `Done 3 · 12 pts` when the board estimates in points | |
 | Issue detail | header | `GEN-5 · Story` (key bold, type in the issue-type colour) | `In Progress` (status chip in its category colour) |
-| Issue detail | other panes | `Description`, `Comments 50 of 120`, `Relations 4`, `Attachments 2`, `Links 3` | none |
-| Backlog | sprint | `Sprint 2 · active` | `19 Jan - 1 Feb · 11 issues · 41 pts` |
+| Issue detail | other panes | `Description`, `Comments 50 of 120`, then one pane per relation kind with its count: `Sub-tasks 1`, `Epic children 2`, `Linked issues 2`, `Remote links 1`, `Attachments 2` (there is no merged `Relations` pane) | none |
+| Backlog | sprint (shared edge under the column titles) | `Sprint 2 · active` | `19 Jan - 1 Feb · 11 issues · 41 pts`; the frame's own top edge carries the source and count (kept on purpose, #537: list and backlog share one geometry) |
 | Backlog | backlog | `Backlog` | `8 issues` |
 | List | list | the source (`project = GCM`, filter name) | `40 issues` |
 | Overlay | box | its title (section 7), always the accent chip | optional right-hand count (`12/87` in the palette) |
@@ -358,6 +358,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Forms and pickers | Done in #525: rounded accent frame, centred, view dimmed around it, suggestion rows inside the form box. Done in #539: hint chips in the footer, `▲`/`▼` scroll markers and the 18-row cap (picker, jump); the mouse wheel does not scroll the picker rows yet | 7 | #525 |
 | Settings | Done in #556: two-pane full-body screen like the profile manager (categories 20 columns, rows, help row, hint row), a `Settings` chip in the tab row, the open choice list under its row; under 60 columns one list with category headings | 7 (settings) | #556 |
 | Profiles | Done in #535: two-pane full-body manager with details pane and the `Profiles` chip; the form and the remove question draw over it | 7 (profile manager) | #528 (form and keys), #535 (two-pane screen) |
+| Start and messages | Done in #537: the start screen and the messages screen sit in the frame (chips `Geeratya` and `Messages`/`Settings`); the pane chips of the detail lost their parentheses (`Comments 50 of 120`, `Attachments 2`) | 2, 3 | #537 |
 
 ## 10. Reconciliation with the other parts, and what stays open
 
