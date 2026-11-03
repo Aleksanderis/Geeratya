@@ -274,7 +274,7 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
-    public void GivenTheDiscardQuestion_WhenRendering_ThenTheEditorStaysUnderTheConfirmLine()
+    public void GivenTheDiscardQuestion_WhenRendering_ThenTheEditorStaysBehindTheDialog()
     {
         var state = StateWith(Editor("draft")) with
         {
@@ -284,8 +284,11 @@ public class CommentEditorOverlayTests
 
         var frame = FrameBuilder.BuildStyled(state, 80, 24, [], _keymap)!;
 
-        Assert.Contains("CONFIRM Discard the unsent comment text?", frame.StatusLine);
-        Assert.Contains("draft", string.Join('\n', frame.PlainLines()));
+        var text = string.Join('\n', frame.PlainLines());
+
+        Assert.Contains("CONFIRM Confirm  (y/n)", frame.StatusLine);
+        Assert.Contains("Discard the unsent comment text?", text);
+        Assert.Contains("draft", text);
     }
 
     private static CommentEditor EditorWithPopup()

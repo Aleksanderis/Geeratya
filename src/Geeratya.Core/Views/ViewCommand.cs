@@ -22,9 +22,10 @@ public sealed record ViewLayoutChanged(TabId Tab, ViewLayout Layout) : ViewComma
 
 /// <summary>
 /// The viewport changed; applies to every tab. <paramref name="Rows"/> is the list's row count,
-/// <paramref name="Columns"/> the terminal width (0 when the sender does not know it: the last width is kept).
+/// <paramref name="Columns"/> the terminal width (0 when the sender does not know it: the last width is kept),
+/// <paramref name="BodyHeight"/> the rows the frame gives the body (negative when unknown: the last one is kept).
 /// </summary>
-public sealed record ViewportChanged(int Rows, int Columns = 0) : ViewCommand;
+public sealed record ViewportChanged(int Rows, int Columns = 0, int BodyHeight = -1) : ViewCommand;
 
 /// <summary>Load the next page of a tab.</summary>
 public sealed record NextPageRequested(TabId Tab) : ViewCommand;

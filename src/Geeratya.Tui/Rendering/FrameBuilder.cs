@@ -26,6 +26,12 @@ public static class FrameBuilder
     /// <summary>The rows above the body: the tab bar and the network banner (blank while there is none).</summary>
     public const int HeaderRows = TabBar.Rows + 1;
 
+    /// <summary>The rows the body gets in a terminal of <paramref name="height"/> rows (never negative).</summary>
+    public static int BodyHeight(int height)
+    {
+        return Math.Max(0, height - 1 - Math.Min(HeaderRows, height - 1));
+    }
+
     /// <summary>
     /// Exactly <paramref name="height"/> lines of exactly <paramref name="width"/> columns; empty for a size of zero.
     /// </summary>
@@ -64,7 +70,7 @@ public static class FrameBuilder
 
         var header = Math.Min(HeaderRows, height - 1);
         var clock = now ?? DateTimeOffset.UnixEpoch;
-        var bodyHeight = height - 1 - header;
+        var bodyHeight = BodyHeight(height);
         var context = new BodyContext(helpLines, keymap, glyphs);
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
@@ -104,6 +110,16 @@ public static class FrameBuilder
             body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
+        var confirmShown = false;
+
+        if (state.Mode == InputMode.Confirm && state.Confirm is not null)
+        {
+            var composed = ConfirmOverlay.Compose(body, state.Confirm, keymap, width, bodyHeight, regions);
+
+            confirmShown = composed is not null;
+            body = Fit(composed ?? body, width, bodyHeight);
+        }
+
         if (WhichKeyOverlay.Applies(state) && state.Picker is null)
         {
             body = Fit(WhichKeyOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
@@ -112,7 +128,7 @@ public static class FrameBuilder
         var frame = new StyledFrame(
             Fit(HeaderLines(state, width, clock, header), width, header),
             Fit(body, width, bodyHeight),
-            StatusBar.Render(state, width, keymap, clock))
+            StatusBar.Render(state, width, keymap, clock, confirmShown))
         {
             Regions = [.. regions.Select(region => region.Shifted(header))],
         };

@@ -65,6 +65,9 @@ public abstract record WriteRequest
     /// </summary>
     public virtual string? AskText => null;
 
+    /// <summary>The name of the <c>y</c> answer in the Confirm dialog: says what the write does ("Move issue").</summary>
+    public virtual string AskLabel => "Confirm";
+
     /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or
     /// the write is not optimistic).

@@ -36,6 +36,8 @@ public sealed record TransitionRequest(
     public override string? AskText =>
         AskFirst ? $"Move {Key} to {Choice.Target.Name}? {SideEffectWarning}" : null;
 
+    public override string AskLabel => "Move issue";
+
     public override RowChange? Plan(IssueSummary row)
     {
         return row.Status.Id == Choice.Target.Id ? null : new StatusRowChange(Key, row.Status, Choice.Target);

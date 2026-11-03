@@ -34,6 +34,9 @@ public sealed class AppReducer
     ];
 
     private const string EscapeKey = "Esc";
+    private const string ConfirmTooSmallText =
+        "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
+    private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
 
     private readonly KeymapTable _keymap;
 
@@ -43,6 +46,37 @@ public sealed class AppReducer
     }
 
     public ReduceResult Reduce(AppState state, Command command)
+    {
+        return GuardConfirm(state, ReduceCommand(state, command));
+    }
+
+    /// <summary>
+    /// The Confirm dialog is the only way to answer, so it must be readable: a confirm that would open where the
+    /// dialog does not fit is not opened (the state stays as it was and says so), and one that stops fitting after a
+    /// resize is closed unanswered with a warning. Nothing runs in either case.
+    /// </summary>
+    private static ReduceResult GuardConfirm(AppState before, ReduceResult result)
+    {
+        var after = result.State;
+
+        if (after.Mode != InputMode.Confirm || after.Confirm is null || ConfirmDialog.Fits(after))
+        {
+            return result;
+        }
+
+        if (before.Mode != InputMode.Confirm)
+        {
+            return Result(before with { Message = ConfirmTooSmallText });
+        }
+
+        var closed = after.Editor is not null
+            ? CommentEditing.KeepEditing(after) with { Message = ConfirmClosedText }
+            : ToNormal(after) with { Message = ConfirmClosedText };
+
+        return Result(closed);
+    }
+
+    private ReduceResult ReduceCommand(AppState state, Command command)
     {
         return command switch
         {
@@ -109,7 +143,7 @@ public sealed class AppReducer
             return new ReduceResult(state, _quitEffects);
         }
 
-        var request = new ConfirmRequest($"{running}. Quit anyway?", ActionIds.Quit);
+        var request = new ConfirmRequest($"{running}. Quit anyway?", ActionIds.Quit, Label: "Quit");
 
         return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }
@@ -159,6 +193,8 @@ public sealed class AppReducer
             MouseTarget.ContextMenu when cleared.ContextMenu is { } menu && clicked.Index < menu.Items.Count
                 => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
             MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),
+            MouseTarget.ConfirmYes when state.Mode == InputMode.Confirm => Confirmed(state, clicked.At),
+            MouseTarget.ConfirmNo when state.Mode == InputMode.Confirm => DeclineConfirm(state),
             _ => Result(state),
         };
     }

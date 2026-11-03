@@ -299,7 +299,7 @@ public static class ProfileReducer
         {
             var question = $"{running}. Switch to {profile.Name} anyway?";
 
-            var request = new ConfirmRequest(question, SwitchAction, profile.Name);
+            var request = new ConfirmRequest(question, SwitchAction, profile.Name, Label: "Switch profile");
 
             return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
         }
@@ -322,7 +322,7 @@ public static class ProfileReducer
 
         var question = $"Remove profile {profile.Name} ({profile.Email} on {profile.SiteUrl}) and delete its stored "
             + $"token?{ActiveNotice(state.Profiles, profile)}{RunningNotice(state, profile)} This cannot be undone";
-        var request = new ConfirmRequest(question, RemoveAction, profile.Name);
+        var request = new ConfirmRequest(question, RemoveAction, profile.Name, Label: "Remove profile");
 
         return Plain(state with { Mode = InputMode.Confirm, Confirm = request });
     }

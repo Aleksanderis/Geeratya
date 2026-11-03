@@ -13,7 +13,7 @@ Mouse input is optional and never the only way: everything doable by mouse is do
 3. `MouseHitTester` (Core, pure) turns a cell and a `MouseContext` (size, header rows, overlay open, issue open, the cells of each tab and whether the banner shows a line) into a `MouseTarget`: the tab bar row, the banner row, the body (lists or detail) and the status line.
 4. `DefaultMouseMap` (Core) gives the row for the target and gesture; `MouseResolver` makes the commands from it (a list: an `ActionRequested`, or a `PointerPlaced` that carries the action to run after placing).
 
-While an overlay, prompt, picker, form, editor, help or confirm is open, only the tab bar and banner rows count, as the `Backdrop` (a click there closes the overlay like `Esc`), and the clickable rows the overlay reports. The renderer places the overlay and hands the hit test its row rectangles (`OverlayRegion`, in `StyledFrame.Regions`), so the hit test never guesses the layout; a click anywhere else in the body does nothing instead of closing what the user clicked on. A click on a row resolves to `OverlayRowClicked` (the row is chosen, then the key's handler runs); only the row targets resolve that way, and a click on a form field while it saves or asks to discard does nothing, as its keys do nothing. Wheel events do nothing while an overlay is open.
+While an overlay, prompt, picker, form, editor or help is open, only the tab bar and banner rows count, as the `Backdrop` (a click there closes the overlay like `Esc`), and the clickable rows the overlay reports. The renderer places the overlay and hands the hit test its row rectangles (`OverlayRegion`, in `StyledFrame.Regions`), so the hit test never guesses the layout; a click anywhere else in the body does nothing instead of closing what the user clicked on. The Confirm dialog is the exception: its box is a region (`ConfirmBox`, with the `y` and `n` rows on top), and everything outside the box, the status line included, is the backdrop, because the dialog is the whole question and a click away from it is a no. A click on a row resolves to `OverlayRowClicked` (the row is chosen, then the key's handler runs); only the row targets resolve that way, and a click on a form field while it saves or asks to discard does nothing, as its keys do nothing. Wheel events do nothing while an overlay is open.
 
 ## Parts
 
@@ -34,7 +34,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | Detail | Wheel up | `nav.up` | A | Moves the cursor up 3 lines in the opened issue (like `3k`) |
 | Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the opened issue (like `3j`) |
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
-| Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed) |
+| Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows closes it, same as `Esc` (the editor asks first when its text changed). With the Confirm dialog open the whole screen outside its box counts, the body and the status line too, and the click cancels like `n`; a click inside the box but not on a row does nothing |
 | PickerRow | Click | `form.next` | O | Source picker: opens the clicked board, filter or query, same as `Enter` on it |
 | JumpRow | Click | `form.next` | O | Jump prompt: opens the clicked issue, same as `Enter` on it |
 | ProfileRow | Click | `form.next` | O | Profile list: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
@@ -42,6 +42,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | FormField | Click | `form.field-next` | O | Field form (also the create and edit forms): focuses the clicked editable field; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |
+| ConfirmYes | Click | `confirm.yes` | O | Confirm dialog: the `y` row runs the action, same as `y` (the dialog closes first) |
+| ConfirmNo | Click | `confirm.no` | O | Confirm dialog: the `n` row cancels, same as `n` |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
 | Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there) |
 | Lists | Right-click | `menu.context` | M | Selects the row or card under the pointer and opens its menu (only the actions of that issue), same as `<space>a`; the command palette stays on `:` and the status line |
@@ -85,7 +87,7 @@ Actions with no row of their own, each with the reason (a test checks this list 
 
 ## Planned paths
 
-Not in the table until built, each with its issue: the rows of the Confirm dialog, `y` and `n`, and a click outside it as `n` (#370); a click on a command palette row and the wheel in it (#368); a click on the status message to open the history (#369); a click on a help page name (#371).
+Not in the table until built, each with its issue: a click on a command palette row and the wheel in it (#368); a click on the status message to open the history (#369); a click on a help page name (#371).
 
 ## Checks and terminal selection
 
