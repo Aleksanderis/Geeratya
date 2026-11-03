@@ -48,6 +48,8 @@ public sealed partial class FakeScrumStore
     private const string FutureState = "future";
     private const string ClosedState = "closed";
     private const string OpenSprintsJql = "openSprints()";
+    private const string FutureSprintsJql = "futureSprints()";
+    private const string EmptySprintJql = "is EMPTY";
     private const string SprintSelf = "https://example.atlassian.net/rest/agile/1.0/sprint/";
     private const string MaxResultsName = "maxResults";
     private const string StartAtName = "startAt";

@@ -138,6 +138,18 @@ public sealed class FakeJiraScrumRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenBacklogViewJql_WhenBoardIssuesRead_ThenOpenSprintsAndNoSprintIssuesComeBack()
+    {
+        const string jql = "sprint in openSprints() or sprint in futureSprints() or sprint is EMPTY";
+        var page = await Json($"{Agile}/board/6/issue?jql={Uri.EscapeDataString(jql)}");
+        var keys = Keys(page);
+
+        Assert.Contains("GCS-18", keys);
+        Assert.Contains("GCS-21", keys);
+        Assert.True(page.GetProperty("total").GetInt32() >= 11);
+    }
+
+    [Fact]
     public async Task GivenCompanyManagedBoard_WhenBacklogRead_ThenFutureSprintIssuesAreNotInIt()
     {
         var backlog = await Json($"{Agile}/board/6/backlog");
