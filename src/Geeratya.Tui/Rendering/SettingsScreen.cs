@@ -293,7 +293,9 @@ public static class SettingsScreen
     {
         if (state.SettingsScreen?.Preview is { } preview)
         {
-            return $"Previewing {preview}: Enter keeps it, Esc restores {state.Settings.Theme}.";
+            var previewing = $"Previewing {preview}: Enter keeps it, Esc restores {state.Settings.Theme}.";
+
+            return WithTierNote(state, row, previewing);
         }
 
         if (row.Setting is not { } setting)
@@ -304,7 +306,24 @@ public static class SettingsScreen
         var words = SettingsRows.ChoicesOf(state, setting);
         var values = words.Count is > 0 and <= 6 ? $" Values: {string.Join(", ", words)}." : string.Empty;
 
-        return $"{setting.Help} Default: {setting.Default}.{values}";
+        return WithTierNote(state, row, $"{setting.Help} Default: {setting.Default}.{values}");
+    }
+
+    // The theme row leads with why a theme may look different here (first, so a narrow help row keeps it); other
+    // rows and full colour need no note.
+    private static string WithTierNote(AppState state, SettingsRow row, string text)
+    {
+        if (row.Setting?.Name != SettingsRegistry.ThemeName)
+        {
+            return text;
+        }
+
+        return state.SettingsInfo.Tier switch
+        {
+            ColourTier.Basic16 => $"16 colours here: themes are approximated. {text}",
+            ColourTier.None => $"No colour here: themes change nothing. {text}",
+            _ => text,
+        };
     }
 
     private static List<HintChip> Hints(AppState state, BodyContext context)

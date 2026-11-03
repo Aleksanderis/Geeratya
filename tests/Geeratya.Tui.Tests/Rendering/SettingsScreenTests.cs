@@ -104,6 +104,48 @@ public class SettingsScreenTests
         Assert.Contains("Previewing nord", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(ColourTier.Basic16, "16 colours here: themes are approximated.")]
+    [InlineData(ColourTier.None, "No colour here: themes change nothing.")]
+    public void GivenALimitedTier_WhenOnTheThemeRow_ThenTheHelpRowNotesTheTier(ColourTier tier, string note)
+    {
+        var state = WithTier(WithThemeList(), tier);
+
+        var text = string.Join('\n', FrameBuilder.Build(state, 100, 30, _keymap));
+
+        Assert.Contains(note, text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAPreviewOnABasic16Terminal_WhenBuildingTheFrame_ThenTheNoteStaysOnTheHelpRow()
+    {
+        var themes = WithThemeList();
+        var state = WithTier(themes with { SettingsScreen = themes.SettingsScreen! with { Preview = "nord" } }, ColourTier.Basic16);
+
+        var text = string.Join('\n', FrameBuilder.Build(state, 100, 30, _keymap));
+
+        Assert.Contains("16 colours here", text, StringComparison.Ordinal);
+        Assert.Contains("Previewing nord", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenFullColour_WhenOnTheThemeRow_ThenNoTierNoteIsShown()
+    {
+        var text = string.Join('\n', FrameBuilder.Build(WithThemeList(), 100, 30, _keymap));
+
+        Assert.DoesNotContain("colour here", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenABasic16Terminal_WhenOnAnotherRow_ThenNoTierNoteIsShown()
+    {
+        var state = WithTier(OnHints(Sample()), ColourTier.Basic16);
+
+        var text = string.Join('\n', FrameBuilder.Build(state, 100, 30, _keymap));
+
+        Assert.DoesNotContain("colours here", text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GivenTheScreen_WhenClickingAToggleRow_ThenItFlipsAndTheSaveIsAsked()
     {
@@ -183,6 +225,11 @@ public class SettingsScreenTests
         };
 
         return state with { SettingsScreen = new SettingsScreenState(0) };
+    }
+
+    private static AppState WithTier(AppState state, ColourTier tier)
+    {
+        return state with { SettingsInfo = state.SettingsInfo with { Tier = tier } };
     }
 
     private static AppState OnHints(AppState state)
