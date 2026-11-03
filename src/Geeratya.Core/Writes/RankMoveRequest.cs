@@ -25,7 +25,11 @@ public sealed record RankMoveRequest(
     IssueSprint? Target,
     string SourceText) : WriteRequest
 {
+    /// <summary>Starts the failure text of a rank that failed after the issues had moved.</summary>
+    public const string MovedPrefix = "Moved to ";
+
     private const string BacklogText = "the backlog";
+    private const int KeysShown = 8;
 
     public override OperationKind Kind => OperationKind.RankMove;
 
@@ -34,7 +38,9 @@ public sealed record RankMoveRequest(
     /// <summary>The target section in a sentence: <c>sprint "S2"</c> or <c>the backlog</c>.</summary>
     public string TargetText => Target is null ? BacklogText : $"sprint \"{Target.Name}\"";
 
-    private string What => Keys.Count == 1 ? Keys[0] : $"{Keys.Count.ToString(CultureInfo.InvariantCulture)} issues";
+    private string Count => Keys.Count.ToString(CultureInfo.InvariantCulture);
+
+    private string What => Keys.Count == 1 ? Keys[0] : $"{Count} issues";
 
     private string Place => $"{(Before ? "above" : "below")} {ReferenceKey}";
 
@@ -53,13 +59,14 @@ public sealed record RankMoveRequest(
     public override bool ReadsBack => false;
 
     public override string? AskText => Keys.Count > 1
-        ? $"Move {Keys.Count.ToString(CultureInfo.InvariantCulture)} issues ({string.Join(", ", Keys)}) from " +
-          $"{SourceText} to {TargetText} and rank them {Place}? Two calls, Jira has no undo."
+        ? $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText} and rank them {Place}? " +
+          "Two calls, Jira has no undo."
         : null;
 
     public override string AskLabel => "Move and rank issues";
 
     /// <summary>One sprint change per issue; the first one also carries the move of the whole block.</summary>
+    // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)
     {
         var sprint = new SprintRowChange(row.Key, row.Sprints, Target);
@@ -72,5 +79,15 @@ public sealed record RankMoveRequest(
     public override bool IsShownBy(IssueSummary row)
     {
         return false;
+    }
+
+    private string KeysText()
+    {
+        if (Keys.Count <= KeysShown)
+        {
+            return string.Join(", ", Keys);
+        }
+
+        return $"{string.Join(", ", Keys.Take(KeysShown))} and {Keys.Count - KeysShown} more";
     }
 }

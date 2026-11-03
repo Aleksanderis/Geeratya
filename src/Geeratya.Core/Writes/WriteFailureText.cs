@@ -16,6 +16,11 @@ public static class WriteFailureText
 
     public static string Of(WriteError error, WriteRequest request)
     {
+        if (request is RankMoveRequest && Reason(error).StartsWith(RankMoveRequest.MovedPrefix, StringComparison.Ordinal))
+        {
+            return Reason(error);
+        }
+
         return error.Kind switch
         {
             WriteErrorKind.Validation => $"Could not {request.ActionText}: {Reason(error)}",

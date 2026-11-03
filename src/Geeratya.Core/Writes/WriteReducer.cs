@@ -428,7 +428,7 @@ public static class WriteReducer
 
         var partial = KeepFailedMarks(marked, operation, failed.Error);
 
-        return RolledBack(partial, operation, text, effects, ReloadsAfter(failed.Error) || !ReferenceEquals(partial, marked));
+        return RolledBack(partial, operation, text, effects, ReloadsAfter(failed.Error) || operation.Kind == OperationKind.RankMove || !ReferenceEquals(partial, marked));
     }
 
     /// <summary>
@@ -437,7 +437,8 @@ public static class WriteReducer
     /// </summary>
     private static AppState KeepFailedMarks(AppState state, Operation operation, WriteError error)
     {
-        if (operation.Kind != OperationKind.SprintMove || error.FailedKeys is not { } failed)
+        if (operation.Kind is not (OperationKind.SprintMove or OperationKind.RankMove) ||
+            error.FailedKeys is not { } failed)
         {
             return state;
         }

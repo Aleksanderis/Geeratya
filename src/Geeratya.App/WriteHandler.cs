@@ -541,8 +541,8 @@ public sealed class WriteHandler
 
     /// <summary>
     /// Move into the sprint of the reference issue (or the backlog), then rank next to it. A failed move stops here
-    /// and nothing changed. A failed rank leaves the issues moved: the error says so and is a definite failure, so the
-    /// tabs reload and show the truth.
+    /// and nothing changed. A failed rank leaves the issues moved: the error keeps its kind (a lost reply stays unknown) and its text says
+    /// the issues moved; the tabs reload and show the truth.
     /// </summary>
     private static async Task<WriteResult<WriteAccepted>> RankMoveAsync(
         JiraServices services,
@@ -570,10 +570,10 @@ public sealed class WriteHandler
             return ranked;
         }
 
-        var message = $"Moved to {request.TargetText} but not ranked: {ranked.Error.Message}";
+        var error = ranked.Error;
+        var message = $"{RankMoveRequest.MovedPrefix}{request.TargetText} but not ranked: {error.Message}";
 
-        return WriteResults.Failure<WriteAccepted>(
-            new WriteError(WriteErrorKind.Validation, null, message, [], [message]));
+        return WriteResults.Failure<WriteAccepted>(error with { Message = message, Messages = [message], FieldErrors = [] });
     }
 
     private static Task<WriteResult<WriteAccepted>> RankAsync(

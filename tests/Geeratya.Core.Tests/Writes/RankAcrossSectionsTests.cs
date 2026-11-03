@@ -113,6 +113,88 @@ public class RankAcrossSectionsTests
     }
 
     [Fact]
+    public void GivenARankThatFailedAfterTheMove_WhenItSettles_ThenTheStatusLineSaysOnlyThatItMovedAndTheTabReloads()
+    {
+        var started = Press(At(Loaded(), "A-4"), "Alt-j");
+        var operation = Assert.Single(started.State.Session.Operations);
+        var text = "Moved to sprint \"Sprint 2\" but not ranked: Gone";
+        var error = new WriteError(WriteErrorKind.Permission, null, text, [], [text]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, error));
+
+        Assert.Equal(text, failed.State.Message);
+        Assert.True(Tab(failed.State).RefreshQueued || failed.Effects.Count > 0);
+    }
+
+    [Fact]
+    public void GivenAnUnauthorizedRank_WhenItSettles_ThenTheLinkIsRejected()
+    {
+        var started = Press(At(Loaded(), "A-4"), "Alt-j");
+        var operation = Assert.Single(started.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Unauthorized, 401, "Moved to sprint \"S\" but not ranked: x", [], []);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, error));
+
+        Assert.IsType<Rejected>(failed.State.Session.Link);
+    }
+
+    [Fact]
+    public void GivenAPartialMove_WhenItSettles_ThenOnlyTheIssuesThatMovedLeaveTheMarks()
+    {
+        var loaded = Loaded();
+        var marked = Replace(loaded, Tab(loaded) with { Marks = ["A-4", "A-6"] });
+        var asked = Press(At(marked, "A-4"), "Alt-j").State;
+        var started = Press(asked, "y");
+        var operation = Assert.Single(started.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Validation, null, "1 of 2 moved", [], [], null, ["A-6"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, error));
+
+        Assert.Equal(["A-6"], Tab(failed.State).Marks);
+    }
+
+    [Fact]
+    public void GivenAMarkedBlock_WhenConfirmed_ThenTheBlockLandsNextToTheReferenceAndAFailurePutsItBack()
+    {
+        var loaded = Loaded();
+        var marked = Replace(loaded, Tab(loaded) with { Marks = ["A-4", "A-6"] });
+        var started = Press(Press(At(marked, "A-4"), "Alt-j").State, "y");
+
+        var request = Request(started);
+        Assert.Equal(["A-4", "A-6"], request.Keys);
+        var rows = Tab(started.State).Rows.Select(row => row.Key).ToArray();
+        Assert.Equal(request.Keys, rows.SkipWhile(key => key != "A-4").Take(2));
+        var operation = Assert.Single(started.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Validation, null, "no", [], []);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, error));
+
+        Assert.Equal(["A-3", "A-4", "A-2", "A-6", "A-1", "A-5"], Tab(failed.State).Rows.Select(row => row.Key));
+    }
+
+    [Fact]
+    public void GivenTheLastRowOfTheTop_WhenRankingToTheBottom_ThenItMovesToTheBacklogWithoutAsking()
+    {
+        var result = Chord(At(Loaded(), "A-3"), "Space k b");
+
+        var request = Request(result);
+        Assert.Null(request.Target);
+        Assert.Equal("A-5", request.ReferenceKey);
+        Assert.False(request.Before);
+    }
+
+    [Fact]
+    public void GivenARowInTheBacklog_WhenRankingToTheTop_ThenItTakesTheFirstSprint()
+    {
+        var result = Chord(At(Loaded(), "A-5"), "Space k t");
+
+        var request = Request(result);
+        Assert.Equal(BacklogFixtures.ActiveId, request.Target!.Id);
+        Assert.Equal("A-3", request.ReferenceKey);
+        Assert.True(request.Before);
+    }
+
+    [Fact]
     public void GivenTheCursorOnACollapsedHeader_WhenRanking_ThenItIsRefusedWithoutAWrite()
     {
         var collapsed = Chord(Loaded(), "z a").State;

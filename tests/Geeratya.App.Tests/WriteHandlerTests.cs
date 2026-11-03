@@ -614,6 +614,25 @@ public sealed class WriteHandlerTests
         return new Fixture(connections, new ScriptedJiraHandler());
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized, WriteErrorKind.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden, WriteErrorKind.Permission)]
+    [InlineData(HttpStatusCode.TooManyRequests, WriteErrorKind.RateLimited)]
+    public async Task GivenARankStepRefusedAfterTheMove_WhenExecuting_ThenTheErrorKindIsKept(
+        HttpStatusCode status,
+        WriteErrorKind kind)
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(status, string.Empty));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, CrossRequest()));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal(kind, failed.Error.Kind);
+        Assert.StartsWith("Moved to sprint", failed.Error.Message, StringComparison.Ordinal);
+    }
+
     private static RankMoveRequest CrossRequest()
     {
         var target = new IssueSprint(8, "Sprint 2", SprintState.Future);
