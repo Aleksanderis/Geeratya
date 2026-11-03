@@ -182,6 +182,61 @@ public class RankBlockTests
     }
 
     [Fact]
+    public void GivenAMarkedParentWithAChildInItsColumn_WhenPressingAltJ_ThenTheBlockLandsBelowTheNextCard()
+    {
+        var state = Loaded(ViewLayout.Columns, "1:A-1", "1:A-2", "1:A-3");
+        var tab = Tab(state);
+        Assert.Equal("A-1", tab.Rows[0].Key);
+        var withChild = state with
+        {
+            Session = state.Session with
+            {
+                Tabs =
+                [
+                    tab with
+                    {
+                        Rows = [tab.Rows[0], tab.Rows[1] with { Parent = new IssueParent("A-1", null) }, tab.Rows[2]],
+                    },
+                ],
+            },
+        };
+
+        var result = Press(Marked(withChild, 0), "Alt-j");
+
+        Assert.Equal("A-3", RequestOf(result).ReferenceKey);
+        Assert.False(RequestOf(result).Before);
+    }
+
+    [Fact]
+    public void GivenAScatteredSet_WhenPressingAltKWithAnOvershootingCount_ThenTheBlockGoesToTheTop()
+    {
+        var state = Marked(Loaded(ViewLayout.List, "1:A-1", "1:A-2", "1:A-3", "1:A-4", "1:A-5"), 2, 4);
+
+        var counted = Press(Press(state, "9").State, "Alt-k");
+        var result = Press(counted.State, "y");
+
+        Assert.Equal(["A-3", "A-5", "A-1", "A-2", "A-4"], Keys(result.State));
+        Assert.Equal("A-1", RequestOf(result).ReferenceKey);
+        Assert.True(RequestOf(result).Before);
+    }
+
+    [Fact]
+    public void GivenABlockThatJiraRefusesAsInvalid_WhenTheWriteFails_ThenTheOrderGoesBackAndTheViewReloads()
+    {
+        var state = Marked(Loaded(ViewLayout.List, "1:A-1", "1:A-2", "1:A-3"), 0, 1);
+        var started = Press(Press(state, "Alt-j").State, "y");
+        var operation = Assert.Single(started.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Validation, null, "1 of 2 not ranked (A-2): no", [], []);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, error));
+
+        Assert.Equal(["A-1", "A-2", "A-3"], Keys(failed.State));
+        Assert.Equal("Could not rank 2 issues: 1 of 2 not ranked (A-2): no", failed.State.Message);
+        Assert.Empty(failed.State.Session.Operations);
+        Assert.NotEmpty(failed.Effects);
+    }
+
+    [Fact]
     public void GivenARejectedBlock_WhenTheWriteFails_ThenTheRowsGoBackToTheirOldOrder()
     {
         var state = Marked(Loaded(ViewLayout.List, "1:A-1", "1:A-2", "1:A-3", "1:A-4"), 0, 2);

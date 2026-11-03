@@ -112,7 +112,10 @@ public static class RankActions
 
         members.Sort();
 
-        var others = Enumerable.Range(0, universe.Rows.Count).Where(index => !members.Contains(index)).ToList();
+        var others = Enumerable
+            .Range(0, universe.Rows.Count)
+            .Where(index => !members.Contains(index) && !FollowsMember(universe, members, index))
+            .ToList();
 
         if (others.Count == 0)
         {
@@ -143,6 +146,20 @@ public static class RankActions
         var kept = ViewReducer.Replace(state, held);
 
         return WriteReducer.Reduce(kept, new WriteRequested(tab.Id, request, at));
+    }
+
+    /// <summary>
+    /// True for a card shown under a selected parent: it travels with the parent's group, so it is never the row the
+    /// block lands next to (a rank next to it would not show).
+    /// </summary>
+    private static bool FollowsMember(RankUniverse universe, List<int> members, int index)
+    {
+        if (!universe.IsNested(index))
+        {
+            return false;
+        }
+
+        return members.Contains(GroupStart(universe, index));
     }
 
     private static int UpReference(RankUniverse universe, List<int> members, List<int> others, int steps)
