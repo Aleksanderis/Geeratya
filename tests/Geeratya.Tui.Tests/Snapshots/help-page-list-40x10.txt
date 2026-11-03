@@ -2,9 +2,9 @@
                                         
 Sample · 1 issue                        
   ┌─ Help ───────────────────────────┐  
-  │ > List        │   j          Mov │  
-  │   Global      │   k          Mov │  
-  │   All actions │   g g        Go  │  
+  │ > List        │   j              │  
+  │   Global      │         Move     │  
+  │   All actions │         down     │  
   └──────────────────────────────────┘  
                                         
  HELP                                   

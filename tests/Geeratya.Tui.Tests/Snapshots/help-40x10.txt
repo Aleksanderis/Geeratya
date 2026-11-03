@@ -2,9 +2,9 @@
                                         
                                         
   ┌─ Help ───────────────────────────┐  
-  │ > Global      │   ?          Sho │  
-  │   All actions │   q          Qui │  
-  │   Commands    │   Esc        Can │  
+  │ > Global      │   ?              │  
+  │   All actions │         Show or  │  
+  │   Commands    │         hide     │  
   └──────────────────────────────────┘  
                                         
  HELP                                   

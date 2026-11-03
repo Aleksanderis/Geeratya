@@ -64,6 +64,15 @@ public class HelpPageSnapshotTests
     }
 
     [Fact]
+    public void GivenALongRow_WhenShowingAPageAt80Columns_ThenItWrapsAndNothingIsCut()
+    {
+        var lines = FrameBuilder.Build(StateFor("list"), 80, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("priority, description)"));
+        Assert.Contains(lines, line => line.Contains("unassign"));
+    }
+
+    [Fact]
     public void GivenAKeymapFile_WhenShowingTheCustomPage_ThenItMatchesTheSnapshot()
     {
         const string json = """

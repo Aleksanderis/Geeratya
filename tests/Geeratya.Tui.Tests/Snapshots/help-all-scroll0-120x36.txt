@@ -5,7 +5,8 @@
             │   Global      │ Issue                                                                        │            
             │ > All actions │   Space o    Open the issue in the browser                                   │            
             │   Commands    │   Space p    Open the parent issue                                           │            
-            │               │   Space i e  Edit fields of the issue (summary, labels, priority, descriptio │            
+            │               │   Space i e  Edit fields of the issue (summary, labels, priority,            │            
+            │               │              description)                                                    │            
             │               │   Space i a  Assign the issue: search people, or unassign                    │            
             │               │   Space i m  Assign the issue to me                                          │            
             │               │   Space i s  Change the status of the issue                                  │            
@@ -30,7 +31,6 @@
             │               │   Space *    Switch the command level for the session                        │            
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
-            │               │   Shift-Tab  Previous tab  (g T)                                             │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -67,9 +67,10 @@ public class HelpReducerTests
     [Fact]
     public void GivenTheMessagesOverlay_WhenPressingJ_ThenItScrollsAsBefore()
     {
-        var state = StatusMessages.OpenHistory(AppState.Initial with { Message = "one" });
+        var state = StatusMessages.OpenHistory(AppState.Initial with { MessagesShowSettings = true });
 
         Assert.Equal(0, Press(state, "k").HelpScroll);
+        Assert.Equal(1, Press(state, "j").HelpScroll);
         Assert.Equal(0, Press(state, "j").HelpPage);
     }
 

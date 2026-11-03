@@ -2,9 +2,9 @@
                                         
 Sample › A-1 · Loading… · Top           
   ┌─ Help ───────────────────────────┐  
-  │ > Issue detail │   j          Mo │  
-  │   Global       │   k          Mo │  
-  │   All actions  │   g g        Go │  
+  │ > Issue detail │   j             │  
+  │   Global       │        Move     │  
+  │   All actions  │        down     │  
   └──────────────────────────────────┘  
 ╭─ Description ────────────────────────╮
  HELP                                   

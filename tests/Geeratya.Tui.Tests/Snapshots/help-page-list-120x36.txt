@@ -12,7 +12,8 @@ Sample · 1 issue
             │               │   Enter      Open the selected item                                          │            
             │               │   Space l    Switch between list and columns                                 │            
             │               │   Space o    Open the issue in the browser                                   │            
-            │               │   Space i e  Edit fields of the issue (summary, labels, priority, descriptio │            
+            │               │   Space i e  Edit fields of the issue (summary, labels, priority,            │            
+            │               │              description)                                                    │            
             │               │   Space i a  Assign the issue: search people, or unassign                    │            
             │               │   Space i m  Assign the issue to me                                          │            
             │               │   Space i s  Change the status of the issue                                  │            
@@ -21,7 +22,6 @@ Sample · 1 issue
             │               │   v          Start or end Visual mode (a range of rows)                      │            
             │               │   Alt-m      Mark or unmark the selected row and move down                   │            
             │               │   Space i C  Create a sub-task of the selected issue                         │            
-            │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            

@@ -14,14 +14,14 @@ Sample › A-1 · Loading…
             │                │   [ [        Previous section of the issue                                  │            
             │                │   Space o    Open the issue in the browser                                  │            
             │                │   Space p    Open the parent issue                                          │            
-            │                │   Space i e  Edit fields of the issue (summary, labels, priority, descripti │            
+            │                │   Space i e  Edit fields of the issue (summary, labels, priority,           │            
+            │                │              description)                                                   │            
             │                │   Space i a  Assign the issue: search people, or unassign                   │            
             │                │   Space i m  Assign the issue to me                                         │            
             │                │   Space i s  Change the status of the issue                                 │            
             │                │   Space i C  Create a sub-task of the selected issue                        │            
             │                │   Space m a  Add a comment to the issue                                     │            
             │                │   Space m e  Edit the comment under the cursor                              │            
-            │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            

@@ -26,11 +26,11 @@
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next                             │            
             │               │   Backspace  Delete the last character                                       │            
-            │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token is │            
+            │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
+            │               │              is deleted)                                                     │            
             │               │   Up         Previous row in the picker  (Ctrl-p)                            │            
             │               │   Down       Next row in the picker  (Ctrl-n)                                │            
             │               │   Left       Move the cursor left                                            │            
-            │               │   Right      Move the cursor right                                           │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

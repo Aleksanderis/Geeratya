@@ -2,9 +2,9 @@
                                         
 Sample · 1 issue                        
   ┌─ Help ───────────────────────────┐  
-  │ > Columns     │   j          Mov │  
-  │   Global      │   k          Mov │  
-  │   All actions │   h          Mov │  
+  │ > Columns     │   j              │  
+  │   Global      │         Move     │  
+  │   All actions │         down     │  
   └──────────────────────────────────┘  
 └──────────────────────────────────────┘
  HELP                                   

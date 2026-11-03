@@ -27,6 +27,7 @@ public static class HelpOverlay
     private const int TopGap = 1;
     private const int BottomGap = 1;
     private const int MenuGap = 1;
+    private const int ContinuationIndent = 13;
 
     public static bool Applies(AppState state)
     {
@@ -74,15 +75,17 @@ public static class HelpOverlay
         var menuCells = Math.Min(names.Max(DisplayWidth.Of) + ActiveMark.Length, Math.Max(1, inner / 2));
         var pageWidth = Math.Max(0, inner - menuCells - MenuGap - Divider.Length - MenuGap);
         var first = FirstVisible(names.Count, current, rows);
-        var page = HelpPages.Lines(state, keymap).Skip(state.HelpScroll).ToList();
-        var box = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleText(state)) };
+        var page = HelpPages.Lines(state, keymap)
+            .Skip(state.HelpScroll)
+            .SelectMany(line => Wrap(line, pageWidth))
+            .Take(rows)
+            .ToList();
+        var box = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleText(state, boxWidth)) };
 
         for (var row = 0; row < rows; row++)
         {
             var index = first + row;
-            var menu = index < names.Count
-                ? MenuEntry(names[index], index == current, menuCells)
-                : StyledLine.Of(new string(' ', menuCells));
+            var menu = MenuRow(names, index, current, menuCells);
             var text = row < page.Count ? StyledLine.Of(page[row]) : StyledLine.Empty;
             var spans = new List<StyledSpan>(menu.Spans)
             {
@@ -112,20 +115,62 @@ public static class HelpOverlay
         return result;
     }
 
-    private static string TitleText(AppState state)
+    private static string TitleText(AppState state, int boxWidth)
     {
         if (state.HelpFilter.Length == 0 && !state.HelpFiltering)
         {
             return Title;
         }
 
-        return $"{Title}  {FilterPrefix}{state.HelpFilter}{(state.HelpFiltering ? CursorMark : string.Empty)}";
+        var cursor = state.HelpFiltering ? CursorMark : string.Empty;
+        var room = Math.Max(1, boxWidth - 8 - Title.Length - FilterPrefix.Length - cursor.Length);
+        var filter = state.HelpFilter;
+
+        while (TextWidth.Of(filter) > room && filter.Length > 1)
+        {
+            filter = filter[(char.IsHighSurrogate(filter[0]) && filter.Length > 2 ? 2 : 1)..];
+        }
+
+        return $"{Title}  {FilterPrefix}{filter}{cursor}";
+    }
+
+    private static StyledLine MenuRow(IReadOnlyList<string> names, int index, int current, int cells)
+    {
+        return index < names.Count
+            ? MenuEntry(names[index], index == current, cells)
+            : StyledLine.Of(new string(' ', cells));
+    }
+
+    /// <summary>
+    /// A page row cut into rows of at most <paramref name="width"/> columns at spaces; the continuation rows are
+    /// indented under the title of the row, so nothing is lost at 80 columns.
+    /// </summary>
+    private static List<string> Wrap(string text, int width)
+    {
+        var rows = new List<string>();
+        var indent = new string(' ', Math.Min(ContinuationIndent, Math.Max(0, width / 2)));
+        var rest = text;
+
+        while (width > 0 && TextWidth.Of(rest) > width)
+        {
+            var head = TextWidth.Fit(rest, width);
+            var space = head.LastIndexOf(' ');
+            var cut = space > indent.Length ? space : head.Length;
+
+            rows.Add(rest[..cut].TrimEnd());
+            rest = $"{indent}{rest[cut..].TrimStart()}";
+        }
+
+        rows.Add(rest);
+
+        return rows;
     }
 
     private static StyledLine MenuEntry(string name, bool active, int cells)
     {
         var text = $"{(active ? ActiveMark : IdleMark)}{name}";
-        var line = StyledLines.Fit(StyledLine.Of(text, active ? TextRole.Selected : TextRole.Muted), cells);
+        var role = active ? TextRole.Selected : TextRole.Muted;
+        var line = StyledLines.Fit(StyledLine.Of(text, role), cells);
         var missing = cells - line.Spans.Sum(span => DisplayWidth.Of(span.Text));
 
         return missing <= 0 ? line : new StyledLine([.. line.Spans, new StyledSpan(new string(' ', missing), TextRole.Body)]);

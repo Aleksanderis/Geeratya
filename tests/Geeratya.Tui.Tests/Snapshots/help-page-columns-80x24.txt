@@ -17,8 +17,8 @@ Sample · 1 issue
   │               │   Space l    Switch between list and columns             │  
   │               │   Space o    Open the issue in the browser               │  
   │               │   Space i e  Edit fields of the issue (summary, labels,  │  
-  │               │   Space i a  Assign the issue: search people, or unassig │  
-  │               │   Space i m  Assign the issue to me                      │  
+  │               │              priority, description)                      │  
+  │               │   Space i a  Assign the issue: search people, or         │  
   └──────────────────────────────────────────────────────────────────────────┘  
 └──────────────────────────────────────────────────────────────────────────────┘
  HELP                                   j section  J scroll  / filter  Esc close
