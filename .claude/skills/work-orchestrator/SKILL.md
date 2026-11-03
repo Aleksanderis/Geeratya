@@ -73,4 +73,6 @@ Before ending:
 - Never implement an issue yourself in the orchestrator session unless it is a trivial fix to something an agent just merged.
 - Never decide a milestone is done without checking that every issue in it is closed or waiting for the owner.
 
-Test of the marker detection in `owner-feedback.sh`: `scripts/test-owner-feedback.sh` (or `.ps1`); run it after editing `def agent`.
+## Tests
+
+Test of the marker detection in `owner-feedback.sh`: `scripts/test-owner-feedback.sh` (bash only, needs jq); run it after editing `def agent` in the owner-feedback section above.

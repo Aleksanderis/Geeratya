@@ -39,6 +39,7 @@ When asked to plan a milestone, create its issues from the roadmap goal, then ru
 - Test each issue: "if only this one merged, would the release have a working feature?" If not, merge it into the slice it belongs to.
 - Order slices so the smallest useful one comes first; later slices extend it (options, refinements, extra entry points) and list it in `Blocked by:`.
 - Only cross-cutting work gets its own issue: performance on large result sets, Windows/macOS checks, a final docs consistency pass if needed. Docs and keymap rows travel with their feature. Both project kinds (company- and team-managed) are covered inside each slice.
+- Changing the scope of a slice or planning by layer needs the owner's approval.
 - Create a `tracking` issue and post the plan there; give each issue an `Acceptance:` line and a milestone.
 
 ## 3. Report
