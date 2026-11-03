@@ -2,6 +2,9 @@
                                                                                                                         
 Help                                                                                                                    
 Global  All actions  Commands                                                                                           
+Navigate                                                                                                                
+  j          Move down  (Down)                                                                                          
+  k          Move up  (Up)                                                                                              
   h          Move left  (Left)                                                                                          
   l          Move right  (Right)                                                                                        
   g g        Go to the top  (Home)                                                                                      
@@ -30,7 +33,4 @@ Dialogs
   Backspace  Delete the last character                                                                                  
   y          Confirm                                                                                                    
   n          Decline  (Esc)                                                                                             
-  Enter      Accept the field and go to the next                                                                        
-  Backspace  Delete the last character                                                                                  
-  Ctrl-x     Remove the highlighted profile (asks first; the stored token is deleted)                                   
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

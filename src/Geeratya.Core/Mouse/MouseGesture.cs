@@ -10,4 +10,7 @@ public enum MouseGesture
     WheelUp,
     WheelDown,
     Drag,
+
+    /// <summary>A drag over rows of a list or backlog (Visual mode); the same press-move-release as <see cref="Drag"/>.</summary>
+    DragRows,
 }

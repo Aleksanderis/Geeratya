@@ -2,6 +2,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Selection;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -112,7 +113,8 @@ public static class InputRouting
             && state.Count == 0
             && state.Editor is null
             && (state.Status is not null || state.Message is not null)
-            && tab?.RankPickup is null;
+            && tab?.RankPickup is null
+            && !SelectionActions.CanBack(state);
     }
 
     /// <summary>Esc in Normal mode with nothing typed and no notice to clear pops the issue stack of the active tab.</summary>

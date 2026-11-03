@@ -56,6 +56,8 @@
     { "mode": "normal", "keys": "Alt-h", "action": "issue.transition-previous" },
     { "mode": "normal", "keys": "Alt-k", "action": "rank.up" },
     { "mode": "normal", "keys": "Alt-j", "action": "rank.down" },
+    { "mode": "normal", "keys": "v", "action": "selection.visual" },
+    { "mode": "normal", "keys": "Alt-m", "action": "selection.mark" },
     { "mode": "normal", "keys": "Space k t", "action": "rank.top" },
     { "mode": "normal", "keys": "Space k b", "action": "rank.bottom" },
     { "mode": "normal", "keys": "Space k k", "action": "rank.to" },

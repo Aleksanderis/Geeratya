@@ -58,7 +58,7 @@ public static class MouseResolver
         var action = new ActionRequested(found.Action, found.Count, at);
 
         // The row under the pointer is the target of the action, not the row the cursor happened to be on.
-        var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick;
+        var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick or MouseGesture.CtrlClick;
 
         return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
     }
@@ -75,13 +75,20 @@ public static class MouseResolver
         int toColumn,
         int toRow)
     {
+        var gesture = context.ColumnsLayout ? MouseGesture.Drag : MouseGesture.DragRows;
+
         if (context.OverlayOpen || (fromColumn == toColumn && fromRow == toRow)
             || MouseHitTester.Locate(context, fromColumn, fromRow) is not { Target: MouseTarget.Lists } start
-            || MouseHitTester.Locate(context, toColumn, toRow) is not { Target: MouseTarget.Lists }
-            || DefaultMouseMap.Find(MouseTarget.Lists, MouseGesture.Drag) is not { } found
+            || MouseHitTester.Locate(context, toColumn, toRow) is not { Target: MouseTarget.Lists } end
+            || DefaultMouseMap.Find(MouseTarget.Lists, gesture) is not { } found
             || !WiredParts.Contains(found.Part))
         {
             return _none;
+        }
+
+        if (gesture == MouseGesture.DragRows)
+        {
+            return [new RowsDragged(fromColumn, start.Row, end.Row, context.Width)];
         }
 
         return [new CardDragged(fromColumn, start.Row, toColumn, context.Width)];

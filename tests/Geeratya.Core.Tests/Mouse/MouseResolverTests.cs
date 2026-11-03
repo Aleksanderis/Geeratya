@@ -60,9 +60,34 @@ public class MouseResolverTests
     }
 
     [Fact]
-    public void GivenRowOfALaterPart_WhenResolving_ThenNothingYet()
+    public void GivenCtrlClickOnARow_WhenResolving_ThenThePointerMarksThatRowInPlace()
     {
-        Assert.Empty(MouseResolver.Resolve(_normal, 5, 10, MouseGesture.CtrlClick, default));
+        var commands = MouseResolver.Resolve(_normal, 5, 10, MouseGesture.CtrlClick, default);
+
+        var placed = Assert.IsType<PointerPlaced>(Assert.Single(commands));
+
+        Assert.Equal(new ActionRequested(ActionIds.SelectionMark, 0), placed.Then);
+    }
+
+    [Fact]
+    public void GivenADragOverRowsInTheListLayout_WhenResolving_ThenRowsAreDragged()
+    {
+        var commands = MouseResolver.ResolveDrag(_normal, 5, 10, 5, 13);
+
+        var dragged = Assert.IsType<RowsDragged>(Assert.Single(commands));
+
+        Assert.Equal(new RowsDragged(5, dragged.FromRow, dragged.ToRow, _normal.Width), dragged);
+        Assert.True(dragged.ToRow > dragged.FromRow);
+    }
+
+    [Fact]
+    public void GivenADragInTheColumnsLayout_WhenResolving_ThenACardIsDraggedNotRows()
+    {
+        var context = _normal with { ColumnsLayout = true };
+
+        var commands = MouseResolver.ResolveDrag(context, 5, 10, 40, 10);
+
+        Assert.IsType<CardDragged>(Assert.Single(commands));
     }
 
     [Fact]

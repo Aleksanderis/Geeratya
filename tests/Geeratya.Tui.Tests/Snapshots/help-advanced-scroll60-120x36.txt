@@ -2,6 +2,9 @@
                                                                                                                         
 Help                                                                                                                    
 Global  All actions  Commands                                                                                           
+  [ [        Previous section of the issue                                                                              
+General                                                                                                                 
+  ?          Show or hide help                                                                                          
   q          Quit  (Ctrl-c)                                                                                             
   Esc        Cancel or close                                                                                            
   :          Open the command palette  (Ctrl-p)                                                                         
@@ -30,7 +33,4 @@ Dialogs
   PageUp     Move the cursor up half a screen                                                                           
   PageDown   Move the cursor down half a screen                                                                         
   Ctrl-Left  Move the cursor to the start of the word                                                                   
-  Ctrl-Right Move the cursor to the end of the word                                                                     
-  Tab        Next field of the form                                                                                     
-  Shift-Tab  Previous field of the form                                                                                 
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

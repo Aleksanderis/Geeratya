@@ -1,5 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -30,6 +31,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string Unassigned = "-";
     private const string UnknownGlyph = "?";
 
+    private static readonly HashSet<string> _noMarks = [];
+
     public bool AppliesTo(AppState state)
     {
         return state.Mode != InputMode.Help && ActiveTab(state) is { Definition.Layout: ViewLayout.List };
@@ -59,10 +62,15 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         var first = FirstRow(tab);
         var busy = BusyMarks.Keys(state);
+        var range = RowSelection.VisualRange(tab);
+        var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(RowLine(BusyMarks.Mark(tab.Rows[index], busy, glyphs), columns, index == tab.Selected, width, glyphs));
+            var row = tab.Rows[index];
+            var set = SetMarkOf(row, index, marks, range);
+
+            lines.Add(RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, width, glyphs));
         }
 
         if (footerFits)
@@ -199,7 +207,13 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return StyledLine.Of($"{new string(' ', padding)}{text}");
     }
 
-    private static StyledLine RowLine(IssueSummary row, ListColumns columns, bool selected, int width, Glyphs glyphs)
+    private static StyledLine RowLine(
+        IssueSummary row,
+        ListColumns columns,
+        bool selected,
+        SetMark set,
+        int width,
+        Glyphs glyphs)
     {
         var key = TextWidth.Pad(row.Key, columns.Key);
         var marker = IssueTypeMarker.For(row.IssueType);
@@ -207,17 +221,26 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var status = StatusText(row.Status, columns.Status, glyphs);
         var assignee = TextWidth.Pad(row.Assignee?.DisplayName ?? Unassigned, columns.Assignee);
 
-        if (selected)
+        // The first cell is the cursor, the second the set: `*` marked, `+` in the Visual range (never colour alone).
+        var setGlyph = set switch
+        {
+            SetMark.Marked => "*",
+            SetMark.InRange => "+",
+            _ => " ",
+        };
+
+        if (selected || set == SetMark.InRange)
         {
             var assigneePart = columns.Assignee > 0 ? $" {assignee}" : string.Empty;
-            var text = $"> {key} {marker} {summary} {status}{assigneePart}";
+            var text = $"{(selected ? ">" : " ")}{setGlyph}{key} {marker} {summary} {status}{assigneePart}";
 
             return StyledLine.Of(TextWidth.Pad(text, width), TextRole.Selected);
         }
 
         var spans = new List<StyledSpan>(8)
         {
-            new($"  {key} {marker} {summary} ", TextRole.Body),
+            new($" {setGlyph}", set == SetMark.Marked ? TextRole.Strong : TextRole.Body),
+            new($"{key} {marker} {summary} ", TextRole.Body),
             new(status, StatusRole(row.Status)),
         };
 
@@ -227,6 +250,16 @@ public sealed class ListBodyRenderer : IBodyRenderer
         }
 
         return new StyledLine(spans);
+    }
+
+    private static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
+    {
+        if (marks.Contains(row.Key))
+        {
+            return SetMark.Marked;
+        }
+
+        return range?.Contains(index) == true ? SetMark.InRange : SetMark.None;
     }
 
     private static string StatusText(IssueStatus status, int width, Glyphs glyphs)
@@ -254,5 +287,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
             StatusCategoryKeys.Done => TextRole.StatusDone,
             _ => TextRole.Body,
         };
+    }
+
+    private enum SetMark
+    {
+        None,
+        Marked,
+        InRange,
     }
 }
