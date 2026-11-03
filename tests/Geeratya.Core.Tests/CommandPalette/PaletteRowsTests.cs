@@ -136,7 +136,7 @@ public class PaletteRowsTests
     [InlineData("jql project = A")]
     [InlineData("tab next")]
     [InlineData("profile list")]
-    [InlineData("set hints off")]
+    [InlineData("set hints.statusBar off")]
     public void GivenACommandNameAndASpace_WhenListing_ThenTheListIsThatCommandsUsage(string text)
     {
         var rows = PaletteRows.For(Palette(text), _keymap);

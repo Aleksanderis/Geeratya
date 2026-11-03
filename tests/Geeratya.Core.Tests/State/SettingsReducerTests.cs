@@ -48,7 +48,7 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
         var result = Run("set hints maybe");
 
         Assert.Empty(result.Effects);
-        Assert.Equal("hints takes full, minimal or off.", result.State.Message);
+        Assert.Equal("hints.statusBar takes full, minimal or off.", result.State.Message);
     }
 
     [Fact]
@@ -65,10 +65,10 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     [Fact]
     public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndHelpShow()
     {
-        var message = Run("set whichkey").State.Message;
+        var message = Run("set hints.whichKey").State.Message;
 
-        Assert.Contains("whichkey on (default on; on or off)", message);
-        Assert.Contains(SettingsRegistry.Find("whichkey")!.Help, message);
+        Assert.Contains("hints.whichKey on (default on; on or off)", message);
+        Assert.Contains(SettingsRegistry.Find("hints.whichKey")!.Help, message);
     }
 
     [Fact]

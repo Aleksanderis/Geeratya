@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Settings;
 
 /// <summary>
-/// How much the status bar hints show (<c>:set hints</c>). A level hides hints, it never disables a key.
+/// How much the status bar hints show (<c>:set hints.statusBar</c>). A level hides hints, it never disables a key.
 /// </summary>
 public enum HintLevel
 {
