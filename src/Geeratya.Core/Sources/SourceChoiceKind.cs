@@ -11,6 +11,9 @@ public enum SourceChoiceKind
     /// <summary>A JQL string opened before (history).</summary>
     Recent,
 
+    /// <summary>A view the user saved under a name.</summary>
+    SavedView,
+
     /// <summary>A sprint of the board (<see cref="SourceChoice.Sprint"/>).</summary>
     Sprint,
 

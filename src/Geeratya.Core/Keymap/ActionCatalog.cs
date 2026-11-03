@@ -106,6 +106,8 @@ public static class ActionCatalog
         new(ActionIds.TabClose, "Close the tab"),
         new(ActionIds.ViewRefresh, "Refresh the view (also retries after an error)"),
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
+        new(ActionIds.ViewSavedOpen, "Open a saved view in a new tab"),
+        new(ActionIds.ViewSavedSave, "Save this view under a name (opens :view save)"),
         new(ActionIds.ViewCycleCommandLevel, "Switch the command level for the session"),
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),

@@ -171,7 +171,21 @@ public static class SourcePickerOverlay
             return SprintRows(picker, choices, selected, width);
         }
 
-        if (picker.Scope is not (PickerScope.Filters or PickerScope.Jql))
+        if (picker.Scope is PickerScope.All or PickerScope.Views)
+        {
+            AddGroup(
+                lines,
+                "Saved views",
+                [SourceChoiceKind.SavedView],
+                choices,
+                selected,
+                width,
+                ref selectedLine,
+                lists,
+                choiceOfLine);
+        }
+
+        if (picker.Scope is not (PickerScope.Filters or PickerScope.Jql or PickerScope.Views))
         {
             AddGroup(
                 lines,
@@ -352,7 +366,7 @@ public static class SourcePickerOverlay
     {
         var kind = heading == "Filters" ? SourceListKind.Filters : SourceListKind.Boards;
 
-        if (heading is "Query" or "Recent" || memberCount > 0 || lists.IsLoaded(kind))
+        if (heading is "Query" or "Recent" or "Saved views" || memberCount > 0 || lists.IsLoaded(kind))
         {
             return [];
         }
@@ -395,6 +409,7 @@ public static class SourcePickerOverlay
             SourceChoiceKind.Backlog => "Backlog",
             SourceChoiceKind.Filter => "Filter",
             SourceChoiceKind.Recent => "Recent",
+            SourceChoiceKind.SavedView => "View",
             SourceChoiceKind.Sprint or SourceChoiceKind.MoreClosed => string.Empty,
             _ => "JQL",
         };

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.History;
+using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
@@ -23,6 +24,11 @@ public static class SourceChoices
         if (picker.Scope == PickerScope.Sprints)
         {
             return picker.Sprint is { } data ? SprintChoices.For(data, text) : choices;
+        }
+
+        if (picker.Scope is PickerScope.All or PickerScope.Views)
+        {
+            AddSavedViews(choices, text, lists.SavedViews);
         }
 
         if (picker.Scope is PickerScope.All or PickerScope.Boards or PickerScope.Backlogs)
@@ -99,6 +105,19 @@ public static class SourceChoices
         }
 
         return merged.OrderBy(filter => filter.IsFavourite ? 0 : 1).ToList();
+    }
+
+    private static void AddSavedViews(List<SourceChoice> choices, string text, SavedViewList? views)
+    {
+        foreach (var view in (views?.Items ?? []).Where(view => Contains(view.Name, text)))
+        {
+            if (SavedViewList.ToDefinition(view) is { } definition)
+            {
+                var detail = $"({view.Source.ToLowerInvariant()}, {view.Layout.ToLowerInvariant()})";
+
+                choices.Add(new SourceChoice(SourceChoiceKind.SavedView, view.Name, detail, definition));
+            }
+        }
     }
 
     private static void AddBoards(List<SourceChoice> choices, PickerScope scope, string text, IReadOnlyList<BoardSummary> boards)

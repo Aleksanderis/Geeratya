@@ -30,7 +30,7 @@ View · 0 issues
                     │   Mark or unmark the selected row and move down                        Alt-m │                    
                     │ View                                                                         │                    
                     │   Switch between list and columns                                    Space l │                    
-                    │   Open the actions menu of the tab and the view                      Space A │                    
-                    │   Refresh the view (also retries after an error)                     Space r │                    
+                    │   Open a saved view in a new tab                                   Space v v │                    
+                    │   Save this view under a name (opens :view save)                   Space v w │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
  COMMAND :                                                                           Up/Down move  Enter run  Esc cancel

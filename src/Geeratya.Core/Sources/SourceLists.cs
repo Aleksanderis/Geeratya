@@ -1,4 +1,5 @@
 using Geeratya.Core.History;
+using Geeratya.Core.SavedViews;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
 
@@ -28,6 +29,12 @@ public sealed record SourceLists(
 
     /// <summary>The version of the history reply applied last; an older reply is stale.</summary>
     public long HistoryVersion { get; init; }
+
+    /// <summary>The saved views of the profile, null until read from disk.</summary>
+    public SavedViewList? SavedViews { get; init; }
+
+    /// <summary>The version of the saved-views reply applied last; an older reply is stale.</summary>
+    public long SavedViewsVersion { get; init; }
 
     public static SourceLists Empty { get; } = new(null, null, false, false, null, null);
 

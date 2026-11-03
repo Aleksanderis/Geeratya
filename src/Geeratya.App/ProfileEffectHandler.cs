@@ -90,6 +90,7 @@ public sealed class ProfileEffectHandler
     {
         DeleteQuietly(() => _services.BoardKinds.Delete(remove.Profile));
         DeleteQuietly(() => _services.Histories.Delete(remove.Profile));
+        DeleteQuietly(() => _services.SavedViews?.Delete(remove.Profile));
     }
 
     private static void DeleteQuietly(Action delete)
