@@ -18,7 +18,7 @@
   │                │   <space>o   Open the issue in the browser              │  
   │                │   <space>p   Open the parent issue                      │  
   │                │   <space>ie  Edit fields of the issue (summary,         │  
-  │                │              labels, priority, description)             │  
+  │                │              labels, priority, description)            ▼│  
   ╰──────────────────────────────────────────────────────────────────────────╯  
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

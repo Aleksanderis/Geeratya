@@ -30,7 +30,7 @@
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
 │           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
 │           │               │   <space>l   Switch between list and columns                                 │           │
-│           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
+│           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in  ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

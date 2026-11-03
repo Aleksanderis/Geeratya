@@ -74,11 +74,12 @@ public static class HelpOverlay
         var menuCells = Math.Min(names.Max(DisplayWidth.Of) + ActiveMark.Length, Math.Max(1, inner / 2));
         var pageWidth = Math.Max(0, inner - menuCells - MenuGap - Divider.Length - MenuGap);
         var first = FirstVisible(names.Count, current, rows);
-        var page = HelpPages.Lines(state, keymap)
+        var wrapped = HelpPages.Lines(state, keymap)
             .Skip(state.HelpScroll)
             .SelectMany(line => Wrap(line, pageWidth))
-            .Take(rows)
             .ToList();
+        var page = wrapped.Take(rows).ToList();
+        var total = state.HelpScroll + wrapped.Count;
         var box = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleText(state, boxWidth)) };
 
         for (var row = 0; row < rows; row++)
@@ -94,7 +95,9 @@ public static class HelpOverlay
             };
 
             spans.AddRange(StyledLines.Fit(text, pageWidth).Spans);
-            box.Add(OverlayBox.Wall(new StyledLine(spans), boxWidth - 2));
+            var marker = OverlayBox.ScrollMarker(row, rows, state.HelpScroll, total);
+
+            box.Add(OverlayBox.Wall(new StyledLine(spans), boxWidth - 2, marker));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));

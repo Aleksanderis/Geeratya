@@ -304,7 +304,7 @@ public sealed class IssueCreateClientTests
     {
         var fields = new[]
         {
-            new CreateField("summary", "Summary", true, false, CreateFieldKind.Text, [], null),
+            new CreateField("summary", "Summary", true, false, CreateFieldKind.Text, []),
         };
 
         var missing = CreateFormRules.MissingRequired(fields, new NewIssue("GCM", "10010", "  "));

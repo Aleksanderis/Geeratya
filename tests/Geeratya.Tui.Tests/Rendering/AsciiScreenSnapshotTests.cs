@@ -17,6 +17,7 @@ public class AsciiScreenSnapshotTests
     private static readonly string[] _names =
     [
         "help",
+        "help-scrolled",
         "whichkey",
         "jump",
         "form",
@@ -74,6 +75,7 @@ public class AsciiScreenSnapshotTests
         return name switch
         {
             "help" => AppState.Initial with { Mode = InputMode.Help },
+            "help-scrolled" => AppState.Initial with { Mode = InputMode.Help, HelpScroll = 3 },
             "whichkey" => WhichKeyOverlayTests.Opened("Space"),
             "jump" => JumpOverlaySnapshotTests.Sample("gcm"),
             "form" => FormOverlaySnapshotTests.Sample(),

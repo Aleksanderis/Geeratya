@@ -30,7 +30,7 @@
 │           │               │   <space>iC  Create a sub-task of the selected issue                         │           │
 │           │               │   <space>sm  Move the selected issues to a sprint                            │           │
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
-│           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
+│           │               │   <space>sn  Create a sprint (name, goal, dates)                            ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

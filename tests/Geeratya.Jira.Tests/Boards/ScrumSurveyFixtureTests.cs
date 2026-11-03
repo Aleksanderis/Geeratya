@@ -77,7 +77,7 @@ public sealed partial class ScrumSurveyFixtureTests
     {
         using var boardFixture = Serving("/rest/agile/1.0/board/6/issue", "scrum/board-issues-gcs.json");
         using var backlogFixture = Serving("/rest/agile/1.0/board/6/backlog", "scrum/backlog-gcs.json");
-        var query = new BoardIssueQuery(100, null);
+        var query = new BoardIssueQuery();
 
         var board = await new BoardClient(boardFixture.Transport).GetIssuesAsync(6, query, null, CancellationToken.None);
         var backlog = await new BoardClient(backlogFixture.Transport)
@@ -95,7 +95,7 @@ public sealed partial class ScrumSurveyFixtureTests
         using var fixture = Serving("/rest/agile/1.0/board/5/issue", "scrum/board-issues-gts.json");
 
         var result = await new BoardClient(fixture.Transport)
-            .GetIssuesAsync(5, new BoardIssueQuery(100, null), null, CancellationToken.None);
+            .GetIssuesAsync(5, new BoardIssueQuery(), null, CancellationToken.None);
 
         Assert.Equal(21, result.Value.Items.Count);
         Assert.Contains(result.Value.Items, i => i.Key == "GTS-22" && i.IssueType.Name == "Epic");

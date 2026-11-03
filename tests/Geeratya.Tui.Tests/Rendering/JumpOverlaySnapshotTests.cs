@@ -46,6 +46,19 @@ public class JumpOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenAnOpenPrompt_WhenWheelingOverARow_ThenTheHighlightMovesAndThePromptStaysOpen()
+    {
+        var state = Sample(string.Empty);
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.JumpRow)[0];
+
+        var down = RegionProbe.Click(state, frame, row.Region, MouseGesture.WheelDown)!;
+
+        Assert.NotNull(down.State.Jump);
+        Assert.Equal(3, down.State.Jump.Selected);
+    }
+
+    [Fact]
     public void GivenAnOpenPrompt_WhenClickingASecondRow_ThenThePromptClosesOnThatRow()
     {
         var state = Sample("gcm");
