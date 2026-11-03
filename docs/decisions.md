@@ -84,7 +84,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **UI:** Inline suggestions in the comment editor (#215): `@` opens people, `#` plus a project key opens issues, shown as rows inside the box; a mention or issue is a link mark, not a smart card, so every Jira surface renders it. Why: simplest layout, viewer-independent output. Details: `ux-screens.md`, "Comment editor".
 
-**Stack:** macOS secret store (#29, #202; supersedes "no store on macOS yet"): `security -i` with the token on standard input, no native binding, AOT-safe; written without a Mac, the owner checks it. Details: `architecture.md`, "Secrets".
+**Stack:** macOS secret store (#29, #202; supersedes "no store on macOS yet"): `security -i` with the token on standard input, no native binding, AOT-safe; written without a Mac, the owner checks it. Details: `architecture.md`, "Cross-platform" (Secrets bullet).
 
 ## 2026-11-03
 
