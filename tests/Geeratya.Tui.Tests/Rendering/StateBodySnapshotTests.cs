@@ -55,16 +55,18 @@ public class StateBodySnapshotTests
         Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public void GivenEachState_WhenBuildingTheFrame_ThenTheNoteStartsOneColumnInsideTheBorder()
+    [Theory]
+    [InlineData("loading", "│ Loading…")]
+    [InlineData("empty", "│ No issues match.")]
+    [InlineData("failed", "│ Jira rejected the credentials.")]
+    [InlineData("board-empty", "│ The board has no issues.")]
+    public void GivenEachState_WhenBuildingTheFrame_ThenTheNoteStartsOneColumnInsideTheBorder(
+        string name,
+        string expected)
     {
-        foreach (var name in new[] { "loading", "empty", "failed", "board-empty" })
-        {
-            var lines = FrameBuilder.Build(Sample(name), 80, 24, _keymap, NetworkStateSnapshotTests.Now);
-            var first = lines.First(line => line.StartsWith("│ ", StringComparison.Ordinal) && line[2] != ' ');
+        var lines = FrameBuilder.Build(Sample(name), 80, 24, _keymap, NetworkStateSnapshotTests.Now);
 
-            Assert.StartsWith("│ ", first);
-        }
+        Assert.Contains(lines, line => line.StartsWith(expected, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -75,6 +77,20 @@ public class StateBodySnapshotTests
 
         Assert.NotNull(key);
         Assert.Contains(lines, line => line.Contains($"│ {key} to retry", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAnotherRefreshKey_WhenAskingForTheRetryText_ThenItNamesThatKey()
+    {
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "F5", ActionIds.ViewRefresh)]);
+
+        Assert.Equal("F5 to retry", StateBody.RetryText(keymap));
+    }
+
+    [Fact]
+    public void GivenNoRefreshKey_WhenAskingForTheRetryText_ThenItNamesThePaletteCommand()
+    {
+        Assert.Equal("the palette command refresh to retry", StateBody.RetryText(new KeymapTable([])));
     }
 
     [Fact]

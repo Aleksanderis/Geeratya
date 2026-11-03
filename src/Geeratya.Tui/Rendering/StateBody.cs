@@ -11,8 +11,9 @@ namespace Geeratya.Tui.Rendering;
 public static class StateBody
 {
     private const string Pad = " ";
-    private const string FallbackRetry = "the palette (refresh)";
+    private const string FallbackRetry = "the palette command refresh";
 
+    /// <summary>The first-load note in the loading role.</summary>
     public static StyledLine Loading(Glyphs glyphs)
     {
         return StyledLine.Of($"{Pad}Loading{glyphs.Ellipsis}", TextRole.Loading);
@@ -36,6 +37,7 @@ public static class StateBody
         yield return StyledLine.Of($"{Pad}{RetryText(keymap)}", TextRole.Muted);
     }
 
+    /// <summary>The retry hint with the key bound to the refresh action.</summary>
     public static string RetryText(KeymapTable keymap)
     {
         return $"{keymap.FindKeyLabel(InputMode.Normal, ActionIds.ViewRefresh) ?? FallbackRetry} to retry";
