@@ -93,6 +93,6 @@ public class EditKnownValuesTests
 
     private static EditField Field(string id, EditFieldKind kind, string[]? operations = null)
     {
-        return new EditField(id, id, false, "t", string.Empty, operations ?? ["set"], [], false, null, kind);
+        return new EditField(id, id, false, "t", string.Empty, operations ?? ["set"], [], false, kind);
     }
 }

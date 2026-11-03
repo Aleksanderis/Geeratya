@@ -54,7 +54,6 @@ internal static class EditMapper
                 [.. field.Operations ?? []],
                 TransitionMapper.MapOptions(field.AllowedValues),
                 field.HasDefaultValue ?? false,
-                field.AutoCompleteUrl,
                 KindOf(schema)));
         }
 

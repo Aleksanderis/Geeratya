@@ -14,8 +14,4 @@ internal static class SuggestionWire
     internal sealed record PickerIssue(string? Key, string? Summary, string? SummaryText);
 
     internal sealed record Named(string? Id, string? Name, bool? Archived);
-
-    internal sealed record AutoComplete(List<AutoCompleteEntry?>? Suggestions);
-
-    internal sealed record AutoCompleteEntry(string? Label, string? Value, string? DisplayName);
 }

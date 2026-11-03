@@ -260,40 +260,6 @@ public sealed class SuggestionClientTests
     }
 
     [Fact]
-    public async Task GivenOwnHostAutoCompleteUrl_WhenSearching_ThenQueryIsAppendedAndSuggestionsMapped()
-    {
-        using var fixture = Serving("/rest/api/1.0/labels/suggest", "suggestions/autocomplete-labels.json");
-        var url = $"https://{TransportFixture.Host}/rest/api/1.0/labels/suggest?query=";
-
-        var result = await new SuggestionClient(fixture.Transport)
-            .SearchByAutoCompleteUrlAsync(url, "a&b", CancellationToken.None);
-
-        Assert.Equal(["alpha", "Beta"], result.Value.Select(entry => entry.Label));
-        Assert.Equal("beta", result.Value[1].Id);
-        Assert.Equal(
-            "/rest/api/1.0/labels/suggest?query=a%26b",
-            Assert.Single(fixture.Handler.Requests).PathAndQuery);
-    }
-
-    [Theory]
-    [InlineData("https://evil.example.com/rest/api/1.0/labels/suggest?query=")]
-    [InlineData("https://example.atlassian.net.evil.com/rest/api/2/x?q=")]
-    [InlineData("http://example.atlassian.net/rest/api/2/x?q=")]
-    [InlineData("https://user@example.atlassian.net/rest/api/2/x?q=")]
-    [InlineData("https://example.atlassian.net/other/path?q=")]
-    [InlineData("/rest/api/2/x?q=")]
-    public async Task GivenForeignOrOddAutoCompleteUrl_WhenSearching_ThenRefusedWithoutRequest(string url)
-    {
-        using var fixture = new TransportFixture();
-
-        var result = await new SuggestionClient(fixture.Transport)
-            .SearchByAutoCompleteUrlAsync(url, "a", CancellationToken.None);
-
-        Assert.Equal(JiraErrorKind.NotFound, result.Error.Kind);
-        Assert.Empty(fixture.Handler.Requests);
-    }
-
-    [Fact]
     public async Task GivenRateLimitThenSuccess_WhenSearchingUsers_ThenRetryAfterIsHonoured()
     {
         using var fixture = new TransportFixture();

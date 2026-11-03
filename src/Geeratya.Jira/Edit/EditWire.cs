@@ -14,7 +14,6 @@ internal static class EditWire
         Schema? Schema,
         List<string>? Operations,
         bool? HasDefaultValue,
-        string? AutoCompleteUrl,
         List<JsonElement>? AllowedValues);
 
     internal sealed record Schema(string? Type, string? Items, string? System, string? Custom);

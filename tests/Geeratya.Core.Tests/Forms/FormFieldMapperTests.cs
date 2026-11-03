@@ -188,6 +188,6 @@ public class FormFieldMapperTests
 
     private static EditField Edit(string id, EditFieldKind kind, bool required = false, string[]? operations = null)
     {
-        return new EditField(id, id, required, "t", string.Empty, operations ?? ["set"], _choices, false, null, kind);
+        return new EditField(id, id, required, "t", string.Empty, operations ?? ["set"], _choices, false, kind);
     }
 }
