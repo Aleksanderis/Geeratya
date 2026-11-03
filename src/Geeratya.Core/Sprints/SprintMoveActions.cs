@@ -81,11 +81,11 @@ public static class SprintMoveActions
         }
 
         var layout = BacklogSections.Build(tab);
-        var from = layout.LineAt(LineOf(tab, drag.FromRow));
         var to = layout.LineAt(LineOf(tab, drag.ToRow));
+        var home = PressedRow(tab, layout, drag);
 
-        if (from is not { Row: { } row } || to is not { } target || target.Section.Key == from.Value.Section.Key
-            || !OnScreen(tab, drag.FromRow) || !OnScreen(tab, drag.ToRow))
+        if (home is not { } row || to is not { } target || target.Section.Key == layout.SectionOfRow(row)?.Key
+            || !OnScreen(tab, drag.ToRow))
         {
             return null;
         }
@@ -99,6 +99,18 @@ public static class SprintMoveActions
         var sprint = target.Section.Sprint is { } found ? new IssueSprint(found.Id, found.Name, found.State) : null;
 
         return Start(state, keys, sprint, at, dropped: true);
+    }
+
+    // The row the button went down on. After a live drag the window may have scrolled since, so the press cell no
+    // longer points at it: the Visual anchor (set by the first move) is that row.
+    private static int? PressedRow(TabState tab, BacklogLayout layout, RowsDragged drag)
+    {
+        if (drag.Live && tab.VisualAnchor is { } anchor)
+        {
+            return BacklogCursor.IndexOfKey(tab, anchor);
+        }
+
+        return OnScreen(tab, drag.FromRow) ? layout.LineAt(LineOf(tab, drag.FromRow))?.Row : null;
     }
 
     private static bool OnScreen(TabState tab, int screenRow)

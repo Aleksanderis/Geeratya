@@ -188,9 +188,14 @@ public static class SelectionActions
         }
 
         if (ActiveTab(state) is not { VisualAnchor: not null } tab || state.Mode != InputMode.Normal
-            || tab.Detail.Count > 0 || !SameSection(tab, drag))
+            || tab.Detail.Count > 0)
         {
             return Result(state);
+        }
+
+        if (BacklogSections.Applies(tab))
+        {
+            return SectionBound(state, tab, drag);
         }
 
         return ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.ToRow, drag.Width)) ?? Result(state);
@@ -211,16 +216,21 @@ public static class SelectionActions
     }
 
     /// <summary>
-    /// One auto-scroll step: the cursor moves by the rows (clamped to the list) and the range follows. Not on a Scrum
-    /// backlog, whose sections would swallow the range.
+    /// One auto-scroll step: the cursor moves by the rows (clamped to the list) and the range follows. On a Scrum
+    /// backlog the window scrolls by display lines (the cursor is a row there) and the cursor takes the row at the
+    /// window edge, clamped to the section of the pressed row, so a long drag can reach another section's header.
     /// </summary>
     public static ReduceResult DragScrolled(AppState state, RowsDragScrolled scrolled)
     {
         if (ActiveTab(state) is not { VisualAnchor: not null } tab || state.Mode != InputMode.Normal
-            || tab.Detail.Count > 0 || tab.Rows.Count == 0 || tab.Definition.Layout == ViewLayout.Columns
-            || BacklogSections.Applies(tab))
+            || tab.Detail.Count > 0 || tab.Rows.Count == 0 || tab.Definition.Layout == ViewLayout.Columns)
         {
             return Result(state);
+        }
+
+        if (BacklogSections.Applies(tab))
+        {
+            return SectionScrolled(state, tab, scrolled.Rows);
         }
 
         var target = Math.Clamp(tab.Selected + scrolled.Rows, 0, tab.Rows.Count - 1);
@@ -228,19 +238,75 @@ public static class SelectionActions
         return target == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, target));
     }
 
-    // Outside a sectioned backlog every row is in range; inside one the pointer must stay in the pressed row's section.
-    private static bool SameSection(TabState tab, RowsDragging drag)
+    // The section of the pressed row (the Visual anchor), null when it is not found.
+    private static BacklogSection? AnchorSection(TabState tab, BacklogLayout layout)
     {
-        if (!BacklogSections.Applies(tab))
+        return BacklogCursor.IndexOfKey(tab, tab.VisualAnchor) is { } anchor ? layout.SectionOfRow(anchor) : null;
+    }
+
+    // A live range on a sectioned backlog never spans sections: a pointer in another one holds the cursor at the edge
+    // of the pressed row's section (the release there still asks to move the range, SprintMoveActions.Dropped).
+    private static ReduceResult SectionBound(AppState state, TabState tab, RowsDragging drag)
+    {
+        var layout = BacklogSections.Build(tab);
+        var line = tab.Scroll + drag.ToRow - ListLayout.HeaderRows;
+
+        if (AnchorSection(tab, layout) is not { HasRows: true } home)
         {
-            return true;
+            return Result(state);
         }
 
-        var layout = BacklogSections.Build(tab);
-        var from = layout.LineAt(tab.Scroll + drag.FromRow - ListLayout.HeaderRows);
-        var to = layout.LineAt(tab.Scroll + drag.ToRow - ListLayout.HeaderRows);
+        if (layout.LineAt(line) is not { } to)
+        {
+            return Result(state);
+        }
 
-        return from is not null && to is not null && from.Value.Section.Key == to.Value.Section.Key;
+        if (to.Section.Key == home.Key)
+        {
+            return ViewReducer.PlaceCursor(state, new PointerPlaced(drag.Column, drag.ToRow, drag.Width)) ?? Result(state);
+        }
+
+        if (drag.ToRow < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows)
+        {
+            return Result(state);
+        }
+
+        var edge = layout.StopFor(line < home.FirstLine ? home.FirstRow : home.FirstRow + home.RowCount - 1);
+
+        return edge == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, edge));
+    }
+
+    private static ReduceResult SectionScrolled(AppState state, TabState tab, int step)
+    {
+        var layout = BacklogSections.Build(tab);
+
+        if (AnchorSection(tab, layout) is not { HasRows: true } home)
+        {
+            return Result(state);
+        }
+
+        var last = home.FirstRow + home.RowCount - 1;
+        var scroll = Math.Clamp(tab.Scroll + step, 0, Math.Max(0, layout.LineCount - tab.VisibleRows));
+        var edgeLine = step < 0 ? scroll : Math.Min(layout.LineCount - 1, scroll + tab.VisibleRows - 1);
+        var row = edgeLine < home.FirstLine
+            ? home.FirstRow
+            : edgeLine >= home.FirstLine + home.LineCount
+                ? last
+                : Math.Clamp(BacklogCursor.RowAtLine(layout, edgeLine) ?? home.FirstRow, home.FirstRow, last);
+        var edge = layout.StopFor(row);
+
+        if (scroll == tab.Scroll && edge == tab.Selected)
+        {
+            return Result(state);
+        }
+
+        // The cursor move goes through the same path as a click (next-page trigger included); the window is set after
+        // it, because the cursor may be off screen by design while the pointer is far from its section.
+        var moved = edge == tab.Selected ? Result(state) : ViewReducer.Reduce(state, new SelectionMoved(tab.Id, edge));
+
+        return ActiveTab(moved.State) is { } after
+            ? new ReduceResult(ViewReducer.Replace(moved.State, after with { Scroll = scroll }), moved.Effects)
+            : moved;
     }
 
     private static TabState Toggled(TabState tab, IReadOnlyList<string> keys)

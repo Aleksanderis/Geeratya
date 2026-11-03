@@ -29,6 +29,7 @@ public sealed class ShellScreen : Window
     private bool _transparent;
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
     private IReadOnlyList<OverlayRegion> _regions = [];
+    private OverlayRegion? _rowMenuMarker;
 
     public ShellScreen(
         KeymapTable keymap,
@@ -70,6 +71,9 @@ public sealed class ShellScreen : Window
     /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test.</summary>
     public IReadOnlyList<OverlayRegion> OverlayRegions => _regions;
 
+    /// <summary>The cells of the row menu marker drawn last, null when none shows.</summary>
+    public OverlayRegion? RowMenuMarker => _rowMenuMarker;
+
     /// <summary>The terminal width, which issue details are laid out for.</summary>
     public int BodyColumns => Math.Max(0, _size.Width);
 
@@ -102,6 +106,7 @@ public sealed class ShellScreen : Window
         }
 
         _regions = frame.Regions;
+        _rowMenuMarker = frame.RowMenuMarker;
         var faint = _glyphs != GlyphSet.Ascii;
         var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors, faint));
 

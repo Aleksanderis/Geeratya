@@ -34,7 +34,7 @@ public class FrameSnapshotTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame", "--size", size, "--mode", mode]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(["--print-frame", "--size", size, "--mode", mode]);
         var expected = SnapshotFile.Expect($"{mode}-{size}.txt", Normalize(writer.ToString()));
 
         Assert.Equal(0, exitCode);
@@ -50,7 +50,7 @@ public class FrameSnapshotTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(
         [
             "--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "1", "--help-scroll",
             scroll.ToString(),
@@ -66,7 +66,7 @@ public class FrameSnapshotTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false)
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false))
             .Run(["--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "2"]);
         var expected = SnapshotFile.Expect("help-commands-120x36.txt", Normalize(writer.ToString()));
 
@@ -82,7 +82,7 @@ public class FrameSnapshotTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(
         [
             "--print-frame", "--size", "120x36", "--mode", "help", "--help-page", "1", "--help-scroll",
             scroll.ToString(), "--command-level", "advanced",
@@ -99,7 +99,7 @@ public class FrameSnapshotTests
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error).Run(["--print-frame", "--command-level", "expert"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error)).Run(["--print-frame", "--command-level", "expert"]);
 
         Assert.Equal(2, exitCode);
         Assert.Contains("--command-level", error.ToString());
@@ -127,7 +127,7 @@ public class FrameSnapshotTests
     {
         using var writer = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false).Run(["--print-frame", "--help-scroll", "-1"]);
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false)).Run(["--print-frame", "--help-scroll", "-1"]);
 
         Assert.Equal(2, exitCode);
     }

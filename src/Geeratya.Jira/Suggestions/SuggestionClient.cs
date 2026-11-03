@@ -21,7 +21,6 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     public const int MaxLabelPages = 5;
 
     private const string ApiPath = "/rest/api/3";
-    private const string ApiPrefix = "/rest/api/";
     private const string AssignableSearch = "user/assignable/search";
     private const string ViewIssueSearch = "user/viewissue/search";
     private const string LabelPath = ApiPath + "/label";
@@ -204,43 +203,6 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         SearchProjectListAsync(projectKey, VersionsSegment, query, cancellationToken);
 
     /// <summary>
-    /// A custom picker's own source (the <c>autoCompleteUrl</c> of a field in the edit metadata). Only a URL on the
-    /// connection's own scheme and host under <c>/rest/api/</c> is requested; anything else (including a site URL with a path prefix,
-    /// such as the scoped-token gateway) is refused with no request. The query is appended to the URL, so the URL
-    /// must end where the query text goes (<c>...?query=</c>). The reply is read in the <c>suggestions</c> shape
-    /// (label, value); other shapes give an empty list.
-    /// </summary>
-    public async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchByAutoCompleteUrlAsync(
-        string autoCompleteUrl,
-        string? query,
-        CancellationToken cancellationToken)
-    {
-        var path = OwnApiPath(autoCompleteUrl);
-
-        if (path is null)
-        {
-            return Refused();
-        }
-
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            return JiraResults.Success<IReadOnlyList<Suggestion>>([]);
-        }
-
-        var result = await transport.SendAsync(
-            JiraRequest.Get($"{path}{Uri.EscapeDataString(query.Trim())}"),
-            SuggestionJsonContext.Default.AutoComplete,
-            cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
-        }
-
-        return JiraResults.Success(Take(SuggestionMapper.MapAutoComplete(result.Value)));
-    }
-
-    /// <summary>
     /// A select-like field's own options, filtered here: <see cref="CreateField.AllowedValues"/> come with the
     /// create or edit metadata, so no request is made.
     /// </summary>
@@ -308,23 +270,6 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         return JiraResults.Success(SuggestionFilter.Filter(SuggestionMapper.MapNamed(result.Value), query));
     }
 
-    // The path and query of a URL on the connection's own host under the REST prefix; null for anything else.
-    private string? OwnApiPath(string url)
-    {
-        var site = transport.Connection.SiteUrl;
-
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            || !string.Equals(uri.Scheme, site.Scheme, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(uri.Authority, site.Authority, StringComparison.OrdinalIgnoreCase)
-            || !uri.AbsolutePath.StartsWith(ApiPrefix, StringComparison.Ordinal)
-            || !string.IsNullOrEmpty(uri.UserInfo))
-        {
-            return null;
-        }
-
-        return uri.PathAndQuery;
-    }
-
     private static JiraResult<IReadOnlyList<Suggestion>> LocalOrError(
         List<Suggestion> local,
         string query,
@@ -356,10 +301,6 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     private static JiraResult<IReadOnlyList<Suggestion>> NotFound() =>
         JiraResults.Failure<IReadOnlyList<Suggestion>>(
             new JiraError(JiraErrorKind.NotFound, null, "Not found or no access."));
-
-    private static JiraResult<IReadOnlyList<Suggestion>> Refused() =>
-        JiraResults.Failure<IReadOnlyList<Suggestion>>(
-            new JiraError(JiraErrorKind.NotFound, null, "Not a Jira address of this site."));
 
     private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 }

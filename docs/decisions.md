@@ -171,3 +171,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (terminal background, #566)
 
 **UI:** `:set transparent on` keeps the terminal's own background for the page roles in every tier; it is never refused and no tint is blended from a detected colour (overrides the plan in the issue). Why: OSC 11 is missing on Windows and the selection, scrim and chip fills are painted fills that need no base; contrast cannot be guaranteed against an unknown colour, so text keeps the theme's colours (tested against the theme page) and the user picks a theme of the terminal's side. The overlay box stays painted so it still stands out. Details: `ux.md`, "Themes".
+
+## 2026-11-04 (remove autoCompleteUrl, #627)
+
+**Jira layer:** The field `autoCompleteUrl` is not mapped and `SuggestionClient.SearchByAutoCompleteUrlAsync` is removed (#627). Why: no form used them; the pickers for people, labels, issues, components and versions use their own endpoints, and custom pickers (`autoCompleteUrl` of non-standard fields) are Unsupported/read-only with a browser link, which is outside the feature list. Re-add with a concrete picker when one is needed, restricted to the connection's own scheme and host under `/rest/api/` as the removed code was.

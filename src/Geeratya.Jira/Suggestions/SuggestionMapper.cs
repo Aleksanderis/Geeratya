@@ -53,23 +53,6 @@ internal static class SuggestionMapper
         return result;
     }
 
-    public static IReadOnlyList<Suggestion> MapAutoComplete(SuggestionWire.AutoComplete? reply)
-    {
-        var result = new List<Suggestion>();
-
-        foreach (var entry in reply?.Suggestions ?? [])
-        {
-            var label = entry?.Label ?? entry?.DisplayName ?? entry?.Value;
-
-            if (!string.IsNullOrWhiteSpace(label))
-            {
-                result.Add(new Suggestion(entry?.Value ?? label, label, null, false));
-            }
-        }
-
-        return result;
-    }
-
     public static IReadOnlyList<string> MapLabels(SuggestionWire.LabelPage page) =>
         (page.Values ?? []).OfType<string>().Where(label => label.Length > 0).ToList();
 }

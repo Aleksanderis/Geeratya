@@ -1,5 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
@@ -36,6 +37,28 @@ public class ColumnsSnapshotTests
         var expected = SnapshotFile.Expect(name, actual);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("gcm", 120, 36)]
+    [InlineData("gtm", 40, 10)]
+    public async Task GivenABoard_WhenBuildingTheFrame_ThenOnlyTheSelectedCardHasTheMarkerAndAClickOpensItsMenu(
+        string kind,
+        int width,
+        int height)
+    {
+        var state = await OpenAsync(kind, height);
+        var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
+        var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
+        var context = MouseContext.From(state, width, height, FrameBuilder.HeaderRows, default) with
+        {
+            RowMenuMarker = marker,
+        };
+
+        var commands = MouseResolver.Resolve(context, marker.Left, marker.Top, MouseGesture.Click, default);
+
+        Assert.Single(frame.Body, line => line.PlainText.Contains(RowMenuMarker.Text));
+        Assert.Equal(ActionIds.ContextMenuOpen, Assert.IsType<ActionRequested>(Assert.Single(commands)).Action);
     }
 
     [Theory]

@@ -35,7 +35,7 @@ public sealed partial class PrintFrameTests : IDisposable
     public void GivenAColourTier_WhenPrintingTheFrame_ThenItMatchesTheSnapshot(string tier)
     {
         using var writer = new StringWriter();
-        var runner = new ApplicationRunner(writer, false, createProfiles: Services);
+        var runner = new ApplicationRunner(new RunnerContext(writer, false), createProfiles: Services);
 
         var exitCode = runner.Run(["--print-frame", "--size", "60x12", "--mode", "normal", "--colors", tier]);
         var expected = SnapshotFile.Expect($"ansi-{tier}-60x12.txt", Normalize(writer.ToString()));
@@ -50,9 +50,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var coloured = new StringWriter();
         using var plain = new StringWriter();
 
-        new ApplicationRunner(coloured, false, createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(coloured, false), createProfiles: Services)
             .Run(["--print-frame", "--size", "80x24", "--mode", "help", "--colors", "truecolor"]);
-        new ApplicationRunner(plain, false).Run(["--print-frame", "--size", "80x24", "--mode", "help"]);
+        new ApplicationRunner(new RunnerContext(plain, false)).Run(["--print-frame", "--size", "80x24", "--mode", "help"]);
 
         Assert.Contains("\u001b[", coloured.ToString());
         Assert.Equal(plain.ToString(), Escapes().Replace(coloured.ToString(), string.Empty));
@@ -63,7 +63,7 @@ public sealed partial class PrintFrameTests : IDisposable
     {
         using var writer = new StringWriter();
 
-        new ApplicationRunner(writer, false).Run(["--print-frame", "--mode", "help"]);
+        new ApplicationRunner(new RunnerContext(writer, false)).Run(["--print-frame", "--mode", "help"]);
 
         Assert.DoesNotContain('\u001b', writer.ToString());
     }
@@ -93,9 +93,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var dark = new StringWriter();
         using var light = new StringWriter();
 
-        new ApplicationRunner(dark, false, createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(dark, false), createProfiles: Services)
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
-        new ApplicationRunner(light, false, createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(light, false), createProfiles: Services)
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor", "--light"]);
 
         Assert.NotEqual(dark.ToString(), light.ToString());
@@ -157,11 +157,8 @@ public sealed partial class PrintFrameTests : IDisposable
         using var error = new StringWriter();
         var environment = new EnvironmentReader(name => name == LiveHostsVariable ? "dev.example.test" : null);
         var runner = new ApplicationRunner(
-            writer,
-            false,
-            error: error,
+            new RunnerContext(writer, false, Error: error, Environment: environment),
             createProfiles: Services,
-            environment: environment,
             transports: new FakeTransportFactory(http));
 
         var exitCode = runner.Run(["--print-frame", "--source", "board:GCM board", "--profile", "work"]);
@@ -180,11 +177,8 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
         var runner = new ApplicationRunner(
-            writer,
-            false,
-            error: error,
-            createProfiles: Services,
-            environment: new EnvironmentReader(_ => null));
+            new RunnerContext(writer, false, Error: error, Environment: new EnvironmentReader(_ => null)),
+            createProfiles: Services);
 
         var exitCode = runner.Run(["--print-frame", "--source", "jql:project = GCM", "--profile", "work"]);
 
@@ -219,7 +213,7 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error, createProfiles: Services)
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), createProfiles: Services)
             .Run(["--print-frame", flag, value]);
 
         Assert.Equal(2, exitCode);
@@ -319,7 +313,7 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(writer, false, error: error, createProfiles: Services)
+        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), createProfiles: Services)
             .Run(["--print-frame", "--source", source]);
 
         Assert.Equal(2, exitCode);
@@ -328,11 +322,12 @@ public sealed partial class PrintFrameTests : IDisposable
     private ApplicationRunner Runner(StringWriter writer, StringWriter error, RoutedJiraHandler http)
     {
         return new ApplicationRunner(
-            writer,
-            false,
-            error: error,
+            new RunnerContext(
+                writer,
+                false,
+                Error: error,
+                Environment: new EnvironmentReader(name => name == LiveHostsVariable ? "work.atlassian.net" : null)),
             createProfiles: Services,
-            environment: new EnvironmentReader(name => name == LiveHostsVariable ? "work.atlassian.net" : null),
             transports: new FakeTransportFactory(http, new JiraTransportOptions { MaxRetries = 0 }));
     }
 

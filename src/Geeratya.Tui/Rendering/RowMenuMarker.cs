@@ -1,0 +1,180 @@
+using System.Text;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
+using Geeratya.Core.State;
+using Geeratya.Core.Text;
+
+namespace Geeratya.Tui.Rendering;
+
+/// <summary>
+/// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line) and
+/// the cursor line of an opened issue (<c>docs/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so it shows in every
+/// colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
+/// <c>&lt;space&gt;a</c> for terminals whose multiplexer swallows the right-click. The cells it covers are reported
+/// back so the hit test uses what was drawn.
+/// </summary>
+public static class RowMenuMarker
+{
+    /// <summary>The marker text; three plain cells.</summary>
+    public const string Text = "...";
+
+    /// <summary>The selected part of the row must be at least this wide, else the row is too narrow and shows none.</summary>
+    public const int MinRowWidth = 24;
+
+    /// <summary>
+    /// Replaces the last cells of the selected line of <paramref name="body"/> with the marker and returns its cells
+    /// (body rows), or null when no marker is drawn: not in Normal mode, an overlay or special screen covers the body,
+    /// the cursor is not on an issue (a sprint header), or the row is narrower than <see cref="MinRowWidth"/>.
+    /// </summary>
+    public static OverlayRegion? Stamp(List<StyledLine> body, AppState state)
+    {
+        if (!Applies(state, out var key))
+        {
+            return null;
+        }
+
+        for (var row = 0; row < body.Count; row++)
+        {
+            if (Run(body[row], key) is not { } run)
+            {
+                continue;
+            }
+
+            if (run.End - run.Start < MinRowWidth)
+            {
+                return null;
+            }
+
+            var start = run.End - Text.Length;
+            body[row] = Replace(body[row], start, run.End);
+
+            return new OverlayRegion(MouseTarget.RowMenuButton, row, start, Text.Length, 1, 0);
+        }
+
+        return null;
+    }
+
+    // key stays null for an opened issue (the cursor line has no key to look for).
+    private static bool Applies(AppState state, out string? key)
+    {
+        key = null;
+
+        if (state.Mode != InputMode.Normal || state.Picker is not null || state.Jump is not null
+            || state.Editor is not null || state.ProfileList is not null || state.SettingsScreen is not null
+            || state.ContextMenu is not null || state.Form is not null)
+        {
+            return false;
+        }
+
+        if (state.Session.Active is not { } id
+            || state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id) is not { } tab)
+        {
+            return false;
+        }
+
+        if (tab.Detail.Count > 0)
+        {
+            return true;
+        }
+
+        if (tab.Selected < 0 || tab.Selected >= tab.Rows.Count || tab.FocusedSprintId is not null)
+        {
+            return false;
+        }
+
+        key = tab.Rows[tab.Selected].Key;
+
+        return true;
+    }
+
+    // The cells of the selected-styled spans of a line, null when it has none or (outside the detail) it does not show
+    // the key of the selected issue, which keeps section headers and column titles from taking the marker.
+    private static Cells? Run(StyledLine line, string? key)
+    {
+        var column = 0;
+        int? start = null;
+        var end = 0;
+        var inner = 0;
+
+        foreach (var span in line.Spans)
+        {
+            var width = TextWidth.Of(span.Text);
+
+            if (IsSelected(span))
+            {
+                start ??= column;
+                end = column + width;
+            }
+
+            column += width;
+
+            // Where the content ends: before the closing border of a framed pane.
+            inner = span.Role is TextRole.Border or TextRole.FrameFocus ? inner : column;
+        }
+
+        // The cursor line of an opened issue marks only its first cell; the row runs on to the border.
+        end = key is null && start is not null ? Math.Max(end, inner) : end;
+
+        if (start is null || (key is not null && !line.PlainText.Contains(key, StringComparison.Ordinal)))
+        {
+            return null;
+        }
+
+        return new Cells(start.Value, end);
+    }
+
+    private static bool IsSelected(StyledSpan span)
+    {
+        return span.Role == TextRole.Selected || (span.Ground & (SpanGround.Selection | SpanGround.Cursor)) != 0;
+    }
+
+    // The line with the cells [start, end) drawn as the marker, in the style of the span that holds the first of them;
+    // a wide glyph cut by the edge becomes spaces.
+    private static StyledLine Replace(StyledLine line, int start, int end)
+    {
+        var spans = new List<StyledSpan>(line.Spans.Count);
+        var column = 0;
+        var placed = false;
+
+        foreach (var span in line.Spans)
+        {
+            var text = new StringBuilder();
+
+            foreach (var rune in span.Text.EnumerateRunes())
+            {
+                var from = column;
+                var to = column + TextWidth.Of(rune);
+
+                column = to;
+
+                if (to <= start || from >= end)
+                {
+                    text.Append(rune.ToString());
+                    continue;
+                }
+
+                if (from < start)
+                {
+                    text.Append(' ', start - from);
+                }
+
+                if (!placed)
+                {
+                    text.Append(Text);
+                    placed = true;
+                }
+
+                if (to > end)
+                {
+                    text.Append(' ', to - end);
+                }
+            }
+
+            spans.Add(span with { Text = text.ToString() });
+        }
+
+        return new StyledLine(spans);
+    }
+
+    private readonly record struct Cells(int Start, int End);
+}

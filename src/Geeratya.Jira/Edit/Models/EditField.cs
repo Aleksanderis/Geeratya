@@ -14,7 +14,6 @@ namespace Geeratya.Jira.Edit.Models;
 /// <param name="Operations">The operations Jira allows: <c>set</c>, <c>add</c>, <c>remove</c>, ...</param>
 /// <param name="AllowedValues">The choices Jira lists; empty for free-form and user fields.</param>
 /// <param name="HasDefaultValue">True when Jira fills the field in when it is left out.</param>
-/// <param name="AutoCompleteUrl">Where Jira says the choices of a picker can be searched; null when absent.</param>
 /// <param name="Kind">How the app edits the field; <see cref="EditFieldKind.Unsupported"/> means read-only.</param>
 public sealed record EditField(
     string FieldId,
@@ -25,7 +24,6 @@ public sealed record EditField(
     IReadOnlyList<string> Operations,
     IReadOnlyList<FieldOption> AllowedValues,
     bool HasDefaultValue,
-    string? AutoCompleteUrl,
     EditFieldKind Kind)
 {
     /// <summary>True when the app can write the field and Jira allows at least one operation on it.</summary>
