@@ -9,9 +9,7 @@ namespace Geeratya.Platform.Terminal;
 /// answers DA1 instead of by the timeout, and no late OSC answer is left to reach the UI as keystrokes. A read that ran
 /// out of time can be continued with another call (the text read so far is kept).
 /// </summary>
-/// <param name="keyAvailable">Whether a key can be read without blocking.</param>
-/// <param name="readKey">Reads the next key as a character.</param>
-public sealed class TerminalAnswerReader(Func<bool> keyAvailable, Func<char> readKey)
+public sealed class TerminalAnswerReader
 {
     private const char Bell = '\u0007';
     private const char Backslash = '\\';
@@ -19,8 +17,18 @@ public sealed class TerminalAnswerReader(Func<bool> keyAvailable, Func<char> rea
     private const string ColourAnswerMarker = "]11";
     private const int MaxLength = 256;
 
+    private readonly Func<bool> _keyAvailable;
+    private readonly Func<char> _readKey;
     private readonly StringBuilder _builder = new();
     private bool _colourAnswerEnded;
+
+    /// <param name="keyAvailable">Whether a key can be read without blocking; defaults to the console.</param>
+    /// <param name="readKey">Reads the next key as a character; defaults to the console, without echo.</param>
+    public TerminalAnswerReader(Func<bool>? keyAvailable = null, Func<char>? readKey = null)
+    {
+        _keyAvailable = keyAvailable ?? (static () => Console.KeyAvailable);
+        _readKey = readKey ?? (static () => Console.ReadKey(intercept: true).KeyChar);
+    }
 
     /// <summary>True once the DA1 reply was seen: nothing more is coming from the query.</summary>
     public bool Completed { get; private set; }
@@ -36,14 +44,14 @@ public sealed class TerminalAnswerReader(Func<bool> keyAvailable, Func<char> rea
 
         while (!Completed && clock.Elapsed < timeout && _builder.Length < MaxLength)
         {
-            if (!keyAvailable())
+            if (!_keyAvailable())
             {
                 Thread.Sleep(1);
 
                 continue;
             }
 
-            Accept(readKey());
+            Accept(_readKey());
         }
 
         return _builder.Length > 0 ? _builder.ToString() : null;

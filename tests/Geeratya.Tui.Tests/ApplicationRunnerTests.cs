@@ -1,5 +1,6 @@
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
+using Geeratya.Tui.Tests.Fakes;
 
 namespace Geeratya.Tui.Tests;
 
@@ -119,7 +120,8 @@ public class ApplicationRunnerTests
 
         var exitCode = new ApplicationRunner(
             new RunnerContext(writer, true),
-            createProfiles: () => throw new InvalidOperationException("profiles read")).Run(["--help"]);
+            profileFactory: new FakeProfileServicesFactory(
+                () => throw new InvalidOperationException("profiles read"))).Run(["--help"]);
 
         Assert.Equal(0, exitCode);
         Assert.Contains("Usage:", writer.ToString());
@@ -144,7 +146,8 @@ public class ApplicationRunnerTests
 
         var exitCode = new ApplicationRunner(
             new RunnerContext(output, true, Error: error),
-            () => throw new InvalidOperationException("Cannot locate the user's home directory.")).Run([]);
+            new FakeProfileServicesFactory(
+                () => throw new InvalidOperationException("Cannot locate the user's home directory."))).Run([]);
 
         Assert.NotEqual(0, exitCode);
         Assert.Contains("Cannot locate the user's home directory.", error.ToString());
@@ -157,7 +160,7 @@ public class ApplicationRunnerTests
         using var writer = new StringWriter();
         var runner = new ApplicationRunner(
             new RunnerContext(writer, false, Error: TextWriter.Null),
-            () => throw new InvalidOperationException("no home"));
+            new FakeProfileServicesFactory(() => throw new InvalidOperationException("no home")));
 
         Assert.Equal(0, runner.Run(["--version"]));
         Assert.Equal(0, runner.Run(["--print-frame"]));

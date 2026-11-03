@@ -9,6 +9,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
+using Geeratya.Tui.Tests.Fakes;
 using Geeratya.Tui.Tests.Rendering;
 
 namespace Geeratya.Tui.Tests;
@@ -35,7 +36,9 @@ public sealed partial class PrintFrameTests : IDisposable
     public void GivenAColourTier_WhenPrintingTheFrame_ThenItMatchesTheSnapshot(string tier)
     {
         using var writer = new StringWriter();
-        var runner = new ApplicationRunner(new RunnerContext(writer, false), createProfiles: Services);
+        var runner = new ApplicationRunner(
+            new RunnerContext(writer, false),
+            profileFactory: new FakeProfileServicesFactory(Services));
 
         var exitCode = runner.Run(["--print-frame", "--size", "60x12", "--mode", "normal", "--colors", tier]);
         var expected = SnapshotFile.Expect($"ansi-{tier}-60x12.txt", Normalize(writer.ToString()));
@@ -50,7 +53,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var coloured = new StringWriter();
         using var plain = new StringWriter();
 
-        new ApplicationRunner(new RunnerContext(coloured, false), createProfiles: Services)
+        new ApplicationRunner(
+            new RunnerContext(coloured, false),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "80x24", "--mode", "help", "--colors", "truecolor"]);
         new ApplicationRunner(new RunnerContext(plain, false)).Run(["--print-frame", "--size", "80x24", "--mode", "help"]);
 
@@ -74,13 +79,17 @@ public sealed partial class PrintFrameTests : IDisposable
         using var painted = new StringWriter();
         using var transparent = new StringWriter();
 
-        new ApplicationRunner(new RunnerContext(painted, false), createProfiles: Services)
+        new ApplicationRunner(
+            new RunnerContext(painted, false),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Directory.CreateDirectory(_directory);
         File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ \"transparent\": true }");
 
-        new ApplicationRunner(new RunnerContext(transparent, false), createProfiles: ServicesWithSettings)
+        new ApplicationRunner(
+            new RunnerContext(transparent, false),
+            profileFactory: new FakeProfileServicesFactory(ServicesWithSettings))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
 
         Assert.DoesNotContain(";49m", painted.ToString(), StringComparison.Ordinal);
@@ -93,9 +102,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var dark = new StringWriter();
         using var light = new StringWriter();
 
-        new ApplicationRunner(new RunnerContext(dark, false), createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(dark, false), profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
-        new ApplicationRunner(new RunnerContext(light, false), createProfiles: Services)
+        new ApplicationRunner(new RunnerContext(light, false), profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor", "--light"]);
 
         Assert.NotEqual(dark.ToString(), light.ToString());
@@ -158,7 +167,7 @@ public sealed partial class PrintFrameTests : IDisposable
         var environment = new EnvironmentReader(name => name == LiveHostsVariable ? "dev.example.test" : null);
         var runner = new ApplicationRunner(
             new RunnerContext(writer, false, Error: error, Environment: environment),
-            createProfiles: Services,
+            profileFactory: new FakeProfileServicesFactory(Services),
             transports: new FakeTransportFactory(http));
 
         var exitCode = runner.Run(["--print-frame", "--source", "board:GCM board", "--profile", "work"]);
@@ -178,7 +187,7 @@ public sealed partial class PrintFrameTests : IDisposable
         using var error = new StringWriter();
         var runner = new ApplicationRunner(
             new RunnerContext(writer, false, Error: error, Environment: new EnvironmentReader(_ => null)),
-            createProfiles: Services);
+            profileFactory: new FakeProfileServicesFactory(Services));
 
         var exitCode = runner.Run(["--print-frame", "--source", "jql:project = GCM", "--profile", "work"]);
 
@@ -213,7 +222,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), createProfiles: Services)
+        var exitCode = new ApplicationRunner(
+            new RunnerContext(writer, false, Error: error),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", flag, value]);
 
         Assert.Equal(2, exitCode);
@@ -313,7 +324,9 @@ public sealed partial class PrintFrameTests : IDisposable
         using var writer = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = new ApplicationRunner(new RunnerContext(writer, false, Error: error), createProfiles: Services)
+        var exitCode = new ApplicationRunner(
+            new RunnerContext(writer, false, Error: error),
+            profileFactory: new FakeProfileServicesFactory(Services))
             .Run(["--print-frame", "--source", source]);
 
         Assert.Equal(2, exitCode);
@@ -327,7 +340,7 @@ public sealed partial class PrintFrameTests : IDisposable
                 false,
                 Error: error,
                 Environment: new EnvironmentReader(name => name == LiveHostsVariable ? "work.atlassian.net" : null)),
-            createProfiles: Services,
+            profileFactory: new FakeProfileServicesFactory(Services),
             transports: new FakeTransportFactory(http, new JiraTransportOptions { MaxRetries = 0 }));
     }
 

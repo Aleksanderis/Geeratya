@@ -144,13 +144,12 @@ public sealed class WriteHandlerTests
     public async Task GivenGatedWrite_WhenWaitingForRunning_ThenItWaitsForTheWriteAndReportsSettled()
     {
         var gate = new TaskCompletionSource();
-        var never = new TaskCompletionSource();
 
         using var fixture = await ConnectedAsync(h => h
             .Reply(HttpStatusCode.NoContent, "", gate.Task)
             .Reply(HttpStatusCode.OK, Assigned));
 
-        var handler = new WriteHandler(fixture.Runner, delay: (_, token) => never.Task.WaitAsync(token));
+        var handler = new WriteHandler(fixture.Runner, new ManualTimeProvider());
         var run = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
         var waiting = handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
 
@@ -168,29 +167,24 @@ public sealed class WriteHandlerTests
     public async Task GivenGatedWrite_WhenTheTimeoutPasses_ThenWaitingGivesUpWhileTheWriteStaysRunning()
     {
         var gate = new TaskCompletionSource();
-        var expire = new TaskCompletionSource();
-        var asked = TimeSpan.Zero;
+        var clock = new ManualTimeProvider();
 
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, "", gate.Task));
 
-        var handler = new WriteHandler(
-            fixture.Runner,
-            delay: (span, _) =>
-            {
-                asked = span;
-
-                return expire.Task;
-            });
+        var handler = new WriteHandler(fixture.Runner, clock);
 
         var run = handler.StartAsync(new ExecuteWriteEffect(41, _assign));
         var waiting = handler.WaitForRunningAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
 
         Assert.False(waiting.IsCompleted);
 
-        expire.SetResult();
+        clock.Advance(TimeSpan.FromSeconds(4));
+
+        Assert.False(waiting.IsCompleted);
+
+        clock.Advance(TimeSpan.FromSeconds(1));
 
         Assert.False(await waiting);
-        Assert.Equal(TimeSpan.FromSeconds(5), asked);
         Assert.True(handler.HasRunning);
 
         gate.SetResult();

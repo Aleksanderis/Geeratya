@@ -43,7 +43,7 @@ public sealed partial class SiteCache : IDisposable
     private static readonly TimeSpan _defaultDebounce = TimeSpan.FromSeconds(2);
 
     private readonly string _folder;
-    private readonly FilePermissions _permissions;
+    private readonly IFilePermissions _permissions;
     private readonly TimeSpan _debounce;
     private readonly long _maxDiskBytes;
     private readonly object _memoryLock = new();
@@ -63,12 +63,12 @@ public sealed partial class SiteCache : IDisposable
 
     public SiteCache(
         string folder,
-        FilePermissions? permissions = null,
+        IFilePermissions? permissions = null,
         TimeSpan? debounce = null,
         long maxDiskBytes = DefaultMaxDiskBytes)
     {
         _folder = folder;
-        _permissions = permissions ?? FilePermissions.Plain;
+        _permissions = permissions ?? PlainFilePermissions.Instance;
         _debounce = debounce ?? _defaultDebounce;
         _maxDiskBytes = maxDiskBytes;
         _timer = new Timer(FlushOnTimer, null, Timeout.Infinite, Timeout.Infinite);

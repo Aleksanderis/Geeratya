@@ -50,8 +50,7 @@ public sealed record ProfileServices(
         var directories = new ApplicationDirectories(operatingSystem, environment, folders);
         var secretStore = SecretStores.Create(operatingSystem, new ProcessRunner());
 
-        var files = new PrivateFiles(operatingSystem);
-        var permissions = new FilePermissions(files.CreateDirectory, files.RestrictFile);
+        var permissions = new PrivateFilePermissions(new PrivateFiles(operatingSystem));
 
         return new ProfileServices(
             new ProfileStore(directories.ConfigDirectory),

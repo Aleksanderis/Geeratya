@@ -16,13 +16,13 @@ public sealed class HistoryStore
     private const string TemporarySuffix = ".tmp";
 
     private readonly string _root;
-    private readonly FilePermissions _permissions;
+    private readonly IFilePermissions _permissions;
     private readonly object _lock = new();
 
-    public HistoryStore(string root, FilePermissions? permissions = null)
+    public HistoryStore(string root, IFilePermissions? permissions = null)
     {
         _root = root;
-        _permissions = permissions ?? FilePermissions.Plain;
+        _permissions = permissions ?? PlainFilePermissions.Instance;
     }
 
     /// <summary>The folder of a profile's history (it may not exist yet).</summary>

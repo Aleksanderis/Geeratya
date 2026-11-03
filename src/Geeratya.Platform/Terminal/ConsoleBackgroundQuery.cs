@@ -23,9 +23,7 @@ public sealed class ConsoleBackgroundQuery(EnvironmentReader environment) : ITer
             Console.Out.Write(Query);
             Console.Out.Flush();
 
-            var reader = new TerminalAnswerReader(
-                () => Console.KeyAvailable,
-                () => Console.ReadKey(intercept: true).KeyChar);
+            var reader = new TerminalAnswerReader();
 
             return Read(reader, timeout, IsRemote());
         }

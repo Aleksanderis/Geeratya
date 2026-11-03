@@ -10,7 +10,7 @@ namespace Geeratya.Core.Cache;
 public sealed class SiteCaches : IDisposable
 {
     private readonly string _root;
-    private readonly FilePermissions _permissions;
+    private readonly IFilePermissions _permissions;
     private readonly TimeSpan? _debounce;
     private readonly long _maxDiskBytes;
     private readonly object _lock = new();
@@ -18,12 +18,12 @@ public sealed class SiteCaches : IDisposable
 
     public SiteCaches(
         string root,
-        FilePermissions? permissions = null,
+        IFilePermissions? permissions = null,
         TimeSpan? debounce = null,
         long maxDiskBytes = SiteCache.DefaultMaxDiskBytes)
     {
         _root = root;
-        _permissions = permissions ?? FilePermissions.Plain;
+        _permissions = permissions ?? PlainFilePermissions.Instance;
         _debounce = debounce;
         _maxDiskBytes = maxDiskBytes;
     }
