@@ -19,6 +19,7 @@ public static class SourcePickerOverlay
     private const int PromptMargin = 4;
     private const string Title = "Open a view";
     private const string SprintTitle = "Switch sprint";
+    private const string TabsTitle = "Open tabs";
     private const string MoveTitle = "Move to sprint";
     private const string ActiveHeading = "Active";
     private const string FutureHeading = "Future";
@@ -117,6 +118,11 @@ public static class SourcePickerOverlay
 
     private static string TitleOf(SourcePickerState picker)
     {
+        if (picker.Scope == PickerScope.Tabs)
+        {
+            return TabsTitle;
+        }
+
         if (picker.Scope != PickerScope.Sprints)
         {
             return Title;
@@ -154,6 +160,11 @@ public static class SourcePickerOverlay
         var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
         var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
 
+        if (picker.Scope == PickerScope.Tabs)
+        {
+            return $"{up}/{down} choose   {accept} switch   {cancel} close";
+        }
+
         if (picker.Scope == PickerScope.Sprints)
         {
             if (picker.Sprint?.MoveKeys is not null)
@@ -176,6 +187,11 @@ public static class SourcePickerOverlay
         var lines = new List<StyledLine>();
         var choiceOfLine = new List<int>();
         var selectedLine = 0;
+
+        if (picker.Scope == PickerScope.Tabs)
+        {
+            return TabRows(choices, selected, width);
+        }
 
         if (picker.Scope == PickerScope.Sprints)
         {
@@ -252,6 +268,25 @@ public static class SourcePickerOverlay
         }
 
         return new PickerRows(lines, selectedLine, choiceOfLine);
+    }
+
+    private static PickerRows TabRows(IReadOnlyList<SourceChoice> choices, int selected, int width)
+    {
+        if (choices.Count == 0)
+        {
+            return new PickerRows([StyledLine.Of(NothingText, TextRole.Muted)], 0, [-1]);
+        }
+
+        var lines = new List<StyledLine>(choices.Count);
+        var choiceOfLine = new List<int>(choices.Count);
+
+        for (var index = 0; index < choices.Count; index++)
+        {
+            lines.Add(ChoiceLine(choices[index], index == selected, width));
+            choiceOfLine.Add(index);
+        }
+
+        return new PickerRows(lines, selected, choiceOfLine);
     }
 
     private static PickerRows SprintRows(
@@ -421,6 +456,7 @@ public static class SourcePickerOverlay
             SourceChoiceKind.Filter => "Filter",
             SourceChoiceKind.Recent => "Recent",
             SourceChoiceKind.SavedView => "View",
+            SourceChoiceKind.Tab => "Tab",
             SourceChoiceKind.Sprint or SourceChoiceKind.MoreClosed => string.Empty,
             _ => "JQL",
         };

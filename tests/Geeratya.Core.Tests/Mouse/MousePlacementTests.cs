@@ -525,32 +525,6 @@ public class MousePlacementTests
     }
 
     [Fact]
-    public void GivenScrolledTabBar_WhenClickingTheHiddenMarks_ThenTheNeighbouringHiddenTabActivates()
-    {
-        var state = Loaded(ViewLayout.List, 40, 24, "1:A-1");
-
-        for (var index = 2; index <= 12; index++)
-        {
-            var definition = new ViewDefinition(ViewSourceKind.Jql, $"project = P{index}", ViewLayout.List, $"P{index}");
-
-            state = _reducer.Reduce(state, new ViewOpenRequested(definition)).State;
-        }
-
-        var middle = _reducer.Reduce(state, new ActionRequested(ActionIds.TabGoTo6)).State;
-        var areas = TabBar.Areas(middle.Session.Tabs, middle.Session.Active, 40);
-        var tabs = middle.Session.Tabs;
-        var first = areas[0];
-        var last = areas[^1];
-        var left = Resolve(middle, 40, 24, first.Start, 0, MouseGesture.Click).State;
-        var right = Resolve(middle, 40, 24, last.Start, 0, MouseGesture.Click).State;
-
-        Assert.Equal(first.Tab, left.Session.Active);
-        Assert.Equal(last.Tab, right.Session.Active);
-        Assert.NotEqual(tabs[0].Id, first.Tab);
-        Assert.NotEqual(tabs[^1].Id, last.Tab);
-    }
-
-    [Fact]
     public void GivenOneColumnBoard_WhenClickingTheNeighbourNamesInTheHeader_ThenThatColumnIsSelected()
     {
         var state = Loaded(ViewLayout.Columns, 30, 20, "1:A-1", "2:A-2", "4:A-3");

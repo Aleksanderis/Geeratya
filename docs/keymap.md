@@ -51,6 +51,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-9` | Go to tab 9 | `tab.go-to.9` | everyday |
 | `<space>t` | Open the source picker for a new tab | `tab.new` | everyday |
 | `<space>c` | Close the tab | `tab.close` | everyday |
+| `<space>T` | Show a list of open tabs | `tab.list` | everyday |
 | `<space>r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
 | `<space>l` | Switch between list and columns | `view.layout-toggle` | everyday |
 | `<space>vf` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
