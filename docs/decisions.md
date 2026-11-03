@@ -157,5 +157,6 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (settings screen, #556)
 
 **UI:** The Settings screen (reverses the "not adopted" note in `ux.md`, owner request) runs in Normal mode on the Normal keys, not in Insert mode like the profile manager; `<space>,` opens it (as in Gitunia), `Alt-r` resets a row (`r` is vim's). Why: it has no text field, so the existing motion keys apply and nothing new is modal.
+**UI:** `q` quits from the settings screen like everywhere else (the "writes running" confirm still applies); `Esc` or `<space>,` closes it. Why: one meaning of `q` outside Help.
 **UI:** The theme list previews through `ApplyThemeEffect(Preview: true)` (drawn, never saved or kept in the settings); Esc or any other way out redraws the saved theme (`SettingsScreenReducer.RestorePreview`). Why: the reducer cannot see the screen, so restoring is a rule on every command.
 **UI:** Rows come from `SettingsRegistry` (new `Choices` and `Category` fields); a free-text setting without choices is not edited in place (`:set`). Why: the registry has none today and a text prompt needs Insert mode; registered as a follow-up.

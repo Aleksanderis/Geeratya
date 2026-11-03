@@ -5,6 +5,7 @@ using Geeratya.Core.State;
 
 namespace Geeratya.Core.Tests.State;
 
+[Trait("Os", "Independent")]
 public sealed class SettingsScreenReducerTests
 {
     private static readonly string[] _themes = ["dark", "light", "nord"];

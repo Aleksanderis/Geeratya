@@ -44,8 +44,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | SettingsCategory | Click | `nav.right` | O | Settings screen: puts the cursor on the first row of the clicked category, same as `h`/`l` stepping to it |
 | SettingsRow | Click | `item.open` | O | Settings screen: highlights the row and acts like `Enter`: a toggle flips and saves, a choice opens its list, the profiles row opens the profile manager |
 | SettingsRow | Right-click | `settings.reset` | O | Settings screen: highlights the row and resets that setting to its default (saved), same as `Alt-r` |
-| SettingsRow | Wheel up | `nav.up` | O | Settings screen: moves the highlight up 3 rows (runs nothing) |
-| SettingsRow | Wheel down | `nav.down` | O | Settings screen: moves the highlight down 3 rows (runs nothing) |
+| SettingsRow | Wheel up | `nav.up` | O | Settings screen: moves the highlight up one row (runs nothing) |
+| SettingsRow | Wheel down | `nav.down` | O | Settings screen: moves the highlight down one row (runs nothing) |
 | SettingsChoice | Click | `item.open` | O | Settings screen: takes the clicked word of the open choice list, same as `Enter` on it (a theme is applied and saved) |
 | ProfileRow | Click | `form.next` | O | Profile manager: switches to the clicked profile, same as `Enter` (the switch asks first while writes run) |
 | ProfileRow | Right-click | `profile.remove` | O | Profile manager: asks to remove the clicked profile, same as `Ctrl-x` (Confirm mode, the token is deleted, no undo) |
