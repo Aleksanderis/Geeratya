@@ -158,7 +158,7 @@ public sealed class AppReducer
             ProfileOperationFailed failed => ProfileReducer.Failed(state, failed),
             ProfileTested tested => ProfileReducer.Tested(state, tested),
             TokenSourcesLoaded sources => Result(state with { TokenSources = sources.Sources }),
-            CacheWriteFailed failed => Result(StatusMessages.AddCacheProblem(state, failed.Message)),
+            CacheProblem failed => Result(StatusMessages.AddCacheProblem(state, failed.Message)),
             ConnectionFailed failed => ProfileReducer.ConnectionFailed(state, failed),
             ConnectionCheckRequested => ProfileReducer.CheckConnection(state, announce: false),
             ConnectionChecked connected => ProfileReducer.ConnectionChecked(state, connected),

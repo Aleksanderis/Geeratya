@@ -81,6 +81,7 @@ public sealed class SiteCache : IDisposable
     /// <summary>
     /// Raised (on a background thread) with a one-line notice when a cache file could not be read (unreadable or
     /// corrupt; a corrupt one is deleted); once per cache. Found while a view or issue is read, so no extra disk scan.
+    /// Raised while the disk lock is held: a subscriber must not call back into the cache.
     /// </summary>
     public event Action<string>? ReadProblem;
 

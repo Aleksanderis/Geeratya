@@ -145,7 +145,9 @@ public sealed class SiteCacheTests : IDisposable
         Assert.Null(cache.Get(other));
 
         Assert.Single(notices);
-        Assert.DoesNotContain("Bearer", notices[0], StringComparison.Ordinal);
+        Assert.Equal(
+            "A local cache file could not be read (JsonException); the data is loaded from Jira again.",
+            notices[0]);
     }
 
     [Fact]

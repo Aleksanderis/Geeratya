@@ -116,8 +116,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
         _suggestions = new SuggestionHandler(_network, TimeProvider.System);
         _mentionCheck = new MentionCheckHandler(_network);
         _connectionChecks = new ConnectionCheckHandler(_connections, _network);
-        profiles.Caches.WriteFailed += OnCacheWriteFailed;
-        profiles.Caches.ReadProblem += OnCacheWriteFailed;
+        profiles.Caches.WriteFailed += OnCacheProblem;
+        profiles.Caches.ReadProblem += OnCacheProblem;
 
         _startupEffects?.SaveFailed += OnTabsSaveFailed;
 
@@ -127,8 +127,8 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
     public void Dispose()
     {
-        _profiles.Caches.WriteFailed -= OnCacheWriteFailed;
-        _profiles.Caches.ReadProblem -= OnCacheWriteFailed;
+        _profiles.Caches.WriteFailed -= OnCacheProblem;
+        _profiles.Caches.ReadProblem -= OnCacheProblem;
 
         _startupEffects?.SaveFailed -= OnTabsSaveFailed;
 
@@ -632,9 +632,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
         Post(new TabsSaveFailed(notice));
     }
 
-    private void OnCacheWriteFailed(string notice)
+    private void OnCacheProblem(string notice)
     {
-        Post(new CacheWriteFailed(notice));
+        Post(new CacheProblem(notice));
     }
 
     /// <summary>Builds the connection for the active profile off the UI thread; no-op when already built.</summary>
