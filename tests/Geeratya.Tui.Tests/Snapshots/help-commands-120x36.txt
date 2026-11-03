@@ -24,6 +24,8 @@ Global  All actions  Commands
       Create an issue, or a sub-task of the selected issue (field form)                                                 
   :priority                                                                                                             
       Change the priority of the selected or shown issue (field form)                                                   
+  :estimate                                                                                                             
+      Change the estimate (story points) of the selected or shown issue (field form)                                    
   :assign                                                                                                               
       Assign the selected or shown issue: search people, or unassign                                                    
   :assign-me                                                                                                            
@@ -31,6 +33,4 @@ Global  All actions  Commands
   :profile add|list|switch <name>|remove <name>|check                                                                   
       Manage Jira profiles                                                                                              
   :set [hints.statusBar|hints.whichKey|commandlevel|theme|jump.target] [value]                                          
-      List the settings, show one, or change one (saved)                                                                
-  :theme [name]                                                                                                         
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

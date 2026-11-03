@@ -45,6 +45,29 @@ public sealed class SiteFields(FieldClient client)
     }
 
     /// <summary>
+    /// Every estimate field id this connection knows: the ones remembered from board configurations first, then the
+    /// site's candidates by name. The edit metadata of an issue decides which of them it can actually edit.
+    /// </summary>
+    public async Task<JiraResult<IReadOnlyList<string>>> GetEstimateCandidatesAsync(
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
+    {
+        var site = await GetAsync(cancellationToken, priority);
+
+        if (!site.IsSuccess)
+        {
+            return JiraResults.Failure<IReadOnlyList<string>>(site.Error);
+        }
+
+        IReadOnlyList<string> ids =
+        [
+            .. _boardEstimates.Values.Concat(site.Value.EstimateFieldIds).Distinct(StringComparer.Ordinal),
+        ];
+
+        return JiraResults.Success(ids);
+    }
+
+    /// <summary>
     /// The extra fields for rows of <paramref name="boardId"/>: the site's Sprint field, the board's own estimation
     /// field first, then the site's candidates.
     /// </summary>

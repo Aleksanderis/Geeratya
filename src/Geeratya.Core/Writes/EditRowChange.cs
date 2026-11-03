@@ -4,7 +4,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>
-/// The summary, labels and priority of a row changed by an edit. A null "after" leaves that field alone; the undo
+/// The summary, labels, priority and estimate of a row changed by an edit. A null "after" leaves that field alone; the undo
 /// restores only the fields that still hold the patched value.
 /// </summary>
 public sealed record EditRowChange(
@@ -14,7 +14,8 @@ public sealed record EditRowChange(
     IReadOnlyList<string> LabelsBefore,
     IReadOnlyList<string>? LabelsAfter,
     string? PriorityBefore = null,
-    string? PriorityAfter = null) : RowChange(Key)
+    string? PriorityAfter = null,
+    EstimateEdit? Estimate = null) : RowChange(Key)
 {
     public override IssueSummary Patch(IssueSummary row)
     {
@@ -23,6 +24,7 @@ public sealed record EditRowChange(
             Summary = SummaryAfter ?? row.Summary,
             Labels = LabelsAfter ?? row.Labels,
             Priority = PriorityAfter ?? row.Priority,
+            Estimate = Estimate is { } edit ? edit.After : row.Estimate,
         };
     }
 
@@ -33,6 +35,7 @@ public sealed record EditRowChange(
             Summary = SummaryAfter ?? detail.Summary,
             Labels = LabelsAfter ?? detail.Labels,
             Priority = PriorityAfter ?? detail.Priority,
+            Estimate = Estimate is { } edit ? edit.After : detail.Estimate,
         };
     }
 
@@ -43,6 +46,8 @@ public sealed record EditRowChange(
 
         var priority = PriorityAfter is not null && row.Priority == PriorityAfter ? PriorityBefore : row.Priority;
 
-        return row with { Summary = summary, Labels = labels, Priority = priority };
+        var estimate = Estimate is { } edit && Nullable.Equals(row.Estimate, edit.After) ? edit.Before : row.Estimate;
+
+        return row with { Summary = summary, Labels = labels, Priority = priority, Estimate = estimate };
     }
 }

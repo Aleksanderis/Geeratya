@@ -880,6 +880,7 @@ public sealed class AppReducer
             PaletteCommands.CreateSubtask => FormReducer.Reduce(normal, new OpenCreateFormRequested(true)),
             PaletteCommands.Edit => FormOpener.Edit(normal),
             PaletteCommands.Priority => FormOpener.Priority(normal),
+            PaletteCommands.Estimate => FormOpener.Estimate(normal),
             PaletteCommands.Assign => FormOpener.Assign(normal),
             PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),

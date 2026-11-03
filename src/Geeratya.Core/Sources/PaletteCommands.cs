@@ -18,6 +18,7 @@ public static class PaletteCommands
     public const string CreateSubtask = "create subtask";
     public const string Edit = "edit";
     public const string Priority = "priority";
+    public const string Estimate = "estimate";
     public const string Assign = "assign";
     public const string AssignMe = "assign-me";
     public const string Status = "status";
@@ -41,6 +42,7 @@ public static class PaletteCommands
         new(Labels, "labels", "Edit the labels of the selected or shown issue (field form)"),
         new(Create, "create [subtask]", "Create an issue, or a sub-task of the selected issue (field form)"),
         new(Priority, "priority", "Change the priority of the selected or shown issue (field form)"),
+        new(Estimate, "estimate", "Change the estimate (story points) of the selected or shown issue (field form)"),
         new(Assign, "assign", "Assign the selected or shown issue: search people, or unassign"),
         new(AssignMe, "assign-me", "Assign the selected or shown issue to me"),
         new(Profile, "profile add|list|switch <name>|remove <name>|check", "Manage Jira profiles"),

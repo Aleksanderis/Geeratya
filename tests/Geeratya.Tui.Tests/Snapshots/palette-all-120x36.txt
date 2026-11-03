@@ -16,6 +16,7 @@ View · 0 issues
                     │   Create a sub-task of the selected issue                          Space i C │                    
                     │   Edit the labels of the issue                                               │                    
                     │   Change the priority of the issue                                           │                    
+                    │   Change the estimate of the issue                                           │                    
                     │ Comment                                                                      │                    
                     │   Add a comment to the issue                                       Space m a │                    
                     │   Edit the comment under the cursor                                Space m e │                    
@@ -31,6 +32,5 @@ View · 0 issues
                     │   Refresh the view (also retries after an error)                     Space r │                    
                     │   Switch the command level for the session                           Space * │                    
                     │ Tabs                                                                         │                    
-                    │   Close the tab                                                      Space c │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
  COMMAND :                                                                           Up/Down move  Enter run  Esc cancel

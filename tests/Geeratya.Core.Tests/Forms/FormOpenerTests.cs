@@ -55,6 +55,74 @@ public class FormOpenerTests
     }
 
     [Fact]
+    public void GivenARow_WhenEstimateIsRun_ThenTheFormIsLimitedToTheEstimateNumberField()
+    {
+        var result = Palette(Tabbed(), "estimate");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.True(target.EstimateOnly);
+        Assert.Equal(FormFieldKind.Number, target.Only);
+        Assert.Empty(target.Known);
+    }
+
+    [Fact]
+    public void GivenNoSelection_WhenEstimateIsRun_ThenOnlyTheStatusLineSaysWhy()
+    {
+        var result = Palette(AppState.Initial, "estimate");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("No issue selected", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAnEstimateTyped_WhenSavedAndRefused_ThenTheRowShowsItAtOnceAndTheOldOneComesBack()
+    {
+        var field = FormField.Create("customfield_10047", "Story Points", FormFieldKind.Number, false, [])
+            .WithInitial(FormValue.OfText("3"));
+        var loaded = LoadedForm(Palette(Tabbed(), "estimate"), field);
+
+        var typed = Keys(loaded, "Backspace", "8");
+        var saved = Press(typed.State, "Ctrl-s", _start);
+
+        var id = saved.State.Session.Operations[0].Id;
+        var request = Assert.IsType<EditRequest>(WrittenBy(saved));
+        Assert.True(request.EstimateOnly);
+        Assert.Equal(8, saved.State.Session.Tabs[0].Rows[0].Estimate);
+
+        var denied = new WriteError(WriteErrorKind.Permission, 403, "no", [], []);
+        var failed = _reducer.Reduce(saved.State, new WriteFailed(id, _start, denied));
+
+        Assert.Equal(3, failed.State.Session.Tabs[0].Rows[0].Estimate);
+    }
+
+    [Fact]
+    public void GivenAnEstimateEditThatIsEmptied_WhenSaved_ThenTheRowShowsNoEstimate()
+    {
+        var field = FormField.Create("customfield_10047", "Story Points", FormFieldKind.Number, false, [])
+            .WithInitial(FormValue.OfText("3"));
+        var loaded = LoadedForm(Palette(Tabbed(), "estimate"), field);
+
+        var saved = Press(Keys(loaded, "Backspace").State, "Ctrl-s", _start);
+
+        Assert.Null(saved.State.Session.Tabs[0].Rows[0].Estimate);
+    }
+
+    [Fact]
+    public void GivenAnEstimateThatDoesNotRead_WhenSaved_ThenNothingIsWrittenAndTheFieldShowsTheError()
+    {
+        var field = FormField.Create("customfield_10047", "Story Points", FormFieldKind.Number, false, [])
+            .WithInitial(FormValue.OfText("3"));
+        var loaded = LoadedForm(Palette(Tabbed(), "estimate"), field);
+
+        var saved = Press(Keys(loaded, "x").State, "Ctrl-s", _start);
+
+        Assert.Empty(saved.Effects);
+        Assert.Equal(3, saved.State.Session.Tabs[0].Rows[0].Estimate);
+        Assert.NotNull(saved.State.Session.Tabs[0].Form!.Fields[0].Error);
+    }
+
+    [Fact]
     public void GivenAnOpenedIssueWithATable_WhenEditIsRun_ThenTheDescriptionIsNotOfferedForEditing()
     {
         var table = new AdfTable([]);
@@ -499,7 +567,10 @@ public class FormOpenerTests
             ["backend"],
             null,
             null,
-            "A");
+            "A")
+        {
+            Estimate = 3,
+        };
     }
 
     private static IssueDetail Detailed(AdfDocument? description)
