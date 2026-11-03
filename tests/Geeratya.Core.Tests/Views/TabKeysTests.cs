@@ -125,7 +125,45 @@ public class TabKeysTests
         var result = Press(Press(OpenTabs(1), "Ctrl-w").State, "r");
 
         Assert.Equal(InputMode.Command, result.State.Mode);
-        Assert.Equal("tab rename JQL project = P1", result.State.PaletteText);
+        Assert.Equal("tab rename", result.State.PaletteText);
+    }
+
+    [Fact]
+    public void GivenAnUnnamedTab_WhenPressingCtrlWRThenEnter_ThenTheTabStaysUnnamed()
+    {
+        var opened = Press(Press(OpenTabs(1), "Ctrl-w").State, "r");
+
+        var result = Press(opened.State, "Enter");
+
+        Assert.Null(result.State.Session.Tabs[0].Name);
+    }
+
+    [Fact]
+    public void GivenANamedTab_WhenPressingCtrlWR_ThenTheCommandLineHoldsTheName()
+    {
+        var named = Run(OpenTabs(1), "tab rename Mine").State;
+
+        var result = Press(Press(named, "Ctrl-w").State, "r");
+
+        Assert.Equal("tab rename Mine", result.State.PaletteText);
+    }
+
+    [Theory]
+    [InlineData("  a\tb  ", "a b")]
+    [InlineData("   ", null)]
+    public void GivenRawNames_WhenCleaning_ThenControlsBecomeSpacesAndBlanksAreNull(string raw, string? expected)
+    {
+        Assert.Equal(expected, TabNames.Clean(raw));
+    }
+
+    [Fact]
+    public void GivenALongNameWithASurrogatePairAtTheCut_WhenCleaning_ThenThePairIsNotSplit()
+    {
+        var raw = $"{new string('a', TabNames.MaxLength - 1)}\U0001F600zzz";
+
+        var clean = TabNames.Clean(raw);
+
+        Assert.Equal(new string('a', TabNames.MaxLength - 1), clean);
     }
 
     [Fact]

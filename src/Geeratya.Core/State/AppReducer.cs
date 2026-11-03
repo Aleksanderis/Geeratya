@@ -1032,20 +1032,17 @@ public sealed class AppReducer
         return Result(command);
     }
 
-    /// <summary><c>tab.rename</c>: the command line with <c>tab rename </c> and the current name typed, ready to edit.</summary>
+    /// <summary><c>tab.rename</c>: the command line with <c>tab rename </c> and the current name typed.</summary>
     private static ReduceResult OpenRenameCommand(AppState state)
     {
-        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
-
-        if (tab is null)
+        if (TabRenameReducer.ActiveTab(state) is not { } tab)
         {
-            return Result(state with { Message = "No tab to rename: open one first.", MessageSeverity = StatusSeverity.Warning });
+            return TabRenameReducer.NoTab(state);
         }
 
-        var current = TabTitles.Label(tab);
-        var command = ToNormal(state) with { Mode = InputMode.Command, PaletteText = $"{PaletteCommands.Tab} rename {current}", PaletteBack = 0 };
+        var text = TabRenameReducer.CommandFor(tab);
 
-        return Result(command);
+        return Result(ToNormal(state) with { Mode = InputMode.Command, PaletteText = text, PaletteBack = 0 });
     }
 
     private static ReduceResult RunCommandLine(AppState state, DateTimeOffset at)
@@ -1159,7 +1156,7 @@ public sealed class AppReducer
 
         if (argument == "rename" || argument.StartsWith("rename ", StringComparison.Ordinal))
         {
-            return ViewReducer.RenameActiveTab(state, argument["rename".Length..]);
+            return TabRenameReducer.Rename(state, argument["rename".Length..]);
         }
 
         if (argument == "close")
