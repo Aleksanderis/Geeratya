@@ -27,12 +27,16 @@ public sealed record SprintFormTarget(long BoardId, Sprint? Existing) : FormTarg
         }
 
         // Jira checks the order of the dates only when it gets both, so a change of one sends the other as it is.
-        var datesChanged = start is not null || end is not null;
+        var clearStart = IsCleared(Existing, changes, SprintFormFields.StartId);
+        var clearEnd = IsCleared(Existing, changes, SprintFormFields.EndId);
+        var datesChanged = start is not null || end is not null || clearStart || clearEnd;
         var edit = new SprintEdit(
             name,
             goal,
-            datesChanged ? start ?? Existing.StartDate : null,
-            datesChanged ? end ?? Existing.EndDate : null);
+            datesChanged && !clearStart ? start ?? Existing.StartDate : null,
+            datesChanged && !clearEnd ? end ?? Existing.EndDate : null,
+            clearStart,
+            clearEnd);
 
         return new EditSprintRequest(BoardId, Existing, edit);
     }
@@ -42,7 +46,17 @@ public sealed record SprintFormTarget(long BoardId, Sprint? Existing) : FormTarg
         return changes.FirstOrDefault(change => change.FieldId == id)?.Value.Text.Trim();
     }
 
-    // A cleared date is no change: Jira's update cannot remove a date.
+    // An emptied date field of an existing sprint removes the date (a replacement, not a partial update).
+    private static bool IsCleared(Sprint sprint, IReadOnlyList<FieldChange> changes, string id)
+    {
+        return TextOf(changes, id) is { Length: 0 } && DateOf(sprint, id) is not null;
+    }
+
+    private static DateTimeOffset? DateOf(Sprint sprint, string id)
+    {
+        return id == SprintFormFields.StartId ? sprint.StartDate : sprint.EndDate;
+    }
+
     private static DateTimeOffset? DateOf(IReadOnlyList<FieldChange> changes, string id)
     {
         var text = TextOf(changes, id);

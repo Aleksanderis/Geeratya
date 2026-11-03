@@ -47,6 +47,12 @@ public static class ClosedSprintGate
         PaletteCommands.AssignMe,
     ];
 
+    /// <summary>True when <paramref name="action"/> is a write on the selected issue or list.</summary>
+    public static bool IsWrite(string action) => _writes.Contains(action);
+
+    /// <summary>True when the typed command (<c>:status</c>, ...) writes.</summary>
+    public static bool IsWriteCommand(string commandLine) => _writeCommands.Contains(commandLine.Split(' ', 2)[0]);
+
     /// <summary>True when <paramref name="action"/> writes and the active tab shows a closed sprint.</summary>
     public static bool Refuses(AppState state, string action)
     {

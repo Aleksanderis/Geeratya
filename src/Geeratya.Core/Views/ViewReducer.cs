@@ -416,7 +416,7 @@ public static class ViewReducer
             return new ReduceResult(DetailReducer.MoveCursor(state, tab, move), _noEffects);
         }
 
-        if (tab is null || tab.Rows.Count == 0)
+        if (tab is null || (tab.Rows.Count == 0 && !BacklogSections.Applies(tab)))
         {
             return new ReduceResult(state, _noEffects);
         }
@@ -462,7 +462,7 @@ public static class ViewReducer
             return placedLine is null ? null : new ReduceResult(placedLine, _noEffects);
         }
 
-        if (tab.Rows.Count == 0)
+        if (tab.Rows.Count == 0 && !BacklogSections.Applies(tab))
         {
             return null;
         }
@@ -477,11 +477,22 @@ public static class ViewReducer
         if (BacklogSections.Applies(tab))
         {
             var line = tab.Scroll + placed.Row - ListLayout.HeaderRows;
-            var row = placed.Row < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows
-                ? null
-                : BacklogCursor.RowAtLine(BacklogSections.Build(tab), line);
 
-            return row is { } found ? Reduce(state, new SelectionMoved(tab.Id, found)) : null;
+            if (placed.Row < ListLayout.HeaderRows || line >= tab.Scroll + tab.VisibleRows)
+            {
+                return null;
+            }
+
+            var layout = BacklogSections.Build(tab);
+
+            if (BacklogCursor.EmptySprintAtLine(layout, line) is { } sprintId)
+            {
+                return new ReduceResult(Replace(state, BacklogCursor.FocusSprint(tab, sprintId)), _noEffects);
+            }
+
+            return BacklogCursor.RowAtLine(layout, line) is { } found
+                ? Reduce(state, new SelectionMoved(tab.Id, found))
+                : null;
         }
 
         var index = tab.Scroll + placed.Row - ListLayout.HeaderRows;
@@ -1147,6 +1158,17 @@ public static class ViewReducer
 
         if (BacklogSections.Applies(tab))
         {
+            // The cursor stays on an empty sprint it stands on, however the rows moved.
+            if (tab.FocusedSprintId is { } focused)
+            {
+                var refocused = BacklogCursor.FocusSprint(tab with { Selected = selected }, focused);
+
+                if (refocused.FocusedSprintId is not null)
+                {
+                    return RowSelection.Pruned(refocused);
+                }
+            }
+
             return RowSelection.Pruned(BacklogCursor.Place(tab with { Selected = selected }, selected));
         }
 

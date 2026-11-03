@@ -55,6 +55,22 @@ public sealed class WriteHandlerSprintTests
     }
 
     [Fact]
+    public async Task GivenAnEditThatClearsTheDates_WhenExecuting_ThenTheSprintIsReplacedWithPut()
+    {
+        using var fixture = await ConnectedAsync(
+            handler => handler.Reply(HttpStatusCode.OK, ScrumFixture("write-sprint-partial-update.json")));
+        var before = Before() with { StartDate = _start, EndDate = _end };
+        var edit = new SprintEdit(null, null, null, null, true, true);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(41, new EditSprintRequest(6, before, edit)));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Equal("PUT", Assert.Single(fixture.Http.Methods));
+        using var body = JsonDocument.Parse(Assert.Single(fixture.Http.Bodies));
+        Assert.Equal(["state", "name"], body.RootElement.EnumerateObject().Select(member => member.Name));
+    }
+
+    [Fact]
     public async Task GivenAnEndBeforeTheStart_WhenExecuting_ThenNothingIsSentAndTheEndFieldCarriesTheMessage()
     {
         using var fixture = await ConnectedAsync(_ => { });

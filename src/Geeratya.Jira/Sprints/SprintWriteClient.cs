@@ -47,7 +47,7 @@ public sealed class SprintWriteClient(JiraTransport transport)
 
         var body = SprintWriteBody.Create(name.Trim(), originBoardId, goal, startDate, endDate);
 
-        return SendAsync(SprintPath, body, cancellationToken);
+        return SendAsync(HttpMethod.Post, SprintPath, body, cancellationToken);
     }
 
     /// <summary>Changes the members of <paramref name="edit"/> that are set; everything else stays as it is.</summary>
@@ -66,6 +66,11 @@ public sealed class SprintWriteClient(JiraTransport transport)
             return Refused(null, "Nothing to change.");
         }
 
+        if (edit.ClearsDate)
+        {
+            return Refused(null, "The partial update cannot remove a date: use ReplaceAsync.");
+        }
+
         if (edit.Name is not null && string.IsNullOrWhiteSpace(edit.Name))
         {
             return Refused(SprintWriteFields.Name, SprintWriteErrors.NameMissingMessage);
@@ -78,7 +83,49 @@ public sealed class SprintWriteClient(JiraTransport transport)
 
         var body = SprintWriteBody.Update(edit.Name?.Trim(), edit.Goal, edit.StartDate, edit.EndDate);
 
-        return SendAsync(SprintPathFor(sprintId), body, cancellationToken);
+        return SendAsync(HttpMethod.Post, SprintPathFor(sprintId), body, cancellationToken);
+    }
+
+    /// <summary>
+    /// An edit that removes a date. The partial update ignores <c>null</c>, so this sends the whole sprint with
+    /// <c>PUT</c> (checked on the dev site): <paramref name="current"/> supplies every value the edit leaves alone,
+    /// because <c>PUT</c> drops what is omitted. Edits without a cleared date use <see cref="UpdateAsync"/>.
+    /// </summary>
+    public Task<WriteResult<WrittenSprint>> ReplaceAsync(
+        Sprint current,
+        SprintEdit edit,
+        CancellationToken cancellationToken)
+    {
+        if (!IsValidId(current.Id))
+        {
+            return Refused(null, "A valid sprint id is required.");
+        }
+
+        var name = (edit.Name ?? current.Name).Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Refused(SprintWriteFields.Name, SprintWriteErrors.NameMissingMessage);
+        }
+
+        var goal = edit.Goal ?? current.Goal;
+        var start = edit.ClearStartDate ? null : edit.StartDate ?? current.StartDate;
+        var end = edit.ClearEndDate ? null : edit.EndDate ?? current.EndDate;
+
+        if (CheckDates(start, end) is { } refused)
+        {
+            return Task.FromResult(refused);
+        }
+
+        if (StateName(current.State) is not { } state)
+        {
+            return Refused(null, "The state of the sprint is unknown, so it is not replaced.");
+        }
+
+        var kept = string.IsNullOrEmpty(goal) ? null : goal;
+        var body = SprintWriteBody.Replace(name, state, kept, start, end);
+
+        return SendAsync(HttpMethod.Put, SprintPathFor(current.Id), body, cancellationToken);
     }
 
     /// <summary>
@@ -101,7 +148,11 @@ public sealed class SprintWriteClient(JiraTransport transport)
             return Task.FromResult(refused);
         }
 
-        return SendAsync(SprintPathFor(sprintId), SprintWriteBody.Start(startDate, endDate), cancellationToken);
+        return SendAsync(
+            HttpMethod.Post,
+            SprintPathFor(sprintId),
+            SprintWriteBody.Start(startDate, endDate),
+            cancellationToken);
     }
 
     /// <summary>
@@ -115,11 +166,19 @@ public sealed class SprintWriteClient(JiraTransport transport)
             return Refused(null, "A valid sprint id is required.");
         }
 
-        return SendAsync(SprintPathFor(sprintId), SprintWriteBody.Complete(), cancellationToken);
+        return SendAsync(HttpMethod.Post, SprintPathFor(sprintId), SprintWriteBody.Complete(), cancellationToken);
     }
 
     private static string SprintPathFor(long sprintId) =>
         $"{SprintPath}/{sprintId.ToString(CultureInfo.InvariantCulture)}";
+
+    private static string? StateName(SprintState state) => state switch
+    {
+        SprintState.Future => SprintWriteBody.FutureState,
+        SprintState.Active => SprintWriteBody.ActiveState,
+        SprintState.Closed => SprintWriteBody.ClosedState,
+        _ => null,
+    };
 
     private static bool IsValidId(long sprintId) => sprintId > 0;
 
@@ -146,11 +205,12 @@ public sealed class SprintWriteClient(JiraTransport transport)
     }
 
     private async Task<WriteResult<WrittenSprint>> SendAsync(
+        HttpMethod method,
         string path,
         string body,
         CancellationToken cancellationToken)
     {
-        var request = JiraRequest.Write(HttpMethod.Post, path, body);
+        var request = JiraRequest.Write(method, path, body);
         var result = await transport.SendWriteAsync(request, SprintWriteJsonContext.Default.Sprint, cancellationToken);
 
         if (!result.IsSuccess)

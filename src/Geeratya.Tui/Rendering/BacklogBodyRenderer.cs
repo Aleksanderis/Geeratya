@@ -71,7 +71,9 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
                 var row = BusyMarks.Mark(tab.Rows[index], busy, glyphs);
                 var set = ListBodyRenderer.SetMarkOf(row, index, marks, range);
 
-                lines.Add(ListBodyRenderer.RowLine(row, columns, index == tab.Selected, set, width, glyphs));
+                var onCursor = index == tab.Selected && tab.FocusedSprintId is null;
+
+                lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, width, glyphs));
 
                 continue;
             }
@@ -167,7 +169,10 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     private static StyledLine HeaderLine(TabState tab, BacklogSection section, int width, Glyphs glyphs)
     {
         var text = HeaderText(section, tab.Next is not null, glyphs);
-        var onCursor = section.Collapsed && section.HasRows && section.FirstRow == tab.Selected;
+        var onCursor = section.Collapsed && section.HasRows && section.FirstRow == tab.Selected
+            && tab.FocusedSprintId is null;
+
+        onCursor |= section.Sprint is { } sprint && sprint.Id == tab.FocusedSprintId;
 
         if (onCursor)
         {
