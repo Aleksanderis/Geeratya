@@ -9,8 +9,8 @@ namespace Geeratya.Jira.Tests.Live;
 /// <summary>
 /// Moves one throwaway issue into one throwaway future sprint, then to the backlog, and re-reads the issue after
 /// each step, on the Scrum sandbox projects (<c>GCS</c> on board 6, <c>GTS</c> on board 5). The issue carries
-/// <c>geeratya-test-&lt;run id&gt;</c>; the sprint is deleted at the end (asserted) and the issue too, best effort: GCS refuses issue deletes (#19), so a
-/// leftover <c>geeratya-test-*</c> issue is expected there. Cleanup runs also when a step fails.
+/// <c>geeratya-test-&lt;run id&gt;</c>; the sprint is deleted at the end (asserted) and the issue too, best
+/// effort: GCS refuses issue deletes (#19), so a leftover <c>geeratya-test-*</c> issue is expected there. Cleanup runs also when a step fails.
 /// </summary>
 public class LiveSprintMoveTests
 {
@@ -40,7 +40,7 @@ public class LiveSprintMoveTests
         Assert.True(created.IsSuccess, created.IsSuccess ? string.Empty : created.Error.Message);
         var key = created.Value.Key;
 
-        WriteResult<WriteAccepted>? sprintDeleted = null;
+        WriteResult<WriteAccepted> sprintDeleted;
 
         try
         {
