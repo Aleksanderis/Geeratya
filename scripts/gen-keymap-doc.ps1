@@ -7,7 +7,7 @@ $project = Join-Path (Join-Path $root 'src') 'Geeratya.Tui'
 $temporary = New-TemporaryFile
 
 try {
-    $output = dotnet run --project $project -c Release --nologo -v q -- --print-keymap-doc
+    $output = dotnet run --project $project -c Release -v q -- --print-keymap-doc
     if ($LASTEXITCODE -ne 0) { throw 'keymap generation failed' }
     [IO.File]::WriteAllText($temporary, (($output -join "`n") + "`n"))
     Move-Item -Force -Path $temporary -Destination $target

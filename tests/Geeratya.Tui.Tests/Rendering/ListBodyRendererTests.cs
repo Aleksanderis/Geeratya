@@ -219,10 +219,57 @@ public class ListBodyRendererTests
 
         Assert.StartsWith("│  A-1", body[2].PlainText);
         Assert.StartsWith("│> A-3", body[4].PlainText);
-        Assert.Contains(body[4].Spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("> A-3"));
+        Assert.Contains(body[4].Spans, span => span.Ground == SpanGround.Selection && span.Text == "> ");
+        Assert.Contains(body[4].Spans, span => span.Ground == SpanGround.Selection && span.Text == "A-3");
         Assert.Equal(TextRole.FrameFocus, body[4].Spans[0].Role);
         Assert.Equal(80, TextWidth.Of(body[4].PlainText));
-        Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
+        Assert.DoesNotContain(body[2].Spans, span => span.Ground != SpanGround.Page);
+    }
+
+    [Fact]
+    public void GivenASelectedRow_WhenBuilding_ThenItKeepsItsStatusAndTypeRolesOverTheTint()
+    {
+        var bug = new IssueTypeSummary("1", "Bug", 0, false);
+        var rows = new[] { Issue(1, status: new IssueStatus("3", "Done", "done")) with { IssueType = bug } };
+        var body = Render(Tab(LoadState.Idle) with { Rows = rows, Selected = 0 }, 80, 10);
+        var spans = body[2].Spans.Where(span => span.Ground == SpanGround.Selection).ToList();
+
+        Assert.Contains(spans, span => span.Role == TextRole.StatusDone);
+        Assert.Contains(spans, span => span.Role == TextRole.TypeBug && span.Text == "B");
+        Assert.Equal(80, TextWidth.Of(body[2].PlainText));
+    }
+
+    [Fact]
+    public void GivenAVisualRange_WhenBuilding_ThenRangeRowsAreStrongerAndOnlyTheCursorRowIsUnderlined()
+    {
+        var tab = Tab(LoadState.Idle, 5) with { Selected = 3, VisualAnchor = "A-2" };
+        var body = Render(tab, 80, 10);
+
+        Assert.All(Content(body[3]), span => Assert.Equal(SpanGround.Range, span.Ground));
+        Assert.All(Content(body[4]), span => Assert.Equal(SpanGround.Range, span.Ground));
+        Assert.All(Content(body[5]), span => Assert.Equal(SpanGround.Range | SpanGround.Cursor, span.Ground));
+        Assert.DoesNotContain(body[2].Spans, span => span.Ground != SpanGround.Page);
+        Assert.DoesNotContain(body[6].Spans, span => span.Ground != SpanGround.Page);
+        Assert.Contains(body[5].Spans, span => span.Role == TextRole.StatusToDo);
+        Assert.Equal(80, TextWidth.Of(body[5].PlainText));
+    }
+
+    [Fact]
+    public void GivenAMarkedRowInTheRange_WhenBuilding_ThenItShowsTheStarAndStillTheRangeLook()
+    {
+        var tab = Tab(LoadState.Idle, 4) with { Selected = 2, VisualAnchor = "A-1", Marks = ["A-2"] };
+        var body = Render(tab, 80, 10);
+
+        Assert.Contains("*A-2", body[3].PlainText);
+        Assert.All(Content(body[3]), span => Assert.Equal(SpanGround.Range, span.Ground));
+    }
+
+    [Fact]
+    public void GivenAnUnselectedRow_WhenBuilding_ThenTheTypeMarkerCarriesTheTypeRole()
+    {
+        var body = Render(Tab(LoadState.Idle, 2) with { Selected = 1 }, 80, 10);
+
+        Assert.Contains(body[2].Spans, span => span.Text == "T" && span.Role == TextRole.TypeTask);
     }
 
     [Fact]
@@ -474,6 +521,12 @@ public class ListBodyRendererTests
         var context = new BodyContext(_keymap, glyphs);
 
         return new ListBodyRenderer().Render(Active(tab), context, width, height);
+    }
+
+    // The row's own spans, without the frame's side edges.
+    private static IEnumerable<StyledSpan> Content(StyledLine line)
+    {
+        return line.Spans.Where(span => span.Role is not (TextRole.FrameFocus or TextRole.Border));
     }
 
     private static List<string> Frame(TabState tab, int width = 100)

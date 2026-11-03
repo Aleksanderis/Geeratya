@@ -1,0 +1,36 @@
+ 1 JQL My open issues … x   +                                                                             <space>g jump 
+                                                                                                                        
+╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────────── 10+ ─╮
+│  Key    T Summary                                                                     Status         Assignee        │
+│ +GCM-12 T Fix login redirect after token refresh                                      In Progress    Jane Doe        │
+│ +GCM-14 B Crash when the board has no columns                                         To Do          Ola Nordmann    │
+│>+GCM-15 S As a user I can filter by label 日本語ラベル                                To Do          -               │
+│  GCM-17 E Reporting overhaul with a very long summary that never fits on one line     In Progress    Jane Doe        │
+│  GCM-18 s Write the CSV exporter 😀 é                                                 Done           Ola Nordmann    │
+│  GCM-21 ? Upgrade the build image                                                     Backlog        -               │
+│  GCM-22 B Tooltip overlaps the header on small screens                                To Do          Jane Doe        │
+│  GCM-23 T Document the release checklist                                              Done           Ola Nordmann    │
+│  GCM-25 S As an admin I can see who changed a setting                                 In Progress    Jane Doe        │
+│  GCM-26 T Remove the legacy export flag                                               To Do          -               │
+│Loading more…                                                                                                         │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ VISUAL  loading · 3 selected       j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

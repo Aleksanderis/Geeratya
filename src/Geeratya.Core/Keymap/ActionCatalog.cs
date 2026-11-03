@@ -93,7 +93,7 @@ public static class ActionCatalog
         new(ActionIds.NavigateLastColumn, "Go to the last column"),
         new(ActionIds.SectionNext, "Next section of the issue or the Scrum backlog"),
         new(ActionIds.SectionPrevious, "Previous section of the issue or the Scrum backlog"),
-        new(ActionIds.SectionToggle, "Fold a backlog section or the sub-tasks of a card"),
+        new(ActionIds.SectionToggle, "Expand or collapse sub-tasks of a card, or fold a backlog section"),
         new(ActionIds.TabNext, "Next tab"),
         new(ActionIds.TabPrevious, "Previous tab"),
         new(ActionIds.TabLastActive, "Previously active tab"),

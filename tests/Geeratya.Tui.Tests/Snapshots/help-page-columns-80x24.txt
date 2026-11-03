@@ -18,7 +18,7 @@
 │ │               │              backlog                                     │ │
 │ │               │   [[         Previous section of the issue or the Scrum  │ │
 │ │               │              backlog                                     │ │
-│ │               │   za         Fold a backlog section or the sub-tasks of  │ │
+│ │               │   za         Expand or collapse sub-tasks of a card, or  │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

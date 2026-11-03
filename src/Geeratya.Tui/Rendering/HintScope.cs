@@ -12,5 +12,8 @@ public enum HintScope
     /// <summary>The Scrum backlog: a list whose sections are panes (<c>] ]</c> jumps between them).</summary>
     Backlog,
     Columns,
+
+    /// <summary>The columns layout with the cursor on a card that lists sub-tasks (or on one of them).</summary>
+    ColumnsSubtasks,
     Detail,
 }

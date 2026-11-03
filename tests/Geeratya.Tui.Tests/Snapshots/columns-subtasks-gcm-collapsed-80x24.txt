@@ -1,0 +1,24 @@
+ 1 Board GCM board x   +                                          <space>g jump 
+                                                                                
+╭─ To Do 4 ────────────────┬─ In Progress 4 ──────────┬─ Done 2 ───────────────╮
+│ ┌──────────────────────┐ │ │   Task GCM-14        │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
+│ │ Epic GCM-8           │ │ │   Pick a chart       │ │ │ Story GCM-12       │ │
+│ │ Seed: Onboarding     │ │ │   library            │ │ │ Export report as   │ │
+│ │ flow                 │ │ │                      │ │ │ CSV                │ │
+│ ├──────────────────────┤ │ └──────────────────────┘ │ └────────────────────┘ │
+│ │   Story GCM-11       │ │ ┏━ ↑ GCM-8 Seed: Onb… ━┓ │ ┌────────────────────┐ │
+│ │   Welcome screen     │ │ ┃ Story GCM-10         ┃ │ │ Task GCM-15        │ │
+│ │                      │ │ ┃ Sign up with email   ┃ │ │ Write the setup    │ │
+│ │                      │ │ ┃ ▸ 1/2 ━━━───         ┃ │ │ guide              │ │
+│ ├──────────────────────┤ │ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │ └────────────────────┘ │
+│ │   Task GCM-13        │ │ ┌─ ↑ GCM-8 Seed: Onb… ─┐ │                        │
+│ │   Review onboarding  │ │ │ Bug GCM-16           │ │                        │
+│ │   copy               │ │ │ App crashes on       │ │                        │
+│ │                      │ │ │ empty profile        │ │                        │
+│ └──────────────────────┘ │ └──────────────────────┘ │                        │
+│                          │                          │                        │
+│                          │                          │                        │
+│                          │                          │                        │
+│                          │                          │                        │
+╰──────────────────────────┴──────────────────────────┴────────────────────────╯
+ NORMAL  GCM board · 20 issues          za sub-tasks  ? help  : commands  q quit

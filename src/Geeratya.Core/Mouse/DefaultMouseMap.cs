@@ -73,6 +73,7 @@ public static class DefaultMouseMap
         new(MouseTarget.Comment, MouseGesture.Click, ActionIds.CommentEdit, 1, 'C'),
         new(MouseTarget.Lists, MouseGesture.Drag, ActionIds.IssueTransitionNext, 1, 'M'),
         new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.SelectionMark, 0, 'B'),
+        new(MouseTarget.SubtaskRow, MouseGesture.Click, ActionIds.SectionToggle, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.DragRows, ActionIds.SelectionVisual, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.DragToSprint, ActionIds.SprintMoveIssues, 1, 'M'),
         new(MouseTarget.Lists, MouseGesture.DragToBacklog, ActionIds.SprintMoveToBacklog, 1, 'M'),

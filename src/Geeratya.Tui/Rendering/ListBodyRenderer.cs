@@ -306,25 +306,18 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var extras = ExtraColumns(row, columns);
 
         // The first cell is the cursor, the second the set: `*` marked, `+` in the Visual range (never colour alone).
-        var setGlyph = set switch
-        {
-            SetMark.Marked => "*",
-            SetMark.InRange => "+",
-            _ => " ",
-        };
-
-        if (selected || set == SetMark.InRange)
-        {
-            var assigneePart = columns.Assignee > 0 ? $" {assignee}" : string.Empty;
-            var text = $"{(selected ? ">" : " ")}{setGlyph}{key} {marker} {summary} {status}{assigneePart}{extras}";
-
-            return StyledLine.Of(TextWidth.Pad(text, width), TextRole.Selected);
-        }
+        var setGlyph = SetGlyph(set);
+        var cursor = selected ? ">" : " ";
+        var inRange = set.HasFlag(SetMark.InRange);
+        var markRole = set.HasFlag(SetMark.Marked) ? TextRole.Strong : TextRole.Body;
 
         var spans = new List<StyledSpan>(8)
         {
-            new($" {setGlyph}", set == SetMark.Marked ? TextRole.Strong : TextRole.Body),
-            new($"{key} {marker} {summary} ", TextRole.Body),
+            new($"{cursor}{setGlyph}", markRole),
+            new(key, TextRole.Body),
+            new(" ", TextRole.Body),
+            new(marker.ToString(), IssueTypeRole.For(row.IssueType)),
+            new($" {summary} ", TextRole.Body),
             new(status, StatusRole(row.Status)),
         };
 
@@ -338,7 +331,38 @@ public sealed class ListBodyRenderer : IBodyRenderer
             spans.Add(new StyledSpan(extras, TextRole.Muted));
         }
 
-        return new StyledLine(spans);
+        if (!selected && !inRange)
+        {
+            return new StyledLine(spans);
+        }
+
+        // The row keeps its own colours over a tint: the lone selection, or the stronger range tint with the
+        // cursor row of a range underlined.
+        var ground = inRange ? SpanGround.Range : SpanGround.Selection;
+
+        if (inRange && selected)
+        {
+            ground |= SpanGround.Cursor;
+        }
+
+        var used = spans.Sum(span => TextWidth.Of(span.Text));
+
+        if (used < width)
+        {
+            spans.Add(new StyledSpan(new string(' ', width - used), TextRole.Body));
+        }
+
+        return new StyledLine([.. spans.Select(span => span with { Ground = ground })]);
+    }
+
+    private static string SetGlyph(SetMark set)
+    {
+        if (set.HasFlag(SetMark.Marked))
+        {
+            return "*";
+        }
+
+        return set.HasFlag(SetMark.InRange) ? "+" : " ";
     }
 
     private static string ExtraColumns(IssueSummary row, ListColumns columns)
@@ -366,12 +390,9 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
     internal static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
     {
-        if (marks.Contains(row.Key))
-        {
-            return SetMark.Marked;
-        }
+        var inRange = range?.Contains(index) == true ? SetMark.InRange : SetMark.None;
 
-        return range?.Contains(index) == true ? SetMark.InRange : SetMark.None;
+        return marks.Contains(row.Key) ? inRange | SetMark.Marked : inRange;
     }
 
     private static string StatusText(IssueStatus status, int width, Glyphs glyphs)
@@ -401,10 +422,11 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
+    [Flags]
     internal enum SetMark
     {
-        None,
-        Marked,
-        InRange,
+        None = 0,
+        Marked = 1,
+        InRange = 2,
     }
 }

@@ -209,6 +209,88 @@ public class ColumnsSubtaskTests
         Assert.DoesNotContain(columns.SelectMany(column => column.Rows), row => row.IsListed && row.Key == "GCM-18");
     }
 
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenACollapsedCard_WhenClickingItsSubtaskRow_ThenItExpandsAndAnotherClickCollapsesIt(
+        string kind,
+        string parent)
+    {
+        var state = await OpenAsync(kind, true, parent);
+        var cell = SubtaskRowCell(state);
+        var (column, row) = (cell.Column, cell.Row);
+
+        var opened = _reducer.Reduce(state, new PointerPlaced(column, row, Width)).State;
+        var closed = _reducer.Reduce(opened, new PointerPlaced(column, row, Width)).State;
+
+        Assert.Equal([parent], Active(opened).ExpandedSubtasks);
+        Assert.Equal(2, Listed(opened).Count);
+        Assert.Empty(Active(closed).ExpandedSubtasks);
+    }
+
+    [Fact]
+    public async Task GivenACard_WhenClickingOtherRowsOfIt_ThenNothingExpands()
+    {
+        var state = await OpenAsync("gcm", true, "GCM-10");
+        var cell = SubtaskRowCell(state);
+        var (column, row) = (cell.Column, cell.Row);
+
+        foreach (var other in new[] { row - 2, row - 1, row + 1 })
+        {
+            var result = _reducer.Reduce(state, new PointerPlaced(column, other, Width)).State;
+
+            Assert.Empty(Active(result).ExpandedSubtasks);
+        }
+    }
+
+    [Theory]
+    [InlineData(80, 24)]
+    [InlineData(40, 10)]
+    public async Task GivenASmallerTerminal_WhenBuildingTheStatusLineAndFrame_ThenItMatchesTheSnapshot(
+        int width,
+        int height)
+    {
+        var state = await BoardStateFixtures.WithSubtasksAsync("gcm", true, height - 1 - 2 - 2 - 1);
+        state = Select(state, "GCM-10");
+
+        var actual = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap)) + "\n";
+        var name = $"columns-subtasks-gcm-collapsed-{width}x{height}.txt";
+
+        Assert.Equal(SnapshotFile.Expect(name, actual), actual);
+    }
+
+    [Fact]
+    public async Task GivenTheCursorOnACardWithSubtasks_WhenBuildingTheStatusLine_ThenTheHintNamesTheKey()
+    {
+        var withSubtasks = await OpenAsync("gcm", true, "GCM-10");
+        var without = await OpenAsync("gcm", true, "GCM-9");
+
+        Assert.Contains("za sub-tasks", StatusBar.Render(withSubtasks, Width, _keymap), StringComparison.Ordinal);
+        Assert.DoesNotContain("sub-tasks", StatusBar.Render(without, Width, _keymap), StringComparison.Ordinal);
+        Assert.Contains("za sub-tasks", StatusBar.Render(Press(withSubtasks, "z", "a"), Width, _keymap));
+    }
+
+    [Fact]
+    public void GivenTheCatalog_WhenLookingUpTheToggle_ThenTheTitleNamesTheSubtasks()
+    {
+        Assert.StartsWith(
+            "Expand or collapse sub-tasks",
+            ActionCatalog.FindTitle(ActionIds.SectionToggle),
+            StringComparison.Ordinal);
+    }
+
+    private readonly record struct Cell(int Column, int Row);
+
+    // The cell is read from the drawn frame (the line with the fold mark), not from the geometry under test.
+    private static Cell SubtaskRowCell(AppState state)
+    {
+        var lines = FrameBuilder.Build(state, Width, Height, _keymap);
+        var top = lines.ToList().FindIndex(line => line.StartsWith('╭'));
+        var line = lines.ToList().FindIndex(each => each.Contains("▸ Sub-tasks", StringComparison.Ordinal));
+
+        return new Cell(lines[line].IndexOf("▸ Sub-tasks", StringComparison.Ordinal), line - top);
+    }
+
     private static async Task<AppState> OpenAsync(string kind, bool filtered, string selectKey)
     {
         var state = await BoardStateFixtures.WithSubtasksAsync(kind, filtered, Rows);
