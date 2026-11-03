@@ -51,6 +51,26 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenAFilterAndALane_WhenRendering_ThenTheTitleNamesBothAndOnlyTheLaneCardsAreDrawn()
+    {
+        var other = Issue("1", "A-2") with { Assignee = new IssueAssignee("other", "Bo Li") };
+        var tab = Tab(Issue("1", "A-1", assignee: "Al Ek"), other) with
+        {
+            Swimlane = SwimlaneKind.Assignee,
+            Lane = "other",
+            QuickFilters = [new QuickFilter(5, "Recently Updated", "updatedDate >= -1d", 0)],
+            ActiveQuickFilters = [5],
+        };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains("Filter: Recently Updated", body[0].PlainText);
+        Assert.Contains("Lane 2/2: Bo Li", body[0].PlainText);
+        Assert.Contains(body, line => line.PlainText.Contains("A-2", StringComparison.Ordinal));
+        Assert.DoesNotContain(body, line => line.PlainText.Contains("A-1", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenColumnsLayout_WhenAskingWhoDraws_ThenOnlyTheColumnsRendererAppliesAndHelpWinsOverIt()
     {
         var tab = Tab(Issue("1", "A-1"));

@@ -49,12 +49,52 @@ public sealed class ViewLoadHandler
     /// </summary>
     public async Task StartAsync(LoadViewPageEffect effect, SiteCache? cache = null)
     {
-        if (cache is not null && effect.Reason == LoadReason.Open && effect.Cursor is null)
+        // The cache holds the board as a whole, so a load narrowed by quick filters never reads it.
+        if (cache is not null && effect.Reason == LoadReason.Open && effect.Cursor is null && effect.ExtraJql is null)
         {
             await _runner.StartLocal(effect.Tab.Value, token => ReadCache(effect, cache, token));
         }
 
         await StartNetwork(effect);
+    }
+
+    /// <summary>
+    /// Reads the quick filters of the tab's board (<c>view.quick-filter</c>, #192) and posts them; a failure posts
+    /// the message for the status line. Only asked for when a filter key is used, so opening a board costs no extra
+    /// request.
+    /// </summary>
+    public Task StartQuickFiltersAsync(LoadQuickFiltersEffect effect)
+    {
+        return _runner.Start(
+            effect.Tab.Value,
+            (services, token) => QuickFiltersAsync(services, effect, token),
+            () => new QuickFiltersLoaded(effect.Tab, [], effect.Apply, NoConnectionMessage));
+    }
+
+    private static async Task<Command?> QuickFiltersAsync(
+        JiraServices services,
+        LoadQuickFiltersEffect effect,
+        CancellationToken token)
+    {
+        if (!TryBoardId(effect.Definition, out var id))
+        {
+            return new QuickFiltersLoaded(effect.Tab, [], effect.Apply, InvalidBoardMessage);
+        }
+
+        try
+        {
+            var result = await services.Boards.GetQuickFiltersAsync(id, token);
+
+            return result.IsSuccess
+                ? new QuickFiltersLoaded(effect.Tab, result.Value, effect.Apply)
+                : new QuickFiltersLoaded(effect.Tab, [], effect.Apply, LoadErrorText.For(result.Error));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            var text = $"Loading the quick filters failed unexpectedly ({exception.GetType().Name}).";
+
+            return new QuickFiltersLoaded(effect.Tab, [], effect.Apply, text);
+        }
     }
 
     private Task StartNetwork(LoadViewPageEffect effect)
@@ -348,6 +388,8 @@ public sealed class ViewLoadHandler
         {
             query = await ScrumQueryAsync(services, effect, id, query, token);
         }
+
+        query = query with { Jql = QuickFilterJql.Combine(query.Jql, effect.ExtraJql) };
 
         if (effect.Background)
         {

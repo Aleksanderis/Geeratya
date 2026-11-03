@@ -145,6 +145,24 @@ public sealed record TabState(
     /// </summary>
     public long? FocusedSprintId { get; init; }
 
+    /// <summary>
+    /// The quick filters the board offers (<c>GET board/{id}/quickfilter</c>), in board order; read the first time a
+    /// filter key is used on the tab (#192).
+    /// </summary>
+    public IReadOnlyList<QuickFilter> QuickFilters { get; init; } = [];
+
+    /// <summary>The quick filters were read, so an empty <see cref="QuickFilters"/> means the board has none.</summary>
+    public bool QuickFiltersKnown { get; init; }
+
+    /// <summary>The ids of the quick filters switched on; their JQL narrows what the board source loads.</summary>
+    public IReadOnlyList<long> ActiveQuickFilters { get; init; } = [];
+
+    /// <summary>How the columns layout groups the cards into lanes (#192); one lane is shown at a time.</summary>
+    public SwimlaneKind Swimlane { get; init; }
+
+    /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
+    public string? Lane { get; init; }
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

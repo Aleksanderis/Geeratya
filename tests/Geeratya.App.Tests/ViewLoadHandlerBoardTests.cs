@@ -236,6 +236,55 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("Not connected", LoadErrorText.For(failed.Error));
     }
 
+    [Fact]
+    public async Task GivenOpenBoard_WhenTheQuickFilterKeyIsPressed_ThenFiltersAreReadOnceAndTheReloadAsksForTheirJql()
+    {
+        const string filters = """
+            {"startAt":0,"maxResults":50,"total":2,"isLast":true,"values":[
+              {"id":5,"name":"Recently Updated","jql":"updatedDate >= -1d","position":0},
+              {"id":6,"name":"Assigned to me","jql":"assignee = currentUser()","position":1}]}
+            """;
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues"))
+                .Reply(HttpStatusCode.OK, filters)
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues-jql-done")));
+        var opened = await OpenAsync(fixture, ViewSourceKind.Board, "4");
+
+        var narrowed = await RunAsync(fixture, opened, new KeyPressed("Space"), new KeyPressed("v"), new KeyPressed("f"));
+
+        var tab = narrowed.Session.Tabs[0];
+        Assert.Equal([5L], tab.ActiveQuickFilters);
+        Assert.Equal(["Recently Updated", "Assigned to me"], tab.QuickFilters.Select(filter => filter.Name));
+        Assert.Equal(5, fixture.Http.Requests.Count);
+        Assert.Contains("/board/4/quickfilter", fixture.Path(2));
+        Assert.Contains("/board/4/configuration", fixture.Path(3));
+        Assert.Contains("/board/4/issue", fixture.Path(4));
+        Assert.Contains("jql=(updatedDate >= -1d)", fixture.Query(4));
+        Assert.DoesNotContain("jql=", fixture.Query(1));
+        Assert.Equal(LoadState.Idle, tab.Load);
+    }
+
+    [Fact]
+    public async Task GivenQuickFilterLookupFails_WhenTheKeyIsPressed_ThenTheStatusLineSaysWhyAndTheBoardIsKept()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues"))
+                .Reply(HttpStatusCode.Forbidden, NotFound));
+        var opened = await OpenAsync(fixture, ViewSourceKind.Board, "4");
+
+        var result = await RunAsync(fixture, opened, new KeyPressed("Space"), new KeyPressed("v"), new KeyPressed("f"));
+
+        Assert.Equal("Not found, or you have no access to it.", result.Message);
+        Assert.Empty(result.Session.Tabs[0].ActiveQuickFilters);
+        Assert.Equal(24, result.Session.Tabs[0].Rows.Count);
+        Assert.Equal(3, fixture.Http.Requests.Count);
+    }
+
     private static BoardColumnGroups GroupOf(TabState tab)
     {
         Assert.NotNull(tab.Board);
@@ -258,11 +307,11 @@ public sealed class ViewLoadHandlerBoardTests
         return RunAsync(fixture, Start(), new ViewOpenRequested(Definition(source, id)));
     }
 
-    /// <summary>Feeds <paramref name="command"/> to the reducer and every effect and reply that follows.</summary>
-    private static async Task<AppState> RunAsync(Fixture fixture, AppState start, Command command)
+    /// <summary>Feeds <paramref name="commands"/> to the reducer and every effect and reply that follows.</summary>
+    private static async Task<AppState> RunAsync(Fixture fixture, AppState start, params Command[] commands)
     {
         var reducer = new AppReducer(DefaultKeymap.Load());
-        var pending = new Queue<Command>([command]);
+        var pending = new Queue<Command>(commands);
         var state = start;
 
         while (pending.Count > 0)
@@ -275,6 +324,11 @@ public sealed class ViewLoadHandlerBoardTests
             foreach (var effect in result.Effects.OfType<LoadViewPageEffect>())
             {
                 await fixture.Handler.StartAsync(effect);
+            }
+
+            foreach (var effect in result.Effects.OfType<LoadQuickFiltersEffect>())
+            {
+                await fixture.Handler.StartQuickFiltersAsync(effect);
             }
 
             foreach (var posted in fixture.Posted)

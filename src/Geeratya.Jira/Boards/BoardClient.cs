@@ -18,6 +18,10 @@ public sealed class BoardClient(JiraTransport transport)
     private const string ConfigurationSuffix = "configuration";
     private const string IssueSuffix = "issue";
     private const string BacklogSuffix = "backlog";
+    private const string QuickFilterSuffix = "quickfilter";
+
+    /// <summary>The most pages of quick filters read for one board.</summary>
+    public const int MaxQuickFilterPages = 10;
 
     /// <summary>The largest <c>maxResults</c> the agile API echoes back; larger values are clamped.</summary>
     public const int MaxPageSize = 5000;
@@ -78,6 +82,48 @@ public sealed class BoardClient(JiraTransport transport)
         return result.IsSuccess
             ? JiraResults.Success(BoardMapper.MapConfiguration(result.Value))
             : JiraResults.Failure<BoardConfiguration>(result.Error);
+    }
+
+    /// <summary>
+    /// The board's quick filters in board order, all pages (at most <see cref="MaxQuickFilterPages"/>). A team-managed
+    /// board has none. Reads only.
+    /// </summary>
+    public async Task<JiraResult<IReadOnlyList<QuickFilter>>> GetQuickFiltersAsync(
+        long boardId,
+        CancellationToken cancellationToken,
+        JiraPriority priority = JiraPriority.User)
+    {
+        var filters = new List<QuickFilter>();
+        var received = 0;
+
+        for (var page = 0; page < MaxQuickFilterPages; page++)
+        {
+            var url = $"{BoardPath}/{Number(boardId)}/{QuickFilterSuffix}?startAt={Number(received)}";
+            var request = JiraRequest.Get(url) with { Priority = priority };
+            var result = await transport.SendAsync(
+                request,
+                BoardJsonContext.Default.QuickFilterList,
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return JiraResults.Failure<IReadOnlyList<QuickFilter>>(result.Error);
+            }
+
+            var mapped = BoardMapper.MapQuickFilters(result.Value);
+            var count = result.Value.Values?.Count ?? 0;
+            received += count;
+            filters.AddRange(mapped.Items);
+
+            if (mapped.IsLast || count == 0)
+            {
+                break;
+            }
+        }
+
+        filters.Sort(static (left, right) => left.Position.CompareTo(right.Position));
+
+        return JiraResults.Success<IReadOnlyList<QuickFilter>>(filters);
     }
 
     /// <summary>Loads one page of everything the board shows. Pass the previous <c>Next</c>, null for first.</summary>

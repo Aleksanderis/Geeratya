@@ -329,6 +329,60 @@ public sealed class BoardClientTests
         Assert.Empty(fixture.Handler.Requests);
     }
 
+    [Fact]
+    public async Task GivenCompanyManagedScrumBoard_WhenLoadingQuickFilters_ThenBothArriveInBoardOrder()
+    {
+        using var fixture = Serving("/rest/agile/1.0/board/6/quickfilter", "scrum/quickfilters-gcs.json");
+
+        var result = await new BoardClient(fixture.Transport).GetQuickFiltersAsync(6, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Recently Updated", "Assigned to me"], result.Value.Select(filter => filter.Name));
+        Assert.Equal(["updatedDate >= -1d", "assignee = currentUser()"], result.Value.Select(filter => filter.Jql));
+        Assert.Equal([5L, 6L], result.Value.Select(filter => filter.Id));
+    }
+
+    [Fact]
+    public async Task GivenTeamManagedBoard_WhenLoadingQuickFilters_ThenThereAreNone()
+    {
+        using var fixture = Serving("/rest/agile/1.0/board/5/quickfilter", "scrum/quickfilters-gts.json");
+
+        var result = await new BoardClient(fixture.Transport).GetQuickFiltersAsync(5, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value);
+    }
+
+    [Fact]
+    public async Task GivenFiltersOnTwoPages_WhenLoading_ThenTheSecondPageIsReadFromTheCountSoFar()
+    {
+        using var fixture = new TransportFixture();
+        const string path = "/rest/agile/1.0/board/6/quickfilter";
+        var first = """{"startAt":0,"maxResults":1,"total":2,"isLast":false,"values":[{"id":2,"name":"B","jql":"b = 1","position":1}]}""";
+        var second = """{"startAt":1,"maxResults":1,"total":2,"isLast":true,"values":[{"id":1,"name":"A","jql":"a = 1","position":0},{"id":3,"name":"No JQL"}]}""";
+        fixture.Handler.Script(HttpMethod.Get, path, FakeResponse.Ok(first), FakeResponse.Ok(second));
+
+        var result = await new BoardClient(fixture.Transport).GetQuickFiltersAsync(6, CancellationToken.None);
+
+        Assert.Equal(["A", "B"], result.Value.Select(filter => filter.Name));
+        Assert.Equal(["0", "1"], fixture.Handler.Requests.Select(request => QueryOf(request)["startAt"]));
+    }
+
+    [Fact]
+    public async Task GivenForbiddenBoard_WhenLoadingQuickFilters_ThenTheTypedErrorComesBack()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            "/rest/agile/1.0/board/6/quickfilter",
+            FakeResponse.WithStatus(HttpStatusCode.Forbidden, """{"errorMessages":["no"],"errors":{}}"""));
+
+        var result = await new BoardClient(fixture.Transport).GetQuickFiltersAsync(6, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(JiraErrorKind.Forbidden, result.Error.Kind);
+    }
+
     private static TransportFixture Throttled()
     {
         var fixture = new TransportFixture(options => options with

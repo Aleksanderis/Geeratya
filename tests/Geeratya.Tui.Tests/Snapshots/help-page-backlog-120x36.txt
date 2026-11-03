@@ -14,6 +14,8 @@ Sample · 1 issue
             │               │   [ [        Previous section of the issue or the Scrum backlog              │            
             │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
             │               │   Space l    Switch between list and columns                                 │            
+            │               │   Space v f  Cycle the quick filter of the board (off, then each filter in   │            
+            │               │              turn)                                                           │            
             │               │   Space o    Open the issue in the browser                                   │            
             │               │   Space i e  Edit fields of the issue (summary, labels, priority,            │            
             │               │              description)                                                    │            
@@ -29,8 +31,6 @@ Sample · 1 issue
             │               │   Space s b  Move the selected issues to the backlog                         │            
             │               │   Space s n  Create a sprint (name, goal, dates)                             │            
             │               │   Space s s  Start the sprint (confirms dates and issue count)               │            
-            │               │   Space s c  Complete the sprint (confirms where the open issues go)         │            
-            │               │                                                                              │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

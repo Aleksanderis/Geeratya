@@ -80,6 +80,8 @@ all_scenarios=(
   "status-confirm;120;36;dark;:board GCM|j isDon|;Move GCM-"
   "status-moved;120;36;dark;:board GCM|j isIn P|;Moved GCM-"
   "board;120;36;dark;:board GCM|;In Progress 4"
+  "board-lanes;120;36;dark;:board GCM| vs;Lane 1/1"
+  "board-filter;120;36;dark;:board GCM| vf;Filter: Recently Updated"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "backlog;120;36;dark;:backlog GCM|;GCM"

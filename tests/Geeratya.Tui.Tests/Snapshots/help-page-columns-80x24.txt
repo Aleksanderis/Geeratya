@@ -14,11 +14,11 @@ Sample · 1 issue
   │               │   Enter      Open the selected item                      │  
   │               │   0          Go to the first column                      │  
   │               │   $          Go to the last column                       │  
+  │               │   ] ]        Next section of the issue or the Scrum      │  
+  │               │              backlog                                     │  
+  │               │   [ [        Previous section of the issue or the Scrum  │  
+  │               │              backlog                                     │  
   │               │   Space l    Switch between list and columns             │  
-  │               │   Space o    Open the issue in the browser               │  
-  │               │   Space i e  Edit fields of the issue (summary, labels,  │  
-  │               │              priority, description)                      │  
-  │               │   Space i a  Assign the issue: search people, or         │  
   └──────────────────────────────────────────────────────────────────────────┘  
 └──────────────────────────────────────────────────────────────────────────────┘
  HELP                                   j section  J scroll  / filter  Esc close
