@@ -74,6 +74,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Space i a` | Assign the issue: search people, or unassign |
 | `Space i m` | Assign the issue to me |
 | `Space g` | Jump to an issue by key |
+| `Space n` | Show the message history |
+| `Space x` | Dismiss the status message |
 
 ## Help mode
 

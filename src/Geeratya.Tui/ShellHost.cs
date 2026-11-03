@@ -129,7 +129,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         using var application = Application.Create();
 
         _state = LoadProfiles();
-        _state = _state with { Message = JoinNotices(_state.Message, _keymapNotice) };
+        _state = WithNotice(_state, JoinNotices(_state.Message, _keymapNotice));
         _application = application;
         DetectBackground();
         application.Init();
@@ -173,7 +173,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
 
         if (_writes.HasRunning)
         {
-            _state = _state with { Message = "Waiting for running writes to finish (up to 5 s) ..." };
+            _state = _state with { Message = "Waiting for running writes to finish (up to 5 s) ...", Status = null };
             _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
             await _writes.WaitForRunningAsync(_quitWait, CancellationToken.None);
@@ -446,12 +446,20 @@ public sealed class ShellHost : ICommandSink, IDisposable
         return _background?.IsLight(allowQuery: false);
     }
 
+    /// <summary>Startup notices are problems the user must read (a corrupt file, a bad key row, a fallback theme): warnings.</summary>
+    private static AppState WithNotice(AppState state, string? notice)
+    {
+        return notice is null
+            ? state with { Message = null }
+            : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
+    }
+
     /// <summary>The theme saved in the settings; a notice joins the status line when it cannot be used.</summary>
     private Theme StartTheme()
     {
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
-        _state = _state with { Message = JoinNotices(_state.Message, start.Notice) };
+        _state = WithNotice(_state, JoinNotices(_state.Message, start.Notice));
 
         return start.Theme;
     }

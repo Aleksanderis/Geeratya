@@ -244,12 +244,14 @@ public static class ProfileReducer
             return Plain(state);
         }
 
-        return Plain(SetConnection(state, ConnectionText.Setup(failed.Message)) with { Message = failed.Message });
+        var shown = SetConnection(state, ConnectionText.Setup(failed.Message));
+
+        return Plain(StatusMessages.Fail(shown, failed.Message));
     }
 
     public static ReduceResult Failed(AppState state, ProfileOperationFailed failed)
     {
-        return Plain(state with { Message = failed.Message, ProfileBusy = false });
+        return Plain(StatusMessages.Fail(state, failed.Message) with { ProfileBusy = false });
     }
 
     /// <summary>Runs the confirmed removal of the profile named in <paramref name="target"/>.</summary>

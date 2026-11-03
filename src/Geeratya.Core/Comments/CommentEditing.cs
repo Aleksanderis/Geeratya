@@ -306,7 +306,7 @@ internal static class CommentEditing
 
         var shown = editor with { Error = state.Message, OperationId = 0 };
 
-        return state with { Editor = shown, Message = null };
+        return state with { Editor = shown, Message = null, Status = null };
     }
 
     private static AppState ClosedFor(AppState state, Operation operation)

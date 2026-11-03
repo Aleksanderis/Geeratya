@@ -17,6 +17,7 @@ public static class FrameBuilder
     private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers =
     [
         new HelpBodyRenderer(),
+        new MessagesBodyRenderer(),
         new IssueDetailRenderer(),
         new ListBodyRenderer(),
         new ColumnsBodyRenderer(),
@@ -136,6 +137,7 @@ public static class FrameBuilder
             StatusBar.Render(state, width, keymap, clock, confirmShown))
         {
             Regions = [.. regions.Select(region => region.Shifted(header))],
+            StatusSegment = StatusBar.MessageSegment(state, width),
         };
 
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
@@ -149,7 +151,13 @@ public static class FrameBuilder
             Glyphs.ToAscii(frame.StatusLine))
         {
             Regions = frame.Regions,
+            StatusSegment = Asciified(frame.StatusSegment),
         };
+    }
+
+    private static StatusSegment? Asciified(StatusSegment? segment)
+    {
+        return segment is null ? null : segment with { Text = Glyphs.ToAscii(segment.Text) };
     }
 
     private static StyledLine Asciified(StyledLine line)

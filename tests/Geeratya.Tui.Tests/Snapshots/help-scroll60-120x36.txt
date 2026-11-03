@@ -10,6 +10,8 @@ Help
   Space i a  Assign the issue: search people, or unassign                                                               
   Space i m  Assign the issue to me                                                                                     
   Space g    Jump to an issue by key                                                                                    
+  Space n    Show the message history                                                                                   
+  Space x    Dismiss the status message                                                                                 
                                                                                                                         
 Help mode                                                                                                               
   j          Move down                                                                                                  
@@ -31,6 +33,4 @@ Command mode
   Esc        Cancel or close                                                                                            
   Ctrl-c     Quit                                                                                                       
                                                                                                                         
-Confirm mode                                                                                                            
-  y          Confirm                                                                                                    
  HELP                                                                                            j down  k up  Esc close
