@@ -157,7 +157,7 @@ public static class ProfileManagerScreen
 
         if (profiles.Count == 0)
         {
-            var add = context.Keymap.FindKeys(InputMode.Insert, ActionIds.ProfileAdd);
+            var add = context.Keymap.FindKeyLabel(InputMode.Insert, ActionIds.ProfileAdd);
 
             lines.Add(StyledLine.Of("No profile yet."));
             lines.Add(StyledLine.Of($"{add} adds one.", TextRole.Muted));

@@ -1,4 +1,4 @@
- 1 JQL Sample   +          Space g jump 
+ 1 JQL Sample   +         <space>g jump 
                                         
 ╭─ Sample ─────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────╮S│

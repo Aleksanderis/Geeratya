@@ -14,7 +14,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Left` | Move left | `nav.left` | everyday |
 | `l` | Move right | `nav.right` | everyday |
 | `Right` | Move right | `nav.right` | everyday |
-| `g g` | Go to the top | `nav.top` | everyday |
+| `gg` | Go to the top | `nav.top` | everyday |
 | `Home` | Go to the top | `nav.top` | everyday |
 | `G` | Go to the bottom | `nav.bottom` | everyday |
 | `End` | Go to the bottom | `nav.bottom` | everyday |
@@ -31,15 +31,15 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Enter` | Open the selected item | `item.open` | everyday |
 | `0` | Go to the first column | `nav.first-column` | everyday |
 | `$` | Go to the last column | `nav.last-column` | everyday |
-| `] ]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
-| `[ [` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
-| `z a` | Fold a backlog section or the sub-tasks of a card | `section.toggle` | everyday |
+| `]]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
+| `[[` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
+| `za` | Fold a backlog section or the sub-tasks of a card | `section.toggle` | everyday |
 | `Tab` | Next tab | `tab.next` | everyday |
-| `g t` | Next tab | `tab.next` | everyday |
+| `gt` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |
-| `g T` | Previous tab | `tab.previous` | everyday |
+| `gT` | Previous tab | `tab.previous` | everyday |
 | `Ctrl-^` | Previously active tab | `tab.last-active` | everyday |
-| `Space Tab` | Previously active tab | `tab.last-active` | everyday |
+| `<space><Tab>` | Previously active tab | `tab.last-active` | everyday |
 | `Alt-1` | Go to tab 1 | `tab.go-to.1` | everyday |
 | `Alt-2` | Go to tab 2 | `tab.go-to.2` | everyday |
 | `Alt-3` | Go to tab 3 | `tab.go-to.3` | everyday |
@@ -49,51 +49,51 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-7` | Go to tab 7 | `tab.go-to.7` | everyday |
 | `Alt-8` | Go to tab 8 | `tab.go-to.8` | everyday |
 | `Alt-9` | Go to tab 9 | `tab.go-to.9` | everyday |
-| `Space t` | Open the source picker for a new tab | `tab.new` | everyday |
-| `Space c` | Close the tab | `tab.close` | everyday |
-| `Space r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
-| `Space l` | Switch between list and columns | `view.layout-toggle` | everyday |
-| `Space v f` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
-| `Space v s` | Group the board columns into lanes (none, assignee, epic) | `view.swimlane` | everyday |
-| `Space o` | Open the issue in the browser | `issue.open-in-browser` | everyday |
-| `Space p` | Open the parent issue | `issue.open-parent` | everyday |
-| `Space a` | Open the actions menu of the selected issue | `menu.context` | everyday |
-| `Space A` | Open the actions menu of the tab and the view | `menu.view` | everyday |
-| `Space m a` | Add a comment to the issue | `comment.add` | everyday |
-| `Space m e` | Edit the comment under the cursor | `comment.edit` | everyday |
-| `Space m d` | Delete the comment under the cursor | `comment.delete` | advanced |
-| `Space i s` | Change the status of the issue | `issue.transition` | everyday |
+| `<space>t` | Open the source picker for a new tab | `tab.new` | everyday |
+| `<space>c` | Close the tab | `tab.close` | everyday |
+| `<space>r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
+| `<space>l` | Switch between list and columns | `view.layout-toggle` | everyday |
+| `<space>vf` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
+| `<space>vs` | Group the board columns into lanes (none, assignee, epic) | `view.swimlane` | everyday |
+| `<space>o` | Open the issue in the browser | `issue.open-in-browser` | everyday |
+| `<space>p` | Open the parent issue | `issue.open-parent` | everyday |
+| `<space>a` | Open the actions menu of the selected issue | `menu.context` | everyday |
+| `<space>A` | Open the actions menu of the tab and the view | `menu.view` | everyday |
+| `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
+| `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
+| `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
+| `<space>is` | Change the status of the issue | `issue.transition` | everyday |
 | `Alt-l` | Move the card to the next column | `issue.transition-next` | everyday |
 | `Alt-h` | Move the card to the previous column | `issue.transition-previous` | everyday |
 | `Alt-k` | Rank the issue up (a count moves it that many places) | `rank.up` | everyday |
 | `Alt-j` | Rank the issue down (a count moves it that many places) | `rank.down` | everyday |
 | `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
-| `Space s v` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
-| `Space v v` | Open a saved view in a new tab | `view.saved-open` | everyday |
-| `Space v w` | Save this view under a name (opens :view save) | `view.saved-save` | everyday |
-| `Space s m` | Move the selected issues to a sprint | `sprint.move-issues` | everyday |
-| `Space s b` | Move the selected issues to the backlog | `sprint.move-to-backlog` | everyday |
-| `Space s n` | Create a sprint (name, goal, dates) | `sprint.create` | everyday |
-| `Space s e` | Edit the sprint (name, goal, dates) | `sprint.edit` | advanced |
-| `Space s s` | Start the sprint (confirms dates and issue count) | `sprint.start` | everyday |
-| `Space s c` | Complete the sprint (confirms where the open issues go) | `sprint.complete` | everyday |
-| `Space s g` | Show the full goal of the sprint | `sprint.goal` | everyday |
-| `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
-| `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
-| `Space k k` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |
-| `Space i d` | Delete the issue (asks first; Jira cannot undo it) | `issue.delete` | advanced |
-| `Space i c` | Create an issue (type picker, then the form) | `issue.create` | everyday |
-| `Space i C` | Create a sub-task of the selected issue | `issue.create-subtask` | everyday |
-| `Space i l` | Link the issue to another issue | `issue.link` | advanced |
-| `Space i u` | Remove the link under the cursor (asks first; Jira cannot undo it) | `issue.unlink` | advanced |
-| `Space i e` | Edit fields of the issue (summary, labels, priority, description) | `issue.edit` | everyday |
-| `Space i a` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
-| `Space i m` | Assign the issue to me | `issue.assign-me` | everyday |
-| `Space g` | Jump to an issue by key | `issue.jump` | everyday |
-| `Space n` | Show the message history | `status.history` | everyday |
-| `Space x` | Dismiss the status message | `status.dismiss` | everyday |
-| `Space *` | Switch the command level for the session | `view.cycle-command-level` | everyday |
+| `<space>sv` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
+| `<space>vv` | Open a saved view in a new tab | `view.saved-open` | everyday |
+| `<space>vw` | Save this view under a name (opens :view save) | `view.saved-save` | everyday |
+| `<space>sm` | Move the selected issues to a sprint | `sprint.move-issues` | everyday |
+| `<space>sb` | Move the selected issues to the backlog | `sprint.move-to-backlog` | everyday |
+| `<space>sn` | Create a sprint (name, goal, dates) | `sprint.create` | everyday |
+| `<space>se` | Edit the sprint (name, goal, dates) | `sprint.edit` | advanced |
+| `<space>ss` | Start the sprint (confirms dates and issue count) | `sprint.start` | everyday |
+| `<space>sc` | Complete the sprint (confirms where the open issues go) | `sprint.complete` | everyday |
+| `<space>sg` | Show the full goal of the sprint | `sprint.goal` | everyday |
+| `<space>kt` | Rank the issue to the top of the list or column | `rank.top` | advanced |
+| `<space>kb` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
+| `<space>kk` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |
+| `<space>id` | Delete the issue (asks first; Jira cannot undo it) | `issue.delete` | advanced |
+| `<space>ic` | Create an issue (type picker, then the form) | `issue.create` | everyday |
+| `<space>iC` | Create a sub-task of the selected issue | `issue.create-subtask` | everyday |
+| `<space>il` | Link the issue to another issue | `issue.link` | advanced |
+| `<space>iu` | Remove the link under the cursor (asks first; Jira cannot undo it) | `issue.unlink` | advanced |
+| `<space>ie` | Edit fields of the issue (summary, labels, priority, description) | `issue.edit` | everyday |
+| `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
+| `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
+| `<space>g` | Jump to an issue by key | `issue.jump` | everyday |
+| `<space>n` | Show the message history | `status.history` | everyday |
+| `<space>x` | Dismiss the status message | `status.dismiss` | everyday |
+| `<space>*` | Switch the command level for the session | `view.cycle-command-level` | everyday |
 
 ## Help mode
 
@@ -113,7 +113,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-u` | Scroll help up half a page | `help.half-page-up` | everyday |
 | `Tab` | Next help section | `help.page-next` | everyday |
 | `Shift-Tab` | Previous help section | `help.page-previous` | everyday |
-| `Space *` | Switch the command level for the session | `view.cycle-command-level` | everyday |
+| `<space>*` | Switch the command level for the session | `view.cycle-command-level` | everyday |
 | `Esc` | Close help | `help.close` | everyday |
 | `q` | Close help | `help.close` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |

@@ -193,7 +193,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
 
     private static string NoSprintHint(KeymapTable keymap)
     {
-        var palette = keymap.FindKeys(InputMode.Normal, ActionIds.PaletteOpen);
+        var palette = keymap.FindKeyLabel(InputMode.Normal, ActionIds.PaletteOpen);
 
         return $"Plan one in the backlog: {palette}backlog";
     }

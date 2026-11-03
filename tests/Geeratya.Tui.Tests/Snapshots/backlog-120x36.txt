@@ -1,4 +1,4 @@
- 1 Backlog Scrum board x   +                                                                               Space g jump 
+ 1 Backlog Scrum board x   +                                                                              <space>g jump 
                                                                                                                         
 ╭─ Scrum board ───────────────────────────────────────────────────────────────────────────────────────────── 5 issues ─╮
 │  Key   T Summary                                                                Status         Assignee         Pts  │
@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL                    j/k move  Enter open  Space o browser  Space i c create  ] ] pane  ? help  : commands  q quit
+ NORMAL                    j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q quit

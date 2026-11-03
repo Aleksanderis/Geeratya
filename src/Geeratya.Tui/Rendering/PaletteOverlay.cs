@@ -160,7 +160,7 @@ public static class PaletteOverlay
 
     private static string KeyName(KeymapTable keymap, string action)
     {
-        return keymap.FindKeys(InputMode.Command, action) ?? "?";
+        return keymap.FindKeyLabel(InputMode.Command, action) ?? "?";
     }
 
     // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the

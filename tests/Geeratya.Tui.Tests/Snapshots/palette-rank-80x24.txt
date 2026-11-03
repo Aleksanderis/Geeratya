@@ -1,4 +1,4 @@
- 1 JQL View x   +                                                  Space g jump 
+ 1 JQL View x   +                                                 <space>g jump 
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
@@ -8,12 +8,12 @@
 │ │ Rank                                                                     │ │
 │ │ > Rank the issue up (a count moves it that many places)            Alt-k │ │
 │ │   Rank the issue down (a count moves it that many places)          Alt-j │ │
-│ │   Rank the issue to the top of the list or column              Space k t │ │
-│ │   Rank the issue to the bottom of the list or column           Space k b │ │
-│ │   Pick up the issue, then drop it at the issue under the curs  Space k k │ │
+│ │   Rank the issue to the top of the list or column              <space>kt │ │
+│ │   Rank the issue to the bottom of the list or column           <space>kb │ │
+│ │   Pick up the issue, then drop it at the issue under the curs  <space>kk │ │
 │ │                                                                          │ │
 │ │ Issue                                                                    │ │
-│ │   Create an issue (type picker, then the form)                 Space i c │ │
+│ │   Create an issue (type picker, then the form)                 <space>ic │ │
 │ │                                                                          │ │
 │ │                                                                          │ │
 │ │                                                                          │ │

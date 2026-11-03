@@ -89,8 +89,8 @@ public static class ConfirmOverlay
             }
         }
 
-        var yes = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
-        var no = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo) ?? string.Empty;
+        var yes = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
+        var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo) ?? string.Empty;
         var keyWidth = Math.Max(TextWidth.Of(yes), TextWidth.Of(no));
 
         lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth, kind));

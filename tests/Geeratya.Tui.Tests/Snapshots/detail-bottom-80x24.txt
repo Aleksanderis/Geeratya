@@ -1,4 +1,4 @@
- 1 JQL My open issues x   +                                        Space g jump 
+ 1 JQL My open issues x   +                                       <space>g jump 
                                                                                 
 ╭─ Description ────────────────────────────────────────────────────────────────╮
 │ ----------------------------------------                                     │

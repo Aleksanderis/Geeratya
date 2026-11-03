@@ -160,7 +160,7 @@ public class StatusMessageRenderingTests
         var line = StatusBar.Render(state, 100, _keymap);
 
         Assert.DoesNotContain("Saved A-1", line);
-        Assert.Contains("Space", line);
+        Assert.Contains("<space>", line);
     }
 
     [Theory]

@@ -32,7 +32,7 @@ The file is optional. Geeratya never writes it.
 - `bindings`: rows of `mode`, `keys`, `action`. A row replaces the default row with the same mode and keys. Default keys for the same action stay (so `Ctrl-j` above is an extra key for moving down). To move an action to another key, add the new row and unbind the old keys.
 - `unbind`: default rows to remove, named by `mode` and `keys`.
 - `mode` is one of `normal`, `command`, `help`, `confirm`, `insert`.
-- `keys` is one key or a space-separated sequence (`g c`). A key is a single character (`j`, `?`, `G`) or a name (`Esc`, `Enter`, `Backspace`, `Tab`, `Shift-Tab`, `Space`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`, `Delete`), optionally prefixed `Ctrl-` or `Alt-`. Letters are the character itself (`G`, not `Shift-g`). The leader chords are written with `Space`: `Space o`.
+- `keys` is one key or a space-separated sequence (`g c`). A key is a single character (`j`, `?`, `G`) or a name (`Esc`, `Enter`, `Backspace`, `Tab`, `Shift-Tab`, `Space`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`, `Delete`), optionally prefixed `Ctrl-` or `Alt-`. Letters are the character itself (`G`, not `Shift-g`). In the config file the leader is the key `Space` (`Space o`); the UI and docs show it as `<space>o` (`gg`, `Ctrl-w c`, `<space><Tab>`).
 - `action` is an action id. The generated key reference ([keymap.md](keymap.md)) lists the action id next to the title of every default key; help (`?`, the `All actions` and `Custom` pages) and the palette show the ids too.
 - Comments (`//`) and trailing commas are allowed.
 

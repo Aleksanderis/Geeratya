@@ -224,10 +224,10 @@ public static class ProfileFormOverlay
 
     private static string FooterText(KeymapTable keymap)
     {
-        var field = keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext);
-        var save = keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit);
-        var test = keymap.FindKeys(InputMode.Insert, ActionIds.ProfileTest);
-        var cancel = keymap.FindKeys(InputMode.Insert, ActionIds.Cancel);
+        var field = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext));
+        var save = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit));
+        var test = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.ProfileTest));
+        var cancel = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.Cancel));
 
         return $"{field} field  {save} save  {test} test  {cancel} cancel";
     }

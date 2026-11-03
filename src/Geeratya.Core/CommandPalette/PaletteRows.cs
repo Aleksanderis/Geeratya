@@ -203,7 +203,7 @@ public static class PaletteRows
     {
         var keys = keymap.Bindings
             .Where(binding => binding.Mode == InputMode.Normal && binding.Action == action)
-            .Select(binding => binding.Keys)
+            .Select(binding => KeyNotation.Display(binding.Keys))
             .Distinct();
 
         return string.Join(KeySeparator, keys);

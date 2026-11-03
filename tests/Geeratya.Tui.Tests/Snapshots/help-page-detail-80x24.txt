@@ -1,23 +1,23 @@
- 1 JQL Sample x   +                                                Space g jump 
+ 1 JQL Sample x   +                                               <space>g jump 
                                                                                 
 ╭─ A-1 · Task ─────────────────────────────────────────────────────────────────╮
 │>╭─ Help ───────────────────────────────────────────────────────────────────╮ │
 │ │ > Issue detail │   j          Move down  (Down)                          │ │
 │ │   Global       │   k          Move up  (Up)                              │ │
-├─│   All actions  │   g g        Go to the top  (Home)                      │─┤
+├─│   All actions  │   gg         Go to the top  (Home)                      │─┤
 │ │   Commands     │   G          Go to the bottom  (End)                    │ │
 ├─│                │   Ctrl-d     Page down  (PageDown)                      │─┤
 │ │                │   Ctrl-u     Page up  (PageUp)                          │ │
-├─│                │   Space a    Open the actions menu of the selected      │─┤
+├─│                │   <space>a   Open the actions menu of the selected      │─┤
 │ │                │              issue                                      │ │
   │                │   Enter      Open the selected item                     │  
-  │                │   ] ]        Next section of the issue or the Scrum     │  
+  │                │   ]]         Next section of the issue or the Scrum     │  
   │                │              backlog                                    │  
-  │                │   [ [        Previous section of the issue or the       │  
+  │                │   [[         Previous section of the issue or the       │  
   │                │              Scrum backlog                              │  
-  │                │   Space o    Open the issue in the browser              │  
-  │                │   Space p    Open the parent issue                      │  
-  │                │   Space i e  Edit fields of the issue (summary,         │  
+  │                │   <space>o   Open the issue in the browser              │  
+  │                │   <space>p   Open the parent issue                      │  
+  │                │   <space>ie  Edit fields of the issue (summary,         │  
   │                │              labels, priority, description)             │  
   ╰──────────────────────────────────────────────────────────────────────────╯  
 ╰──────────────────────────────────────────────────────────────────────────────╯

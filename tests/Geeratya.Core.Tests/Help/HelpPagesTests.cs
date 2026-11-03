@@ -94,7 +94,7 @@ public class HelpPagesTests
         var line = HelpPages.Lines(HelpAt(0), _keymap).First(row => row.Contains("Next tab"));
 
         Assert.StartsWith("  Tab ", line);
-        Assert.EndsWith("Next tab  (g t)", line);
+        Assert.EndsWith("Next tab  (gt)", line);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class HelpPagesTests
         foreach (var action in bound)
         {
             var definition = ActionCatalog.All.Single(candidate => candidate.Id == action);
-            var keys = _keymap.Bindings.First(binding => binding.Action == action).Keys;
+            var keys = KeyNotation.Display(_keymap.Bindings.First(binding => binding.Action == action).Keys);
 
             Assert.False(string.IsNullOrWhiteSpace(definition.Title), $"{action} has no title");
             Assert.True(Enum.IsDefined(definition.Level), $"{action} has no level");
@@ -150,7 +150,7 @@ public class HelpPagesTests
 
         Assert.DoesNotContain(lines, line => line.Contains(ActionCatalog.FindTitle(ActionIds.IssueDelete)!));
         Assert.Contains(lines, line => line.Contains(ActionCatalog.FindTitle(ActionIds.IssueTransition)!));
-        Assert.Contains(lines, line => line.Contains("advanced commands hidden; Space * shows them"));
+        Assert.Contains(lines, line => line.Contains("advanced commands hidden; <space>* shows them"));
     }
 
     [Fact]

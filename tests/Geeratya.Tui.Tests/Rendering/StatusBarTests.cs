@@ -15,7 +15,7 @@ public class StatusBarTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
 
     private static readonly string[] _columnsHints =
-        ["h/l column", "j/k card", "Enter open", "Space l list", "Space o browser"];
+        ["h/l column", "j/k card", "Enter open", "<space>l list", "<space>o browser"];
 
     [Fact]
     public void GivenVisualModeOrMarks_WhenRenderingTheStatusLine_ThenTheBadgeAndTheCountShow()
@@ -91,7 +91,7 @@ public class StatusBarTests
         var pending = counted with { PendingKeys = "Space k" };
 
         Assert.Contains("NORMAL  12", StatusBar.Render(counted, 60, _keymap));
-        Assert.Contains("NORMAL  12 Space k", StatusBar.Render(pending, 60, _keymap));
+        Assert.Contains("NORMAL  12<space>k", StatusBar.Render(pending, 60, _keymap));
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class StatusBarTests
     {
         var line = StatusBar.Render(With(ViewLayout.Columns), 150, _keymap);
 
-        Assert.Contains("h/l column  j/k card  Enter open  Space l list  Space o browser", line);
+        Assert.Contains("h/l column  j/k card  Enter open  <space>l list  <space>o browser", line);
         Assert.EndsWith("? help  : commands  q quit", line);
         Assert.Equal(150, line.Length);
     }
@@ -349,7 +349,7 @@ public class StatusBarTests
     {
         var line = StatusBar.Render(With(ViewLayout.List, source: ViewSourceKind.Jql), 120, _keymap);
 
-        Assert.Contains("j/k move  Enter open  Space o browser", line);
+        Assert.Contains("j/k move  Enter open  <space>o browser", line);
         Assert.DoesNotContain("columns", line);
     }
 
@@ -358,7 +358,7 @@ public class StatusBarTests
     {
         var line = StatusBar.Render(With(ViewLayout.List, source: ViewSourceKind.Board), 120, _keymap);
 
-        Assert.Contains("Space l columns", line);
+        Assert.Contains("<space>l columns", line);
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class StatusBarTests
 
         var line = StatusBar.Render(state, 150, _keymap);
 
-        Assert.Contains("j/k scroll  Enter open  Esc back  Space o browser  Space p parent", line);
+        Assert.Contains("j/k scroll  Enter open  Esc back  <space>o browser  <space>p parent", line);
         Assert.DoesNotContain("card", line);
     }
 
@@ -395,9 +395,9 @@ public class StatusBarTests
     [InlineData(HintScope.Backlog)]
     public void GivenAScreenWithPanes_WhenListingItsHints_ThenTheNextPaneChordIsNamed(HintScope scope)
     {
-        Assert.Contains("] ] pane", StatusBar.ScreenHintsFor(scope, _keymap));
-        Assert.DoesNotContain("] ] pane", StatusBar.ScreenHintsFor(HintScope.Columns, _keymap));
-        Assert.DoesNotContain("] ] pane", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
+        Assert.Contains("]] pane", StatusBar.ScreenHintsFor(scope, _keymap));
+        Assert.DoesNotContain("]] pane", StatusBar.ScreenHintsFor(HintScope.Columns, _keymap));
+        Assert.DoesNotContain("]] pane", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public class StatusBarTests
     {
         var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Space b", ActionIds.IssueOpenInBrowser)]);
 
-        Assert.Equal(["Space b browser"], StatusBar.ScreenHintsFor(HintScope.List, keymap));
+        Assert.Equal(["<space>b browser"], StatusBar.ScreenHintsFor(HintScope.List, keymap));
     }
 
     [Fact]

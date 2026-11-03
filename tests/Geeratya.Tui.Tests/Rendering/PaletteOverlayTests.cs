@@ -136,7 +136,7 @@ public class PaletteOverlayTests
         var lines = FrameBuilder.Build(Sample("Close the tab"), 100, 24, _keymap);
         var row = lines.Single(line => line.Contains("│ > Close the tab", StringComparison.Ordinal));
 
-        Assert.Contains("Space c", row, StringComparison.Ordinal);
+        Assert.Contains("<space>c", row, StringComparison.Ordinal);
     }
 
     [Fact]

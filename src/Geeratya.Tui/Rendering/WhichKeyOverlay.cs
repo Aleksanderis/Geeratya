@@ -64,7 +64,7 @@ public static class WhichKeyOverlay
 
         var shown = rows.Take(height - 2).ToList();
         var contentWidth = boxWidth - 2;
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, state.PendingKeys) };
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, KeyNotation.Display(state.PendingKeys)) };
 
         lines.AddRange(shown.Select(row => OverlayBox.Wall(StyledLine.Of(row), contentWidth)));
         lines.Add(OverlayBox.Bottom(boxWidth));
