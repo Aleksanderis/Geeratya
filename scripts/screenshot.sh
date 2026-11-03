@@ -35,6 +35,7 @@ all_scenarios=(
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
   "list-narrow;64;24;dark;:jql project = GCM|jjjj;issues"
+  "tabs-same;120;36;dark;:jql project = GCM|:jql project = GCM|:jql project = GCM|:tab rename Release 12|;Release 12"
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
@@ -143,7 +144,7 @@ settled_capture() {
   start=$(now_ms)
   while true; do
     current=$(tmux -L "$socket" capture-pane -t s -p -e 2> /dev/null || true)
-    if [ -n "${current//[[:space:]]/}" ] && [ "$current" = "$previous" ]; then
+    if [ "$current" = "$previous" ] && printf '%s' "$current" | grep -q '[^[:space:]]'; then
       printf '%s\n' "$current"
       return 0
     fi

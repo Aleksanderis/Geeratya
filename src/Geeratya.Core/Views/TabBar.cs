@@ -143,7 +143,7 @@ public static partial class TabBar
         {
             var isActive = index == activeIndex;
 
-            texts[index] = ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index));
+            texts[index] = ItemText(tabs, tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index));
         }
 
         return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1, width, close, marks: true);
@@ -193,7 +193,7 @@ public static partial class TabBar
         {
             var isActive = index == activeIndex;
 
-            total += DisplayWidth.Of(ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index)));
+            total += DisplayWidth.Of(ItemText(tabs, tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index)));
         }
 
         return total;
@@ -201,7 +201,7 @@ public static partial class TabBar
 
     private static BarLayout Window(IReadOnlyList<TabState> tabs, int activeIndex, int width, CloseRule close, bool marks)
     {
-        var bare = DisplayWidth.Of(ItemText(tabs[activeIndex], activeIndex, 0, close.Shows(activeIndex)));
+        var bare = DisplayWidth.Of(ItemText(tabs, tabs[activeIndex], activeIndex, 0, close.Shows(activeIndex)));
         var hidden = 0;
 
         if (marks && activeIndex > 0)
@@ -221,7 +221,7 @@ public static partial class TabBar
         {
             var isActive = index == activeIndex;
 
-            texts[index] = ItemText(tabs[index], index, isActive ? activeCap : MinimumTitleWidth, close.Shows(index));
+            texts[index] = ItemText(tabs, tabs[index], index, isActive ? activeCap : MinimumTitleWidth, close.Shows(index));
         }
 
         var low = activeIndex;
@@ -354,12 +354,14 @@ public static partial class TabBar
         return $" +{hidden} › ";
     }
 
-    private static string ItemText(TabState tab, int index, int titleWidth, bool showClose)
+    private static string ItemText(IReadOnlyList<TabState> tabs, TabState tab, int index, int titleWidth, bool showClose)
     {
-        var title = TabTitles.Cut(TabTitles.Label(tab.Definition), titleWidth);
+        // The qualifier of identical labels is never cut away: the label gives up its own cells for it.
+        var qualifier = TabTitles.Qualifier(tabs, index);
+        var title = TabTitles.Cut(TabTitles.Label(tab), Math.Max(0, titleWidth - DisplayWidth.Of(qualifier)));
         var close = showClose ? CloseMark : string.Empty;
 
-        return $" {index + 1} {title}{Mark(tab)}{close} ";
+        return $" {index + 1} {title}{qualifier}{Mark(tab)}{close} ";
     }
 
     private static string Mark(TabState tab)

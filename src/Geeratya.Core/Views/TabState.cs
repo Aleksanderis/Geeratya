@@ -180,6 +180,12 @@ public sealed record TabState(
     /// </summary>
     public bool AwaitingFilters { get; init; }
 
+    /// <summary>
+    /// The name the user gave the tab (<c>tab.rename</c>, #574); null shows the source label. Local data, kept with the
+    /// remembered tab definitions.
+    /// </summary>
+    public string? Name { get; init; }
+
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);
 

@@ -26,10 +26,21 @@ Invoke as `/work-readiness <milestone>` (for example `M<n>`; `<n>` is a placehol
 4. **Prerequisites and assumptions:** what each issue assumes about existing code versus what exists; missing pieces; unwired work from earlier milestones (follow-up issues such as session or clipboard wiring) that this milestone needs or that could break it.
 5. **Overlap:** which issues touch the same files, shared contracts or keymap rows (check `keymap.default.json`), so the orchestrator knows which can run together (max 3 agents) and in what order.
 6. **Docs:** design issues still to be written (flows in `docs/ux-workflows.md`), docs that are stale for this area, keymap rows that will be needed, and `docs/decisions.md` entries longer than 3 lines or holding implementation detail (move the detail to the area doc).
-7. **Size and cost:** issues too big for one agent run (propose a split), and which large docs agents will have to load (suggest the sections to name in their prompts).
+7. **Size and cost:** issues too big for one agent run (propose a split by feature, never by layer, see "Planning"), and which large docs agents will have to load (suggest the sections to name in their prompts).
 8. **Loose ends:** known limits, deferred work and manual checks from earlier milestones that exist only in `docs/decisions.md` or `docs/history/decisions.md`, PR comments or code comments (grep `docs/*.md` and `docs/history/*.md` for 'known limit', 'follow-up', 'not wired', 'TODO'); each must be an issue or part of one. Register missing ones (new issue or edit an existing one) and list them in the report.
    **Windows (`windows-vm`) checks:** open one only for behaviour that is platform specific: credential store, Native AOT, publishing, packaging, the browser launcher, paths, console or terminal APIs. Never for UI, rendering, layouts, keys or dialogs (Terminal.Gui draws them the same on every OS); the owner decided this on 2026-11-02 after the M1, M3 and M4 Windows checks turned out to be pure UI. Do not copy the M0 Windows issue as a template for a milestone.
 9. **Environment:** the build, tests and AOT publish are green on `main`; local build and tests are green (CI runs on tags, weekly and by dispatch; run it if the last run is stale); nothing from the previous milestone is half-merged (stray worktrees, branches, open PRs awaiting the owner).
+
+## Planning (milestone with a goal but no issues)
+
+When asked to plan a milestone, create its issues from the roadmap goal, then run the checks above. Rules (owner, 2026-11-02, after a layer-per-issue plan was rejected in Gitunia):
+
+- Slice vertically: every issue is a feature a user can see and a release can ship on its own, carrying its own Jira client call, Core state, view, keymap rows, tests and docs. Never one issue per layer (Jira client / Core / TUI / keys / docs) or per kind of work.
+- Test each issue: "if only this one merged, would the release have a working feature?" If not, merge it into the slice it belongs to.
+- Order slices so the smallest useful one comes first; later slices extend it (options, refinements, extra entry points) and list it in `Blocked by:`.
+- Only cross-cutting work gets its own issue: performance on large result sets, Windows/macOS checks, a final docs consistency pass if needed. Docs and keymap rows travel with their feature. Both project kinds (company- and team-managed) are covered inside each slice.
+- Changing the scope of a slice or planning by layer needs the owner's approval.
+- Create a `tracking` issue and post the plan there; give each issue an `Acceptance:` line and a milestone.
 
 ## 3. Report
 

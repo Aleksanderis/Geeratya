@@ -14,7 +14,7 @@
 │           │               │       Forget the recent JQL queries and issues of this profile               │           │
 │           │               │   :view [name]|save <name>|rename <old> <new>|delete <name>                  │           │
 │           │               │       Open, save, rename or delete a saved view (source and layout)          │           │
-│           │               │   :tab new|close|next|prev|<n>                                               │           │
+│           │               │   :tab new|rename [name]|close|next|prev|<n>                                 │           │
 │           │               │       Open the source picker, close or switch tabs                           │           │
 │           │               │   :edit                                                                      │           │
 │           │               │       Edit the fields of the selected or shown issue (field form)            │           │

@@ -33,6 +33,26 @@ public sealed class RememberedTabsStoreTests : IDisposable
     }
 
     [Fact]
+    public void GivenARenamedTab_WhenSavingAndRestoringFromANewStore_ThenTheNameSurvivesAndNoSecretIsWritten()
+    {
+        var tabs = new RememberedTabs(
+            [
+                new RememberedTab("Jql", "project = A", "List", "A", Name: "  Mine  "),
+                new RememberedTab("Jql", "project = A", "List", "A"),
+            ]);
+        var store = new RememberedTabsStore(_directory);
+
+        store.Save(_work, tabs);
+
+        var loaded = new RememberedTabsStore(_directory).Load(_work);
+        var (restored, _) = loaded.ToRestored();
+        Assert.Equal("Mine", restored[0].Name);
+        Assert.Null(restored[1].Name);
+        Assert.False(tabs.SameAs(new RememberedTabs([tabs.Items[0] with { Name = null }, tabs.Items[1]])));
+        Assert.DoesNotContain("token", File.ReadAllText(Path.Combine(store.FolderOf(_work), RememberedTabsStore.FileName)));
+    }
+
+    [Fact]
     public void GivenTwoProfiles_WhenSavingOne_ThenTheOtherStaysEmpty()
     {
         var store = new RememberedTabsStore(_directory);

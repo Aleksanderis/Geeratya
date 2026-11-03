@@ -50,6 +50,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-8` | Go to tab 8 | `tab.go-to.8` | everyday |
 | `Alt-9` | Go to tab 9 | `tab.go-to.9` | everyday |
 | `<space>t` | Open the source picker for a new tab | `tab.new` | everyday |
+| `Ctrl-t` | Open the source picker for a new tab | `tab.new` | everyday |
+| `Ctrl-w r` | Rename this tab (an empty name restores the source label) | `tab.rename` | everyday |
 | `<space>c` | Close the tab | `tab.close` | everyday |
 | `<space>T` | Show a list of open tabs | `tab.list` | everyday |
 | `<space>r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
@@ -223,7 +225,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:history clear` | Forget the recent JQL queries and issues of this profile |
 | `:view [name]|save <name>|rename <old> <new>|delete <name>` | Open, save, rename or delete a saved view (source and layout) |
-| `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:tab new|rename [name]|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
