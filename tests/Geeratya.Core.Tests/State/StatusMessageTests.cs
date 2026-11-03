@@ -239,17 +239,22 @@ public sealed class StatusMessageTests
         Assert.Empty(second.Session.Tabs[0].Detail);
     }
 
-    [Fact]
-    public void GivenSeveralKeymapProblems_WhenReloadingTwice_ThenEachProblemIsInTheHistoryOnce()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void GivenKeymapProblems_WhenReloadingTwiceWithTheSameResult_ThenTheHistoryHoldsEachEntryOnce(int count)
     {
-        var reloaded = new KeymapReloaded("keymap.json: a (and 1 more; see the Messages overlay)", ["a", "b"]);
+        string[] problems = count == 1 ? ["a"] : ["a", "b"];
+        var message = count == 1 ? "keymap.json: a" : "keymap.json: a (and 1 more; see the Messages overlay)";
+        var reloaded = new KeymapReloaded(message, problems);
 
         var first = _reducer.Reduce(AppState.Initial, reloaded).State;
-        var second = _reducer.Reduce(first, new Tick(_start.AddSeconds(1))).State;
-        second = _reducer.Reduce(second, reloaded with { Message = "keymap.json: a (and 1 more; see the Messages overlay) " }).State;
+        var second = _reducer.Reduce(first, reloaded).State;
 
-        Assert.Single(second.StatusHistory, message => message.Text == "keymap.json: a");
-        Assert.Single(second.StatusHistory, message => message.Text == "keymap.json: b");
+        Assert.Equal(
+            first.StatusHistory.Select(entry => entry.Text).Order(),
+            second.StatusHistory.Select(entry => entry.Text).Order());
+        Assert.Equal(count == 1 ? 1 : 3, second.StatusHistory.Count);
     }
 
     [Fact]
@@ -288,7 +293,9 @@ public sealed class StatusMessageTests
     public void GivenNoKeymapLoadAtStartup_WhenReporting_ThenTheMessageIsUntouchedOrCleared()
     {
         Assert.Null(StatusMessages.KeymapStartup(AppState.Initial, null).Message);
-        Assert.Equal("x", StatusMessages.KeymapStartup(AppState.Initial with { Message = "x" }, new KeymapLoadResult([], [])).Message);
+        var kept = StatusMessages.KeymapStartup(AppState.Initial with { Message = "x" }, new KeymapLoadResult([], []));
+
+        Assert.Equal("x", kept.Message);
     }
 
     private AppState WithOpenedIssue()

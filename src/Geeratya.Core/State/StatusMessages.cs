@@ -17,6 +17,8 @@ public static class StatusMessages
     /// <summary>How many messages the history keeps.</summary>
     public const int HistoryLimit = 50;
 
+    private const string KeymapPrefix = "keymap.json: ";
+
     /// <summary>The column where the status line's text starts in Normal mode: the badge <c> NORMAL </c> before it.</summary>
     public const int TextStart = 8;
 
@@ -118,8 +120,13 @@ public static class StatusMessages
     {
         var problems = reloaded.Problems ?? [];
 
-        // A reload replaces the earlier report: the old keymap.json entries go, so reloading twice lists each problem once.
-        state = state with { StatusHistory = [.. state.StatusHistory.Where(message => !IsKeymapProblem(message))] };
+        // A reload replaces the earlier report: the old keymap.json entries go, so reloading twice lists each
+        // problem once. A status that shows one of them is cleared too, so the same text is posted (and kept) again.
+        state = state with
+        {
+            StatusHistory = [.. state.StatusHistory.Where(message => !IsKeymapProblem(message))],
+            Status = state.Status is { } shown && IsKeymapProblem(shown) ? null : state.Status,
+        };
 
         if (problems.Count == 0)
         {
@@ -135,12 +142,18 @@ public static class StatusMessages
     /// </summary>
     public static AppState KeymapStartup(AppState state, KeymapLoadResult? load)
     {
-        var notice = state.Message is not null && load?.Notice is not null ? $"{state.Message} | {load.Notice}" : state.Message ?? load?.Notice;
+        var notice = JoinNotices(state.Message, load?.Notice);
         var withNotice = notice is null
             ? state with { Message = null }
             : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
 
         return AddWarnings(withNotice, KeymapWarnings(load?.Problems ?? []));
+    }
+
+    /// <summary>Two notices on one status line, separated by a bar; either may be null.</summary>
+    public static string? JoinNotices(string? first, string? second)
+    {
+        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
     }
 
     private static List<string> KeymapWarnings(IReadOnlyList<string> problems)
@@ -150,10 +163,9 @@ public static class StatusMessages
 
     private static bool IsKeymapProblem(StatusMessage message)
     {
-        return message.Severity == StatusSeverity.Warning && message.Text.StartsWith(KeymapPrefix, StringComparison.Ordinal);
+        return message.Severity == StatusSeverity.Warning
+            && message.Text.StartsWith(KeymapPrefix, StringComparison.Ordinal);
     }
-
-    private const string KeymapPrefix = "keymap.json: ";
 
     /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the history is newest first, so the last one listed shows first.</summary>
     public static AppState AddWarnings(AppState state, IReadOnlyList<string> warnings)

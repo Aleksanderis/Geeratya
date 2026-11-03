@@ -460,7 +460,9 @@ public sealed class ShellHost : ICommandSink, IDisposable
     {
         var start = _themes.Start(_state.Settings.Theme, _lightBackground);
 
-        _state = WithNotice(_state with { ThemeNames = _themes.Names }, JoinNotices(_state.Message, start.Notice));
+        _state = WithNotice(
+            _state with { ThemeNames = _themes.Names },
+            StatusMessages.JoinNotices(_state.Message, start.Notice));
 
         return start.Theme;
     }
@@ -562,10 +564,6 @@ public sealed class ShellHost : ICommandSink, IDisposable
         }
     }
 
-    private static string? JoinNotices(string? first, string? second)
-    {
-        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
-    }
 
     private AppState LoadProfiles()
     {
