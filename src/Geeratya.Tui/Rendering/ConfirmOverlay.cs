@@ -8,7 +8,8 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>
 /// The Confirm dialog: a box centred over the body with the question (wrapped, naming what changes), the warning
 /// line and two answer rows, <c>y</c> with the name of the action and <c>n</c> Cancel. Both rows are clickable and so
-/// is the rest of the box (a click there does nothing); a click outside it cancels. Pure.
+/// is the rest of the box (a click there does nothing); a click outside it cancels. A notice (a request with a
+/// title, <see cref="ConfirmRequest"/>) has the single close row and a click outside closes it. Pure.
 /// </summary>
 public static class ConfirmOverlay
 {
@@ -44,7 +45,6 @@ public static class ConfirmOverlay
         {
             OverlayBox.Mark(regions, MouseTarget.ConfirmNo, top, left, layout.BoxWidth, layout.NoRow, [0]);
         }
-
 
         for (var index = 0; index < box.Count; index++)
         {

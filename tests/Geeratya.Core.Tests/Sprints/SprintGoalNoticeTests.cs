@@ -38,6 +38,14 @@ public class SprintGoalNoticeTests
     }
 
     [Fact]
+    public void GivenAGoalWithCrlfAndTabs_WhenOpening_ThenOnlyNewlinesAndPrintableTextRemain()
+    {
+        var state = SprintGoalNotice.Open(OnSprint($"one{(char)13}{(char)10}two{(char)9}three"));
+
+        Assert.Equal("Sprint 4\n\none\ntwo three", state.Confirm!.Message);
+    }
+
+    [Fact]
     public void GivenATabWithoutSprint_WhenOpening_ThenTheNoteSaysSo()
     {
         var state = SprintGoalNotice.Open(Open(null));
@@ -73,7 +81,7 @@ public class SprintGoalNoticeTests
         Assert.Equal(string.Empty, layout.Question[1]);
         Assert.True(layout.Question.Count > 3);
         Assert.Empty(layout.Warning);
-        Assert.Null(ConfirmDialog.Layout(request, 30, 5));
+        Assert.Null(ConfirmDialog.Layout(request, 30, 4));
     }
 
     [Fact]

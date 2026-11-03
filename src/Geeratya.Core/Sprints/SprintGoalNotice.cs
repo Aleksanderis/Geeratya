@@ -29,11 +29,19 @@ public static class SprintGoalNotice
         }
 
         var request = new ConfirmRequest(
-            $"{sprint.Name}\n\n{sprint.Goal.Trim()}",
+            $"{Clean(sprint.Name)}\n\n{Clean(sprint.Goal)}",
             ActionIds.Cancel,
             Label: "Close",
             Title: Title);
 
         return state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty, Message = null };
+    }
+
+    /// <summary>Line ends become <c>\n</c> and other control characters spaces, so nothing odd reaches the terminal.</summary>
+    private static string Clean(string text)
+    {
+        var unified = text.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
+
+        return string.Concat(unified.Select(character => char.IsControl(character) && character != '\n' ? ' ' : character));
     }
 }

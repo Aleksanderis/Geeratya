@@ -20,6 +20,7 @@ public static class ConfirmDialog
     public const int MinBoxWidth = 24;
 
     private const int Margin = 4;
+    private const int NoticeChrome = 4;
     private const string FallbackLabel = "Confirm";
 
     /// <summary>
@@ -39,10 +40,8 @@ public static class ConfirmDialog
 
         if (request.Title is not null)
         {
-            var paragraphs = request.Message.Split('\n')
-                .SelectMany(paragraph => paragraph.Trim().Length == 0 ? [string.Empty] : Wrap(paragraph, text))
-                .ToList();
-            var notice = new ConfirmDialogLayout(boxWidth, paragraphs, [], LabelOf(request), request.Title, true);
+            var rows = NoticeRows(request.Message, text, bodyRows);
+            var notice = new ConfirmDialogLayout(boxWidth, rows, [], LabelOf(request), request.Title, true);
 
             return notice.Height <= bodyRows ? notice : null;
         }
@@ -52,6 +51,32 @@ public static class ConfirmDialog
         var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request));
 
         return layout.Height <= bodyRows ? layout : null;
+    }
+
+    /// <summary>
+    /// The wrapped lines of a notice, paragraphs kept; cut with an ellipsis on the last line when the body is too short
+    /// to show them all, so a long text is still readable in part.
+    /// </summary>
+    private static List<string> NoticeRows(string message, int text, int bodyRows)
+    {
+        var rows = new List<string>();
+
+        foreach (var paragraph in message.Split('\n'))
+        {
+            rows.AddRange(paragraph.Trim().Length == 0 ? [string.Empty] : Wrap(paragraph, text));
+        }
+
+        var room = Math.Max(1, bodyRows - NoticeChrome);
+
+        if (rows.Count <= room)
+        {
+            return rows;
+        }
+
+        rows = [.. rows.Take(room)];
+        rows[^1] = $"{Wrap(rows[^1], Math.Max(1, text - 1)).FirstOrDefault() ?? string.Empty}\u2026";
+
+        return rows;
     }
 
     /// <summary>

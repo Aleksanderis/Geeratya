@@ -17,7 +17,7 @@ public sealed record ConfirmDialogLayout(
     public int Height => 2 + Question.Count + (Warning.Count > 0 ? Warning.Count + 1 : 0) + 1 + (Notice ? 1 : 2);
 
     /// <summary>The row of the <c>y</c> answer, counted from the top edge of the box.</summary>
-    public int YesRow => Height - 3;
+    public int YesRow => Notice ? Height - 2 : Height - 3;
 
     /// <summary>The row of the <c>n</c> answer, counted from the top edge of the box.</summary>
     public int NoRow => Notice ? -1 : Height - 2;

@@ -116,7 +116,7 @@ public static class ContextMenus
             actions.Add(ActionIds.SprintSwitch);
         }
 
-        if (active is { Sprint.Goal.Length: > 0 })
+        if (active is { Sprint.Goal: { } goal } && !string.IsNullOrWhiteSpace(goal))
         {
             actions.Add(ActionIds.SprintGoal);
         }

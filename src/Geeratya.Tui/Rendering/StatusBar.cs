@@ -216,6 +216,13 @@ public static class StatusBar
             return new HintList([], TextsOf(ProfileHints(profile.Field), state.Mode, HintScope.Global, keymap, level));
         }
 
+        if (state.Confirm?.Title is not null)
+        {
+            var close = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
+
+            return new HintList([], [$"{close} close"]);
+        }
+
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
 
         return state.Mode == InputMode.Normal
