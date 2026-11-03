@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   0          Go to the first column                                          │           │
+│           │   Global      │   0          Go to the first column                                         ▲│           │
 │           │ > All actions │   $          Go to the last column                                           │           │
 │           │   Commands    │   ]]         Next section of the issue or the Scrum backlog                  │           │
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
@@ -30,7 +30,7 @@
 │           │               │   U          Scroll help up half a page  (Ctrl-u)                            │           │
 │           │               │   gg         Scroll help to the top                                          │           │
 │           │               │   G          Scroll help to the bottom                                       │           │
-│           │               │   Enter      Run the typed command  (Ctrl-l)                                 │           │
+│           │               │   Enter      Run the typed command  (Ctrl-l)                                ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

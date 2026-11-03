@@ -137,7 +137,7 @@ internal static class IssueDetailMapper
     }
 
     private static List<IssueAttachment> MapAttachments(
-        List<IssueWire.Attachment>? wire,
+        List<IssueWire.Attachment?>? wire,
         Dictionary<string, string> pool)
     {
         var result = new List<IssueAttachment>(wire?.Count ?? 0);

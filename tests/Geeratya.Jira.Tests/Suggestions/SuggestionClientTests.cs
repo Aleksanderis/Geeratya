@@ -252,8 +252,7 @@ public sealed class SuggestionClientTests
             false,
             false,
             CreateFieldKind.SingleChoice,
-            [new CreateAllowedValue("1", "Highest"), new CreateAllowedValue("5", "Lowest")],
-            null);
+            [new CreateAllowedValue("1", "Highest"), new CreateAllowedValue("5", "Lowest")]);
 
         var result = SuggestionClient.SearchAllowedValues(field, "high");
 

@@ -34,7 +34,7 @@ internal static class IssueWire
         Stub? Parent,
         List<Stub>? Subtasks,
         [property: JsonPropertyName(IssueFields.IssueLinks)] List<Link>? IssueLinks,
-        [property: JsonPropertyName(IssueFields.Attachment)] List<Attachment>? Attachments)
+        [property: JsonPropertyName(IssueFields.Attachment)] List<Attachment?>? Attachments)
     {
         /// <summary>The fields not named above: the site-specific ones a request added (Sprint, estimate).</summary>
         [JsonExtensionData]

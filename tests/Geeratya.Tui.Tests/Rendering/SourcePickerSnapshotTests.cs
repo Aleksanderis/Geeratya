@@ -50,6 +50,21 @@ public class SourcePickerSnapshotTests
     }
 
     [Fact]
+    public void GivenAnOpenPicker_WhenWheelingOverARow_ThenTheHighlightMovesAndNothingOpens()
+    {
+        var state = Sample(string.Empty);
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
+        var row = RegionProbe.Rows(frame, MouseTarget.PickerRow)[0];
+
+        var down = RegionProbe.Click(state, frame, row.Region, MouseGesture.WheelDown)!;
+        var up = RegionProbe.Click(down.State, frame, row.Region, MouseGesture.WheelUp)!;
+
+        Assert.Equal(3, down.State.Picker!.Selected);
+        Assert.Equal(0, up.State.Picker!.Selected);
+        Assert.Empty(down.Effects);
+    }
+
+    [Fact]
     public void GivenAnOpenPicker_WhenClickingAFilterChoice_ThenTheFilterOpensInANewTab()
     {
         var state = Sample(string.Empty);

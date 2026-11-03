@@ -141,7 +141,7 @@ Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-setting
 | No right-, middle- or Ctrl-click bindings (#479 there), a `...` marker opens the row menu | right-click menus and Ctrl-click marks (full mouse support is a README feature, `ux-mouse.md`); a `...` marker is planned (#572) | the right-click paths shipped first; the marker is for multiplexers that swallow them |
 | Double-click accepts a picker row | a single click on a picker, jump or palette row runs it | Gitunia's single click only highlights, so it needs the double-click; here a single click already accepts |
 | Commit message box pane, conflict editor | comment editor overlay | no commit or merge in Jira |
-| Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | not needed so far (an unrecorded check of a JIT build idled near 1 % of a core); idle CPU is measured with the release numbers in #211 |
+| Main loop at 100 iterations per second, 50 when idle | Terminal.Gui default | not needed: the default is 25 per second and the AOT build idles at 0.2 to 0.3 % of a core (`performance.md`, "Idle cost (#619)"); an idle governor is #624 |
 
 The Settings screen Gitunia has is in too (requested by the owner, #556; see "Settings screen" in [settings.md](settings.md)). The other gaps found by the audit are open issues linked from #560: single-line prompt caret (#567), cursor position in the status bar (#569), wheel in help and messages (#570), row menu marker (#572), commands button (#573), tab rename and labels (#574), command line (#576, #577), print-frame colours (#585), error and loading bodies (#579).
 

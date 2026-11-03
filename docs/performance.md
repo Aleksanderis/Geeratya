@@ -183,4 +183,19 @@ Native AOT `geeratya`, `scripts/measure.sh <binary> <fake url> 20`, fake Jira wi
 
 Both rows of the table above were taken with the fixed `measure.sh`. The sections above this one (M1, detail open, Scrum paths) were taken before #612 merged (2026-11-03), on builds without framed screens, so they are not affected. Figures taken with the old `measure.sh` on a build from #612 on (the 137 ms of #589) are inflated by up to about 100 ms, in particular the key to frame rows; re-measure before quoting them. `scripts/screenshot.sh` had the same slow check and was fixed alike (it only made screenshots slower).
 
-Idle cost (M7 input, #619), start screen and a 100-row list, 20 s windows each, `/proc/<pid>/stat`: 22 and 25 CPU ticks (about 1.1 to 1.3 % of one core, 0.2 s of CPU in 20 s), RSS 47 MB, 10 threads; with the frame on screen and nothing happening the process still uses CPU, registered as #619 (the cause is not investigated).
+## Idle cost (#619)
+
+Native AOT `geeratya` at `main` `d2bbf91`, fake Jira (`--issues 100`), 120x40 tmux, no key presses, a 20 s window after the 100-row list was loaded, per-thread `utime+stime` ticks and `voluntary_ctxt_switches` from `/proc/<pid>/task/*` read twice (`scripts/idle-cpu.sh <binary> <fake url> list`). 10 threads, RSS 47 to 49 MB. Four alternating runs: 6 and 4 CPU ticks per 20 s at the default, 1 and 3 with 10 iterations/s; that is 0.2 to 0.3 % of one core at the default. The 22 to 25 ticks quoted in #616 (and the "about 1 %" of the issue title) were taken over a window that began right after start, when the connection check, the first load and the cache write were still running; a window taken after the screen has settled does not show them. The default runs made 8 664 and 8 926 context switches per 20 s summed over the 10 threads (about 440 a second); one timer expiry costs several of them (timer thread, pool worker, the thread that runs the callback), so the rates below are expiries, not switches.
+
+Idle timer expiries by cause:
+
+| Cause | Rate | Where |
+|---|---|---|
+| Terminal.Gui input thread polls the terminal every 20 ms with `Task.Delay` | 50/s | library, `InputImpl.Run` |
+| Terminal.Gui main loop: one iteration per `MaximumIterationsPerSecond` (default 25), each ending in a delay | 25/s | library |
+| Our `Tick` timer (message lifetimes, refresh rule, which-key); the `Application.Invoke` also wakes the main loop | 1/s; an idle tick returns the same state and draws nothing | `ShellHost.PostTick` |
+| Which-key timer | none unless a chord is pending | `ShellHost.ScheduleWhichKey` |
+| Cache flush timer | one expiry after a cache write (each completed load), none otherwise | `SiteCache` |
+| Spinners, Jira polling, file watchers | none exist | |
+
+The library accounts for 75 of the 76 expiries a second, so there is nothing cheap left to fix on our side; the switches per expiry are not split by cause (not measured). Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 6 805 and 7 086 switches per 20 s against 8 664 and 8 926 (about 20 % fewer, more than the main-loop share alone predicts, because each iteration also runs a size query and a draw check) and 1 and 3 ticks against 6 and 4, which is within the noise of the machine load (other agents were building). It costs a slower first key after a pause, so it was not applied; whether an idle governor pays off is #624. For comparison only: Gitunia measured the same library at 25/s 1.04 % and 10/s 0.91 % on another workload and a 45 s window, so those figures are not comparable with the ones above.

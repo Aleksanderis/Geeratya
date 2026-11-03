@@ -159,12 +159,7 @@ public static class SettingsScreenReducer
 
         // Another row ends an open choice list, as Esc would.
         var same = selected == screen.Selected;
-        var moved = screen with
-        {
-            Selected = selected,
-            Choice = same ? screen.Choice : null,
-            Preview = same ? screen.Preview : null,
-        };
+        var moved = new SettingsScreenState(selected, same ? screen.Choice : null, same ? screen.Preview : null);
 
         return new ReduceResult(state with { SettingsScreen = moved, Message = null }, _noEffects);
     }

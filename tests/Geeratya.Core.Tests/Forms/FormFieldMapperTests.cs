@@ -125,16 +125,15 @@ public class FormFieldMapperTests
     {
         var fields = new[]
         {
-            new CreateField("project", "Project", true, false, CreateFieldKind.Fixed, [], null),
+            new CreateField("project", "Project", true, false, CreateFieldKind.Fixed, []),
             new CreateField(
                 "priority",
                 "Priority",
                 false,
                 true,
                 CreateFieldKind.SingleChoice,
-                [new CreateAllowedValue("3", "High")],
-                null),
-            new CreateField("customfield_5", "Mystery", false, false, CreateFieldKind.Unsupported, [], null),
+                [new CreateAllowedValue("3", "High")]),
+            new CreateField("customfield_5", "Mystery", false, false, CreateFieldKind.Unsupported, []),
         };
 
         var mapped = FormFieldMapper.FromCreate(fields);
@@ -151,8 +150,8 @@ public class FormFieldMapperTests
         CreateLookup lookup,
         SuggestionKind expected)
     {
-        var field = new CreateField("components", "Components", false, false, CreateFieldKind.MultiChoice, [], null, lookup);
-        var plain = new CreateField("customfield_1", "Pick", false, false, CreateFieldKind.MultiChoice, [], null);
+        var field = new CreateField("components", "Components", false, false, CreateFieldKind.MultiChoice, [], lookup);
+        var plain = new CreateField("customfield_1", "Pick", false, false, CreateFieldKind.MultiChoice, []);
 
         var mapped = FormFieldMapper.FromCreate([field, plain]);
 
