@@ -18,6 +18,9 @@ public enum PickerScope
     /// <summary>Recent JQL strings and the typed query (<c>:jql</c> without a query).</summary>
     Jql,
 
+    /// <summary>The user's saved views and nothing else (<c>:view</c>, <c>&lt;space&gt;vv</c>).</summary>
+    Views,
+
     /// <summary>The sprints of the active tab's Scrum board (<c>&lt;space&gt;sv</c>).</summary>
     Sprints,
 }

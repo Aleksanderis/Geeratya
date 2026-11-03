@@ -64,6 +64,8 @@
     { "mode": "normal", "keys": "v", "action": "selection.visual" },
     { "mode": "normal", "keys": "Alt-m", "action": "selection.mark" },
     { "mode": "normal", "keys": "Space s v", "action": "sprint.switch" },
+    { "mode": "normal", "keys": "Space v v", "action": "view.saved-open" },
+    { "mode": "normal", "keys": "Space v w", "action": "view.saved-save" },
     { "mode": "normal", "keys": "Space s m", "action": "sprint.move-issues" },
     { "mode": "normal", "keys": "Space s b", "action": "sprint.move-to-backlog" },
     { "mode": "normal", "keys": "Space s n", "action": "sprint.create" },

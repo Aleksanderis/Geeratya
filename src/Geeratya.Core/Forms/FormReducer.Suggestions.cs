@@ -16,7 +16,7 @@ public static partial class FormReducer
     private const int KnownLabelLimit = 500;
 
     // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and
-    // Down move, Tab and Enter take the highlighted row. Any other key is not the popup's (null) and goes on to the field.
+    // Down move, Tab and Enter take the highlighted row (Enter on a full key typed into the link form's issue field takes that key, Tab the row). Any other key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,
@@ -34,6 +34,7 @@ public static partial class FormReducer
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
             ActionIds.PickerPrevious => Moved(state, tab, form, popup, -1),
             ActionIds.FormFieldNext when popup.Source.Kind == SuggestionKind.Options && popup.Query.Length == 0 => null,
+            ActionIds.FormNext when FormEditor.TypedKey(form.Fields[form.Focus]) is not null => null,
             ActionIds.FormNext or ActionIds.FormFieldNext when popup.Selected is { } picked
                 => Accepting(state, tab, form, picked, action == ActionIds.FormNext, at),
             _ => null,

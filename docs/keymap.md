@@ -70,6 +70,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
 | `Space s v` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
+| `Space v v` | Open a saved view in a new tab | `view.saved-open` | everyday |
+| `Space v w` | Save this view under a name (opens :view save) | `view.saved-save` | everyday |
 | `Space s m` | Move the selected issues to a sprint | `sprint.move-issues` | everyday |
 | `Space s b` | Move the selected issues to the backlog | `sprint.move-to-backlog` | everyday |
 | `Space s n` | Create a sprint (name, goal, dates) | `sprint.create` | everyday |
@@ -183,6 +185,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:board [name]` | Open a board as columns in a new tab |
 | `:backlog [name]` | Open a board's backlog in a new tab |
 | `:history clear` | Forget the recent JQL queries and issues of this profile |
+| `:view [name]|save <name>|rename <old> <new>|delete <name>` | Open, save, rename or delete a saved view (source and layout) |
 | `:tab new|close|next|prev|<n>` | Open the source picker, close or switch tabs |
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |

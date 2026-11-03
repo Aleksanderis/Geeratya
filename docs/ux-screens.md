@@ -470,6 +470,9 @@ project = GEN · 40 issues
 | `:filter [name]` | the saved filter whose name matches (exact, else unique prefix, case-insensitive) as a list; no name, or no unique match, opens the picker filtered to Filters with the text typed so far |
 | `:board [name]` | the board as Columns; same matching and fallback to the picker (Boards) |
 | `:backlog [name]` | the board's backlog as a list; same matching |
+| `:view [name]` | the saved-view picker (saved views only), filtered by the text typed; `Enter` opens the view in a new tab. The same rows come first in the `<space>t` picker under "Saved views" (#191) |
+| `:view save <name>` | saves the active tab's source and layout under the name (a name in quotes keeps its blanks); an existing name (any case) is replaced. Local file only (`saved-views.json` in the profile's folder of the state directory, user-only permissions, written atomically); no token, site or rows (#191) |
+| `:view rename <old> <new>`, `:view delete <name>` | rename or delete a saved view. Local names only, so no confirmation: nothing in Jira changes and the view can be saved again (#191) |
 | `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys |
 | `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
 | `:quickfilter [off\|name\|number]` | list the quick filters of the board, switch one on or off, or clear them (`<space>vf` cycles them one at a time); a board tab only |

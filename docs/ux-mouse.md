@@ -84,6 +84,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `sprint.switch` | V | Item of the menu of the tab and the view, shown on a board, backlog or sprint view: opens the sprint switcher, same as `<space>sv` |
+| ContextMenu | Click | `view.saved-open` | V | Item of the menu of the tab and the view: opens the saved-view picker, same as `<space>vv` |
+| ContextMenu | Click | `view.saved-save` | V | Item of the menu of the tab and the view: opens the command line with `view save ` typed, same as `<space>vw` |
 | ContextMenu | Click | `sprint.create` | V | Item of the menu of the tab and the view, shown on a Scrum backlog or sprint view: opens the sprint form, same as `<space>sn` |
 | ContextMenu | Click | `sprint.edit` | V | Item of the menu of the tab and the view, shown on a Scrum backlog or sprint view: edits the sprint under the cursor (backlog) or the one shown (sprint view), same as `<space>se` |
 | ContextMenu | Click | `sprint.start` | V | Item of the menu of the tab and the view, shown on a Scrum backlog or sprint view: starts the sprint under the cursor (backlog) or the one shown (sprint view), same as `<space>ss` |

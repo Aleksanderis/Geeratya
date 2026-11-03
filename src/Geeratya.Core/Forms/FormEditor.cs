@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Suggestions;
+using Geeratya.Jira.Issues;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
 
@@ -80,6 +81,8 @@ public static class FormEditor
         {
             FormFieldKind.Paragraph => new FormEdit(Type(field, "\n"), false),
             FormFieldKind.Labels => AcceptLabels(field),
+            FormFieldKind.User or FormFieldKind.Parent when TypedKey(field) is { } key
+                => new FormEdit(ChooseKey(field, key), true),
             FormFieldKind.User or FormFieldKind.Parent => new FormEdit(field, field.Entry.Length == 0),
             _ => new FormEdit(field, true),
         };
@@ -88,7 +91,30 @@ public static class FormEditor
     /// <summary>The field with a label that is typed and not yet added made part of its value.</summary>
     public static FormField Committed(FormField field)
     {
+        if (TypedKey(field) is { } key)
+        {
+            return ChooseKey(field, key);
+        }
+
         return field.Kind == FormFieldKind.Labels ? CommitLabel(field) : field;
+    }
+
+    /// <summary>The typed text of a field that takes a key as it stands, upper-cased, when it is a full issue key, else null.</summary>
+    public static string? TypedKey(FormField field)
+    {
+        if (!field.TakesTypedKey || field.Kind != FormFieldKind.Parent)
+        {
+            return null;
+        }
+
+        var key = field.Entry.Trim().ToUpperInvariant();
+
+        return IssueUrls.IsValidKey(key) ? key : null;
+    }
+
+    private static FormField ChooseKey(FormField field, string key)
+    {
+        return Choose(field, new Suggestion(key, key, null, false));
     }
 
     /// <summary>

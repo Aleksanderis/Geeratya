@@ -149,6 +149,8 @@ public static class ContextMenus
         actions.AddRange(
         [
             ActionIds.ViewLayoutToggle,
+            ActionIds.ViewSavedOpen,
+            ActionIds.ViewSavedSave,
             ActionIds.IssueJump,
             ActionIds.StatusHistory,
             ActionIds.StatusDismiss,

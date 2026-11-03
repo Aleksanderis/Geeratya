@@ -4,11 +4,13 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Links;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Links.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Writes.Models;
 
 namespace Geeratya.Core.Tests.Links;
@@ -66,12 +68,80 @@ public class LinkFlowTests
         state = Type(state, "a-30");
         var submitted = Press(state, "Ctrl-s");
 
-        var effect = Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects));
+        var effect = Assert.Single(submitted.Effects.OfType<ExecuteWriteEffect>());
         var request = Assert.IsType<LinkIssuesRequest>(effect.Request);
         Assert.Equal("is blocked by", request.DirectionText);
         Assert.Equal("A-1", request.OutwardKey);
         Assert.Equal("A-30", request.InwardKey);
         Assert.Equal("Linking A-1 is blocked by A-30", submitted.State.Message);
+    }
+
+    [Fact]
+    public void GivenAWordOfTheSummary_WhenTyped_ThenTheIssuesAreSearchedAndTheAcceptedRowFillsTheKey()
+    {
+        var state = Press(LoadedForm(), "Enter").State;
+
+        var asked = Type(state, "login");
+        var form = Active(asked).Form!;
+        var popup = Assert.IsType<SuggestionState>(form.Suggest);
+        Assert.Equal(SuggestionKind.Issues, popup.Source.Kind);
+        Assert.Equal("login", popup.Query);
+
+        var loaded = _reducer.Reduce(
+            asked,
+            new SuggestionsLoaded(
+                Active(asked).Id,
+                popup.RequestId,
+                [new Suggestion("A-30", "Fix login", "A-30", false)]));
+        var accepted = Press(loaded.State, "Enter");
+
+        var field = Active(accepted.State).Form!.Fields[1];
+        Assert.Equal(["A-30"], field.Value.Chosen);
+        Assert.Equal(string.Empty, field.Entry);
+
+        var sent = Press(accepted.State, "Ctrl-s");
+        var request = Assert.IsType<LinkIssuesRequest>(Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>()).Request);
+        Assert.Equal("A-30", request.OtherKey);
+    }
+
+    [Fact]
+    public void GivenAFullKeyTypedByHand_WhenEnterIsPressed_ThenItIsTakenAndTheFormIsSent()
+    {
+        var state = Press(LoadedForm(), "Enter").State;
+
+        var sent = Press(Type(state, "a-30"), "Enter");
+
+        var effect = Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>());
+        Assert.Equal("A-30", Assert.IsType<LinkIssuesRequest>(effect.Request).OtherKey);
+    }
+
+    [Fact]
+    public void GivenAFullKeyTypedAndAPopupWithOtherRows_WhenEnter_ThenTheTypedKeyIsLinkedNotTheFirstRow()
+    {
+        var asked = Type(Press(LoadedForm(), "Enter").State, "a-3");
+        var popup = Active(asked).Form!.Suggest!;
+        var loaded = _reducer.Reduce(
+            asked,
+            new SuggestionsLoaded(
+                Active(asked).Id,
+                popup.RequestId,
+                [new Suggestion("A-30", "Other", "A-30", false)]));
+
+        var sent = Press(loaded.State, "Enter");
+
+        var request = Assert.IsType<LinkIssuesRequest>(Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>()).Request);
+        Assert.Equal("A-3", request.OtherKey);
+    }
+
+    [Fact]
+    public void GivenTextThatIsNoKeyAndNoPick_WhenSubmitted_ThenNothingIsSentAndTheFieldAsksForAPick()
+    {
+        var state = Type(Press(LoadedForm(), "Enter").State, "login");
+
+        var submitted = Press(state, "Ctrl-s");
+
+        Assert.DoesNotContain(submitted.Effects, effect => effect is ExecuteWriteEffect);
+        Assert.Equal(FormValidation.PickText, Active(submitted.State).Form!.Fields[1].Error);
     }
 
     [Fact]

@@ -110,6 +110,8 @@ public static class ActionCatalog
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.ViewQuickFilter, "Cycle the quick filter of the board (off, then each filter in turn)"),
         new(ActionIds.ViewSwimlane, "Group the board columns into lanes (none, assignee, epic)"),
+        new(ActionIds.ViewSavedOpen, "Open a saved view in a new tab"),
+        new(ActionIds.ViewSavedSave, "Save this view under a name (opens :view save)"),
         new(ActionIds.ViewCycleCommandLevel, "Switch the command level for the session"),
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),

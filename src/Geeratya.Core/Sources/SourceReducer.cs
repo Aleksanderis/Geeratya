@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -31,6 +32,15 @@ public static class SourceReducer
             return Plain(SprintsArrived(state, command));
         }
 
+        if (command is SavedViewsFailed writeFailed)
+        {
+            // The copy on screen may hold a change that was not stored: forget it so the next picker reads the file.
+            var forgotten = state.Session.Sources with { SavedViews = null };
+
+            return Plain(
+                WithLists(state, forgotten) with { Message = writeFailed.Message, MessageSeverity = StatusSeverity.Error });
+        }
+
         var lists = state.Session.Sources;
 
         var next = command switch
@@ -39,6 +49,11 @@ public static class SourceReducer
             FiltersLoaded loaded => lists with { Filters = loaded.Filters, FiltersLoading = false, FiltersError = null },
             SourceListFailed failed => lists.Failed(failed.Kind, LoadErrorText.For(failed.Error)),
             HistoryLoaded loaded when IsFresh(loaded, state) => lists with { History = loaded.History, HistoryVersion = loaded.Version },
+            SavedViewsLoaded loaded when SavedViewReducer.IsFresh(loaded, state) => lists with
+            {
+                SavedViews = loaded.Views,
+                SavedViewsVersion = loaded.Version,
+            },
             _ => lists,
         };
 
@@ -51,6 +66,11 @@ public static class SourceReducer
         if (state.Profiles.Active is null)
         {
             return Plain(state with { Message = NoProfileMessage });
+        }
+
+        if (verb == PaletteCommands.View)
+        {
+            return SavedViewReducer.Palette(state, argument);
         }
 
         if (verb == PaletteCommands.Jql && argument.Trim().Length == 0)
@@ -321,9 +341,21 @@ public static class SourceReducer
         return state with { Picker = picker with { Sprint = updated } };
     }
 
+    /// <summary>Opens the saved-view picker (<c>view.saved-open</c>).</summary>
+    public static ReduceResult OpenSavedViews(AppState state)
+    {
+        return SavedViewReducer.Palette(state, string.Empty);
+    }
+
     private static bool IsFresh(HistoryLoaded loaded, AppState state)
     {
         return loaded.Profile == state.Profiles.Active && loaded.Version > state.Session.Sources.HistoryVersion;
+    }
+
+    /// <summary>Opens the picker on the given scope with the text typed (used by <see cref="SavedViewReducer"/>).</summary>
+    public static ReduceResult OpenScoped(AppState state, PickerScope scope, string text)
+    {
+        return Open(state, scope, text, autoOpen: false);
     }
 
     private static ReduceResult Open(AppState state, PickerScope scope, string text, bool autoOpen)
@@ -336,10 +368,16 @@ public static class SourceReducer
         var filters = NeedsFilters(scope) && RequestIfNeeded(ref lists, SourceListKind.Filters);
 
         var needsHistory = scope is PickerScope.All or PickerScope.Jql && lists.History is null;
+        var needsViews = scope is PickerScope.All or PickerScope.Views && lists.SavedViews is null;
 
         if (needsHistory && state.Profiles.Active is { } profile)
         {
             effects.Add(new LoadHistoryEffect(profile));
+        }
+
+        if (needsViews && state.Profiles.Active is { } owner)
+        {
+            effects.Add(new LoadSavedViewsEffect(owner));
         }
 
         if (boards || filters)
