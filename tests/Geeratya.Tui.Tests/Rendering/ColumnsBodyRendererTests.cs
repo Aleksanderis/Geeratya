@@ -548,6 +548,11 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.Contains(body, line => HasSpan(line, TextRole.SelectedDim, "A-1"));
+        Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            body.Where(line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal)),
+            line => line.Spans.Any(span => span.Role.ToString().StartsWith("Type", StringComparison.Ordinal)
+                && span.Text.Contains("Task", StringComparison.Ordinal)));
         Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
         Assert.Contains(body, line => HasSpan(line, TextRole.Selected, "A-2"));
         Assert.DoesNotContain(body, line => HasSpan(line, TextRole.SelectedDim, "A-2"));

@@ -130,8 +130,7 @@ public sealed class FrameGrid
 
     /// <summary>
     /// One row as spans of exactly <see cref="Width"/> cells: border runs in the border or focus role, the interior
-    /// runs between
-    /// them from <paramref name="interior"/> (start column, cell count), and <paramref name="chips"/> written over the
+    /// runs between them from <paramref name="interior"/> (start column, cell count), and <paramref name="chips"/> written over the
     /// border cells they start on.
     /// </summary>
     public IReadOnlyList<StyledSpan> Row(

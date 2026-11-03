@@ -407,6 +407,12 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
         }
     }
 
+    private static bool IsQuietable(TextRole role)
+    {
+        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.TypeEpic or TextRole.TypeStory
+            or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask;
+    }
+
     /// <summary>
     /// Marks the card of a column without focus: the text and frame cells of the row become the quiet selection (the
     /// one-cell margins on each side stay on the page).
@@ -415,7 +421,7 @@ public sealed class ColumnsBodyRenderer : IBodyRenderer
     {
         for (var index = first + 1; index < spans.Count - 1; index++)
         {
-            if (spans[index].Role is TextRole.Body or TextRole.Muted or TextRole.Strong)
+            if (IsQuietable(spans[index].Role))
             {
                 spans[index] = spans[index] with { Role = TextRole.SelectedDim };
             }

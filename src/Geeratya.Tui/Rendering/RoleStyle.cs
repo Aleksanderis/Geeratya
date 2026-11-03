@@ -15,7 +15,7 @@ public enum RoleStyle
 
     /// <summary>
     /// Underline in the 16-colour and no-colour tiers only: a role whose 24-bit tier marks itself with a tint (the
-    /// of a pane without focus).
+    /// selection of a pane without focus).
     /// </summary>
     UnderlineWithoutTint = 32,
 }
