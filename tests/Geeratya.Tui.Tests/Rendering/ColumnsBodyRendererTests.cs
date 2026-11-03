@@ -98,10 +98,10 @@ public class ColumnsBodyRendererTests
         Assert.EndsWith("╯", body[^1].PlainText);
         Assert.Contains("┴", body[^1].PlainText);
         var toDo = body[1].Spans.Single(span => span.Text.Contains("To Do", StringComparison.Ordinal));
-        Assert.Equal(TextRole.Heading, toDo.Role);
+        Assert.Equal(TextRole.ChipFocus, toDo.Role);
         Assert.DoesNotContain(
             body[1].Spans.Where(span => span.Text.Contains("Doing", StringComparison.Ordinal)),
-            span => span.Role == TextRole.Heading);
+            span => span.Role == TextRole.ChipFocus);
         Assert.Equal(5, body[2].PlainText.Count(character => character == '│'));
     }
 
@@ -137,7 +137,7 @@ public class ColumnsBodyRendererTests
         Assert.Contains("┗━", body[11].PlainText);
         var top = body[7].Spans.First(span => span.Text.Contains('┏', StringComparison.Ordinal));
         var summary = body[9].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
-        Assert.Equal(TextRole.Selected, top.Role);
+        Assert.Equal(TextRole.FrameFocus, top.Role);
         Assert.Equal(TextRole.Selected, summary.Role);
         Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
         Assert.Single(body, line => line.PlainText.Contains('┏', StringComparison.Ordinal));
@@ -253,7 +253,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 40, 8);
 
         Assert.StartsWith("╭─‹ To Do 1  Doing 1  Empty 0 ›", body[1].PlainText);
-        Assert.Equal(TextRole.Heading, body[1].Spans.Single(span => span.Text == "Doing 1").Role);
+        Assert.Equal(TextRole.ChipFocus, body[1].Spans.Single(span => span.Text == "Doing 1").Role);
         Assert.StartsWith("│>T A-2 Summary", body[2].PlainText);
         Assert.Equal(40, TextWidth.Of(body[1].PlainText));
     }
@@ -522,6 +522,47 @@ public class ColumnsBodyRendererTests
         return [StyledLine.Of(title, TextRole.Heading), .. frame];
     }
 
+    [Fact]
+    public void GivenTheCursorInTheSecondColumn_WhenRendering_ThenOnlyThatBoxIsFocusedAndOthersAreQuiet()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2"), Issue("3", "A-3")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+        var edge = body[1].Spans;
+
+        Assert.Equal(TextRole.Border, edge[0].Role);
+        Assert.Contains(edge, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Doing"));
+        Assert.DoesNotContain(edge, span => span.Role == TextRole.ChipFocus && span.Text.Contains("To Do"));
+        Assert.Contains(edge, span => span.Role == TextRole.Muted && span.Text.Contains("To Do"));
+        Assert.Contains(edge, span => span.Role == TextRole.FrameFocus && span.Text.Contains('┬'));
+        Assert.Equal(TextRole.Border, body[^1].Spans[0].Role);
+        Assert.Contains(body[^1].Spans, span => span.Role == TextRole.FrameFocus);
+        Assert.Equal(TextRole.Border, body[^1].Spans[^1].Role);
+    }
+
+    [Fact]
+    public void GivenAColumnWithoutFocus_WhenRendering_ThenItsRememberedCardCarriesTheQuietSelection()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+
+        Assert.Contains(body, line => HasSpan(line, TextRole.SelectedDim, "A-1"));
+        Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            body.Where(line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal)),
+            line => line.Spans.Any(span => span.Role.ToString().StartsWith("Type", StringComparison.Ordinal)
+                && span.Text.Contains("Task", StringComparison.Ordinal)));
+        Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
+        Assert.Contains(body, line => HasSpan(line, TextRole.Selected, "A-2"));
+        Assert.DoesNotContain(body, line => HasSpan(line, TextRole.SelectedDim, "A-2"));
+    }
+
+    private static bool HasSpan(StyledLine line, TextRole role, string text)
+    {
+        return line.Spans.Any(span => span.Role == role && span.Text.Contains(text, StringComparison.Ordinal));
+    }
+
     private static TabState SprintTab(params IssueSummary[] rows)
     {
         var tab = Tab(rows);
@@ -638,7 +679,7 @@ public class ColumnsBodyRendererTests
     public void GivenAnUnselectedParent_WhenRendering_ThenItsSummaryIsStrongAndItsChildIsNot()
     {
         var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P") };
-        var tab = Tab(child, Issue("1", "A-1"), Issue("2", "A-9")) with { SelectedKey = "A-9" };
+        var tab = Tab(child, Issue("1", "A-1"), Issue("1", "A-9")) with { SelectedKey = "A-9" };
 
         var body = Render(tab, 120, 30);
 

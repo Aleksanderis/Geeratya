@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL                              j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit
+ NORMAL                    j/k move  Enter open  Space o browser  Space i c create  ] ] pane  ? help  : commands  q quit

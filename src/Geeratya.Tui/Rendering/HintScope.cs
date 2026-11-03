@@ -8,6 +8,9 @@ public enum HintScope
     Global,
     List,
     ListOnBoard,
+
+    /// <summary>The Scrum backlog: a list whose sections are panes (<c>] ]</c> jumps between them).</summary>
+    Backlog,
     Columns,
     Detail,
 }
