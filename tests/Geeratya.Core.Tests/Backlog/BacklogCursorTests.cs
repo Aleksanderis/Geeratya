@@ -236,6 +236,32 @@ public class BacklogCursorTests
         Assert.Equal(row, BacklogCursor.RowAtLine(layout, line));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GivenAnyLayout_WhenLookingUpItems_ThenRowAndSprintIndexesRoundTripThroughItemAt(bool collapsed)
+    {
+        var tab = collapsed ? Tab(collapsed: [BacklogSections.SprintKey(BacklogFixtures.FutureId)]) : Tab();
+        var layout = BacklogSections.Build(tab);
+
+        for (var index = 0; index < layout.ItemCount; index++)
+        {
+            var item = layout.ItemAt(index);
+
+            if (item.SprintId is { } sprintId)
+            {
+                Assert.Equal(index, layout.ItemIndexOfSprint(sprintId));
+            }
+            else
+            {
+                Assert.Equal(index, layout.ItemIndexOfRow(item.Row));
+            }
+        }
+
+        Assert.Equal(layout.Stops.Count + 1, layout.ItemCount);
+        Assert.Equal(-1, layout.ItemIndexOfSprint(BacklogFixtures.ActiveId));
+    }
+
     private static TabState Tab(IReadOnlyList<string>? collapsed = null, int viewport = 20)
     {
         var rows = BacklogSections.Order(BacklogFixtures.RankedRows);

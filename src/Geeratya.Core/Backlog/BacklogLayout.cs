@@ -30,8 +30,8 @@ public sealed class BacklogLayout
 
     /// <summary>
     /// How many places the keyboard cursor visits: the stops, and the header of every empty sprint section (known by
-    /// its sprint) at its place between them. Items are addressed by <see cref="ItemAt"/>, never materialized, so a
-    /// build costs work proportional to the sections, not the rows.
+    /// its sprint) at its place between them. Items are computed by <see cref="ItemAt"/> from the stops and the empty
+    /// sections, not stored as a second array of one entry per row.
     /// </summary>
     public int ItemCount => _stops.Length + _empties.Length;
 
