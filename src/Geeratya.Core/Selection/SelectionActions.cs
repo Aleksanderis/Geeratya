@@ -25,8 +25,6 @@ public static class SelectionActions
     /// </summary>
     private static readonly HashSet<string> _singleIssueWrites =
     [
-        ActionIds.RankUp,
-        ActionIds.RankDown,
         ActionIds.RankTop,
         ActionIds.RankBottom,
         ActionIds.RankTo,
