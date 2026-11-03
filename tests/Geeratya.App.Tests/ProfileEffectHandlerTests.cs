@@ -1,3 +1,4 @@
+using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Profiles;
@@ -138,7 +139,8 @@ public sealed class ProfileEffectHandlerTests : IDisposable
             new ProfileStore(Path.Combine(blocked, "inner")),
             new TokenProvider(new FakeSecretStore(), new EnvironmentReader(_ => null)),
             new SiteCaches(Path.Combine(_directory, "cache")),
-            new HistoryStore(Path.Combine(_directory, "state")));
+            new HistoryStore(Path.Combine(_directory, "state")),
+            new BoardKindStore(Path.Combine(_directory, "state")));
         var handler = new ProfileEffectHandler(profiles);
 
         var outcome = await handler.RunAsync(
@@ -219,7 +221,8 @@ public sealed class ProfileEffectHandlerTests : IDisposable
             new ProfileStore(_directory),
             new TokenProvider(store, new EnvironmentReader(_ => null)),
             new SiteCaches(Path.Combine(_directory, "cache")),
-            new HistoryStore(Path.Combine(_directory, "state")));
+            new HistoryStore(Path.Combine(_directory, "state")),
+            new BoardKindStore(Path.Combine(_directory, "state")));
 
         return new Fixture(new ProfileEffectHandler(profiles), profiles);
     }

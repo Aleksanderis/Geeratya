@@ -11,9 +11,9 @@ namespace Geeratya.Jira.Sprints;
 /// does not support sprints" is Kanban. Any 400 counts as Kanban (the probe sends nothing else Jira could reject). Any other failure is returned and not
 /// remembered. Probed answers are
 /// remembered for this resolver (one per connection); the caller may seed it from a per-profile store with
-/// <see cref="Remember"/>.
+/// <see cref="Remember"/> and hears of each new probed answer through <c>onProbed</c> (not of seeded ones).
 /// </summary>
-public sealed class BoardKindResolver(SprintClient sprints)
+public sealed class BoardKindResolver(SprintClient sprints, Action<long, BoardKind>? onProbed = null)
 {
     private readonly ConcurrentDictionary<long, BoardKind> _known = new();
 
@@ -57,6 +57,7 @@ public sealed class BoardKindResolver(SprintClient sprints)
     private JiraResult<BoardKind> Remembered(long boardId, BoardKind kind)
     {
         _known[boardId] = kind;
+        onProbed?.Invoke(boardId, kind);
 
         return JiraResults.Success(kind);
     }

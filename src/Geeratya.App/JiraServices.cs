@@ -8,6 +8,7 @@ using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Filters;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Transitions;
 using Geeratya.Jira.Transport;
@@ -22,10 +23,11 @@ namespace Geeratya.App;
 /// </summary>
 public sealed class JiraServices
 {
-    private JiraServices(JiraTransport transport, int generation)
+    private JiraServices(JiraTransport transport, BoardKindResolver boardKinds, int generation)
     {
         Transport = transport;
         Generation = generation;
+        BoardKinds = boardKinds;
         Search = new JiraSearchClient(transport);
         Users = new JiraUserClient(transport);
         Issues = new IssueClient(transport);
@@ -40,6 +42,9 @@ public sealed class JiraServices
         Transitions = new TransitionClient(transport);
         Ranks = new RankClient(transport);
     }
+
+    /// <summary>Scrum or Kanban per board; answers are kept per profile, so a board is probed once.</summary>
+    public BoardKindResolver BoardKinds { get; }
 
     /// <summary>Create metadata and the create call (the write is only called from the write handler).</summary>
     public IssueCreateClient Creates { get; }
@@ -88,10 +93,10 @@ public sealed class JiraServices
     public static JiraServices? Create(SiteConnections connections)
     {
         var generation = connections.Generation;
-        var transport = connections.Current;
+        var (transport, kinds) = connections.Snapshot();
 
         // Generation is read first: if a switch lands in between, the stamp is older than the transport and the
         // result is dropped as stale, never the other way round.
-        return transport is null ? null : new JiraServices(transport, generation);
+        return transport is null || kinds is null ? null : new JiraServices(transport, kinds, generation);
     }
 }

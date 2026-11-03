@@ -90,6 +90,7 @@ public sealed class ProfileEffectHandler
     {
         try
         {
+            _services.BoardKinds.Delete(remove.Profile);
             _services.Histories.Delete(remove.Profile);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

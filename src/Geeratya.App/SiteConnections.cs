@@ -1,4 +1,7 @@
+using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Profiles;
+using Geeratya.Jira.Sprints;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Core.State;
 using Geeratya.Jira;
 using Geeratya.Jira.Transport;
@@ -25,14 +28,20 @@ public sealed class SiteConnections : IDisposable
     private readonly ITransportFactory _transports;
     private readonly object _lock = new();
     private Profile? _profile;
+    private readonly BoardKindStore? _boardKinds;
     private JiraTransport? _transport;
+    private BoardKindResolver? _kinds;
     private Profile? _failedProfile;
     private int _failedProfileCount;
     private int _generation;
     private Task _connecting = Task.CompletedTask;
 
-    public SiteConnections(TokenProvider tokens, ITransportFactory? transports = null)
+    public SiteConnections(
+        TokenProvider tokens,
+        ITransportFactory? transports = null,
+        BoardKindStore? boardKinds = null)
     {
+        _boardKinds = boardKinds;
         _tokens = tokens;
         _transports = transports ?? new DefaultTransportFactory();
     }
@@ -52,6 +61,18 @@ public sealed class SiteConnections : IDisposable
             {
                 return _transport;
             }
+        }
+    }
+
+    /// <summary>
+    /// The transport and the board-kind resolver of the active profile, read together so they belong to one
+    /// connection. The resolver is seeded from the profile's stored answers and stores each new one.
+    /// </summary>
+    internal (JiraTransport? Transport, BoardKindResolver? Kinds) Snapshot()
+    {
+        lock (_lock)
+        {
+            return (_transport, _kinds);
         }
     }
 
@@ -213,6 +234,7 @@ public sealed class SiteConnections : IDisposable
             if (generation == _generation)
             {
                 _transport = transport;
+                _kinds = CreateResolver(profile, transport);
                 transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
 
                 return null;
@@ -222,6 +244,36 @@ public sealed class SiteConnections : IDisposable
         transport.Dispose();
 
         return null;
+    }
+
+    private BoardKindResolver CreateResolver(Profile profile, JiraTransport transport)
+    {
+        var resolver = new BoardKindResolver(
+            new SprintClient(transport),
+            (boardId, kind) => SaveKind(profile, boardId, kind));
+
+        if (_boardKinds is not null)
+        {
+            foreach (var (boardId, kind) in _boardKinds.Load(profile))
+            {
+                resolver.Remember(boardId, kind);
+            }
+        }
+
+        return resolver;
+    }
+
+    /// <summary>The answers are a convenience: a file that cannot be written only means one more probe next run.</summary>
+    private void SaveKind(Profile profile, long boardId, BoardKind kind)
+    {
+        try
+        {
+            _boardKinds?.Save(profile, boardId, kind);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Not reported: see above.
+        }
     }
 
     private void OnRateLimitWaitChanged(int generation, JiraTransport transport)
@@ -252,6 +304,7 @@ public sealed class SiteConnections : IDisposable
         var old = _transport;
 
         _transport = null;
+        _kinds = null;
         _profile = profile;
         _failedProfile = null;
         _generation++;

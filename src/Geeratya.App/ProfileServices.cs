@@ -1,3 +1,4 @@
+using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
@@ -20,6 +21,7 @@ public sealed record ProfileServices(
     TokenProvider Tokens,
     SiteCaches Caches,
     HistoryStore Histories,
+    BoardKindStore BoardKinds,
     UserKeymapStore? Keymap = null,
     SettingsStore? Settings = null,
     string? ThemesDirectory = null)
@@ -52,6 +54,7 @@ public sealed record ProfileServices(
             new TokenProvider(secretStore, environment),
             new SiteCaches(directories.CacheDirectory, permissions),
             new HistoryStore(directories.StateDirectory, permissions),
+            new BoardKindStore(directories.StateDirectory, permissions),
             new UserKeymapStore(directories.ConfigDirectory),
             new SettingsStore(directories.ConfigDirectory),
             Path.Combine(directories.ConfigDirectory, "themes"));
