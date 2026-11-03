@@ -142,32 +142,21 @@ public static class StatusMessages
             return state with { Message = reloaded.Message };
         }
 
-        return AddWarnings(Warn(state, reloaded.Message), KeymapWarnings(problems));
+        return AddWarnings(Warn(state, reloaded.Message), problems.Count > 1 ? KeymapWarnings(problems) : []);
     }
 
     /// <summary>
-    /// The startup report of loading <c>keymap.json</c>: the notice joins <see cref="AppState.Message"/> (after what is
-    /// already there) and several problems each become a history warning. Does nothing for a null load.
+    /// The startup report of loading <c>keymap.json</c>: each problem is a startup problem (see
+    /// <see cref="AddStartupProblems"/>). Does nothing for a null load.
     /// </summary>
     public static AppState KeymapStartup(AppState state, KeymapLoadResult? load)
     {
-        var notice = JoinNotices(state.Message, load?.Notice);
-        var withNotice = notice is null
-            ? state with { Message = null }
-            : state with { Message = notice, MessageSeverity = StatusSeverity.Warning };
-
-        return AddWarnings(withNotice, KeymapWarnings(load?.Problems ?? []));
-    }
-
-    /// <summary>Two notices on one status line, separated by a bar; either may be null.</summary>
-    public static string? JoinNotices(string? first, string? second)
-    {
-        return first is not null && second is not null ? $"{first} | {second}" : first ?? second;
+        return AddStartupProblems(state, KeymapWarnings(load?.Problems ?? []));
     }
 
     private static List<string> KeymapWarnings(IReadOnlyList<string> problems)
     {
-        return problems.Count > 1 ? [.. problems.Select(problem => KeymapPrefix + problem)] : [];
+        return [.. problems.Select(problem => KeymapPrefix + problem)];
     }
 
     private static bool IsKeymapProblem(StatusMessage message)
@@ -185,28 +174,37 @@ public static class StatusMessages
     }
 
     /// <summary>
-    /// The startup notice and the warnings of reading <c>settings.json</c> as messages: every warning is a history
-    /// entry; the status line shows the notice, else the one warning, else a count that points to the overlay.
+    /// The startup notice (a corrupt profiles file) and the warnings of reading <c>settings.json</c>, as startup
+    /// problems (see <see cref="AddStartupProblems"/>).
     /// </summary>
     public static AppState Startup(AppState state, string? notice, IReadOnlyList<string> warnings)
     {
-        var shown = notice ?? (warnings.Count switch
+        return AddStartupProblems(state, notice is null ? warnings : [notice, .. warnings]);
+    }
+
+    /// <summary>
+    /// Adds problems found while starting (settings, keymap, themes, profiles). Every one enters the history; the
+    /// status line shows the first problem found, with a count of the others and a pointer to the overlay.
+    /// </summary>
+    public static AppState AddStartupProblems(AppState state, IReadOnlyList<string> problems)
+    {
+        if (problems.Count == 0)
         {
-            0 => null,
-            1 => warnings[0],
-            _ => $"{warnings.Count} problems in settings.json (see the Messages overlay)",
-        });
-        var history = warnings
-            .Where(warning => notice is not null || warnings.Count > 1 || warning != shown)
-            .Select(warning => new StatusMessage(warning, StatusSeverity.Warning))
-            .Reverse()
-            .ToList();
+            return state;
+        }
+
+        var all = (IReadOnlyList<string>)[.. state.StartupProblems, .. problems];
+        var more = all.Count > 1 ? $" (+{all.Count - 1} more, <space>n)" : string.Empty;
+
+        // The status is set directly, not through Message, so the settle step does not post it a second time.
+        var added = problems.Select(problem => new StatusMessage(problem, StatusSeverity.Warning)).Reverse();
 
         return state with
         {
-            StatusHistory = history,
-            Message = shown,
-            MessageSeverity = notice is null && shown is not null ? StatusSeverity.Warning : StatusSeverity.Info,
+            StartupProblems = all,
+            StatusHistory = [.. added, .. state.StatusHistory],
+            Message = null,
+            Status = new StatusMessage(all[0] + more, StatusSeverity.Warning),
         };
     }
 

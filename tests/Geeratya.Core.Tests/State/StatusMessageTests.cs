@@ -268,25 +268,23 @@ public sealed class StatusMessageTests
     }
 
     [Fact]
-    public void GivenSeveralKeymapProblemsAtStartup_WhenReporting_ThenTheNoticeJoinsAndEachProblemIsAWarning()
+    public void GivenSeveralKeymapProblemsAtStartup_WhenReporting_ThenTheFirstShowsWithACountAndEachProblemIsAWarning()
     {
         var load = new KeymapLoadResult([], ["a", "b"]);
-        var start = AppState.Initial with { Message = "Settings problem" };
+        var state = StatusMessages.KeymapStartup(AppState.Initial, load);
 
-        var state = StatusMessages.KeymapStartup(start, load);
-
-        Assert.Equal("Settings problem | keymap.json: a (and 1 more; see the Messages overlay)", state.Message);
-        Assert.Equal(StatusSeverity.Warning, state.MessageSeverity);
+        Assert.Equal("keymap.json: a (+1 more, <space>n)", state.Status!.Text);
+        Assert.Equal(StatusSeverity.Warning, state.Status.Severity);
         Assert.Equal(["keymap.json: a", "keymap.json: b"], [.. state.StatusHistory.Select(message => message.Text).Order()]);
     }
 
     [Fact]
-    public void GivenASingleKeymapProblemAtStartup_WhenReporting_ThenOnlyTheNoticeShows()
+    public void GivenASingleKeymapProblemAtStartup_WhenReporting_ThenItShowsAndIsKeptInTheHistory()
     {
         var state = StatusMessages.KeymapStartup(AppState.Initial, new KeymapLoadResult([], ["a"]));
 
-        Assert.Equal("keymap.json: a", state.Message);
-        Assert.Empty(state.StatusHistory);
+        Assert.Equal("keymap.json: a", state.Status!.Text);
+        Assert.Equal(["keymap.json: a"], state.StatusHistory.Select(message => message.Text).ToList());
     }
 
     [Fact]
