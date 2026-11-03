@@ -1,0 +1,10 @@
+ 1 Backlog Scrum board   +              
+                                        
+╭─ Scrum board ───────────── 5 issues ─╮
+│  Key   T Summary                    S│
+├─ Sprint 1 · active ─ 2 Nov - 16 No… ─┤
+│    Goal: Ship the login 日本語       │
+│>+GCS-3 S Fix login redirect after t ○│
+│ +GCS-4 S As a user I can filter by  ○│
+╰──────────────────────────────────────╯
+ VISUAL  3 selected                     

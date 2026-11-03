@@ -14,4 +14,7 @@ internal enum RoleGround
 
     /// <summary>A filled chip: the variant's ground colour on the role's own colour (spec background).</summary>
     Chip,
+
+    /// <summary>Reverse video of the variant's ground: the Visual range.</summary>
+    Range,
 }

@@ -8,6 +8,10 @@ public static class PaletteTable
 {
     private const double TextContrast = 4.5;
     private const double DividerContrast = 3.0;
+    private const double HighContrast = 7.0;
+    private const double RangeAccentShare = 0.35;
+    private const double RangeAccentStep = 0.05;
+    private const double RangeTextShare = 0.9;
 
     private static readonly Dictionary<PaletteRole, RoleSpec> _specs = new()
     {
@@ -127,6 +131,11 @@ public static class PaletteTable
             ThemeColor.Selection,
             RoleStyle.UnderlineWithoutTint),
         [PaletteRole.OverlayCount] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Range] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.Selection,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.Range),
     };
 
     private static readonly Dictionary<TextRole, PaletteRole> _textRoles = new()
@@ -183,6 +192,7 @@ public static class PaletteTable
         [TextRole.ChipFocus] = PaletteRole.ChipFocus,
         [TextRole.SelectedDim] = PaletteRole.SelectedDim,
         [TextRole.OverlayCount] = PaletteRole.OverlayCount,
+        [TextRole.Range] = PaletteRole.Range,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();
@@ -207,8 +217,8 @@ public static class PaletteTable
         foreach (var (role, spec) in _specs)
         {
             entries[role] = new PaletteEntry(
-                theme.Colors[spec.Foreground],
-                role == PaletteRole.SelectedDim ? DimSelection(theme) : theme.Colors[spec.Background],
+                role == PaletteRole.Range ? RangeText(theme) : theme.Colors[spec.Foreground],
+                BackgroundOf(theme, role, spec),
                 Foreground16(theme, spec),
                 Background16(theme, spec),
                 spec.Style);
@@ -222,6 +232,48 @@ public static class PaletteTable
     private static Rgb DimSelection(Theme theme)
     {
         return Rgb.Blend(theme.Colors[ThemeColor.Selection], theme.Colors[ThemeColor.BaseBackground], 0.5);
+    }
+
+    private static Rgb BackgroundOf(Theme theme, PaletteRole role, RoleSpec spec)
+    {
+        return role switch
+        {
+            PaletteRole.SelectedDim => DimSelection(theme),
+            PaletteRole.Range => RangeSelection(theme),
+            _ => theme.Colors[spec.Background],
+        };
+    }
+
+    // The text of a range row: the theme's text moved towards black or white, so the tint can go further from the
+    // page and the text still reads (many selection tints sit at the contrast limit of the plain text).
+    private static Rgb RangeText(Theme theme)
+    {
+        var extreme = theme.Variant == ThemeVariant.Light ? new Rgb(0, 0, 0) : new Rgb(255, 255, 255);
+
+        return Rgb.Blend(theme.Colors[ThemeColor.BaseForeground], extreme, RangeTextShare);
+    }
+
+    // The Visual range: the selection tint moved towards the accent, so a range reads stronger than a lone selected
+    // row (ux-look.md, section 4). Derived, so theme files need no new colour. The step shrinks until the text keeps
+    // its contrast (4.5, or 7 in a theme that reaches it on the selection).
+    private static Rgb RangeSelection(Theme theme)
+    {
+        var selection = theme.Colors[ThemeColor.Selection];
+        var accent = theme.Colors[ThemeColor.Accent];
+        var text = RangeText(theme);
+        var required = Contrast.Ratio(theme.Colors[ThemeColor.BaseForeground], selection) >= HighContrast ? HighContrast : TextContrast;
+
+        for (var share = RangeAccentShare; share > 0; share -= RangeAccentStep)
+        {
+            var tint = Rgb.Blend(selection, accent, share);
+
+            if (Contrast.Ratio(text, tint) >= required)
+            {
+                return tint;
+            }
+        }
+
+        return selection;
     }
 
     // A filled chip: the page colour in bold on the role's own colour. Bold only (no reverse): the bars are reversed
@@ -241,6 +293,11 @@ public static class PaletteTable
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.White;
+        }
+
+        if (spec.Ground == RoleGround.Range)
+        {
+            return theme.Variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
         }
 
         var light = theme.Variant == ThemeVariant.Light;
@@ -272,6 +329,11 @@ public static class PaletteTable
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.Blue;
+        }
+
+        if (spec.Ground == RoleGround.Range)
+        {
+            return variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Gray;
         }
 
         return variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
