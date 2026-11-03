@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Keymap;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Transport;
@@ -283,6 +284,41 @@ public class TabBarTests
         Assert.Null(TabBar.JumpChip(tabs, tabs[0].Id, 44));
         Assert.Equal(44, DisplayWidth.Of(line.PlainText));
         Assert.All(TabBar.Areas(tabs, tabs[0].Id, 44), area => Assert.True(area.End <= 44 - 13));
+    }
+
+    [Fact]
+    public void GivenAKeymapWithoutThePaletteKey_WhenBuilding_ThenTheChipDropsTheKeyAndStaysClickable()
+    {
+        var tabs = Tabs("project = A");
+        var keymap = new KeymapTable([]);
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80, keymap);
+        var chip = TabBar.CommandsChip(tabs, tabs[0].Id, 80, keymap)!.Value;
+
+        Assert.Equal(" commands ", line.PlainText.Substring(chip.Start, chip.End - chip.Start));
+    }
+
+    [Fact]
+    public void GivenARemappedPaletteKey_WhenBuilding_ThenTheChipNamesIt()
+    {
+        var tabs = Tabs("project = A");
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-p", ActionIds.PaletteOpen)]);
+
+        Assert.Contains(" Ctrl-p commands ", TabBar.BuildWithJumpChip(tabs, tabs[0].Id, 80, keymap).PlainText);
+    }
+
+    [Theory]
+    [InlineData(44)]
+    [InlineData(48)]
+    public void GivenSeveralTabs_WhenWidthIsFortyFourOrFortyEight_ThenTheBarKeepsItsHiddenTabMarks(int width)
+    {
+        var tabs = Tabs("project = A", "project = B", "project = C", "project = D");
+
+        var line = TabBar.BuildWithJumpChip(tabs, tabs[1].Id, width);
+
+        Assert.Contains("‹", line.PlainText);
+        Assert.Contains("commands", line.PlainText);
+        Assert.Equal(width, DisplayWidth.Of(line.PlainText));
     }
 
     [Fact]

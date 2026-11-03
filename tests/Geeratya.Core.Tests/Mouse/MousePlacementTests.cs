@@ -437,9 +437,10 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.List, 40, 24, "1:A-1");
 
-        var (result, _) = Resolve(state, 40, 24, 39, 0, MouseGesture.Click);
+        var context = MouseContext.From(state, 40, 24, 2, default);
 
-        Assert.NotEqual(InputMode.Command, result.Mode);
+        Assert.Equal(MouseTarget.JumpChip, MouseHitTester.Locate(context, 39, 0)!.Target);
+        Assert.Null(context.CommandsChip);
     }
 
     [Fact]

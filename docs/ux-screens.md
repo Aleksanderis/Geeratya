@@ -304,7 +304,7 @@ Overflow: when the chips do not fit, the window of tabs slides so the active one
 
 A ` + ` button (clickable, `tab.new`) follows the last chip when the line has a spare cell and no tab is hidden on the right; the `‹n` and `+n ›` marks are clickable too and step to the neighbouring hidden tab (`docs/ux-mouse.md`). The window grows around the active tab, right neighbour first, as long as the line fits. The bar always takes the first row, full width on the bar background and blank when no tab is open, so the body height and the list viewport do not change when the first tab opens or the last one closes. Loading and failed marks follow the tab's last request. Next and previous wrap around.
 
-A dim chip with the keys of `issue.jump` (` <space>g jump `, clickable) is right-aligned in the line when at least one cell remains after the last chip or the `+`; it is not drawn when no tab is open.
+A dim chip with the keys of `issue.jump` (` <space>g jump `, clickable) is right-aligned in the line when at least one cell remains after the last chip or the `+`; it is not drawn when no tab is open. From 44 columns a dim ` : commands ` chip (`palette.open`, clickable) sits left of it; the tabs always leave its cells free (so the `+` and the jump chip give way first), and the jump chip is dropped when it would not fit beside it. The commands chip also shows with no tab open.
 
 Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9` go to a tab, `<space>t` opens the source picker for a new tab, `<space>c` closes the tab (the right neighbour becomes active, the left one if it was last). Closing the last tab leaves the empty shell with its hint line. There is no tab limit; the numbered keys reach the first nine.
 

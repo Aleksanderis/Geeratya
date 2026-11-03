@@ -223,13 +223,14 @@ public static class TabBar
 
         var activeIndex = Math.Max(0, IndexOf(tabs, active));
         var closeable = width >= CloseFrom;
+        var compact = width < CompactBelow;
 
         if (width >= CommandsFrom)
         {
             width -= DisplayWidth.Of(CommandsChipText(keymap)) + Separator.Length;
         }
 
-        if (width < CompactBelow)
+        if (compact)
         {
             return Window(tabs, activeIndex, width, closeable, marks: false);
         }
