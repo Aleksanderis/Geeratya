@@ -38,6 +38,7 @@ public sealed class AppReducer
     ];
 
     private const string EscapeKey = "Esc";
+    private const int HelpHalfPage = 8;
     private const string ConfirmTooSmallText =
         "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
@@ -503,6 +504,10 @@ public sealed class AppReducer
             ActionIds.HelpFilter => Result(HelpReducer.OpenFilter(state)),
             ActionIds.HelpPageNext => Result(HelpReducer.Step(state, _keymap, 1)),
             ActionIds.HelpPagePrevious => Result(HelpReducer.Step(state, _keymap, -1)),
+            ActionIds.HelpScrollDown => Result(ScrollHelp(state, 1)),
+            ActionIds.HelpScrollUp => Result(ScrollHelp(state, -1)),
+            ActionIds.HelpHalfPageDown => Result(ScrollHelp(state, HelpHalfPage)),
+            ActionIds.HelpHalfPageUp => Result(ScrollHelp(state, -HelpHalfPage)),
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
@@ -707,6 +712,11 @@ public sealed class AppReducer
     /// </summary>
     private ReduceResult Navigate(AppState state, ListMove move, int helpDelta)
     {
+        if (state is { Mode: InputMode.Help, MessagesOpen: false } && move is ListMove.Down or ListMove.Up)
+        {
+            return Result(HelpReducer.Select(state, _keymap, helpDelta));
+        }
+
         if (state.Mode == InputMode.Help)
         {
             return Result(ScrollHelp(state, helpDelta));
