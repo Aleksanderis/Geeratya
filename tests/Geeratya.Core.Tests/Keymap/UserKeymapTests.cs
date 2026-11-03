@@ -212,7 +212,7 @@ public sealed class UserKeymapTests : IDisposable
     {
         var result = new KeymapLoadResult([], ["first", "second", "third"]);
 
-        Assert.Equal("keymap.json: first (and 2 more)", result.Notice);
+        Assert.Equal("keymap.json: first (and 2 more; see the Messages overlay)", result.Notice);
     }
 
     [Fact]
@@ -281,6 +281,68 @@ public sealed class UserKeymapTests : IDisposable
         var result = reducer.Reduce(AppState.Initial, new KeymapReloaded("Keymap reloaded"));
 
         Assert.Equal("Keymap reloaded", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenSeveralKeymapProblems_WhenReloading_ThenEachIsAWarningInTheHistory()
+    {
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var result = new KeymapLoadResult([], ["first", "second", "third"]);
+
+        var state = reducer.Reduce(AppState.Initial, new KeymapReloaded(result.Notice!, result.Problems)).State;
+
+        Assert.Equal(StatusSeverity.Warning, state.Status!.Severity);
+        Assert.Equal(["third", "second", "first"], state.StatusHistory.Skip(1).Select(message => message.Text));
+        Assert.All(state.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
+    }
+
+    [Fact]
+    public void GivenOneKeymapProblem_WhenReloading_ThenItIsOneWarningNotTwo()
+    {
+        var reducer = new AppReducer(DefaultKeymap.Load());
+        var result = new KeymapLoadResult([], ["only"]);
+
+        var state = reducer.Reduce(AppState.Initial, new KeymapReloaded(result.Notice!, result.Problems)).State;
+
+        Assert.Single(state.StatusHistory);
+        Assert.Equal(StatusSeverity.Warning, state.Status!.Severity);
+    }
+
+    [Theory]
+    [InlineData("normal")]
+    [InlineData("help")]
+    [InlineData("command")]
+    [InlineData("confirm")]
+    public void GivenFileUnbindingOrRebindingCtrlC_WhenMerging_ThenBothRowsAreRefusedAndCtrlCStillQuits(string mode)
+    {
+        var json = $$"""
+            { "unbind": [ { "mode": "{{mode}}", "keys": "Ctrl-c" } ],
+              "bindings": [ { "mode": "{{mode}}", "keys": "Ctrl-c", "action": "nav.down" } ] }
+            """;
+
+        var table = Merge(json, out var problems);
+
+        Assert.Equal(2, problems.Count);
+        Assert.All(problems, problem => Assert.Contains("always quits", problem));
+        Assert.Equal(ActionIds.Quit, table.Resolve(Enum.Parse<InputMode>(mode, ignoreCase: true), string.Empty, "Ctrl-c").Action);
+    }
+
+    [Fact]
+    public void GivenFileUnbindingQuitEscAndColon_WhenPressingCtrlC_ThenTheAppStillQuits()
+    {
+        var json = """
+            { "unbind": [ { "mode": "normal", "keys": "q" }, { "mode": "normal", "keys": "Esc" },
+                          { "mode": "normal", "keys": ":" }, { "mode": "normal", "keys": "Ctrl-c" } ] }
+            """;
+        var result = UserKeymap.Merge(DefaultKeymap.Load().Bindings, json);
+        var table = new KeymapTable(result.Bindings.Where(binding => binding.Keys != "Ctrl-c").ToList());
+        var reducer = new AppReducer(table);
+
+        var quit = reducer.Reduce(AppState.Initial, new KeyPressed("Ctrl-c"));
+        var plainQ = reducer.Reduce(AppState.Initial, new KeyPressed("q"));
+
+        Assert.Single(quit.Effects.OfType<QuitEffect>());
+        Assert.Empty(plainQ.Effects);
     }
 
     private static KeymapTable Merge(string json)

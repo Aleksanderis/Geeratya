@@ -111,6 +111,30 @@ public static class StatusMessages
     }
 
     /// <summary>
+    /// A keymap reload as messages: the line for the status bar, and with several problems each one as a warning in the
+    /// history (the summary line points there). A reload with problems is a warning.
+    /// </summary>
+    public static AppState Keymap(AppState state, KeymapReloaded reloaded)
+    {
+        var problems = reloaded.Problems ?? [];
+
+        if (problems.Count == 0)
+        {
+            return state with { Message = reloaded.Message };
+        }
+
+        return AddWarnings(Warn(state, reloaded.Message), problems.Count > 1 ? problems : []);
+    }
+
+    /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the first one listed shown first.</summary>
+    public static AppState AddWarnings(AppState state, IReadOnlyList<string> warnings)
+    {
+        var added = warnings.Select(warning => new StatusMessage(warning, StatusSeverity.Warning)).Reverse();
+
+        return state with { StatusHistory = added.Concat(state.StatusHistory).Take(HistoryLimit).ToList() };
+    }
+
+    /// <summary>
     /// The startup notice and the warnings of reading <c>settings.json</c> as messages: every warning is a history
     /// entry; the status line shows the notice, else the one warning, else a count that points to the overlay.
     /// </summary>

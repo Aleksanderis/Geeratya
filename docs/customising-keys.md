@@ -33,14 +33,14 @@ The file is optional. Geeratya never writes it.
 - `unbind`: default rows to remove, named by `mode` and `keys`.
 - `mode` is one of `normal`, `command`, `help`, `confirm`, `insert`.
 - `keys` is one key or a space-separated sequence (`g c`). A key is a single character (`j`, `?`, `G`) or a name (`Esc`, `Enter`, `Backspace`, `Tab`, `Shift-Tab`, `Space`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`, `Delete`), optionally prefixed `Ctrl-` or `Alt-`. Letters are the character itself (`G`, not `Shift-g`). The leader chords are written with `Space`: `Space o`.
-- `action` is an action id. The ids and their titles are listed in the source of `ActionCatalog`; the key reference shows the title next to each default key, and the ids are in `src/Geeratya.Core/Keymap/keymap.default.json`.
+- `action` is an action id. The generated key reference ([keymap.md](keymap.md)) lists the action id next to the title of every default key; help (`?`, the `All actions` and `Custom` pages) and the palette show the ids too.
 - Comments (`//`) and trailing commas are allowed.
 
 Your rows come first, so the hints in the status bar and the help overlay show the key you chose for an action.
 
 ## What is checked
 
-When the file is read, every row is checked. A row that is wrong is skipped, the rest still applies, and the first problem is shown in the status line (with a count of the others):
+When the file is read, every row is checked. A row that is wrong is skipped, the rest still applies, and the first problem is shown in the status line (with a count of the others) and every problem is kept in the Messages overlay (`<space>n`):
 
 - an unknown action id or a bad key spelling;
 - the same keys bound twice in one mode;
@@ -49,7 +49,7 @@ When the file is read, every row is checked. A row that is wrong is skipped, the
 - a dialog-only action (confirm, form, palette submit) bound in Normal mode;
 - an `unbind` row that matches no default.
 
-To see what was applied, open help (`?`) and press `Tab` to the `Custom` page. It appears only when the file changed something and lists each added or changed binding (key, action title and action id, with the mode when it is not Normal) and `Unbound: <keys>` for each removed default. Rows that were skipped are not listed there (the status line names the first problem; the Messages overlay, `<space>n`, keeps it). The filter (`/`) works on this page too.
+To see what was applied, open help (`?`) and press `Tab` to the `Custom` page. It appears only when the file changed something and lists each added or changed binding (key, action title and action id, with the mode when it is not Normal) and `Unbound: <keys>` for each removed default. Rows that were skipped are not listed there (the status line names the first problem; the Messages overlay, `<space>n`, keeps every one). The filter (`/`) works on this page too.
 
 A file that is not valid JSON (or has an unknown `mode`) is ignored as a whole and the defaults stay. Geeratya never crashes on this file.
 
@@ -59,9 +59,7 @@ A row with no `mode` (or no `keys` or `action`) is reported and skipped; it neve
 
 ## If you lock yourself out
 
-If you unbind every way to quit or to open the palette, Ctrl-c still quits unless you removed it too. Edit or delete `keymap.json` from outside the app and start again.
-
-Planned (#303): `Ctrl-c` is read before the keymap, so a `keymap.json` can no longer remove it; and the Messages overlay (#369) keeps every skipped row, not only the first.
+`Ctrl-c` quits before the keymap is consulted (except in Insert mode, where it cancels the edit), so no `keymap.json` can remove it: an `unbind` or a binding for `Ctrl-c` is skipped with a message. Unbinding `q`, `Esc` and `:` still leaves `Ctrl-c`. To undo a bad file, edit or delete `keymap.json` from outside the app and start again.
 
 ## Applying changes
 

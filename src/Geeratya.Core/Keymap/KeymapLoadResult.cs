@@ -18,7 +18,7 @@ public sealed record KeymapLoadResult(IReadOnlyList<KeyBinding> Bindings, IReadO
                 return null;
             }
 
-            var more = Problems.Count > 1 ? $" (and {Problems.Count - 1} more)" : string.Empty;
+            var more = Problems.Count > 1 ? $" (and {Problems.Count - 1} more; see the Messages overlay)" : string.Empty;
 
             return $"keymap.json: {Problems[0]}{more}";
         }

@@ -17,20 +17,20 @@ public static class KeymapDocument
         builder.Append("# Key reference\n\n");
         builder.Append("Generated from `src/Geeratya.Core/Keymap/keymap.default.json` ");
         builder.Append("by `scripts/gen-keymap-doc.sh`; ");
-        builder.Append("do not edit by hand. Design rules are in `docs/ux-keymap.md`. ");
+        builder.Append("do not edit by hand. The Id column is the action id to use in `keymap.json` (`docs/customising-keys.md`). Design rules are in `docs/ux-keymap.md`. ");
         builder.Append("Level: everyday actions show in help, the palette, which-key and the hints by default; ");
         builder.Append("advanced ones show when the command level is advanced (`<space>*` or `:set commandlevel`). ");
         builder.Append("A level hides, it never disables: every key works at either level.\n");
 
         foreach (var mode in _modes)
         {
-            builder.Append($"\n## {mode} mode\n\n| Keys | Action | Level |\n|---|---|---|\n");
+            builder.Append($"\n## {mode} mode\n\n| Keys | Action | Id | Level |\n|---|---|---|---|\n");
 
             foreach (var binding in keymap.Bindings.Where(binding => binding.Mode == mode))
             {
                 var title = ActionCatalog.FindTitle(binding.Action);
 
-                builder.Append($"| `{binding.Keys}` | {title} | {LevelWord(binding.Action)} |\n");
+                builder.Append($"| `{binding.Keys}` | {title} | `{binding.Action}` | {LevelWord(binding.Action)} |\n");
             }
         }
 

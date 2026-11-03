@@ -65,6 +65,11 @@ public static class InputRouting
             return new KeyRoute(KeyRouteKind.Form);
         }
 
+        if (ReservedKeys.IsReserved(state.Mode, key))
+        {
+            return new KeyRoute(KeyRouteKind.Action, new KeyResolution(KeyResolutionKind.Action, ActionIds.Quit));
+        }
+
         if (HelpReducer.TakesKeys(state) && keymap.Resolve(state.Mode, string.Empty, key).Action != ActionIds.Quit)
         {
             return new KeyRoute(KeyRouteKind.HelpFilter);
