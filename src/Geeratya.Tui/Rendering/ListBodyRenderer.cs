@@ -121,7 +121,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return FirstRow(tab) + shown >= tab.Rows.Count;
     }
 
-    private static StyledLine HeaderLine(TabState tab, StyledLine? note, Glyphs glyphs)
+    internal static StyledLine HeaderLine(TabState tab, StyledLine? note, Glyphs glyphs)
     {
         var spans = new List<StyledSpan>
         {
@@ -157,7 +157,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return count == 1 ? "1 issue" : $"{count} issues";
     }
 
-    private static StyledLine TitlesLine(ListColumns columns)
+    internal static StyledLine TitlesLine(ListColumns columns)
     {
         var statusTitle = columns.Status == ListColumns.FullStatus ? StatusTitle : StatusGlyphTitle;
         var text = string.Concat(
@@ -244,7 +244,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return StyledLine.Of($"{new string(' ', padding)}{text}");
     }
 
-    private static StyledLine RowLine(
+    internal static StyledLine RowLine(
         IssueSummary row,
         ListColumns columns,
         bool selected,
@@ -319,7 +319,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return text;
     }
 
-    private static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
+    internal static SetMark SetMarkOf(IssueSummary row, int index, HashSet<string> marks, RowRange? range)
     {
         if (marks.Contains(row.Key))
         {
@@ -356,7 +356,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         };
     }
 
-    private enum SetMark
+    internal enum SetMark
     {
         None,
         Marked,

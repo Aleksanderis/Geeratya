@@ -10,15 +10,15 @@ Sample · 1 issue
   │               │   Ctrl-u     Page up  (PageUp)                           │  
   │               │   Space a    Open the actions menu of the selected issue │  
   │               │   Enter      Open the selected item                      │  
+  │               │   ] ]        Next section of the issue or the Scrum      │  
+  │               │              backlog                                     │  
+  │               │   [ [        Previous section of the issue or the Scrum  │  
+  │               │              backlog                                     │  
+  │               │   z a        Collapse or expand the sprint section of    │  
+  │               │              the Scrum backlog                           │  
   │               │   Space l    Switch between list and columns             │  
   │               │   Space o    Open the issue in the browser               │  
   │               │   Space i e  Edit fields of the issue (summary, labels,  │  
-  │               │              priority, description)                      │  
-  │               │   Space i a  Assign the issue: search people, or         │  
-  │               │              unassign                                    │  
-  │               │   Space i m  Assign the issue to me                      │  
-  │               │   Space i s  Change the status of the issue              │  
-  │               │   Alt-k      Rank the issue up (a count moves it that    │  
   └──────────────────────────────────────────────────────────────────────────┘  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close

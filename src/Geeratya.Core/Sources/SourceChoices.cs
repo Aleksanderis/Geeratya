@@ -50,10 +50,18 @@ public static class SourceChoices
         return new ViewDefinition(ViewSourceKind.Jql, jql, ViewLayout.List, jql);
     }
 
-    /// <summary>The view that opens a board (Columns) or its backlog (List).</summary>
+    /// <summary>
+    /// The view that opens a board (Columns) or its backlog (List); the backlog of a Scrum board is the sprint sections.
+    /// A team-managed board reports <c>simple</c> and opens the plain backlog.
+    /// </summary>
     public static ViewDefinition BoardView(BoardSummary board, bool backlog)
     {
         var id = board.Id.ToString(CultureInfo.InvariantCulture);
+
+        if (backlog && board.Type == BoardType.Scrum)
+        {
+            return new ViewDefinition(ViewSourceKind.ScrumBacklog, id, ViewLayout.List, board.Name);
+        }
 
         return backlog
             ? new ViewDefinition(ViewSourceKind.Backlog, id, ViewLayout.List, board.Name)

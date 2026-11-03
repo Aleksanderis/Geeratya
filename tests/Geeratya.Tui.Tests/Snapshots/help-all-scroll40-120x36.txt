@@ -15,8 +15,9 @@
             │               │   Enter      Open the selected item                                          │            
             │               │   0          Go to the first column                                          │            
             │               │   $          Go to the last column                                           │            
-            │               │   ] ]        Next section of the issue                                       │            
-            │               │   [ [        Previous section of the issue                                   │            
+            │               │   ] ]        Next section of the issue or the Scrum backlog                  │            
+            │               │   [ [        Previous section of the issue or the Scrum backlog              │            
+            │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
@@ -30,7 +31,6 @@
             │               │   /          Filter the help by key, title or action id                      │            
             │               │   Tab        Next help section                                               │            
             │               │   Shift-Tab  Previous help section                                           │            
-            │               │   J          Scroll help down a line                                         │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

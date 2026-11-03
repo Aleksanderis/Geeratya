@@ -36,6 +36,7 @@ public static class ActionIds
     public const string NavigateLastColumn = "nav.last-column";
     public const string SectionNext = "detail.section-next";
     public const string SectionPrevious = "detail.section-previous";
+    public const string SectionToggle = "section.toggle";
     public const string TabNext = "tab.next";
     public const string TabPrevious = "tab.previous";
     public const string TabLastActive = "tab.last-active";

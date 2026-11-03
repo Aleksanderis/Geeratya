@@ -71,6 +71,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.RankDown),
         ContextMenuRow(ActionIds.RankTop),
         ContextMenuRow(ActionIds.RankBottom),
+        ContextMenuRow(ActionIds.SectionToggle),
         ContextMenuRow(ActionIds.RankTo),
         ContextMenuRow(ActionIds.CommentDelete),
         ContextMenuRow(ActionIds.TabClose, 'V'),

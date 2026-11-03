@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   ] ]        Next section of the issue                                       │            
-            │ > All actions │   [ [        Previous section of the issue                                   │            
-            │   Commands    │ General                                                                      │            
+            │   Global      │   ] ]        Next section of the issue or the Scrum backlog                  │            
+            │ > All actions │   [ [        Previous section of the issue or the Scrum backlog              │            
+            │   Commands    │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
+            │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
             │               │   Esc        Cancel or close                                                 │            
@@ -30,7 +31,6 @@
             │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
             │               │              is deleted)                                                     │            
             │               │   Up         Previous row in the picker  (Ctrl-p, Ctrl-k)                    │            
-            │               │   Down       Next row in the picker  (Ctrl-n, Ctrl-j)                        │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

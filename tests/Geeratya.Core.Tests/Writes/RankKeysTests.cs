@@ -125,7 +125,7 @@ public class RankKeysTests
         var state = Loaded(ViewSourceKind.Backlog, ViewLayout.List, "1:A-1", "1:A-2");
 
         var esc = Press(Press(state, "4").State, "Esc");
-        var unbound = Press(Press(state, "4").State, "z");
+        var unbound = Press(Press(state, "4").State, "w");
 
         Assert.Equal(0, esc.State.Count);
         Assert.Equal(0, unbound.State.Count);

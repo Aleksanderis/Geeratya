@@ -27,6 +27,7 @@
     { "mode": "normal", "keys": "$", "action": "nav.last-column" },
     { "mode": "normal", "keys": "] ]", "action": "detail.section-next" },
     { "mode": "normal", "keys": "[ [", "action": "detail.section-previous" },
+    { "mode": "normal", "keys": "z a", "action": "section.toggle" },
     { "mode": "normal", "keys": "Tab", "action": "tab.next" },
     { "mode": "normal", "keys": "g t", "action": "tab.next" },
     { "mode": "normal", "keys": "Shift-Tab", "action": "tab.previous" },

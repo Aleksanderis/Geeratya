@@ -11,14 +11,14 @@ Sample › A-1 · Loading…
   │                │   Space a    Open the actions menu of the selected      │  
   │                │              issue                                      │  
   │                │   Enter      Open the selected item                     │  
-  │                │   ] ]        Next section of the issue                  │  
-  │                │   [ [        Previous section of the issue              │  
+  │                │   ] ]        Next section of the issue or the Scrum     │  
+  │                │              backlog                                    │  
+  │                │   [ [        Previous section of the issue or the       │  
+  │                │              Scrum backlog                              │  
   │                │   Space o    Open the issue in the browser              │  
   │                │   Space p    Open the parent issue                      │  
   │                │   Space i e  Edit fields of the issue (summary,         │  
   │                │              labels, priority, description)             │  
-  │                │   Space i a  Assign the issue: search people, or        │  
-  │                │              unassign                                   │  
   └──────────────────────────────────────────────────────────────────────────┘  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close
