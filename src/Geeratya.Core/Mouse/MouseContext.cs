@@ -63,12 +63,16 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             || state.Editor is not null || state.ProfileList is not null || state.SettingsScreen is not null
             || FormReducer.IsOpen(state);
 
+        var tabs = state.Session.Tabs;
+        var active = state.Session.Active;
+        var hovered = state.HoveredTab;
+
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {
-            TabAreas = TabBar.Areas(state.Session.Tabs, state.Session.Active, width, keymap, state.HoveredTab),
-            NewTabButton = TabBar.NewTabButton(state.Session.Tabs, state.Session.Active, width, keymap, state.HoveredTab),
-            CommandsChip = TabBar.CommandsChip(state.Session.Tabs, state.Session.Active, width, keymap, state.HoveredTab),
-            JumpChip = TabBar.JumpChip(state.Session.Tabs, state.Session.Active, width, keymap, state.HoveredTab),
+            TabAreas = TabBar.Areas(tabs, active, width, keymap, hovered),
+            NewTabButton = TabBar.NewTabButton(tabs, active, width, keymap, hovered),
+            CommandsChip = TabBar.CommandsChip(tabs, active, width, keymap, hovered),
+            JumpChip = TabBar.JumpChip(tabs, active, width, keymap, hovered),
             StatusMessage = StatusMessages.Cells(state),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],

@@ -7,7 +7,7 @@ using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Tests.Mouse;
 
-/// <summary>Middle-click close, hover close and the overflow tab list of the tab row, through the real reducer.</summary>
+/// <summary>Middle-click close, hover close and the overflow tab list, through the real reducer.</summary>
 [Trait("Os", "Independent")]
 public class TabRowMouseTests
 {
@@ -81,7 +81,9 @@ public class TabRowMouseTests
         Assert.NotNull(areas[0].Close);
         Assert.NotNull(areas[2].Close);
         Assert.Null(areas[1].Close);
-        Assert.Contains(" x ", TabBar.Build(hovered.Session.Tabs, hovered.Session.Active, 100, null, hovered.HoveredTab).PlainText);
+        var line = TabBar.Build(hovered.Session.Tabs, hovered.Session.Active, 100, null, hovered.HoveredTab);
+
+        Assert.Contains(" x ", line.PlainText);
     }
 
     [Fact]
@@ -244,12 +246,15 @@ public class TabRowMouseTests
 
     private AppState WithTabs(int count, int width)
     {
-        var state = AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_work), Session = SiteSession.Empty(_work) };
+        var profiles = ProfileCatalog.Empty.With(_work);
+        var state = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(_work) };
+
         state = _reducer.Reduce(state, new ViewportChanged(20, width)).State;
 
         for (var index = 1; index <= count; index++)
         {
-            var definition = new ViewDefinition(ViewSourceKind.Jql, $"project = P{index}", ViewLayout.List, $"P{index}");
+            var source = $"project = P{index}";
+            var definition = new ViewDefinition(ViewSourceKind.Jql, source, ViewLayout.List, $"P{index}");
 
             state = _reducer.Reduce(state, new ViewOpenRequested(definition)).State;
         }

@@ -1,4 +1,5 @@
 using Geeratya.Core.Views;
+
 namespace Geeratya.Core.State;
 
 /// <summary>An input to the reducer.</summary>

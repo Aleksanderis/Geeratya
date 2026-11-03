@@ -91,11 +91,13 @@ public static class MouseResolver
 
     /// <summary>
     /// The tab chip under the pointer as a command: the tab of the chip (its close <c>x</c> included), null on a
-    /// separator, a hidden-tab mark, anywhere else, or while an overlay is open.
+    /// separator, a hidden-tab mark, anywhere else, while an overlay is open, or under <see cref="TabBar.CloseFrom"/>
+    /// columns (no <c>x</c> is drawn there, so a hover would redraw for nothing).
     /// </summary>
     public static TabHovered Hover(MouseContext context, int column, int row)
     {
-        if (MouseHitTester.Locate(context, column, row) is not { Target: MouseTarget.Tabs or MouseTarget.TabClose } hit
+        if (context.Width < TabBar.CloseFrom
+            || MouseHitTester.Locate(context, column, row) is not { Target: MouseTarget.Tabs or MouseTarget.TabClose } hit
             || AreaAt(context, hit.Column) is not { Overflow: false } area)
         {
             return new TabHovered(null);
