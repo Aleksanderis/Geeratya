@@ -15,6 +15,7 @@ public class LiveSprintMoveTests
 {
     private const string IssuePath = "/rest/api/3/issue";
     private const string SprintPath = "/rest/agile/1.0/sprint";
+    private const string AgileIssuePath = "/rest/agile/1.0/issue";
 
     [LiveFact]
     public Task GivenCompanyManagedScrumBoard_WhenMovingIssueToSprintAndBacklog_ThenEachMoveTakesEffect() =>
@@ -88,7 +89,7 @@ public class LiveSprintMoveTests
     private static async Task<long?> SprintOfAsync(JiraTransport transport, string key, CancellationToken token)
     {
         var read = await transport.SendAsync(
-            JiraRequest.Get($"/rest/agile/1.0/issue/{key}?fields=sprint"),
+            JiraRequest.Get($"{AgileIssuePath}/{key}?fields=sprint"),
             LiveWriteJsonContext.Default.LiveSprintIssue,
             token);
         Assert.True(read.IsSuccess, read.IsSuccess ? string.Empty : read.Error.Message);
