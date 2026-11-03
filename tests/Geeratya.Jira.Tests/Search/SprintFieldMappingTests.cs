@@ -213,6 +213,24 @@ public sealed class SprintFieldMappingTests
         Assert.Equal(expected, result.Value.EstimationFieldId);
     }
 
+    [Theory]
+    [InlineData("scrum/board-gcs-config.json", "Story Points")]
+    [InlineData("boards/board-gcm-config.json", null)]
+    public async Task GivenBoardConfiguration_WhenLoading_ThenTheEstimationFieldNameIsReadOrAbsent(
+        string fixtureName,
+        string? expected)
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            "/rest/agile/1.0/board/9/configuration",
+            FakeResponse.Ok(FixtureFiles.Read(fixtureName)));
+
+        var result = await new BoardClient(fixture.Transport).GetConfigurationAsync(9, CancellationToken.None);
+
+        Assert.Equal(expected, result.Value.EstimationFieldName);
+    }
+
     [Fact]
     public async Task GivenBoardEstimatingByTime_WhenLoadingConfiguration_ThenNoStoryPointFieldIsReported()
     {

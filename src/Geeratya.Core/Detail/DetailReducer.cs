@@ -70,7 +70,10 @@ internal static class DetailReducer
         var issueRequest = ++sequence;
         var commentsRequest = ++sequence;
         var linksRequest = ++sequence;
-        var opened = DetailState.Opened(key, row, issueRequest, commentsRequest, linksRequest);
+        var opened = DetailState.Opened(key, row, issueRequest, commentsRequest, linksRequest) with
+        {
+            EstimateLabel = tab.Board?.EstimationFieldName,
+        };
         var detail = Layout(opened, state.ViewportColumns, tab.VisibleRows);
 
         effects.Add(new LoadIssueDetailEffect(id, key, issueRequest));

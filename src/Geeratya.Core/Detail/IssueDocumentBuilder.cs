@@ -85,7 +85,7 @@ public static class IssueDocumentBuilder
         wrapped.Append(header.Summary, TextRole.Strong);
         wrapped.Finish(content);
 
-        var fields = Fields(header, detail.LoadedAt);
+        var fields = Fields(header, detail.LoadedAt, detail.EstimateLabel);
 
         if (fields.Count > 0)
         {
@@ -103,7 +103,7 @@ public static class IssueDocumentBuilder
         sink.AddPanel(title, Wrap(content), width);
     }
 
-    private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference)
+    private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference, string? estimateLabel)
     {
         var fields = new List<Field>();
 
@@ -119,7 +119,7 @@ public static class IssueDocumentBuilder
         AddField(fields, "Parent", header.Parent);
         AddField(fields, "Epic", header.Epic);
         AddField(fields, "Sprint", header.Sprint);
-        AddField(fields, "Estimate", header.Estimate);
+        AddField(fields, string.IsNullOrWhiteSpace(estimateLabel) ? "Estimate" : Clean(estimateLabel), header.Estimate);
 
         if (header.Updated is { } updated && reference is { } now)
         {

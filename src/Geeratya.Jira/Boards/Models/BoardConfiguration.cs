@@ -24,4 +24,7 @@ public sealed record BoardConfiguration(
 {
     /// <summary>The estimation field (story points) as a field id; null for a board without field estimation.</summary>
     public string? EstimationFieldId { get; init; }
+
+    /// <summary>The estimation field's name on the board (for example "Story Points"); null when Jira sent none.</summary>
+    public string? EstimationFieldName { get; init; }
 }

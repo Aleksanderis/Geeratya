@@ -63,6 +63,9 @@ internal static class BoardMapper
             wire.ColumnConfig?.ConstraintType)
         {
             EstimationFieldId = CustomFieldOrNull(wire.Estimation?.Field?.FieldId),
+            EstimationFieldName = string.IsNullOrWhiteSpace(wire.Estimation?.Field?.DisplayName)
+                ? null
+                : wire.Estimation.Field.DisplayName.Trim(),
         };
     }
 
