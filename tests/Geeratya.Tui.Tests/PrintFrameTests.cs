@@ -5,6 +5,7 @@ using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
@@ -65,6 +66,25 @@ public sealed partial class PrintFrameTests : IDisposable
         new ApplicationRunner(writer, false).Run(["--print-frame", "--mode", "help"]);
 
         Assert.DoesNotContain('\u001b', writer.ToString());
+    }
+
+    [Fact]
+    public void GivenTheTransparentSetting_WhenPrintingTheFrame_ThenThePageUsesTheDefaultBackground()
+    {
+        using var painted = new StringWriter();
+        using var transparent = new StringWriter();
+
+        new ApplicationRunner(painted, false, createProfiles: Services)
+            .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
+
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(Path.Combine(_directory, SettingsStore.FileName), "{ \"transparent\": true }");
+
+        new ApplicationRunner(transparent, false, createProfiles: ServicesWithSettings)
+            .Run(["--print-frame", "--size", "40x10", "--colors", "truecolor"]);
+
+        Assert.DoesNotContain(";49", painted.ToString(), StringComparison.Ordinal);
+        Assert.Contains(";49", transparent.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -325,6 +345,11 @@ public sealed partial class PrintFrameTests : IDisposable
             new HistoryStore(Path.Combine(_directory, "state")),
             new BoardKindStore(Path.Combine(_directory, "state")),
             ThemesDirectory: Path.Combine(_directory, "themes"));
+    }
+
+    private ProfileServices ServicesWithSettings()
+    {
+        return Services() with { Settings = new SettingsStore(_directory) };
     }
 
     private async Task WriteProfilesAsync()
