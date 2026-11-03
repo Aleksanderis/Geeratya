@@ -12,10 +12,11 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class WhichKeyOverlay
 {
-    private const int MaxBoxWidth = 50;
+    private const int MaxBoxWidth = 96;
     private const int MinimumBoxWidth = 16;
     private const int MinimumBoxHeight = 3;
     private const int KeyColumn = 10;
+    private const int ChromeColumns = 4;
 
     /// <summary>
     /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
@@ -53,7 +54,8 @@ public static class WhichKeyOverlay
         int height)
     {
         var rows = Rows(state.PendingKeys, keymap, height - 2, state.Settings.CommandLevel);
-        var boxWidth = Math.Min(width, MaxBoxWidth);
+        var wanted = rows.Count == 0 ? 0 : rows.Max(TextWidth.Of) + ChromeColumns;
+        var boxWidth = Math.Min(width, Math.Min(MaxBoxWidth, wanted));
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)
         {

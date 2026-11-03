@@ -28,6 +28,7 @@ profile_line="$profile_ready on"
 all_scenarios=(
   "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
+  "whichkey;120;36;dark;:jql project = GCM| ;Space"
   "narrow;64;30;dark;;Connected"
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"

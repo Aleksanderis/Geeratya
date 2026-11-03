@@ -114,13 +114,13 @@ public class WhichKeyOverlayTests
     }
 
     [Fact]
-    public void GivenAnOpenPopup_WhenBuilding_ThenTheBoxSitsFlushRightAndTheLeftOfTheBodyStaysFree()
+    public void GivenAnOpenPopup_WhenBuilding_ThenTheBoxSitsFlushRight()
     {
         var lines = Build(Opened("Space"), 120, 36);
         var top = lines.Single(line => line.Contains("┌─ Space "));
 
         Assert.EndsWith("┐", top.TrimEnd());
-        Assert.True(top.IndexOf('┌') > 120 - 52);
+        Assert.True(top.IndexOf('┌') > 40);
         Assert.Equal(120, top.Length);
     }
 
