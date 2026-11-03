@@ -12,16 +12,13 @@ public static class TabTitles
     /// <summary>The full title of a view, for example <c>JQL: project = GCM</c>; control characters become spaces.</summary>
     public static string For(ViewDefinition definition)
     {
-        var prefix = definition.Source switch
-        {
-            ViewSourceKind.Board => "Board",
-            ViewSourceKind.Backlog or ViewSourceKind.ScrumBacklog => "Backlog",
-            ViewSourceKind.Sprint => "Sprint",
-            ViewSourceKind.SavedFilter => "Filter",
-            _ => "JQL",
-        };
+        return OneLine($"{Kind(definition)}: {definition.Title}");
+    }
 
-        return OneLine($"{prefix}: {definition.Title}");
+    /// <summary>The label of a tab chip, <c>JQL project = GCM</c>: a Jira noun and the source name, no colon.</summary>
+    public static string Label(ViewDefinition definition)
+    {
+        return OneLine($"{Kind(definition)} {definition.Title}");
     }
 
     /// <summary>
@@ -59,6 +56,18 @@ public static class TabTitles
         }
 
         return $"{builder}{Ellipsis}";
+    }
+
+    private static string Kind(ViewDefinition definition)
+    {
+        return definition.Source switch
+        {
+            ViewSourceKind.Board => "Board",
+            ViewSourceKind.Backlog or ViewSourceKind.ScrumBacklog => "Backlog",
+            ViewSourceKind.Sprint => "Sprint",
+            ViewSourceKind.SavedFilter => "Filter",
+            _ => "JQL",
+        };
     }
 
     private static string OneLine(string text)

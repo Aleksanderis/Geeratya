@@ -145,11 +145,13 @@ public static class FrameBuilder
             body = Fit(WhichKeyOverlay.Compose(body, state, keymap, width, bodyHeight), width, bodyHeight);
         }
 
+        var status = StyledLines.Fit(StatusBar.RenderStyled(state, width, keymap, clock, dialogShown), width, TextRole.BarText);
         var frame = new StyledFrame(
-            Fit(HeaderLines(state, width, clock, header), width, header),
+            Fit(HeaderLines(state, width, clock, header, keymap), width, header),
             Fit(body, width, bodyHeight),
-            StatusBar.Render(state, width, keymap, clock, dialogShown))
+            status.PlainText)
         {
+            StatusStyled = status,
             Regions = [.. regions.Select(region => region.Shifted(header))],
             StatusSegment = StatusBar.MessageSegment(state, width, clock),
         };
@@ -159,11 +161,14 @@ public static class FrameBuilder
 
     private static StyledFrame Asciified(StyledFrame frame)
     {
+        var status = Asciified(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine));
+
         return new StyledFrame(
             frame.Header.Select(Asciified).ToList(),
             frame.Body.Select(Asciified).ToList(),
-            Glyphs.ToAscii(frame.StatusLine))
+            status.PlainText)
         {
+            StatusStyled = status,
             Regions = frame.Regions,
             StatusSegment = Asciified(frame.StatusSegment),
         };
@@ -174,18 +179,39 @@ public static class FrameBuilder
         return segment is null ? null : segment with { Text = Glyphs.ToAscii(segment.Text) };
     }
 
+    // The ASCII tier brackets chips (docs/ux-look.md, section 10): the padding cells of a chip become the brackets, so
+    // the chip keeps its width and its mouse cells.
     private static StyledLine Asciified(StyledLine line)
     {
-        return new StyledLine(line.Spans.Select(static span => span with { Text = Glyphs.ToAscii(span.Text) }).ToArray());
+        return new StyledLine(line.Spans.Select(static span => span with { Text = Bracketed(span) }).ToArray());
     }
 
-    private static List<StyledLine> HeaderLines(AppState state, int width, DateTimeOffset now, int rows)
+    private static string Bracketed(StyledSpan span)
+    {
+        var text = Glyphs.ToAscii(span.Text);
+        var isChip = span.Role is TextRole.TabActive or TextRole.TabDim or TextRole.BadgeNormal or TextRole.BadgeVisual
+            or TextRole.BadgeInsert or TextRole.BadgeCommand or TextRole.BadgeConfirm or TextRole.BadgeHelp;
+
+        if (isChip && text.Length > 2 && text[0] == ' ' && text[^1] == ' ')
+        {
+            return $"[{text[1..^1]}]";
+        }
+
+        return text;
+    }
+
+    private static List<StyledLine> HeaderLines(
+        AppState state,
+        int width,
+        DateTimeOffset now,
+        int rows,
+        KeymapTable keymap)
     {
         var lines = new List<StyledLine>(HeaderRows);
 
         if (rows > 0)
         {
-            lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width));
+            lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width, keymap));
         }
 
         if (rows > 1)

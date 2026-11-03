@@ -7,4 +7,4 @@ wo| > Show or hide help            ? |as
   |   Edit the issue       Space i e |  
   |   Quit                         q |  
   +----------------------------------+  
- INSERT                                 
+[INSERT]                                

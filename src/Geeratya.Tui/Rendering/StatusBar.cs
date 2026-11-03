@@ -5,6 +5,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Text;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Platform.Terminal;
@@ -125,9 +126,24 @@ public static class StatusBar
         DateTimeOffset? now = null,
         bool confirmDialogShown = false)
     {
+        return RenderStyled(state, width, keymap, now, confirmDialogShown).PlainText;
+    }
+
+    /// <summary>
+    /// The status line as styled spans (<c>docs/ux-look.md</c>, section 5): the mode badge as a filled chip at column
+    /// 0, the text (a message in its severity role), then the hint chips right-aligned, the key bold and the label
+    /// muted. Its plain text is <see cref="Render"/>; it is exactly <paramref name="width"/> columns wide.
+    /// </summary>
+    public static StyledLine RenderStyled(
+        AppState state,
+        int width,
+        KeymapTable keymap,
+        DateTimeOffset? now = null,
+        bool confirmDialogShown = false)
+    {
         if (width <= 0)
         {
-            return string.Empty;
+            return StyledLine.Empty;
         }
 
         var clock = now ?? DateTimeOffset.UnixEpoch;
@@ -139,20 +155,21 @@ public static class StatusBar
         // MaxViewReserve cells are kept for it and the screen hints drop from the end to make room (the global
         // hints stay while they fit).
         var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
-        var left = $" {Badge(state)} {text}".TrimEnd();
+        var left = Left(state, text);
         var room = width - TextWidth.Of(left);
         var hints = ShownHints(state, keymap, room - reserve);
 
         // The global hints never give way to the view text: shrink the reserve until they fit again.
-        while (hints.Length == 0 && reserve > 0 && ShownHints(state, keymap, room).Length > 0)
+        while (hints.Count == 0 && reserve > 0 && ShownHints(state, keymap, room).Count > 0)
         {
             reserve--;
             hints = ShownHints(state, keymap, room - reserve);
         }
 
-        var spare = width - TextWidth.Of(left) - TextWidth.Of(hints) - Separator.Length;
+        var hintWidth = HintBar.Width(hints);
+        var spare = width - TextWidth.Of(left) - hintWidth - Separator.Length;
 
-        if (hints.Length > 0)
+        if (hints.Count > 0)
         {
             spare -= HintGap.Length;
         }
@@ -163,57 +180,85 @@ public static class StatusBar
 
         if (shown != text)
         {
-            left = $" {Badge(state)} {shown}".TrimEnd();
+            left = Left(state, shown);
         }
 
-        var gap = width - TextWidth.Of(left) - TextWidth.Of(hints);
+        var gap = width - TextWidth.Of(left) - hintWidth;
+        var spans = new List<StyledSpan> { new($" {Badge(state)} ", BadgeRole(state)) };
 
-        if (hints.Length == 0 || gap < HintGap.Length)
+        if (shown.TrimEnd().Length > 0)
         {
-            return TextWidth.Pad(left, width);
+            spans.Add(new StyledSpan(" ", TextRole.BarText));
+            spans.Add(new StyledSpan(shown.TrimEnd(), MessageRole(state, width, clock)));
         }
 
-        return $"{left}{new string(' ', gap)}{hints}";
+        if (hints.Count == 0 || gap < HintGap.Length)
+        {
+            return StyledLines.Fit(new StyledLine(spans), width, TextRole.BarText);
+        }
+
+        spans.Add(new StyledSpan(new string(' ', gap), TextRole.BarText));
+        spans.AddRange(HintBar.Spans(hints));
+
+        return StyledLines.Fit(new StyledLine(spans), width, TextRole.BarText);
+    }
+
+    private static string Left(AppState state, string text)
+    {
+        var chip = $" {Badge(state)} ";
+
+        return text.TrimEnd().Length == 0 ? chip : $"{chip} {text.TrimEnd()}";
+    }
+
+    private static TextRole MessageRole(AppState state, int width, DateTimeOffset clock)
+    {
+        return MessageSegment(state, width, clock)?.Role switch
+        {
+            PaletteRole.Error => TextRole.BarError,
+            PaletteRole.Warning => TextRole.BarWarning,
+            PaletteRole.SuccessChip => TextRole.BarSuccessChip,
+            PaletteRole.Success => TextRole.BarSuccess,
+            _ => TextRole.BarText,
+        };
     }
 
     /// <summary>
-    /// The hints as one string. The global ones are kept first; the
-    /// screen hints before them are added in order while they fit (a gap to the text is kept), so a narrow line loses
-    /// the screen hints from the end, one by one, and the global ones last.
+    /// The hints that fit in <paramref name="room"/>. The global ones are kept first; the screen hints before them are
+    /// added in order while they fit (a gap to the text is kept), so a narrow line loses the screen hints from the
+    /// end, one by one, and the global ones last.
     /// </summary>
-    private static string Fit(HintList hints, int room)
+    private static IReadOnlyList<HintChip> Fit(HintList hints, int room)
     {
-        var global = string.Join(HintGap, hints.Global);
-        var used = TextWidth.Of(global);
+        var used = HintBar.Width(hints.Global);
 
         if (used == 0 || used + HintGap.Length > room)
         {
-            return string.Empty;
+            return [];
         }
 
-        var screen = new List<string>();
+        var screen = new List<HintChip>();
 
-        foreach (var text in hints.Screen)
+        foreach (var chip in hints.Screen)
         {
-            var next = used + TextWidth.Of(text) + HintGap.Length;
+            var next = used + chip.Width + HintGap.Length;
 
             if (next + HintGap.Length > room)
             {
                 break;
             }
 
-            screen.Add(text);
+            screen.Add(chip);
             used = next;
         }
 
-        return string.Join(HintGap, screen.Append(global));
+        return [.. screen, .. hints.Global];
     }
 
-    private static string ShownHints(AppState state, KeymapTable keymap, int room)
+    private static IReadOnlyList<HintChip> ShownHints(AppState state, KeymapTable keymap, int room)
     {
         if (state.Settings.StatusHints == HintLevel.Off)
         {
-            return string.Empty;
+            return [];
         }
 
         return Fit(Leveled(HintTexts(state, keymap), state), room);
@@ -230,7 +275,7 @@ public static class StatusBar
         return new HintList([], hints.Global);
     }
 
-    private readonly record struct HintList(IReadOnlyList<string> Screen, IReadOnlyList<string> Global);
+    private readonly record struct HintList(IReadOnlyList<HintChip> Screen, IReadOnlyList<HintChip> Global);
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
@@ -265,7 +310,7 @@ public static class StatusBar
         {
             var close = keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
 
-            return new HintList([], [$"{close} close"]);
+            return new HintList([], [new HintChip(close, "close")]);
         }
 
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
@@ -304,7 +349,7 @@ public static class StatusBar
     /// </summary>
     public static IReadOnlyList<string> HintsFor(InputMode mode, KeymapTable keymap)
     {
-        return TextsOf(Hints, mode, HintScope.Global, keymap);
+        return [.. TextsOf(Hints, mode, HintScope.Global, keymap).Select(chip => chip.Text)];
     }
 
     /// <summary>
@@ -313,17 +358,17 @@ public static class StatusBar
     /// </summary>
     public static IReadOnlyList<string> ScreenHintsFor(HintScope scope, KeymapTable keymap)
     {
-        return TextsOf(ScreenHints, InputMode.Normal, scope, keymap);
+        return [.. TextsOf(ScreenHints, InputMode.Normal, scope, keymap).Select(chip => chip.Text)];
     }
 
-    private static List<string> TextsOf(
+    private static List<HintChip> TextsOf(
         IReadOnlyList<StatusHint> hints,
         InputMode mode,
         HintScope scope,
         KeymapTable keymap,
         CommandLevel level = CommandLevel.Advanced)
     {
-        var texts = new List<string>();
+        var texts = new List<HintChip>();
 
         foreach (var hint in hints.Where(hint =>
             hint.Mode == mode && Applies(hint.Scope, scope) && IsShownAt(hint, level)))
@@ -332,7 +377,7 @@ public static class StatusBar
 
             if (keys is not null)
             {
-                texts.Add($"{keys} {hint.Label}");
+                texts.Add(new HintChip(keys, hint.Label));
             }
         }
 
@@ -395,7 +440,7 @@ public static class StatusBar
 
     /// <summary>
     /// The cells of the <c>Lane n/N: Name</c> text in the status line as drawn by <see cref="Render"/>, null when the
-    /// line does not show it whole (no lane, a message or typed keys instead, or the line cut it).
+    /// line does not show it (no lane, or a message or typed keys instead); a cut line gives the part that shows.
     /// </summary>
     public static TabButton? LaneCells(
         AppState state,
@@ -412,16 +457,24 @@ public static class StatusBar
         }
 
         var line = Render(state, width, keymap, now, confirmDialogShown);
-        var index = line.IndexOf(label, StringComparison.Ordinal);
+        var index = line.IndexOf(label[..(label.IndexOf(':') + 1)], StringComparison.Ordinal);
 
         if (index < 0)
         {
             return null;
         }
 
+        // A cut line (the name ends in an ellipsis) still shows the start of the label: that part is the chip.
+        var shown = 0;
+
+        while (shown < label.Length && index + shown < line.Length && line[index + shown] == label[shown])
+        {
+            shown++;
+        }
+
         var start = TextWidth.Of(line[..index]);
 
-        return new TabButton(start, start + TextWidth.Of(label));
+        return new TabButton(start, start + TextWidth.Of(label[..shown]));
     }
 
     private static string Badge(AppState state)
@@ -435,6 +488,30 @@ public static class StatusBar
         var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0, VisualAnchor: not null };
 
         return visual ? "VISUAL" : Badge(state.Mode);
+    }
+
+    private static TextRole BadgeRole(AppState state)
+    {
+        if (state.MessagesOpen && state.Mode == InputMode.Help)
+        {
+            return TextRole.BadgeHelp;
+        }
+
+        var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0, VisualAnchor: not null };
+
+        if (visual)
+        {
+            return TextRole.BadgeVisual;
+        }
+
+        return state.Mode switch
+        {
+            InputMode.Command => TextRole.BadgeCommand,
+            InputMode.Help => TextRole.BadgeHelp,
+            InputMode.Confirm => TextRole.BadgeConfirm,
+            InputMode.Insert => TextRole.BadgeInsert,
+            _ => TextRole.BadgeNormal,
+        };
     }
 
     private static string Badge(InputMode mode)
@@ -610,7 +687,7 @@ public static class StatusBar
 
         var value = ProfileFormOverlay.Shown(form);
         var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
-        var used = TextWidth.Of($" {Badge(InputMode.Insert)} {prefix}_");
+        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}_");
 
         return $"{prefix}{Tail(value, Math.Max(0, width - used))}_";
     }
@@ -659,7 +736,7 @@ public static class StatusBar
         }
 
         var suffix = $" ({yes}/{no})";
-        var used = TextWidth.Of($" {Badge(InputMode.Confirm)} {suffix}");
+        var used = TextWidth.Of($" {Badge(InputMode.Confirm)}  {suffix}");
         var question = TextWidth.Fit(state.Confirm?.Message ?? string.Empty, Math.Max(0, width - used));
 
         return $"{question}{suffix}";

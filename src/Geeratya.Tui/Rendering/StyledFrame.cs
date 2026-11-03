@@ -15,7 +15,10 @@ public sealed record StyledFrame(
     /// <summary>The clickable rectangles of the open overlay in screen cells (header rows included), later on top.</summary>
     public IReadOnlyList<OverlayRegion> Regions { get; init; } = [];
 
-    /// <summary>The status message painted in its severity colour on top of the bar, null for none or an info message.</summary>
+    /// <summary>The status bar as styled spans (badge chip, message in its severity role, hint chips); null draws <see cref="StatusLine"/> plain.</summary>
+    public StyledLine? StatusStyled { get; init; }
+
+    /// <summary>Where the status message sits and its severity role, null for none (the styled status bar draws it).</summary>
     public StatusSegment? StatusSegment { get; init; }
 
     /// <summary>Every line with the styles dropped: what <c>--print-frame</c> prints.</summary>

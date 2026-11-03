@@ -1,4 +1,4 @@
- [1 Board: GTM board]  +                                                                                         [jump] 
+ 1 Board GTM board x   +                                                                                   Space g jump 
                                                                                                                         
 ╭─ To Do 4 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done 2 ───────────────────╮
 │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
@@ -33,4 +33,4 @@
 │                             │ └─────────────────────────┘ │                             │                            │
 │                             │                             │                             │                            │
 ╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
- NORMAL GTM board · 14 issues                 h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit
+ NORMAL  GTM board · 14 issues                h/l column  j/k card  Enter open  Space l list  ? help  : commands  q quit

@@ -1,4 +1,4 @@
- [1 JQL: My open issues …]  +                                            [jump] 
+ 1 JQL My open issues … x   +                                      Space g jump 
                                                                                 
 ╭─ My open issues ─────────────────────────────────────────────────────── 10+ ─╮
 │  Key    T Summary                                              Status        │
@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL loading                 j/k move  Enter open  ? help  : commands  q quit
+ NORMAL  loading                j/k move  Enter open  ? help  : commands  q quit

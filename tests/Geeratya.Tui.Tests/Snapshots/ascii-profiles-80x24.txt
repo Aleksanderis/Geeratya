@@ -21,4 +21,4 @@
                                                                                 
                                                                                 
                                                                                 
- INSERT                                                   Enter next  Esc cancel
+[INSERT]                                                  Enter next  Esc cancel

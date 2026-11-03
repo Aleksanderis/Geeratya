@@ -11,7 +11,10 @@ public enum MouseTarget
     /// <summary>The <c>+</c> button after the last tab.</summary>
     NewTabButton,
 
-    /// <summary>The <c>[jump]</c> chip at the right end of the tab bar row (opens the jump prompt).</summary>
+    /// <summary>The <c>x</c> on the active tab chip (closes that tab, same as <c>tab.close</c>).</summary>
+    TabClose,
+
+    /// <summary>The jump chip at the right end of the tab bar row (opens the jump prompt).</summary>
     JumpChip,
 
     /// <summary>The <c>Lane n/N: Name</c> text of a board with swimlanes in the status line (a click steps to the next lane).</summary>

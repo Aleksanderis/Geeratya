@@ -1,4 +1,4 @@
- [1 JQL: My open issues …]  +                                                                                    [jump] 
+ 1 JQL My open issues … x   +                                                                              Space g jump 
                                                                                                                         
 ╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────────── 10+ ─╮
 │  Key    T Summary                                                                     Status         Assignee        │
@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL loading                      j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit
+ NORMAL  loading                     j/k move  Enter open  Space o browser  Space i c create  ? help  : commands  q quit

@@ -1,4 +1,4 @@
- [1 JQL: My open issues]  +                                              [jump] 
+ 1 JQL My open issues x   +                                        Space g jump 
                                                                                 
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
 │>Fix login redirect after token refresh                                       │
@@ -21,4 +21,4 @@
 │ - bullet one                                                                 │
 │ - bullet two                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL My open issues › GCM-12 · Top     j/k scroll  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Top    j/k scroll  ? help  : commands  q quit

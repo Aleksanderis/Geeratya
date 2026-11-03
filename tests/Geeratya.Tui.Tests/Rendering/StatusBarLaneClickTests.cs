@@ -13,7 +13,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class StatusBarLaneClickTests
 {
-    private const int Width = 120;
+    private const int Width = 200;
     private const int Height = 30;
     private const string FirstLane = "acc";
     private const string SecondLane = "other";
@@ -30,6 +30,18 @@ public class StatusBarLaneClickTests
 
         Assert.Equal("Lane 1/2: Al Ek", line.Substring(cells.Start, cells.End - cells.Start));
         Assert.Equal(SecondLane, Active(Click(state, cells.Start)).Lane);
+    }
+
+    [Fact]
+    public void GivenANarrowLineThatCutsTheLaneName_WhenClickingTheShownPart_ThenTheNextLaneShows()
+    {
+        var state = Lanes(FirstLane);
+        var line = StatusBar.Render(state, 120, _keymap, _now);
+        var cells = StatusBar.LaneCells(state, 120, _keymap, _now)!.Value;
+
+        Assert.Contains("Al …", line);
+        Assert.True(cells.End <= line.IndexOf('…'));
+        Assert.Equal(line.IndexOf("Lane 1/2:", StringComparison.Ordinal), cells.Start);
     }
 
     [Fact]
@@ -72,7 +84,7 @@ public class StatusBarLaneClickTests
 
     private static AppState Click(AppState state, int column)
     {
-        var context = MouseContext.From(state, Width, Height, FrameBuilder.HeaderRows, _now) with
+        var context = MouseContext.From(state, Width, Height, FrameBuilder.HeaderRows, _now, null, _keymap) with
         {
             LaneChip = StatusBar.LaneCells(state, Width, _keymap, _now),
         };

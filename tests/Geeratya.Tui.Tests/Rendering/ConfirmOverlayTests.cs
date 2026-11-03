@@ -31,7 +31,7 @@ public class ConfirmOverlayTests
         Assert.Contains("By Eve: \"first words\"", text, StringComparison.Ordinal);
         Assert.Contains("y  Delete comment", text, StringComparison.Ordinal);
         Assert.Contains("n  Cancel", text, StringComparison.Ordinal);
-        Assert.Contains("CONFIRM Confirm  (y/n)", frame.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("CONFIRM  Confirm  (y/n)", frame.StatusLine, StringComparison.Ordinal);
         Assert.DoesNotContain("Delete the GCM-3", frame.StatusLine, StringComparison.Ordinal);
     }
 

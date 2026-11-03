@@ -264,7 +264,7 @@ public sealed class ShellHost : ICommandSink, IDisposable
         var size = _application!.Screen.Size;
         var now = TimeProvider.System.GetUtcNow();
         var regions = _screen!.OverlayRegions;
-        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions) with
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
         {
             LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
         };
