@@ -8,7 +8,7 @@ namespace Geeratya.Tui.Rendering;
 /// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
 /// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by
-/// <c>:set whichkey off</c>.
+/// <c>:set hints.whichKey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {

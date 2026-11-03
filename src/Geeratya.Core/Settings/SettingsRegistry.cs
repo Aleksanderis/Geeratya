@@ -22,23 +22,27 @@ public static class SettingsRegistry
     public static IReadOnlyList<SettingDefinition> All { get; } =
     [
         new SettingDefinition(
-            "hints",
-            "statusHints",
+            "hints.statusBar",
+            "hints.statusBar",
             SettingKind.Choice,
             Full,
             "How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none.",
             settings => HintWord(settings.StatusHints),
             ApplyHints,
-            HintsExpected),
+            HintsExpected,
+            "statusHints",
+            ["hints"]),
         new SettingDefinition(
-            "whichkey",
-            "whichKey",
+            "hints.whichKey",
+            "hints.whichKey",
             SettingKind.Toggle,
             On,
             "Show the popup of the next keys while a multi-key binding is half typed.",
             settings => Word(settings.WhichKey),
             (settings, text) => ParseToggle(text) is { } on ? settings with { WhichKey = on } : null,
-            ToggleExpected),
+            ToggleExpected,
+            "whichKey",
+            ["whichkey"]),
         new SettingDefinition(
             ThemeName,
             "theme",
@@ -52,7 +56,13 @@ public static class SettingsRegistry
 
     public static SettingDefinition? Find(string name)
     {
-        return All.FirstOrDefault(setting => setting.Name == name);
+        return All.FirstOrDefault(setting => Matches(setting, name));
+    }
+
+    private static bool Matches(SettingDefinition setting, string name)
+    {
+        return setting.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+            || setting.Aliases?.Any(alias => alias.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     /// <summary>The value of the setting as the file holds it: a boolean or a quoted string.</summary>
