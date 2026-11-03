@@ -143,13 +143,12 @@ public static class SprintMoveActions
             return Say(state, NothingText);
         }
 
-        var movable = keys.Where(key => !IsIn(state, key, target)).ToList();
+        var sprintsKnown = tab.Rows.Any(row => row.CurrentSprint is not null);
+        var movable = keys.Where(key => !IsIn(state, key, target, sprintsKnown)).ToList();
 
         if (movable.Count == 0)
         {
-            return Say(state, keys.Count == 1
-                ? $"That issue is already in {TargetName(target)}"
-                : $"Those issues are already in {TargetName(target)}");
+            return Say(state, AlreadyInText(keys.Count, target));
         }
 
         var request = new SprintMoveRequest(movable, target, SourceOf(state, movable), dropped);
@@ -159,9 +158,11 @@ public static class SprintMoveActions
 
     // Issues already in the target are left out, so the Confirm dialog counts exactly what will be sent. A row that is
     // not loaded stays in: Jira decides.
-    private static bool IsIn(AppState state, string key, IssueSprint? target)
+    // Without any sprint on the loaded rows (the Sprint field was not read) "no sprint" says nothing about the
+    // backlog, so the backlog is never filtered then.
+    private static bool IsIn(AppState state, string key, IssueSprint? target, bool sprintsKnown)
     {
-        if (FindRow(state, key) is not { } row)
+        if (FindRow(state, key) is not { } row || (target is null && !sprintsKnown))
         {
             return false;
         }
@@ -169,6 +170,13 @@ public static class SprintMoveActions
         var sprint = row.CurrentSprint is { State: SprintState.Active or SprintState.Future } open ? open : null;
 
         return target is null ? sprint is null : sprint is not null && sprint.Id == target.Id;
+    }
+
+    private static string AlreadyInText(int count, IssueSprint? target)
+    {
+        var subject = count == 1 ? "That issue is" : "Those issues are";
+
+        return $"{subject} already in {TargetName(target)}";
     }
 
     private static string TargetName(IssueSprint? target)

@@ -279,13 +279,13 @@ public class SprintMoveTests
     [Fact]
     public void GivenTheOpenIssueAndMarksElsewhere_WhenMoving_ThenOnlyTheOpenIssueMovesAndTheMarksStay()
     {
-        var detail = _reducer.Reduce(At(Marked(Loaded(), "A-4", "A-2"), "A-4"), new KeyPressed("Enter", _now));
+        var detail = _reducer.Reduce(At(Marked(Loaded(), "A-2", "A-3"), "A-4"), new KeyPressed("Enter", _now));
         var opened = Chord(detail.State, "Space s b");
 
         Assert.NotEmpty(Tab(detail.State).Detail);
         var request = Request(opened);
         Assert.Equal(["A-4"], request.Keys);
-        Assert.Equal(["A-4", "A-2"], Tab(opened.State).Marks);
+        Assert.Equal(["A-2", "A-3"], Tab(opened.State).Marks);
     }
 
     [Fact]
@@ -390,6 +390,30 @@ public class SprintMoveTests
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.Contains("Move A-2 from", result.State.Confirm!.Message, StringComparison.Ordinal);
         Assert.Equal(["A-2"], Request(Press(result.State, "y")).Keys);
+    }
+
+    [Fact]
+    public void GivenOneIssueAlreadyInTheBacklog_WhenMovingToTheBacklog_ThenItSaysSoAndSendsNothing()
+    {
+        var result = Chord(At(Loaded(), "A-5"), "Space s b");
+
+        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.Empty(result.Effects);
+        Assert.Contains("That issue is already in the backlog", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenRowsWithoutSprintData_WhenMovingToTheBacklog_ThenNothingIsFilteredAndJiraDecides()
+    {
+        var state = Loaded();
+        var tab = Tab(state);
+        var rows = tab.Rows.Select(row => row with { Sprints = [] }).ToArray();
+        state = Marked(Replace(state, tab with { Rows = rows }), "A-2", "A-3");
+
+        var result = Chord(state, "Space s b");
+
+        Assert.Equal(InputMode.Confirm, result.State.Mode);
+        Assert.Contains("Move 2 issues", result.State.Confirm!.Message, StringComparison.Ordinal);
     }
 
     [Fact]
