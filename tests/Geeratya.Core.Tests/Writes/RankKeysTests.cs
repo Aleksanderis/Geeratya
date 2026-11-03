@@ -1,5 +1,5 @@
-using Geeratya.Core.Menus;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -425,20 +425,6 @@ public class RankKeysTests
         Assert.NotNull(RequestOf(dropped));
     }
 
-    private ReduceResult ChooseRankToInMenu(AppState state)
-    {
-        var menu = ContextMenus.For(state)!;
-        var index = menu.Items.ToList().FindIndex(item => item.Action == ActionIds.RankTo);
-        var open = state with { Mode = InputMode.Insert, ContextMenu = menu };
-
-        for (var step = 0; step < index; step++)
-        {
-            open = Press(open, "j").State;
-        }
-
-        return Press(open, "Enter");
-    }
-
     [Fact]
     public void GivenRankTo_WhenDroppingAboveThePickedUpIssue_ThenItGoesBeforeTheTarget()
     {
@@ -550,6 +536,20 @@ public class RankKeysTests
     private ReduceResult Press(AppState state, string key)
     {
         return _reducer.Reduce(state, new KeyPressed(key, _now));
+    }
+
+    private ReduceResult ChooseRankToInMenu(AppState state)
+    {
+        var menu = ContextMenus.For(state)!;
+        var index = menu.Items.ToList().FindIndex(item => item.Action == ActionIds.RankTo);
+        var open = state with { Mode = InputMode.Insert, ContextMenu = menu };
+
+        for (var step = 0; step < index; step++)
+        {
+            open = Press(open, "j").State;
+        }
+
+        return Press(open, "Enter");
     }
 
     private ReduceResult RankTo(AppState state)
