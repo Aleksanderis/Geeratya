@@ -31,6 +31,6 @@ View
 Tabs                                                                                                                    
   Tab        Next tab  (g t)                                                                                            
   Shift-Tab  Previous tab  (g T)                                                                                        
+  Ctrl-^     Previously active tab  (Space Tab)                                                                         
   Alt-1      Go to tab 1                                                                                                
-  Alt-2      Go to tab 2                                                                                                
  HELP                                                                        Tab page  / filter  j down  k up  Esc close

@@ -34,6 +34,7 @@ public static class ActionIds
     public const string SectionPrevious = "detail.section-previous";
     public const string TabNext = "tab.next";
     public const string TabPrevious = "tab.previous";
+    public const string TabLastActive = "tab.last-active";
     public const string TabGoTo1 = "tab.go-to.1";
     public const string TabGoTo2 = "tab.go-to.2";
     public const string TabGoTo3 = "tab.go-to.3";

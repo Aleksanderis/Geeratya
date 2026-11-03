@@ -31,6 +31,8 @@
     { "mode": "normal", "keys": "g t", "action": "tab.next" },
     { "mode": "normal", "keys": "Shift-Tab", "action": "tab.previous" },
     { "mode": "normal", "keys": "g T", "action": "tab.previous" },
+    { "mode": "normal", "keys": "Ctrl-^", "action": "tab.last-active" },
+    { "mode": "normal", "keys": "Space Tab", "action": "tab.last-active" },
     { "mode": "normal", "keys": "Alt-1", "action": "tab.go-to.1" },
     { "mode": "normal", "keys": "Alt-2", "action": "tab.go-to.2" },
     { "mode": "normal", "keys": "Alt-3", "action": "tab.go-to.3" },
