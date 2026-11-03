@@ -279,11 +279,11 @@ wait_gone "Help"
 # Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
 # motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
 # swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
-drag "Story GCM-11" 30 motion
+drag "Story GCM-11" 40 motion
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
-drag "Story GCM-11" 30
+drag "Story GCM-11" 40
 wait_for "Ctrl-s save"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Ctrl-s save"
@@ -329,13 +329,13 @@ start "$two"
 wait_for "fake: fake@example.com"
 dismiss_start_picker
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "second  " 2
 wait_for "Remove profile second"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+# The profile screen stays open under the dialog: Esc and Cancel only close the dialog.
+wait_for "─ Details ─"
 
 # Confirm dialog buttons (#379): a click on the Cancel row closes it and keeps the profile; a click on the answer row
 # ("Remove profile", below the question that starts with the same words) confirms and removes it (the inactive profile,
@@ -344,19 +344,18 @@ click "second  " 2
 wait_for "Remove profile second"
 click "Cancel"
 wait_gone "Remove profile second"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+# The profile screen stays open under the dialog: Esc and Cancel only close the dialog.
+wait_for "─ Details ─"
 frame | grep -qF -- "second  " || fail "the profile was removed by a click on Cancel"
 click "second  "
 wait_for "second: second@example.com"
 send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "─ Details ─"
 click "fake  " 2
 wait_for "Remove profile fake"
 click "Remove profile  "
 wait_gone "Remove profile fake"
-send ":profile list|"
-wait_for "Ctrl-x remove"
+wait_for "Profiles 1" # the screen stays open and lists the remaining profile
 frame | grep -qF -- "fake  " && fail "the profile is still listed after a click on the yes row"
 echo "ok: confirm dialog click on Cancel keeps, click on yes removes"
 echo "PASS"
