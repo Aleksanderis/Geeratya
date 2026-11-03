@@ -210,7 +210,7 @@ public class MouseResolverTests
     {
         var context = MouseContext.From(AppState.Initial, 80, 24, 2, default);
 
-        Assert.Equal(new MouseContext(80, 24, 2, false, false), context with { TabAreas = [] });
+        Assert.Equal(new MouseContext(80, 24, 2, false, false), context with { TabAreas = [], CommandsChip = null });
         Assert.Empty(context.TabAreas);
     }
 

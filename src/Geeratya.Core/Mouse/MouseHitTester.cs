@@ -86,6 +86,11 @@ public static class MouseHitTester
             return MouseTarget.Banner;
         }
 
+        if (context.CommandsChip is { } commands && column >= commands.Start && column < commands.End)
+        {
+            return MouseTarget.CommandsChip;
+        }
+
         if (context.JumpChip is { } chip && column >= chip.Start && column < chip.End)
         {
             return MouseTarget.JumpChip;

@@ -1,4 +1,4 @@
-[1 JQL My open issues . x]  +                                    [<space>g jump]
+[1 JQL My open issues . x]  +                       [: commands] [<space>g jump]
  STALE  Data is 23 min old. Refreshing.                                         
 +- My open issues -------------------------------------------------- 3 issues -+
 |  Key    T Summary                                              Status        |

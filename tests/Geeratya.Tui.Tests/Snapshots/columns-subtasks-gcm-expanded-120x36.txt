@@ -1,4 +1,4 @@
- 1 Board GCM board x   +                                                                                  <space>g jump 
+ 1 Board GCM board x   +                                                                     : commands   <space>g jump 
                                                                                                                         
 ╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 2 ─────────────────────────────╮
 │ ┌───────────────────────────────────┐ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │

@@ -1,4 +1,4 @@
-                                                                                
+                                                                     : commands 
                                                                                 
 ╭─ Settings ───────────────────────────────────────────────────────────────────╮
 │ hints.statusBar full (default full) - How many key hints the right of the st…│
