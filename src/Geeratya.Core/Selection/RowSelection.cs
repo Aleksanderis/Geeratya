@@ -52,6 +52,13 @@ public static class RowSelection
             return [];
         }
 
+        // A sub-task listed under an expanded card is not a row of the tab: the cursor card is the target.
+        if (tab.Definition.Layout == ViewLayout.Columns
+            && ColumnsNavigation.SelectedIssue(tab) is { IsListed: true } listed)
+        {
+            return [listed.Key];
+        }
+
         if (VisualRange(tab) is { } range)
         {
             return RangeKeys(tab, range);

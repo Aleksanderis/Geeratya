@@ -32,6 +32,19 @@ public static class BoardStateFixtures
         return OpenAsync("board-gtm-config", ["rows-gtm-issues"], "3", "GTM board", viewportRows, KanbanProbeReply);
     }
 
+    /// <summary>
+    /// A board whose issues carry their <c>subtasks</c> stubs: the sub-tasks are cards too, or, with
+    /// <paramref name="filtered"/>, the board filter leaves them out and only the parents list them.
+    /// </summary>
+    public static Task<AppState> WithSubtasksAsync(string kind, bool filtered, int viewportRows)
+    {
+        var page = $"rows-{kind}-issues-subtasks{(filtered ? "-filtered" : string.Empty)}";
+
+        return kind == "gcm"
+            ? OpenAsync("board-gcm-config", [page], "4", "GCM board", viewportRows)
+            : OpenAsync("board-gtm-config", [page], "3", "GTM board", viewportRows, KanbanProbeReply);
+    }
+
     private static async Task<AppState> OpenAsync(
         string configuration,
         string[] pages,

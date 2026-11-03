@@ -624,7 +624,8 @@ public sealed class AppReducer
                 () => BacklogActions.Jump(state, -1)
                     ?? BoardViewOptions.StepLane(state, -1)
                     ?? DetailActions.Section(state, -1)),
-            ActionIds.SectionToggle => InNormal(state, () => BacklogActions.Toggle(state) ?? Result(state)),
+            ActionIds.SectionToggle => InNormal(state, () => BacklogActions.Toggle(state) ?? SubtaskActions.Toggle(state)
+                ?? Result(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
             ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),

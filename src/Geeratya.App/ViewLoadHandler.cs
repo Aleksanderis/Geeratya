@@ -389,7 +389,11 @@ public sealed class ViewLoadHandler
             query = await ScrumQueryAsync(services, effect, id, query, token);
         }
 
-        query = query with { Jql = QuickFilterJql.Combine(query.Jql, effect.ExtraJql) };
+        query = query with
+        {
+            Jql = QuickFilterJql.Combine(query.Jql, effect.ExtraJql),
+            Extras = query.Extras with { IncludeSubtasks = true },
+        };
 
         if (effect.Background)
         {

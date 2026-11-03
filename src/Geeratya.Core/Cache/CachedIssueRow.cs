@@ -14,7 +14,8 @@ public sealed record CachedIssueRow(
     DateTimeOffset? Updated,
     string ProjectKey,
     List<CachedSprint> Sprints,
-    double? Estimate);
+    double? Estimate,
+    List<CachedSubtask>? Subtasks = null);
 
 /// <summary>The JSON shape of an issue status.</summary>
 public sealed record CachedStatus(string Id, string Name, string CategoryKey);
@@ -30,3 +31,6 @@ public sealed record CachedParent(string Key, string? Summary, bool IsEpic);
 
 /// <summary>The JSON shape of a sprint of an issue; <see cref="State"/> is the enum member name.</summary>
 public sealed record CachedSprint(long Id, string Name, string State);
+
+/// <summary>The JSON shape of a sub-task stub of a cached row.</summary>
+public sealed record CachedSubtask(string Key, string Summary, CachedStatus Status, string TypeName);

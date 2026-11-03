@@ -79,7 +79,7 @@ public static class ContextMenus
                 actions.Add(ActionIds.SprintMoveToBacklog);
             }
 
-            if (BacklogSections.Applies(tab))
+            if (BacklogSections.Applies(tab) || HasSubtasks(tab))
             {
                 actions.Add(ActionIds.SectionToggle);
             }
@@ -88,6 +88,13 @@ public static class ContextMenus
         var items = actions.Select(Item).ToList();
 
         return new ContextMenuState(items, 0);
+    }
+
+    private static bool HasSubtasks(TabState tab)
+    {
+        return tab.Definition.Layout == ViewLayout.Columns
+            && ColumnsNavigation.SelectedIssue(tab) is { } card
+            && (card.IsListed || card.Subtasks.Count > 0);
     }
 
     private static void AddDetailActions(AppState state, TabState tab, List<string> actions)
