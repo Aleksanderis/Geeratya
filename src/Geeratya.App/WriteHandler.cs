@@ -336,6 +336,8 @@ public sealed class WriteHandler
                 create.StartDate,
                 create.EndDate,
                 token),
+            EditSprintRequest { Edit.ClearsDate: true } clear
+                => await services.SprintWrites.ReplaceAsync(clear.Before, clear.Edit, token),
             EditSprintRequest edit => await services.SprintWrites.UpdateAsync(edit.Before.Id, edit.Edit, token),
             _ => throw new NotSupportedException($"No handler for {request.GetType().Name}."),
         };

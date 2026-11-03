@@ -40,6 +40,18 @@ internal static class SprintWriteBody
     public static string Update(string? name, string? goal, DateTimeOffset? startDate, DateTimeOffset? endDate) =>
         Partial(null, name, goal, startDate, endDate);
 
+    /// <summary>
+    /// A full replacement (<c>PUT</c>): what is left out is removed, which is how a date goes. The state is sent as it
+    /// is, so the replacement never starts or closes the sprint.
+    /// </summary>
+    public static string Replace(
+        string name,
+        string state,
+        string? goal,
+        DateTimeOffset? startDate,
+        DateTimeOffset? endDate) =>
+        Partial(state, name, goal, startDate, endDate);
+
     public static string Start(DateTimeOffset startDate, DateTimeOffset endDate) =>
         Partial(ActiveState, null, null, startDate, endDate);
 

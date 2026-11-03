@@ -68,6 +68,49 @@ public sealed class SprintWriteClientTests
     }
 
     [Fact]
+    public async Task GivenACleared_End_WhenReplacing_ThenPutsTheWholeSprintWithoutTheEnd()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Put, $"{SprintPath}/3", FakeResponse.Ok(SprintJson));
+        var current = new Sprint(3, "Next", SprintState.Future, "Keep me", _start, _end, null, 5);
+
+        var result = await new SprintWriteClient(fixture.Transport)
+            .ReplaceAsync(current, new SprintEdit(null, null, _start, null, ClearEndDate: true), Cancel());
+
+        Assert.True(result.IsSuccess);
+        var request = Assert.Single(fixture.Handler.Requests);
+        Assert.Equal(HttpMethod.Put, request.Method);
+        Assert.Equal(
+            """{"state":"future","name":"Next","goal":"Keep me","startDate":"2026-11-02T10:00:00.000Z"}""",
+            request.Body);
+    }
+
+    [Fact]
+    public async Task GivenBothDatesCleared_WhenReplacing_ThenNeitherDateIsSent()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Put, $"{SprintPath}/3", FakeResponse.Ok(SprintJson));
+        var current = new Sprint(3, "Next", SprintState.Future, null, _start, _end, null, 5);
+
+        await new SprintWriteClient(fixture.Transport)
+            .ReplaceAsync(current, new SprintEdit(null, null, null, null, true, true), Cancel());
+
+        Assert.Equal("""{"state":"future","name":"Next"}""", Assert.Single(fixture.Handler.Requests).Body);
+    }
+
+    [Fact]
+    public async Task GivenAnEditThatClearsADate_WhenUpdatingWithThePartialUpdate_ThenItIsRefusedWithoutARequest()
+    {
+        using var fixture = new TransportFixture();
+
+        var result = await new SprintWriteClient(fixture.Transport)
+            .UpdateAsync(3, new SprintEdit(null, null, null, null, ClearEndDate: true), Cancel());
+
+        Assert.False(result.IsSuccess);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
     public async Task GivenEmptyGoal_WhenUpdating_ThenGoalIsSentAsEmptyString()
     {
         using var fixture = new TransportFixture();

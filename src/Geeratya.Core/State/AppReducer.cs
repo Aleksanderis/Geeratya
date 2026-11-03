@@ -388,6 +388,11 @@ public sealed class AppReducer
     /// </summary>
     private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
     {
+        if (EmptySprintFocus.Refuses(state, action))
+        {
+            return Result(state with { Message = EmptySprintFocus.Refusal });
+        }
+
         switch (action)
         {
             case ActionIds.NavigateDown:
@@ -506,6 +511,11 @@ public sealed class AppReducer
         if (ClosedSprintGate.Refuses(state, action))
         {
             return Result(state with { Message = ClosedSprintGate.Refusal });
+        }
+
+        if (EmptySprintFocus.Refuses(state, action))
+        {
+            return Result(state with { Message = EmptySprintFocus.Refusal });
         }
 
         return action switch
@@ -919,6 +929,11 @@ public sealed class AppReducer
         if (ClosedSprintGate.RefusesCommand(state, text))
         {
             return Result(normal with { Message = ClosedSprintGate.Refusal });
+        }
+
+        if (EmptySprintFocus.RefusesCommand(state, text))
+        {
+            return Result(normal with { Message = EmptySprintFocus.Refusal });
         }
 
         return text switch

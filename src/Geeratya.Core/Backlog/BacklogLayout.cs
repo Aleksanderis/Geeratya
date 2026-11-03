@@ -8,12 +8,14 @@ namespace Geeratya.Core.Backlog;
 public sealed class BacklogLayout
 {
     private readonly int[] _stops;
+    private readonly CursorItem[] _items;
 
     public BacklogLayout(IReadOnlyList<BacklogSection> sections)
     {
         Sections = sections;
         LineCount = sections.Sum(section => section.LineCount);
         _stops = BuildStops(sections);
+        _items = BuildItems(sections);
     }
 
     public IReadOnlyList<BacklogSection> Sections { get; }
@@ -23,6 +25,18 @@ public sealed class BacklogLayout
 
     /// <summary>The rows the cursor can stand on, ascending.</summary>
     public IReadOnlyList<int> Stops => _stops;
+
+    /// <summary>
+    /// What the keyboard cursor visits, in display order: the stops, and the header of every empty sprint section
+    /// (known by its sprint) at its place between them.
+    /// </summary>
+    public IReadOnlyList<CursorItem> Items => _items;
+
+    /// <summary>The section of the empty sprint <paramref name="sprintId"/>, null when it has rows or is unknown.</summary>
+    public BacklogSection? EmptySprint(long sprintId)
+    {
+        return Sections.FirstOrDefault(section => section is { HasRows: false, Sprint: { } sprint } && sprint.Id == sprintId);
+    }
 
     /// <summary>The section that holds <paramref name="row"/>, null when no section does (no rows loaded).</summary>
     public BacklogSection? SectionOfRow(int row)
@@ -121,5 +135,37 @@ public sealed class BacklogLayout
         }
 
         return [.. stops];
+    }
+
+    private static CursorItem[] BuildItems(IReadOnlyList<BacklogSection> sections)
+    {
+        var items = new List<CursorItem>();
+
+        foreach (var section in sections)
+        {
+            if (!section.HasRows)
+            {
+                if (section.Sprint is { } sprint)
+                {
+                    items.Add(new CursorItem(section.FirstRow, sprint.Id));
+                }
+
+                continue;
+            }
+
+            if (section.Collapsed)
+            {
+                items.Add(new CursorItem(section.FirstRow, null));
+
+                continue;
+            }
+
+            for (var row = section.FirstRow; row < section.FirstRow + section.RowCount; row++)
+            {
+                items.Add(new CursorItem(row, null));
+            }
+        }
+
+        return [.. items];
     }
 }

@@ -87,7 +87,16 @@ public static class SprintForms
             return tab.Sprint is { } shown ? new SprintLookup(shown, string.Empty) : new SprintLookup(null, NoSprintText);
         }
 
-        var section = BacklogSections.Build(tab).SectionOfRow(tab.Selected);
+        var layout = BacklogSections.Build(tab);
+
+        if (tab.FocusedSprintId is { } focused)
+        {
+            return layout.EmptySprint(focused)?.Sprint is { } empty
+                ? new SprintLookup(empty, string.Empty)
+                : new SprintLookup(null, NotLoadedText);
+        }
+
+        var section = layout.SectionOfRow(tab.Selected);
 
         if (section is null)
         {

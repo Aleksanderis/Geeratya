@@ -47,9 +47,54 @@ public class BacklogCursorTests
             SelectedKey = "A-1",
         };
 
-        var moved = BacklogCursor.Move(tab, ListMove.Up);
+        var onEmptySprint = BacklogCursor.Move(tab, ListMove.Up);
+        var moved = BacklogCursor.Move(onEmptySprint, ListMove.Up);
 
         Assert.Equal(2, moved.Selected);
+    }
+
+    [Fact]
+    public void GivenTheCursorBeforeAnEmptySprint_WhenMovingDown_ThenTheEmptySprintGetsAStopOfItsOwn()
+    {
+        var tab = Tab() with { Selected = 3, SelectedKey = "A-6" };
+
+        var onSprint = BacklogCursor.Move(tab, ListMove.Down);
+        var past = BacklogCursor.Move(onSprint, ListMove.Down);
+
+        Assert.Equal(BacklogFixtures.EmptyFutureId, onSprint.FocusedSprintId);
+        Assert.Equal(4, onSprint.Selected);
+        Assert.Null(past.FocusedSprintId);
+        Assert.Equal("A-1", past.SelectedKey);
+        Assert.Equal(4, past.Selected);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAnEmptySprint_WhenMovingUp_ThenItReturnsToTheRowAbove()
+    {
+        var tab = BacklogCursor.FocusSprint(Tab(), BacklogFixtures.EmptyFutureId);
+
+        var moved = BacklogCursor.Move(tab, ListMove.Up);
+
+        Assert.Null(moved.FocusedSprintId);
+        Assert.Equal("A-6", moved.SelectedKey);
+    }
+
+    [Fact]
+    public void GivenAnEmptySprintAndASprintWithRows_WhenFocusingThem_ThenOnlyTheEmptyOneTakesTheCursor()
+    {
+        var tab = Tab();
+
+        Assert.Equal(BacklogFixtures.EmptyFutureId, BacklogCursor.FocusSprint(tab, 9).FocusedSprintId);
+        Assert.Same(tab, BacklogCursor.FocusSprint(tab, BacklogFixtures.ActiveId));
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAnEmptySprint_WhenARowIsPlaced_ThenTheFocusIsDropped()
+    {
+        var focused = BacklogCursor.FocusSprint(Tab(), BacklogFixtures.EmptyFutureId);
+
+        Assert.Null(BacklogCursor.Place(focused, 0).FocusedSprintId);
+        Assert.Equal(BacklogFixtures.EmptyFutureId, BacklogCursor.Settle(focused, 10).FocusedSprintId);
     }
 
     [Fact]
@@ -74,7 +119,7 @@ public class BacklogCursorTests
     {
         var tab = BacklogFixtures.Tab([], _sprints);
 
-        Assert.Same(tab, BacklogCursor.Move(tab, ListMove.Down));
+        Assert.Equal(BacklogFixtures.ActiveId, BacklogCursor.Move(tab, ListMove.Down).FocusedSprintId);
         Assert.Same(tab, BacklogCursor.Toggle(tab));
         Assert.Same(tab, BacklogCursor.Jump(tab, 1));
         Assert.Equal(0, BacklogCursor.Settle(tab, 10).Scroll);

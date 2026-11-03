@@ -71,6 +71,16 @@ public class LiveSprintWriteTests
         var dated = await client.UpdateAsync(sprintId, new SprintEdit(null, null, start, end), token);
         Assert.True(dated.IsSuccess);
 
+        var current = new Sprint(sprintId, "geeratya-test-renamed", SprintState.Future, null, start, end, null, 0);
+        var undone = await client.ReplaceAsync(current, new SprintEdit(null, null, null, null, true, true), token);
+        Assert.True(undone.IsSuccess);
+        Assert.Null(undone.Value.StartDate);
+        Assert.Null(undone.Value.EndDate);
+        Assert.Equal("geeratya-test-renamed", undone.Value.Name);
+
+        var redated = await client.UpdateAsync(sprintId, new SprintEdit(null, null, start, end), token);
+        Assert.True(redated.IsSuccess);
+
         var early = await client.CompleteAsync(sprintId, token);
         Assert.Equal(SprintWriteProblem.NotActive, SprintWriteErrors.Classify(early.Error));
 

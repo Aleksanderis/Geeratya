@@ -31,12 +31,17 @@ public sealed record EditSprintRequest(long BoardId, Sprint Before, SprintEdit E
     {
         return (Edit.Name is null || sprint.Name == Edit.Name)
             && (Edit.Goal is null || (sprint.Goal ?? string.Empty) == Edit.Goal)
-            && Same(Edit.StartDate, sprint.StartDate)
-            && Same(Edit.EndDate, sprint.EndDate);
+            && Same(Edit.StartDate, Edit.ClearStartDate, sprint.StartDate)
+            && Same(Edit.EndDate, Edit.ClearEndDate, sprint.EndDate);
     }
 
-    private static bool Same(DateTimeOffset? wanted, DateTimeOffset? actual)
+    private static bool Same(DateTimeOffset? wanted, bool cleared, DateTimeOffset? actual)
     {
+        if (cleared)
+        {
+            return actual is null;
+        }
+
         if (wanted is not { } expected)
         {
             return true;

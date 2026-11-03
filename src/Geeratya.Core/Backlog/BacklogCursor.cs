@@ -18,7 +18,7 @@ public static class BacklogCursor
     {
         if (tab.Rows.Count == 0)
         {
-            return tab with { Selected = 0, SelectedKey = null, Scroll = 0 };
+            return tab with { Selected = 0, SelectedKey = null, Scroll = 0, FocusedSprintId = null };
         }
 
         var layout = BacklogSections.Build(tab);
@@ -31,12 +31,18 @@ public static class BacklogCursor
     /// </summary>
     public static TabState Settle(TabState tab, int viewport)
     {
-        if (tab.Rows.Count == 0)
+        var layout = BacklogSections.Build(tab);
+
+        if (tab.FocusedSprintId is { } focused && layout.EmptySprint(focused) is { } section)
         {
-            return tab with { Selected = 0, SelectedKey = null, Scroll = 0, VisibleRows = viewport };
+            return Focus(tab with { VisibleRows = viewport }, layout, section, viewport);
         }
 
-        var layout = BacklogSections.Build(tab);
+        if (tab.Rows.Count == 0)
+        {
+            return tab with { Selected = 0, SelectedKey = null, Scroll = 0, VisibleRows = viewport, FocusedSprintId = null };
+        }
+
         var row = Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1);
 
         return Place(tab with { VisibleRows = viewport }, layout, row, viewport);
@@ -45,17 +51,52 @@ public static class BacklogCursor
     /// <summary>A motion of the keyboard across the stops of all sections.</summary>
     public static TabState Move(TabState tab, ListMove move)
     {
-        if (tab.Rows.Count == 0)
+        var layout = BacklogSections.Build(tab);
+        var items = layout.Items;
+
+        if (items.Count == 0)
         {
             return tab;
         }
 
-        var layout = BacklogSections.Build(tab);
-        var stops = layout.Stops;
-        var current = layout.StopIndexOf(Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1));
-        var moved = ListMotion.Move(new ListPosition(current, 0), move, 1, stops.Count, tab.VisibleRows);
+        if (tab.Rows.Count == 0 && tab.FocusedSprintId is null && items[0].SprintId is { } first
+            && layout.EmptySprint(first) is { } entered)
+        {
+            return Focus(tab, layout, entered, tab.VisibleRows);
+        }
 
-        return Place(tab, layout, stops[moved.Selected], tab.VisibleRows);
+        var current = CurrentItem(tab, layout);
+        var moved = ListMotion.Move(new ListPosition(current, 0), move, 1, items.Count, tab.VisibleRows);
+        var target = items[moved.Selected];
+
+        if (target.SprintId is { } sprintId && layout.EmptySprint(sprintId) is { } section)
+        {
+            return Focus(tab, layout, section, tab.VisibleRows);
+        }
+
+        return Place(tab, layout, target.Row, tab.VisibleRows);
+    }
+
+    /// <summary>
+    /// Puts the cursor on the header of the empty sprint <paramref name="sprintId"/> (a click on it); the tab as it is
+    /// when that sprint has rows or is unknown.
+    /// </summary>
+    public static TabState FocusSprint(TabState tab, long sprintId)
+    {
+        var layout = BacklogSections.Build(tab);
+
+        return layout.EmptySprint(sprintId) is { } section ? Focus(tab, layout, section, tab.VisibleRows) : tab;
+    }
+
+    /// <summary>The empty sprint a click on display line <paramref name="line"/> (header, goal or note) points at.</summary>
+    public static long? EmptySprintAtLine(BacklogLayout layout, int line)
+    {
+        if (layout.LineAt(line) is not { Row: null, Section: { HasRows: false, Sprint: { } sprint } })
+        {
+            return null;
+        }
+
+        return sprint.Id;
     }
 
     /// <summary>
@@ -156,6 +197,54 @@ public static class BacklogCursor
         return layout.SectionOfRow(Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)) is { Collapsed: true };
     }
 
+    private static int CurrentItem(TabState tab, BacklogLayout layout)
+    {
+        var items = layout.Items;
+
+        if (tab.FocusedSprintId is { } focused)
+        {
+            for (var index = 0; index < items.Count; index++)
+            {
+                if (items[index].SprintId == focused)
+                {
+                    return index;
+                }
+            }
+        }
+
+        if (tab.Rows.Count == 0)
+        {
+            return 0;
+        }
+
+        var stop = layout.StopFor(Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1));
+
+        for (var index = 0; index < items.Count; index++)
+        {
+            if (items[index].SprintId is null && items[index].Row == stop)
+            {
+                return index;
+            }
+        }
+
+        return 0;
+    }
+
+    private static TabState Focus(TabState tab, BacklogLayout layout, BacklogSection section, int viewport)
+    {
+        var row = tab.Rows.Count == 0 ? 0 : Math.Clamp(section.FirstRow, 0, tab.Rows.Count - 1);
+        var position = ListMotion.Reveal(new ListPosition(section.FirstLine, tab.Scroll), layout.LineCount, viewport);
+        var key = tab.Rows.Count == 0 ? null : tab.Rows[row].Key;
+
+        return tab with
+        {
+            Selected = row,
+            SelectedKey = key,
+            Scroll = Math.Min(position.Scroll, section.FirstLine),
+            FocusedSprintId = section.Sprint!.Id,
+        };
+    }
+
     private static TabState Place(TabState tab, BacklogLayout layout, int row, int viewport)
     {
         var stop = layout.StopFor(row);
@@ -170,6 +259,6 @@ public static class BacklogCursor
             scroll = section.FirstLine;
         }
 
-        return tab with { Selected = stop, SelectedKey = tab.Rows[stop].Key, Scroll = scroll };
+        return tab with { Selected = stop, SelectedKey = tab.Rows[stop].Key, Scroll = scroll, FocusedSprintId = null };
     }
 }

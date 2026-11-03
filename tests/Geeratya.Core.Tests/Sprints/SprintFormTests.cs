@@ -1,3 +1,4 @@
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Profiles;
@@ -59,6 +60,50 @@ public class SprintFormTests
         Assert.Equal(SprintFormFields.Local(BacklogFixtures.Active.StartDate), form.Fields[2].Value.Text);
         Assert.Equal(SprintFormFields.Local(BacklogFixtures.Active.EndDate), form.Fields[3].Value.Text);
         Assert.False(form.IsDirty);
+    }
+
+    [Fact]
+    public void GivenTheCursorMovedOntoAnEmptySprint_WhenTheEditKeyIsPressed_ThenItsFormOpens()
+    {
+        var onEmpty = Press(Backlog(), "j", "j", "j", "j");
+
+        var result = Press(onEmpty.State, "Space", "s", "e");
+
+        Assert.Equal("Edit sprint Sprint 3", Active(result.State).Form!.Target.Title);
+    }
+
+    [Theory]
+    [InlineData("Enter")]
+    [InlineData("Space i e")]
+    [InlineData("Space i d")]
+    [InlineData("Space i s")]
+    public void GivenTheCursorOnAnEmptySprint_WhenAKeyWouldActOnTheRowBehindIt_ThenItIsRefused(string keys)
+    {
+        var onEmpty = Press(Backlog(), "j", "j", "j", "j");
+        Assert.NotNull(Active(onEmpty.State).FocusedSprintId);
+
+        var result = Press(onEmpty.State, keys.Split(' '));
+
+        Assert.Empty(result.Effects);
+        Assert.Null(Active(result.State).Form);
+        Assert.Empty(Active(result.State).Detail);
+        Assert.Equal(EmptySprintFocus.Refusal, result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAnEditThatEmptiesTheEnd_WhenSubmitted_ThenTheEditAsksToClearTheEndAndKeepsTheStart()
+    {
+        var state = Press(Backlog(), "Space", "s", "e").State;
+        var emptied = Type(state, ["Enter", "Enter", "Enter", "Enter", .. Enumerable.Repeat("Backspace", 16)]);
+
+        var submitted = Press(emptied, "Ctrl-s");
+
+        var request = Assert.IsType<EditSprintRequest>(
+            Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects)).Request);
+        Assert.True(request.Edit.ClearEndDate);
+        Assert.False(request.Edit.ClearStartDate);
+        Assert.Null(request.Edit.EndDate);
+        Assert.Equal(BacklogFixtures.Active.StartDate, request.Edit.StartDate);
     }
 
     [Fact]
