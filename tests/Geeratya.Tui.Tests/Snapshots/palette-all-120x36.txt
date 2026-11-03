@@ -31,6 +31,6 @@ View · 0 issues
                     │   Open the actions menu of the tab and the view                      Space A │                    
                     │   Refresh the view (also retries after an error)                     Space r │                    
                     │   Switch the command level for the session                           Space * │                    
-                    │ Tabs                                                                         │                    
+                    │   Switch the sprint shown (active, future, closed)                 Space s v │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
  COMMAND :                                                                           Up/Down move  Enter run  Esc cancel

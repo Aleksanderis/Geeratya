@@ -263,6 +263,24 @@ public sealed class SprintClientTests
     }
 
     [Fact]
+    public async Task GivenSprintsOnTwoPages_WhenListingAll_ThenEveryStateIsReturnedAndNoStateFilterIsSent()
+    {
+        const string first = """
+            {"startAt": 0, "maxResults": 1, "total": 2, "values": [{"id": 7, "state": "closed", "name": "A"}]}
+            """;
+        const string second = """
+            {"startAt": 1, "maxResults": 1, "total": 2, "values": [{"id": 12, "state": "future", "name": "B"}]}
+            """;
+        using var fixture = new TransportFixture();
+        fixture.Handler.Script(HttpMethod.Get, CompanySprintsPath, FakeResponse.Ok(first), FakeResponse.Ok(second));
+
+        var result = await new SprintClient(fixture.Transport).ListAllSprintsAsync(6, CancellationToken.None);
+
+        Assert.Equal([7L, 12L], result.Value.Select(sprint => sprint.Id));
+        Assert.All(fixture.Handler.Requests, request => Assert.Null(QueryOf(request)["state"]));
+    }
+
+    [Fact]
     public async Task GivenSecondPageOfSprintIssues_WhenLoading_ThenRowsAreMappedAndNextAdvancesByCount()
     {
         using var fixture = Serving("/rest/agile/1.0/sprint/7/issue", "scrum/sprint-issues-gcs-active-page2.json");

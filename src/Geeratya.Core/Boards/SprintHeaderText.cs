@@ -25,11 +25,16 @@ public static class SprintHeaderText
     }
 
     /// <summary>
-    /// Time left of an active sprint, by UTC calendar day (<c>5d left</c>, <c>ends today</c>, <c>ended 2d ago</c>); empty for a sprint that
-    /// is not active or has no end date.
+    /// Time left of an active sprint, by UTC calendar day (<c>5d left</c>, <c>ends today</c>, <c>ended 2d ago</c>), or
+    /// the completion date of a closed one (<c>closed 2 Nov</c>); empty for any other sprint or one without the date.
     /// </summary>
     public static string DaysLeft(Sprint sprint, DateTimeOffset now)
     {
+        if (sprint is { State: SprintState.Closed, CompleteDate: { } completed })
+        {
+            return $"closed {Day(completed)}";
+        }
+
         if (sprint.State != SprintState.Active || sprint.EndDate is not { } end)
         {
             return string.Empty;

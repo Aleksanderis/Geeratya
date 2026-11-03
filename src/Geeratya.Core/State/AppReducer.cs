@@ -15,6 +15,7 @@ using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
@@ -357,6 +358,11 @@ public sealed class AppReducer
             return Result(cleared with { Message = refusal });
         }
 
+        if (resolution.Action is { } keyed && ClosedSprintGate.Refuses(cleared, keyed))
+        {
+            return Result(cleared with { Message = ClosedSprintGate.Refusal });
+        }
+
         if (resolution.Action == ActionIds.IssueUnlink)
         {
             // The only action that needs the time of the key: the confirm carries the write that will start.
@@ -497,6 +503,11 @@ public sealed class AppReducer
 
     private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
+        if (ClosedSprintGate.Refuses(state, action))
+        {
+            return Result(state with { Message = ClosedSprintGate.Refusal });
+        }
+
         return action switch
         {
             ActionIds.Quit => Quit(state),
@@ -532,6 +543,8 @@ public sealed class AppReducer
             ActionIds.ProfileRemove => ProfileReducer.RemoveHighlighted(state),
             ActionIds.PickerNext => Result(MovePicker(state, 1)),
             ActionIds.PickerPrevious => Result(MovePicker(state, -1)),
+            ActionIds.PickerOpenNewTab => state.Picker is null ? Result(state) : SourceReducer.AcceptInNewTab(state),
+            ActionIds.SprintSwitch => InNormal(state, () => SourceReducer.OpenSprintPicker(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
@@ -894,6 +907,11 @@ public sealed class AppReducer
     {
         var text = state.PaletteText.Trim();
         var normal = ToNormal(state);
+
+        if (ClosedSprintGate.RefusesCommand(state, text))
+        {
+            return Result(normal with { Message = ClosedSprintGate.Refusal });
+        }
 
         return text switch
         {

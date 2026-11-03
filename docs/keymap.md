@@ -67,6 +67,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-j` | Rank the issue down (a count moves it that many places) | `rank.down` | everyday |
 | `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
+| `Space s v` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
 | `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
 | `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |
@@ -143,6 +144,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-n` | Next row in the picker | `picker.next` | everyday |
+| `Ctrl-t` | Open the highlighted sprint in a new tab | `picker.open-new-tab` | everyday |
 | `Ctrl-j` | Next row in the picker | `picker.next` | everyday |
 | `Ctrl-k` | Previous row in the picker | `picker.previous` | everyday |
 | `Ctrl-l` | Accept the field and go to the next | `form.next` | everyday |

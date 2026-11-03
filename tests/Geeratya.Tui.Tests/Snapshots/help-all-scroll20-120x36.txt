@@ -8,6 +8,7 @@
             │               │   Space r    Refresh the view (also retries after an error)                  │            
             │               │   Space l    Switch between list and columns                                 │            
             │               │   Space *    Switch the command level for the session                        │            
+            │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │ Tabs                                                                         │            
             │               │   Tab        Next tab  (g t)                                                 │            
             │               │   Shift-Tab  Previous tab  (g T)                                             │            
@@ -30,7 +31,6 @@
             │               │   l          Move right  (Right)                                             │            
             │               │   g g        Go to the top  (Home)                                           │            
             │               │   G          Go to the bottom  (End)                                         │            
-            │               │   Ctrl-d     Page down  (PageDown)                                           │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -65,6 +65,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.IssueLink),
         ContextMenuRow(ActionIds.IssueUnlink),
         ContextMenuRow(ActionIds.IssueJump, 'V'),
+        ContextMenuRow(ActionIds.SprintSwitch, 'V'),
         ContextMenuRow(ActionIds.StatusHistory, 'V'),
         ContextMenuRow(ActionIds.StatusDismiss, 'V'),
         ContextMenuRow(ActionIds.RankUp),
@@ -140,6 +141,7 @@ public static class DefaultMouseMap
             [ActionIds.HelpHalfPageDown] = helpScroll,
             [ActionIds.HelpHalfPageUp] = helpScroll,
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
+            [ActionIds.PickerOpenNewTab] = "the sprint picker only: a click on a row opens it like Enter, the key adds the new tab",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
         };
 

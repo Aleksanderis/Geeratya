@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.History;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
@@ -18,6 +19,11 @@ public static class SourceChoices
     {
         var text = picker.Text.Trim();
         var choices = new List<SourceChoice>();
+
+        if (picker.Scope == PickerScope.Sprints)
+        {
+            return picker.Sprint is { } data ? SprintChoices.For(data, text) : choices;
+        }
 
         if (picker.Scope is PickerScope.All or PickerScope.Boards or PickerScope.Backlogs)
         {

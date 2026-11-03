@@ -2,9 +2,10 @@
                                                                                                                         
                                                                                                                         
             ┌─ Help ───────────────────────────────────────────────────────────────────────────────────────┐            
-            │   Global      │   ] ]        Next section of the issue or the Scrum backlog                  │            
-            │ > All actions │   [ [        Previous section of the issue or the Scrum backlog              │            
-            │   Commands    │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
+            │   Global      │   $          Go to the last column                                           │            
+            │ > All actions │   ] ]        Next section of the issue or the Scrum backlog                  │            
+            │   Commands    │   [ [        Previous section of the issue or the Scrum backlog              │            
+            │               │   z a        Collapse or expand the sprint section of the Scrum backlog      │            
             │               │ General                                                                      │            
             │               │   ?          Show or hide help                                               │            
             │               │   q          Quit  (Ctrl-c)                                                  │            
@@ -30,7 +31,6 @@
             │               │   Backspace  Delete the last character                                       │            
             │               │   Ctrl-x     Remove the highlighted profile (asks first; the stored token    │            
             │               │              is deleted)                                                     │            
-            │               │   Up         Previous row in the picker  (Ctrl-p, Ctrl-k)                    │            
             └──────────────────────────────────────────────────────────────────────────────────────────────┘            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

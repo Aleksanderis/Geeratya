@@ -80,6 +80,8 @@ public static class ActionIds
     public const string ProfileRemove = "profile.remove";
     public const string PickerPrevious = "picker.previous";
     public const string PickerNext = "picker.next";
+    public const string PickerOpenNewTab = "picker.open-new-tab";
+    public const string SprintSwitch = "sprint.switch";
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";

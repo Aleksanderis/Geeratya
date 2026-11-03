@@ -1,3 +1,5 @@
+using Geeratya.Core.Sprints;
+
 namespace Geeratya.Core.Sources;
 
 /// <summary>The open source picker (Insert mode overlay). Rows are derived from the text and the loaded lists.</summary>
@@ -9,4 +11,8 @@ namespace Geeratya.Core.Sources;
 /// anything else leaves the picker open with the text typed.
 /// </param>
 /// <param name="Notice">Why the picker is open instead of a view (no match, ambiguous name), or null.</param>
-public sealed record SourcePickerState(string Text, int Selected, PickerScope Scope, bool AutoOpen, string? Notice);
+public sealed record SourcePickerState(string Text, int Selected, PickerScope Scope, bool AutoOpen, string? Notice)
+{
+    /// <summary>The board and sprints of the sprint switcher; null in every other scope.</summary>
+    public SprintPickerData? Sprint { get; init; }
+}

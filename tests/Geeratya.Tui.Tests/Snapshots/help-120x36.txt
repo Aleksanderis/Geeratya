@@ -27,7 +27,7 @@
             │               │   Space g    Jump to an issue by key                                         │            
             │               │   Space n    Show the message history                                        │            
             │               │   Space x    Dismiss the status message                                      │            
-            │               │                                                                              │            
+            │               │   Space s v  Switch the sprint shown (active, future, closed)                │            
             │               │                                                                              │            
             │               │                                                                              │            
             │               │                                                                              │            
