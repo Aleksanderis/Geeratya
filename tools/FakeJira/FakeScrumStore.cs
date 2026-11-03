@@ -113,10 +113,10 @@ public sealed partial class FakeScrumStore
 
     private readonly GeneratedScrum? _generated;
 
-    public FakeScrumStore(Func<string, byte[]> readFixture, int generatedIssues = 0)
+    public FakeScrumStore(Func<string, byte[]> readFixture, int generatedIssues = 0, bool noActiveSprint = false)
     {
         _readFixture = readFixture;
-        _generated = generatedIssues > 0 ? new GeneratedScrum(generatedIssues, readFixture) : null;
+        _generated = generatedIssues > 0 ? new GeneratedScrum(generatedIssues, readFixture, noActiveSprint) : null;
     }
 
     /// <summary>The reply for a request on a Scrum or sprint route, or null when the path is not one of them.</summary>

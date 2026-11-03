@@ -21,6 +21,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
+# sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up) and `^` sends Alt-m (mark).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
@@ -37,6 +38,8 @@ all_scenarios=(
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated goal"
+  "sprint-points;120;36;dark;:board GEN| sv|;5p"
+  "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."
   "sprint-goal;120;36;dark;:board GEN| sv| sg;Sprint goal"
   "list-selection;120;36;dark;:jql project = GCM|^^jvjj;2 selected"
   "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
@@ -211,6 +214,7 @@ render() {
   work=$(mktemp -d)
   fake_pid=""
   recorded_pid=""
+  noactive_pid=""
   sockets=()
   trap stop_render EXIT
   mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
@@ -237,12 +241,23 @@ render() {
     case $recorded_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
   fi
 
+  # The generated Scrum board without an active sprint; started only for the scenario that needs it.
+  if [ -z "$wanted" ] || [[ $wanted == *sprint-no-active* ]]; then
+    dotnet "$work/fakejira/fakejira.dll" --issues 40 --no-active-sprint > "$work/fake-noactive.url" &
+    noactive_pid=$!
+    for _ in $(seq 1 50); do [ -s "$work/fake-noactive.url" ] && break; sleep 0.1; done
+    noactive_url=$(head -n 1 "$work/fake-noactive.url")
+    case $noactive_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+  fi
+
   local rendered=0
   for spec in "${all_scenarios[@]}"; do
     name=${spec%%;*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
     if [[ $name == detail-relations-* || $name == comment-recorded-* ]]; then
       seed_fake_profile "$work/config" "$recorded_url"
+    elif [[ $name == sprint-no-active ]]; then
+      seed_fake_profile "$work/config" "$noactive_url"
     else
       seed_fake_profile "$work/config" "$fake_url"
     fi
@@ -258,6 +273,7 @@ stop_render() {
   for socket in "${sockets[@]}"; do tmux -L "$socket" kill-server 2> /dev/null || true; done
   if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi
   if [ -n "$recorded_pid" ]; then kill "$recorded_pid" 2> /dev/null || true; fi
+  if [ -n "${noactive_pid:-}" ]; then kill "$noactive_pid" 2> /dev/null || true; fi
   rm -rf "$work"
 }
 
