@@ -12,6 +12,8 @@ public enum PaletteRole
     Offline,
     RateLimited,
     Warning,
+    Success,
+    SuccessChip,
     Stale,
     Heading,
     Strong,

@@ -150,7 +150,7 @@ public static class FrameBuilder
             StatusBar.Render(state, width, keymap, clock, dialogShown))
         {
             Regions = [.. regions.Select(region => region.Shifted(header))],
-            StatusSegment = StatusBar.MessageSegment(state, width),
+            StatusSegment = StatusBar.MessageSegment(state, width, clock),
         };
 
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;

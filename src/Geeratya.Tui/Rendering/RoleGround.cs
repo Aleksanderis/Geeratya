@@ -11,4 +11,7 @@ internal enum RoleGround
 
     /// <summary>The brightest text colour of the variant (strong text).</summary>
     Strong,
+
+    /// <summary>A filled chip: the variant's ground colour on the role's own colour (spec background).</summary>
+    Chip,
 }
