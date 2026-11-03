@@ -126,12 +126,11 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
     }
 
     [Fact]
-    public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndHelpShow()
+    public void GivenOneName_WhenSubmittingThePalette_ThenItsValueDefaultAndAcceptedValuesShow()
     {
         var message = Run("set hints.whichKey").State.Message;
 
         Assert.Contains("hints.whichKey on (default on; on or off)", message);
-        Assert.Contains(SettingsRegistry.Find("hints.whichKey")!.Help, message);
     }
 
     [Fact]
@@ -251,6 +250,17 @@ public sealed class SettingsReducerTests : IDisposable // Dispose removes the te
 
         Assert.Equal(AppSettings.DefaultTheme, settings.Theme);
         Assert.Equal(HintLevel.Off, settings.StatusHints);
+    }
+
+    [Fact]
+    public void GivenEverySetting_WhenAskingForOne_ThenTheStatusMessageFitsEightyColumns()
+    {
+        foreach (var setting in SettingsRegistry.All)
+        {
+            var message = Run($"set {setting.Name}").State.Message;
+
+            Assert.True(message is { Length: <= 80 }, $"{setting.Name}: {message?.Length} columns: {message}");
+        }
     }
 
     private ReduceResult Run(string text)
