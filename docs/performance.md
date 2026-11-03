@@ -55,7 +55,7 @@ Nothing is read from the cache before the first frame: the cache is opened lazil
 
 | Path | Binary | Dataset | Median | p95 |
 |---|---|---|---|---|
-| Scrum backlog (#178): nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows in 21 sections in one tab, 2500 timed keys (`HotPathMeasurements`) | 0.41 ms | 0.83 ms |
+| Scrum backlog (#178): nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows in 21 sections in one tab, 2500 timed keys (`HotPathMeasurements`) | 0.40 ms | 1.11 ms (load 18, see the note under the Scrum paths table) |
 | Nav key through `AppReducer` plus `FrameBuilder.BuildStyled` at 120x36 (alternating `Ctrl-d` and `j`) | .NET 10 Release JIT, in process | 10 000 rows loaded in one tab, 2000 timed keys | 0.20 ms | 1.0 ms |
 
 Method: temporary xUnit test (not committed), 200 warm-up keys. It excludes the terminal draw and tmux. The renderer produces only the viewport rows (a test builds a frame over 10 000 rows and checks it holds the window and nothing else); the work per key is the reducer's list copy of one tab and the visible rows. Real-binary check: `fakejira --issues 10000` with the Native AOT binary under tmux, `:jql`, then `j`, `G` and `Ctrl-d` moved the selection, the next page loaded when `G` came within one screen of the end, and `gg` returned to the top. RSS of a fully loaded 10k tab and AOT key-to-frame are in "M1 measurements (#91)".
@@ -164,7 +164,7 @@ Environment: Linux x86_64, 14 cores, load average 13 to 16 (other agents buildin
 | `j` key to frame in the loaded backlog | AOT | 1248 rows | 53 | 91 | next frame: met (the `?` key of the same load reads 82, so the tmux and polling floor) |
 | `za` (fold a section) to frame | AOT | same | 69 | 85 | next frame: met (two keys) |
 | RSS with the backlog and a sprint tab loaded | AOT | 5000-issue site | 47 MB | 47 MB | bounded: met |
-| Nav key + frame, Scrum backlog | JIT, in process | 10 000 rows in 21 sections | 0.41 | 0.83 | met (`HotPathMeasurements`, from #178) |
+| Nav key + frame, Scrum backlog | JIT, in process | 10 000 rows in 21 sections | 0.40 | 1.11 | met (`HotPathMeasurements`, from #178; re-measured in #498 at load 18 with the variants side by side: pre-#493 code 0.38 / 0.97, cursor items materialized per build 0.59 / 3.27, now 0.40 / 1.11; the 0.41 / 0.83 of #178 was a quieter machine) |
 
 Reading it: the first frame is unchanged by the Scrum code (the backlog and the sprint list are only requested after a view is opened). The cold-start and `j` rows were taken at load 13 to 16, so they sit above the quiet-machine M1 figures (35 and 37); a back-to-back `?` key run at the same load read 82 ms median, so the differences are load, not the Scrum paths. A sprint switch with the cache present draws the sprint's rows in 74 ms against 235 without; the sprint list in the switcher is loaded once per open and is not part of the timed rows. Not measured: a 5000-row backlog on the board (the backlog view holds 1248 of the 5000 issues (closed sprints are excluded by its JQL); the 10 000-row in-process row above covers the render size) and the Windows console.
 

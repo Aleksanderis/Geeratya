@@ -8,14 +8,16 @@ namespace Geeratya.Core.Backlog;
 public sealed class BacklogLayout
 {
     private readonly int[] _stops;
-    private readonly CursorItem[] _items;
+    private readonly CursorItem[] _empties;
+    private readonly int[] _emptyItemIndexes;
 
     public BacklogLayout(IReadOnlyList<BacklogSection> sections)
     {
         Sections = sections;
         LineCount = sections.Sum(section => section.LineCount);
         _stops = BuildStops(sections);
-        _items = BuildItems(sections);
+        _empties = BuildEmpties(sections);
+        _emptyItemIndexes = BuildEmptyItemIndexes();
     }
 
     public IReadOnlyList<BacklogSection> Sections { get; }
@@ -27,10 +29,58 @@ public sealed class BacklogLayout
     public IReadOnlyList<int> Stops => _stops;
 
     /// <summary>
-    /// What the keyboard cursor visits, in display order: the stops, and the header of every empty sprint section
-    /// (known by its sprint) at its place between them.
+    /// How many places the keyboard cursor visits: the stops, and the header of every empty sprint section (known by
+    /// its sprint) at its place between them. Items are computed by <see cref="ItemAt"/> from the stops and the empty
+    /// sections, not stored as a second array of one entry per row.
     /// </summary>
-    public IReadOnlyList<CursorItem> Items => _items;
+    public int ItemCount => _stops.Length + _empties.Length;
+
+    /// <summary>The item at <paramref name="index"/> of the cursor order, 0 to <see cref="ItemCount"/> minus 1.</summary>
+    public CursorItem ItemAt(int index)
+    {
+        var before = Array.BinarySearch(_emptyItemIndexes, index);
+
+        if (before >= 0)
+        {
+            return _empties[before];
+        }
+
+        return new CursorItem(_stops[index - ~before], null);
+    }
+
+    /// <summary>The item index of the empty sprint <paramref name="sprintId"/>, -1 when it is not one.</summary>
+    public int ItemIndexOfSprint(long sprintId)
+    {
+        for (var index = 0; index < _empties.Length; index++)
+        {
+            if (_empties[index].SprintId == sprintId)
+            {
+                return _emptyItemIndexes[index];
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>The item index of the stop that <paramref name="row"/> stands for (0 when it has none).</summary>
+    public int ItemIndexOfRow(int row)
+    {
+        var stopIndex = StopIndexOf(row);
+
+        if (_stops.Length == 0)
+        {
+            return 0;
+        }
+
+        var emptiesBefore = 0;
+
+        while (emptiesBefore < _empties.Length && _empties[emptiesBefore].Row <= _stops[stopIndex])
+        {
+            emptiesBefore++;
+        }
+
+        return stopIndex + emptiesBefore;
+    }
 
     /// <summary>
     /// The section of the empty sprint <paramref name="sprintId"/>, null when it has rows or is unknown.
@@ -140,35 +190,32 @@ public sealed class BacklogLayout
         return [.. stops];
     }
 
-    private static CursorItem[] BuildItems(IReadOnlyList<BacklogSection> sections)
+    private static CursorItem[] BuildEmpties(IReadOnlyList<BacklogSection> sections)
     {
-        var items = new List<CursorItem>();
+        var empties = new List<CursorItem>();
 
         foreach (var section in sections)
         {
-            if (!section.HasRows)
+            if (!section.HasRows && section.Sprint is { } sprint)
             {
-                if (section.Sprint is { } sprint)
-                {
-                    items.Add(new CursorItem(section.FirstRow, sprint.Id));
-                }
-
-                continue;
-            }
-
-            if (section.Collapsed)
-            {
-                items.Add(new CursorItem(section.FirstRow, null));
-
-                continue;
-            }
-
-            for (var row = section.FirstRow; row < section.FirstRow + section.RowCount; row++)
-            {
-                items.Add(new CursorItem(row, null));
+                empties.Add(new CursorItem(section.FirstRow, sprint.Id));
             }
         }
 
-        return [.. items];
+        return [.. empties];
+    }
+
+    private int[] BuildEmptyItemIndexes()
+    {
+        var indexes = new int[_empties.Length];
+
+        for (var index = 0; index < _empties.Length; index++)
+        {
+            var stopsBefore = Array.BinarySearch(_stops, _empties[index].Row);
+
+            indexes[index] = index + (stopsBefore >= 0 ? stopsBefore : ~stopsBefore);
+        }
+
+        return indexes;
     }
 }
