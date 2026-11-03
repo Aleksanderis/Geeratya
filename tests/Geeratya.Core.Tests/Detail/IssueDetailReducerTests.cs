@@ -784,6 +784,20 @@ public class IssueDetailReducerTests
         Assert.DoesNotContain("Estimate", text);
     }
 
+    [Fact]
+    public void GivenTabWithoutBoard_WhenOpeningAnIssue_ThenDetailFallsBackToTheGenericEstimateLabel()
+    {
+        var state = Move(ListState(), 0);
+
+        var opened = Press(state, "Enter");
+        var tab = Active(opened.State);
+        var loaded = Deliver(
+            opened.State,
+            new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, Detailed("A-1") with { Estimate = 5 }, _now));
+
+        Assert.Contains("Estimate", Text(Active(loaded).Detail[0]));
+    }
+
     private static AppState Start()
     {
         var profiles = ProfileCatalog.Empty.With(_work);
