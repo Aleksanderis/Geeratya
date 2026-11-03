@@ -107,6 +107,30 @@ public class CommentEditingTests
         Assert.Equal(" cd\n", after.Editor!.Buffer.Text);
     }
 
+    [Theory]
+    [InlineData("Ctrl-w")]
+    [InlineData("Ctrl-u")]
+    public void GivenAMentionBeforeTheCursor_WhenDeletingBackByWordOrLine_ThenTheMentionGoesWhole(string key)
+    {
+        var state = Press(OnComment(OpenIssue(), "1", Comment(1, _me, "hi @[Olga Other](mention:acc-other)")), "Space", "m", "e").State;
+
+        var result = Press(state, key).State;
+
+        Assert.DoesNotContain("mention", result.Editor!.Buffer.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@[", result.Editor.Buffer.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAMentionAfterTheCursor_WhenDeletingForwardByWord_ThenTheMentionGoesWhole()
+    {
+        var state = Press(OnComment(OpenIssue(), "1", Comment(1, _me, "hi @[Olga Other](mention:acc-other)")), "Space", "m", "e").State;
+
+        var result = Press(Press(state, "Home").State, "Alt-d", "Alt-d").State;
+
+        Assert.DoesNotContain("mention", result.Editor!.Buffer.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("(", result.Editor.Buffer.Text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GivenTypedText_WhenPressingCtrlS_ThenOneAddWriteStartsAndTheEditorShowsSaving()
     {

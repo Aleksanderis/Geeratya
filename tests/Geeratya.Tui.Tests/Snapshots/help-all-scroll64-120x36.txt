@@ -23,11 +23,11 @@
             │               │   D          Scroll help down half a page  (Ctrl-d)                          │            
             │               │   U          Scroll help up half a page  (Ctrl-u)                            │            
             │               │   Enter      Run the typed command  (Ctrl-l)                                 │            
-            │               │   Backspace  Delete the last character                                       │            
+            │               │   Backspace  Delete the character before the caret                           │            
             │               │   y          Confirm                                                         │            
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
-            │               │   Backspace  Delete the last character                                       │            
+            │               │   Backspace  Delete the character before the caret                           │            
             │               │   Ctrl-a     Add a profile (site, account and token in one form)             │            
             │               │   Ctrl-e     Edit the highlighted profile (the stored token is kept unless   │            
             │               │              replaced)                                                       │            

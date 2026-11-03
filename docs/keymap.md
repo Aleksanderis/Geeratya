@@ -123,7 +123,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | Keys | Action | Id | Level |
 |---|---|---|---|
 | `Enter` | Run the typed command | `palette.submit` | everyday |
-| `Backspace` | Delete the last character | `palette.backspace` | everyday |
+| `Backspace` | Delete the character before the caret | `palette.backspace` | everyday |
 | `Up` | Previous row in the picker | `picker.previous` | everyday |
 | `Ctrl-p` | Previous row in the picker | `picker.previous` | everyday |
 | `Down` | Next row in the picker | `picker.next` | everyday |
@@ -167,7 +167,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | Keys | Action | Id | Level |
 |---|---|---|---|
 | `Enter` | Accept the field and go to the next | `form.next` | everyday |
-| `Backspace` | Delete the last character | `form.backspace` | everyday |
+| `Backspace` | Delete the character before the caret | `form.backspace` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Cancel or close | `mode.cancel` | everyday |
 | `Up` | Previous row in the picker | `picker.previous` | everyday |

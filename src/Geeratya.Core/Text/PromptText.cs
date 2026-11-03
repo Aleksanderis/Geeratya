@@ -55,7 +55,8 @@ public readonly record struct PromptText(string Text, int Back)
             PromptOperation.DeleteWordBefore => Removed(WordStartBefore(caret), caret),
             PromptOperation.DeleteWordAfter => Removed(caret, WordEndAfter(caret)),
             PromptOperation.DeleteToStart => Removed(LineStartOf(caret), caret),
-            _ => Removed(caret, LineEndOf(caret)),
+            PromptOperation.DeleteToEnd => Removed(caret, LineEndOf(caret)),
+            _ => this,
         };
     }
 

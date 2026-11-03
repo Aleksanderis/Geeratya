@@ -86,10 +86,27 @@ public sealed record TextBuffer(string Text, int Cursor)
         return this with { Text = Text.Remove(Cursor, EditorLayout.NextStart(Text, Cursor) - Cursor) };
     }
 
-    /// <summary>Removes <c>[start, end)</c>, the cursor at <paramref name="start"/>; nothing when the range is empty.</summary>
+    /// <summary>
+    /// Removes <c>[start, end)</c>, the cursor at the start; nothing when the range is empty. A mention or issue
+    /// reference the range touches is removed whole, never cut in half.
+    /// </summary>
     public TextBuffer DeleteBetween(int start, int end)
     {
-        return end <= start ? this : new TextBuffer(Text.Remove(start, end - start), start);
+        if (end <= start)
+        {
+            return this;
+        }
+
+        foreach (var span in AdfMarkdownTokens.Find(Text))
+        {
+            if (span.Start < end && span.End > start)
+            {
+                start = Math.Min(start, span.Start);
+                end = Math.Max(end, span.End);
+            }
+        }
+
+        return new TextBuffer(Text.Remove(start, end - start), start);
     }
 
     /// <summary>The index of the start of the line (up to the previous line break) the cursor is on.</summary>
