@@ -9,7 +9,7 @@ namespace Geeratya.Core.Views;
 /// short; when even that does not fit a window of tabs around the active one is shown with <c>‹n</c> and <c>+n ›</c>
 /// chips for the hidden ends, and under <see cref="CompactBelow"/> columns only the active chip and <c>+</c> remain.
 /// </summary>
-public static class TabBar
+public static partial class TabBar
 {
     /// <summary>Rows the tab bar takes at the top of the screen.</summary>
     public const int Rows = 1;
@@ -48,9 +48,10 @@ public static class TabBar
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width,
-        KeymapTable? keymap = null)
+        KeymapTable? keymap = null,
+        TabId? hovered = null)
     {
-        return Layout(tabs, active, width, keymap).Line;
+        return Layout(tabs, active, width, keymap, hovered).Line;
     }
 
     /// <summary>
@@ -62,9 +63,10 @@ public static class TabBar
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width,
-        KeymapTable? keymap = null)
+        KeymapTable? keymap = null,
+        TabId? hovered = null)
     {
-        return Layout(tabs, active, width, keymap).TabAreas;
+        return Layout(tabs, active, width, keymap, hovered).TabAreas;
     }
 
     /// <summary>
@@ -74,9 +76,10 @@ public static class TabBar
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width,
-        KeymapTable? keymap = null)
+        KeymapTable? keymap = null,
+        TabId? hovered = null)
     {
-        return Layout(tabs, active, width, keymap).NewTab;
+        return Layout(tabs, active, width, keymap, hovered).NewTab;
     }
 
     /// <summary>
@@ -87,9 +90,10 @@ public static class TabBar
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width,
-        KeymapTable? keymap = null)
+        KeymapTable? keymap = null,
+        TabId? hovered = null)
     {
-        foreach (var area in Layout(tabs, active, width, keymap).TabAreas)
+        foreach (var area in Layout(tabs, active, width, keymap, hovered).TabAreas)
         {
             if (area.Close is { } close && area.Tab == active)
             {
@@ -100,121 +104,12 @@ public static class TabBar
         return null;
     }
 
-    /// <summary>
-    /// The cells of the jump chip at the right end of the bar, null when there are no tabs or the bar leaves
-    /// no room (a spare cell between the last tab item or <c>+</c> and the chip). A click on it opens the
-    /// jump prompt. <paramref name="keymap"/> names the keys on the chip (the default binding without it).
-    /// </summary>
-    public static TabButton? JumpChip(IReadOnlyList<TabState> tabs, TabId? active, int width, KeymapTable? keymap = null)
-    {
-        return RightChips(tabs, active, width, keymap).Jump;
-    }
-
-    /// <summary>
-    /// The cells of the <c> : commands </c> chip at the right end of the bar (left of the jump chip), null under
-    /// <see cref="CommandsFrom"/> columns. The tabs leave room for it, so it shows from that width on. A click on it
-    /// opens the command palette.
-    /// </summary>
-    public static TabButton? CommandsChip(
+    private static BarLayout Layout(
         IReadOnlyList<TabState> tabs,
         TabId? active,
         int width,
-        KeymapTable? keymap = null)
-    {
-        return RightChips(tabs, active, width, keymap).Commands;
-    }
-
-    /// <summary>The text of the commands chip, <c> : commands </c>: the key comes from the keymap, the label stays.</summary>
-    public static string CommandsChipText(KeymapTable? keymap = null)
-    {
-        var keys = keymap is null ? DefaultCommandsKey : keymap.FindKeyLabel(InputMode.Normal, ActionIds.PaletteOpen);
-
-        return keys is null ? " commands " : $" {keys} commands ";
-    }
-
-    /// <summary>The text of the jump chip, <c> &lt;space&gt;g jump </c>: the keys come from the keymap, the label stays.</summary>
-    public static string JumpChipText(KeymapTable? keymap = null)
-    {
-        var keys = keymap is null ? DefaultJumpLabel : keymap.FindKeyLabel(InputMode.Normal, ActionIds.IssueJump);
-
-        return keys is null ? " jump " : $" {keys} jump ";
-    }
-
-    /// <summary>
-    /// The bar exactly <paramref name="width"/> cells wide on the bar background: the tabs, then the jump chip
-    /// right-aligned in the spare cells (left out when there is no room). Without tabs the bar is empty but still full.
-    /// </summary>
-    public static StyledLine BuildWithJumpChip(
-        IReadOnlyList<TabState> tabs,
-        TabId? active,
-        int width,
-        KeymapTable? keymap = null)
-    {
-        var line = Layout(tabs, active, width, keymap).Line;
-        var chips = RightChips(tabs, active, width, keymap);
-        var spans = new List<StyledSpan>(line.Spans);
-        var column = DisplayWidth.Of(line.PlainText);
-
-        if (chips.Commands is { } commands)
-        {
-            spans.Add(new StyledSpan(new string(' ', commands.Start - column), TextRole.BarText));
-            spans.Add(new StyledSpan(CommandsChipText(keymap), TextRole.TabDim));
-            column = commands.End;
-        }
-
-        if (chips.Jump is { } jump)
-        {
-            spans.Add(new StyledSpan(new string(' ', jump.Start - column), TextRole.BarText));
-            spans.Add(new StyledSpan(JumpChipText(keymap), TextRole.TabDim));
-        }
-
-        var used = spans.Sum(span => DisplayWidth.Of(span.Text));
-
-        if (used < width)
-        {
-            spans.Add(new StyledSpan(new string(' ', width - used), TextRole.BarText));
-        }
-
-        return new StyledLine(spans);
-    }
-
-    // The commands chip and the jump chip: the commands chip is kept whenever the bar is wide enough (the tabs make
-    // room for it), the jump chip only when a spare cell separates it from the tabs and the commands chip.
-    private static RightChipCells RightChips(
-        IReadOnlyList<TabState> tabs,
-        TabId? active,
-        int width,
-        KeymapTable? keymap)
-    {
-        var line = Layout(tabs, active, width, keymap).Line;
-        var jumpWidth = DisplayWidth.Of(JumpChipText(keymap));
-        var used = DisplayWidth.Of(line.PlainText);
-        var hasJump = tabs.Count > 0;
-
-        if (width < CommandsFrom)
-        {
-            var start = width - jumpWidth;
-
-            return hasJump && start >= used + Separator.Length
-                ? new RightChipCells(null, new TabButton(start, width))
-                : new RightChipCells(null, null);
-        }
-
-        var commandsWidth = DisplayWidth.Of(CommandsChipText(keymap));
-        var jumpStart = width - jumpWidth;
-        var commandsStart = jumpStart - Separator.Length - commandsWidth;
-
-        if (hasJump && commandsStart >= used + Separator.Length)
-        {
-            return new RightChipCells(
-                new TabButton(commandsStart, commandsStart + commandsWidth),
-                new TabButton(jumpStart, width));
-        }
-
-        return new RightChipCells(new TabButton(width - commandsWidth, width), null);
-    }
-
-    private static BarLayout Layout(IReadOnlyList<TabState> tabs, TabId? active, int width, KeymapTable? keymap)
+        KeymapTable? keymap,
+        TabId? hovered)
     {
         if (tabs.Count == 0 || width <= 0)
         {
@@ -222,7 +117,7 @@ public static class TabBar
         }
 
         var activeIndex = Math.Max(0, IndexOf(tabs, active));
-        var closeable = width >= CloseFrom;
+        var close = new CloseRule(width >= CloseFrom, activeIndex, IndexOf(tabs, hovered));
         var compact = width < CompactBelow;
 
         if (width >= CommandsFrom)
@@ -232,14 +127,14 @@ public static class TabBar
 
         if (compact)
         {
-            return Window(tabs, activeIndex, width, closeable, marks: false);
+            return Window(tabs, activeIndex, width, close, marks: false);
         }
 
-        var cap = FittingCap(tabs, activeIndex, width, closeable);
+        var cap = FittingCap(tabs, activeIndex, width, close);
 
         if (cap == 0)
         {
-            return Window(tabs, activeIndex, width, closeable, marks: true);
+            return Window(tabs, activeIndex, width, close, marks: true);
         }
 
         var texts = new string[tabs.Count];
@@ -248,24 +143,24 @@ public static class TabBar
         {
             var isActive = index == activeIndex;
 
-            texts[index] = ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, isActive, closeable);
+            texts[index] = ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index));
         }
 
-        return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1, width, closeable, marks: true);
+        return Assemble(tabs, texts, activeIndex, 0, tabs.Count - 1, width, close, marks: true);
     }
 
     /// <summary>
     /// The largest inactive title width (24 down to 8) at which every tab fits, or 0 when not even 8 fits. Widths
     /// only grow with the cap, so the largest is found by bisection.
     /// </summary>
-    private static int FittingCap(IReadOnlyList<TabState> tabs, int activeIndex, int width, bool closeable)
+    private static int FittingCap(IReadOnlyList<TabState> tabs, int activeIndex, int width, CloseRule close)
     {
-        if (TotalWidth(tabs, activeIndex, InactiveTitleWidth, closeable) <= width)
+        if (TotalWidth(tabs, activeIndex, InactiveTitleWidth, close) <= width)
         {
             return InactiveTitleWidth;
         }
 
-        if (TotalWidth(tabs, activeIndex, MinimumTitleWidth, closeable) > width)
+        if (TotalWidth(tabs, activeIndex, MinimumTitleWidth, close) > width)
         {
             return 0;
         }
@@ -277,7 +172,7 @@ public static class TabBar
         {
             var middle = (low + high) / 2;
 
-            if (TotalWidth(tabs, activeIndex, middle, closeable) <= width)
+            if (TotalWidth(tabs, activeIndex, middle, close) <= width)
             {
                 low = middle;
             }
@@ -290,7 +185,7 @@ public static class TabBar
         return low;
     }
 
-    private static int TotalWidth(IReadOnlyList<TabState> tabs, int activeIndex, int cap, bool closeable)
+    private static int TotalWidth(IReadOnlyList<TabState> tabs, int activeIndex, int cap, CloseRule close)
     {
         var total = Separator.Length * (tabs.Count - 1);
 
@@ -298,15 +193,15 @@ public static class TabBar
         {
             var isActive = index == activeIndex;
 
-            total += DisplayWidth.Of(ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, isActive, closeable));
+            total += DisplayWidth.Of(ItemText(tabs[index], index, isActive ? ActiveTitleWidth : cap, close.Shows(index)));
         }
 
         return total;
     }
 
-    private static BarLayout Window(IReadOnlyList<TabState> tabs, int activeIndex, int width, bool closeable, bool marks)
+    private static BarLayout Window(IReadOnlyList<TabState> tabs, int activeIndex, int width, CloseRule close, bool marks)
     {
-        var bare = DisplayWidth.Of(ItemText(tabs[activeIndex], activeIndex, 0, true, closeable));
+        var bare = DisplayWidth.Of(ItemText(tabs[activeIndex], activeIndex, 0, close.Shows(activeIndex)));
         var hidden = 0;
 
         if (marks && activeIndex > 0)
@@ -326,7 +221,7 @@ public static class TabBar
         {
             var isActive = index == activeIndex;
 
-            texts[index] = ItemText(tabs[index], index, isActive ? activeCap : MinimumTitleWidth, isActive, closeable);
+            texts[index] = ItemText(tabs[index], index, isActive ? activeCap : MinimumTitleWidth, close.Shows(index));
         }
 
         var low = activeIndex;
@@ -350,7 +245,7 @@ public static class TabBar
             }
         }
 
-        return Assemble(tabs, texts, activeIndex, low, high, width, closeable, marks);
+        return Assemble(tabs, texts, activeIndex, low, high, width, close, marks);
     }
 
     private static int WindowWidth(string[] texts, int low, int high)
@@ -382,7 +277,7 @@ public static class TabBar
         int low,
         int high,
         int width,
-        bool closeable,
+        CloseRule close,
         bool marks)
     {
         var spans = new List<StyledSpan>();
@@ -396,7 +291,7 @@ public static class TabBar
 
             spans.Add(new StyledSpan(mark, TextRole.TabDim));
             spans.Add(new StyledSpan(Separator, TextRole.BarText));
-            areas.Add(new TabArea(tabs[low - 1].Id, 0, markWidth));
+            areas.Add(new TabArea(tabs[low - 1].Id, 0, markWidth, null, true));
             column = markWidth + Separator.Length;
         }
 
@@ -410,10 +305,10 @@ public static class TabBar
 
             var itemWidth = DisplayWidth.Of(texts[index]);
             var isActive = index == activeIndex;
-            var close = CloseCells(isActive && closeable, column + itemWidth);
+            var closeCells = CloseCells(close.Shows(index), column + itemWidth);
 
             spans.Add(new StyledSpan(texts[index], isActive ? TextRole.TabActive : TextRole.TabDim));
-            areas.Add(new TabArea(tabs[index].Id, column, column + itemWidth, close));
+            areas.Add(new TabArea(tabs[index].Id, column, column + itemWidth, closeCells));
             column += itemWidth;
         }
 
@@ -424,7 +319,7 @@ public static class TabBar
             spans.Add(new StyledSpan(Separator, TextRole.BarText));
             var markStart = column + Separator.Length;
 
-            areas.Add(new TabArea(tabs[high + 1].Id, markStart, markStart + DisplayWidth.Of(mark)));
+            areas.Add(new TabArea(tabs[high + 1].Id, markStart, markStart + DisplayWidth.Of(mark), null, true));
             spans.Add(new StyledSpan(mark, TextRole.TabDim));
 
             return new BarLayout(new StyledLine(spans), areas, null);
@@ -459,10 +354,10 @@ public static class TabBar
         return $" +{hidden} › ";
     }
 
-    private static string ItemText(TabState tab, int index, int titleWidth, bool isActive, bool closeable)
+    private static string ItemText(TabState tab, int index, int titleWidth, bool showClose)
     {
         var title = TabTitles.Cut(TabTitles.Label(tab.Definition), titleWidth);
-        var close = isActive && closeable ? CloseMark : string.Empty;
+        var close = showClose ? CloseMark : string.Empty;
 
         return $" {index + 1} {title}{Mark(tab)}{close} ";
     }
@@ -490,7 +385,14 @@ public static class TabBar
         return -1;
     }
 
-    private sealed record RightChipCells(TabButton? Commands, TabButton? Jump);
+    // The chips that carry a close x: the active one, and the hovered one, from CloseFrom columns.
+    private sealed record CloseRule(bool Enabled, int ActiveIndex, int HoveredIndex)
+    {
+        public bool Shows(int index)
+        {
+            return Enabled && (index == ActiveIndex || index == HoveredIndex);
+        }
+    }
 
     private sealed record BarLayout(StyledLine Line, IReadOnlyList<TabArea> TabAreas, TabButton? NewTab);
 }

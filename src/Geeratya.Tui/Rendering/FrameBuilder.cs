@@ -251,7 +251,7 @@ public static class FrameBuilder
         }
         else if (rows > 0)
         {
-            lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width, keymap));
+            lines.Add(TabBar.BuildWithJumpChip(state.Session.Tabs, state.Session.Active, width, keymap, state.HoveredTab));
         }
 
         if (rows > 1)

@@ -13,6 +13,7 @@ public class MouseFlagTranslatorTests
     [InlineData(MouseFlags.LeftButtonClicked, MouseGesture.Click)]
     [InlineData(MouseFlags.LeftButtonDoubleClicked, MouseGesture.DoubleClick)]
     [InlineData(MouseFlags.RightButtonClicked, MouseGesture.RightClick)]
+    [InlineData(MouseFlags.MiddleButtonClicked, MouseGesture.MiddleClick)]
     public void GivenFlags_WhenTranslating_ThenGesture(MouseFlags flags, MouseGesture expected)
     {
         Assert.True(MouseFlagTranslator.TryTranslate(flags, out var gesture));
@@ -34,5 +35,15 @@ public class MouseFlagTranslatorTests
     public void GivenPressMoveOrSidewaysWheel_WhenTranslating_ThenIgnored(MouseFlags flags)
     {
         Assert.False(MouseFlagTranslator.TryTranslate(flags, out _));
+    }
+
+    [Theory]
+    [InlineData(MouseFlags.PositionReport, true)]
+    [InlineData(MouseFlags.PositionReport | MouseFlags.LeftButtonPressed, false)]
+    [InlineData(MouseFlags.PositionReport | MouseFlags.MiddleButtonPressed, false)]
+    [InlineData(MouseFlags.LeftButtonClicked, false)]
+    public void GivenFlags_WhenAskingForHover_ThenOnlyAMoveWithNoButtonIs(MouseFlags flags, bool expected)
+    {
+        Assert.Equal(expected, MouseFlagTranslator.IsHover(flags));
     }
 }

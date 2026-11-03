@@ -19,4 +19,7 @@ public enum SourceChoiceKind
 
     /// <summary>The row that lists more closed sprints; it opens nothing.</summary>
     MoreClosed,
+
+    /// <summary>An open tab (<see cref="SourceChoice.Tab"/>).</summary>
+    Tab,
 }

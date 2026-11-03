@@ -96,9 +96,17 @@ public static class MouseHitTester
             return MouseTarget.JumpChip;
         }
 
-        if (context.TabClose is { } close && column >= close.Start && column < close.End)
+        foreach (var area in context.TabAreas)
         {
-            return MouseTarget.TabClose;
+            if (area.Close is { } close && column >= close.Start && column < close.End)
+            {
+                return MouseTarget.TabClose;
+            }
+
+            if (area.Overflow && column >= area.Start && column < area.End)
+            {
+                return MouseTarget.TabOverflow;
+            }
         }
 
         var button = context.NewTabButton;

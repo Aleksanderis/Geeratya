@@ -278,6 +278,13 @@ public sealed class ShellHost : ICommandSink, IDisposable
             return;
         }
 
+        if (MouseFlagTranslator.IsHover(mouse.Flags))
+        {
+            OnHover(position.X, position.Y);
+
+            return;
+        }
+
         var live = _dragTracker.Moving;
         var drag = _dragTracker.Track(mouse.Flags, position.X, position.Y);
 
@@ -306,6 +313,22 @@ public sealed class ShellHost : ICommandSink, IDisposable
         foreach (var command in commands)
         {
             Dispatch(command);
+        }
+    }
+
+    // A pointer move: only the tab row cares, so the context is built only over it or to clear a hover.
+    private void OnHover(int column, int row)
+    {
+        if (row != 0 && _state.HoveredTab is null)
+        {
+            return;
+        }
+
+        var hovered = MouseResolver.Hover(PointerContext(TimeProvider.System.GetUtcNow()), column, row);
+
+        if (hovered.Tab != _state.HoveredTab)
+        {
+            Dispatch(hovered);
         }
     }
 

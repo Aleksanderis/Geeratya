@@ -132,6 +132,7 @@ public sealed class AppReducer
         {
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
+            TabHovered hovered => Result(hovered.Tab == state.HoveredTab ? state : state with { HoveredTab = hovered.Tab }),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
             RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
             RowsDragging dragging => Followed(state, SelectionActions.Dragging(Unpended(state), dragging)),
@@ -698,6 +699,7 @@ public sealed class AppReducer
             ActionIds.TabLastActive => ViewReducer.LastActiveTab(state),
             ActionIds.TabNew => SourceReducer.OpenPicker(state),
             ActionIds.TabClose => ViewReducer.CloseActiveTab(state),
+            ActionIds.TabList => TabListReducer.Open(state),
             ActionIds.IssueDelete => InNormal(state, () => DeleteReducer.Start(state)),
             ActionIds.IssueCreate => InNormal(state, () => FormReducer.Reduce(state, new OpenCreateFormRequested(false))),
             ActionIds.IssueCreateSubtask => InNormal(
