@@ -414,6 +414,7 @@ public sealed partial class GeneratedScrum
         writer.WriteEndObject();
         writer.WriteNull("assignee");
         writer.WriteNumber(EstimateField, _estimates[number % _estimates.Length]);
+        GeneratedIssues.WriteSubtasks(writer, Prefix, number);
 
         if (index < 0)
         {
