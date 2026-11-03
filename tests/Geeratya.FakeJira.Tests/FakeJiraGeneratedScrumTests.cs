@@ -67,6 +67,40 @@ public sealed class FakeJiraGeneratedScrumTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedBacklog_WhenIssuesRead_ThenSubtaskStubsFollowTheNumberModuloFour()
+    {
+        var page = await Json($"{Agile}/board/7/backlog?maxResults=1000&fields=summary,subtasks");
+        var issues = page.GetProperty("issues").EnumerateArray().ToList();
+        var expected = new Dictionary<int, int> { [1] = 3, [2] = 1, [3] = 2, [0] = 0 };
+
+        foreach (var issue in issues)
+        {
+            var number = int.Parse(issue.GetProperty("key").GetString()!["GEN-".Length..]);
+            var subtasks = issue.GetProperty("fields").GetProperty("subtasks");
+
+            Assert.Equal(expected[number % 4], subtasks.GetArrayLength());
+        }
+
+        var stub = issues.Select(issue => issue.GetProperty("fields").GetProperty("subtasks"))
+            .First(subtasks => subtasks.GetArrayLength() > 0)[0].GetProperty("fields");
+
+        Assert.True(issues.Count > 4);
+        Assert.True(stub.GetProperty("issuetype").GetProperty("subtask").GetBoolean());
+        Assert.Equal("Sub-task", stub.GetProperty("issuetype").GetProperty("name").GetString());
+        Assert.NotEmpty(stub.GetProperty("status").GetProperty("statusCategory").GetProperty("key").GetString()!);
+    }
+
+    [Fact]
+    public async Task GivenGeneratedIssue_WhenDetailRead_ThenItListsTheSameSubtaskStubsAsTheBoard()
+    {
+        var detail = await Json("/rest/api/3/issue/GEN-5");
+        var plain = await Json("/rest/api/3/issue/GEN-4");
+
+        Assert.Equal(3, detail.GetProperty("fields").GetProperty("subtasks").GetArrayLength());
+        Assert.Equal(0, plain.GetProperty("fields").GetProperty("subtasks").GetArrayLength());
+    }
+
+    [Fact]
     public async Task GivenGeneratedBacklogIssue_WhenMovedIntoActiveSprintAndRanked_ThenSprintListsItAtThatPosition()
     {
         var backlogKey = Keys(await Json($"{Agile}/board/7/backlog?maxResults=1000"))[^1];
