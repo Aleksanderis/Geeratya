@@ -34,7 +34,11 @@ public static class SourceReducer
 
         if (command is SavedViewsFailed writeFailed)
         {
-            return Plain(state with { Message = writeFailed.Message, MessageSeverity = StatusSeverity.Error });
+            // The copy on screen may hold a change that was not stored: forget it so the next picker reads the file.
+            var forgotten = state.Session.Sources with { SavedViews = null };
+
+            return Plain(
+                WithLists(state, forgotten) with { Message = writeFailed.Message, MessageSeverity = StatusSeverity.Error });
         }
 
         var lists = state.Session.Sources;

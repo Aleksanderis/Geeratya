@@ -32,7 +32,9 @@ public sealed record SavedViewList(IReadOnlyList<SavedView> Items)
     public static ViewDefinition? ToDefinition(SavedView view)
     {
         if (!Enum.TryParse<ViewSourceKind>(view.Source, out var source) || !Enum.IsDefined(source)
-            || !Enum.TryParse<ViewLayout>(view.Layout, out var layout) || !Enum.IsDefined(layout))
+            || source.ToString() != view.Source
+            || !Enum.TryParse<ViewLayout>(view.Layout, out var layout) || !Enum.IsDefined(layout)
+            || layout.ToString() != view.Layout)
         {
             return null;
         }

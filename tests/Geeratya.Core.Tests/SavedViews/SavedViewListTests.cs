@@ -2,6 +2,7 @@ using Geeratya.Core.SavedViews;
 
 namespace Geeratya.Core.Tests.SavedViews;
 
+[Trait("Os", "Independent")]
 public class SavedViewListTests
 {
     private static readonly SavedView _first = new("Bugs", "Jql", "type = Bug", "List");

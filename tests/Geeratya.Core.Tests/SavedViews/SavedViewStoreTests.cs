@@ -100,6 +100,40 @@ public sealed class SavedViewStoreTests : IDisposable
     }
 
     [Fact]
+    public void GivenACorruptFile_WhenSaving_ThenTheOldFileIsKeptAsBad()
+    {
+        var store = WriteFile("{ not json");
+
+        store.Update(_work, views => views.Saved(new SavedView("A", "Jql", "a = 1", "List")));
+
+        var bad = Path.Combine(store.FolderOf(_work), $"{SavedViewStore.FileName}.bad");
+        Assert.Equal("{ not json", File.ReadAllText(bad));
+    }
+
+    [Fact]
+    public void GivenAnUnreadableFile_WhenUpdating_ThenItThrowsAndNothingIsReplaced()
+    {
+        var store = new SavedViewStore(_directory);
+        var path = Path.Combine(store.FolderOf(_work), SavedViewStore.FileName);
+
+        Directory.CreateDirectory(path);
+
+        Assert.ThrowsAny<IOException>(
+            () => store.Update(_work, views => views.Saved(new SavedView("A", "Jql", "a", "List"))));
+        Assert.True(Directory.Exists(path));
+        Assert.Empty(store.Load(_work).Items);
+    }
+
+    [Fact]
+    public void GivenAViewWithANumericSource_WhenLoading_ThenItIsSkipped()
+    {
+        var json = """{ "items": [ { "name": "N", "source": "1", "sourceValue": "x", "layout": "List" } ] }""";
+        var store = WriteFile(json);
+
+        Assert.Empty(store.Load(_work).Items);
+    }
+
+    [Fact]
     public void GivenASave_WhenWriting_ThenNoTemporaryFileRemainsAndNoSiteOrAccountIsStored()
     {
         var store = new SavedViewStore(_directory);

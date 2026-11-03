@@ -185,6 +185,7 @@ public class SavedViewReducerTests
         var result = _reducer.Reduce(Start(), new SavedViewsFailed("Could not write the saved views: disk full"));
 
         Assert.Equal("Could not write the saved views: disk full", result.State.Message);
+        Assert.Null(result.State.Session.Sources.SavedViews);
     }
 
     [Fact]
