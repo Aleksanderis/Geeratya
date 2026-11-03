@@ -11,6 +11,9 @@ namespace Geeratya.Core.Views;
 /// </summary>
 public static class ColumnsNavigation
 {
+    private const int SubtaskRowInCard = 3;
+    private const int SubtaskRowInChild = 2;
+
     /// <summary>Moves inside the selected column.</summary>
     public static TabState Move(TabState tab, ListMove move)
     {
@@ -46,6 +49,29 @@ public static class ColumnsNavigation
         var hit = BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null);
 
         return hit is { Card: not null };
+    }
+
+    /// <summary>
+    /// True when the body cell is on the sub-task row of a card that lists sub-tasks (<c>▸ Sub-tasks 1/3</c>, #558):
+    /// the second summary line, which is the fourth row of a card (the third in a grouped child, which has no top
+    /// border). One-line cards have no such row.
+    /// </summary>
+    public static bool IsSubtaskRowAt(TabState tab, int width, int column, int row)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+
+        if (BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows)
+            || BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null)
+                is not { Card: { } card } hit
+            || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 })
+        {
+            return false;
+        }
+
+        var within = (row - BoardCards.TopRows) % BoardCards.FullRows;
+
+        return within == (columns[hit.Column].IsNested(card) ? SubtaskRowInChild : SubtaskRowInCard);
     }
 
     /// <summary>

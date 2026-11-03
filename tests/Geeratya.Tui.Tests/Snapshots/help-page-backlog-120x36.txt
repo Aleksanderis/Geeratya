@@ -12,7 +12,8 @@
 │           │               │   Enter      Open the selected item                                          │           │
 │           │               │   ]]         Next section of the issue or the Scrum backlog                  │           │
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
-│           │               │   za         Fold a backlog section or the sub-tasks of a card               │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
+│           │               │              section                                                         │           │
 │           │               │   <space>l   Switch between list and columns                                 │           │
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │
@@ -30,7 +31,6 @@
 │           │               │   <space>sm  Move the selected issues to a sprint                            │           │
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
 │           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
-│           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

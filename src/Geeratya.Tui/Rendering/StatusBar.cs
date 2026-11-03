@@ -54,6 +54,7 @@ public static class StatusBar
         new(InputMode.Normal, ActionIds.IssueCreate, "create", HintScope.List),
         new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Backlog),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
+        new(InputMode.Normal, ActionIds.SectionToggle, "sub-tasks", HintScope.ColumnsSubtasks),
         new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
         new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
         new(InputMode.Normal, ActionIds.ItemOpen, "open", HintScope.Columns),
@@ -371,7 +372,9 @@ public static class StatusBar
 
         if (tab.Definition.Layout == ViewLayout.Columns)
         {
-            return HintScope.Columns;
+            return ColumnsNavigation.SelectedIssue(tab) is { } issue && (issue.IsListed || issue.Subtasks.Count > 0)
+                ? HintScope.ColumnsSubtasks
+                : HintScope.Columns;
         }
 
         if (BacklogSections.Applies(tab))
@@ -435,7 +438,9 @@ public static class StatusBar
 
     private static bool Applies(HintScope hint, HintScope current)
     {
-        return hint == current || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog);
+        return hint == current
+            || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog)
+            || (hint == HintScope.Columns && current == HintScope.ColumnsSubtasks);
     }
 
     /// <summary>

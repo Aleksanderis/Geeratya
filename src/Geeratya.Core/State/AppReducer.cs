@@ -31,6 +31,9 @@ public sealed class AppReducer
     private static readonly IReadOnlyList<Effect> _noEffects = [];
     private static readonly IReadOnlyList<Effect> _quitEffects = [new QuitEffect()];
 
+    // A click on a sub-task row runs the key's handler (mouse table: SubtaskRow).
+    private static readonly ActionRequested _subtaskClick = new(ActionIds.SectionToggle, 1, DateTimeOffset.UnixEpoch);
+
     private static readonly string[] _sourceVerbs =
     [
         PaletteCommands.Jql,
@@ -298,7 +301,7 @@ public sealed class AppReducer
 
         if (placed.Then is not { } action)
         {
-            return placement;
+            return IsSubtaskRowClick(cleared, placed) ? WithPlacement(placement, _subtaskClick) : placement;
         }
 
         // A mark needs a card under the pointer: a column header only moves the cursor there.
@@ -310,6 +313,22 @@ public sealed class AppReducer
         var acted = ReduceRequested(placement.State, action);
 
         return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    private ReduceResult WithPlacement(ReduceResult placement, ActionRequested action)
+    {
+        var acted = ReduceRequested(placement.State, action);
+
+        return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    // A plain click on the sub-task row of a card toggles its list (mouse table: SubtaskRow), the same handler as z a.
+    private static bool IsSubtaskRowClick(AppState before, PointerPlaced placed)
+    {
+        var tab = before.Session.Active is { } id ? ViewReducer.Find(before.Session.Tabs, id) : null;
+
+        return tab is { Detail.Count: 0, Definition.Layout: ViewLayout.Columns }
+            && ColumnsNavigation.IsSubtaskRowAt(tab, placed.Width, placed.Column, placed.Row);
     }
 
     private static bool CardUnderPointer(AppState before, PointerPlaced placed)
