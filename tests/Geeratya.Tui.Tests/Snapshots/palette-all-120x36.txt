@@ -22,6 +22,9 @@ View · 0 issues
                     │ Rank                                                                         │                    
                     │   Rank the issue up (a count moves it that many places)                Alt-k │                    
                     │   Rank the issue down (a count moves it that many places)              Alt-j │                    
+                    │ Selection                                                                    │                    
+                    │   Start or end Visual mode (a range of rows)                               v │                    
+                    │   Mark or unmark the selected row and move down                        Alt-m │                    
                     │ View                                                                         │                    
                     │   Switch between list and columns                                    Space l │                    
                     │   Open the actions menu of the tab and the view                      Space A │                    
@@ -29,8 +32,5 @@ View · 0 issues
                     │   Switch the command level for the session                           Space * │                    
                     │ Tabs                                                                         │                    
                     │   Close the tab                                                      Space c │                    
-                    │   Next tab                                                          Tab, g t │                    
-                    │   Previous tab                                                Shift-Tab, g T │                    
-                    │   Go to tab 1                                                          Alt-1 │                    
                     └──────────────────────────────────────────────────────────────────────────────┘                    
  COMMAND :                                                                           Up/Down move  Enter run  Esc cancel

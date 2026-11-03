@@ -1,3 +1,4 @@
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -22,7 +23,7 @@ public static class WriteRemoval
         // A load in flight may still bring the deleted issues back: its reply drops them (WriteMerge).
         var loading = tab.Load is Loading ? tab with { RemovedKeys = [.. tab.RemovedKeys.Union(keys)] } : tab;
 
-        return WithoutRows(loading, keys);
+        return RowSelection.Without(WithoutRows(loading, keys), keys);
     }
 
     private static TabState WithoutRows(TabState tab, IReadOnlyList<string> keys)

@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Selection;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -16,6 +17,11 @@ internal static class CardDrag
         var tab = state.Session.Active is { } id
             ? state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == id)
             : null;
+
+        if (state.Mode == InputMode.Normal && SelectionActions.Refusal(state, ActionIds.IssueTransitionNext) is { } refusal)
+        {
+            return new ReduceResult(state with { Message = refusal }, []);
+        }
 
         if (state.Mode != InputMode.Normal
             || tab is not { Detail.Count: 0 }

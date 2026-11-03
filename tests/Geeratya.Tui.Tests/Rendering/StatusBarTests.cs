@@ -17,6 +17,22 @@ public class StatusBarTests
         ["h/l column", "j/k card", "Enter open", "Space l list", "Space o browser"];
 
     [Fact]
+    public void GivenVisualModeOrMarks_WhenRenderingTheStatusLine_ThenTheBadgeAndTheCountShow()
+    {
+        var tab = TabState.Opened(
+            new TabId(1),
+            new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "A"),
+            1,
+            1,
+            10);
+        var visual = ActiveOf(tab with { VisualAnchor = "A-1" });
+        var marked = ActiveOf(tab with { Marks = ["A-1", "A-2", "A-3"] });
+
+        Assert.Contains("VISUAL", StatusBar.Render(visual, 80, _keymap));
+        Assert.Contains("3 selected", StatusBar.Render(marked, 80, _keymap));
+    }
+
+    [Fact]
     public void GivenEveryHint_WhenCheckingTheDefaultKeymap_ThenItBindsTheNamedActionInTheHintMode()
     {
         foreach (var hint in StatusBar.Hints)
@@ -368,6 +384,14 @@ public class StatusBarTests
 
         Assert.DoesNotContain("browser", line);
         Assert.EndsWith("? help  : commands  q quit", line);
+    }
+
+    private static AppState ActiveOf(TabState tab)
+    {
+        var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
+        var session = SiteSession.Empty(profile) with { Tabs = [tab], Active = tab.Id };
+
+        return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(profile), Session = session };
     }
 
     private static AppState With(

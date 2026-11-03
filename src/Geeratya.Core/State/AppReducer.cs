@@ -12,6 +12,7 @@ using Geeratya.Core.Menus;
 using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
+using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -114,6 +115,7 @@ public sealed class AppReducer
             KeyPressed pressed => Followed(state, ReduceKey(state, pressed.Key, pressed.At)),
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
+            RowsDragged dragged => Followed(state, SelectionActions.Dragged(Unpended(state), dragged)),
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
@@ -183,6 +185,12 @@ public sealed class AppReducer
     private static string Join(string pending, string key)
     {
         return pending.Length == 0 ? key : $"{pending} {key}";
+    }
+
+    // Esc in the body: a picked-up rank issue goes first, then Visual mode, then the marks.
+    private static AppState Escaped(AppState state)
+    {
+        return SelectionActions.Back(state) ?? RankActions.DropPickup(state);
     }
 
     private static AppState ToNormal(AppState state)
@@ -282,6 +290,17 @@ public sealed class AppReducer
 
         var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
 
+        if (SelectionActions.Refusal(cleared, request.Action) is { } refusal)
+        {
+            return Result(cleared with { Message = refusal });
+        }
+
+        if (request.Action == ActionIds.SelectionMark && request.Count == 0)
+        {
+            // The pointer marks the row it clicked in place; the key marks and moves down.
+            return InNormal(cleared, () => SelectionActions.ToggleMark(cleared, false));
+        }
+
         if (request.Count > 1)
         {
             return ApplyCounted(cleared, request.Action, request.Count, request.At);
@@ -316,6 +335,11 @@ public sealed class AppReducer
 
         var cleared = state with { PendingKeys = string.Empty, Count = 0 };
         var resolution = route.Resolution!;
+
+        if (resolution.Action is { } written && SelectionActions.Refusal(cleared, written) is { } refusal)
+        {
+            return Result(cleared with { Message = refusal });
+        }
 
         if (resolution.Action == ActionIds.IssueUnlink)
         {
@@ -473,7 +497,9 @@ public sealed class AppReducer
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state, at),
-            ActionIds.Cancel => state.Editor is null ? Result(ToNormal(RankActions.DropPickup(state))) : CommentEditing.Cancel(state),
+            ActionIds.Cancel => state.Editor is null ? Result(ToNormal(Escaped(state))) : CommentEditing.Cancel(state),
+            ActionIds.SelectionVisual => InNormal(state, () => SelectionActions.ToggleVisual(state)),
+            ActionIds.SelectionMark => InNormal(state, () => SelectionActions.ToggleMark(state, true)),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
             ActionIds.RankDown => InNormal(state, () => RankActions.Step(state, RankMove.Down, 1, at)),
             ActionIds.RankTop => InNormal(state, () => RankActions.Step(state, RankMove.Top, 1, at)),

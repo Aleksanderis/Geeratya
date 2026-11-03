@@ -41,7 +41,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `Enter` | next line | open the selected item |
 | `Space` | move right | leader for Geeratya actions: `<space>t` new tab, `<space>c` close tab, `<space>r` refresh, `<space>l` layout, `<space>o` open in the browser, `<space>p` parent issue, `<space>a` the actions menu of the selected issue (the keyboard twin of a right-click), `<space>A` the menu of the tab and the view (close tab, previous tab, layout, jump, help, quit; the twin of a right-click on a tab or the status line), `<space>g` jump to an issue by key, `<space>n` the message history, `<space>x` dismiss the status message |
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
-| `v` (planned, M5) | Visual mode | Visual mode over rows |
+| `v` | Visual mode | Visual mode over rows (list and backlog layouts; built, #393) |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
 
 ## Layout for writes and Scrum (planned, M2 to M5)
@@ -80,7 +80,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | right-click menu on the comment ([ux-mouse.md](ux-mouse.md), part M) | M2 #167 |
-| `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once #181 adds marks). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
+| `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set moves as a block once the follow-up to #393 teaches the rank steps a set; until then they refuse a set). Built (#169) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |
 | `<space>kk` | `rank.to` | Pick up the selected issue, move the cursor, press again: it takes the place of the issue under the cursor (above it when the cursor is above the picked-up one, else below; the same issue or `Esc` cancels). Built (#169) within the list or column; across sprint sections with #182 | A | drag across sections | M2 #169, M5 #182 |
 | `<space>sv` | `sprint.switch` | Switch the sprint shown (active, future, closed) | E | click the sprint name | M5 #177 |
@@ -93,8 +93,8 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>vf` | `view.quick-filter` | Toggle board quick filters | E | click a filter chip | M6 #192 |
 | `<space>vs` | `view.swimlane` | Choose the swimlane grouping | A | click the swimlane header | M6 #192 |
 | `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open or save a saved view | E | tab picker | M6 #191 |
-| `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M5 #181 |
-| `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M5 #181 |
+| `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M5 #393 (built) |
+| `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M5 #393 (built) |
 | `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | its palette row | M4 #196 (built; session only, `:set commandlevel` saves) |
 | `Ctrl-p` | `palette.open` | A second key for the command palette (`:` stays); vim's `Ctrl-p` (up a line) is not needed, the arrow keys and `k` do that | E | click the status line | M4 #368 (built) |
 
@@ -104,11 +104,11 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 
 ### Selection and counts
 
-- **Target of a write.** One set, decided in this order: the marked rows (`Alt-m`), else the Visual range, else the selected row. Marks and the range belong to the tab, survive scrolling and refresh by issue key, and `Esc` clears them, but only at the view root: inside an issue the stack pops first (#181 updates the `ux.md` Esc paragraph). In Visual mode the first `Esc` leaves the range, the next clears the marks. The status bar shows `N selected` while a set is active.
-- **Which writes accept a set.** Only the sprint moves (`sm`, `sb`) and the rank steps (`Alt-j`, `Alt-k`, which move the set as one block, order kept). Every other write is single-issue: with a set active it refuses (`5 issues selected; clear the selection first`) instead of acting on the cursor row or on all of them. A key never widens or narrows its target silently.
+- **Target of a write.** One set, decided in this order: the marked rows (`Alt-m`), else the Visual range, else the selected row. Marks and the range belong to the tab, survive scrolling and refresh by issue key, and `Esc` clears them, but only at the view root: inside an issue the stack pops first (built in #393; the `ux.md` Esc paragraph says so). In Visual mode the first `Esc` leaves the range, the next clears the marks. The status bar shows `N selected` while a set is active, and the badge reads `VISUAL` while the range is open. Built (#393): marks and the range are kept per tab as issue keys (`TabState.Marks`, `TabState.VisualAnchor`); a row in the list or backlog shows `*` (marked) or `+` (in the range) next to the cursor mark; a complete reload drops marks of issues that left the result and deleting an issue unmarks it. `Alt-m` in Visual mode marks the whole range (or unmarks it when every row is marked) and leaves Visual mode. The columns layout has no marks or Visual mode yet (the keys say so); switching to it ends Visual mode.
+- **Which writes accept a set.** Only the sprint moves (`sm`, `sb`) and the rank steps (`Alt-j`, `Alt-k`, which move the set as one block, order kept) are meant to take a set. Today (#393) no write does yet: the sprint moves arrive with #181 and the block rank is a follow-up, so every write, rank steps included, is single-issue. A single-issue write, with a set active (any mark, or a Visual range of more than one row) refuses (`5 issues selected; clear the selection first`) instead of acting on the cursor row or on all of them. The gate sits in the reducer in front of the action, so keys, the palette, the context menu and the mouse refuse alike; inside an opened issue the open issue is the target and the gate does not apply. A key never widens or narrows its target silently.
 - **Confirming a set.** A write on more than one issue always asks in Confirm mode, e.g. `Move 5 issues to sprint "Sprint 12"? Jira has no undo.`; the dialog names the count, the target and the first keys. Failures are reported per issue after the run (`4 of 5 moved; GCS-7 failed: <reason>`) and the failed ones stay marked, so a retry is one key.
 - **Counts.** A count prefix (`5j`) repeats a motion or a step: `3 Alt-j` ranks three places. Any other write with a count is refused; a count never selects issues. The count prefix is built (#169, `AppState.Count`, shown in the status line next to pending keys, up to 999): digits `1`-`9` in Normal mode start it, `0` is a count digit only after another digit (as in vim), so a lone `0` stays "first column". `5j` and `5k` repeat the motion, `3 Alt-j` ranks three places in one write, `Esc` or any other key drops it, and a write that takes no count (`<space>kt`, `<space>kb`, `<space>kk`) refuses it with the status line.
-- **Visual mode** joins the mode table in `ux.md` when #181 lands: `v` enters, the motions (`j k Ctrl-d Ctrl-u g g G`) extend the range, `Esc` leaves, the write keys above work in it. It exists in list and backlog layouts; in the columns layout marks are the selection.
+- **Visual mode** is in the mode table in `ux.md` (built, #393): `v` enters, the motions (`j k Ctrl-d Ctrl-u g g G`) extend the range, `Esc` leaves, the write keys above work in it. It exists in list and backlog layouts; marks on cards of the columns layout are a follow-up.
 
 ### Text input
 

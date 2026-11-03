@@ -31,6 +31,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The cells of the status message in the status line, null when none shows.</summary>
     public TabButton? StatusMessage { get; init; }
 
+    /// <summary>The active tab shows the columns layout, so a drag moves a card; otherwise it selects rows.</summary>
+    public bool ColumnsLayout { get; init; }
+
     /// <summary>The Confirm dialog is open: a click outside its box, the status line included, cancels.</summary>
     public bool ConfirmOpen { get; init; }
 
@@ -54,6 +57,7 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             StatusMessage = StatusMessages.Cells(state),
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],
+            ColumnsLayout = tab?.Definition.Layout == ViewLayout.Columns,
             ConfirmOpen = state.Mode == InputMode.Confirm && state.Confirm is not null,
         };
     }

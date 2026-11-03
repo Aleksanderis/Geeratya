@@ -8,11 +8,12 @@ The shell is one full-screen window with a body, a one-line status line at the b
 
 ## Modes
 
-The input mode decides which keys act. It lives in `AppState.Mode`; Help, Command and Insert show their prompt in the status bar; Confirm shows a centred dialog and only the short `Confirm  (y/n)` in the status bar.
+The input mode decides which keys act. It lives in `AppState.Mode`, except Visual: it is a state of the tab (`TabState.VisualAnchor`) over Normal mode, so every Normal key still works and the badge reads `VISUAL`; Help, Command and Insert show their prompt in the status bar; Confirm shows a centred dialog and only the short `Confirm  (y/n)` in the status bar.
 
 | Mode | Entered with | Keys | Left with |
 |---|---|---|---|
 | Normal | start, or leaving any other mode | the Normal table in `keymap.md` | (home mode) |
+| Visual | `v` in a list or backlog view (or a drag over rows) | the Normal motions (`j k Ctrl-d Ctrl-u g g G`, the wheel) extend the range; the write keys act on it as a set (`Alt-m` marks the range); read-only itself, it writes nothing | `v`, `Esc` (a second `Esc` then clears the marks) |
 | Help | `?` | `j`/`k` or `Down`/`Up` scroll; `Tab`/`Shift-Tab` switch page; `/` filters (printable keys are text until `Enter` or `Esc`); `?`, `q` and `Esc` close (with a filter set the first `Esc` or `q` clears it) | `?`, `q`, `Esc` |
 | Command | `:` | printable keys and `Space` are text; `Enter` runs, `Backspace` deletes, `Esc` cancels | `Enter`, `Esc`, `Backspace` on empty text |
 | Confirm | a destructive action asks | only `y`, `n`, `Esc` and `Ctrl-c` (quit) act; every other key is swallowed, `Enter` never confirms; the two rows and the backdrop are clickable | `y` (runs the action), `n`, `Esc`, a click outside the box (cancel), `Ctrl-c` (quits; asks first while writes run) |
@@ -33,7 +34,7 @@ Two helps, each set with `:set hints.statusBar full|minimal|off` and `:set hints
 
 - Keys are spelled out everywhere: `Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`; never `^d` or `c-d`.
 - Exactly one place has focus: the overlay when one is open, otherwise the body. An overlay takes every key; nothing falls through to the body.
-- `Esc` backs out one level: it clears a half-typed sequence or ends the status message (`<space>x` does too), closes an overlay or cancels Command and Confirm mode. In a tab it also pops the issue stack (issue detail back to the view it was opened from). In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
+- `Esc` backs out one level: it clears a half-typed sequence or ends the status message (`<space>x` does too), closes an overlay or cancels Command and Confirm mode. In a tab at the view root it first leaves Visual mode, then clears the marks (`docs/ux-keymap.md`, "Selection and counts"); then it pops the issue stack (issue detail back to the view it was opened from; the stack pops before any mark is cleared). In Normal mode with nothing to back out of, `Esc` does nothing; it never quits.
 - `Ctrl-c` quits from Normal, Help, Command and Confirm mode. In a text form (Insert mode) it cancels and never quits. A quit cancels the running read loads at once; running writes are not cancelled (see below).
 - `q` quits only in Normal mode. In Help it closes the overlay first (a second `q` quits); in Command mode it is text; in Confirm mode it does nothing (the question is answered with `y`, `n` or `Esc`).
 - Every quit (`q`, `Ctrl-c`, `:q`) asks first while writes are running (`1 write is still running; its result will not be shown. Quit anyway?`, `y`/`n`/`Esc`); after the `y` the app waits up to 5 s for them to finish before it exits; so do `:profile switch` and removing the active profile.

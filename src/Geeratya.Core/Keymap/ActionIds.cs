@@ -57,6 +57,8 @@ public static class ActionIds
     public const string RankTop = "rank.top";
     public const string RankBottom = "rank.bottom";
     public const string RankTo = "rank.to";
+    public const string SelectionVisual = "selection.visual";
+    public const string SelectionMark = "selection.mark";
     public const string IssueDelete = "issue.delete";
     public const string IssueCreate = "issue.create";
     public const string IssueCreateSubtask = "issue.create-subtask";

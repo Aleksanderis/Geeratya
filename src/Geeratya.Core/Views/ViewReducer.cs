@@ -2,6 +2,7 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Boards.Models;
@@ -132,7 +133,10 @@ public static class ViewReducer
 
         var layout = tab with { Definition = tab.Definition with { Layout = changed.Layout } };
 
-        return Replace(state, changed.Layout == ViewLayout.Columns ? layout with { Cursor = null } : Revealed(layout));
+        // Visual mode exists in the list layouts only; the marks stay.
+        return Replace(
+            state,
+            changed.Layout == ViewLayout.Columns ? layout with { Cursor = null, VisualAnchor = null } : Revealed(layout));
     }
 
     /// <summary>Scrolls the list so the selected row shows, after the columns layout moved the selection.</summary>
@@ -974,7 +978,7 @@ public static class ViewReducer
 
         if (rows.Count == 0)
         {
-            return tab with { Selected = 0, SelectedKey = null, Scroll = 0 };
+            return RowSelection.Pruned(tab with { Selected = 0, SelectedKey = null, Scroll = 0 });
         }
 
         var found = FindKey(rows, tab.SelectedKey);
@@ -982,7 +986,9 @@ public static class ViewReducer
 
         var position = ListMotion.Reveal(new ListPosition(selected, tab.Scroll), rows.Count, tab.VisibleRows);
 
-        return tab with { Selected = selected, SelectedKey = rows[selected].Key, Scroll = position.Scroll };
+        var kept = tab with { Selected = selected, SelectedKey = rows[selected].Key, Scroll = position.Scroll };
+
+        return RowSelection.Pruned(kept);
     }
 
     private static int FindKey(IReadOnlyList<IssueSummary> rows, string? key)

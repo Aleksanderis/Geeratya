@@ -62,6 +62,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-h` | Move the card to the previous column | `issue.transition-previous` | everyday |
 | `Alt-k` | Rank the issue up (a count moves it that many places) | `rank.up` | everyday |
 | `Alt-j` | Rank the issue down (a count moves it that many places) | `rank.down` | everyday |
+| `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
+| `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
 | `Space k t` | Rank the issue to the top of the list or column | `rank.top` | advanced |
 | `Space k b` | Rank the issue to the bottom of the list or column | `rank.bottom` | advanced |
 | `Space k k` | Pick up the issue, then drop it at the issue under the cursor | `rank.to` | advanced |

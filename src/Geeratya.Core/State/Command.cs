@@ -46,3 +46,13 @@ public sealed record PointerPlaced(int Column, int Row, int Width, ActionRequest
 /// <param name="Width">The screen width the body was drawn for.</param>
 public sealed record CardDragged(int FromColumn, int FromRow, int ToColumn, int Width)
     : Command;
+
+/// <summary>
+/// Rows dragged over with the pointer on the list or backlog layout (press, move, release): Visual mode from the
+/// first row to the last, the same as <c>v</c> and the motions.
+/// </summary>
+/// <param name="Column">The screen column where the button went down.</param>
+/// <param name="FromRow">The body row where the button went down.</param>
+/// <param name="ToRow">The body row where it was released.</param>
+/// <param name="Width">The screen width the body was drawn for.</param>
+public sealed record RowsDragged(int Column, int FromRow, int ToRow, int Width) : Command;

@@ -90,6 +90,18 @@ public sealed record TabState(
     public string? RankPickup { get; init; }
 
     /// <summary>
+    /// The issue keys marked with <c>selection.mark</c>, scattered rows allowed. Keys, not indexes, so the marks
+    /// survive scrolling and a refresh that moves rows (<c>docs/ux-keymap.md</c>, "Selection and counts").
+    /// </summary>
+    public IReadOnlyList<string> Marks { get; init; } = [];
+
+    /// <summary>
+    /// The issue key where Visual mode started; null outside Visual mode. The range runs from this row to the
+    /// selected row.
+    /// </summary>
+    public string? VisualAnchor { get; init; }
+
+    /// <summary>
     /// Issues deleted while this tab's load was in flight: the reply may still hold them (it started before the
     /// delete, or the search index lags), so it drops these keys. Cleared when the load ends.
     /// </summary>
