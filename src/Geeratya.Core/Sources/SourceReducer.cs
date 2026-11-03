@@ -139,6 +139,15 @@ public static class SourceReducer
         return Open(state, PickerScope.All, string.Empty, autoOpen: false);
     }
 
+    /// <summary>
+    /// The first screen of a session with nothing to restore: the board picker, or the board itself when the site has
+    /// exactly one (a unique match with no name typed opens it, <see cref="AutoOpen"/>).
+    /// </summary>
+    public static ReduceResult OpenFirstBoard(AppState state)
+    {
+        return Open(state, PickerScope.Boards, string.Empty, autoOpen: true);
+    }
+
     public static AppState Type(AppState state, string text)
     {
         var picker = state.Picker;

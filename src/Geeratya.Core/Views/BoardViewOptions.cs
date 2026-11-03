@@ -116,15 +116,31 @@ public static class BoardViewOptions
 
         if (tab.Swimlane != SwimlaneKind.None && tab.Definition.Layout == ViewLayout.Columns)
         {
-            var lanes = Swimlanes.Lanes(tab.Swimlane, tab.Rows);
-
-            if (Swimlanes.Current(lanes, tab.Lane) is { } lane)
+            if (LaneLabel(tab) is { } label)
             {
-                parts.Add($"Lane {lanes.ToList().IndexOf(lane) + 1}/{lanes.Count}: {lane.Name}");
+                parts.Add(label);
             }
         }
 
         return string.Join(separator, parts);
+    }
+
+    /// <summary>The <c>Lane n/N: Name</c> text of the current lane, null without swimlanes or a lane.</summary>
+    public static string? LaneLabel(TabState tab)
+    {
+        if (tab.Swimlane == SwimlaneKind.None || tab.Definition.Layout != ViewLayout.Columns)
+        {
+            return null;
+        }
+
+        var lanes = Swimlanes.Lanes(tab.Swimlane, tab.Rows);
+
+        if (Swimlanes.Current(lanes, tab.Lane) is not { } lane)
+        {
+            return null;
+        }
+
+        return $"Lane {lanes.ToList().IndexOf(lane) + 1}/{lanes.Count}: {lane.Name}";
     }
 
     /// <summary><c>view.swimlane</c>: the next grouping (none, assignee, epic); the first lane is shown.</summary>

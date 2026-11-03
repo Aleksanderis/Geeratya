@@ -438,6 +438,45 @@ public static class StatusBar
         return new StatusSegment(cells.Start, Math.Min(cells.End, width) - cells.Start, status.Line, role);
     }
 
+    /// <summary>
+    /// The cells of the <c>Lane n/N: Name</c> text in the status line as drawn by <see cref="Render"/>, null when the
+    /// line does not show it (no lane, or a message or typed keys instead); a cut line gives the part that shows.
+    /// </summary>
+    public static TabButton? LaneCells(
+        AppState state,
+        int width,
+        KeymapTable keymap,
+        DateTimeOffset? now = null,
+        bool confirmDialogShown = false)
+    {
+        if (state.Mode != InputMode.Normal
+            || ListBodyRenderer.ActiveTab(state) is not { Detail.Count: 0 } tab
+            || BoardViewOptions.LaneLabel(tab) is not { } label)
+        {
+            return null;
+        }
+
+        var line = Render(state, width, keymap, now, confirmDialogShown);
+        var index = line.IndexOf(label[..(label.IndexOf(':') + 1)], StringComparison.Ordinal);
+
+        if (index < 0)
+        {
+            return null;
+        }
+
+        // A cut line (the name ends in an ellipsis) still shows the start of the label: that part is the chip.
+        var shown = 0;
+
+        while (shown < label.Length && index + shown < line.Length && line[index + shown] == label[shown])
+        {
+            shown++;
+        }
+
+        var start = TextWidth.Of(line[..index]);
+
+        return new TabButton(start, start + TextWidth.Of(label[..shown]));
+    }
+
     private static string Badge(AppState state)
     {
         if (state.MessagesOpen && state.Mode == InputMode.Help)

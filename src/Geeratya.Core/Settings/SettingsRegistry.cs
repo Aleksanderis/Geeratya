@@ -84,6 +84,15 @@ public static class SettingsRegistry
             settings => settings.JumpTarget == JumpTarget.Tab ? TabWord : CurrentWord,
             ApplyJumpTarget,
             JumpExpected),
+        new SettingDefinition(
+            "startup.restore",
+            "startup.restore",
+            SettingKind.Toggle,
+            On,
+            "Reopen the tabs of the last run on start; off starts on the board picker every time.",
+            settings => Word(settings.RestoreTabs),
+            (settings, text) => ParseToggle(text) is { } on ? settings with { RestoreTabs = on } : null,
+            ToggleExpected),
     ];
 
     public static SettingDefinition? Find(string name)

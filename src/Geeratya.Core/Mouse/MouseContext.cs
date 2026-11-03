@@ -25,6 +25,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// <summary>The cells of the jump chip at the right end of the tab bar row, null when the bar draws none.</summary>
     public TabButton? JumpChip { get; init; }
 
+    /// <summary>The cells of the <c>Lane n/N: Name</c> text in the status line, null when it is not drawn whole.</summary>
+    public TabButton? LaneChip { get; init; }
+
     /// <summary>The banner row shows a line (a click there refreshes).</summary>
     public bool BannerShown { get; init; }
 
