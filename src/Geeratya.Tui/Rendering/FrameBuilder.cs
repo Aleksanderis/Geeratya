@@ -16,7 +16,6 @@ public static class FrameBuilder
 {
     private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers =
     [
-        new HelpBodyRenderer(),
         new MessagesBodyRenderer(),
         new IssueDetailRenderer(),
         new ListBodyRenderer(),
@@ -71,15 +70,17 @@ public static class FrameBuilder
         var clock = now ?? DateTimeOffset.UnixEpoch;
         var bodyHeight = BodyHeight(height);
         var context = new BodyContext(keymap, glyphs, clock);
-        var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(state))
-            ?? _defaultRenderers.First(candidate => candidate.AppliesTo(state));
-        var body = Fit(renderer.Render(state, context, width, bodyHeight), width, bodyHeight);
+        var helpOpen = HelpOverlay.Applies(state);
+        var viewState = helpOpen ? HelpOverlay.Underlying(state) : state;
+        var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(viewState))
+            ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
+        var body = Fit(renderer.Render(viewState, context, width, bodyHeight), width, bodyHeight);
 
         var regions = new List<OverlayRegion>();
 
-        if (state.Mode == InputMode.Help && !state.MessagesOpen)
+        if (helpOpen)
         {
-            regions.AddRange(HelpBodyRenderer.PageRegions(state, keymap, width));
+            body = Fit(HelpOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (state.ProfileList is not null)

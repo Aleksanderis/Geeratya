@@ -79,10 +79,9 @@ public static class StatusBar
     /// <summary>The hints shown while the help pages are open (not the Messages overlay, which has no pages).</summary>
     public static IReadOnlyList<StatusHint> HelpHints { get; } =
     [
-        new(InputMode.Help, ActionIds.HelpPageNext, "page"),
+        new(InputMode.Help, ActionIds.NavigateDown, "section"),
+        new(InputMode.Help, ActionIds.HelpScrollDown, "scroll"),
         new(InputMode.Help, ActionIds.HelpFilter, "filter"),
-        new(InputMode.Help, ActionIds.NavigateDown, "down"),
-        new(InputMode.Help, ActionIds.NavigateUp, "up"),
         new(InputMode.Help, ActionIds.HelpClose, "close"),
     ];
 
