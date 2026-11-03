@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.Tests.Keymap;
@@ -35,13 +36,15 @@ public class KeymapDocumentTests
 
         foreach (var binding in keymap.Bindings)
         {
-            Assert.Contains($"| `{binding.Keys}` | ", markdown);
-            Assert.Matches($@"\| `{System.Text.RegularExpressions.Regex.Escape(binding.Keys)}` \| [^|]+ \| `{System.Text.RegularExpressions.Regex.Escape(binding.Action)}` \| (everyday|advanced) \|", markdown);
+            var pattern = $@"\| `{Regex.Escape(binding.Keys)}` \| [^|]+ \| `{Regex.Escape(binding.Action)}` \| (everyday|advanced) \|";
+
+            Assert.Matches(pattern, markdown);
         }
 
-        var rows = markdown.Split('\n').Where(line => line.StartsWith("| `", StringComparison.Ordinal) && !line.StartsWith("| `:", StringComparison.Ordinal));
+        var keyRows = markdown.Split("## Palette commands")[0].Split('\n').Where(line => line.StartsWith("| `", StringComparison.Ordinal))
+            .ToList();
 
-        Assert.All(rows, row => Assert.Matches(@"\| `[^`]+` \| (everyday|advanced) \|$", row));
+        Assert.All(keyRows, row => Assert.Matches(@"\| `[^`]+` \| (everyday|advanced) \|$", row));
     }
 
     [Fact]

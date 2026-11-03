@@ -292,7 +292,9 @@ public sealed class UserKeymapTests : IDisposable
         var state = reducer.Reduce(AppState.Initial, new KeymapReloaded(result.Notice!, result.Problems)).State;
 
         Assert.Equal(StatusSeverity.Warning, state.Status!.Severity);
-        Assert.Equal(["third", "second", "first"], state.StatusHistory.Skip(1).Select(message => message.Text));
+        Assert.Equal(
+            ["keymap.json: third", "keymap.json: second", "keymap.json: first"],
+            state.StatusHistory.Skip(1).Select(message => message.Text));
         Assert.All(state.StatusHistory.Skip(1), message => Assert.Equal(StatusSeverity.Warning, message.Severity));
     }
 

@@ -123,10 +123,12 @@ public static class StatusMessages
             return state with { Message = reloaded.Message };
         }
 
-        return AddWarnings(Warn(state, reloaded.Message), problems.Count > 1 ? problems : []);
+        return AddWarnings(
+            Warn(state, reloaded.Message),
+            problems.Count > 1 ? problems.Select(problem => $"keymap.json: {problem}").ToList() : []);
     }
 
-    /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the first one listed shown first.</summary>
+    /// <summary>Puts each of <paramref name="warnings"/> into the history as a warning, the history is newest first, so the last one listed shows first.</summary>
     public static AppState AddWarnings(AppState state, IReadOnlyList<string> warnings)
     {
         var added = warnings.Select(warning => new StatusMessage(warning, StatusSeverity.Warning)).Reverse();
