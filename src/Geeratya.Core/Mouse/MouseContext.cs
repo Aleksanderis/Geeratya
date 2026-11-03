@@ -54,7 +54,8 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     {
         var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
         var overlay = state.Mode != InputMode.Normal || state.Picker is not null || state.Jump is not null
-            || state.Editor is not null || state.ProfileList is not null || FormReducer.IsOpen(state);
+            || state.Editor is not null || state.ProfileList is not null || state.SettingsScreen is not null
+            || FormReducer.IsOpen(state);
 
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {

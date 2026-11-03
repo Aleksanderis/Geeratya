@@ -59,6 +59,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>p` | Open the parent issue | `issue.open-parent` | everyday |
 | `<space>a` | Open the actions menu of the selected issue | `menu.context` | everyday |
 | `<space>A` | Open the actions menu of the tab and the view | `menu.view` | everyday |
+| `<space>,` | Open or close the settings screen | `settings.open` | everyday |
+| `Alt-r` | Reset the highlighted setting to its default (in the settings screen) | `settings.reset` | everyday |
 | `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
 | `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
 | `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
@@ -227,6 +229,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:estimate` | Change the estimate (story points) of the selected or shown issue (field form) |
 | `:assign` | Assign the selected or shown issue: search people, or unassign |
 | `:assign-me` | Assign the selected or shown issue to me |
+| `:settings` | Open the settings screen: change the theme and the options |
 | `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
 | `:set [hints.statusBar|hints.whichKey|commandlevel|theme|jump.target|startup.restore] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |

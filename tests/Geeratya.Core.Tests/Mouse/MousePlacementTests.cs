@@ -229,7 +229,7 @@ public class MousePlacementTests
         Assert.Equal(state.Session.Tabs[0].Id, result.Session.Active);
         Assert.Equal(InputMode.Insert, result.Mode);
         Assert.Equal(
-            [ActionIds.TabClose, ActionIds.TabPrevious, ActionIds.ViewLayoutToggle, ActionIds.ViewSavedOpen, ActionIds.ViewSavedSave, ActionIds.IssueJump, ActionIds.StatusHistory, ActionIds.StatusDismiss, ActionIds.HelpToggle, ActionIds.Quit],
+            [ActionIds.TabClose, ActionIds.TabPrevious, ActionIds.ViewLayoutToggle, ActionIds.ViewSavedOpen, ActionIds.ViewSavedSave, ActionIds.IssueJump, ActionIds.StatusHistory, ActionIds.SettingsOpen, ActionIds.StatusDismiss, ActionIds.HelpToggle, ActionIds.Quit],
             actions);
     }
 

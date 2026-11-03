@@ -76,9 +76,7 @@ public static class FrameBuilder
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(viewState))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
         var regions = new List<OverlayRegion>();
-        var body = state.ProfileList is not null
-            ? ManagerBody(state, context, width, bodyHeight, regions)
-            : Fit(renderer.Render(viewState, context, width, bodyHeight), width, bodyHeight);
+        var body = BodyOf(state, viewState, renderer, context, width, bodyHeight, regions);
 
         if (helpOpen)
         {
@@ -155,6 +153,28 @@ public static class FrameBuilder
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
     }
 
+    private static List<StyledLine> BodyOf(
+        AppState state,
+        AppState viewState,
+        IBodyRenderer renderer,
+        BodyContext context,
+        int width,
+        int height,
+        List<OverlayRegion> regions)
+    {
+        if (state.ProfileList is not null)
+        {
+            return ManagerBody(state, context, width, height, regions);
+        }
+
+        if (state.SettingsScreen is not null && state.Mode == InputMode.Normal)
+        {
+            return Fit(SettingsScreen.Render(state, context, width, height, regions), width, height);
+        }
+
+        return Fit(renderer.Render(viewState, context, width, height), width, height);
+    }
+
     // The profile manager is the whole body. Its rows and buttons take the mouse only while no form or question is on
     // top of it.
     private static List<StyledLine> ManagerBody(
@@ -222,6 +242,12 @@ public static class FrameBuilder
         if (rows > 0 && state.ProfileList is not null)
         {
             lines.Add(ProfilesChip(width));
+        }
+        else if (rows > 0 && state is { SettingsScreen: not null, Mode: InputMode.Normal })
+        {
+            var chip = new StyledLine([new StyledSpan(" Settings ", TextRole.TabActive)]);
+
+            lines.Add(StyledLines.Fit(chip, width, TextRole.BarText));
         }
         else if (rows > 0)
         {

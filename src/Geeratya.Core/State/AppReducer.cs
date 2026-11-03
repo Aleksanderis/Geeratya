@@ -42,6 +42,7 @@ public sealed class AppReducer
 
     private const string EscapeKey = "Esc";
     private const int HelpHalfPage = 8;
+    private const string SettingsResetHint = "Open the settings screen first (:settings).";
     private const string ConfirmTooSmallText =
         "Terminal too small to confirm. Nothing was done; enlarge it and try again.";
     private const string ConfirmClosedText = "Terminal too small to show the confirmation: closed, nothing was done.";
@@ -55,9 +56,10 @@ public sealed class AppReducer
 
     public ReduceResult Reduce(AppState state, Command command)
     {
+        var reduced = SettingsScreenReducer.RestorePreview(state, ReduceCommand(state, command));
         var result = StartupReducer.Persisted(
             state,
-            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, ReduceCommand(state, command)))));
+            ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, reduced))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
         return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
@@ -236,6 +238,7 @@ public sealed class AppReducer
             Jump = null,
             Editor = null,
             ProfileList = toManager ? state.ProfileList : null,
+            SettingsScreen = null,
             ContextMenu = null,
         };
     }
@@ -254,6 +257,9 @@ public sealed class AppReducer
                 => SourceReducer.Accept(cleared with { Picker = picker with { Selected = clicked.Index } }, clicked.At),
             MouseTarget.JumpRow when cleared.Jump is { } jump
                 => JumpReducer.Accept(cleared with { Jump = jump with { Selected = clicked.Index } }),
+            MouseTarget.SettingsCategory => SettingsScreenReducer.GoToCategory(cleared, clicked.Index),
+            MouseTarget.SettingsRow => SettingsScreenReducer.Clicked(cleared, clicked.Index, clicked.Action),
+            MouseTarget.SettingsChoice => SettingsScreenReducer.ChoiceClicked(cleared, clicked.Index),
             MouseTarget.ProfileRow when clicked.Action == ActionIds.ProfileRemove
                 => ProfileReducer.RemoveHighlighted(cleared, clicked.Index),
             MouseTarget.ProfileRow => ProfileReducer.SwitchHighlighted(cleared, clicked.Index),
@@ -390,7 +396,7 @@ public sealed class AppReducer
             return Result(cleared with { Message = ClosedSprintGate.Refusal });
         }
 
-        if (resolution.Action == ActionIds.IssueUnlink)
+        if (resolution.Action == ActionIds.IssueUnlink && state.SettingsScreen is null)
         {
             // The only action that needs the time of the key: the confirm carries the write that will start.
             return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
@@ -415,6 +421,11 @@ public sealed class AppReducer
     /// </summary>
     private ReduceResult ApplyCounted(AppState state, string action, int count, DateTimeOffset at)
     {
+        if (SettingsScreenReducer.Handle(state, action) is { } onScreen)
+        {
+            return onScreen;
+        }
+
         if (EmptySprintFocus.Refuses(state, action))
         {
             return Result(state with { Message = EmptySprintFocus.Refusal });
@@ -529,6 +540,11 @@ public sealed class AppReducer
 
     private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
+        if (SettingsScreenReducer.Handle(state, action) is { } onScreen)
+        {
+            return onScreen;
+        }
+
         if (ClosedSprintGate.Refuses(state, action))
         {
             return Result(state with { Message = ClosedSprintGate.Refusal });
@@ -559,6 +575,8 @@ public sealed class AppReducer
             ActionIds.StatusHistory => InNormal(state, () => Result(StatusMessages.OpenHistory(state))),
             ActionIds.StatusDismiss => Result(StatusMessages.Dismiss(state)),
             ActionIds.ViewCycleCommandLevel => Result(CycleCommandLevel(state)),
+            ActionIds.SettingsOpen => InNormal(state, () => SettingsScreenReducer.Toggle(state)),
+            ActionIds.SettingsReset => Result(state with { Message = SettingsResetHint }),
             ActionIds.PaletteOpen => Result(ToNormal(state) with { Mode = InputMode.Command }),
             ActionIds.ContextMenuOpen => InNormal(state, () => OpenContextMenu(state)),
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
@@ -1018,6 +1036,7 @@ public sealed class AppReducer
             _ when SourceVerb(text) is { } verb => SourceReducer.Palette(normal, verb, text[verb.Length..]),
             _ when IsBrowseCommand(text) => BrowserReducer.OpenIssue(normal, BrowseKey(text)),
             _ when IsTabCommand(text) => TabCommand(normal, text["tab".Length..].Trim()),
+            PaletteCommands.Settings => SettingsScreenReducer.Toggle(normal),
             _ when IsSetCommand(text) => SettingsReducer.Palette(normal, text["set".Length..]),
             _ when IsThemeCommand(text) => SettingsReducer.Theme(normal, text[PaletteCommands.Theme.Length..].Trim()),
             _ when IsProfileCommand(text) => ProfileReducer.Palette(normal, text["profile".Length..]),

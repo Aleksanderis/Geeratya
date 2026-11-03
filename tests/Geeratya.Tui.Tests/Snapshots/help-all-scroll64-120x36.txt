@@ -13,6 +13,9 @@
             │               │   <space>a   Open the actions menu of the selected issue                     │            
             │               │   <space>n   Show the message history                                        │            
             │               │   <space>x   Dismiss the status message                                      │            
+            │               │   <space>,   Open or close the settings screen                               │            
+            │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │            
+            │               │              screen)                                                         │            
             │               │ Dialogs                                                                      │            
             │               │   Esc        Close help  (q)                                                 │            
             │               │   /          Filter the help by key, title or action id                      │            
@@ -28,9 +31,6 @@
             │               │   n          Decline  (Esc)                                                  │            
             │               │   Enter      Accept the field and go to the next  (Ctrl-l)                   │            
             │               │   Backspace  Delete the character before the caret                           │            
-            │               │   Ctrl-a     Add a profile (site, account and token in one form)             │            
-            │               │   Ctrl-e     Edit the highlighted profile (the stored token is kept unless   │            
-            │               │              replaced)                                                       │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
  HELP                                                                           j section  J scroll  / filter  Esc close

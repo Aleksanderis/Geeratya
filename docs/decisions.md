@@ -153,3 +153,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-03 (theme backgrounds, #559)
 
 **UI:** An overlay box is filled with the theme's own page colour and the view behind it is darkened (the page moved towards black) instead of the box being a `selection`-derived gray raised from an unchanged page; a theme file may set an optional `overlayBackground` for the box. Why: measured in tmux, every theme painted its published `baseBackground` faithfully, but the box fill (a gray step towards `selection`) and the dimmed text on the unchanged page read as two competing grays. Overrides the "backgrounds unchanged" rule of `ux-look.md` section 6. Details: `ux.md`, "Themes"; `ux-look.md`, sections 6 and 7.
+
+## 2026-11-03 (settings screen, #556)
+
+**UI:** The Settings screen (reverses the "not adopted" note in `ux.md`, owner request) runs in Normal mode on the Normal keys, not in Insert mode like the profile manager; `<space>,` opens it (as in Gitunia), `Alt-r` resets a row (`r` is vim's). Why: it has no text field, so the existing motion keys apply and nothing new is modal.
+**UI:** `q` quits from the settings screen like everywhere else (the "writes running" confirm still applies); `Esc` or `<space>,` closes it. Why: one meaning of `q` outside Help.
+**UI:** The theme list previews through `ApplyThemeEffect(Preview: true)` (drawn, never saved or kept in the settings); Esc or any other way out redraws the saved theme (`SettingsScreenReducer.RestorePreview`). Why: the reducer cannot see the screen, so restoring is a rule on every command.
+**UI:** Rows come from `SettingsRegistry` (new `Choices` and `Category` fields); a free-text setting without choices is not edited in place (`:set`). Why: the registry has none today and a text prompt needs Insert mode; registered as a follow-up.

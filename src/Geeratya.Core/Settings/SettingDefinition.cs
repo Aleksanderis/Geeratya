@@ -16,6 +16,11 @@ namespace Geeratya.Core.Settings;
 /// <param name="Expected">What a valid value looks like, for the error text.</param>
 /// <param name="LegacyConfigKey">The flat top-level key older files use; still read, never written.</param>
 /// <param name="Aliases">Older <c>:set</c> names that still find the setting.</param>
+/// <param name="Choices">
+/// The accepted words of a choice, in the order the settings screen lists them; null for a toggle (<c>on</c>,
+/// <c>off</c>) and for a setting whose list the host supplies (the theme names).
+/// </param>
+/// <param name="Category">The group of the settings screen the setting is listed under.</param>
 public sealed record SettingDefinition(
     string Name,
     string ConfigKey,
@@ -26,7 +31,9 @@ public sealed record SettingDefinition(
     Func<AppSettings, string, AppSettings?> Apply,
     string Expected,
     string? LegacyConfigKey = null,
-    IReadOnlyList<string>? Aliases = null)
+    IReadOnlyList<string>? Aliases = null,
+    IReadOnlyList<string>? Choices = null,
+    string Category = SettingsRegistry.OtherCategory)
 {
     /// <summary>The path segments of <see cref="ConfigKey"/>.</summary>
     public string[] ConfigPath => ConfigKey.Split('.');

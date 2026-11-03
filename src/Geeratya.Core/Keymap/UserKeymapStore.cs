@@ -12,6 +12,9 @@ public sealed class UserKeymapStore
         _path = Path.Combine(configurationDirectory, FileName);
     }
 
+    /// <summary>The full path of the file (it may not exist yet).</summary>
+    public string FilePath => _path;
+
     /// <summary>
     /// The defaults with the user's file merged in. A missing file is the defaults; a file that cannot be read or
     /// parsed is the defaults plus a problem. Never throws.

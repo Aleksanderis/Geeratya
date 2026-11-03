@@ -18,10 +18,29 @@ public sealed class ApplicationRunner
     private const string HelpPageFlag = "--help-page";
     private const string LevelFlag = "--command-level";
 
-    private const string Usage = $"Usage: {PrintFrameFlag} [{SizeFlag} <width>x<height>] "
-        + $"[{ModeFlag} normal|help|command|confirm|insert] [{HelpPageFlag} <page>] "
-        + $"[{HelpScrollFlag} <line>] (page and scroll need --mode help) "
-        + $"[{LevelFlag} everyday|advanced]";
+    private const string HelpFlag = "--help";
+    private const string ShortHelpFlag = "-h";
+
+    private static readonly string[] _bareFlags =
+        [VersionFlag, PrintKeymapFlag, PrintFrameFlag, HelpFlag, ShortHelpFlag];
+
+    private static readonly string[] _valueFlags =
+        [SizeFlag, ModeFlag, HelpScrollFlag, HelpPageFlag, LevelFlag];
+
+    /// <summary>The single usage text; docs quote it and <c>--help</c> prints it.</summary>
+    public static readonly string Usage = string.Join(
+        '\n',
+        "Usage: geeratya [options]",
+        "",
+        "Options:",
+        $"  {ShortHelpFlag}, {HelpFlag}        Print this usage and exit.",
+        $"  {VersionFlag}             Print the name and version and exit.",
+        $"  {PrintKeymapFlag}  Print the key reference as Markdown and exit.",
+        $"  {PrintFrameFlag}        Print the plain-text frame the shell would draw and exit.",
+        $"      [{SizeFlag} <width>x<height>]                  default 80x24",
+        $"      [{ModeFlag} normal|help|command|confirm|insert]",
+        $"      [{HelpPageFlag} <page>] [{HelpScrollFlag} <line>]   need {ModeFlag} help",
+        $"      [{LevelFlag} everyday|advanced]");
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
@@ -51,6 +70,23 @@ public sealed class ApplicationRunner
 
     public int Run(string[] arguments)
     {
+        var unknown = FindUnknownArgument(arguments);
+
+        if (arguments.Contains(HelpFlag) || arguments.Contains(ShortHelpFlag))
+        {
+            _output.WriteLine(Usage);
+
+            return 0;
+        }
+
+        if (unknown is not null)
+        {
+            _error.WriteLine($"{ApplicationInfo.Name}: unknown argument '{unknown}'");
+            _error.WriteLine(Usage);
+
+            return 2;
+        }
+
         if (arguments.Contains(VersionFlag))
         {
             _output.WriteLine($"{ApplicationInfo.Name} {ApplicationInfo.Version}");
@@ -109,7 +145,7 @@ public sealed class ApplicationRunner
 
         if (size is null || mode is null)
         {
-            _output.WriteLine(Usage);
+            _error.WriteLine(Usage);
 
             return 2;
         }
@@ -120,7 +156,7 @@ public sealed class ApplicationRunner
 
         if (scroll is null || page is null || level is null)
         {
-            _output.WriteLine(Usage);
+            _error.WriteLine(Usage);
 
             return 2;
         }
@@ -140,6 +176,25 @@ public sealed class ApplicationRunner
         }
 
         return 0;
+    }
+
+    private static string? FindUnknownArgument(string[] arguments)
+    {
+        for (var index = 0; index < arguments.Length; index++)
+        {
+            var argument = arguments[index];
+
+            if (Array.IndexOf(_valueFlags, argument) >= 0)
+            {
+                index++;
+            }
+            else if (Array.IndexOf(_bareFlags, argument) < 0)
+            {
+                return argument;
+            }
+        }
+
+        return null;
     }
 
     private static string? ValueOf(string[] arguments, string flag)

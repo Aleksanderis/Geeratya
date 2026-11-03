@@ -139,6 +139,8 @@ public static class ActionCatalog
         new(ActionIds.IssueJump, "Jump to an issue by key"),
         new(ActionIds.StatusHistory, "Show the message history"),
         new(ActionIds.StatusDismiss, "Dismiss the status message"),
+        new(ActionIds.SettingsOpen, "Open or close the settings screen"),
+        new(ActionIds.SettingsReset, "Reset the highlighted setting to its default (in the settings screen)"),
         new(ActionIds.ProfileAdd, "Add a profile (site, account and token in one form)"),
         new(ActionIds.ProfileEdit, "Edit the highlighted profile (the stored token is kept unless replaced)"),
         new(ActionIds.ProfileTest, "Test the connection of the profile form (nothing is saved)"),
@@ -278,7 +280,7 @@ public static class ActionCatalog
             "tab" => "Tabs",
             "sprint" => "View",
             "nav" or "item" or "detail" or "section" => "Navigate",
-            "help" or "app" or "palette" or "mode" or "status" => "General",
+            "help" or "app" or "palette" or "mode" or "status" or "settings" => "General",
             _ => null,
         };
     }

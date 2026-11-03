@@ -55,7 +55,7 @@ The agent can't see a terminal, so run the app against `tools/FakeJira` in a det
 
 # seed $XDG_CONFIG_HOME/geeratya/profiles.json with one active profile whose siteUrl is the fake's address, export GEERATYA_TOKEN=fake (as scripts/screenshot.sh does)
 tmux -L geer -f /dev/null new-session -d -s gt -x 120 -y 40 'path/to/geeratya'
-tmux -L geer -f /dev/null new-session -d -s gt -x 120 -y 40 'path/to/geeratya --profile <fake profile>'
+tmux -L geer -f /dev/null new-session -d -s gt -x 120 -y 40 'path/to/geeratya'
 tmux -L geer send-keys -t gt j j Enter
 tmux -L geer capture-pane -t gt -p        # rendered frame as text
 tmux -L geer kill-server
