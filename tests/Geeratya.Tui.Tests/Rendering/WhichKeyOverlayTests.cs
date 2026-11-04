@@ -52,12 +52,12 @@ public class WhichKeyOverlayTests
     {
         var text = string.Join('\n', Build(Opened("Space"), 160, 24));
 
-        Assert.Contains("more", string.Join('\n', WhichKeyOverlay.Rows("Space", _keymap, 19)));
+        Assert.Contains("more", string.Join('\n', WhichKeyOverlay.Rows("Space", _keymap, 5)));
         Assert.DoesNotContain("more", text);
 
         foreach (var next in _keymap.NextKeys(InputMode.Normal, "Space").Where(next => next.Action is not null))
         {
-            Assert.Contains(next.Key, text);
+            Assert.Contains($"{next.Key,-10}{ActionCatalog.FindTitle(next.Action!)![..4]}", text);
         }
     }
 

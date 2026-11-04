@@ -7,8 +7,8 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>
 /// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom right of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
-/// text of its own. A list taller than the box is split into columns; only when columns do not fit either are rows cut. Pure. Opens 250 ms after the first pending key; switched off by
-/// <c>:set hints.whichKey off</c>.
+/// text of its own. A list taller than the box is split into columns; only when columns do not fit either are rows cut.
+/// Pure. Opens 250 ms after the first pending key; switched off by <c>:set hints.whichKey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
@@ -82,11 +82,12 @@ public static class WhichKeyOverlay
         int height)
     {
         var room = height - 2;
-        var rows = Columns(
-            Lines(state.PendingKeys, keymap, int.MaxValue, state.Settings.CommandLevel), room, width - ChromeColumns)
-            ?? Lines(state.PendingKeys, keymap, room, state.Settings.CommandLevel);
+        var everyRow = Lines(state.PendingKeys, keymap, int.MaxValue, state.Settings.CommandLevel);
+        var columns = everyRow.Count > room ? Columns(everyRow, room, width - ChromeColumns) : null;
+        var rows = columns ?? Lines(state.PendingKeys, keymap, room, state.Settings.CommandLevel);
         var wanted = rows.Count == 0 ? 0 : rows.Max(row => TextWidth.Of(row.PlainText)) + ChromeColumns;
-        var boxWidth = Math.Min(width, wanted > MaxBoxWidth && rows.Count <= room ? wanted : Math.Min(MaxBoxWidth, wanted));
+        var cap = columns is null ? MaxBoxWidth : width;
+        var boxWidth = Math.Min(width, Math.Min(cap, wanted));
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)
         {
