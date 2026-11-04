@@ -209,10 +209,10 @@ Measured with `scripts/idle-frames.sh <binary> <fake url> [start|list] [seconds]
 | Case | Before (`main` `90f7625b`) | After |
 |---|---|---|
 | Start screen, 10 s idle | 2 988 bytes, 248 frames (cursor-home repaints) | 0 bytes, 0 frames |
-| Loaded list (`:jql project = GCM`), 10 s idle | 2 988 bytes, 249 frames | 0 bytes, 0 frames |
-| Loaded list, 10 s of pointer moves | not measured | 0 bytes, 0 frames |
+| Kanban board GCM loaded (`list` mode: Down, Enter on the start picker; the script checks that issue keys are on screen), 10 s idle | 2 976 bytes, 248 frames | 0 bytes, 0 frames |
+| Same board, 10 s of pointer moves | not measured | 0 bytes, 0 frames |
 
-Mouse mode: Terminal.Gui enables `?1003h` (any-event) itself and offers no switch for `?1002h`. Geeratya uses plain moves for the tab hover (`ShellHost.OnHover`, which returns at once below the tab row when no tab is hovered), so `?1003h` is needed; a pointer move costs no output. Ghostty CPU was not measured here (no Ghostty in the agent environment); the owner's check is on the issue.
+Mouse mode: Terminal.Gui enables `?1003h` (any-event) itself; its ANSI driver writes the mode set at start, and no setting for `?1002h` was found (not exhaustively checked). Geeratya uses plain moves for the tab hover (`ShellHost.OnHover`, which returns at once below the tab row when no tab is hovered), so `?1003h` is needed; a pointer move costs no output. Ghostty CPU was not measured here (no Ghostty in the agent environment); the owner's Ghostty and Hyprland CPU check after this change is still open (#744 acceptance).
 
 ## Kanban Done cutoff (#674)
 
