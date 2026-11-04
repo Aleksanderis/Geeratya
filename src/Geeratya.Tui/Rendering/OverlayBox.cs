@@ -78,6 +78,22 @@ public static class OverlayBox
         return StyledLine.Of($"├{new string(Horizontal, boxWidth - 2)}┤", FrameRole(kind));
     }
 
+    /// <summary>
+    /// A divider that also closes a vertical rule drawn above it: <c>├──┴──┤</c> with the junction at box column
+    /// <paramref name="junction"/>.
+    /// </summary>
+    public static StyledLine Divider(int boxWidth, int junction, OverlayKind kind = OverlayKind.Normal)
+    {
+        var rule = new string(Horizontal, Math.Max(0, boxWidth - 2)).ToCharArray();
+
+        if (junction >= 1 && junction <= rule.Length)
+        {
+            rule[junction - 1] = '┴';
+        }
+
+        return StyledLine.Of($"├{new string(rule)}┤", FrameRole(kind));
+    }
+
     public static StyledLine Bottom(int boxWidth, OverlayKind kind = OverlayKind.Normal)
     {
         return StyledLine.Of($"{Corner[2]}{new string(Horizontal, boxWidth - 2)}{Corner[3]}", FrameRole(kind));

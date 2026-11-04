@@ -191,3 +191,5 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (M6 hand-over, owner answers)
 
 **UI:** `Ctrl-t` and `Ctrl-w r` keep Gitunia's meaning (new tab, tab prefix) although they shadow vim's tag-pop and window prefix. Why: same keys as Gitunia, nothing else uses them here. `<space>j` (flash jump to a visible row, #578) is built now, and the command-line start target (#577) is wanted; `--profile` stays out (no such option).
+
+**UI:** The Settings screen is a popup over the dimmed view (Help-style `OverlayBox`), not a full-body screen (#677, owner feedback); this reverses the full-body choice of #556 in `ux-look.md`. Controls follow Gitunia's look (`[x]`, `[value ▾]`, list under the row); number and path-list controls and the `/` filter are not built because Geeratya has no such settings or feature.

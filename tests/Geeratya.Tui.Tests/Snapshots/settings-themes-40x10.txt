@@ -1,10 +1,10 @@
- Settings                               
+                                        
                                         
 ╭─ Settings ───────────────────────────╮
-│ Appearance                           │
-│ > theme             auto             │
-│     > ● auto                         │
-│         dark                         │
-│ j/k move  Enter keep  Esc cancel     │
+│ Terminal too small                   │
+╰──────────────────────────────────────╯
+│     ? help   : commands   q quit     │
+│                                      │
+│                                      │
 ╰──────────────────────────────────────╯
  NORMAL  Settings: a change applies at o

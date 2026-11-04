@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
@@ -31,6 +32,7 @@ public class SettingsScreenTests
     [Theory]
     [InlineData(120, 36)]
     [InlineData(80, 24)]
+    [InlineData(60, 24)]
     [InlineData(40, 10)]
     public void GivenTheOpenScreen_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
@@ -43,6 +45,7 @@ public class SettingsScreenTests
 
     [Theory]
     [InlineData(80, 24)]
+    [InlineData(60, 24)]
     [InlineData(40, 10)]
     public void GivenTheOpenChoiceList_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
@@ -56,6 +59,7 @@ public class SettingsScreenTests
     [Theory]
     [InlineData(120, 36)]
     [InlineData(80, 24)]
+    [InlineData(60, 24)]
     [InlineData(40, 10)]
     public void GivenTheOpenScreen_WhenBuildingTheFrameInAscii_ThenNoUnicodeGlyphLeaks(int width, int height)
     {
@@ -79,25 +83,82 @@ public class SettingsScreenTests
     }
 
     [Fact]
-    public void GivenTheOpenScreen_WhenBuildingTheFrame_ThenItIsTheWholeBodyWithTheSettingsChipAndTheHelpAndHintRows()
+    public void GivenTheOpenScreen_WhenBuildingTheFrame_ThenItIsAPopupOverTheViewWithTheTabRowKept()
     {
         var frame = FrameBuilder.BuildStyled(Sample(), 100, 30, _keymap)!;
         var text = string.Join('\n', frame.PlainLines());
 
-        Assert.Contains("Settings", frame.Header[0].PlainText, StringComparison.Ordinal);
-        Assert.StartsWith("╭", frame.Body[0].PlainText, StringComparison.Ordinal);
-        Assert.Contains("Categories", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Settings", frame.Header[0].PlainText, StringComparison.Ordinal);
+        Assert.Contains("commands", frame.Header[0].PlainText, StringComparison.Ordinal);
+        Assert.Contains("Geeratya", frame.Body[0].PlainText, StringComparison.Ordinal);
+        Assert.Contains("─ Settings ─", text, StringComparison.Ordinal);
         Assert.Contains("Default:", text, StringComparison.Ordinal);
         Assert.Contains("Enter change", text, StringComparison.Ordinal);
         Assert.Contains("Alt-r reset", text, StringComparison.Ordinal);
     }
 
     [Fact]
+    public void GivenTheOpenScreen_WhenBuildingTheFrame_ThenTheViewBehindIsDimmed()
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(), 100, 30, _keymap)!;
+
+        Assert.Contains(frame.Body[0].Spans, span => span.Ground.HasFlag(SpanGround.Dim));
+    }
+
+    [Fact]
+    public void GivenAToggleAndAChoice_WhenBuildingTheFrame_ThenTheControlsSitAtTheRightEndOfTheirRows()
+    {
+        var text = FrameBuilder.Build(Sample(), 100, 30, _keymap);
+        var theme = text.Single(line => line.Contains("theme", StringComparison.Ordinal) && line.Contains('▾'));
+        var transparent = text.Single(line => line.Contains("transparent", StringComparison.Ordinal));
+
+        Assert.Contains("[auto ▾] │", theme, StringComparison.Ordinal);
+        Assert.Contains("[ ] │", transparent, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(39, 30)]
+    [InlineData(80, 8)]
+    public void GivenATerminalBelowTheMinimum_WhenBuildingTheFrame_ThenTheBoxSaysItIsTooSmall(int width, int height)
+    {
+        var text = string.Join('\n', FrameBuilder.Build(Sample(), width, height, _keymap));
+
+        Assert.Contains("Terminal too small", text, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(80, 14)]
+    [InlineData(45, 24)]
+    public void GivenAShortOrNarrowTerminal_WhenBuildingTheFrame_ThenTheActiveRowAndTheCloseHintStayVisible(
+        int width,
+        int height)
+    {
+        var state = OnHints(Sample());
+        var text = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap));
+
+        Assert.Contains("> hints.statusBar", text, StringComparison.Ordinal);
+        Assert.Contains("Esc close", text, StringComparison.Ordinal);
+        Assert.Contains("Default:", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheOpenScreen_WhenClickingOutsideTheBox_ThenTheScreenCloses()
+    {
+        var state = Sample();
+        var frame = FrameBuilder.BuildStyled(state, 100, 30, _keymap)!;
+        var outside = new OverlayRegion(MouseTarget.Backdrop, frame.Header.Count + 1, 1, 1, 1, 0);
+
+        var result = RegionProbe.Click(state, frame, outside, MouseGesture.Click)!;
+
+        Assert.Null(result.State.SettingsScreen);
+    }
+
+    [Fact]
     public void GivenANarrowTerminal_WhenBuildingTheFrame_ThenTheCategoriesCollapseIntoHeadingsOfOneList()
     {
-        var text = string.Join('\n', FrameBuilder.Build(Sample(), 50, 40, _keymap));
+        var text = string.Join('\n', FrameBuilder.Build(Sample(), 60, 40, _keymap));
 
-        Assert.DoesNotContain("Categories", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("┴", text, StringComparison.Ordinal);
         Assert.Contains("Appearance", text, StringComparison.Ordinal);
         Assert.Contains("Startup", text, StringComparison.Ordinal);
         Assert.Contains("About", text, StringComparison.Ordinal);
@@ -219,11 +280,12 @@ public class SettingsScreenTests
     {
         var state = Sample();
         var frame = FrameBuilder.BuildStyled(state, 100, 30, _keymap)!;
-        var gap = new OverlayRegion(MouseTarget.OverlayBox, frame.Header.Count + 1, 60, 1, 1, 0);
+        var box = frame.Regions.Single(region => region.Target == MouseTarget.OverlayBox);
+        var gap = new OverlayRegion(MouseTarget.OverlayBox, box.Top + box.Height - 3, box.Left + 10, 1, 1, 0);
 
         var result = RegionProbe.Click(state, frame, gap, MouseGesture.Click);
 
-        Assert.True(result is null || result.State.SettingsScreen is not null);
+        Assert.True(result is null || result.State == state);
     }
 
     private static AppState Sample()

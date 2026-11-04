@@ -1,0 +1,24 @@
+                                                 : commands 
+                                                            
+╭─ Geeratya ───────────────────────────────────────────────╮
+╭─ Settings ───────────────────────────────────────────────╮
+│ Appearance                                               │
+│ > theme                                         [auto ▾] │
+│     > ● auto                                             │
+│       ○ dark                                             │
+│       ○ light                                            │
+│       ○ nord                                             │
+│   transparent                                        [ ] │
+│ Hints and keys                                           │
+│   hints.statusBar                               [full ▾] │
+│   hints.whichKey                                     [x] │
+│   commandlevel                              [everyday ▾] │
+│ Startup                                                 ▼│
+├──────────────────────────────────────────────────────────┤
+│ Default: auto. The colour theme: a built-in one or a     │
+│ file in the themes folder. Values: auto, dark, light,    │
+├──────────────────────────────────────────────────────────┤
+│ j/k move  Enter keep  Esc cancel                         │
+╰──────────────────────────────────────────────────────────╯
+╰──────────────────────────────────────────────────────────╯
+ NORMAL  Settings: a change applies at once and is saved    
