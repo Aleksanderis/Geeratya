@@ -30,7 +30,7 @@ internal static class DetailFieldActions
             DetailFieldIds.Parent or DetailFieldIds.Epic => DetailActions.OpenParent(state),
             DetailFieldIds.Priority or DetailFieldIds.Labels
                 => Dropdown(FormOpener.EditField(state, fieldId), fieldId),
-            DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditField(state, fieldId),
+            DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditInPane(state, fieldId),
             _ => Say(state, $"{Title(fieldId)} is read-only here."),
         };
     }

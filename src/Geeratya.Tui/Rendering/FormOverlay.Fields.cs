@@ -107,12 +107,9 @@ public static partial class FormOverlay
         return Cell(field.Value.Text.Length == 0 ? EmptyText : field.Value.Text, TextRole.Editable);
     }
 
-    /// <summary>The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).</summary>
     internal static string Caretted(PromptText prompt, int width)
     {
-        var window = PromptWindow.Of(prompt, width);
-
-        return $"{window.Before}{window.Caret}{window.After}";
+        return CaretRows.Caretted(prompt, width);
     }
 
     private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
@@ -140,18 +137,9 @@ public static partial class FormOverlay
         return lines;
     }
 
-    // The row with the caret gets the caret mark; the other rows are cut to the width.
     internal static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int valueWidth)
     {
-        if (index != caretRow)
-        {
-            return PromptWindow.Of(new PromptText(row, 0), valueWidth).Before;
-        }
-
-        var lineStart = prompt.Text[..prompt.Caret].LastIndexOf('\n') + 1;
-        var column = prompt.Caret - lineStart;
-
-        return Caretted(new PromptText(row, row.Length - column), valueWidth);
+        return CaretRows.ParagraphRow(prompt, row, index, caretRow, valueWidth);
     }
 
     private static StyledLine ChosenLine(FormField field)

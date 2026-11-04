@@ -103,7 +103,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>iC` | Create a sub-task of the selected issue | `issue.create-subtask` | everyday |
 | `<space>il` | Link the issue to another issue | `issue.link` | advanced |
 | `<space>iu` | Remove the link under the cursor (asks first; Jira cannot undo it) | `issue.unlink` | advanced |
-| `<space>ie` | Edit fields of the issue (summary, labels, priority, description) | `issue.edit` | everyday |
+| `<space>ie` | Edit the issue title in place (opens the detail from a list or board) | `issue.edit` | everyday |
+| `i` | Edit the title or the Description in place | `detail.edit` | everyday |
 | `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
 | `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
 | `<space>g` | Jump to an issue by key | `issue.jump` | everyday |

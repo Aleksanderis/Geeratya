@@ -7,7 +7,7 @@
 │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │
 │ │>Fix login redirect after token refresh                             In Progress │ │ Status  moves via transitio...│ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │
-│ ╭─ Description ────────────────────────────────────────────────────── 1-3 of 40 ─╮ │                               │ │
+│ ╭─ Description ────────────────────────────────── 1-3 of 40 · (edit in browser) ─╮ │                               │ │
 │ │ Heading one                                                                   ▲│ │ Priority                      │ │
 │ │                                                                               █│ │  ▲ High                       │ │
 │ │ Heading three                                                                 ░│ │                               │ │

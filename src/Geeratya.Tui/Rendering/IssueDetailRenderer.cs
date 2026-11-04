@@ -31,12 +31,30 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var top = tab.Detail[^1];
         var stripRows = top.Zoomed is null ? 0 : DetailZoom.StripRows;
         var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows - stripRows);
-        var document = top.Document is { } laidOut && laidOut.Width == width
+        var editing = tab.Form is { Pane: { } editedPane, IsLoading: false, Fields.Count: > 0 } form
+            && string.Equals(form.Target.IssueKey, top.Key, StringComparison.Ordinal)
+            ? editedPane
+            : null;
+        var document = top.Document is { } laidOut && laidOut.Width == width && editing is null
             ? laidOut
-            : IssueDocumentBuilder.Build(top, width, rows);
+            : IssueDocumentBuilder.Build(top, width, rows, null, tab.Form);
         var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
         var side = document.Side;
-        var onSide = side is not null && top.SideCursor is not null;
+        var onSide = side is not null && top.SideCursor is not null && editing is null;
+        var focused = document.Sections.Count == 0 || onSide ? -1 : document.SectionAt(top.Cursor);
+        var block = onSide ? null : document.BlockAt(top.Cursor);
+        var cursor = onSide ? -1 : top.Cursor;
+
+        if (editing is not null)
+        {
+            // The edited pane keeps the focus, whatever its rows did to the line numbers; a screen scrolled past it
+            // shows it from its top edge.
+            focused = document.SectionIds.ToList().IndexOf(editing);
+            block = null;
+            cursor = -1;
+            first = focused >= 0 ? Math.Min(first, document.PaneStarts[focused]) : first;
+        }
+
         var shown = side is null ? Math.Max(0, Math.Min(rows, document.Lines.Count - first)) : rows;
         var lines = new List<StyledLine>(height);
 
@@ -45,17 +63,15 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             lines.Add(SectionStrip(document, top.Zoomed, width));
         }
 
-        var focused = document.Sections.Count == 0 || onSide ? -1 : document.SectionAt(top.Cursor);
-        var block = onSide ? null : document.BlockAt(top.Cursor);
         var ascii = context.Glyphs == GlyphSet.Ascii;
-        var sideLines = side is null ? [] : SideColumn(side, top.SideCursor, rows, ascii);
+        var sideLines = side is null ? [] : SideColumn(side, onSide ? top.SideCursor : null, rows, ascii);
         var mainWidth = side is null ? width : DetailLayout.MainWidth(width);
 
         for (var row = 0; row < shown; row++)
         {
             var index = first + row;
             var line = index < document.Lines.Count
-                ? RowLine(Pane(document, index, focused), index, onSide ? -1 : top.Cursor, block, document, ascii)
+                ? RowLine(Pane(document, index, focused), index, cursor, block, document, ascii)
                 : StyledLine.Empty;
 
             if (side is not null)

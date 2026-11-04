@@ -74,7 +74,8 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `Alt-l` / `Alt-h` | `issue.transition-next` / `issue.transition-previous` | Columns layout: move the card to the next or previous column (a form opens when fields are required) | E | drag the card to another column | M2 #159, built |
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 (bound) |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
-| `<space>ie` | `issue.edit` | Edit fields: the field form with the fields whose current value the view holds (summary, labels, priority; and the description from the opened issue); `:priority` and `:labels` open it limited to one field | E | click the field in the detail | M2 #164 (bound), M5 #183 |
+| `<space>ie` | `issue.edit` | Edit the title in place: opens the issue detail (from a list or board) with the title pane in the edit state (`ux-screens.md`, "Editing in place"); `:priority` and `:labels` open the one-field form | E | click the field in the detail | M2 #164, M7 #709 |
+| `i` | `detail.edit` | In the issue detail, edit the title or Description pane under the cursor in place (like `Enter` on it); elsewhere it does nothing | E | double click on the pane (`item.open`) | M7 #709 |
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M4 #194 (bound), #300 |
@@ -107,7 +108,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>*` | `view.cycle-command-level` | Switch the command level between everyday and advanced for the session | E | its palette row | M4 #196 (built; session only, `:set commandlevel` saves) |
 | `Ctrl-p` | `palette.open` | A second key for the command palette (`:` stays); vim's `Ctrl-p` (up a line) is not needed, the arrow keys and `k` do that | E | click the status line | M4 #368 (built) |
 
-The estimate has no key of its own: `:estimate` opens the form limited to the estimate field (#183); `<space>ie` offers it among the other editable fields. Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
+The estimate has no key of its own: `:estimate` opens the form limited to the estimate field (#183); the detail edits the title and Description in place and the other fields through their dropdowns. Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 

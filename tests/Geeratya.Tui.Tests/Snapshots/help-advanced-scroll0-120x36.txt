@@ -5,8 +5,8 @@
 │           │   Global      │ Issue                                                                        │           │
 │           │ > All actions │   <space>o   Open the issue in the browser                                   │           │
 │           │   Commands    │   <space>p   Open the parent issue                                           │           │
-│           │               │   <space>ie  Edit fields of the issue (summary, labels, priority,            │           │
-│           │               │              description)                                                    │           │
+│           │               │   <space>ie  Edit the issue title in place (opens the detail from a list or  │           │
+│           │               │              board)                                                          │           │
 │           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
 │           │               │   <space>im  Assign the issue to me                                          │           │
 │           │               │   <space>is  Change the status of the issue                                  │           │

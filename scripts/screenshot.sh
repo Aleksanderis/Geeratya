@@ -72,6 +72,10 @@ all_scenarios=(
   "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transition"
   # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
   "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"
+  # detail-edit-summary: <space>ie on a list row opens the detail with the title pane in the edit state;
+  # detail-edit-description-zoom: Ctrl-j to Description, <space>z zooms it, Enter starts the large editor
+  "detail-edit-summary;120;36;dark;:jql project = GEN|jjjj| ie;editing"
+  "detail-edit-description-zoom;120;36;dark;:jql project = GEN|jjjj|> z|;editing"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"

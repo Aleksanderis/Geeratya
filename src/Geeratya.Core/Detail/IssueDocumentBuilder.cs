@@ -1,4 +1,5 @@
 using Geeratya.Core.Adf;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -23,6 +24,7 @@ public static class IssueDocumentBuilder
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
     private const string BackText = "Esc to go back.";
+    private const string EditInBrowserText = "(edit in browser)";
 
     /// <summary>The not-found text, shared with the status and the tests.</summary>
     public static string NotFoundText(string key)
@@ -40,12 +42,18 @@ public static class IssueDocumentBuilder
     /// The rows of the Comments pane when the caller has just built them for this <paramref name="detail"/> and
     /// <paramref name="width"/> (<see cref="DetailZoom.CommentRowsOf"/>), so a key builds them once. Null builds them.
     /// </param>
+    /// <param name="form">
+    /// The open form of the tab. When it edits the title or the Description of this issue in place, that pane is laid
+    /// out as its editor (the caret, the notices) instead of its content.
+    /// </param>
     public static DetailDocument Build(
         DetailState detail,
         int width,
         int? viewportRows = null,
-        IReadOnlyList<CommentRow>? commentRows = null)
+        IReadOnlyList<CommentRow>? commentRows = null,
+        FormState? form = null)
     {
+        var edit = PaneEdit.Of(form, detail.Key);
         var total = Math.Max(1, width);
         var zoomed = detail.Zoomed is not null;
         var sidebar = DetailLayout.HasSidebar(total) && !zoomed;
@@ -53,7 +61,7 @@ public static class IssueDocumentBuilder
         var inner = Panel.InnerWidth(columns);
         var sink = new DocumentSink { Only = detail.Zoomed };
 
-        AddTitle(sink, detail, columns, inner);
+        AddTitle(sink, detail, columns, inner, edit);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)
         {
@@ -68,7 +76,7 @@ public static class IssueDocumentBuilder
             return sink.ToDocument(total);
         }
 
-        AddDescription(sink, detail, columns, inner);
+        AddDescription(sink, detail, columns, inner, edit, viewportRows);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
         var commentIds = AddComments(sink, detail, columns, inner, viewportRows, commentRows);
 
@@ -79,7 +87,7 @@ public static class IssueDocumentBuilder
             // A zoomed pane that is gone (its data went away) shows the normal layout again.
             if (zoomed && sink.Lines.Count == 0)
             {
-                return Build(detail with { Zoomed = null }, width, viewportRows);
+                return Build(detail with { Zoomed = null }, width, viewportRows, null, form);
             }
 
             return sink.ToDocument(total) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
@@ -114,13 +122,17 @@ public static class IssueDocumentBuilder
     /// The title pane: the key and type in the top edge, the summary on the left of one row and the status in its
     /// category colour on the right. Two rows only when the summary does not fit beside the status.
     /// </summary>
-    private static void AddTitle(DocumentSink sink, DetailState detail, int width, int inner)
+    private static void AddTitle(DocumentSink sink, DetailState detail, int width, int inner, PaneEdit? edit)
     {
         var header = HeaderFields.Of(detail);
         var content = new PanelContent();
         var rows = SummaryRows(header, inner);
 
-        if (header.Known && rows.Count > 0)
+        if (edit is { Pane: PaneIds.Title })
+        {
+            content.AddRange(edit.TitleRows(inner));
+        }
+        else if (header.Known && rows.Count > 0)
         {
             content.AddBlock(rows, new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Summary));
         }
@@ -136,7 +148,7 @@ public static class IssueDocumentBuilder
             title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
         }
 
-        sink.AddPanel(PaneIds.Title, title, content, width);
+        sink.AddPanel(PaneIds.Title, title, content, width, edit is { Pane: PaneIds.Title } ? PaneEdit.Chip() : null);
     }
 
     private static List<StyledLine> SummaryRows(HeaderFields header, int inner)
@@ -193,8 +205,21 @@ public static class IssueDocumentBuilder
         return rows;
     }
 
-    private static void AddDescription(DocumentSink sink, DetailState detail, int width, int inner)
+    private static void AddDescription(
+        DocumentSink sink,
+        DetailState detail,
+        int width,
+        int inner,
+        PaneEdit? edit,
+        int? viewportRows)
     {
+        if (edit is { Pane: PaneIds.Description })
+        {
+            AddDescriptionEditor(sink, detail, width, inner, edit, viewportRows);
+
+            return;
+        }
+
         var content = new List<StyledLine>();
 
         if (detail.Issue is null)
@@ -223,16 +248,53 @@ public static class IssueDocumentBuilder
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
+        var browser = detail.Issue?.Description is { } document && !DescriptionEditability.CanEdit(document)
+            ? EditInBrowser()
+            : null;
+
         if (!cut)
         {
-            sink.AddPanel(PaneIds.Description, [title], panel, width);
+            sink.AddPanel(PaneIds.Description, [title], panel, width, browser);
 
             return;
         }
 
         var chip = new StyledSpan(scroll.Chip(), TextRole.Muted);
 
-        sink.AddPanel(PaneIds.Description, [title], panel, width, [chip], scroll);
+        sink.AddPanel(PaneIds.Description, [title], panel, width, browser is null ? [chip] : [chip, new StyledSpan(" · ", TextRole.Muted), .. browser], scroll);
+    }
+
+    private static StyledSpan[] EditInBrowser()
+    {
+        return [new StyledSpan(EditInBrowserText, TextRole.Muted)];
+    }
+
+    // The Description pane as its editor: a window of the text that keeps the caret in view, the whole pane height
+    // when zoomed.
+    private static void AddDescriptionEditor(
+        DocumentSink sink,
+        DetailState detail,
+        int width,
+        int inner,
+        PaneEdit edit,
+        int? viewportRows)
+    {
+        var zoomed = detail.Zoomed == PaneIds.Description;
+        var rows = PaneEdit.EditorRows;
+
+        if (zoomed && viewportRows is { } shown)
+        {
+            rows = Math.Max(1, shown - Panel.EdgeRows);
+        }
+
+        var content = new PanelContent();
+
+        content.AddRange(edit.DescriptionRows(inner, rows, out var scroll));
+
+        var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
+        var chip = scroll is null ? PaneEdit.Chip() : [new StyledSpan(scroll.Chip(), TextRole.Muted)];
+
+        sink.AddPanel(PaneIds.Description, [title], content, width, chip, scroll);
     }
 
     private static List<string?> AddComments(

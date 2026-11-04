@@ -1,6 +1,6 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ Description ────────────────────────────────────────────────────────────────╮
+╭─ Description ──────────────────────────────────────────── (edit in browser) ─╮
 │ Heading one                                                                  │
 │                                                                              │
 │ Heading three                                                                │

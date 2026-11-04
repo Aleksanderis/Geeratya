@@ -16,6 +16,7 @@
 │           │               │   Ctrl-l     Focus the pane to the right (zoomed: the next section)          │           │
 │           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
+│           │               │   i          Edit the title or the Description in place                      │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
@@ -29,8 +30,7 @@
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
 │           │               │ Dialogs                                                                      │           │
-│           │               │   Esc        Close help  (q)                                                 │           │
-│           │               │   /          Filter the help by key, title or action id                     ▼│           │
+│           │               │   Esc        Close help  (q)                                                ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

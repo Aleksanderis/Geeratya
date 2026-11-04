@@ -68,7 +68,7 @@ public class HelpPageSnapshotTests
     {
         var lines = FrameBuilder.Build(StateFor("list"), 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("priority, description)"));
+        Assert.Contains(lines, line => line.Contains("list or board)"));
         Assert.Contains(lines, line => line.Contains("unassign"));
     }
 

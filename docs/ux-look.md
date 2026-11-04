@@ -227,8 +227,8 @@ Mockups below show the box on a few rows of the muted view.
 │   Global      │  k          Move up  (Up)                                    │
 │   All actions │  gg         Go to the top  (Home)                            │
 │   Commands    │  <space>a   Open the actions menu of the selected issue      │
-│               │  <space>ie  Edit fields of the issue (summary, labels,       │
-│               │             priority, description)                           │
+│               │  <space>ie  Edit the issue title in place (opens the detail  │
+│               │             from a list or board)                            │
 │               │  <space>o   Open the issue in the browser                    │
 │ ──────────────┴────────────────────────────────────────────────────────────  │
 │ j section  J scroll  / filter  Esc close                                     │

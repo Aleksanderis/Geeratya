@@ -186,6 +186,12 @@ public static class FrameBuilder
         int height,
         List<OverlayRegion> regions)
     {
+        if (form.Pane is not null && DetailOverlay.Applies(state))
+        {
+            // The pane of the detail draws its own editor; a form still loading shows nothing yet.
+            return body;
+        }
+
         if (DetailDropdown.Applies(state, form))
         {
             return DetailDropdown.Compose(body, state, form, width, height, regions);

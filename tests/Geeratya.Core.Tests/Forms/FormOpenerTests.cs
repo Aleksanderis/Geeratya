@@ -31,19 +31,20 @@ public class FormOpenerTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
-    public void GivenARow_WhenSpaceIEIsPressed_ThenTheEditFormOpensAndRequestsTheMetadata()
+    public void GivenARow_WhenSpaceIEIsPressed_ThenTheDetailOpensWithTheTitlePaneInTheEditState()
     {
         var result = Keys(Tabbed(), "Space", "i", "e");
 
-        var form = result.State.Session.Tabs[0].Form!;
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var tab = result.State.Session.Tabs[0];
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         var target = Assert.IsType<EditFormTarget>(effect.Target);
         Assert.Equal(InputMode.Insert, result.State.Mode);
-        Assert.True(form.IsLoading);
+        Assert.Equal("A-1", Assert.Single(tab.Detail).Key);
+        Assert.Contains(result.Effects, candidate => candidate is LoadIssueDetailEffect);
+        Assert.Equal(PaneIds.Title, tab.Form!.Pane);
+        Assert.True(tab.Form.IsLoading);
+        Assert.Equal(FormFieldIds.Summary, target.OnlyId);
         Assert.Equal("Issue 1", target.Known[FormFieldIds.Summary].Text);
-        Assert.Equal(["backend"], target.Known[FormFieldIds.Labels].Chosen);
-        Assert.Equal("High", target.Known[FormFieldIds.Priority].Text);
-        Assert.False(target.Known.ContainsKey(FormFieldIds.Description));
     }
 
     [Fact]

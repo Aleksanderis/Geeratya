@@ -15,20 +15,87 @@ namespace Geeratya.Core.Forms;
 /// </summary>
 public static class FormOpener
 {
+    /// <summary>The status text of a description that cannot be edited here.</summary>
+    public const string DescriptionBrowserText =
+        "This description has formatting that cannot be edited here: open it in the browser (<space>o)";
+
+    private const string DescriptionLoadingText = "The description is still loading";
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary><c>issue.edit</c>: summary, labels, priority and description, as far as the tab knows them.</summary>
+    /// <summary>
+    /// <c>issue.edit</c> and <c>:edit</c>: the title pane of the issue in its edit state. From a list or board the
+    /// detail overlay opens on the selected issue first (<c>docs/ux-screens.md</c>, "Editing in place").
+    /// </summary>
     public static ReduceResult Edit(AppState state)
     {
-        return Open(state, null);
+        var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+
+        if (tab is null || state.Session.ProfileName is null)
+        {
+            return Say(state, NoIssueText);
+        }
+
+        if (tab.Detail.Count > 0)
+        {
+            return EditInPane(state, FormFieldIds.Summary);
+        }
+
+        var effects = new List<Effect>();
+        var opened = DetailReducer.OpenSelected(state, effects);
+
+        if (ViewReducer.Find(opened.Session.Tabs, tab.Id) is not { Detail.Count: > 0 })
+        {
+            return Say(state, NoIssueText);
+        }
+
+        var form = EditInPane(opened, FormFieldIds.Summary);
+
+        return new ReduceResult(form.State, [.. effects, .. form.Effects]);
     }
 
     /// <summary>Enter on a field of the issue detail: the edit form limited to <paramref name="fieldId"/>.</summary>
     public static ReduceResult EditField(AppState state, string fieldId)
     {
         return Open(state, fieldId);
+    }
+
+    /// <summary>
+    /// <c>Enter</c> or <c>i</c> on the title or Description pane: the edit state of that pane, saved on its own with
+    /// <c>Ctrl-s</c>. A description that does not survive the Markdown-like text stays read-only and says so.
+    /// </summary>
+    public static ReduceResult EditInPane(AppState state, string fieldId)
+    {
+        var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+
+        if (fieldId == FormFieldIds.Description && tab is { Detail.Count: > 0 })
+        {
+            var shown = tab.Detail[^1];
+
+            if (shown.Issue is null)
+            {
+                return Say(state, DescriptionLoadingText);
+            }
+
+            if (!DescriptionEditability.CanEdit(shown.Issue.Description))
+            {
+                return Say(state, DescriptionBrowserText);
+            }
+        }
+
+        var opened = Open(state, fieldId);
+
+        if (ViewReducer.Find(opened.State.Session.Tabs, tab?.Id ?? default) is not { Form: { } form } current)
+        {
+            return opened;
+        }
+
+        var pane = fieldId == FormFieldIds.Description ? PaneIds.Description : PaneIds.Title;
+
+        return new ReduceResult(
+            ViewReducer.Replace(opened.State, current with { Form = form with { Pane = pane } }),
+            opened.Effects);
     }
 
     /// <summary><c>:priority</c>: the edit form limited to the priority.</summary>
@@ -128,7 +195,7 @@ public static class FormOpener
             return;
         }
 
-        if (AdfRoundTrip.RoundTrips(document))
+        if (DescriptionEditability.CanEdit(document))
         {
             known[FormFieldIds.Description] = FormValue.OfText(AdfMarkdownWriter.ToText(document));
         }
