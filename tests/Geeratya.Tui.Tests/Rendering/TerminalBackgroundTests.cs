@@ -55,7 +55,7 @@ public class TerminalBackgroundTests
 
         foreach (var tier in _tiers)
         {
-            foreach (var role in new[] { PaletteRole.Selected, PaletteRole.SelectedDim, PaletteRole.Range, PaletteRole.Status })
+            foreach (var role in new[] { PaletteRole.Selected, PaletteRole.Range, PaletteRole.Status })
             {
                 Assert.False(Palette.Resolve(theme, tier, role).DefaultBackground, $"{name} {tier} {role}");
             }

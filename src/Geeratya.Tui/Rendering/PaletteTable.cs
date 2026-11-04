@@ -20,7 +20,7 @@ public static class PaletteTable
             ThemeColor.BaseForeground,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
-            RoleGround.OnBlue),
+            RoleGround.OnBar),
         [PaletteRole.Muted] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Divider] = new(ThemeColor.Border, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Error] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
@@ -74,12 +74,12 @@ public static class PaletteTable
             ThemeColor.Muted,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
-            RoleGround.OnBlue),
+            RoleGround.OnBar),
         [PaletteRole.BarKey] = new(
             ThemeColor.Warn,
             ThemeColor.BarBackground,
             RoleStyle.Reverse | RoleStyle.Bold,
-            RoleGround.OnBlue),
+            RoleGround.OnBar),
         [PaletteRole.BarError] = new(
             ThemeColor.Bad,
             ThemeColor.BarBackground,
@@ -123,10 +123,6 @@ public static class PaletteTable
             ThemeColor.Accent,
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.Chip),
-        [PaletteRole.SelectedDim] = new(
-            ThemeColor.BaseForeground,
-            ThemeColor.Selection,
-            RoleStyle.UnderlineWithoutTint),
         [PaletteRole.OverlayCount] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Range] = new(
             ThemeColor.BaseForeground,
@@ -187,7 +183,6 @@ public static class PaletteTable
         [TextRole.Border] = PaletteRole.Divider,
         [TextRole.FrameFocus] = PaletteRole.FrameFocus,
         [TextRole.ChipFocus] = PaletteRole.ChipFocus,
-        [TextRole.SelectedDim] = PaletteRole.SelectedDim,
         [TextRole.OverlayCount] = PaletteRole.OverlayCount,
         [TextRole.Range] = PaletteRole.Range,
     };
@@ -232,18 +227,10 @@ public static class PaletteTable
         return spec.Background == ThemeColor.BaseBackground;
     }
 
-    // The selection of a pane without focus: the theme's selection tint moved halfway to the page, so it stays a
-    // visible but quiet step (ux-look.md, section 4). Derived, so theme files need no new colour.
-    private static Rgb DimSelection(Theme theme)
-    {
-        return Rgb.Blend(theme.Colors[ThemeColor.Selection], theme.Colors[ThemeColor.BaseBackground], 0.5);
-    }
-
     private static Rgb BackgroundOf(Theme theme, PaletteRole role, RoleSpec spec)
     {
         return role switch
         {
-            PaletteRole.SelectedDim => DimSelection(theme),
             PaletteRole.Range => RangeSelection(theme),
             _ => theme.Colors[spec.Background],
         };
@@ -297,7 +284,12 @@ public static class PaletteTable
 
         if (spec.Ground == RoleGround.OnBlue)
         {
-            return OnBlueForeground(theme, spec);
+            return Ansi16Color.White;
+        }
+
+        if (spec.Ground == RoleGround.OnBar)
+        {
+            return spec.Foreground == ThemeColor.Warn ? Ansi16Color.BrightYellow : Ansi16Color.White;
         }
 
         if (spec.Ground == RoleGround.Range)
@@ -320,16 +312,6 @@ public static class PaletteTable
         return light ? LightDefault(spec.Foreground) : DarkDefault(spec.Foreground);
     }
 
-    // The key of a hint chip must differ from its label on the same blue bar (#676). The light 16-colour table has no
-    // bright colour that reads on blue (bright yellow is dark gold there, contrast 3.0), so a light theme keeps the
-    // white bold key and white label and is told apart by bold only (follow-up in the PR).
-    private static Ansi16Color OnBlueForeground(Theme theme, RoleSpec spec)
-    {
-        var dark = theme.Variant != ThemeVariant.Light;
-
-        return spec.Foreground == ThemeColor.Warn && dark ? Ansi16Color.BrightYellow : Ansi16Color.White;
-    }
-
     private static Ansi16Color Background16(Theme theme, RoleSpec spec)
     {
         var variant = theme.Variant;
@@ -344,6 +326,11 @@ public static class PaletteTable
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.Blue;
+        }
+
+        if (spec.Ground == RoleGround.OnBar)
+        {
+            return variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
         }
 
         if (spec.Ground == RoleGround.Range)
