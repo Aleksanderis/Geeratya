@@ -110,6 +110,17 @@ public class FlashJumpTests
     }
 
     [Fact]
+    public void GivenANoMatchEnter_WhenTypingAgain_ThenTheMessageIsGoneSoThePromptShows()
+    {
+        var state = Press(WithList(40), "Space", "j", "z", "q", "z", "Enter").State;
+
+        var typed = Press(state, "x").State;
+
+        Assert.Null(typed.Message);
+        Assert.Equal("zqzx", typed.FlashJump!.Text);
+    }
+
+    [Fact]
     public void GivenAMatchBelowTheViewport_WhenTyping_ThenItGetsNoLabel()
     {
         var state = Press(WithList(60), "Space", "j", "A", "-", "5", "5").State;

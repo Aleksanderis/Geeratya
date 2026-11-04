@@ -51,6 +51,22 @@ public class FlashOverlayTests
         Assert.Equal("ax b", drawn.PlainText);
     }
 
+    [Theory]
+    [InlineData("\u2764\uFE0F")]
+    [InlineData("\U0001F468\u200D\U0001F469\u200D\U0001F467")]
+    [InlineData("e\u0301")]
+    public void GivenAClusterBeforeTheMatch_WhenApplying_ThenTheLabelStaysOnTheCharacterAfterIt(string cluster)
+    {
+        var line = StyledLine.Of($"{cluster} login x");
+        var columns = TextWidth.Of(cluster);
+        var label = new FlashLabel(0, columns + 1, 5, columns + 7, 'z');
+
+        var drawn = FlashOverlay.Apply(line, label);
+
+        Assert.Equal($"{cluster} login z", drawn.PlainText);
+        Assert.Contains(drawn.Spans, span => span is { Text: "login", Role: TextRole.Strong });
+    }
+
     [Fact]
     public void GivenTheOpenPrompt_WhenRenderingTheStatusLine_ThenItShowsThePromptAndTheText()
     {

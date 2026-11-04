@@ -46,12 +46,14 @@ public static class FlashJumpReducer
             return Plain(state);
         }
 
-        if (flash.Text.Length > 0 && FlashLabeler.Select(LabelsOf(state, flash), text) is { } label)
+        var cleared = StatusMessages.Dismiss(state);
+
+        if (flash.Text.Length > 0 && FlashLabeler.Select(LabelsOf(cleared, flash), text) is { } label)
         {
-            return Jump(state, label.Row);
+            return Jump(cleared, label.Row);
         }
 
-        return Plain(PromptEditing.Insert(state, text));
+        return Plain(PromptEditing.Insert(cleared, text));
     }
 
     /// <summary>Enter: jumps to the nearest match.</summary>
