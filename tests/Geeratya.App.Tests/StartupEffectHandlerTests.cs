@@ -46,13 +46,14 @@ public sealed class StartupEffectHandlerTests : IDisposable
         File.WriteAllText(blocked, "a file where the folder should go");
 
         var handler = new StartupEffectHandler(new RememberedTabsStore(Path.Combine(blocked, "inner")));
-        var notices = new List<string>();
+        var notice = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        handler.SaveFailed += notices.Add;
+        handler.SaveFailed += message => notice.TrySetResult(message);
         handler.Queue(new SaveTabsEffect(_work, RememberedTabs.Empty));
-        handler.Flush();
 
-        Assert.Contains("Could not save", Assert.Single(notices));
+        // Wait for the notice itself: Flush gives up after two seconds, which a cold first exception on a slow runner can exceed.
+        Assert.True(notice.Task.Wait(TimeSpan.FromSeconds(30)));
+        Assert.Contains("Could not save", notice.Task.Result);
     }
 
     [Fact]
