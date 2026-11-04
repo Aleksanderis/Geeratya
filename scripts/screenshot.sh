@@ -17,7 +17,7 @@ default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
 # Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s);
-# wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
+# wait-for is text that must be on screen after the keys before the frame is captured (before them the "Connected" banner is awaited, the one text on screen at every width),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
@@ -26,7 +26,6 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar).
 # Add a row per new screen.
 profile_ready="Connected"
-profile_line="$profile_ready on"
 all_scenarios=(
   "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
