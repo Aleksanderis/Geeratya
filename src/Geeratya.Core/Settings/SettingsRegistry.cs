@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.Settings;
@@ -17,8 +18,18 @@ public static class SettingsRegistry
 
     public const string StartupCategory = "Startup";
 
+    public const string BoardCategory = "Board";
+
     /// <summary>The category of a setting that names none; listed after the others.</summary>
     public const string OtherCategory = "Other";
+
+    private const string AllWord = "all";
+
+    private const int MinCutoffDays = 1;
+
+    private const int MaxCutoffDays = 3650;
+
+    private const string DoneCutoffExpected = "a number of days (1-3650) or all";
 
     private const string Full = "full";
 
@@ -121,6 +132,17 @@ public static class SettingsRegistry
             (settings, text) => ParseToggle(text) is { } on ? settings with { RestoreTabs = on } : null,
             ToggleExpected,
             Category: StartupCategory),
+        new SettingDefinition(
+            "board.done-cutoff",
+            "board.doneCutoff",
+            SettingKind.Text,
+            "14",
+            "Days after which a Kanban board hides resolved issues, or all to show every one. "
+            + "Mirrors Jira's \"Hide done work items after\" and must be set by hand to match it.",
+            ReadDoneCutoff,
+            ApplyDoneCutoff,
+            DoneCutoffExpected,
+            Category: BoardCategory),
     ];
 
     public static SettingDefinition? Find(string name)
@@ -231,6 +253,28 @@ public static class SettingsRegistry
             TabWord => settings with { JumpTarget = JumpTarget.Tab },
             _ => null,
         };
+    }
+
+    private static AppSettings? ApplyDoneCutoff(AppSettings settings, string text)
+    {
+        if (text.Equals(AllWord, StringComparison.OrdinalIgnoreCase))
+        {
+            return settings with { DoneCutoffDays = 0 };
+        }
+
+        var valid = int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var days);
+
+        if (valid && days is >= MinCutoffDays and <= MaxCutoffDays)
+        {
+            return settings with { DoneCutoffDays = days };
+        }
+
+        return null;
+    }
+
+    private static string ReadDoneCutoff(AppSettings settings)
+    {
+        return settings.DoneCutoffDays == 0 ? AllWord : settings.DoneCutoffDays.ToString(CultureInfo.InvariantCulture);
     }
 
     private static AppSettings? ApplyTheme(AppSettings settings, string text)

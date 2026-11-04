@@ -259,7 +259,7 @@ public static partial class ViewReducer
             return state;
         }
 
-        return Replace(state, tab with { DoneCutoffApplied = true });
+        return Replace(state, tab with { DoneCutoffDays = applied.Days });
     }
 
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>

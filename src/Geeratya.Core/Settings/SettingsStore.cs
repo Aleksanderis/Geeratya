@@ -290,6 +290,7 @@ public sealed class SettingsStore
             (SettingKind.Choice, JsonValueKind.False) => SettingsRegistry.Off,
             (SettingKind.Choice, JsonValueKind.String) => value.GetString(),
             (SettingKind.Text, JsonValueKind.String) => value.GetString(),
+            (SettingKind.Text, JsonValueKind.Number) => value.GetRawText(),
             _ => null,
         };
 

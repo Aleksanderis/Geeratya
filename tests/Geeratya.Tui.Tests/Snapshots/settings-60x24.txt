@@ -12,8 +12,8 @@
 │ Startup                                                  │
 │   jump.target                                [current ▾] │
 │   startup.restore                                    [x] │
-│ Profiles                                                 │
-│   profiles          none                                ▼│
+│ Board                                                    │
+│   board.done-cutoff                               [14 ▾]▼│
 ├──────────────────────────────────────────────────────────┤
 │ Default: auto. The colour theme: a built-in one or a     │
 │ file in the themes folder. Values: auto, dark, light,    │

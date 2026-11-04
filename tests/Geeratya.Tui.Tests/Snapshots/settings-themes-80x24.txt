@@ -7,9 +7,9 @@
 │ │ > Appearance       │ > theme                                    [auto ▾] │ │
 │ │   Hints and keys   │     > ● auto                                        │ │
 │ │   Startup          │       ○ dark                                        │ │
-│ │   Profiles         │       ○ light                                       │ │
-│ │   About            │       ○ nord                                        │ │
-│ │                    │   transparent                                   [ ] │ │
+│ │   Board            │       ○ light                                       │ │
+│ │   Profiles         │       ○ nord                                        │ │
+│ │   About            │   transparent                                   [ ] │ │
 │ │                    │                                                     │ │
 │ ├────────────────────┴─────────────────────────────────────────────────────┤ │
 │ │ Default: auto. The colour theme: a built-in one or a file in the themes  │ │

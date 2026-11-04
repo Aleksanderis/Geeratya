@@ -2,6 +2,7 @@ using System.Net;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Transport;
@@ -93,6 +94,57 @@ public sealed class ViewLoadHandlerBoardTests
     }
 
     [Theory]
+    [InlineData(7)]
+    [InlineData(0)]
+    public async Task GivenDoneCutoffSetting_WhenKanbanBoardOpened_ThenTheRequestAndTheColumnTitleFollowIt(int days)
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues")));
+
+        var start = Start() with { Settings = new AppSettings(DoneCutoffDays: days) };
+        var state = await RunAsync(fixture, start, new ViewOpenRequested(Definition(ViewSourceKind.Board, "4")));
+
+        var tab = state.Session.Tabs[0];
+        var query = fixture.Query(1);
+        Assert.Equal(days, tab.DoneCutoffDays);
+
+        if (days == 0)
+        {
+            Assert.DoesNotContain("resolutiondate", query);
+            Assert.Equal("Done", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
+        }
+        else
+        {
+            Assert.Contains($"resolutiondate >= -{days}d", query);
+            Assert.Equal($"Done ({days}d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
+        }
+    }
+
+    [Fact]
+    public async Task GivenOpenBoardWithCutoff_WhenSettingBecomesAllAndRefreshes_ThenTheTitleLosesTheCutoff()
+    {
+        using var fixture = await ConnectedAsync(
+            http => http
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues")));
+
+        var seven = Start() with { Settings = new AppSettings(DoneCutoffDays: 7) };
+        var opened = await RunAsync(fixture, seven, new ViewOpenRequested(Definition(ViewSourceKind.Board, "4")));
+        var tab = opened.Session.Tabs[0];
+        Assert.Equal("Done (7d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
+
+        var all = opened with { Settings = new AppSettings(DoneCutoffDays: 0) };
+        var refreshed = await RunAsync(fixture, all, new RefreshRequested(tab.Id));
+
+        Assert.DoesNotContain("resolutiondate", fixture.Query(3));
+        Assert.Equal("Done", ColumnsNavigation.ColumnsOf(refreshed.Session.Tabs[0])[^1].Name);
+    }
+
+    [Theory]
     [InlineData("board-gcm-config", "rows-gcm-issues", "4", false)]
     [InlineData("board-gtm-config", "rows-gtm-issues", "3", true)]
     public async Task GivenKanbanBoardOfEitherKind_WhenOpened_ThenOldDoneIssuesAreNotRequestedAndTheDoneColumnSaysSo(
@@ -120,7 +172,7 @@ public sealed class ViewLoadHandlerBoardTests
         var issues = fixture.Query(probes ? 2 : 1);
         Assert.Contains("/issue", fixture.Path(probes ? 2 : 1));
         Assert.Contains("jql=resolution = Unresolved OR resolutiondate >= -14d", issues);
-        Assert.True(tab.DoneCutoffApplied);
+        Assert.Equal(14, tab.DoneCutoffDays);
         Assert.Equal("Done (14d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
     }
 

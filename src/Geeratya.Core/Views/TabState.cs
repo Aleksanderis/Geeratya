@@ -127,10 +127,10 @@ public sealed record TabState(
     public bool SprintResolved { get; init; }
 
     /// <summary>
-    /// The board load left out Done issues resolved before <c>DoneCutoff.Days</c> days ago (a Kanban board, like
-    /// Jira's own); the last column says so.
+    /// The days after which the board load left out resolved issues (a Kanban board, like Jira's "Hide done work
+    /// items after"); 0 when none were left out. The last column says so.
     /// </summary>
-    public bool DoneCutoffApplied { get; init; }
+    public int DoneCutoffDays { get; init; }
 
     /// <summary>
     /// The open and future sprints of a Scrum backlog or Sprint view tab (the latter for Complete, #504), ordered as Jira lists them: the metadata for the section

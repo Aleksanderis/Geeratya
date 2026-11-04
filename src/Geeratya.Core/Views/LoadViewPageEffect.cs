@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.State;
 using Geeratya.Jira.Paging;
 
@@ -15,6 +16,8 @@ namespace Geeratya.Core.Views;
 /// <param name="Background">Run in the background lane (refreshes) rather than the user lane.</param>
 /// <param name="ExtraJql">The JQL of the switched-on quick filters, null when none (#192). Not part of the cache
 /// key, so a load with it neither reads nor writes the view cache.</param>
+/// <param name="DoneCutoffDays">The setting <c>board.done-cutoff</c> when the load was issued: a Kanban board hides
+/// issues resolved longer ago than this; 0 shows every Done issue.</param>
 public sealed record LoadViewPageEffect(
     TabId Tab,
     ViewDefinition Definition,
@@ -22,4 +25,5 @@ public sealed record LoadViewPageEffect(
     long RequestId,
     LoadReason Reason,
     bool Background,
-    string? ExtraJql = null) : Effect;
+    string? ExtraJql = null,
+    int DoneCutoffDays = DoneCutoff.DefaultDays) : Effect;

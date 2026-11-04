@@ -31,7 +31,7 @@ public static class BoardColumns
         IReadOnlyList<IssueSummary> rows,
         IReadOnlyList<string>? expanded = null,
         IReadOnlyList<IssueSummary>? all = null,
-        bool doneCutoff = false)
+        int doneCutoffDays = 0)
     {
         all ??= rows;
 
@@ -43,10 +43,11 @@ public static class BoardColumns
         var groups = Group(configuration, rows, expanded, all);
         var columns = HidesBacklogColumn(configuration) ? [.. groups.Columns.Skip(1)] : groups.Columns;
 
-        if (doneCutoff && columns.Count > 0)
+        if (doneCutoffDays > 0 && columns.Count > 0)
         {
             var last = columns[^1];
-            columns = [.. columns.Take(columns.Count - 1), last with { Name = DoneCutoff.Title(last.Name) }];
+            var title = DoneCutoff.Title(last.Name, doneCutoffDays);
+            columns = [.. columns.Take(columns.Count - 1), last with { Name = title }];
         }
 
         if (groups.Unmapped.Count == 0)

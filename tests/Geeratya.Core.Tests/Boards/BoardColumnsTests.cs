@@ -16,7 +16,7 @@ public class BoardColumnsTests
             Column("To Do", "10004"),
             Column("Done", "10005"));
 
-        var cut = BoardColumns.Visible(configuration, [], null, null, true);
+        var cut = BoardColumns.Visible(configuration, [], null, null, 14);
         var plain = BoardColumns.Visible(configuration, []);
 
         Assert.Equal(["To Do", "Done (14d)"], cut.Select(column => column.Name));

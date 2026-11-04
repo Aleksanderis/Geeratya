@@ -2,6 +2,7 @@ using System.Globalization;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
@@ -333,6 +334,23 @@ public class ViewRefreshTests
         Assert.Equal(150, withTwo.State.Session.Tabs[0].Rows.Count);
         Assert.Empty(tick.Effects);
         Assert.False(Assert.IsType<LoadViewPageEffect>(Assert.Single(manual.Effects)).Background);
+    }
+
+    [Fact]
+    public void GivenDoneCutoffSetting_WhenTickingAndRefreshingAndPaging_ThenEveryLoadCarriesIt()
+    {
+        var settings = new AppSettings(DoneCutoffDays: 7);
+        var state = LoadedWith(Page(100, new PageCursor("n2"))) with { Settings = settings };
+        var tab = state.Session.Tabs[0];
+
+        var tick = _reducer.Reduce(state, new Tick(_start + TimeSpan.FromSeconds(60)));
+        var manual = _reducer.Reduce(state, new RefreshRequested(tab.Id));
+        var next = _reducer.Reduce(state, new NextPageRequested(tab.Id));
+
+        foreach (var result in new[] { tick, manual, next })
+        {
+            Assert.Equal(7, Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects)).DoneCutoffDays);
+        }
     }
 
     [Fact]
