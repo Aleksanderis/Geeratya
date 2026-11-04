@@ -5,7 +5,6 @@ using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering.Themes;
 
-
 namespace Geeratya.Tui;
 
 public sealed partial class ShellHost
