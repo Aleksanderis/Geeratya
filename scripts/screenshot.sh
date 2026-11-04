@@ -25,7 +25,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
 # caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar).
 # Add a row per new screen.
-profile_ready="fake: fake@example.com"
+profile_ready="Connected"
 profile_line="$profile_ready on"
 all_scenarios=(
   "default;120;36;dark;;Connected as"
