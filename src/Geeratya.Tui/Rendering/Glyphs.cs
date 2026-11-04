@@ -5,18 +5,23 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>The characters the app draws itself, in the Unicode and the ASCII form (<c>docs/ux-screens.md</c>, "List layout").</summary>
 public sealed class Glyphs
 {
-    private static readonly Glyphs _unicode = new(" · ", "…", "○", "◐", "●");
-    private static readonly Glyphs _ascii = new(" - ", "...", ".", "~", "x");
+    private static readonly Glyphs _unicode = new(" · ", "…", "○", "◐", "●", "▲", "=", "▼", "●", "▾");
+    private static readonly Glyphs _ascii = new(" - ", "...", ".", "~", "x", "^", "=", "v", "*", "v");
 
     private static readonly Dictionary<char, char> _asciiOf = BuildAsciiMap();
 
-    private Glyphs(string separator, string ellipsis, string toDo, string inProgress, string done)
+    private Glyphs(string separator, string ellipsis, string toDo, string inProgress, string done, string high, string medium, string low, string dot, string dropdown)
     {
         Separator = separator;
         Ellipsis = ellipsis;
         ToDo = toDo;
         InProgress = inProgress;
         Done = done;
+        PriorityHigh = high;
+        PriorityMedium = medium;
+        PriorityLow = low;
+        StatusDot = dot;
+        Dropdown = dropdown;
     }
 
     /// <summary>Between the parts of a header line.</summary>
@@ -33,6 +38,21 @@ public sealed class Glyphs
 
     /// <summary>Status category "done".</summary>
     public string Done { get; }
+
+    /// <summary>Priority high and above (<c>▲</c>, ASCII <c>^</c>), drawn in the priority colour of the tier.</summary>
+    public string PriorityHigh { get; }
+
+    /// <summary>Priority medium (<c>=</c>).</summary>
+    public string PriorityMedium { get; }
+
+    /// <summary>Priority low and below (<c>▼</c>, ASCII <c>v</c>).</summary>
+    public string PriorityLow { get; }
+
+    /// <summary>The dot before a status in the Details pane (<c>●</c>, ASCII <c>*</c>).</summary>
+    public string StatusDot { get; }
+
+    /// <summary>Marks a field that opens a popup (<c>▾</c>, ASCII <c>v</c>).</summary>
+    public string Dropdown { get; }
 
     /// <summary>
     /// Swaps every character the shell draws outside ASCII (box lines, arrows, marks, separators) for one ASCII character,

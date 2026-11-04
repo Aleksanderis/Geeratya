@@ -110,4 +110,31 @@ public enum TextRole
 
     /// <summary>The dim chip at the right of an overlay's top edge (the palette's <c>12/87</c>): quiet, never the accent.</summary>
     OverlayCount,
+
+    /// <summary>A filled label chip, accent colour of the theme (the first of <see cref="LabelChips"/>).</summary>
+    LabelChip0,
+
+    /// <summary>A filled label chip, good colour.</summary>
+    LabelChip1,
+
+    /// <summary>A filled label chip, remote colour.</summary>
+    LabelChip2,
+
+    /// <summary>A filled label chip, warn colour.</summary>
+    LabelChip3,
+
+    /// <summary>A filled label chip, info colour.</summary>
+    LabelChip4,
+
+    /// <summary>The initials chip of an assignee: muted fill.</summary>
+    InitialsChip,
+
+    /// <summary>The <c>--</c> chip of an unassigned issue: muted outline, no fill.</summary>
+    UnassignedChip,
+
+    /// <summary>A filled value block (a Details value, a comment header bar): a tint one step off the page.</summary>
+    ValueBlock,
+
+    /// <summary>The accent bar at the left of a selected row or value, on the selection tint.</summary>
+    SelectionBar,
 }
