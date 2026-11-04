@@ -265,7 +265,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         var row = index - document.Sections[pane];
-        var cells = ScrollBar.Cells(scroll, scroll.Viewport);
+        var cells = ScrollBar.Cells(scroll, BarHeight(document, pane, scroll));
 
         if (row < 0 || row >= cells.Count || spans[^1] is not { Role: TextRole.Border, Text: [' ', _] } edge)
         {
@@ -276,6 +276,18 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         spans.Add(edge with { Text = edge.Text[1..] });
 
         return spans;
+    }
+
+    /// <summary>
+    /// The rows the bar spans: the body rows of the pane, which is one more than the scroll window when a note row
+    /// follows the cut text (the Description).
+    /// </summary>
+    private static int BarHeight(DetailDocument document, int pane, PaneScroll scroll)
+    {
+        var end = pane + 1 < document.PaneStarts.Count ? document.PaneStarts[pane + 1] : document.Lines.Count;
+        var body = end - document.Sections[pane] - 1;
+
+        return Math.Clamp(body, scroll.Viewport, scroll.Viewport + 1);
     }
 
     private static string GlyphOf(ScrollCell cell)

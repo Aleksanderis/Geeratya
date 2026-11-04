@@ -1,5 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -121,7 +122,7 @@ public class IssueDetailSectionTests
         var document = Document(Opened(LongText(20), []));
         var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
 
-        Assert.Equal("1-4 of 39", string.Concat(document.PaneRightTitles[pane].Select(span => span.Text)));
+        Assert.Equal("1-3 of 39", string.Concat(document.PaneRightTitles[pane].Select(span => span.Text)));
         Assert.NotNull(document.PaneScrolls[pane]);
     }
 
@@ -181,6 +182,111 @@ public class IssueDetailSectionTests
         Assert.Equal(Top(state).Cursor, Top(after).Cursor);
     }
 
+    [Fact]
+    public void GivenAPaneScroll_WhenScrollingPastEitherEnd_ThenTheOffsetClampsAndTheChipFollows()
+    {
+        var scroll = new PaneScroll(0, 39, 3);
+
+        Assert.Equal("1-3 of 39", scroll.Chip());
+        Assert.Equal(0, scroll.By(-5).ClampedOffset);
+        Assert.Equal("5-7 of 39", scroll.By(4).Chip());
+        Assert.Equal(36, scroll.By(500).ClampedOffset);
+        Assert.Equal("37-39 of 39", scroll.By(500).Chip());
+    }
+
+    [Fact]
+    public void GivenACutDescription_WhenPressingJOnItsLastTextRow_ThenItScrollsByALineAndTheChipFollows()
+    {
+        var state = OnDescriptionRow(Opened(LongText(20), []), 2);
+        var before = Top(state).Cursor;
+
+        var scrolled = Press(state, "j").State;
+        var pane = Document(scrolled).SectionIds.ToList().IndexOf(PaneIds.Description);
+        var start = Document(scrolled).Sections[pane];
+
+        Assert.Equal(1, Top(scrolled).DescriptionOffset);
+        Assert.Equal(before, Top(scrolled).Cursor);
+        Assert.Equal("2-4 of 39", ChipOf(scrolled));
+        Assert.Contains("more lines   Enter expand", Document(scrolled).Lines[start + 3].PlainText);
+        Assert.DoesNotContain("line 1", Document(scrolled).Lines[start].PlainText);
+    }
+
+    [Fact]
+    public void GivenAScrolledDescription_WhenPressingKOnItsFirstTextRow_ThenItScrollsBackUpAndThenLeavesAtTheTop()
+    {
+        var state = OnDescriptionRow(Opened(LongText(20), []), 2);
+        state = Press(state, "j", "j").State;
+        state = OnDescriptionRow(state, 0);
+
+        var up = Press(state, "k").State;
+
+        Assert.Equal(1, Top(up).DescriptionOffset);
+
+        var top = Press(up, "k").State;
+
+        Assert.Equal(0, Top(top).DescriptionOffset);
+        Assert.Equal("1-3 of 39", ChipOf(top));
+
+        var left = Press(top, "k").State;
+
+        Assert.Equal(0, Top(left).DescriptionOffset);
+        Assert.NotEqual(PaneIds.Description, Document(left).SectionIds[Document(left).SectionAt(Top(left).Cursor)]);
+    }
+
+    [Fact]
+    public void GivenADescriptionScrolledToItsEnd_WhenPressingJ_ThenItStopsScrollingAndTheCursorMovesOn()
+    {
+        var scrolled = OnDescriptionRow(Opened(LongText(3), []), 2);
+
+        for (var index = 0; index < 10; index++)
+        {
+            scrolled = OnDescriptionRow(Press(scrolled, "j").State, 2);
+        }
+
+        var pane = Document(scrolled).SectionIds.ToList().IndexOf(PaneIds.Description);
+        var scroll = Document(scrolled).PaneScrolls[pane];
+
+        Assert.Equal(scroll!.MaxOffset, Top(scrolled).DescriptionOffset);
+
+        var moved = Press(scrolled, "j").State;
+
+        Assert.Equal(scroll.MaxOffset, Top(moved).DescriptionOffset);
+        Assert.Equal(Top(scrolled).Cursor + 1, Top(moved).Cursor);
+    }
+
+    [Fact]
+    public void GivenAScrolledDescription_WhenPressingEnterOnTheNote_ThenItExpandsInPlace()
+    {
+        var state = OnDescriptionRow(Opened(LongText(5), []), 2);
+
+        state = Press(state, "j", "j", "j").State;
+
+        var expanded = Press(OnDescriptionRow(state, 3), "Enter").State;
+
+        Assert.Contains("line 1", Text(expanded));
+        Assert.Contains("Show less", Text(expanded));
+    }
+
+    private AppState OnDescriptionRow(AppState state, int row)
+    {
+        var pane = Document(state).SectionIds.ToList().IndexOf(PaneIds.Description);
+        var steps = 0;
+
+        while (Top(state).Cursor - Document(state).Sections[pane] != row && steps++ < 20)
+        {
+            state = Press(state, Top(state).Cursor - Document(state).Sections[pane] < row ? "j" : "k").State;
+        }
+
+        return state;
+    }
+
+    private static string ChipOf(AppState state)
+    {
+        var pane = Document(state).SectionIds.ToList().IndexOf(PaneIds.Description);
+
+        return string.Concat(Document(state).PaneRightTitles[pane].Select(span => span.Text));
+    }
+
     private static string LongText(int paragraphs)
     {
         return string.Join("\n\n", Enumerable.Range(1, paragraphs).Select(number => $"line {number}"));
@@ -210,7 +316,7 @@ public class IssueDetailSectionTests
     {
         var steps = 0;
 
-        while (!Document(state).Lines[Top(state).Cursor].PlainText.Contains(text) && steps++ < Document(state).Lines.Count)
+        while (!Document(state).Lines[Top(state).Cursor].PlainText.Contains(text) && steps++ < Document(state).Lines.Count + 100)
         {
             state = Press(state, "j").State;
         }

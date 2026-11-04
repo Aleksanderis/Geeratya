@@ -35,7 +35,9 @@ internal static class LongText
 
         var shown = expanded ? lines.Count : limit.Lines - (limit.NoteRow ? 1 : 0);
 
-        for (var index = 0; index < shown; index++)
+        var first = expanded ? 0 : Math.Clamp(limit.First, 0, lines.Count - shown);
+
+        for (var index = first; index < first + shown; index++)
         {
             content.Add(lines[index], target);
         }

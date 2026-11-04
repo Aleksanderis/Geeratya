@@ -204,7 +204,7 @@ public class IssueDetailRendererTests
         Assert.StartsWith("|>Fix login", body[1]);
         Assert.StartsWith("+--", body[2]);
         Assert.StartsWith("+- Description ", body[3]);
-        Assert.Contains("1-4 of", body[3]);
+        Assert.Contains("1-3 of", body[3]);
         Assert.EndsWith("-+", body[0]);
         Assert.EndsWith("-+", body[2].TrimEnd());
         Assert.Contains(body, line => line.Contains("^ |") || line.Contains("# |") || line.Contains(". |"));
