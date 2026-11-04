@@ -135,6 +135,6 @@ public enum TextRole
     /// <summary>A filled value block (a Details value, a comment header bar): a tint one step off the page.</summary>
     ValueBlock,
 
-    /// <summary>The accent bar at the left of a selected row or value, on the selection tint.</summary>
+    /// <summary>The accent bar at the left of a selected row or value: a left-half-block glyph in the accent on the page colour, beside the selection tint.</summary>
     SelectionBar,
 }

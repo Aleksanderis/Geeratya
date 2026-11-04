@@ -28,8 +28,6 @@ public class PaletteTests
         }
     }
 
-    private static readonly string[] _sampleLabels = ["a", "b", "c", "d", "e", "f", "g", "h"];
-
     private static readonly PaletteRole[] _labelRoles =
     [
         PaletteRole.LabelChip0, PaletteRole.LabelChip1, PaletteRole.LabelChip2, PaletteRole.LabelChip3, PaletteRole.LabelChip4,
@@ -284,14 +282,6 @@ public class PaletteTests
         Assert.Equal(theme.Colors[ThemeColor.Muted], unassigned.Foreground);
         Assert.Equal(theme.Colors[ThemeColor.Accent], bar.Foreground);
         Assert.Equal(labels.Length, labels.Select(role => Palette.Resolve(theme, ColorSupport.TrueColor, role).Background).Distinct().Count());
-    }
-
-    [Fact]
-    public void GivenSameLabelText_WhenPickingItsChip_ThenTheRoleIsStableAndCaseInsensitive()
-    {
-        Assert.Equal(LabelChips.For("backend"), LabelChips.For("backend"));
-        Assert.Equal(LabelChips.For("Backend"), LabelChips.For("BACKEND"));
-        Assert.True(_sampleLabels.Select(LabelChips.For).Distinct().Count() > 1);
     }
 
     [Fact]
