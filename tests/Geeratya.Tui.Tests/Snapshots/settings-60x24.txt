@@ -15,8 +15,8 @@
 │ Profiles                                                 │
 │   profiles          none                                ▼│
 ├──────────────────────────────────────────────────────────┤
-│ The colour theme: a built-in one or a file in the themes │
-│ folder. Default: auto. Values: auto, dark, light, nord.  │
+│ Default: auto. The colour theme: a built-in one or a     │
+│ file in the themes folder. Values: auto, dark, light,    │
 ├──────────────────────────────────────────────────────────┤
 │ j/k move  Enter change  Alt-r reset  Esc close           │
 ╰──────────────────────────────────────────────────────────╯

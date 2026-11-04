@@ -12,8 +12,8 @@
 │ │                    │   transparent                                   [ ] │ │
 │ │                    │                                                     │ │
 │ ├────────────────────┴─────────────────────────────────────────────────────┤ │
-│ │ The colour theme: a built-in one or a file in the themes folder.         │ │
-│ │ Default: auto. Values: auto, dark, light, nord.                          │ │
+│ │ Default: auto. The colour theme: a built-in one or a file in the themes  │ │
+│ │ folder. Values: auto, dark, light, nord.                                 │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ j/k move  Enter keep  Esc cancel                                         │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │

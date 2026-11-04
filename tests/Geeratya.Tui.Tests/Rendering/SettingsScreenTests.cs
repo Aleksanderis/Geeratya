@@ -126,6 +126,21 @@ public class SettingsScreenTests
         Assert.Contains("Terminal too small", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(80, 14)]
+    [InlineData(45, 24)]
+    public void GivenAShortOrNarrowTerminal_WhenBuildingTheFrame_ThenTheActiveRowAndTheCloseHintStayVisible(
+        int width,
+        int height)
+    {
+        var state = OnHints(Sample());
+        var text = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap));
+
+        Assert.Contains("> hints.statusBar", text, StringComparison.Ordinal);
+        Assert.Contains("Esc close", text, StringComparison.Ordinal);
+        Assert.Contains("Default:", text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GivenTheOpenScreen_WhenClickingOutsideTheBox_ThenTheScreenCloses()
     {
@@ -270,7 +285,7 @@ public class SettingsScreenTests
 
         var result = RegionProbe.Click(state, frame, gap, MouseGesture.Click);
 
-        Assert.True(result is null || result.State.SettingsScreen is not null);
+        Assert.True(result is null || result.State == state);
     }
 
     private static AppState Sample()

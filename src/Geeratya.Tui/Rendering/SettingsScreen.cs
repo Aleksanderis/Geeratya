@@ -61,7 +61,7 @@ public static class SettingsScreen
         var categories = SettingsRows.Categories(rows);
         var selected = SettingsScreenReducer.Selected(state, rows.Count);
         var category = categories.ToList().IndexOf(rows[selected].Category);
-        var wide = width >= CategoriesMinimumWidth;
+        var wide = width >= CategoriesMinimumWidth && height - 2 - Chrome >= categories.Count;
         var inner = boxWidth - 4;
         var room = wide ? inner - CategoryWidth - Gutter : inner;
         var entries = Entries(state, rows, selected, wide ? categories[category] : null, room);
@@ -137,7 +137,7 @@ public static class SettingsScreen
         }
 
         box.Add(OverlayBox.Divider(boxWidth));
-        box.Add(OverlayBox.Wall(OverlayBox.Hints(HintText(state, context)), boxWidth - 2));
+        box.Add(OverlayBox.Wall(OverlayBox.Hints(HintText(state, context, inner)), boxWidth - 2));
         box.Add(OverlayBox.Bottom(boxWidth));
 
         return box;
@@ -352,7 +352,7 @@ public static class SettingsScreen
             ? $" Values: {string.Join(", ", words)}."
             : string.Empty;
 
-        return $"{note}{setting.Help} Default: {setting.Default}.{values}";
+        return $"{note}Default: {setting.Default}. {setting.Help}{values}";
     }
 
     // The theme row leads with why a theme may look different here (first, so a narrow help row keeps it); other
@@ -372,7 +372,7 @@ public static class SettingsScreen
         };
     }
 
-    private static string HintText(AppState state, BodyContext context)
+    private static string HintText(AppState state, BodyContext context, int inner)
     {
         var keymap = context.Keymap;
         var down = keymap.FindKeyLabel(InputMode.Normal, ActionIds.NavigateDown) ?? "j";
@@ -390,7 +390,16 @@ public static class SettingsScreen
 
         chips.Add($"{cancel} {(listOpen ? "cancel" : "close")}");
 
-        return string.Join("  ", chips);
+        // Narrow boxes keep the close chip: drop reset, then move, when the row does not fit.
+        var text = string.Join("  ", chips);
+
+        while (TextWidth.Of(text) > inner && chips.Count > 2)
+        {
+            chips.RemoveAt(chips.Count > 3 ? chips.Count - 2 : 0);
+            text = string.Join("  ", chips);
+        }
+
+        return text;
     }
 
     private static void MarkRegions(
