@@ -62,7 +62,7 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(description, []) with { Expanded = [DetailFieldIds.Description] }, 80));
 
-        var heading = lines.FindIndex(line => line.StartsWith("├─ Description "));
+        var heading = lines.FindIndex(line => line.StartsWith("╭─ Description "));
         Assert.True(heading > 0);
         Assert.Equal(expected.Select(text => text.TrimEnd()), lines.Skip(heading + 1).Take(expected.Count));
     }
@@ -244,18 +244,19 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenLoadedIssueWithoutRelations_WhenBuilding_ThenHeaderDescriptionAndCommentsEachGetAFramedPanel()
+    public void GivenLoadedIssueWithoutRelations_WhenBuilding_ThenEveryPaneGetsAFrameOfItsOwn()
     {
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, [Comment("Eve", "Text")]), 80));
 
         var document = IssueDocumentBuilder.Build(Loaded(null, [Comment("Eve", "Text")]), 80);
 
-        // The first panel's title is the top edge of the screen frame; the others start with a shared edge.
+        // Every pane carries a rounded frame of its own: a top edge and a bottom edge each.
         Assert.Equal(
-            ["A-1", "Description", "Comments"],
+            ["A-1", "Description", "Details", "Comments"],
             document.PaneTitles.Select((_, index) => Title(document, index).Split(' ')[0]));
-        Assert.Equal(2, lines.Count(line => line.StartsWith('├')));
-        Assert.DoesNotContain(lines, line => line.StartsWith('╭') || line.StartsWith('╰'));
+        Assert.Equal(4, lines.Count(line => line.StartsWith('╭')));
+        Assert.Equal(4, lines.Count(line => line.StartsWith('╰')));
+        Assert.DoesNotContain(lines, line => line.StartsWith('├'));
     }
 
     [Theory]
@@ -278,7 +279,8 @@ public class IssueDocumentBuilderTests
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 80));
 
         Assert.Equal("A-1 · Story", Title(IssueDocumentBuilder.Build(Loaded(null, []), 80), 0));
-        Assert.Equal("A summary", lines[0]);
+        Assert.StartsWith("A summary", lines[1]);
+        Assert.EndsWith("In Progress", lines[1].TrimEnd());
     }
 
     [Fact]
@@ -305,7 +307,7 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 80));
 
-        Assert.Contains(lines, line => line.StartsWith("├─ Error "));
+        Assert.Contains(lines, line => line.StartsWith("╭─ Error "));
         Assert.Contains("Not found or no access: A-9", lines);
         Assert.DoesNotContain(lines, line => line.StartsWith("╭─ Description"));
     }

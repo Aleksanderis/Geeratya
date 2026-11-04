@@ -14,10 +14,10 @@
 │ │               │   Enter      Open the selected item                      │ │
 │ │               │   0          Go to the first column                      │ │
 │ │               │   $          Go to the last column                       │ │
-│ │               │   ]]         Next section of the issue or the Scrum      │ │
-│ │               │              backlog                                     │ │
-│ │               │   [[         Previous section of the issue or the Scrum  │ │
-│ │               │              backlog                                     │ │
+│ │               │   ]]         Next section of the Scrum backlog, or next  │ │
+│ │               │              swimlane                                    │ │
+│ │               │   [[         Previous section of the Scrum backlog, or   │ │
+│ │               │              previous swimlane                           │ │
 │ │               │   za         Expand or collapse sub-tasks of a card, or ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯

@@ -31,16 +31,16 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Enter` | Open the selected item | `item.open` | everyday |
 | `0` | Go to the first column | `nav.first-column` | everyday |
 | `$` | Go to the last column | `nav.last-column` | everyday |
-| `]]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
-| `[[` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
-| `za` | Expand or collapse sub-tasks of a card, or fold a backlog or issue section | `section.toggle` | everyday |
+| `]]` | Next section of the Scrum backlog, or next swimlane | `detail.section-next` | everyday |
+| `[[` | Previous section of the Scrum backlog, or previous swimlane | `detail.section-previous` | everyday |
+| `za` | Expand or collapse sub-tasks of a card, or fold a backlog section | `section.toggle` | everyday |
 | `Ctrl-h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
 | `Ctrl-Backspace` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
 | `Ctrl-w h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
-| `Ctrl-j` | Focus the pane below | `pane.focus-down` | advanced |
-| `Ctrl-w j` | Focus the pane below | `pane.focus-down` | advanced |
-| `Ctrl-k` | Focus the pane above | `pane.focus-up` | advanced |
-| `Ctrl-w k` | Focus the pane above | `pane.focus-up` | advanced |
+| `Ctrl-j` | Focus the pane below | `pane.focus-down` | everyday |
+| `Ctrl-w j` | Focus the pane below | `pane.focus-down` | everyday |
+| `Ctrl-k` | Focus the pane above | `pane.focus-up` | everyday |
+| `Ctrl-w k` | Focus the pane above | `pane.focus-up` | everyday |
 | `Ctrl-l` | Focus the pane to the right (zoomed: the next section) | `pane.focus-right` | advanced |
 | `Ctrl-w l` | Focus the pane to the right (zoomed: the next section) | `pane.focus-right` | advanced |
 | `<space>z` | Zoom the focused pane, or leave the zoom | `pane.zoom` | everyday |

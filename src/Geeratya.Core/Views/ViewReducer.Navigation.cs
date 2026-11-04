@@ -91,8 +91,7 @@ public static partial class ViewReducer
             var placedLine = DetailReducer.PlaceCursor(
                 state,
                 tab,
-                placed.Row - DetailOverlayGeometry.Place(state.ViewportColumns, state.ViewportBodyHeight).Top,
-                placed.Then is null);
+                placed.Row - DetailOverlayGeometry.Place(state.ViewportColumns, state.ViewportBodyHeight).Top);
 
             return placedLine is null ? null : new ReduceResult(placedLine, _noEffects);
         }

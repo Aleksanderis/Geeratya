@@ -643,6 +643,22 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
+    public void GivenStoryWithSubtasksArrives_WhenTheIssueLoads_ThenTheChildrenSearchRunsForTheirAssignees()
+    {
+        var opened = Press(ListState(), "Enter");
+        var tab = Active(opened.State);
+        var story = Detailed("A-1") with { Subtasks = [new IssueStub("A-18", "Write", _status, _type)] };
+
+        var loaded = new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, story, _now);
+        var result = _reducer.Reduce(opened.State, loaded);
+
+        var children = Assert.Single(result.Effects.OfType<LoadIssueChildrenEffect>());
+        Assert.Equal("A-1", children.Key);
+        Assert.IsType<Loading>(Active(result.State).Detail[0].ChildrenLoad);
+        Assert.DoesNotContain("Child issues", Text(Active(result.State).Detail[0]));
+    }
+
+    [Fact]
     public void GivenTaskArrives_WhenTheIssueLoads_ThenNoChildrenAreRequested()
     {
         var opened = Press(ListState(), "Enter");
@@ -683,8 +699,8 @@ public class IssueDetailReducerTests
         Assert.True(detail.ChildrenMore);
         Assert.Equal(LoadState.Idle, detail.ChildrenLoad);
         Assert.Equal(0, detail.ChildrenRequest);
-        Assert.Contains("Epic children 2+", Text(detail));
-        Assert.Contains("A-21 Issue 21", Text(detail));
+        Assert.Contains("Child issues 2+", Text(detail));
+        Assert.Contains("A-21  Issue 21", Text(detail));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using Geeratya.Core.Adf;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Detail;
@@ -9,52 +10,53 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 internal sealed class DocumentSink
 {
-    private const string FoldedText = " (folded)";
-
     private readonly List<DetailTarget?> _targets = [];
-    private readonly IReadOnlyList<string> _folded;
     private readonly List<string> _ids = [];
     private readonly List<int> _sections = [];
+    private readonly List<int> _starts = [];
     private readonly List<int> _edges = [];
     private readonly List<IReadOnlyList<StyledSpan>> _titles = [];
     private readonly List<IReadOnlyList<StyledSpan>> _rightTitles = [];
+    private readonly List<PaneScroll?> _scrolls = [];
     private readonly List<LineBlock> _blocks = [];
     private readonly HashSet<int> _skipped = [];
 
-    public DocumentSink(IReadOnlyList<string> folded)
-    {
-        _folded = folded;
-    }
-
     public List<StyledLine> Lines { get; } = [];
 
-    /// <summary>Appends a panel; <paramref name="content"/> carries the lines and the target of each.</summary>
-    public void AddPanel(IReadOnlyList<StyledSpan> title, PanelContent content, int width, IReadOnlyList<StyledSpan>? right = null)
+    /// <summary>Appends a pane; <paramref name="content"/> carries the lines and the target of each.</summary>
+    /// <param name="id">The pane id (a <see cref="PaneIds"/> member).</param>
+    /// <param name="title">The title chip.</param>
+    /// <param name="content">The body lines.</param>
+    /// <param name="width">The pane width.</param>
+    /// <param name="right">The dim chip at the right of the top edge, null for none.</param>
+    /// <param name="scroll">The inner scroll shown as a scrollbar, null for a pane that fits.</param>
+    public void AddPanel(
+        string id,
+        IReadOnlyList<StyledSpan> title,
+        PanelContent content,
+        int width,
+        IReadOnlyList<StyledSpan>? right = null,
+        PaneScroll? scroll = null)
     {
         var start = Lines.Count;
-        var isFirst = _sections.Count == 0;
-        var id = Panel.IdOf(title);
-
-        if (!isFirst && _folded.Contains(id))
-        {
-            title = [.. title, new StyledSpan(FoldedText, TextRole.Muted)];
-            content = Preview(content, Panel.InnerWidth(width));
-        }
+        var framed = width >= Panel.MinFramedWidth;
 
         _ids.Add(id);
-        Panel.Add(Lines, title, content.Lines, width, isFirst);
+        Panel.Add(Lines, title, content.Lines, width, right);
 
-        // The first framed panel has no title line (the frame's top edge carries it); every other panel starts with
-        // its title line (the shared edge when framed), so its content starts one line later.
-        var first = width >= Panel.MinFramedWidth && isFirst ? start : start + 1;
+        // The title line (the top edge when framed) comes first, so the content starts one line later.
+        var first = start + 1;
 
+        _starts.Add(start);
         _sections.Add(first);
         _titles.Add(title);
         _rightTitles.Add(right ?? []);
+        _scrolls.Add(framed ? scroll : null);
+        _edges.Add(start);
 
-        if (first > start)
+        if (framed)
         {
-            _edges.Add(start);
+            _edges.Add(Lines.Count - 1);
         }
 
         Pad();
@@ -89,36 +91,13 @@ internal sealed class DocumentSink
 
         return new DetailDocument(width, Lines, _targets, _sections, stops)
         {
+            PaneStarts = _starts,
             PaneTitles = _titles,
             PaneRightTitles = _rightTitles,
+            PaneScrolls = _scrolls,
             SectionIds = _ids,
             Blocks = _blocks,
         };
-    }
-
-    /// <summary>A folded section: its first line and how many more lines it hides.</summary>
-    private static PanelContent Preview(PanelContent content, int inner)
-    {
-        var preview = new PanelContent();
-
-        if (content.Lines.Count == 0)
-        {
-            return preview;
-        }
-
-        preview.Add(content.Lines[0], content.Targets[0]);
-
-        if (content.Lines.Count > 1)
-        {
-            var note = new WrappedText(inner, false);
-            var hidden = content.Lines.Count - 1;
-            var text = hidden == 1 ? "… 1 more line hidden (z a)" : $"… {hidden} more lines hidden (z a)";
-
-            note.Append(text, TextRole.Muted);
-            preview.Finish(note);
-        }
-
-        return preview;
     }
 
     private void Pad()

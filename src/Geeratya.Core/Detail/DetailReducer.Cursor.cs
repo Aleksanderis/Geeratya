@@ -34,11 +34,10 @@ internal static partial class DetailReducer
     }
 
     /// <summary>
-    /// A click (<paramref name="foldEdges"/>: a plain one, which also folds the section whose title edge it hits):
-    /// puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
-    /// top edge of the frame is row 0), without scrolling. Null for rows outside the document, the bottom edge included.
+    /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
+    /// first row of the overlay is row 0), without scrolling. Null for rows outside the document.
     /// </summary>
-    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow, bool foldEdges = false)
+    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
     {
         var top = tab.Detail[^1];
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
@@ -51,17 +50,12 @@ internal static partial class DetailReducer
             return null;
         }
 
-        if (foldEdges && EdgeSection(document, line) is var edge and > 0)
-        {
-            return ToggleFolded(state, tab, edge);
-        }
-
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));
     }
 
     /// <summary>
     /// Puts the cursor on <paramref name="line"/> and scrolls so that it is the first visible line when the document
-    /// is long enough (a section jump shows the section from its top; the top edge of the frame carries its title).
+    /// is long enough (a pane jump shows the pane from its top edge).
     /// </summary>
     public static AppState JumpTo(AppState state, TabState tab, int line)
     {
@@ -70,6 +64,27 @@ internal static partial class DetailReducer
         var viewport = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
         var cursor = top.Document?.Snap(Math.Clamp(line, 0, Math.Max(0, lines - 1))) ?? 0;
         var scroll = Math.Clamp(cursor, 0, Math.Max(0, lines - viewport));
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
+    }
+
+    /// <summary>
+    /// Puts the cursor on the first row of pane <paramref name="pane"/> (an index into
+    /// <see cref="DetailDocument.SectionIds"/>) and scrolls so that the pane's top edge is the first visible line when
+    /// the document is long enough.
+    /// </summary>
+    public static AppState JumpToPane(AppState state, TabState tab, int pane)
+    {
+        var top = tab.Detail[^1];
+
+        if (top.Document is not { } document || pane < 0 || pane >= document.Sections.Count)
+        {
+            return state;
+        }
+
+        var viewport = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
+        var cursor = document.Snap(document.Sections[pane]);
+        var scroll = Math.Clamp(document.PaneStarts[pane], 0, Math.Max(0, document.Lines.Count - viewport));
 
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
     }

@@ -5,11 +5,11 @@ namespace Geeratya.Core.Detail;
 /// <summary>Fixed measures of the issue detail screen that the host and the renderer must agree on.</summary>
 public static class DetailLayout
 {
-    /// <summary>Rows above the scrolling document: the top edge of the frame, with the title of the pane in view.</summary>
-    public const int HeaderRows = 1;
+    /// <summary>Rows above the scrolling document: none, every pane carries its own top edge.</summary>
+    public const int HeaderRows = 0;
 
-    /// <summary>Rows under the scrolling document: the bottom edge of the frame.</summary>
-    public const int FooterRows = 1;
+    /// <summary>Rows under the scrolling document: none, every pane carries its own bottom edge.</summary>
+    public const int FooterRows = 0;
 
     /// <summary>Width used before the host has reported one.</summary>
     public const int DefaultWidth = 80;

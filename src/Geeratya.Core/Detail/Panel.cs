@@ -4,8 +4,9 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// A framed block of the issue detail: a rounded border with the title set into the top edge and one column of padding
-/// inside the side edges (<c>docs/ux-screens.md</c>, "Issue detail"). The border characters are Unicode box drawing;
+/// A pane of the issue detail: a rounded border of its own with the title set into the top edge and one column of
+/// padding inside the side edges (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"). The border
+/// characters are Unicode box drawing;
 /// the renderer swaps them for ASCII on terminals that cannot show them, one cell for one cell.
 /// </summary>
 public static class Panel
@@ -16,46 +17,15 @@ public static class Panel
     /// <summary>Narrowest width that still gets a frame; below it the content is drawn bare under a title.</summary>
     public const int MinFramedWidth = 12;
 
-    /// <summary>Top edge columns besides the title: corner, rule, space before it; space, rule, corner after.</summary>
-    private const int TitleChrome = 6;
+    /// <summary>Top edge columns besides the chips: corner and rule each side.</summary>
+    private const int EdgeChrome = 4;
 
-    public const string JoinLeft = "├";
-    public const string JoinRight = "┤";
+    private const string TopLeft = "╭";
+    private const string TopRight = "╮";
+    private const string BottomLeft = "╰";
+    private const string BottomRight = "╯";
     public const string Horizontal = "─";
     public const string Vertical = "│";
-
-    /// <summary>
-    /// The id a section is folded by: its title up to the first digit (the count), so it survives a count that changes
-    /// while pages and relations arrive.
-    /// </summary>
-    public static string IdOf(IReadOnlyList<StyledSpan> title)
-    {
-        var text = title.Count == 0 ? string.Empty : title[0].Text;
-        var digit = text.IndexOfAny(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
-
-        return (digit < 0 ? text : text[..digit]).Trim();
-    }
-
-    /// <summary>The title spans cut to the room of a top edge of <paramref name="width"/> columns.</summary>
-    public static IReadOnlyList<StyledSpan> FitTitle(IReadOnlyList<StyledSpan> title, int width)
-    {
-        var room = width - TitleChrome;
-        var spans = new List<StyledSpan>(title.Count);
-        var used = 0;
-
-        foreach (var span in title)
-        {
-            var text = Fit(span.Text, room - used);
-
-            if (text.Length > 0)
-            {
-                spans.Add(new StyledSpan(text, span.Role));
-                used += DisplayWidth.Of(text);
-            }
-        }
-
-        return spans;
-    }
 
     /// <summary>The columns available to content inside a panel of <paramref name="width"/>.</summary>
     public static int InnerWidth(int width)
@@ -64,17 +34,18 @@ public static class Panel
     }
 
     /// <summary>
-    /// Appends the panel to <paramref name="lines"/>. <paramref name="content"/> lines must be at most
-    /// <see cref="InnerWidth"/> columns wide. The panels of a document share the one frame the renderer draws around
-    /// the visible window: the <paramref name="first"/> panel has no edge of its own (its title goes into the top
-    /// edge of the frame) and each later one starts with the shared edge that carries its title, <c>├─ Title ─┤</c>.
+    /// Appends the pane to <paramref name="lines"/>: its own rounded top edge with the title chip (and the dim
+    /// <paramref name="right"/> chip), the content between side borders and its own bottom edge. Panes are stacked
+    /// without a gap, so nothing is framed twice. <paramref name="content"/> lines must be at most
+    /// <see cref="InnerWidth"/> columns wide. Below <see cref="MinFramedWidth"/> the pane is a bare title line and
+    /// its content.
     /// </summary>
     public static void Add(
         List<StyledLine> lines,
         IReadOnlyList<StyledSpan> title,
         IReadOnlyList<StyledLine> content,
         int width,
-        bool first)
+        IReadOnlyList<StyledSpan>? right = null)
     {
         if (width < MinFramedWidth)
         {
@@ -84,44 +55,84 @@ public static class Panel
             return;
         }
 
-        if (!first)
-        {
-            lines.Add(Divider(title, width));
-        }
+        lines.Add(TopEdge(title, right ?? [], width));
 
         foreach (var line in content)
         {
             lines.Add(Side(line, width));
         }
+
+        lines.Add(BottomEdge(width));
     }
 
-    private static StyledLine Divider(IReadOnlyList<StyledSpan> title, int width)
+    /// <summary>
+    /// The top edge: <c>╭─ Title ─────── right ─╮</c>. The chips are the spans between the border spans (the renderer
+    /// restyles them for focus); the right chip is dropped when it does not fit.
+    /// </summary>
+    public static StyledLine TopEdge(
+        IReadOnlyList<StyledSpan> title,
+        IReadOnlyList<StyledSpan> right,
+        int width)
     {
-        var room = width - TitleChrome;
-        var spans = new List<StyledSpan>
-        {
-            new($"{JoinLeft}{Horizontal}", TextRole.Border),
-            new(" ", TextRole.Muted),
-        };
-        var used = 0;
+        var room = width - EdgeChrome;
+        var left = Chip(title, room);
+        var leftWidth = left.Sum(static span => DisplayWidth.Of(span.Text));
+        var rightChip = right.Count == 0 ? [] : Chip(right, room - leftWidth - 1);
+        var rightWidth = rightChip.Sum(static span => DisplayWidth.Of(span.Text));
+        var fill = room - leftWidth - rightWidth;
+        var spans = new List<StyledSpan> { new($"{TopLeft}{Horizontal}", TextRole.Border) };
 
-        foreach (var span in title)
+        spans.AddRange(left);
+
+        if (fill > 0)
+        {
+            spans.Add(new StyledSpan(Repeat(Horizontal, fill), TextRole.Border));
+        }
+
+        spans.AddRange(rightChip);
+        spans.Add(new StyledSpan($"{Horizontal}{TopRight}", TextRole.Border));
+
+        return new StyledLine(spans);
+    }
+
+    /// <summary>The bottom edge, <c>╰───╯</c>.</summary>
+    public static StyledLine BottomEdge(int width)
+    {
+        var rule = Repeat(Horizontal, Math.Max(0, width - 2));
+
+        return new StyledLine([new StyledSpan($"{BottomLeft}{rule}{BottomRight}", TextRole.Border)]);
+    }
+
+    /// <summary>
+    /// The spans padded with one space each side, cut to <paramref name="room"/> cells; empty when too tight.
+    /// </summary>
+    private static List<StyledSpan> Chip(IReadOnlyList<StyledSpan> spans, int room)
+    {
+        var fitted = new List<StyledSpan>();
+
+        if (room < 3)
+        {
+            return fitted;
+        }
+
+        var used = 2;
+
+        fitted.Add(new StyledSpan(" ", TextRole.Muted));
+
+        foreach (var span in spans)
         {
             var text = Fit(span.Text, room - used);
 
             if (text.Length > 0)
             {
-                spans.Add(new StyledSpan(text, span.Role));
+                fitted.Add(new StyledSpan(text, span.Role));
                 used += DisplayWidth.Of(text);
             }
         }
 
-        var fill = room - used;
+        fitted.Add(new StyledSpan(" ", TextRole.Muted));
 
-        spans.Add(new StyledSpan(" ", TextRole.Muted));
-        spans.Add(new StyledSpan($"{Repeat(Horizontal, fill)}{Horizontal}{JoinRight}", TextRole.Border));
-
-        return new StyledLine(spans);
+        return fitted;
     }
 
     private static StyledLine Side(StyledLine content, int width)

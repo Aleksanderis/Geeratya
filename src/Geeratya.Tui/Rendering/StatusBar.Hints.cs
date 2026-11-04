@@ -50,7 +50,7 @@ public static partial class StatusBar
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Detail),
         new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
         new(InputMode.Normal, ActionIds.CommentAdd, "comment", HintScope.Detail),
-        new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.PaneFocusDown, "pane", HintScope.Detail, ActionIds.PaneFocusUp),
     ];
 
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>

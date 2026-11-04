@@ -72,7 +72,9 @@ public sealed partial class AppReducer
                 => Result(unzoomed with { Message = null }),
             ActionIds.Cancel => state.Editor is null ? Result(ToNormal(Escaped(state))) : CommentEditing.Cancel(state),
             ActionIds.PaneFocusLeft or ActionIds.PaneFocusDown or ActionIds.PaneFocusUp or ActionIds.PaneFocusRight
-                or ActionIds.PaneZoom => InNormal(state, () => Result(PaneActions.Apply(state, action) ?? state)),
+                or ActionIds.PaneZoom => InNormal(
+                    state,
+                    () => DetailActions.FocusPane(state, action) ?? Result(PaneActions.Apply(state, action) ?? state)),
             ActionIds.SelectionVisual => InNormal(state, () => SelectionActions.ToggleVisual(state)),
             ActionIds.SelectionMark => InNormal(state, () => SelectionActions.ToggleMark(state, true)),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
@@ -139,18 +141,13 @@ public sealed partial class AppReducer
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
             ActionIds.SectionNext => InNormal(
                 state,
-                () => BacklogActions.Jump(state, 1)
-                    ?? BoardViewOptions.StepLane(state, 1)
-                    ?? DetailActions.Section(state, 1)),
+                () => BacklogActions.Jump(state, 1) ?? BoardViewOptions.StepLane(state, 1) ?? Result(state)),
             ActionIds.SectionPrevious => InNormal(
                 state,
-                () => BacklogActions.Jump(state, -1)
-                    ?? BoardViewOptions.StepLane(state, -1)
-                    ?? DetailActions.Section(state, -1)),
+                () => BacklogActions.Jump(state, -1) ?? BoardViewOptions.StepLane(state, -1) ?? Result(state)),
             ActionIds.SectionToggle => InNormal(
                 state,
-                () => DetailActions.ToggleSection(state)
-                    ?? BacklogActions.Toggle(state)
+                () => BacklogActions.Toggle(state)
                     ?? SubtaskActions.Toggle(state)
                     ?? Result(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),

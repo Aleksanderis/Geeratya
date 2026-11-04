@@ -394,14 +394,22 @@ public class StatusBarTests
         Assert.DoesNotContain("card", line);
     }
 
-    [Theory]
-    [InlineData(HintScope.Detail)]
-    [InlineData(HintScope.Backlog)]
-    public void GivenAScreenWithPanes_WhenListingItsHints_ThenTheNextPaneChordIsNamed(HintScope scope)
+    [Fact]
+    public void GivenTheBacklog_WhenListingItsHints_ThenTheNextPaneChordIsNamed()
     {
-        Assert.Contains("]] pane", StatusBar.ScreenHintsFor(scope, _keymap));
+        Assert.Contains("]] pane", StatusBar.ScreenHintsFor(HintScope.Backlog, _keymap));
+        Assert.DoesNotContain("]] pane", StatusBar.ScreenHintsFor(HintScope.Detail, _keymap));
         Assert.DoesNotContain("]] pane", StatusBar.ScreenHintsFor(HintScope.Columns, _keymap));
         Assert.DoesNotContain("]] pane", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
+    }
+
+    [Fact]
+    public void GivenTheDetail_WhenListingItsHints_ThenThePaneKeysReplaceTheSectionChord()
+    {
+        var hints = StatusBar.ScreenHintsFor(HintScope.Detail, _keymap);
+
+        Assert.Contains("Ctrl-j/Ctrl-k pane", hints);
+        Assert.DoesNotContain(hints, hint => hint.Contains("]]"));
     }
 
     [Fact]

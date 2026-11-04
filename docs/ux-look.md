@@ -48,34 +48,22 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 
 **Board (columns layout).** Panes are the columns, side by side, titles in the top edge (above). The focused column's box is accent. Sprint boards add the sprint name and dates to the status bar left, not a title row.
 
-**Issue detail.** Panes stacked vertically with shared horizontal edges; each pane has its chip (section 3):
+**Issue detail (#702).** Panes stacked vertically, each with a rounded frame of its own and its chip (section 3); the layout, sizes and the planned sidebar are in `ux-screens.md`, "Pane layout for the issue detail, board cards and forms":
 
 ```
- 1 JQL project = GEN   2 Board GCM   +                       <space>g jump
 ╭─ GEN-5 · Story ──────────────────────────────────────────────────────────────╮
-│ Generated issue 5                                                            │
-│                                                                              │
-│ Status    To Do ▾                                                            │
-│ Priority  Medium ▾                                                           │
-│ Reporter  Generated Reporter                                                 │
-│ Labels    generated, sample ▾                                                │
-├─ Description ────────────────────────────────────────────────────────────────┤
-│ Summary                                                                      │
-│                                                                              │
-│ This is generated issue 5. It has formatted text, a list and a code block.   │
-│ - First generated step                                                       │
-│ - Second generated step                                                      │
-├─ Comments 50 of 120 ─────────────────────────────────────────────────────────┤
-│ Generated Writer 0 · 4 d ago                                                 │
-│ Generated comment 1 on issue 5.                                              │
-│                                                                              │
-│ Generated Writer 1 · 3 d ago                                                 │
-│ Generated comment 2 on issue 5.                                              │
+│ Generated issue 5                                                      To Do │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GEN-5  13%                              ? help  : commands  q quit
+╭─ Description ─────────────────────────────────────────────────── 1-4 of 14 ─╮
+│ This is generated issue 5. It has formatted text,                          ▲ │
+│ … 11 more lines   Enter expand                                             ▼ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments 50 of 120 ─────────────────────────────────────────────────────────╮
+│ Generated Writer 0 · 4 d ago                                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-The panes are the sections the detail already has (header and fields, Description, Comments, then Relations, Attachments and Links when present, in that order). Heights: the header pane is its content height; the others share the rest by content, each at least 3 rows, and the focused pane gets the surplus. The detail stays one scrolling document with one cursor (`ux-screens.md`, "Issue detail"): the panes are how that document is drawn, scroll and the `Top/NN%/Bot` ruler stay document-wide (the status bar shows the ruler), `j`/`k` cross from one pane to the next, and the focused pane is the one holding the cursor. There is no side-by-side layout and no collapse.
+The detail stays one scrolling document with one cursor: the panes are how that document is drawn, the `Top/NN%/Bot` ruler is in the status bar, `j`/`k` cross from one pane to the next, `Ctrl-j`/`Ctrl-k` jump between panes, and the focused pane is the one holding the cursor. Inner scroll per pane, the sidebar and zoom come with later M7 issues.
 
 **Backlog (Scrum and Kanban).** Panes are the sprint sections and the Backlog section, stacked; each pane's chip carries the sprint name and state, its right-hand chip dates and points:
 
@@ -111,7 +99,7 @@ A chip is the text of a title, written into a top edge as `─ text ─` (one `�
 | Board | column | `To Do 5` (name, issue count, `/limit` when the column has a WIP limit: `In Progress 4/3`, over the limit in the `warn` role) | none |
 | Board (Scrum) | column | as above; `Done 3 · 12 pts` when the board estimates in points | |
 | Issue detail | header | `GEN-5 · Story` (key bold, type in the issue-type colour) | `In Progress` (status chip in its category colour) |
-| Issue detail | other panes | `Description`, `Comments 50 of 120`, then one pane per relation kind with its count: `Sub-tasks 1`, `Epic children 2`, `Linked issues 2`, `Remote links 1`, `Attachments 2` (there is no merged `Relations` pane) | none |
+| Issue detail | other panes | `Description`, `Comments 50 of 120`, then one pane per relation kind with its count: `Sub-tasks 1`, `Child issues 2`, `Linked issues 2`, `Remote links 1`, `Attachments 2` (there is no merged `Relations` pane) | none |
 | Backlog | sprint (shared edge under the column titles) | `Sprint 2 · active` | `19 Jan - 1 Feb · 11 issues · 41 pts`; the frame's own top edge carries the source and count (kept on purpose, #537: list and backlog share one geometry) |
 | Backlog | backlog | `Backlog` | `8 issues` |
 | List | list | the source (`project = GCM`, filter name) | `40 issues` |
@@ -121,7 +109,7 @@ Chip kinds: the **focused** pane's chip is the filled accent chip (accent backgr
 
 ## 4. Focus and selection (#525)
 
-- **Focused pane**: the whole box (the pane's own edges, shared edges included on the sides that belong to it) is drawn in the accent colour, bold; its chip is the filled accent chip. Every other pane's lines are the quiet border colour with dim chips. A shared edge between a focused and a quiet pane is drawn in the accent colour (the focused pane wins).
+- **Focused pane**: the whole box (the pane's own edges; where panes share an edge, as on the board, the shared edge on the sides that belong to it) is drawn in the accent colour, bold; its chip is the filled accent chip. Every other pane's lines are the quiet border colour with dim chips. A shared edge between a focused and a quiet pane is drawn in the accent colour (the focused pane wins).
 - **Selected row/card**: a background tint (the theme's `selection` role), never inverse video, so the row keeps its colours. The selection is one tint in every pane (the quieter `SelectedDim` tint of #526 was unused after #673 and removed in #680). On the board an unfocused column keeps the remembered row (`Wanted` clamped to the column) for when the cursor moves back, but draws no mark for it (the quiet `>` of #644 was removed in #673), so the cursor card is the one highlighted card on the board; the other screens have one selection too. The selected card's text sits on the selection tint with its own colours kept (the issue-type name or marker keeps its type colour in every tier that has colour, where it reaches contrast 3.0 on the tint; without colour the card is reversed). The selected card on the board also has an accent border (heavy glyphs, accent, bold) while its column is focused. Implemented by #526 (`TextRole.Border`, `FrameFocus`, `ChipFocus`; chips restyled by `ChipStyle`; `FrameGrid` takes the focused pane).
 - **Visual range** (#568): the rows of a range are drawn stronger than the selected row, with or without pane focus: the `Range` role is the selection tint moved towards the accent (the step shrinks per theme until the text, moved towards black or white, keeps contrast 4.5, or 7 on a high-contrast theme), bold in every tier; at 16 colours reverse video of the page (black on gray, white on black on a light theme) instead of the selection's blue; without colour reversed and bold. The row under the cursor (the moving end) is underlined in every tier, the other rows of the range are not. The `+` in the second cell stays (`*` for a marked row, which keeps the range look too). List and backlog rows are built from the row's own spans over the tint (`SpanGround.Selection`, `Range`, `Cursor`), so a selected or in-range row keeps its status and issue-type colours wherever they reach contrast 3.0 on the tint (else the tint's text colour); the no-colour tier reverses the whole row. The type marker `B S T E s` of list and backlog rows has the issue-type colour, as the board cards' type word.
 - **No colour** (`NO_COLOR`): the focused box is bold, its chip reversed-bold, the selected row reversed; quiet panes are plain and their chips plain. The marker `>` in the padding column marks the selected row in every tier (the renderers do not know the colour tier; never over the border).
@@ -130,7 +118,7 @@ Chip kinds: the **focused** pane's chip is the filled accent chip (accent backgr
 
 ### Pane navigation (no new keys)
 
-Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `]] pane` (detail and backlog, last of the screen hints) name the chord. The wheel scrolls the document as today.
+Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the Scrum backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane, and in the issue detail `Ctrl-j`/`Ctrl-k` (`pane.focus-down`, `pane.focus-up`, #702) do; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `]] pane` (backlog) and `Ctrl-j/Ctrl-k pane` (detail), last of the screen hints, name the keys. The wheel scrolls the document as today.
 
 ## 5. Chrome: tab row, status bar, key hints (#527)
 
@@ -361,7 +349,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Screen | Today | Spec section | Issue |
 |---|---|---|---|
 | Board | Done in #524: one rounded frame, shared edges, column chips in the top edge, the title line is in the status bar. Done in #526: the focused column's whole box and chip are accent, others quiet with dim chips, the cursor card has an accent heavy box, other columns draw no cursor mark (the quiet `>` of #644 was removed in #673) | 2, 3, 4 | #524, #526 |
-| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour | 2, 4 | #524, #526, #557 |
+| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour. Done in #702: each pane has a rounded frame of its own (no shared edges), the status moved into the title row, the Description pane shows its scrollbar and `1-4 of N` chip | 2, 4 | #524, #526, #557 |
 | Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Done in #526: the section holding the cursor is the focused pane (accent box, filled chip), others quiet with dim chips | 2, 3, 4 | #524, #526 |
 | Tab row | Done in #527: chips on the bar background, filled accent for the active one, `x`, ` + `, dim jump chip with the keys. Done in #547: middle-click close, hover `x`, the `+N` tab list | 5 | #527, #547 |
 | Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |

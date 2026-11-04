@@ -141,11 +141,14 @@ public class DetailOverlayTests
         var state = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State);
         var top = DetailOverlayGeometry.Place(120, 33).Top;
 
+        var document = Active(state).Detail[^1].Document!;
         var onEdge = _reducer.Reduce(state, new PointerPlaced(60, top, 120));
-        var below = _reducer.Reduce(state, new PointerPlaced(60, top + 2, 120));
+        var below = _reducer.Reduce(state, new PointerPlaced(60, top + 4, 120));
+        var above = _reducer.Reduce(state, new PointerPlaced(60, top - 1, 120));
 
-        Assert.Equal(state, onEdge.State);
-        Assert.NotEqual(state, below.State);
+        Assert.Equal(document.Stops[0], Active(onEdge.State).Detail[^1].Cursor);
+        Assert.Equal(document.Snap(4), Active(below.State).Detail[^1].Cursor);
+        Assert.Equal(state, above.State);
     }
 
     private AppState TwoOpen()

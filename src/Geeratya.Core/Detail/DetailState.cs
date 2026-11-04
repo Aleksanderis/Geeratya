@@ -71,12 +71,6 @@ public sealed record DetailState(
     public string? EstimateLabel { get; init; }
 
     /// <summary>
-    /// The sections folded to a preview (<see cref="Panel.IdOf"/>), kept per issue in its tab: a reload of the issue
-    /// keeps them.
-    /// </summary>
-    public IReadOnlyList<string> Folded { get; init; } = [];
-
-    /// <summary>
     /// The long texts shown in full: <c>description</c> or <c>comment:ID</c>; every other long text starts cut short.
     /// </summary>
     public IReadOnlyList<string> Expanded { get; init; } = [];

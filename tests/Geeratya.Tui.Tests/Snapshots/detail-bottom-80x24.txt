@@ -1,17 +1,17 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ GCM-12 · Task ──────────────────────────────────────────────── In Progress ─╮
-├─ Description ────────────────────────────────────────────────────────────────┤
-│ Heading one                                                                  │
-│                                                                              │
-│ Heading three                                                                │
-│                                                                              │
-│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
-│ 😄 and unicode: żółć 日本語 🚀                                               │
-│ after break                                                                  │
-│                                                                              │
-│ … 32 more lines (Enter)                                                      │
-├─ Comments 3 ─────────────────────────────────────────────────────────────────┤
+│ … 37 more lines   Enter expand                                              ▼│
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Details ────────────────────────────────────────────────────────────────────╮
+│ Status    In Progress ▾                                                      │
+│ Priority  High ▾                                                             │
+│ Assignee  Jane Doe ▾                                                         │
+│ Reporter  Ola Nordmann                                                       │
+│ Labels    auth, bug-bash ▾                                                   │
+│ Parent    GCM-17 Reporting overhaul                                          │
+│ Updated   2 h ago                                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments 3 ─────────────────────────────────────────────────────────────────╮
 │ Jane Doe · 1 d ago                                                           │
 │ Found it: the redirect target is dropped after the refresh.                  │
 │                                                                              │

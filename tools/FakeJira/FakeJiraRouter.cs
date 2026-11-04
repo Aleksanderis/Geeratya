@@ -515,6 +515,12 @@ public sealed partial class FakeJiraRouter
 
         if (_options.GeneratedIssues > 0)
         {
+            if (jql is not null && ParentJql().Match(jql) is { Success: true } parent
+                && GeneratedIssues.ChildrenPage(_options.GeneratedIssues, parent.Groups[1].Value) is { } generated)
+            {
+                return new FakeReply(200, generated);
+            }
+
             return GeneratedPage(parameters, token);
         }
 

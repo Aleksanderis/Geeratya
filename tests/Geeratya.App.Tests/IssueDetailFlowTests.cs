@@ -278,7 +278,8 @@ public sealed class IssueDetailFlowTests : IDisposable
     {
         _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
             .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
-            .Fixture($"{Site}/{key}/remotelink", linksFile);
+            .Fixture($"{Site}/{key}/remotelink", linksFile)
+            .Fixture(SearchPath, "hierarchy/search-epic-children-gtm.json");
         await ConnectAsync();
 
         var state = await OpenAsync(key);
@@ -288,15 +289,18 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Contains("Sub-tasks 2", text);
         Assert.Contains(firstSubtask, text);
         Assert.Contains("Linked issues 2", text);
-        Assert.Contains($"is blocked by {blockedBy} ", text);
+        Assert.Contains($"{blockedBy}  is blocked by ", text);
         Assert.Contains("relates to ", text);
         Assert.Contains($"Remote links {linkCount}", text);
         Assert.Contains(linkTitle, text);
         Assert.Contains("Attachments 1", text);
         Assert.Contains("seed-notes.txt · ", text);
         Assert.Contains(" · 47 B", text);
-        Assert.DoesNotContain("Epic children", text);
-        Assert.DoesNotContain(_http.Requests, uri => uri.AbsolutePath.Contains("/search/"));
+        Assert.DoesNotContain("Child issues", text);
+
+        // Jira lists sub-tasks without an assignee: the one children search (parent = KEY) supplies the names.
+        var search = Assert.Single(_http.Requests, uri => uri.AbsolutePath == SearchPath);
+        Assert.Contains(Uri.EscapeDataString($"parent = {key}"), search.Query);
     }
 
     [Theory]
@@ -319,7 +323,7 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var detail = Top(state);
         var text = Text(detail);
-        Assert.Contains("Epic children 2", text);
+        Assert.Contains("Child issues 2", text);
         Assert.Contains(firstChild, text);
         Assert.Contains(secondChild, text);
         Assert.DoesNotContain("Remote links", text);
@@ -342,7 +346,7 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var detail = Top(state);
         Assert.IsType<Failed>(detail.ChildrenLoad);
-        Assert.Contains("Epic children", Text(detail));
+        Assert.Contains("Child issues", Text(detail));
         Assert.Contains("Check the token", Text(detail));
         Assert.Contains("No comments.", Text(detail));
         Assert.NotNull(detail.Issue);
@@ -508,7 +512,7 @@ public sealed class IssueDetailFlowTests : IDisposable
         var parent = await PumpAsync(await PumpAsync(story, new KeyPressed("Space")), new KeyPressed("p"));
 
         Assert.Equal(["GCM-10", "GCM-8"], Tab(parent).Detail.Select(detail => detail.Key));
-        Assert.Contains("Epic children 2", Text(Top(parent)));
+        Assert.Contains("Child issues 2", Text(Top(parent)));
 
         var back = await PumpAsync(parent, new KeyPressed("Esc"));
 

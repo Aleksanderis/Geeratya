@@ -10,12 +10,12 @@
 │ │               │   Ctrl-u     Page up  (PageUp)                           │ │
 │ │               │   <space>a   Open the actions menu of the selected issue │ │
 │ │               │   Enter      Open the selected item                      │ │
-│ │               │   ]]         Next section of the issue or the Scrum      │ │
-│ │               │              backlog                                     │ │
-│ │               │   [[         Previous section of the issue or the Scrum  │ │
-│ │               │              backlog                                     │ │
+│ │               │   ]]         Next section of the Scrum backlog, or next  │ │
+│ │               │              swimlane                                    │ │
+│ │               │   [[         Previous section of the Scrum backlog, or   │ │
+│ │               │              previous swimlane                           │ │
 │ │               │   za         Expand or collapse sub-tasks of a card, or  │ │
-│ │               │              fold a backlog or issue section             │ │
+│ │               │              fold a backlog section                      │ │
 │ │               │   <space>l   Switch between list and columns             │ │
 │ │               │   <space>vf  Cycle the quick filter of the board (off,   │ │
 │ │               │              then each filter in turn)                  ▼│ │
