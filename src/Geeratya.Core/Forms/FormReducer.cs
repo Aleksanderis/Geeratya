@@ -122,6 +122,11 @@ public static partial class FormReducer
         DateTimeOffset at,
         KeymapTable keymap)
     {
+        if (PaneChord(state, tab, key, at, keymap) is { } chord)
+        {
+            return chord;
+        }
+
         var motion = keymap.Resolve(InputMode.Normal, string.Empty, key).Action;
 
         if (form.Target is CreateFormTarget && CreateNavigating(state, tab, form, motion, action) is { } created)
@@ -158,6 +163,26 @@ public static partial class FormReducer
             ActionIds.FormOpenBrowser => OpenBrowser(state, form),
             _ => Result(state),
         };
+    }
+
+    // The Ctrl-w h/j/k/l fallback of the pane keys (decision 2026-11-04): in the navigate state, with panes on the tab,
+    // Ctrl-w is held in PendingKeys and the next key resolves in Normal mode; any other second key drops the chord.
+    // Null when the key is not part of a chord. The editing state never gets here, so Ctrl-w stays delete-word.
+    private static ReduceResult? PaneChord(AppState state, TabState tab, string key, DateTimeOffset at, KeymapTable keymap)
+    {
+        if (state.PendingKeys.Length > 0)
+        {
+            var cleared = state with { PendingKeys = string.Empty, PendingSince = null };
+            var action = keymap.Resolve(InputMode.Normal, state.PendingKeys, key).Action;
+
+            return Result(PaneActions.Apply(cleared, action) ?? cleared);
+        }
+
+        var starts = key == "Ctrl-w"
+            && tab.Panes.HasPanes
+            && keymap.Resolve(InputMode.Normal, string.Empty, key).Kind == KeyResolutionKind.Prefix;
+
+        return starts ? Result(state with { PendingKeys = key, PendingSince = at, Message = null }) : null;
     }
 
     // Ctrl-f: folding may move the focus off the field whose suggestion lookup is running, so that lookup stops.
