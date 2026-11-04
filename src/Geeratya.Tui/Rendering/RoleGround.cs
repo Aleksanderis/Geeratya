@@ -6,8 +6,14 @@ internal enum RoleGround
     /// <summary>The role's own colour on the variant's black or white.</summary>
     Plain,
 
-    /// <summary>White on blue: the status bar and the selection, whatever the terminal's colours.</summary>
+    /// <summary>White on blue: the selection, whatever the terminal's colours.</summary>
     OnBlue,
+
+    /// <summary>
+    /// The status bar: white on blue on a dark theme, white on black on a light one (the light table has no bright
+    /// colour that reads on blue, so the hint key could not be told from its label, #684). Keys are bright yellow.
+    /// </summary>
+    OnBar,
 
     /// <summary>The brightest text colour of the variant (strong text).</summary>
     Strong,

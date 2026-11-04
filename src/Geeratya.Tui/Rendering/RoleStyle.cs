@@ -12,10 +12,4 @@ public enum RoleStyle
 
     /// <summary>Dimmed text (SGR 2): the view behind an overlay at 16 colours.</summary>
     Faint = 16,
-
-    /// <summary>
-    /// Underline in the 16-colour and no-colour tiers only: a role whose 24-bit tier marks itself with a tint (the
-    /// selection of a pane without focus).
-    /// </summary>
-    UnderlineWithoutTint = 32,
 }

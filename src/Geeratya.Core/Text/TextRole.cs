@@ -102,9 +102,6 @@ public enum TextRole
     /// <summary>The title chip of the focused pane: filled accent, bold.</summary>
     ChipFocus,
 
-    /// <summary>The selected card of a pane without focus: a quieter tint (underlined without a tint).</summary>
-    SelectedDim,
-
     /// <summary>A row in the Visual range: a stronger tint than the selected row (reversed without a tint).</summary>
     Range,
 

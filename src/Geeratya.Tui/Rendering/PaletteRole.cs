@@ -53,7 +53,6 @@ public enum PaletteRole
     OverlayChipBad,
     FrameFocus,
     ChipFocus,
-    SelectedDim,
     Range,
     OverlayCount,
 }
