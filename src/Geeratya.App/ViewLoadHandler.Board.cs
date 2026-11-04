@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Boards;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
@@ -121,7 +122,7 @@ public sealed partial class ViewLoadHandler
                 kind = await ResolveKindAsync(services, id, loaded, effect.Background, token);
             }
 
-            return await BoardPageAsync(services, effect, id, kind, token);
+            return await BoardPageAsync(services, effect, id, kind, report, token);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -202,6 +203,7 @@ public sealed partial class ViewLoadHandler
         LoadViewPageEffect effect,
         long id,
         BoardKind? kind,
+        Action<Command> report,
         CancellationToken token)
     {
         var query = new BoardIssueQuery();
@@ -213,6 +215,13 @@ public sealed partial class ViewLoadHandler
         if (scrum)
         {
             query = await ScrumQueryAsync(services, effect, id, query, token);
+        }
+
+        if (effect.Definition.Source == ViewSourceKind.Board && kind == BoardKind.Kanban)
+        {
+            // Jira's board hides Done issues resolved long ago; the agile endpoint does not (docs/jira-layer.md).
+            query = query with { Jql = DoneCutoff.Jql };
+            report(new DoneCutoffApplied(effect.Tab, effect.RequestId));
         }
 
         query = query with

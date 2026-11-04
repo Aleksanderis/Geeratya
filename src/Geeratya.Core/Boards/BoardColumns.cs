@@ -30,7 +30,8 @@ public static class BoardColumns
         BoardConfiguration? configuration,
         IReadOnlyList<IssueSummary> rows,
         IReadOnlyList<string>? expanded = null,
-        IReadOnlyList<IssueSummary>? all = null)
+        IReadOnlyList<IssueSummary>? all = null,
+        bool doneCutoff = false)
     {
         all ??= rows;
 
@@ -41,6 +42,12 @@ public static class BoardColumns
 
         var groups = Group(configuration, rows, expanded, all);
         var columns = HidesBacklogColumn(configuration) ? [.. groups.Columns.Skip(1)] : groups.Columns;
+
+        if (doneCutoff && columns.Count > 0)
+        {
+            var last = columns[^1];
+            columns = [.. columns.Take(columns.Count - 1), last with { Name = DoneCutoff.Title(last.Name) }];
+        }
 
         if (groups.Unmapped.Count == 0)
         {

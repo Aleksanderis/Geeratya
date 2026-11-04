@@ -1,6 +1,6 @@
  1 Board GCM board x   +                             : commands   <space>g jump 
                                                                                 
-╭─ To Do 4 ────────────────┬─ In Progress 4 ──────────┬─ Done 2 ───────────────╮
+╭─ To Do 4 ────────────────┬─ In Progress 4 ──────────┬─ Done (14d) 2 ─────────╮
 │ ┌──────────────────────┐ │ │   Task GCM-14        │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
 │ │ Epic GCM-8           │ │ │   Pick a chart       │ │ │ Story GCM-12       │ │
 │ │ Seed: Onboarding     │ │ │   library            │ │ │ Export report as   │ │

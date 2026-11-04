@@ -8,6 +8,22 @@ namespace Geeratya.Core.Tests.Boards;
 public class BoardColumnsTests
 {
     [Fact]
+    public void GivenDoneCutoff_WhenListingVisibleColumns_ThenOnlyTheLastColumnNamesTheCutoff()
+    {
+        var configuration = Configuration(
+            BoardType.Kanban,
+            Column("Backlog", "10003"),
+            Column("To Do", "10004"),
+            Column("Done", "10005"));
+
+        var cut = BoardColumns.Visible(configuration, [], null, null, true);
+        var plain = BoardColumns.Visible(configuration, []);
+
+        Assert.Equal(["To Do", "Done (14d)"], cut.Select(column => column.Name));
+        Assert.Equal(["To Do", "Done"], plain.Select(column => column.Name));
+    }
+
+    [Fact]
     public void GivenTeamManagedOrder_WhenGrouping_ThenColumnsKeepBoardOrderWithBacklogThird()
     {
         var configuration = Configuration(

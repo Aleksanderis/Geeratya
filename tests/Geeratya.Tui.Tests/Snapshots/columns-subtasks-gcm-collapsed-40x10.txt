@@ -1,6 +1,6 @@
  1 Board GCM board   +    <space>g jump 
                                         
-╭─‹ To Do 4  In Progress 4  Done 2 ›───╮
+╭─‹ To Do 4  In Progress 4  Done (14d) ╮
 │ E GCM-9 Seed: Reporting              │
 │ └T GCM-14 Pick a chart library       │
 │>S GCM-10 ↑GCM-8 Sign up with email...│

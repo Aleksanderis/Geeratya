@@ -37,7 +37,7 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("/rest/agile/1.0/board/3/configuration", fixture.Path(0));
         Assert.Contains("/rest/agile/1.0/board/3/sprint", fixture.Path(1));
         Assert.Contains("/rest/agile/1.0/board/3/issue", fixture.Path(2));
-        Assert.DoesNotContain("jql=", fixture.Path(2));
+        Assert.Contains("resolutiondate", fixture.Query(2));
 
         var groups = GroupOf(tab);
         Assert.Equal(["To Do", "In Progress", "Backlog", "Done"], groups.Columns.Select(column => column.Name));
@@ -90,6 +90,38 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Equal(tab.Rows.Count, groups.Columns.Sum(column => column.Rows.Count));
         Assert.Empty(groups.Unmapped);
         Assert.Equal("customfield_10019", tab.Board?.RankFieldId);
+    }
+
+    [Theory]
+    [InlineData("board-gcm-config", "rows-gcm-issues", "4", false)]
+    [InlineData("board-gtm-config", "rows-gtm-issues", "3", true)]
+    public async Task GivenKanbanBoardOfEitherKind_WhenOpened_ThenOldDoneIssuesAreNotRequestedAndTheDoneColumnSaysSo(
+        string configuration,
+        string rows,
+        string board,
+        bool probes)
+    {
+        using var fixture = await ConnectedAsync(
+            http =>
+            {
+                http.Reply(HttpStatusCode.OK, BoardFixtureFiles.Read(configuration));
+
+                if (probes)
+                {
+                    http.Reply(HttpStatusCode.BadRequest, NoSprints);
+                }
+
+                http.Reply(HttpStatusCode.OK, BoardFixtureFiles.Read(rows));
+            });
+
+        var state = await OpenAsync(fixture, ViewSourceKind.Board, board);
+
+        var tab = state.Session.Tabs[0];
+        var issues = fixture.Query(probes ? 2 : 1);
+        Assert.Contains("/issue", fixture.Path(probes ? 2 : 1));
+        Assert.Contains("jql=resolution = Unresolved OR resolutiondate >= -14d", issues);
+        Assert.True(tab.DoneCutoffApplied);
+        Assert.Equal("Done (14d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
     }
 
     [Fact]
@@ -262,8 +294,9 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("/board/4/quickfilter", fixture.Path(2));
         Assert.Contains("/board/4/configuration", fixture.Path(3));
         Assert.Contains("/board/4/issue", fixture.Path(4));
-        Assert.Contains("jql=(updatedDate >= -1d)", fixture.Query(4));
-        Assert.DoesNotContain("jql=", fixture.Query(1));
+        Assert.Contains("(updatedDate >= -1d)", fixture.Query(4));
+        Assert.Contains("resolutiondate", fixture.Query(4));
+        Assert.Contains("resolutiondate", fixture.Query(1));
         Assert.Equal(LoadState.Idle, tab.Load);
     }
 

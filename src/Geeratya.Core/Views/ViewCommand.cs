@@ -87,6 +87,12 @@ public sealed record SprintsLoaded(TabId Tab, long RequestId, IReadOnlyList<Spri
 public sealed record BacklogBecameScrum(TabId Tab, long RequestId) : ViewCommand;
 
 /// <summary>
+/// The board load applies Jira's Done cutoff (a Kanban board): older Done issues are not requested. Applied only while
+/// <paramref name="RequestId"/> is the tab's current request.
+/// </summary>
+public sealed record DoneCutoffApplied(TabId Tab, long RequestId) : ViewCommand;
+
+/// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab
 /// refreshes; time is only ever read from here and from the replies.
 /// </summary>

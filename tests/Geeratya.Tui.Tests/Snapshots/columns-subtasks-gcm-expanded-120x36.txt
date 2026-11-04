@@ -1,6 +1,6 @@
  1 Board GCM board x   +                                                                     : commands   <space>g jump 
                                                                                                                         
-╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done 2 ─────────────────────────────╮
+╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done (14d) 2 ───────────────────────╮
 │ ┌───────────────────────────────────┐ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │
 │ │ Epic GCM-8                        │ │ │ Epic GCM-9                        │ │ │ Story GCM-12                     │ │
 │ │ Seed: Onboarding flow             │ │ │ Seed: Reporting                   │ │ │ Export report as CSV             │ │

@@ -160,7 +160,7 @@ public static class ColumnsNavigation
     {
         var lane = Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows);
 
-        return BoardColumns.Visible(tab.Board, lane, tab.ExpandedSubtasks, tab.Rows);
+        return BoardColumns.Visible(tab.Board, lane, tab.ExpandedSubtasks, tab.Rows, tab.DoneCutoffApplied);
     }
 
     /// <summary>
