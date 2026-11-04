@@ -270,7 +270,9 @@ The frame and chip use the `bad` role for destructive actions (delete, bulk edit
       ╰─────────────────────────────────────────────────────────────╯
 ```
 
-Field label above its input; the focused field's input box is accent (the others quiet, one-line plain), the field's label muted/bold. Suggestions are rows under the input (not a second box); the selection is the tint; a validation error is a `bad` line under the field. Multi-field forms stack the fields, `Tab`/`Shift-Tab` move the focus (accent input box follows). The comment editor is the same box with a taller input pane (at most body height minus 6).
+**Edit and other multi-field forms (#651).** Every field is a labelled box: the label sits in the top edge (`┌─ Summary * ──┐`; `*` marks a required field, `[navigate]`/`[editing]` shows on the focused one), the value rows inside the walls, the suggestion rows and the validation error (a `bad` line) under the box. The focused box is drawn in the accent role and its label carries a `> ` mark, so focus also shows without colour; other boxes are muted (a box with an error is `bad`); a read-only field is a muted box with `(not editable here)` in the label and the browser link as value. Each field costs two rows more than its value (the box edges), so the form scrolls to keep the focused box in view; label text is cut to the box width. Angular corners (`┌└`) separate the field boxes from the rounded overlay frame, and they become `+` in the ASCII tier.
+
+Single-field forms (labels, assign, link, transition pickers) use the same box. Suggestions are rows under the box (not a second box); the selection is the tint. `Tab`/`Shift-Tab` move the focus (accent box follows). The comment editor is the same box with a taller input pane (at most body height minus 6).
 
 ### Pickers (source picker `<space>t`, jump `<space>g`, status, assignee, sprint)
 
