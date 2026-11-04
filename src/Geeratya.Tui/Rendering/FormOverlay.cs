@@ -386,7 +386,7 @@ public static partial class FormOverlay
 
         if (form.DiscardPending)
         {
-            lines.Add(StyledLine.Of(DiscardText, TextRole.Key));
+            lines.Add(StyledLine.Of(DiscardText, TextRole.Warning));
         }
     }
 

@@ -37,6 +37,12 @@ public class StyledRenderingTests
     [InlineData(TextRole.Error, PaletteRole.Error)]
     [InlineData(TextRole.FieldLabel, PaletteRole.FieldLabel)]
     [InlineData(TextRole.Editable, PaletteRole.Editable)]
+    [InlineData(TextRole.LabelChip0, PaletteRole.LabelChip0)]
+    [InlineData(TextRole.LabelChip4, PaletteRole.LabelChip4)]
+    [InlineData(TextRole.InitialsChip, PaletteRole.InitialsChip)]
+    [InlineData(TextRole.UnassignedChip, PaletteRole.UnassignedChip)]
+    [InlineData(TextRole.ValueBlock, PaletteRole.ValueBlock)]
+    [InlineData(TextRole.SelectionBar, PaletteRole.SelectionBar)]
     public void GivenTextRole_WhenMappingToPalette_ThenItIsTheExpectedPaletteRole(TextRole role, PaletteRole expected)
     {
         Assert.Equal(expected, PaletteTable.For(role));

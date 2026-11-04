@@ -13,6 +13,7 @@ public static class PaletteTable
     private const double RangeAccentStep = 0.05;
     private const double RangeTextShare = 0.9;
     private const double TabButtonShare = 0.5;
+    private const double ValueTintShare = 0.5;
 
     private static readonly Dictionary<PaletteRole, RoleSpec> _specs = new()
     {
@@ -60,7 +61,7 @@ public static class PaletteTable
             ThemeColor.Selection,
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.OnBlue),
-        [PaletteRole.Key] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.Key] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.StatusToDo] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.StatusInProgress] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.StatusDone] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
@@ -69,7 +70,7 @@ public static class PaletteTable
         [PaletteRole.TypeBug] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.TypeTask] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.TypeSubtask] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Bold),
-        [PaletteRole.FieldLabel] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.FieldLabel] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Editable] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.BarMuted] = new(
             ThemeColor.Muted,
@@ -135,6 +136,15 @@ public static class PaletteTable
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.Chip),
         [PaletteRole.OverlayCount] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.LabelChip0] = Chip(ThemeColor.Accent),
+        [PaletteRole.LabelChip1] = Chip(ThemeColor.Good),
+        [PaletteRole.LabelChip2] = Chip(ThemeColor.Remote),
+        [PaletteRole.LabelChip3] = Chip(ThemeColor.Warn),
+        [PaletteRole.LabelChip4] = Chip(ThemeColor.Info),
+        [PaletteRole.InitialsChip] = Chip(ThemeColor.Muted),
+        [PaletteRole.UnassignedChip] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.ValueBlock] = new(ThemeColor.BaseForeground, ThemeColor.Selection, RoleStyle.None),
+        [PaletteRole.SelectionBar] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.Range] = new(
             ThemeColor.BaseForeground,
             ThemeColor.Selection,
@@ -197,6 +207,15 @@ public static class PaletteTable
         [TextRole.ChipFocus] = PaletteRole.ChipFocus,
         [TextRole.OverlayCount] = PaletteRole.OverlayCount,
         [TextRole.Range] = PaletteRole.Range,
+        [TextRole.LabelChip0] = PaletteRole.LabelChip0,
+        [TextRole.LabelChip1] = PaletteRole.LabelChip1,
+        [TextRole.LabelChip2] = PaletteRole.LabelChip2,
+        [TextRole.LabelChip3] = PaletteRole.LabelChip3,
+        [TextRole.LabelChip4] = PaletteRole.LabelChip4,
+        [TextRole.InitialsChip] = PaletteRole.InitialsChip,
+        [TextRole.UnassignedChip] = PaletteRole.UnassignedChip,
+        [TextRole.ValueBlock] = PaletteRole.ValueBlock,
+        [TextRole.SelectionBar] = PaletteRole.SelectionBar,
     };
 
     public static IReadOnlyList<PaletteRole> Roles { get; } = Enum.GetValues<PaletteRole>();
@@ -246,8 +265,16 @@ public static class PaletteTable
         {
             PaletteRole.Range => RangeSelection(theme),
             PaletteRole.TabInactive => TabButton(theme),
+            PaletteRole.ValueBlock => ValueTint(theme),
             _ => theme.Colors[spec.Background],
         };
+    }
+
+    // A filled value: the page moved halfway towards the selection tint, one step quieter than the selection itself
+    // (derived, so theme files need no new colour). The text keeps the contrast the selection already gives it.
+    private static Rgb ValueTint(Theme theme)
+    {
+        return Rgb.Blend(theme.Colors[ThemeColor.BaseBackground], theme.Colors[ThemeColor.Selection], ValueTintShare);
     }
 
     // An inactive tab is a button on the bar: the bar moved halfway towards the selection tint, so it stands apart

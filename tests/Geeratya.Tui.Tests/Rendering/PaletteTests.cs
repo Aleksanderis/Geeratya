@@ -28,6 +28,11 @@ public class PaletteTests
         }
     }
 
+    private static readonly PaletteRole[] _labelRoles =
+    [
+        PaletteRole.LabelChip0, PaletteRole.LabelChip1, PaletteRole.LabelChip2, PaletteRole.LabelChip3, PaletteRole.LabelChip4,
+    ];
+
     public static TheoryData<string> ThemeNames => [.. BuiltInThemes.Names];
 
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
@@ -242,19 +247,51 @@ public class PaletteTests
             $"{name}: selection bar in {tier} is faint against the body");
     }
 
-    [Fact]
-    public void GivenAnyTheme_WhenResolvingWarningAndKey_ThenWarningIsTheWarnColour()
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenAnyTheme_WhenResolvingKeyAndFieldLabel_ThenBothAreTheAccentColourNotWarnOrInfo(string name)
     {
-        foreach (var name in BuiltInThemes.Names)
-        {
-            var theme = BuiltInThemes.Find(name)!.Theme!;
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var accent = theme.Colors[ThemeColor.Accent];
 
-            Assert.Equal(
-                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Key).Foreground,
-                Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Warning).Foreground);
-        }
+        Assert.Equal(accent, Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Key).Foreground);
+        Assert.Equal(accent, Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.FieldLabel).Foreground);
+        Assert.True(Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Key).Style.HasFlag(RoleStyle.Bold));
+        Assert.NotEqual(
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Warning).Foreground16,
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Key).Foreground16);
+    }
 
-        Assert.Equal(PaletteRole.Warning, PaletteTable.For(TextRole.Warning));
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenAnyTheme_WhenResolvingTheChipAndBlockRoles_ThenFillsAreDistinctAndOffThePage(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var page = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body).Background;
+        var selection = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Selected).Background;
+        var block = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.ValueBlock).Background;
+        var initials = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.InitialsChip);
+        var unassigned = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.UnassignedChip);
+        var bar = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.SelectionBar);
+        var labels = _labelRoles;
+
+        Assert.NotEqual(page, block);
+        Assert.NotEqual(selection, block);
+        Assert.Equal(theme.Colors[ThemeColor.Muted], initials.Background);
+        Assert.Equal(page, unassigned.Background);
+        Assert.Equal(theme.Colors[ThemeColor.Muted], unassigned.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.Accent], bar.Foreground);
+        Assert.Equal(labels.Length, labels.Select(role => Palette.Resolve(theme, ColorSupport.TrueColor, role).Background).Distinct().Count());
+    }
+
+    [Fact]
+    public void GivenGlyphSets_WhenReadingPriorityDotAndDropdown_ThenUnicodeAndAsciiFormsExist()
+    {
+        var unicode = Geeratya.Tui.Rendering.Glyphs.For(GlyphSet.Unicode);
+        var ascii = Geeratya.Tui.Rendering.Glyphs.For(GlyphSet.Ascii);
+
+        Assert.Equal("▲=▼●▾", unicode.PriorityHigh + unicode.PriorityMedium + unicode.PriorityLow + unicode.StatusDot + unicode.Dropdown);
+        Assert.Equal("^=v*v", ascii.PriorityHigh + ascii.PriorityMedium + ascii.PriorityLow + ascii.StatusDot + ascii.Dropdown);
     }
 
     [Fact]
