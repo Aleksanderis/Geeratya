@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Geeratya.App.Tests.Fakes;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -65,6 +66,46 @@ public sealed class CreateHandlerTests
         Assert.True(parent.IsEditable);
         Assert.DoesNotContain(loaded.Fields, field => field.Id is "project" or "issuetype");
         Assert.EndsWith($"/createmeta/{project}/issuetypes/{typeId}", fixture.Http.Requests.Single().AbsolutePath);
+    }
+
+    [Theory]
+    [InlineData("GCM", "createmeta-fields-gcm-task.json", "10010")]
+    [InlineData("GTM", "createmeta-fields-gtm-task.json", "10015")]
+    [InlineData("GCM", "createmeta-fields-gcm-subtask.json", "10007")]
+    [InlineData("GTM", "createmeta-fields-gtm-subtask.json", "10011")]
+    public async Task GivenRecordedFields_WhenLaidOutAsPanes_ThenSummaryLeadsAndRequiredFieldsStayShown(
+        string project,
+        string fixtureName,
+        string typeId)
+    {
+        var reply = RecordedFixtures.Read($"metadata/{fixtureName}");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, reply));
+        var type = new CreateIssueType(typeId, "Task", string.Empty, 0, false);
+        var target = new CreateFormTarget(project, $"{project}-6", false, type);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 8, target));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var form = FormState.Opened(target, 8, null) with
+        {
+            Fields = loaded.Fields,
+            IsLoading = false,
+        };
+        var details = CreatePanes.Shown(form, PaneIds.Details).Select(index => form.Fields[index]).ToList();
+
+        Assert.Equal("summary", loaded.Fields[0].Id);
+        Assert.Equal(PaneIds.Title, CreatePanes.PaneOf(loaded.Fields[0]));
+        Assert.DoesNotContain(details, field => field.Id is "summary" or "description");
+        Assert.All(loaded.Fields.Where(field => field is { Required: true, IsEditable: true }), field =>
+            Assert.False(CreatePanes.IsFolded(form, loaded.Fields.ToList().IndexOf(field))));
+        var available = loaded.Fields.Count(field => CreatePanes.PaneOf(field) == PaneIds.Details);
+
+        Assert.True(details.Count >= Math.Min(CreatePanes.ShownDetails, available));
+
+        if (loaded.Fields.FirstOrDefault(field => field.Id == "parent" && field.IsEditable) is { } parent)
+        {
+            Assert.Equal(parent.Id, details[0].Id);
+        }
     }
 
     [Fact]

@@ -96,7 +96,7 @@ public static partial class FormReducer
                 => Result(Replace(state, tab, form with { Navigating = true, Suggest = null }), tab.Id),
             ActionIds.Cancel => Cancel(state, tab, form),
             ActionIds.FormOpenAfter => Result(CreateFormReducer.ToggleOpenAfter(state, tab, form)),
-            ActionIds.FormMoreFields => Result(Replace(state, tab, CreatePanes.ToggleMore(form))),
+            ActionIds.FormMoreFields => MoreFields(state, tab, form),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
             ActionIds.FormOpenBrowser => OpenBrowser(state, form),
             ActionIds.FormFieldNext => Result(Replace(state, tab, form with { Focus = Step(form, 1) })),
@@ -160,6 +160,15 @@ public static partial class FormReducer
         };
     }
 
+    // Ctrl-f: folding may move the focus off the field whose suggestion lookup is running, so that lookup stops.
+    internal static ReduceResult MoreFields(AppState state, TabState tab, FormState form)
+    {
+        var toggled = CreatePanes.ToggleMore(form);
+        var next = Replace(state, tab, toggled);
+
+        return form.Suggest is not null && toggled.Suggest is null ? Result(next, tab.Id) : Result(next);
+    }
+
     // The navigate state of the create form: the three panes of CreatePanes, Ctrl-f and Ctrl-g work here too.
     private static ReduceResult? CreateNavigating(
         AppState state,
@@ -170,7 +179,7 @@ public static partial class FormReducer
     {
         if (action == ActionIds.FormMoreFields)
         {
-            return Result(Replace(state, tab, CreatePanes.ToggleMore(form)));
+            return MoreFields(state, tab, form);
         }
 
         if (action == ActionIds.FormOpenAfter)

@@ -1,11 +1,14 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Create.Models;
 
 namespace Geeratya.Core.Tests.Forms;
 
-/// <summary>The create form on the three-pane layout (#708): field order, the two states, pane and field keys, Ctrl-f.</summary>
+/// <summary>The create form as panes (#708): field order, the two states, pane and field keys, Ctrl-f.</summary>
 public partial class CreateFormReducerTests
 {
     private const int WideColumns = 120;
@@ -177,6 +180,32 @@ public partial class CreateFormReducerTests
 
         Assert.False(byEnter.Navigating);
         Assert.False(byLetter.Navigating);
+    }
+
+    [Fact]
+    public void GivenEditingTheSummary_WhenEnterIsPressed_ThenTheFormNavigatesAndNothingIsSent()
+    {
+        var state = Type(WideForm(), "Title");
+
+        var entered = Press(state, "Enter");
+
+        Assert.DoesNotContain(entered.Effects, effect => effect is ExecuteWriteEffect);
+        Assert.Empty(entered.State.Session.Operations);
+        Assert.True(entered.State.Session.Tabs[0].Form!.Navigating);
+        Assert.Equal("summary", FocusedId(entered.State));
+    }
+
+    [Fact]
+    public void GivenTheFoldRowIsClicked_WhenTheCreateFormHasFoldedFields_ThenTheyShowAndASecondClickFoldsThem()
+    {
+        var state = Navigating(ManyFieldsForm());
+        var click = new OverlayRowClicked(MouseTarget.FormMoreFields, 0, ActionIds.FormMoreFields, _start);
+
+        var shown = _reducer.Reduce(state, click).State;
+        var folded = _reducer.Reduce(shown, click).State;
+
+        Assert.True(shown.Session.Tabs[0].Form!.ShowAllFields);
+        Assert.False(folded.Session.Tabs[0].Form!.ShowAllFields);
     }
 
     [Fact]

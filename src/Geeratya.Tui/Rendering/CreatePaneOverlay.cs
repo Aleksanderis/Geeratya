@@ -21,7 +21,7 @@ public static class CreatePaneOverlay
         return CreatePanes.Applies(form);
     }
 
-    /// <summary>Draws the form over <paramref name="body"/>, the view behind it (exactly <paramref name="height"/> lines).</summary>
+    /// <summary>Draws the form over <paramref name="body"/>, the view (<paramref name="height"/> rows).</summary>
     public static IReadOnlyList<StyledLine> Compose(
         IReadOnlyList<StyledLine> body,
         FormState form,

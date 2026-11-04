@@ -17,8 +17,8 @@ public static partial class FormOverlay
     private const string LoadingText = "Loading fields…";
     private const string SavingText = "Saving…";
     private const string ChooseTypeText = "Choose the issue type";
-    private const string OpenAfterOnText = "on";
-    private const string OpenAfterOffText = "off";
+    internal const string OpenAfterOnText = "on";
+    internal const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "not editable here";
     private const string EmptyText = "-";

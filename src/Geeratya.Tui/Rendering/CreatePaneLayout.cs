@@ -163,7 +163,8 @@ internal sealed class CreatePaneLayout
     {
         var index = CreatePanes.Shown(_form, PaneIds.Title) is [var first, ..] ? first : -1;
         var create = (CreateFormTarget)_form.Target;
-        var heading = new StyledSpan($"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}", TextRole.Heading);
+        var named = $"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}";
+        var heading = new StyledSpan(named, TextRole.Heading);
         var rows = new List<CreatePaneRow>();
 
         if (index >= 0)
@@ -208,7 +209,9 @@ internal sealed class CreatePaneLayout
         }
         else
         {
-            spans.Add(new StyledSpan(DisplayText.Cut(field.Value.Text.ReplaceLineEndings(" "), room), TextRole.Editable));
+            var flat = field.Value.Text.ReplaceLineEndings(" ");
+
+            spans.Add(new StyledSpan(DisplayText.Cut(flat, room), TextRole.Editable));
         }
 
         var used = spans.Sum(static span => DisplayWidth.Of(span.Text));

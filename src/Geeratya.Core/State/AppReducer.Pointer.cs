@@ -48,7 +48,8 @@ public sealed partial class AppReducer
             MouseTarget.ProfileCancelButton when cleared.Form is not null => Result(ToNormal(cleared)),
             MouseTarget.FormField when cleared.Form is not null
                 => Result(ProfileReducer.FocusField(cleared, clicked.Index)),
-            MouseTarget.FormField or MouseTarget.FormChoice => FormReducer.Clicked(cleared, clicked),
+            MouseTarget.FormField or MouseTarget.FormChoice or MouseTarget.FormMoreFields
+                => FormReducer.Clicked(cleared, clicked),
             MouseTarget.ContextMenu when cleared.ContextMenu is { } menu && clicked.Index < menu.Items.Count
                 => RunMenuItem(cleared, menu.Items[clicked.Index], clicked.At),
             MouseTarget.EditorChoice => EditorSuggestions.Clicked(cleared, clicked.Index),

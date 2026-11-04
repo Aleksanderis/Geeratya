@@ -115,7 +115,7 @@ public class CreatePaneOverlaySnapshotTests
 
         var summary = lines.ToList().FindIndex(line => line.Contains("required *", StringComparison.Ordinal));
         Assert.Contains("! Required", lines[summary + 1], StringComparison.Ordinal);
-        Assert.Contains(lines, line => line.Contains("! summary: Required", StringComparison.Ordinal) || line.Contains("! Summary: Required", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("! Summary: Required", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -149,9 +149,10 @@ public class CreatePaneOverlaySnapshotTests
     [Fact]
     public void GivenTheAsciiGlyphSet_WhenBuildingTheFrame_ThenNoBoxDrawingOrBlockCharacterRemains()
     {
-        var lines = FrameBuilder.Build(Open(Form() with { Focus = 2, Navigating = true }), 120, 36, _keymap, null, GlyphSet.Ascii);
+        var form = Form() with { Focus = 2, Navigating = true };
+        var lines = FrameBuilder.Build(Open(form), 120, 36, _keymap, null, GlyphSet.Ascii);
 
-        Assert.All(lines, line => Assert.DoesNotContain(line, character => character is '╭' or '│' or '▌' or '▾' or '─'));
+        Assert.All(lines, line => Assert.DoesNotContain(line, character => "╭│▌▾─".Contains(character)));
     }
 
     [Fact]
@@ -173,7 +174,8 @@ public class CreatePaneOverlaySnapshotTests
     {
         var frame = FrameBuilder.BuildStyled(Open(Form()), 120, 36, _keymap)!;
 
-        var indexes = frame.Regions.Where(region => region.Target == MouseTarget.FormField).Select(region => region.Index);
+        var fields = frame.Regions.Where(region => region.Target == MouseTarget.FormField);
+        var indexes = fields.Select(region => region.Index).ToList();
 
         Assert.Contains(0, indexes);
         Assert.Contains(1, indexes);
@@ -202,7 +204,8 @@ public class CreatePaneOverlaySnapshotTests
     public void GivenOpenAfter_WhenToggled_ThenTheTitleChipAndTheHintShowTheState()
     {
         var off = FrameBuilder.Build(Open(Form()), 160, 36, _keymap);
-        var on = FrameBuilder.Build(Open(Form() with { Target = Target() with { OpenAfter = true } }), 160, 36, _keymap);
+        var opening = Form() with { Target = Target() with { OpenAfter = true } };
+        var on = FrameBuilder.Build(Open(opening), 160, 36, _keymap);
 
         Assert.Contains(off, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
         Assert.DoesNotContain(off, line => line.Contains("opens after create", StringComparison.Ordinal));

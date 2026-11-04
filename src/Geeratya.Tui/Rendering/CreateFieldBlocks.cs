@@ -22,7 +22,7 @@ internal static class CreateFieldBlocks
     private const int Lead = 1;
     private const int DropdownCells = 2;
 
-    /// <summary>The block of the field at <paramref name="index"/> for a block <paramref name="width"/> columns wide.</summary>
+    /// <summary>The block of the field at <paramref name="index"/>, <paramref name="width"/> columns wide.</summary>
     public static FieldBlockSpec Spec(FormState form, int index, int width)
     {
         var field = form.Fields[index];
@@ -34,7 +34,7 @@ internal static class CreateFieldBlocks
         return new FieldBlockSpec(label, Items(field, editing, room), Dropdown(field), Note(form, field, focused));
     }
 
-    /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown mark.</summary>
+    /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown.</summary>
     private static bool Dropdown(FormField field)
     {
         return field.Kind is FormFieldKind.Select or FormFieldKind.MultiSelect or FormFieldKind.Labels

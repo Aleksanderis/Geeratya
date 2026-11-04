@@ -5,33 +5,6 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>One content row of a create-form pane: the line, and the mouse target it stands for (if any).</summary>
-/// <param name="Line">The content, at most the pane's inner width.</param>
-/// <param name="Target">What a click on the row means, or null for none.</param>
-/// <param name="Index">The field index or popup row the click stands for.</param>
-internal sealed record CreatePaneRow(StyledLine Line, MouseTarget? Target = null, int Index = -1);
-
-/// <summary>What one create-form pane shows.</summary>
-/// <param name="Title">The title chip.</param>
-/// <param name="Right">The dim chip at the right, or null.</param>
-/// <param name="Rows">The content rows (the pane scrolls when there are more than fit).</param>
-/// <param name="Focused">The pane holds the focus: accent frame, filled chip.</param>
-internal sealed record CreatePaneSpec(
-    IReadOnlyList<StyledSpan> Title,
-    IReadOnlyList<StyledSpan>? Right,
-    IReadOnlyList<CreatePaneRow> Rows,
-    bool Focused)
-{
-    /// <summary>The first row the pane must keep in view.</summary>
-    public int FocusStart { get; init; }
-
-    /// <summary>How many rows from <see cref="FocusStart"/> must be in view.</summary>
-    public int FocusLength { get; init; }
-
-    /// <summary>A row drawn at the bottom of the pane whatever the scroll (the fold hint), or null.</summary>
-    public StyledLine? Pinned { get; init; }
-}
-
 /// <summary>
 /// Draws the panes of the create form with the frame of the issue detail (<see cref="Panel"/>): the focused pane gets
 /// the accent frame and the filled chip, a pane with more rows than fit scrolls to keep its focus row in view and shows
@@ -79,6 +52,7 @@ internal sealed class CreatePaneFrames
         if (pinned > 0)
         {
             content.Add(StyledLines.Fit(spec.Pinned!, contentWidth));
+            _regions.Add(new OverlayRegion(MouseTarget.FormMoreFields, top + 1 + room, left + 1, width - 2, 1, 0));
         }
 
         var right = spec.Right;
@@ -110,10 +84,15 @@ internal sealed class CreatePaneFrames
 
         if (focused)
         {
-            spans = [.. spans.Select(static span => span.Role == TextRole.Border ? IssueDetailRenderer.FocusBorder(span) : span)];
+            spans = [.. spans.Select(FocusBorder)];
         }
 
         return new StyledLine(spans);
+    }
+
+    private static StyledSpan FocusBorder(StyledSpan span)
+    {
+        return span.Role == TextRole.Border ? IssueDetailRenderer.FocusBorder(span) : span;
     }
 
     // The right padding cell of a content row becomes the scrollbar cell of its row.

@@ -106,7 +106,9 @@ internal sealed class CreateDetailsRows
         {
             var text = TextWidth.Fit(SuggestionText.Row(popup.Items[item]), width);
             var highlighted = item == cursor;
-            var line = StyledLine.Of($"{margin}{(highlighted ? ">" : " ")} {text}", highlighted ? TextRole.Selected : TextRole.Body);
+            var pointer = highlighted ? ">" : " ";
+            var role = highlighted ? TextRole.Selected : TextRole.Body;
+            var line = StyledLine.Of($"{margin}{pointer} {text}", role);
 
             rows.Add(new CreatePaneRow(line, MouseTarget.FormChoice, item));
         }

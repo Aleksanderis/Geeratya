@@ -124,6 +124,9 @@ public enum MouseTarget
     /// <summary>A row of the issue type list or of a form field's suggestion popup (a click takes it).</summary>
     FormChoice,
 
+    /// <summary>The fold row of the create form's Details pane (a click shows or folds the optional fields).</summary>
+    FormMoreFields,
+
     /// <summary>A row of the comment editor's suggestion popup (a click takes it).</summary>
     EditorChoice,
 
