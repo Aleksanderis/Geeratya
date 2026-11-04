@@ -7,11 +7,11 @@
 │ │ flow                 │ │ │                      │ │ │ CSV                │ │
 │ ├──────────────────────┤ │ └──────────────────────┘ │ └────────────────────┘ │
 │ │   Story GCM-11       │ │ ┏━ ↑ GCM-8 Seed: Onb… ━┓ │ ┌────────────────────┐ │
-│ │   Welcome screen     │ │ ┃ Story GCM-10         ┃ │ │ Task GCM-15        │ │
+│ │   Welcome screen     │ │ ┃ Story GCM-10         ┃ │>│ Task GCM-15        │ │
 │ │                      │ │ ┃ Sign up with email   ┃ │ │ Write the setup    │ │
 │ │                      │ │ ┃ ▸ 1/2 ━━━───         ┃ │ │ guide              │ │
 │ ├──────────────────────┤ │ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │ └────────────────────┘ │
-│ │   Task GCM-13        │ │ ┌─ ↑ GCM-8 Seed: Onb… ─┐ │                        │
+│>│   Task GCM-13        │ │ ┌─ ↑ GCM-8 Seed: Onb… ─┐ │                        │
 │ │   Review onboarding  │ │ │ Bug GCM-16           │ │                        │
 │ │   copy               │ │ │ App crashes on       │ │                        │
 │ │                      │ │ │ empty profile        │ │                        │
