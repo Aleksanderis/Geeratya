@@ -218,6 +218,13 @@ internal static partial class DetailReducer
         var viewport = DetailLayout.ViewportRows(listRows);
         var row = commentsRow ?? FollowedCommentsRow(detail, width);
         var document = IssueDocumentBuilder.Build(detail, width, viewport);
+
+        // The zoomed pane is gone (its data went away): the zoom ends and the full layout shows.
+        if (detail.Zoomed is not null && !document.IsZoomed)
+        {
+            return Layout(detail with { Zoomed = null }, columns, listRows + DetailZoom.StripRows, commentsRow);
+        }
+
         var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
         var side = document.Side is null ? null : SideAnchored(detail, document.Side);
         var laidOut = Clamp(detail with { Document = document, Cursor = anchored, SideCursor = side }, listRows);

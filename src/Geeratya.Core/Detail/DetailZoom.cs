@@ -12,7 +12,7 @@ public static class DetailZoom
     /// <summary>Body lines of a comment before the cut when the Comments pane is zoomed.</summary>
     public const int ZoomedBodyLines = 6;
 
-    /// <summary>The body lines a comment shows before it is cut, for the pane layout of <paramref name="detail"/>.</summary>
+    /// <summary>The body lines a comment is cut after, for the pane layout of <paramref name="detail"/>.</summary>
     public static int BodyLines(DetailState detail)
     {
         return detail.Zoomed == PaneIds.Comments ? ZoomedBodyLines : CommentRows.BodyLines;

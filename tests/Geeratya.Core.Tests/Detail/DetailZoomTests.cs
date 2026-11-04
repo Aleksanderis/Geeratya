@@ -11,7 +11,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
 
-/// <summary>Zoomed sections of the issue detail (#705): zoom, the section strip, Esc and the Attachments list.</summary>
+/// <summary>Zoomed sections of the issue detail (#705): zoom, the strip, Esc and the Attachments list.</summary>
 [Trait("Os", "Independent")]
 public class DetailZoomTests
 {
@@ -185,8 +185,75 @@ public class DetailZoomTests
         var bare = Issue() with { Subtasks = [] };
         var reloaded = Deliver(state, new IssueDetailLoaded(tab.Id, Top(state).IssueRequest, bare, _now));
 
+        Assert.Null(Top(reloaded).Zoomed);
         Assert.True(Document(reloaded).SectionIds.Count > 1);
         Assert.False(Document(reloaded).IsZoomed);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnTheSecondAttachment_WhenZoomingAndLeaving_ThenItStaysOnThatAttachment()
+    {
+        var state = Press(OnPane(Opened(), "attachments"), "j").State;
+
+        Assert.Contains("photo.png", LineAtCursor(state));
+
+        var zoomed = Press(state, "Space", "z").State;
+
+        Assert.Contains("photo.png", LineAtCursor(zoomed));
+        Assert.Contains("photo.png", LineAtCursor(Press(zoomed, "Space", "z").State));
+    }
+
+    [Fact]
+    public void GivenTheCursorOnTheSecondComment_WhenZoomingAndLeaving_ThenItStaysOnThatComment()
+    {
+        var state = Press(OnPane(Opened(), "comments"), "j").State;
+        var second = Document(state).CommentRowIds[CommentsRow(state)];
+
+        var zoomed = Press(state, "Space", "z").State;
+
+        var left = Press(zoomed, "Space", "z").State;
+
+        Assert.Equal(second, Document(zoomed).CommentRowIds[CommentsRow(zoomed)]);
+        Assert.Equal(second, Document(left).CommentRowIds[CommentsRow(left)]);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAField_WhenZoomingDetailsAndLeaving_ThenItStaysOnThatField()
+    {
+        var state = Press(OnPane(Opened(), "details"), "j").State;
+        var target = Document(state).Targets[Top(state).Cursor];
+
+        var zoomed = Press(state, "Space", "z").State;
+
+        var left = Press(zoomed, "Space", "z").State;
+
+        Assert.Equal(target, Document(zoomed).Targets[Top(zoomed).Cursor]);
+        Assert.Equal(target, Document(left).Targets[Top(left).Cursor]);
+    }
+
+    private AppState OnPane(AppState state, string pane)
+    {
+        var steps = 0;
+
+        while (Document(state).SectionIds[Document(state).SectionAt(Top(state).Cursor)] != pane && steps++ < 20)
+        {
+            state = Press(state, "Ctrl-j").State;
+        }
+
+        return state;
+    }
+
+    private static string LineAtCursor(AppState state)
+    {
+        return Document(state).Lines[Top(state).Cursor].PlainText;
+    }
+
+    private static int CommentsRow(AppState state)
+    {
+        var section = Document(state).SectionIds.ToList().IndexOf("comments");
+
+        return Top(state).Cursor - Document(state).Sections[section]
+            + (Document(state).PaneScrolls[section]?.ClampedOffset ?? 0);
     }
 
     private AppState Zoom(AppState state, string pane)
@@ -253,13 +320,15 @@ public class DetailZoomTests
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(Definition("project = A")));
         var tab = Active(opened.State);
         var row = new IssueSummary("1", "A-1", "Issue 1", _todo, _story, null, null, [], null, null, "A");
-        var listed = Deliver(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage([row], null, null), _now));
+        var page = new IssuePage([row], null, null);
+        var listed = Deliver(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now));
         var shown = Press(listed, "Enter").State;
         var detail = Active(shown).Detail[0];
         var loaded = Deliver(shown, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(), _now));
-        var page = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Length, true);
+        var size = DetailPaging.CommentPageSize;
+        var commentPage = new OffsetPage<IssueComment>(comments, 0, size, comments.Length, true);
 
-        return Deliver(loaded, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now));
+        return Deliver(loaded, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now));
     }
 
     private static IssueDetail Issue()
