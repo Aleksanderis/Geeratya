@@ -183,3 +183,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (status bar content, #646)
 
 **UI:** The status bar in Normal mode shows the source and count, the selected issue (key and status) and the connection only when it is not healthy (Checking, Offline, rate limited, check failure); `Connected as ...` and the `col n/N  card n/N` counters are gone from it (owner request, overrides the cursor position of #569). Why: both were noise; the key hints already carry the contextual help. The profile screens keep the connected line.
+
+## 2026-11-04 (edit form navigate state, #650)
+
+**UI:** The edit form (more than one editable field) has a navigate state inside Insert mode: `j`/`k` (the Normal `nav.down`/`nav.up` rows), `Tab`, `Down`/`Up` move, `Enter` or the literal `i` start editing; the status bar keeps `INSERT`, the form shows `[navigate]`/`[editing]` and its own footer. Why: no new input mode for one overlay; `i` is a fixed key like `y`/`n` in discard (an Insert row for `i` would swallow typed text). Amends `ux-keymap.md` principle 7 for this form only.

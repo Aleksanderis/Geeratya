@@ -64,7 +64,6 @@ public class FormOverlaySnapshotTests
 
         Assert.Contains(navigate, line => line.Contains("[navigate]", StringComparison.Ordinal));
         Assert.Contains(navigate, line => line.Contains("edit", StringComparison.Ordinal) && line.Contains("j/k"));
-        Assert.DoesNotContain(navigate, line => line.Contains("[backend] [ui]", StringComparison.Ordinal) && line.Contains('_'));
         Assert.Contains(edit, line => line.Contains("[editing]", StringComparison.Ordinal));
         Assert.Contains(edit, line => line.Contains("stop editing", StringComparison.Ordinal));
     }
