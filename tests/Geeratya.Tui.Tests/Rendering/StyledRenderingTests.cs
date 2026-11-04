@@ -88,7 +88,8 @@ public class StyledRenderingTests
 
         Assert.True(selected.Style.HasFlag(TextStyle.Reverse));
         Assert.True(selected.Style.HasFlag(TextStyle.Bold));
-        Assert.True(done.Style.HasFlag(TextStyle.Italic));
+        Assert.True(done.Style.HasFlag(TextStyle.Bold));
+        Assert.False(done.Style.HasFlag(TextStyle.Italic));
         Assert.Equal(new Color(0xA6, 0xE3, 0xA1), done.Foreground);
     }
 
