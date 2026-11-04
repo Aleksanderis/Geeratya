@@ -14,6 +14,8 @@ public sealed partial class FakeJiraRouter
     private const string BoardPrefix = "/rest/agile/1.0/board/";
     private const string BoardIssuesPath = "/rest/agile/1.0/board/4/issue";
     private const string StartAtName = "startAt";
+    private const string OrderByName = "orderBy";
+    private const string NewestFirstOrder = "-created";
     private const string MyselfPath = "myself/myself.json";
     private const int BoardPageSize = 10;
     private const string CountPath = "/rest/api/3/search/approximate-count";
@@ -176,7 +178,7 @@ public sealed partial class FakeJiraRouter
             return meta;
         }
 
-        if (method == Get && TryStoredRead(path) is { } stored)
+        if (method == Get && TryStoredRead(path, query) is { } stored)
         {
             return stored;
         }
@@ -194,6 +196,11 @@ public sealed partial class FakeJiraRouter
         if (method == Get && _routes.TryGetValue(path, out var fixture))
         {
             var reply = new FakeReply(200, ReadFixture(fixture));
+
+            if (path.EndsWith($"/{CommentPart}", StringComparison.Ordinal) && IsNewestFirst(query))
+            {
+                return new FakeReply(200, FakeJiraWriteStore.ReverseComments(reply.Body));
+            }
 
             return IsIssueList(path) ? _writes.Ranked(reply) : reply;
         }
@@ -252,7 +259,11 @@ public sealed partial class FakeJiraRouter
             1 => new FakeReply(200, GeneratedIssues.Detail(number)),
             2 when parts[1] == "comment" => new FakeReply(
                 200,
-                GeneratedIssues.Comments(number, IntOf(query, StartAtName, 0), IntOf(query, MaxResultsName, DefaultPageSize))),
+                GeneratedIssues.Comments(
+                    number,
+                    IntOf(query, StartAtName, 0),
+                    IntOf(query, MaxResultsName, DefaultPageSize),
+                    IsNewestFirst(query))),
             2 when parts[1] == RemoteLinkPart => new FakeReply(200, GeneratedIssues.RemoteLinks(number)),
             _ => null,
         };
@@ -342,7 +353,7 @@ public sealed partial class FakeJiraRouter
     /// The reads the write store changes: an issue (created, edited or transitioned), its comments and its
     /// transitions. Null when the store holds nothing for the path, so the recorded route answers.
     /// </summary>
-    private FakeReply? TryStoredRead(string path)
+    private FakeReply? TryStoredRead(string path, IReadOnlyDictionary<string, string> query)
     {
         if (!path.StartsWith(IssuePrefix, StringComparison.Ordinal))
         {
@@ -394,7 +405,7 @@ public sealed partial class FakeJiraRouter
             return _writes.Transitions(key);
         }
 
-        return parts[1] == CommentPart && _writes.Comments(key, recorded) is { } comments
+        return parts[1] == CommentPart && _writes.Comments(key, recorded, IsNewestFirst(query)) is { } comments
             ? new FakeReply(200, comments)
             : null;
     }
@@ -459,6 +470,12 @@ public sealed partial class FakeJiraRouter
     }
 
     private static bool IsRecordedIssue(string key) => _routes.ContainsKey($"{IssuePrefix}{key}");
+
+    /// <summary>True when the comment call asks for the newest comment first (<c>orderBy=-created</c>).</summary>
+    private static bool IsNewestFirst(IReadOnlyDictionary<string, string> query)
+    {
+        return query.TryGetValue(OrderByName, out var order) && order == NewestFirstOrder;
+    }
 
     private static int IntOf(IReadOnlyDictionary<string, string> query, string name, int fallback)
     {

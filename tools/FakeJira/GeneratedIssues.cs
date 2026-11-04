@@ -79,16 +79,18 @@ public static class GeneratedIssues
 
     /// <summary>
     /// A page of the comments of generated issue <paramref name="number"/>: every fifth issue has 120 comments (to
-    /// page through), the others three.
+    /// page through), the others three. With <paramref name="newestFirst"/> the list is reversed.
     /// </summary>
-    public static byte[] Comments(int number, int startAt, int pageSize)
+    public static byte[] Comments(int number, int startAt, int pageSize, bool newestFirst = false)
     {
         var total = number % LongThreadEvery == 0 ? LongThreadComments : ShortThreadComments;
         var end = Math.Min(total, Math.Max(0, startAt) + Math.Max(1, pageSize));
         var comments = new List<string>();
 
-        for (var index = Math.Max(0, startAt); index < end; index++)
+        for (var position = Math.Max(0, startAt); position < end; position++)
         {
+            var index = newestFirst ? total - 1 - position : position;
+
             comments.Add(
                 $$$"""{"id":"{{{index + 1}}}","author":{"accountId":"gen-{{{index % 3}}}","displayName":"Generated Writer {{{index % 3}}}"},"body":{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Generated comment {{{index + 1}}} on issue {{{number}}}."}]}]},"created":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000","updated":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000"}""");
         }

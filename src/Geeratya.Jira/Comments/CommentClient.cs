@@ -10,7 +10,8 @@ using Geeratya.Jira.Writes.Models;
 namespace Geeratya.Jira.Comments;
 
 /// <summary>
-/// Reads the comments of one issue, one offset page at a time, oldest first, and adds, edits and deletes one.
+/// Reads the comments of one issue, one offset page at a time, newest first (<c>orderBy=-created</c>), and adds,
+/// edits and deletes one.
 /// Reading is a read; <see cref="AddCommentAsync"/>, <see cref="EditCommentAsync"/> and
 /// <see cref="DeleteCommentAsync"/> are writes: call them only from a confirmed command, never retry them
 /// silently (a repeated add duplicates), and reload with <see cref="ReadAfterWrite"/> after an unknown outcome.
@@ -43,7 +44,7 @@ public sealed class CommentClient(JiraTransport transport)
 
         var start = Math.Max(startAt, 0);
         var size = Math.Clamp(pageSize, 1, MaxPageSize);
-        var url = $"{IssuePath}/{key}/comment?orderBy=created&startAt={Number(start)}&maxResults={Number(size)}";
+        var url = $"{IssuePath}/{key}/comment?orderBy=-created&startAt={Number(start)}&maxResults={Number(size)}";
 
         var result = await transport.SendAsync(
             JiraRequest.Get(url) with { Priority = priority },

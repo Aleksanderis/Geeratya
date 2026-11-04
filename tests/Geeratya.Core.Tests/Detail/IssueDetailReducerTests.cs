@@ -535,6 +535,23 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
+    public void GivenANextPageThatOverlapsLoadedComments_WhenItArrives_ThenNoCommentIsShownTwice()
+    {
+        var state = LoadedLongIssue(commentCount: 3, rows: 10, hasMore: true);
+        var requested = Press(Press(state, "G").State, "Enter");
+        var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
+
+        // Someone commented elsewhere: the page starts one comment earlier (c3 again).
+        var arrived = Deliver(
+            requested.State,
+            new IssueCommentsLoaded(Active(state).Id, effect.RequestId, CommentPage(3, startAt: 2, total: 6), _now));
+
+        var ids = Active(arrived).Detail[0].Comments.Select(comment => comment.Id).ToArray();
+        Assert.Equal(ids.Length, ids.Distinct().Count());
+        Assert.Equal(5, ids.Length);
+    }
+
+    [Fact]
     public void GivenMoreCommentsThanOnePage_WhenPressingEnter_ThenTheNextPageLoadsAndAppendsOnce()
     {
         var state = LoadedLongIssue(commentCount: 3, rows: 10, hasMore: true);
@@ -581,7 +598,7 @@ public class IssueDetailReducerTests
         Assert.Equal(DetailPaging.MaxComments, capped.Comments.Count);
         Assert.Null(capped.NextComments);
         Assert.DoesNotContain("Load more comments", Text(capped));
-        Assert.Contains("Showing the first comments only.", Text(capped));
+        Assert.Contains("Showing the newest comments only.", Text(capped));
     }
 
     [Fact]

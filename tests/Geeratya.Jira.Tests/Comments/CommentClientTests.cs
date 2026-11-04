@@ -116,8 +116,8 @@ public sealed class CommentClientTests
         Assert.Equal(["10010", "10011", "10012"], ids);
         Assert.Equal(
             [
-                $"{GcmPath}?orderBy=created&startAt=0&maxResults=2",
-                $"{GcmPath}?orderBy=created&startAt=2&maxResults=2",
+                $"{GcmPath}?orderBy=-created&startAt=0&maxResults=2",
+                $"{GcmPath}?orderBy=-created&startAt=2&maxResults=2",
             ],
             fixture.Handler.Requests.Select(request => request.PathAndQuery));
     }
@@ -216,7 +216,7 @@ public sealed class CommentClientTests
         await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-6", -4, CancellationToken.None, 5000);
 
         Assert.Equal(
-            $"{GcmPath}?orderBy=created&startAt=0&maxResults=100",
+            $"{GcmPath}?orderBy=-created&startAt=0&maxResults=100",
             Assert.Single(fixture.Handler.Requests).PathAndQuery);
     }
 

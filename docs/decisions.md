@@ -67,7 +67,7 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 ## 2026-11-02
 
-**UI:** The issue detail lists comments oldest first (supersedes `ux-screens.md`, #84). Why: the client pages oldest first; reversing needs a second client mode for no reader benefit. `q` still quits in the detail. Details: `ux-workflows.md`, "Design details".
+**UI:** [Superseded 2026-11-04, #703: newest first.] The issue detail lists comments oldest first (supersedes `ux-screens.md`, #84). Why: the client pages oldest first; reversing needs a second client mode for no reader benefit. `q` still quits in the detail. Details: `ux-workflows.md`, "Design details".
 
 **Architecture:** Write pipeline (#151): operations live in `SiteSession.Operations`, row changes are optimistic with rollback, writes are never retried and a lost reply is verified by re-reading. Why: Gitunia's M7 retrofit. The single-transition confirm part is superseded by the #159 entry. Details: `architecture.md`.
 
@@ -236,3 +236,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **Jira layer:** A sub-task's assignee comes from the `parent = KEY` search that epics already run, so an issue with sub-tasks now runs it too (one request, no Child issues pane for it); the cell is blank until it arrives or fails. Why: Jira's `subtasks` stubs carry key, summary, status and type only, and a request per sub-task would be N+1.
 
 **UI:** The detail's `]]`/`[[` and `z a` are gone, panes expand with `Enter` (the backlog and the board keep the chords). Zoom (`<space>z`) answers "not available yet" in the detail until #705. Why: the pane decisions of this day; a hidden zoom state with no drawing would trap `Esc`.
+
+## 2026-11-04 (#703, comments newest first)
+
+**Jira layer:** The comment call sends `orderBy=-created` and the detail lists comments newest first; an added comment goes on top, a thread cut at 1000 keeps the newest. Why: the Comments pane spec says `newest first` and a long thread should show the latest at once (readiness default, owner not blocking; supersedes the 2026-11-02 "oldest first" entry, #84).

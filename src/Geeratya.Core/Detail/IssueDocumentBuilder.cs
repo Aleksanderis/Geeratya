@@ -33,7 +33,7 @@ public static class IssueDocumentBuilder
     private const string BackText = "Esc to go back.";
     private const string UnknownAuthor = "Unknown";
     private const string EditedText = " (edited)";
-    private const string TooManyText = "Showing the first comments only.";
+    private const string TooManyText = "Showing the newest comments only.";
 
     private static readonly TimeSpan _editedAfter = TimeSpan.FromMinutes(1);
 
