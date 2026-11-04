@@ -37,6 +37,15 @@ public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffse
 public sealed record PointerPlaced(int Column, int Row, int Width, ActionRequested? Then = null) : Command;
 
 /// <summary>
+/// The wheel turned over the opened issue: the pane under the pointer takes the focus (when it is not the one that
+/// holds the cursor), then <paramref name="Action"/> (a motion repeated 3 times) scrolls it.
+/// </summary>
+/// <param name="Column">The screen column of the pointer.</param>
+/// <param name="Row">The row inside the body (the first row under the tab bar and banner is 0).</param>
+/// <param name="Action">The motion the notch runs.</param>
+public sealed record DetailWheeled(int Column, int Row, ActionRequested Action) : Command;
+
+/// <summary>
 /// The pointer moved over the tab bar (or off it): the chip under it, null when none. The chip shows its close
 /// <c>x</c> while hovered (<c>docs/ux-look.md</c>, section 5); it changes nothing else and has no action id.
 /// </summary>

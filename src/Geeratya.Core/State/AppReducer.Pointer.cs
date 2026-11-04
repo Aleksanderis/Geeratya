@@ -74,8 +74,18 @@ public sealed partial class AppReducer
             return Result(cleared);
         }
 
+        if (ViewReducer.IsDetailFrameClick(cleared, placed))
+        {
+            return placement;
+        }
+
         if (placed.Then is not { } action)
         {
+            if (ViewReducer.ClickOpensDetailRow(cleared, placed))
+            {
+                return WithPlacement(placement, _openClick);
+            }
+
             return IsSubtaskRowClick(cleared, placed) ? WithPlacement(placement, _subtaskClick) : placement;
         }
 
@@ -88,6 +98,17 @@ public sealed partial class AppReducer
         var acted = ReduceRequested(placement.State, action);
 
         return new ReduceResult(acted.State, [.. placement.Effects, .. acted.Effects]);
+    }
+
+    /// <summary>
+    /// A wheel notch over the opened issue: the pane under the pointer takes the focus, then the notch scrolls it like
+    /// the motion key does.
+    /// </summary>
+    private ReduceResult DetailWheel(AppState state, DetailWheeled wheeled)
+    {
+        var focused = ViewReducer.FocusUnderWheel(Unpended(state), wheeled.Column, wheeled.Row);
+
+        return ReduceRequested(focused, wheeled.Action);
     }
 
     private ReduceResult WithPlacement(ReduceResult placement, ActionRequested action)

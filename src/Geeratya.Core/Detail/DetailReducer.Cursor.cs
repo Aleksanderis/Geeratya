@@ -62,30 +62,72 @@ internal static partial class DetailReducer
 
     /// <summary>
     /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
-    /// first row of the overlay is row 0), without scrolling. Null for rows outside the document.
+    /// first row of the overlay is row 0), without scrolling; a click on a frame edge focuses its pane, a click on a
+    /// section of the zoom strip switches to it. Null for cells outside the document.
     /// </summary>
     public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow, int bodyColumn = 0)
     {
         var top = tab.Detail[^1];
-        if (SidePlaced(state, tab, bodyRow, bodyColumn) is { } onSide)
-        {
-            return onSide;
-        }
+        var hit = DetailPointer.Locate(state, tab, bodyRow, bodyColumn);
 
-        var strip = top.Zoomed is null ? 0 : DetailZoom.StripRows;
-        var line = top.Scroll + bodyRow - DetailLayout.HeaderRows - strip;
-
-        var shown = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
-
-        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows + strip
-            || bodyRow >= DetailLayout.HeaderRows + strip + shown || line >= document.Lines.Count)
+        if (top.Document is not { } document || hit.Kind == DetailPointerKind.None)
         {
             return null;
         }
 
-        return ViewReducer.Replace(
-            state,
-            ReplaceTop(tab, top with { Cursor = document.Snap(line), SideCursor = null }));
+        if (hit.Kind == DetailPointerKind.Strip)
+        {
+            return hit.Section == top.Zoomed ? state : Reshow(state, tab, hit.Section, false);
+        }
+
+        if (hit.OnSide)
+        {
+            var side = document.Side!;
+            var line = hit.Line >= 0 ? side.Snap(hit.Line) : top.SideCursor ?? side.Snap(0);
+
+            return ViewReducer.Replace(state, ReplaceTop(tab, top with { SideCursor = line }));
+        }
+
+        var placed = top with { Cursor = StopFor(document, hit.Line), SideCursor = null };
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, placed));
+    }
+
+    // The stop a click on a line lands on: a row of a comment that is no stop (the cut body, its note) selects that
+    // comment, so the stop before it, not the next comment's header that Snap would take.
+    private static int StopFor(DetailDocument document, int line)
+    {
+        var onComment = line < document.Targets.Count && document.Targets[line] is { Kind: DetailTargetKind.Comment };
+
+        return onComment && !document.Stops.Contains(line) ? document.StopBefore(line) : document.Snap(line);
+    }
+
+    /// <summary>
+    /// A wheel notch over the detail: when the pointer is over a pane other than the one that holds the cursor, that
+    /// pane takes the focus first (on the row under the pointer), so the notch scrolls the pane under the pointer.
+    /// Over the pane that has the focus, a frame edge or anywhere outside the document nothing moves.
+    /// </summary>
+    public static AppState FocusUnderWheel(AppState state, TabState tab, int bodyRow, int bodyColumn)
+    {
+        var top = tab.Detail[^1];
+        var hit = DetailPointer.Locate(state, tab, bodyRow, bodyColumn);
+
+        if (top.Document is not { } document || hit.Kind is DetailPointerKind.None or DetailPointerKind.Strip)
+        {
+            return state;
+        }
+
+        var onSide = top.SideCursor is not null && document.Side is not null;
+
+        if (hit.OnSide != onSide)
+        {
+            return PlaceCursor(state, tab, bodyRow, bodyColumn) ?? state;
+        }
+
+        var line = hit.Line >= 0 ? hit.Line : top.Cursor;
+        var samePane = hit.OnSide || document.SectionAt(line) == document.SectionAt(top.Cursor);
+
+        return samePane ? state : PlaceCursor(state, tab, bodyRow, bodyColumn) ?? state;
     }
 
     /// <summary>
