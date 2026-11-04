@@ -179,7 +179,7 @@ public class TransitionFlowTests
         var tab = failed.Session.Tabs[0];
         var columns = ColumnsNavigation.ColumnsOf(tab);
         Assert.Equal("To Do", tab.Rows[0].Status.Name);
-        Assert.Equal(0, BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, 10).Column);
+        Assert.Equal(0, BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ColumnsNavigation.ViewOf(tab)).Column);
         Assert.Equal("A-1", ColumnsNavigation.SelectedIssue(tab)!.Key);
     }
 
@@ -271,7 +271,7 @@ public class TransitionFlowTests
         Assert.Equal("In Progress", tab.Rows[0].Status.Name);
         Assert.Equal("A-1", ColumnsNavigation.SelectedIssue(tab)!.Key);
         Assert.Equal("In Progress", ColumnsNavigation.ColumnsOf(tab)[1].Name);
-        Assert.Equal(1, BoardMotion.Resolve(ColumnsNavigation.ColumnsOf(tab), tab.Cursor, tab.SelectedKey, 10).Column);
+        Assert.Equal(1, BoardMotion.Resolve(ColumnsNavigation.ColumnsOf(tab), tab.Cursor, tab.SelectedKey, ColumnsNavigation.ViewOf(tab)).Column);
     }
 
     [Fact]

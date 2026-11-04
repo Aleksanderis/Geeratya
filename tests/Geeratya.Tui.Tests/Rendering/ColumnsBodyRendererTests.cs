@@ -337,11 +337,11 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        // Cards differ in height, so the scroll is corrected for the tallest card (nine rows, two cards in a window
-        // of 26 rows): A-30 on the first card row, with the selected A-31 under it.
-        Assert.Contains("A-30", body[5].PlainText);
-        Assert.Contains("A-31  Task", body[5 + 5].PlainText);
-        Assert.Contains("┏", body[2 + 5].PlainText);
+        // These cards have five rows, so five fit the 26 rows and the scrolloff shrinks to two cards: A-29 on the
+        // first card row, the selected A-31 two cards under it.
+        Assert.Contains("A-29", body[5].PlainText);
+        Assert.Contains("A-31  Task", body[5 + 10].PlainText);
+        Assert.Contains("┏", body[2 + 10].PlainText);
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-3 ", StringComparison.Ordinal));
         Assert.Equal(30, body.Count);
     }

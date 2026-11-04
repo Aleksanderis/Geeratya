@@ -93,6 +93,33 @@ public class ColumnsLayoutKeysTests
         Assert.True(Tab(bottom).Cursor!.Scrolls[0] > 0);
     }
 
+    [Theory]
+    [InlineData(21, 80, 2)]
+    [InlineData(29, 120, 3)]
+    public void GivenShortCards_WhenPagingDownAtTheReportedSize_ThenTheHalfPageCountsTheRealCardHeights(
+        int rows,
+        int columns,
+        int expected)
+    {
+        var specs = Enumerable.Range(1, 40).Select(number => $"1:A-{number}").ToArray();
+        var sized = _reducer.Reduce(Loaded(Issues(specs)), new ViewportChanged(rows, columns)).State;
+
+        var paged = Press(sized, "Ctrl-d");
+
+        Assert.Equal(columns, Tab(sized).ViewWidth);
+        Assert.Equal(expected, Tab(paged).Cursor!.Card);
+    }
+
+    [Fact]
+    public void GivenGrowingTerminal_WhenTheWidthChanges_ThenTheTabRemembersTheNewWidth()
+    {
+        var sized = _reducer.Reduce(Loaded(Issues("1:A-1")), new ViewportChanged(20, 100)).State;
+        var wider = _reducer.Reduce(sized, new ViewportChanged(20, 140)).State;
+
+        Assert.Equal(100, Tab(sized).ViewWidth);
+        Assert.Equal(140, Tab(wider).ViewWidth);
+    }
+
     [Fact]
     public void GivenEmptyColumnSelected_WhenPressingJ_ThenNothingMoves()
     {

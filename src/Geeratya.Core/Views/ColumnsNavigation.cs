@@ -15,7 +15,7 @@ public static class ColumnsNavigation
     public static TabState Move(TabState tab, ListMove move)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.MoveCard(columns, tab.Cursor, tab.SelectedKey, move, CardsVisible(tab));
+        var cursor = BoardMotion.MoveCard(columns, tab.Cursor, tab.SelectedKey, move, ViewOf(tab));
 
         return Follow(tab, columns, cursor);
     }
@@ -27,21 +27,21 @@ public static class ColumnsNavigation
     public static TabState Place(TabState tab, int width, int column, int row)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         if (BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null) is not { } hit)
         {
             return tab;
         }
 
-        return Follow(tab, columns, BoardMotion.Place(columns, tab.Cursor, tab.SelectedKey, hit, CardsVisible(tab)));
+        return Follow(tab, columns, BoardMotion.Place(columns, tab.Cursor, tab.SelectedKey, hit, ViewOf(tab)));
     }
 
     /// <summary>True when the body cell is on a card (not a column header or an empty cell).</summary>
     public static bool IsCardAt(TabState tab, int width, int column, int row)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         var hit = BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null);
 
@@ -57,7 +57,7 @@ public static class ColumnsNavigation
     public static bool IsSubtaskRowAt(TabState tab, int width, int column, int row)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         if (BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows)
             || BoardHits.Locate(columns, cursor, tab.VisibleRows, width, column, row)
@@ -78,7 +78,7 @@ public static class ColumnsNavigation
     public static int? DragSteps(TabState tab, int width, int fromColumn, int fromRow, int toColumn)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         if (BoardWindows.For(columns.Count, cursor.Column, width).Count < 2
             || BoardHits.At(columns, cursor, tab.VisibleRows, width, fromColumn, fromRow, tab.Next is not null)
@@ -95,7 +95,7 @@ public static class ColumnsNavigation
     public static TabState MoveColumn(TabState tab, BoardColumnMove move)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.MoveColumn(columns, tab.Cursor, tab.SelectedKey, move, CardsVisible(tab));
+        var cursor = BoardMotion.MoveColumn(columns, tab.Cursor, tab.SelectedKey, move, ViewOf(tab));
 
         return Follow(tab, columns, cursor);
     }
@@ -116,9 +116,9 @@ public static class ColumnsNavigation
     public static TabState Select(TabState tab, string key)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, CardsVisible(tab)));
+        return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, ViewOf(tab)));
     }
 
     /// <summary>The issue under the cursor, null when the selected column is empty or the tab has no rows.</summary>
@@ -126,7 +126,7 @@ public static class ColumnsNavigation
     {
         var columns = ColumnsOf(tab);
 
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         return BoardMotion.SelectedIssue(columns, cursor);
     }
@@ -141,7 +141,7 @@ public static class ColumnsNavigation
             return null;
         }
 
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         return new ColumnSelection(
             columns[cursor.Column].Rows,
@@ -164,20 +164,21 @@ public static class ColumnsNavigation
     public static TabState Resync(TabState tab)
     {
         var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, null, null, CardsVisible(tab));
+        var cursor = BoardMotion.Resolve(columns, null, null, ViewOf(tab));
         var first = columns.FirstOrDefault(column => column.Rows.Count > 0)?.Rows[0].Key;
 
         if (first is not null)
         {
-            cursor = BoardMotion.Follow(columns, cursor, first, CardsVisible(tab));
+            cursor = BoardMotion.Follow(columns, cursor, first, ViewOf(tab));
         }
 
         return Follow(tab with { Cursor = null, Marks = [], VisualAnchor = null }, columns, cursor);
     }
 
-    private static int CardsVisible(TabState tab)
+    /// <summary>The room the tab's board has, for the scroll maths (the same the renderer draws in).</summary>
+    public static BoardViewport ViewOf(TabState tab)
     {
-        return BoardCards.Visible(tab.VisibleRows, ListLayout.HeaderRows);
+        return new BoardViewport(tab.VisibleRows, tab.ViewWidth);
     }
 
     private static TabState Follow(TabState tab, IReadOnlyList<BoardColumnGroup> columns, BoardCursor cursor)

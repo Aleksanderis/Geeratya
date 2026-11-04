@@ -20,7 +20,7 @@ public static class BoardMotion
         IReadOnlyList<BoardColumnGroup> columns,
         BoardCursor? cursor,
         string? selectedKey,
-        int cardsVisible)
+        BoardViewport view)
     {
         if (columns.Count == 0)
         {
@@ -53,7 +53,7 @@ public static class BoardMotion
             var count = columns[each].Rows.Count;
 
             cards[each] = Math.Clamp(cards[each], 0, Math.Max(0, count - 1));
-            scrolls[each] = ListMotion.Reveal(new ListPosition(cards[each], scrolls[each]), count, cardsVisible).Scroll;
+            scrolls[each] = Reveal(columns, each, column, new ListPosition(cards[each], scrolls[each]), view).Scroll;
         }
 
         return new BoardCursor(column, cards, scrolls, Math.Max(0, wanted));
@@ -67,19 +67,21 @@ public static class BoardMotion
         IReadOnlyList<BoardColumnGroup> columns,
         BoardCursor cursor,
         string key,
-        int cardsVisible)
+        BoardViewport view)
     {
-        var current = Resolve(columns, cursor, null, cardsVisible);
+        var current = Resolve(columns, cursor, null, view);
 
         if (FindKey(columns, key) is not { } found)
         {
             return current;
         }
 
-        var position = ListMotion.Reveal(
+        var position = Reveal(
+            columns,
+            found.Column,
+            found.Column,
             new ListPosition(found.Card, current.Scrolls[found.Column]),
-            columns[found.Column].Rows.Count,
-            cardsVisible);
+            view);
 
         return With(current, found.Column, position, found.Card);
     }
@@ -103,22 +105,21 @@ public static class BoardMotion
         BoardCursor? cursor,
         string? selectedKey,
         ListMove move,
-        int cardsVisible)
+        BoardViewport view)
     {
-        var current = Resolve(columns, cursor, selectedKey, cardsVisible);
+        var current = Resolve(columns, cursor, selectedKey, view);
 
         if (columns.Count == 0)
         {
             return current;
         }
 
-        var count = columns[current.Column].Rows.Count;
-        var position = ListMotion.Move(
+        var position = BoardScroll.Move(
+            columns[current.Column],
             new ListPosition(current.Card, current.Scrolls[current.Column]),
             move,
-            1,
-            count,
-            cardsVisible);
+            view,
+            CellWidth(columns.Count, current.Column, current.Column, view));
 
         return With(current, current.Column, position, position.Selected);
     }
@@ -132,9 +133,9 @@ public static class BoardMotion
         BoardCursor? cursor,
         string? selectedKey,
         BoardColumnMove move,
-        int cardsVisible)
+        BoardViewport view)
     {
-        var current = Resolve(columns, cursor, selectedKey, cardsVisible);
+        var current = Resolve(columns, cursor, selectedKey, view);
 
         if (columns.Count == 0)
         {
@@ -153,7 +154,7 @@ public static class BoardMotion
 
         var count = columns[target].Rows.Count;
         var card = Math.Clamp(current.Wanted, 0, Math.Max(0, count - 1));
-        var position = ListMotion.Reveal(new ListPosition(card, current.Scrolls[target]), count, cardsVisible);
+        var position = Reveal(columns, target, target, new ListPosition(card, current.Scrolls[target]), view);
 
         return With(current, target, position, current.Wanted);
     }
@@ -167,9 +168,9 @@ public static class BoardMotion
         BoardCursor? cursor,
         string? selectedKey,
         BoardHit hit,
-        int cardsVisible)
+        BoardViewport view)
     {
-        var current = Resolve(columns, cursor, selectedKey, cardsVisible);
+        var current = Resolve(columns, cursor, selectedKey, view);
 
         if (columns.Count == 0)
         {
@@ -179,9 +180,34 @@ public static class BoardMotion
         var column = Math.Clamp(hit.Column, 0, columns.Count - 1);
         var count = columns[column].Rows.Count;
         var card = Math.Clamp(hit.Card ?? current.Cards[column], 0, Math.Max(0, count - 1));
-        var position = ListMotion.Reveal(new ListPosition(card, current.Scrolls[column]), count, cardsVisible);
+        var position = Reveal(columns, column, column, new ListPosition(card, current.Scrolls[column]), view);
 
         return With(current, column, position, hit.Card is null ? current.Wanted : card);
+    }
+
+    /// <summary>
+    /// Scrolls <paramref name="column"/> so the position shows, with the card heights of the cell it is drawn in when
+    /// <paramref name="selectedColumn"/> is the selected one.
+    /// </summary>
+    private static ListPosition Reveal(
+        IReadOnlyList<BoardColumnGroup> columns,
+        int column,
+        int selectedColumn,
+        ListPosition position,
+        BoardViewport view)
+    {
+        return BoardScroll.Reveal(columns[column], position, view, CellWidth(columns.Count, selectedColumn, column, view));
+    }
+
+    /// <summary>
+    /// The cell width of <paramref name="column"/> when <paramref name="selectedColumn"/> is selected; a column
+    /// outside the window gets the width of the nearest drawn one.
+    /// </summary>
+    private static int CellWidth(int total, int selectedColumn, int column, BoardViewport view)
+    {
+        var window = BoardWindows.For(total, selectedColumn, view.Width);
+
+        return window.Count == 0 ? 0 : window.CellWidth(Math.Clamp(column - window.First, 0, window.Count - 1));
     }
 
     private static BoardCursor With(BoardCursor current, int column, ListPosition position, int wanted)

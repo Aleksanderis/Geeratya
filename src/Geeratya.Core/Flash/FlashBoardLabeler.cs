@@ -39,7 +39,7 @@ public static class FlashBoardLabeler
         }
 
         var visible = BoardCards.Visible(tab.VisibleRows, ListLayout.HeaderRows);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, visible);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(tab.VisibleRows, width));
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
         var compact = BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows);
         var found = new List<FlashLabel>();

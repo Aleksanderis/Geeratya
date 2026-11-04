@@ -23,26 +23,26 @@ public static class BoardStateFixtures
     /// <summary>The company-managed Kanban board (4 columns, Backlog first, 24 issues).</summary>
     public static Task<AppState> CompanyManagedAsync(int viewportRows)
     {
-        return OpenAsync("board-gcm-config", ["rows-gcm-issues"], "4", "GCM board", viewportRows);
+        return OpenAsync("board-gcm-config", ["rows-gcm-issues"], "4", "GCM board", viewportRows, 0);
     }
 
     /// <summary>The team-managed board (4 columns, Backlog third, 16 issues).</summary>
     public static Task<AppState> TeamManagedAsync(int viewportRows)
     {
-        return OpenAsync("board-gtm-config", ["rows-gtm-issues"], "3", "GTM board", viewportRows, KanbanProbeReply);
+        return OpenAsync("board-gtm-config", ["rows-gtm-issues"], "3", "GTM board", viewportRows, 0, KanbanProbeReply);
     }
 
     /// <summary>
     /// A board whose issues carry their <c>subtasks</c> stubs: the sub-tasks are cards too, or, with
     /// <paramref name="filtered"/>, the board filter leaves them out and only the parents list them.
     /// </summary>
-    public static Task<AppState> WithSubtasksAsync(string kind, bool filtered, int viewportRows)
+    public static Task<AppState> WithSubtasksAsync(string kind, bool filtered, int viewportRows, int viewportColumns = 0)
     {
         var page = $"rows-{kind}-issues-subtasks{(filtered ? "-filtered" : string.Empty)}";
 
         return kind == "gcm"
-            ? OpenAsync("board-gcm-config", [page], "4", "GCM board", viewportRows)
-            : OpenAsync("board-gtm-config", [page], "3", "GTM board", viewportRows, KanbanProbeReply);
+            ? OpenAsync("board-gcm-config", [page], "4", "GCM board", viewportRows, viewportColumns)
+            : OpenAsync("board-gtm-config", [page], "3", "GTM board", viewportRows, viewportColumns, KanbanProbeReply);
     }
 
     private static async Task<AppState> OpenAsync(
@@ -51,6 +51,7 @@ public static class BoardStateFixtures
         string boardId,
         string title,
         int viewportRows,
+        int viewportColumns,
         string? probeReply = null)
     {
         var http = new ScriptedJiraHandler().Reply(HttpStatusCode.OK, BoardFixtureFiles.Read(configuration));
@@ -94,7 +95,7 @@ public static class BoardStateFixtures
             Session = SiteSession.Empty(_profile),
         };
         var definition = new ViewDefinition(ViewSourceKind.Board, boardId, ViewLayout.Columns, title);
-        var pending = new Queue<Command>([new ViewOpenRequested(definition), new ViewportChanged(viewportRows)]);
+        var pending = new Queue<Command>([new ViewOpenRequested(definition), new ViewportChanged(viewportRows, viewportColumns)]);
 
         while (pending.Count > 0)
         {

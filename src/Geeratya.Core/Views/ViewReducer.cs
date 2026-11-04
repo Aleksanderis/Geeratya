@@ -249,7 +249,7 @@ public static partial class ViewReducer
         if (state.ViewportRows == height
             && state.ViewportColumns == columns
             && state.ViewportBodyHeight == bodyHeight
-            && state.Session.Tabs.All(tab => tab.VisibleRows == height))
+            && state.Session.Tabs.All(tab => tab.VisibleRows == height && tab.ViewWidth == columns))
         {
             return state;
         }
@@ -257,7 +257,7 @@ public static partial class ViewReducer
         var layoutColumns = DetailSize.Columns(columns, bodyHeight);
         var tabs = state.Session.Tabs
             .Select(tab => DetailReducer.Resized(
-                Resized(tab, height),
+                Resized(tab, height) with { ViewWidth = columns },
                 layoutColumns,
                 DetailSize.ForTab(tab, DetailSize.ListRows(columns, bodyHeight, height))))
             .ToArray();

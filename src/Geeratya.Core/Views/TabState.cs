@@ -65,6 +65,12 @@ public sealed record TabState(
     public IReadOnlyList<DetailState> Detail { get; init; } = [];
 
     /// <summary>
+    /// The body width the host last reported (0 until it did): with <see cref="VisibleRows"/> it gives the cell width
+    /// and so the card heights the columns layout scrolls by.
+    /// </summary>
+    public int ViewWidth { get; init; }
+
+    /// <summary>
     /// The refresh key was pressed while a write ran: the refresh starts when the last operation ends
     /// (<c>docs/architecture.md</c>, "Write pipeline").
     /// </summary>

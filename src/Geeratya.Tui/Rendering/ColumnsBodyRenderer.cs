@@ -44,7 +44,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
         var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOf(tab), BusyMarks.Keys(state), glyphs);
         var cards = BoardCards.Visible(area, ListLayout.HeaderRows);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, cards);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(area, width));
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
 
         if (tab.Rows.Count == 0 || columns.Count == 0)
