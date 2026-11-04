@@ -38,7 +38,7 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("/rest/agile/1.0/board/3/configuration", fixture.Path(0));
         Assert.Contains("/rest/agile/1.0/board/3/sprint", fixture.Path(1));
         Assert.Contains("/rest/agile/1.0/board/3/issue", fixture.Path(2));
-        Assert.Contains("resolutiondate", fixture.Query(2));
+        Assert.Contains("statusCategoryChangedDate", fixture.Query(2));
 
         var groups = GroupOf(tab);
         Assert.Equal(["To Do", "In Progress", "Backlog", "Done"], groups.Columns.Select(column => column.Name));
@@ -112,12 +112,12 @@ public sealed class ViewLoadHandlerBoardTests
 
         if (days == 0)
         {
-            Assert.DoesNotContain("resolutiondate", query);
+            Assert.DoesNotContain("statusCategoryChangedDate", query);
             Assert.Equal("Done", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         }
         else
         {
-            Assert.Contains($"resolutiondate >= -{days}d", query);
+            Assert.Contains($"statusCategoryChangedDate >= -{days}d", query);
             Assert.Equal($"Done ({days}d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         }
     }
@@ -140,7 +140,7 @@ public sealed class ViewLoadHandlerBoardTests
         var all = opened with { Settings = new AppSettings(DoneCutoffDays: 0) };
         var refreshed = await RunAsync(fixture, all, new RefreshRequested(tab.Id));
 
-        Assert.DoesNotContain("resolutiondate", fixture.Query(3));
+        Assert.DoesNotContain("statusCategoryChangedDate", fixture.Query(3));
         Assert.Equal("Done", ColumnsNavigation.ColumnsOf(refreshed.Session.Tabs[0])[^1].Name);
     }
 
@@ -171,7 +171,7 @@ public sealed class ViewLoadHandlerBoardTests
         var tab = state.Session.Tabs[0];
         var issues = fixture.Query(probes ? 2 : 1);
         Assert.Contains("/issue", fixture.Path(probes ? 2 : 1));
-        Assert.Contains("jql=resolution = Unresolved OR resolutiondate >= -14d", issues);
+        Assert.Contains("jql=statusCategory != Done OR statusCategoryChangedDate >= -14d OR (statusCategoryChangedDate is EMPTY AND updated >= -14d)", issues);
         Assert.Equal(14, tab.DoneCutoffDays);
         Assert.Equal("Done (14d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
     }
@@ -347,10 +347,10 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("/board/4/configuration", fixture.Path(3));
         Assert.Contains("/board/4/issue", fixture.Path(4));
         Assert.Contains(
-            "jql=(resolution = Unresolved OR resolutiondate >= -14d) AND (updatedDate >= -1d)",
+            "jql=(statusCategory != Done OR statusCategoryChangedDate >= -14d OR (statusCategoryChangedDate is EMPTY AND updated >= -14d)) AND (updatedDate >= -1d)",
             fixture.Query(4));
-        Assert.Contains("resolutiondate", fixture.Query(4));
-        Assert.Contains("resolutiondate", fixture.Query(1));
+        Assert.Contains("statusCategoryChangedDate", fixture.Query(4));
+        Assert.Contains("statusCategoryChangedDate", fixture.Query(1));
         Assert.Equal(LoadState.Idle, tab.Load);
     }
 

@@ -1,10 +1,10 @@
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// The cutoff Jira's own Kanban board applies to its last (Done) column: issues resolved longer ago than N days drop
-/// off the board (Jira's "Hide done work items after"). The board load reads N from Jira (the gateway, see
-/// <c>docs/jira-layer.md</c>), falling back to the <c>board.done-cutoff</c> setting, and adds it as JQL because the
-/// agile API ignores it. A tab's quick choice (<c>view.done-cutoff</c>) overrides both.
+/// The cutoff Jira's own Kanban board applies to its last (Done) column: Done issues whose status category changed
+/// longer ago than N days drop off the board (Jira's "Hide done work items after"). The board load reads N from Jira
+/// (the gateway, see <c>docs/jira-layer.md</c>), falling back to the <c>board.done-cutoff</c> setting, and adds it as
+/// JQL because the agile API ignores it. A tab's quick choice (<c>view.done-cutoff</c>) overrides both.
 /// </summary>
 public static class DoneCutoff
 {
@@ -20,10 +20,14 @@ public static class DoneCutoff
     /// <summary>The choices Jira offers for the board view, in weeks (1 to 4), then all.</summary>
     public static IReadOnlyList<int> ChoiceDays { get; } = [.. Enumerable.Range(1, MaxChoiceWeeks).Select(ToDays)];
 
-    /// <summary>The JQL clause that keeps open issues and those resolved within <paramref name="days"/> days.</summary>
+    /// <summary>
+    /// The JQL clause that keeps issues not in the Done category and those whose status category changed within
+    /// <paramref name="days"/> days (<c>updated</c> stands in when that date is empty), as Jira's own board counts it.
+    /// </summary>
     public static string Jql(int days)
     {
-        return $"resolution = Unresolved OR resolutiondate >= -{days}d";
+        return $"statusCategory != Done OR statusCategoryChangedDate >= -{days}d "
+            + $"OR (statusCategoryChangedDate is EMPTY AND updated >= -{days}d)";
     }
 
     /// <summary>The column title with the cutoff noted, so the user sees older issues are hidden.</summary>

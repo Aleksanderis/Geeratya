@@ -137,7 +137,7 @@ public static class SettingsRegistry
             "board.doneCutoff",
             SettingKind.Text,
             "14",
-            "Days after which a Kanban board hides resolved issues, or all to show every one. "
+            "Days after which a Kanban board hides Done issues that reached Done longer ago, or all to show every one. "
             + "Used when Jira's own \"Hide done work items after\" cannot be read; <space>vd picks one per tab.",
             ReadDoneCutoff,
             ApplyDoneCutoff,

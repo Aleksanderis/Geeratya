@@ -14,7 +14,7 @@ namespace Geeratya.Core.Settings;
 /// <param name="RestoreTabs">Reopen the tabs of the last run on start, and remember them while running.</param>
 /// <param name="JumpTarget">Whether the jump prompt opens an issue in the current tab or in a new one.</param>
 /// <param name="TransparentBackground">Keep the terminal's own background under the page instead of the theme's.</param>
-/// <param name="DoneCutoffDays">Days after which a Kanban board hides resolved issues; 0 shows them all.</param>
+/// <param name="DoneCutoffDays">Days after which a Kanban board hides Done issues; 0 shows them all.</param>
 public sealed record AppSettings(
     HintLevel StatusHints = HintLevel.Full,
     bool WhichKey = true,
