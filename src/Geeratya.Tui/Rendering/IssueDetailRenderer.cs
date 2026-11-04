@@ -102,17 +102,9 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     /// </summary>
     private static StyledLine SectionStrip(DetailDocument document, string? current, int width)
     {
-        var chips = document.Strip.Select(section => new StripChip(section.Id, $" {section.Label} ")).ToList();
-        var first = 0;
-
-        while (first < chips.Count - 1 && ReachOf(chips, first, current) > width)
-        {
-            first++;
-        }
-
         var spans = new List<StyledSpan>();
 
-        foreach (var chip in chips.Skip(first))
+        foreach (var chip in DetailStrip.Chips(document, current, width))
         {
             spans.Add(new StyledSpan(chip.Text, chip.Id == current ? TextRole.ChipFocus : TextRole.Muted));
             spans.Add(new StyledSpan(" ", TextRole.Body));
@@ -120,28 +112,6 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         return StyledLines.Fit(new StyledLine(spans), width);
     }
-
-    // The column where the current chip ends when the strip starts at chip first.
-    private static int ReachOf(List<StripChip> chips, int first, string? current)
-    {
-        var reach = 0;
-
-        for (var index = first; index < chips.Count; index++)
-        {
-            reach += TextWidth.Of(chips[index].Text);
-
-            if (chips[index].Id == current)
-            {
-                return reach;
-            }
-
-            reach++;
-        }
-
-        return reach;
-    }
-
-    private sealed record StripChip(string Id, string Text);
 
     /// <summary>The main column line padded to its width, a gap, then the sidebar line.</summary>
     private static StyledLine Joined(StyledLine main, int mainWidth, StyledLine side)

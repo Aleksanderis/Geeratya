@@ -82,10 +82,11 @@ internal static class LongText
         }
 
         var line = new StyledLine(spans);
+        var noteTarget = target with { Note = true };
 
         if (DisplayWidth.Of(line.PlainText) <= width)
         {
-            content.Add(line, target);
+            content.Add(line, noteTarget);
 
             return;
         }
@@ -93,6 +94,6 @@ internal static class LongText
         var wrapped = new WrappedText(width, false);
 
         wrapped.Append(line.PlainText, TextRole.Muted);
-        content.Finish(wrapped, target);
+        content.Finish(wrapped, noteTarget);
     }
 }

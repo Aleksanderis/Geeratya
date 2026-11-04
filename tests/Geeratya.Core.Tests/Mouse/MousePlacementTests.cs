@@ -125,7 +125,7 @@ public class MousePlacementTests
     {
         var state = OpenedIssue();
 
-        var (result, _) = Resolve(state, 80, 24, 2, HeaderRows + 3, MouseGesture.RightClick);
+        var (result, _) = Resolve(state, 80, 24, 2, HeaderRows + 4, MouseGesture.RightClick);
 
         var actions = result.ContextMenu!.Items.Select(item => item.Action).ToArray();
 
@@ -139,7 +139,7 @@ public class MousePlacementTests
     {
         var state = Loaded(ViewLayout.List, 80, 24, "1:A-1");
         var rowMenu = Resolve(state, 80, 24, 2, HeaderRows + ListHeader, MouseGesture.RightClick).State.ContextMenu!;
-        var lineMenu = Resolve(OpenedIssue(), 80, 24, 2, HeaderRows + 3, MouseGesture.RightClick).State.ContextMenu!;
+        var lineMenu = Resolve(OpenedIssue(), 80, 24, 2, HeaderRows + 4, MouseGesture.RightClick).State.ContextMenu!;
 
         foreach (var item in rowMenu.Items.Concat(lineMenu.Items))
         {

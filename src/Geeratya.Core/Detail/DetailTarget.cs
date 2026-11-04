@@ -40,6 +40,12 @@ public sealed record DetailTarget(
     bool Collapses = false,
     string? AttachmentId = null)
 {
+    /// <summary>
+    /// The row is the note under a cut or expanded text (<c>… N more lines</c>, <c>Show less</c>), not one of the
+    /// text's own rows or a comment's header bar: a click on it acts like Enter, a click on the others only selects.
+    /// </summary>
+    public bool Note { get; init; }
+
     /// <summary>Whether Enter on the row expands or collapses long text instead of its usual action.</summary>
     public bool Toggles => Expands || Collapses;
 

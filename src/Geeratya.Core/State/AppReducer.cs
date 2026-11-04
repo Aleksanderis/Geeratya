@@ -22,6 +22,7 @@ public sealed partial class AppReducer
 
     // A click on a sub-task row runs the key's handler (mouse table: SubtaskRow).
     private static readonly ActionRequested _subtaskClick = new(ActionIds.SectionToggle, 1, DateTimeOffset.UnixEpoch);
+    private static readonly ActionRequested _openClick = new(ActionIds.ItemOpen, 1, DateTimeOffset.UnixEpoch);
 
     private static readonly string[] _sourceVerbs =
     [
@@ -155,6 +156,7 @@ public sealed partial class AppReducer
             ActionRequested requested => Followed(state, ReduceRequested(state, requested)),
             TabHovered hovered => Result(hovered.Tab == state.HoveredTab ? state : state with { HoveredTab = hovered.Tab }),
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
+            DetailWheeled wheeled => Followed(state, DetailWheel(state, wheeled)),
             RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
             RowsDragging dragging => Followed(state, SelectionActions.Dragging(Unpended(state), dragging)),
             RowsDragScrolled scrolled => Followed(state, SelectionActions.DragScrolled(state, scrolled)),

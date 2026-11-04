@@ -21,7 +21,7 @@ The table is delivered in parts of issue #200: **A** the input layer and this ta
 
 ## Placing the cursor
 
-A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column title in the top edge (that column keeps its own card; in a window of one column the neighbour names of the header, `‹ Name n` and `Name n ›`, select that neighbour); in an opened issue the line (the top and bottom edge of the frame and rows past the end do nothing; the view does not scroll). Rows without an issue, the top edge with the view title (in the columns layout it is the column header row, as above) and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer (a right-click opens the menu of that issue: `ContextMenu` rows listed in the table, one `Actions` box; `j`/`k`, `Enter` and `Esc` work in it like in the pickers, and every item runs the handler of its key, so delete and unlink still ask first); on empty space (nothing placed) the action does not run. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
+A plain click on a list, a board or an opened issue has no action id: it does what motions do for a key and places the cursor, through the `PointerPlaced` command (the motions are listed under "Without a path"). On a list it selects the row under the pointer; on the columns layout the card under it, or the column of a clicked column title in the top edge (that column keeps its own card; in a window of one column the neighbour names of the header, `‹ Name n` and `Name n ›`, select that neighbour); in an opened issue the line, or the pane when the click is on a frame edge (see "Detail targets"; rows past the end do nothing; the view does not scroll). Rows without an issue, the top edge with the view title (in the columns layout it is the column header row, as above) and the area under the cards do nothing. Double-click and right-click place the cursor first, then run their action, so they act on the issue under the pointer (a right-click opens the menu of that issue: `ContextMenu` rows listed in the table, one `Actions` box; `j`/`k`, `Enter` and `Esc` work in it like in the pickers, and every item runs the handler of its key, so delete and unlink still ask first); on empty space (nothing placed) the action does not run. Cells come from the same measures the renderer draws with (`BoardHits`, `TabBar.Areas`), so a layout change moves the click areas with it.
 
 ## Table
 
@@ -31,8 +31,8 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 |---|---|---|---|---|
 | Lists | Wheel up | `nav.up` | A | Moves the selection up 3 rows (like `3k`) |
 | Lists | Wheel down | `nav.down` | A | Moves the selection down 3 rows (like `3j`) |
-| Detail | Wheel up | `nav.up` | A | Moves the cursor up 3 lines in the opened issue (like `3k`) |
-| Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the opened issue (like `3j`) |
+| Detail | Wheel up | `nav.up` | A | Moves the cursor up 3 lines in the pane under the pointer (like `3k`; a pane other than the focused one takes the focus first, #714, `DetailWheeled`) |
+| Detail | Wheel down | `nav.down` | A | Moves the cursor down 3 lines in the pane under the pointer (like `3j`; same focus rule as the wheel up) |
 | Status | Click | `palette.open` | A | Opens the command palette, same as `:` |
 | StatusMessage | Click | `status.history` | A | A click on the message itself (not the rest of the line) opens the message history, same as `<space>n` |
 | Backdrop | Click | `mode.cancel` | A | While an overlay or prompt is open, a click on the tab bar or banner rows, or on the body outside the overlay's box, closes it, same as `Esc` (the editor asks first when its text changed). With the Confirm dialog open the whole screen outside its box counts, the body and the status line too, and the click cancels like `n`; a click inside the box but not on a row does nothing |
@@ -72,7 +72,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ConfirmYes | Click | `confirm.yes` | O | Confirm dialog: the `y` row runs the action, same as `y` (the dialog closes first) |
 | ConfirmNo | Click | `confirm.no` | O | Confirm dialog: the `n` row cancels, same as `n` |
 | Lists | Double-click | `item.open` | B | Opens the issue under the pointer, same as `Enter` (the first click selects the row) |
-| Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there; on a field it focuses the whole field, and the double-click edits it, #678; a click on a pane's top edge only places the cursor there, panes do not fold since #702, and a double-click on a `… N more lines` row shows the rest) |
+| Detail | Double-click | `item.open` | B | Opens what the line under the pointer holds, same as `Enter` (the first click puts the cursor there; on a field it focuses the whole field, and the double-click edits it, #678; a double-click on a pane's frame edge or on the zoom strip only moves the focus; a plain click already opens a sub-task or expands a cut text, see "Detail targets") |
 | Lists | Right-click | `menu.context` | M | Selects the row or card under the pointer and opens its menu (only the actions of that issue), same as `<space>a`; the command palette stays on `:` and the status line |
 | Detail | Right-click | `menu.context` | M | Puts the cursor on the line under the pointer and opens the menu of the opened issue (with `comment.delete` on a comment) |
 | RowMenuButton | Click | `menu.context` | M | The `...` marker in the last three cells of the selected list row, backlog row, board card (its first text line, the summary) and the cursor line of an opened issue: opens the actions menu of that issue without moving the cursor, same as `<space>a`. A second path next to the right-click for terminals and multiplexers that swallow it (Gitunia's `RowMenuButton`); any other gesture on its cells acts on the row as usual. Drawn as text (`...`) in every colour tier and in ASCII; hidden in Visual mode, under an overlay, on a sprint header and when the selected row is narrower than 24 cells; it covers the last cells of the row (a status glyph or points column on a narrow row), except on a comment header bar, where it sits just before the time so the time stays readable |
@@ -139,6 +139,28 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `tab.previous` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `help.toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `app.quit` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+
+## Detail targets
+
+The opened issue is drawn in the wide overlay of panes (`docs/ux-screens.md`, "Panes, focus and zoom"). Its clicks are placing clicks (the `PointerPlaced` command, no action id of their own: the detail hit test `DetailPointer` finds the strip chip, row or frame under the cell with the measures the renderer draws with), and a plain click also runs `item.open` on the row it placed the cursor on where that row has a natural "go" (the same handler as `Enter`). Nothing is a mouse-only path: every row below is a key (`Ctrl-h/j/k/l`, `j`/`k`, `Enter`, `Ctrl-h`/`Ctrl-l` in the zoom, `Esc`).
+
+| Where | Gesture | Effect |
+|---|---|---|
+| A pane's rows | Click | Focuses the pane and puts the cursor on the row (a comment's body rows select that comment) |
+| A pane's top or bottom edge | Click | Focuses that pane (the first or last row of it); the pane does not fold (#702); no double-click or right-click action follows |
+| A pane | Wheel | The pane under the pointer takes the focus when the cursor is in another one, then scrolls 3 lines (inside the pane: Comments, the cut Description, a zoomed pane); over the backdrop it scrolls the focused pane |
+| Details sidebar | Click | Focuses the sidebar and the field under the pointer; on the empty space or the frame it focuses the sidebar |
+| A Details field's label | Click | Focuses the field only |
+| A Details field's value or its `▾` | Click | Focuses the field and opens its dropdown (editable fields only: those that show `▾`; status opens the `Move to` picker) |
+| A dropdown row | Click | Accepts it, same as `Enter` on it (the write follows the normal path) |
+| Outside the dropdown | Click | Closes it, same as `Esc` (the issue stays open); nothing else is clicked |
+| Sub-tasks, Child issues, Linked issues row | Click | Opens that issue in the stack, same as `Enter` |
+| A comment's header bar | Click | Selects the comment (its keys `comment.edit`, `comment.delete` act on it) |
+| A `… N more lines` or `Show less` row (Description or a comment) | Click | Expands or cuts the text, same as `Enter` |
+| A section name of the zoom strip | Click | Zooms that section, same as `Ctrl-h`/`Ctrl-l` until it; the gaps between names do nothing |
+| Any row while Summary or Description is edited in place | Click, double-click, right-click, wheel | Ignored: the edit state has no mouse targets of its own and the rest of the detail takes none until `Ctrl-s` or `Esc` (a click on the body outside the overlay does nothing either, no overlay box is reported; the tab bar row acts as under any overlay) |
+
+Removed with the old layout (#702, #714): the fold by a pane's title edge and the clickable field rows of the old header. Their rows are gone from the table and the code; `MouseTarget.Detail` keeps only the wheel, the double-click and the right-click rows, and the click is `PointerPlaced`. The backdrop click is #712.
 
 ## Without a path
 

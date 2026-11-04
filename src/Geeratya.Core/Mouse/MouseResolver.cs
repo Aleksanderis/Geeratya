@@ -91,6 +91,12 @@ public static class MouseResolver
 
         var action = new ActionRequested(found.Action, found.Count, at);
 
+        // The wheel scrolls the pane under the pointer, not the one the cursor happens to be in.
+        if (hit.Target == MouseTarget.Detail && gesture is MouseGesture.WheelUp or MouseGesture.WheelDown)
+        {
+            return [new DetailWheeled(column, hit.Row, action)];
+        }
+
         // The row under the pointer is the target of the action, not the row the cursor happened to be on.
         var placesFirst = inBody && gesture is MouseGesture.DoubleClick or MouseGesture.RightClick or MouseGesture.CtrlClick;
 

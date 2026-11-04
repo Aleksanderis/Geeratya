@@ -124,7 +124,7 @@ public class DetailOverlayTests
 
         var wheel = MouseResolver.Resolve(context, 0, Header + 5, MouseGesture.WheelDown, _now);
 
-        Assert.IsType<ActionRequested>(Assert.Single(wheel));
+        Assert.IsType<DetailWheeled>(Assert.Single(wheel));
     }
 
     [Fact]

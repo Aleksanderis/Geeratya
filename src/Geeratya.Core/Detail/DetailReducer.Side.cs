@@ -6,33 +6,6 @@ namespace Geeratya.Core.Detail;
 internal static partial class DetailReducer
 {
     /// <summary>
-    /// A click on the Details sidebar: the sidebar takes the focus and its cursor goes to the field under the pointer.
-    /// Null when the click is not on the sidebar, so the main column handles it.
-    /// </summary>
-    private static AppState? SidePlaced(AppState state, TabState tab, int bodyRow, int bodyColumn)
-    {
-        var top = tab.Detail[^1];
-
-        if (top.Document is not { Side: { } side } document
-            || bodyColumn < DetailLayout.MainWidth(document.Width) + DetailLayout.SidebarGap)
-        {
-            return null;
-        }
-
-        var rows = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
-        var first = SideView.FirstLine(side, top.SideCursor, rows);
-
-        if (bodyRow < 1 || bodyRow >= rows - 1 || first + bodyRow >= side.Lines.Count - 1)
-        {
-            return state;
-        }
-
-        var cursor = side.Snap(first + bodyRow);
-
-        return ViewReducer.Replace(state, ReplaceTop(tab, top with { SideCursor = cursor }));
-    }
-
-    /// <summary>
     /// The sidebar cursor after a new layout: still on the same field, else clamped; null while the focus is on the
     /// main column.
     /// </summary>
