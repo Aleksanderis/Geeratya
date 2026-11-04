@@ -92,7 +92,12 @@ public static class DetailDropdown
 
     // The body row of the popup's top edge: under the last value row of the cursor field, above its label when the
     // overlay has no room below; -1 when the field is not on screen.
-    private static int TopOf(DetailDocument document, DetailState detail, DetailOverlayGeometry box, int rows, int height)
+    private static int TopOf(
+        DetailDocument document,
+        DetailState detail,
+        DetailOverlayGeometry box,
+        int rows,
+        int height)
     {
         var onSide = document.Side is not null && detail.SideCursor is not null;
         var shown = onSide ? document.Side! : document;

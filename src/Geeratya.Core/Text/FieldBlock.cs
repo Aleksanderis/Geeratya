@@ -18,7 +18,11 @@ public sealed record FieldBlockSpec(
     string? Note = null)
 {
     /// <summary>A block whose value is one item.</summary>
-    public static FieldBlockSpec OfValue(string label, IReadOnlyList<StyledSpan> value, bool editable, string? note = null)
+    public static FieldBlockSpec OfValue(
+        string label,
+        IReadOnlyList<StyledSpan> value,
+        bool editable,
+        string? note = null)
     {
         return new FieldBlockSpec(label, [value], editable, note);
     }

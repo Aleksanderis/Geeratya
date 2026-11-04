@@ -132,7 +132,7 @@ public static partial class StatusBar
     public static IReadOnlyList<StatusHint> DropdownHints { get; } =
     [
         new(InputMode.Insert, ActionIds.PickerPrevious, "choose", HintScope.Global, ActionIds.PickerNext),
-        new(InputMode.Insert, ActionIds.FormNext, "pick and save"),
+        new(InputMode.Insert, ActionIds.FormNext, "accept"),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 

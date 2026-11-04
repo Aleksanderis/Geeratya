@@ -14,7 +14,9 @@ public static class DetailLayout
     /// <summary>Width used before the host has reported one.</summary>
     public const int DefaultWidth = 80;
 
-    /// <summary>Overlay widths from this up show the Details pane as a sidebar; below it the pane is under the others.</summary>
+    /// <summary>
+    /// Overlay widths from this up show the Details pane as a sidebar; below it the pane is under the others.
+    /// </summary>
     public const int SidebarMinWidth = 100;
 
     /// <summary>The width of the Details sidebar, frame included.</summary>
@@ -29,7 +31,9 @@ public static class DetailLayout
         return width >= SidebarMinWidth;
     }
 
-    /// <summary>The width of the main column for a detail <paramref name="width"/> columns wide with a sidebar.</summary>
+    /// <summary>
+    /// The width of the main column for a detail <paramref name="width"/> columns wide with a sidebar.
+    /// </summary>
     public static int MainWidth(int width)
     {
         return width - SidebarWidth - SidebarGap;

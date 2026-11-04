@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -230,7 +231,11 @@ public sealed class IssueDetailFlowTests : IDisposable
 
     [Theory]
     [InlineData("GCM-6", "issues/issue-gcm6.json", "comments/comments-gcm6.json", "metadata/editmeta-gcm-26.json")]
-    [InlineData("GTM-5", "adf/issue-gtm5-rich-description.json", "adf/comments-gtm5.json", "metadata/editmeta-gtm-11.json")]
+    [InlineData(
+        "GTM-5",
+        "adf/issue-gtm5-rich-description.json",
+        "adf/comments-gtm5.json",
+        "metadata/editmeta-gtm-11.json")]
     public async Task GivenEitherProjectKind_WhenOpened_ThenTheEditMetadataDecidesWhichDetailsFieldsAreMarkedEditable(
         string key,
         string issueFixture,
@@ -252,6 +257,35 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Contains(DetailFieldIds.Assignee, detail.EditableFields!);
         Assert.True(detail.Document!.Side!.Lines.Count(line => line.PlainText.Contains('▾')) >= 4);
         Assert.Contains(_http.Requests, uri => uri.AbsolutePath == $"{Site}/{key}/editmeta");
+    }
+
+    [Theory]
+    [InlineData("GCM-10", "gcm10", "metadata/editmeta-gcm-26.json")]
+    [InlineData("GTM-11", "gtm11", "metadata/editmeta-gtm-11.json")]
+    public async Task GivenEitherProjectKind_WhenOpeningThePriorityDropdown_ThenTheRecordedEditMetadataFillsThePopup(
+        string key,
+        string fixture,
+        string editmetaFixture)
+    {
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-empty.json")
+            .Fixture($"{Site}/{key}/editmeta", editmetaFixture);
+        await ConnectAsync();
+        var state = await OpenAsync(key);
+
+        foreach (var pressed in new[] { "Ctrl-l", "j" })
+        {
+            state = _reducer.Reduce(state, new KeyPressed(pressed)).State;
+        }
+
+        var opened = await PumpAsync(state, new KeyPressed("Enter"));
+
+        var form = Tab(opened).Form!;
+        Assert.Equal(DetailFieldIds.Priority, form.Dropdown);
+        Assert.True(form.Fields.Count > 0, form.TopError);
+        Assert.Equal(DetailFieldIds.Priority, Assert.Single(form.Fields).Id);
+        Assert.NotEmpty(form.Suggest!.Items);
     }
 
     [Fact]
@@ -624,7 +658,9 @@ public sealed class IssueDetailFlowTests : IDisposable
 
     private static string Text(DetailState detail)
     {
-        return string.Join('\n', detail.Document!.Lines.Concat(detail.Document.Side?.Lines ?? []).Select(line => line.PlainText));
+        var side = detail.Document!.Side?.Lines ?? [];
+
+        return string.Join('\n', detail.Document.Lines.Concat(side).Select(line => line.PlainText));
     }
 
     private AppState ListState(string key)
@@ -676,6 +712,13 @@ public sealed class IssueDetailFlowTests : IDisposable
         return await PumpAsync(typed, new KeyPressed("Enter"));
     }
 
+    private Task StartEffect(Effect effect)
+    {
+        return effect is LoadFormMetadataEffect form
+            ? new FormMetadataHandler(_runner!).StartAsync(form)
+            : _handler!.StartAsync(effect);
+    }
+
     private async Task<AppState> PumpAsync(AppState state, Command command)
     {
         var pending = new Queue<Command>([command]);
@@ -687,7 +730,7 @@ public sealed class IssueDetailFlowTests : IDisposable
             state = result.State;
             _posted.Clear();
 
-            var runs = result.Effects.Select(effect => _handler!.StartAsync(effect)).ToList();
+            var runs = result.Effects.Select(StartEffect).ToList();
 
             await Task.WhenAll(runs);
 

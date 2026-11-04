@@ -133,7 +133,9 @@ internal static class DetailsPane
         AddText(fields, detail, DetailFieldIds.Epic, "Epic", header.Epic);
         AddText(fields, detail, DetailFieldIds.Sprint, "Sprint", header.Sprint);
 
-        var estimate = string.IsNullOrWhiteSpace(detail.EstimateLabel) ? "Estimate" : TextClean.Of(detail.EstimateLabel);
+        var estimate = string.IsNullOrWhiteSpace(detail.EstimateLabel)
+            ? "Estimate"
+            : TextClean.Of(detail.EstimateLabel);
 
         AddText(fields, detail, DetailFieldIds.Estimate, estimate, header.Estimate);
 
@@ -217,10 +219,9 @@ internal static class DetailsPane
         var initials = AssigneeInitials.Of(name);
         var chip = $"[{initials.PadRight(InitialsCells)}]";
 
-        return
-        [
-            [new StyledSpan(chip, TextRole.InitialsChip), new StyledSpan($" {TextClean.Of(name)}", TextRole.ValueBlock)],
-        ];
+        var text = new StyledSpan($" {TextClean.Of(name)}", TextRole.ValueBlock);
+
+        return [[new StyledSpan(chip, TextRole.InitialsChip), text]];
     }
 
     private static List<IReadOnlyList<StyledSpan>> LabelItems(IReadOnlyList<string> labels)

@@ -24,7 +24,8 @@ public class FieldBlockTests
     [Fact]
     public void GivenANote_WhenBuildingRows_ThenItFollowsTheLabelInTheMutedRole()
     {
-        var spec = FieldBlockSpec.OfValue("Status", [new StyledSpan("To Do", TextRole.ValueBlock)], true, "moves via transition");
+        var value = new StyledSpan("To Do", TextRole.ValueBlock);
+        var spec = FieldBlockSpec.OfValue("Status", [value], true, "moves via transition");
 
         var label = FieldBlock.Rows(spec, 30)[0];
 
@@ -63,7 +64,9 @@ public class FieldBlockTests
 
         Assert.True(rows.Count > 2);
         Assert.All(rows.Skip(1), row => Assert.Equal(24, DisplayWidth.Of(row.PlainText)));
-        Assert.All(rows.Skip(1), row => Assert.Equal(row.PlainText.Count(character => character == '['), row.PlainText.Count(character => character == ']')));
+        Assert.All(
+            rows.Skip(1),
+            row => Assert.Equal(row.PlainText.Count(static c => c == '['), row.PlainText.Count(static c => c == ']')));
         Assert.EndsWith("▾", rows[^1].PlainText.TrimEnd());
         Assert.Single(rows, row => row.PlainText.Contains('▾'));
     }
