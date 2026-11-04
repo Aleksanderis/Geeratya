@@ -204,9 +204,9 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **UI:** The Done cutoff picker is rows of the command palette (found by "Done cutoff:", opened by `<space>vd`), not a new overlay, and the choice lives on the tab and in the remembered tab (so per profile and board) instead of a separate per-board store. Why: least new state and no second file; the palette already is the picker used for themes. Source order: tab choice, Jira's value (gateway, optional), setting.
 
-## 2026-11-04 (pane layout, M8)
+## 2026-11-04 (pane layout, M7)
 
-**UI:** The issue detail, board cards and the edit and create forms follow the approved mockups in `ux-screens.md`, "Pane layout for the issue detail, board cards and forms" (milestone M8). Why: the box-per-field form and the dense detail did not read like a form; the owner approved a pane layout after a mockup session (Claude Design canvas, private).
+**UI:** The issue detail, board cards and the edit and create forms follow the approved mockups in `ux-screens.md`, "Pane layout for the issue detail, board cards and forms" (milestone M7). Why: the box-per-field form and the dense detail did not read like a form; the owner approved a pane layout after a mockup session (Claude Design canvas, private).
 
 **UI:** Pane focus is `Ctrl-h/j/k/l` (Gitunia's `pane.focus-*`; `Ctrl-w h/j/k/l` as fallback, as `Ctrl-h` is Backspace on some terminals), zoom is `<space>z` (`pane.zoom`), and `Ctrl-j/k` also choose in dropdowns. `]]`/`[[` leave the detail. Why: `Alt-h/j/k/l` are card move and rank, and Gitunia already uses Ctrl for panes. Overrides the `]]`/`[[` pane chords of `ux-look.md`, section 4, for the detail.
 
@@ -220,3 +220,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **Testing:** On Windows the known folders stay the default; with `GEERATYA_USE_XDG=1` a fully qualified `XDG_CONFIG_HOME`, `XDG_STATE_HOME` or `XDG_CACHE_HOME` overrides them (overrides the "Windows ignores XDG" rule in `architecture.md`). Why: .NET reads the known folders from the shell, so `APPDATA` cannot be redirected and `measure.ps1` would otherwise read the real profile and talk to a real site; the opt-in keeps a global `XDG_CONFIG_HOME` (neovim, starship) from moving a real install. `screenshot.ps1` was tried and dropped (not worth it on Windows, #632).
 
+
+## 2026-11-04 (M7 and M8 swapped)
+
+**Process:** Milestones renumbered (owner decision): M7 is now Pane-based detail, cards and forms and M8 is Release and going public; issue numbers unchanged. Older text saying "M7" for the release (history, issue comments) meant M8. Why: the pane work runs before the release check.

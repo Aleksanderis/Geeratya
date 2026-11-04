@@ -291,7 +291,7 @@ GCM board › GCM-12 · Top
  NORMAL  ? help  : commands  q quit
 ```
 
-## Pane layout for the issue detail, board cards and forms (planned, M8)
+## Pane layout for the issue detail, board cards and forms (planned, M7)
 
 Agreed with the owner in a mockup session on 2026-11-04 (Claude Design canvas, iterated with the owner until approved; the canvas is private, this section is the source of truth). It replaces the layout of "Issue detail" above, the card layout of "Columns layout" and the box-per-field look of "Field form overlay" once built; until then those sections describe what runs. Rules from `ux-look.md` hold unless this section says otherwise (rounded frames, chips in the top edge, muted quiet panes, accent only for focus, no colour alone). The mockups below are 104 columns wide; the tint of a header bar, a filled value or a chip cannot be drawn in text, so each mockup says what is tinted.
 

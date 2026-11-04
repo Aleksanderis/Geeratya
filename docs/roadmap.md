@@ -80,15 +80,7 @@ Goal: views beyond boards, as new sources and layouts.
 - Saved views: the owner's own combinations of source and layout (built, #191: `:view`, `<space>vv`, `<space>vw`; per profile, local file).
 - Quick filters and swimlanes of a board (built, #192); JQL history.
 
-## M7 - Release and going public
-
-Goal: someone else can install it and trust it.
-
-- Packaging: archives for Linux, Windows and macOS, `.deb` and `.rpm`, AUR, winget, Homebrew; version stamped from the tag (`--version`); macOS signing.
-- Name availability check, README demo recording (hosted outside the repo), landing page, contributor docs, issue templates.
-- Idle CPU, startup and memory measurements on a real board and a release check on the first tag.
-
-## M8 - Pane-based detail, cards and forms
+## M7 - Pane-based detail, cards and forms
 
 Goal: the issue detail, board cards and the edit and create forms look and navigate like the approved mockups (`ux-screens.md`, "Pane layout for the issue detail, board cards and forms").
 
@@ -97,7 +89,15 @@ Goal: the issue detail, board cards and the edit and create forms look and navig
 - Board card with filled label chips, full type word and aligned assignee chip.
 - The detail and the create form as wide overlays; editing in place in the detail (no separate edit form); accent-blue key hints and labels.
 
-Can run before the M7 release check; it changes no Jira calls.
+Can run before the M8 release check; it changes no Jira calls.
+
+## M8 - Release and going public
+
+Goal: someone else can install it and trust it.
+
+- Packaging: archives for Linux, Windows and macOS, `.deb` and `.rpm`, AUR, winget, Homebrew; version stamped from the tag (`--version`); macOS signing.
+- Name availability check, README demo recording (hosted outside the repo), landing page, contributor docs, issue templates.
+- Idle CPU, startup and memory measurements on a real board and a release check on the first tag.
 
 ## Open questions
 

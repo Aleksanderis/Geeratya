@@ -111,7 +111,7 @@ The estimate has no key of its own: `:estimate` opens the form limited to the es
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 
-### Panes and zoom (planned, M8)
+### Panes and zoom (planned, M7)
 
 Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
 
