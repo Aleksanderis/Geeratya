@@ -95,7 +95,7 @@ Goal: the issue detail, board cards and the edit and create forms look and navig
 - Pane focus (`Ctrl-h/j/k/l`), zoom (`<space>z`) and inner scrolling.
 - Detail as panes: title, Description, Sub-tasks table, Comments blocks with cut and expand, Details pane with dropdowns.
 - Board card with filled label chips, full type word and aligned assignee chip.
-- Edit and create forms on the same panes (create as a tab view); accent-blue key hints and labels.
+- The detail and the create form as wide overlays; editing in place in the detail (no separate edit form); accent-blue key hints and labels.
 
 Can run before the M7 release check; it changes no Jira calls.
 
