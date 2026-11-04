@@ -75,6 +75,18 @@ public sealed record DetailState(
     /// </summary>
     public IReadOnlyList<string> Expanded { get; init; } = [];
 
+    /// <summary>
+    /// The ids of the fields the account may edit on this issue (edit metadata), null until they arrive or when the
+    /// load failed. The Details pane shows the dropdown mark only for a field listed here.
+    /// </summary>
+    public IReadOnlyList<string>? EditableFields { get; init; }
+
+    /// <summary>
+    /// The cursor line in the Details sidebar (<see cref="DetailDocument.Side"/>) while the sidebar has the focus;
+    /// null while the main column has it.
+    /// </summary>
+    public int? SideCursor { get; init; }
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

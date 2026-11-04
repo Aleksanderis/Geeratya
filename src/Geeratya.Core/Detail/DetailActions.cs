@@ -112,9 +112,17 @@ internal static class DetailActions
             _ => PaneDirection.Right,
         };
         var grid = Grid(document);
-        var current = document.SectionIds[document.SectionAt(top.Detail.Cursor)];
+        var onSide = top.Detail.SideCursor is not null && document.Side is not null;
+        var current = onSide ? PaneIds.Details : document.SectionIds[document.SectionAt(top.Detail.Cursor)];
         var panes = PaneReducer.Focus(new PaneState(grid, current), direction);
-        var target = document.SectionIds.ToList().IndexOf(panes.Current ?? current);
+        var chosen = panes.Current ?? current;
+
+        if (document.Side is not null && (chosen == PaneIds.Details) != onSide)
+        {
+            return new ReduceResult(DetailReducer.FocusSide(state, top.Tab, chosen == PaneIds.Details), _noEffects);
+        }
+
+        var target = document.SectionIds.ToList().IndexOf(chosen);
 
         if (target < 0 || document.SectionIds[target] == current)
         {
@@ -124,10 +132,20 @@ internal static class DetailActions
         return new ReduceResult(DetailReducer.JumpToPane(state, top.Tab, target), _noEffects);
     }
 
-    /// <summary>The panes of a document as a grid: one column, one row per pane, in document order.</summary>
+    /// <summary>
+    /// The panes of a document as a grid: one column with a row per pane, in document order, and the Details sidebar
+    /// as a second column when the document has one.
+    /// </summary>
     public static PaneGrid Grid(DetailDocument document)
     {
-        return new PaneGrid([.. document.SectionIds.Select(static (id, row) => new PaneSlot(id, 0, row))]);
+        var slots = document.SectionIds.Select(static (id, row) => new PaneSlot(id, 0, row)).ToList();
+
+        if (document.Side is not null)
+        {
+            slots.Add(new PaneSlot(PaneIds.Details, 1, 0, 1, Math.Max(1, slots.Count)));
+        }
+
+        return new PaneGrid(slots);
     }
 
     private static ReduceResult OpenTarget(AppState state, DetailTarget target)

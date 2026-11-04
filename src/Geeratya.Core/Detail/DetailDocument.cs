@@ -45,6 +45,12 @@ public sealed record DetailDocument(
     /// </summary>
     public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
 
+    /// <summary>
+    /// The Details sidebar of a wide layout (<see cref="DetailLayout.HasSidebar"/>), drawn right of the main column
+    /// and as tall as the overlay; null when the Details pane is part of the main column.
+    /// </summary>
+    public DetailDocument? Side { get; init; }
+
     /// <summary>The block that holds <paramref name="line"/>, null when the line stands alone.</summary>
     public LineBlock? BlockAt(int line)
     {

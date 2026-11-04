@@ -161,6 +161,7 @@ public sealed class EffectRunner : IDisposable
         AddAsync<LoadIssueDetailEffect>((effect, active) => _detailLoads.StartAsync(effect, CacheOf(active)));
         AddAsync<LoadIssueCommentsEffect>((effect, active) => _detailLoads.StartAsync(effect, CacheOf(active)));
         AddAsync<LoadRemoteLinksEffect>((effect, active) => _detailLoads.StartAsync(effect, CacheOf(active)));
+        AddAsync<LoadEditableFieldsEffect>((effect, active) => _detailLoads.StartAsync(effect, CacheOf(active)));
         AddAsync<LoadIssueChildrenEffect>((effect, active) => _detailLoads.StartAsync(effect, CacheOf(active)));
         AddAsync<LoadSourcesEffect>((effect, _) => _sourceLoads.StartAsync(effect));
         AddAsync<LoadSprintsEffect>((effect, _) => _sourceLoads.StartSprintsAsync(effect));
