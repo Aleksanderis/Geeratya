@@ -68,6 +68,32 @@ public class PaletteTests
 
     [Theory]
     [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtTrueColour_WhenResolvingTheBar_ThenKeysAreAccentAndTextIsMutedLikeGitunia(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var key = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.BarKey);
+        var text = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Status);
+
+        Assert.Equal(theme.Colors[ThemeColor.Accent], key.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.Muted], text.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.BarBackground], key.Background);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtTrueColour_WhenResolvingAnInactiveTab_ThenItIsAButtonApartFromTheBar(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var tab = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.TabInactive);
+        var bar = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Status);
+
+        Assert.NotEqual(bar.Background, tab.Background);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
     public void GivenBuiltInThemeAtSixteenColours_WhenResolvingHintKey_ThenItIsBrightYellowOnTheBar(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;

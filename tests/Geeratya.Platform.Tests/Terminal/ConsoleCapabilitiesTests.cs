@@ -14,6 +14,21 @@ public class ConsoleCapabilitiesTests
         Assert.True(capabilities.IsInteractive);
     }
 
+    [Theory]
+    [InlineData(ColorSupport.TrueColor, true, ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.TrueColor, false, ColorSupport.Basic16)]
+    [InlineData(ColorSupport.Basic16, true, ColorSupport.Basic16)]
+    [InlineData(ColorSupport.Basic16, false, ColorSupport.Basic16)]
+    [InlineData(ColorSupport.None, false, ColorSupport.None)]
+    [InlineData(ColorSupport.None, true, ColorSupport.None)]
+    public void GivenDetectedColoursAndDriver_WhenLimitingByTheDriver_ThenOnlyAnIncapableDriverLowersTrueColour(
+        ColorSupport detected,
+        bool driverEmitsTrueColor,
+        ColorSupport expected)
+    {
+        Assert.Equal(expected, ConsoleCapabilities.LimitedByDriver(detected, driverEmitsTrueColor));
+    }
+
     [Fact]
     public void GivenPlainXterm_WhenDetecting_ThenGets16Colors()
     {

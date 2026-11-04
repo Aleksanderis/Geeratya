@@ -71,7 +71,7 @@ public class ChromeSnapshotTests
     [Theory]
     [InlineData(ColorSupport.TrueColor)]
     [InlineData(ColorSupport.Basic16)]
-    public void GivenAColourTier_WhenResolvingTheBars_ThenChipsAreFilledAndTheBarsShareTheBarBackground(ColorSupport tier)
+    public void GivenAColourTier_WhenResolvingTheBars_ThenChipsAreFilledAndTheBarsShareTheBarBackgroundExceptInactiveTabsAtTrueColour(ColorSupport tier)
     {
         var frame = FrameBuilder.BuildStyled(State(), 120, 36, _keymap)!;
         var tabs = StyledRuns.Resolve(frame.Header[0], _theme, tier);
@@ -88,8 +88,8 @@ public class ChromeSnapshotTests
         Assert.True(active.Style.Style.HasFlag(RoleStyle.Bold));
         Assert.Equal(" NORMAL ", badge.Text);
         Assert.Equal(Palette.Resolve(_theme, tier, PaletteRole.BadgeNormal), badge.Style);
-        Assert.Equal(bar.Background, dim.Style.Background);
         Assert.Equal(bar.Background16, dim.Style.Background16);
+        Assert.Equal(tier == ColorSupport.TrueColor, dim.Style.Background != bar.Background);
         Assert.Equal(bar.Background, status[^1].Style.Background);
         Assert.Equal(bar.Background16, status[^1].Style.Background16);
     }

@@ -36,6 +36,9 @@ public enum TextRole
     /// <summary>Dim text on the bar background: a quiet label such as the <c>+</c> button.</summary>
     BarMuted,
 
+    /// <summary>A button on the bar (<c>+</c>, <c>: commands</c>, <c>&lt;space&gt;g jump</c>): bold, in the accent colour.</summary>
+    BarButton,
+
     /// <summary>A key of a hint chip on the bar: bold, in the key colour.</summary>
     BarKey,
 
@@ -54,7 +57,7 @@ public enum TextRole
     /// <summary>The active tab chip: filled accent, bold.</summary>
     TabActive,
 
-    /// <summary>An inactive tab chip: muted text on the bar.</summary>
+    /// <summary>An inactive tab chip: a button apart from the bar.</summary>
     TabDim,
 
     /// <summary>The Normal mode badge at column 0 of the status bar.</summary>

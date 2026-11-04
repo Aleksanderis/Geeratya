@@ -1,4 +1,4 @@
-[1 JQL My open issues .]  +             
+[1 JQL My open issues .] [+]            
                                         
 +- My open issues ---------- 0 issues -+
 |  Key    T Summary                   S|
