@@ -206,12 +206,12 @@ public static partial class StatusBar
         }
 
         var word = NetworkBanner.StatusWord(TabStatus.Of(state.Session, now), now);
-        var line = ConnectionText.Line(state.Session);
+        var line = state.Session.Connection is ConnectionCheckFailure ? ConnectionText.Line(state.Session) : string.Empty;
         var view = viewRoom > 0 ? StatusViewText.Of(state, now, viewRoom, withGoal) : string.Empty;
 
         if (withPosition && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } positioned)
         {
-            var position = CursorPosition.Text(positioned);
+            var position = SelectedIssueText.Text(positioned);
 
             if (position.Length > 0)
             {

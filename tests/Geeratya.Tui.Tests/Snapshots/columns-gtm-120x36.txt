@@ -33,4 +33,4 @@
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │
 ╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
- NORMAL  col 1/4  card 1/5 · GTM board ·…    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+ NORMAL  GTM-9 To Do · GTM board · 16 is…    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit

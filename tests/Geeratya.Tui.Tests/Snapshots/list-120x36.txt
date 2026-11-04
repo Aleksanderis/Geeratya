@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  loading · 3/10+            j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit
+ NORMAL  loading · GCM-15 To Do     j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

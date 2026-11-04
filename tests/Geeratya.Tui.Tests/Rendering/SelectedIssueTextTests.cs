@@ -12,7 +12,7 @@ using Geeratya.Tui.Rendering;
 namespace Geeratya.Tui.Tests.Rendering;
 
 [Trait("Os", "Independent")]
-public class CursorPositionTests
+public class SelectedIssueTextTests
 {
     private const string GlobalHints = "? help  : commands  q quit";
 
@@ -34,7 +34,7 @@ public class CursorPositionTests
     {
         var tab = ListTab(40) with { Selected = 4 };
 
-        Assert.Equal("5/40", CursorPosition.Text(tab));
+        Assert.Equal("A-5 Status", SelectedIssueText.Text(tab));
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class CursorPositionTests
     {
         var tab = ListTab(40) with { Selected = 39, Next = new PageCursor("next") };
 
-        Assert.Equal("40/40+", CursorPosition.Text(tab));
+        Assert.Equal("A-40 Status", SelectedIssueText.Text(tab));
     }
 
     [Fact]
@@ -50,13 +50,13 @@ public class CursorPositionTests
     {
         var tab = ListTab(3) with { Truncated = true };
 
-        Assert.Equal("1/3+", CursorPosition.Text(tab));
+        Assert.Equal("A-1 Status", SelectedIssueText.Text(tab));
     }
 
     [Fact]
     public void GivenAnEmptyList_WhenGettingTheText_ThenThereIsNoPosition()
     {
-        Assert.Equal(string.Empty, CursorPosition.Text(ListTab(0)));
+        Assert.Equal(string.Empty, SelectedIssueText.Text(ListTab(0)));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class CursorPositionTests
     {
         var tab = BacklogTab() with { Selected = 2 };
 
-        Assert.Equal("3/4", CursorPosition.Text(tab));
+        Assert.Equal("A-5 Status", SelectedIssueText.Text(tab));
     }
 
     [Fact]
@@ -72,14 +72,14 @@ public class CursorPositionTests
     {
         var tab = BacklogTab() with { Selected = 0, CollapsedSections = [BacklogSections.SprintKey(7)] };
 
-        Assert.Equal(string.Empty, CursorPosition.Text(tab));
+        Assert.Equal(string.Empty, SelectedIssueText.Text(tab));
     }
 
     [Fact]
     public void GivenABoard_WhenGettingTheText_ThenItNamesTheColumnAndTheCard()
     {
-        Assert.Equal("col 1/3  card 2/3", CursorPosition.Text(BoardTab("A-2")));
-        Assert.Equal("col 2/3  card 1/1", CursorPosition.Text(BoardTab("A-4")));
+        Assert.Equal("A-2 Status", SelectedIssueText.Text(BoardTab("A-2")));
+        Assert.Equal("A-4 Status", SelectedIssueText.Text(BoardTab("A-4")));
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class CursorPositionTests
     {
         var tab = BoardTab("A-1") with { Next = new PageCursor("next") };
 
-        Assert.Equal("col 1/3  card 1/3+", CursorPosition.Text(tab));
+        Assert.Equal("A-1 Status", SelectedIssueText.Text(tab));
     }
 
     [Theory]
@@ -103,7 +103,7 @@ public class CursorPositionTests
 
         if (width >= 120)
         {
-            Assert.Contains("5/40", line);
+            Assert.Contains("A-5 Status", line);
         }
     }
 
@@ -123,7 +123,7 @@ public class CursorPositionTests
         var withoutPosition = StatusBar.Render(ActiveOf(BoardTab("A-2") with { Definition = Plain() }), 180, _keymap);
         var line = StatusBar.Render(ActiveOf(BoardTab("A-2")), 180, _keymap);
 
-        Assert.Contains("col 1/3  card 2/3", line);
+        Assert.Contains("A-2 Status", line);
         Assert.Contains("<space>l list", line);
         Assert.Contains("h/l column  j/k card", withoutPosition);
     }
@@ -133,7 +133,7 @@ public class CursorPositionTests
     {
         var tab = BacklogTab() with { FocusedSprintId = 9 };
 
-        Assert.Equal(string.Empty, CursorPosition.Text(tab));
+        Assert.Equal(string.Empty, SelectedIssueText.Text(tab));
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class CursorPositionTests
         {
             var line = StatusBar.Render(ActiveOf(tab), width, _keymap);
             var hasGoal = line.Contains(goal, StringComparison.Ordinal);
-            var hasPosition = line.Contains("card 2/3", StringComparison.Ordinal);
+            var hasPosition = line.Contains("A-2 Status", StringComparison.Ordinal);
 
             goalOnly += hasGoal && !hasPosition ? 1 : 0;
             Assert.True(!seen || hasGoal, line);
