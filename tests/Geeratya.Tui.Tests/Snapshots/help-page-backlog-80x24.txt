@@ -15,7 +15,7 @@
 │ │               │   [[         Previous section of the issue or the Scrum  │ │
 │ │               │              backlog                                     │ │
 │ │               │   za         Expand or collapse sub-tasks of a card, or  │ │
-│ │               │              fold a backlog section                      │ │
+│ │               │              fold a backlog or issue section             │ │
 │ │               │   <space>l   Switch between list and columns             │ │
 │ │               │   <space>vf  Cycle the quick filter of the board (off,   │ │
 │ │               │              then each filter in turn)                  ▼│ │

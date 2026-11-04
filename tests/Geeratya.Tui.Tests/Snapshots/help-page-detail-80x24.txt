@@ -15,10 +15,10 @@
 │ │                │              backlog                                    │ │
 ╰─│                │   [[         Previous section of the issue or the       │─╯
   │                │              Scrum backlog                              │  
+  │                │   za         Expand or collapse sub-tasks of a card,    │  
+  │                │              or fold a backlog or issue section         │  
   │                │   <space>o   Open the issue in the browser              │  
-  │                │   <space>p   Open the parent issue                      │  
-  │                │   <space>ie  Edit fields of the issue (summary,         │  
-  │                │              labels, priority, description)            ▼│  
+  │                │   <space>p   Open the parent issue                     ▼│  
   ╰──────────────────────────────────────────────────────────────────────────╯  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close

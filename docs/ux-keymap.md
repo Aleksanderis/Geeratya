@@ -39,7 +39,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `] ]` `[ [` | next and previous section | next and previous section of the issue, or of the Scrum backlog |
 | `Ctrl-t` | pop the tag stack | new tab (opens the source picker; Gitunia binds it the same; there are no tags here). In the picker it keeps its meaning "open in a new tab" (#574) |
 | `Ctrl-w` | window commands | prefix: `Ctrl-w r` renames the tab (#574, Gitunia key); the other window commands are not bound |
-| `z a` | toggle a fold | collapse or expand the sprint section under the cursor (Scrum backlog), or the sub-task list of the card under the cursor (board, #520) |
+| `z a` | toggle a fold | collapse or expand the sprint section under the cursor (Scrum backlog), the sub-task list of the card under the cursor (board, #520), or the pane of the issue detail under the cursor (folds to its first line, #678) |
 | `g t` `g T` | next and previous tab | next and previous tab |
 | `Ctrl-p` | previous line | command palette, as in Gitunia (the palette alias; `k` and `Up` keep moving up; inside the palette `Ctrl-p`/`Ctrl-n` and `Ctrl-j`/`Ctrl-k` move the highlight, `Ctrl-l` runs) |
 | `Tab` `Shift-Tab` | `Tab` jumps forward in the jump list (`Ctrl-i`); `Shift-Tab` has no meaning | next and previous tab (the jump list does not exist) |

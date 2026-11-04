@@ -26,8 +26,8 @@
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the issue or the Scrum backlog                  │           │
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
-│           │               │              section                                                         │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog or    │           │
+│           │               │              issue section                                                   │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                              ▼│           │

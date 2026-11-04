@@ -50,6 +50,11 @@ internal static partial class DetailReducer
             return null;
         }
 
+        if (EdgeSection(document, line) is var edge and > 0)
+        {
+            return ToggleFolded(state, tab, edge);
+        }
+
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));
     }
 

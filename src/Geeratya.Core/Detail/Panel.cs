@@ -24,6 +24,18 @@ public static class Panel
     public const string Horizontal = "─";
     public const string Vertical = "│";
 
+    /// <summary>
+    /// The id a section is folded by: its title up to the first digit (the count), so it survives a count that changes
+    /// while pages and relations arrive.
+    /// </summary>
+    public static string IdOf(IReadOnlyList<StyledSpan> title)
+    {
+        var text = title.Count == 0 ? string.Empty : title[0].Text;
+        var digit = text.IndexOfAny(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+
+        return (digit < 0 ? text : text[..digit]).Trim();
+    }
+
     /// <summary>The title spans cut to the room of a top edge of <paramref name="width"/> columns.</summary>
     public static IReadOnlyList<StyledSpan> FitTitle(IReadOnlyList<StyledSpan> title, int width)
     {

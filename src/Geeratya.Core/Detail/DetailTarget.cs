@@ -29,4 +29,18 @@ public enum DetailTargetKind
 /// field id (field rows).
 /// </param>
 /// <param name="LinkId">The id of the issue link the row shows; null for any other row (#190 removes it).</param>
-public sealed record DetailTarget(DetailTargetKind Kind, string Value, string? LinkId = null);
+/// <param name="Expands">The row is a "N more lines" line: Enter shows the rest of the description or comment.</param>
+/// <param name="Collapses">The row is a "Show less" line: Enter cuts the description or comment short again.</param>
+public sealed record DetailTarget(
+    DetailTargetKind Kind,
+    string Value,
+    string? LinkId = null,
+    bool Expands = false,
+    bool Collapses = false)
+{
+    /// <summary>Whether Enter on the row expands or collapses long text instead of its usual action.</summary>
+    public bool Toggles => Expands || Collapses;
+
+    /// <summary>The key in <see cref="DetailState.Expanded"/> of the text this row belongs to.</summary>
+    public string ExpandKey => Kind == DetailTargetKind.Comment ? $"comment:{Value}" : Value;
+}

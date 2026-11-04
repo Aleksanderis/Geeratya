@@ -104,6 +104,33 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheDescriptionFolded_WhenBuildingTheFrame_ThenItShowsAPreviewAndMatchesTheSnapshot()
+    {
+        var state = Keys(Loaded(80, 24), "]", "]", "z", "a");
+
+        AssertSnapshot(state, 80, 24, "detail-folded-80x24.txt");
+    }
+
+    [Fact]
+    public void GivenTheDescriptionExpanded_WhenBuildingTheFrame_ThenItShowsAllLinesAndMatchesTheSnapshot()
+    {
+        var state = Keys(Loaded(80, 24), "]", "]", "j", "j", "j", "j", "j", "j", "j", "j", "Enter");
+
+        AssertSnapshot(state, 80, 24, "detail-expanded-80x24.txt");
+    }
+
+    [Fact]
+    public void GivenTheDescriptionFolded_WhenBuildingATinyFrame_ThenNothingOverflows()
+    {
+        var state = Keys(Loaded(40, 10), "]", "]", "z", "a");
+
+        var lines = FrameBuilder.Build(state, 40, 10, _keymap);
+
+        Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
+        Assert.Contains(lines, line => line.Contains("folded"));
+    }
+
+    [Fact]
     public void GivenFocusOnAWrappedField_WhenRendering_ThenEveryRowOfItIsSelectedAndOnlyTheFirstHasTheMark()
     {
         var labels = Enumerable.Range(1, 12).Select(number => $"label-number-{number}").ToArray();
@@ -436,9 +463,9 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenScrolledToAnotherPane_WhenBuilding_ThenTheTopEdgeHasNoStatusChip()
     {
-        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("G")).State;
+        var state = _reducer.Reduce(Loaded(80, 14), new KeyPressed("G")).State;
 
-        var top = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body[0];
+        var top = FrameBuilder.BuildStyled(state, 80, 14, _keymap)!.Body[0];
 
         Assert.DoesNotContain("In Progress", top.PlainText);
     }
@@ -463,11 +490,11 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenTheCursorMovedToTheNextPane_WhenBuilding_ThenTheFocusFollowsIntoThatPaneAndItsTitleChip()
     {
-        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("]")).State;
+        var state = _reducer.Reduce(Loaded(80, 14), new KeyPressed("]")).State;
 
         state = _reducer.Reduce(state, new KeyPressed("]")).State;
 
-        var body = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body;
+        var body = FrameBuilder.BuildStyled(state, 80, 14, _keymap)!.Body;
 
         Assert.Contains(body[0].Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Description"));
         Assert.Equal(TextRole.FrameFocus, body[0].Spans[0].Role);
@@ -511,6 +538,11 @@ public class IssueDetailRendererTests
         state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now)).State;
 
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now)).State;
+    }
+
+    private AppState Keys(AppState state, params string[] keys)
+    {
+        return keys.Aggregate(state, (current, key) => _reducer.Reduce(current, new KeyPressed(key)).State);
     }
 
     private AppState WithLabels(string[] labels)

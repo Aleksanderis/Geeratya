@@ -19,6 +19,6 @@
 │ 😄 and unicode: żółć 日本語 🚀                                               │
 │ after break                                                                  │
 │                                                                              │
-│ Colored H_2 underlined 2026-01-01 [READY]                                    │
+│ … 32 more lines (Enter)                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit
