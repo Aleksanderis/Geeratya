@@ -542,18 +542,25 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenAColumnWithoutFocus_WhenRendering_ThenItsRememberedCardHasOnlyTheQuietMarker()
+    public void GivenAColumnWithoutFocus_WhenRendering_ThenItsRememberedCardHasNoCursorMark()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
         var body = Render(tab, 120, 30);
-        var quiet = body.Where(line => line.Spans.Any(span => span.Role == TextRole.SelectedDim)).ToList();
 
-        Assert.Single(quiet);
-        Assert.Equal(">", quiet[0].Spans.Single(span => span.Role == TextRole.SelectedDim).Text);
+        Assert.DoesNotContain(body, line => line.Spans.Any(span => span.Text == ">"));
         Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
-        Assert.Contains(body, line => HasSpan(line, TextRole.TypeTask, "Task"));
         Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
+    }
+
+    [Fact]
+    public void GivenACompactColumnWithoutFocus_WhenRendering_ThenOnlyTheCursorCardHasTheMark()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 8);
+
+        Assert.Single(body.SelectMany(line => line.Spans), span => span.Text == ">");
     }
 
     [Fact]
@@ -591,7 +598,7 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenACompactBoard_WhenRendering_ThenOnlyTheCursorCardIsTintedWithItsTypeColourAndOthersHaveTheMarker()
+    public void GivenACompactBoard_WhenRendering_ThenOnlyTheCursorCardIsTintedWithItsTypeColour()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
@@ -601,7 +608,6 @@ public class ColumnsBodyRendererTests
         Assert.Contains("A-1", line.PlainText, StringComparison.Ordinal);
         Assert.Contains("A-2", line.PlainText, StringComparison.Ordinal);
         Assert.Contains(line.Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Selection);
-        Assert.Contains(line.Spans, span => span.Role == TextRole.SelectedDim && span.Text == ">");
         Assert.Contains(line.Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Page);
     }
 

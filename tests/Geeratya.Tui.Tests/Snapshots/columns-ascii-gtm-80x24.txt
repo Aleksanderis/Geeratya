@@ -2,7 +2,7 @@
                                                                                 
 +- To Do 5 ---------+- In Progress 4 ---+- Backlog 4 -------+- Done 3 ---------+
 | +---------------+ | +---------------+ | +---------------+ | +- ^ GTM-10 . -+ |
-| | Epic GTM-9    | |>| Epic GTM-10   | |>| Task GTM-21   | |>| Story GTM-13 | |
+| | Epic GTM-9    | | | Epic GTM-10   | | | Task GTM-21   | | | Story GTM-13 | |
 | | Seed:         | | | Seed:         | | | Backlog:      | | | Export       | |
 | | Onboarding f. | | | Reporting     | | | dark mode     | | | report as C. | |
 | +---------------+ | +---------------+ | +---------------+ | +--------------+ |
