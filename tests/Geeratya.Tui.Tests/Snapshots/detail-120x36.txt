@@ -1,8 +1,11 @@
  1 JQL My open issues x   +                                                                  : commands   <space>g jump 
                                                                                                                         
 ╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
+│  Key    T Summary                                                                     Status         Assignee        │
+│> GCM-12 T Row summary                                                                 In Progress    -               │
+│                                                                                                                      │
 │ ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────────────────────╮ │
-│>│>Fix login redirect after token refresh                                                               In Progress...│
+│ │>Fix login redirect after token refresh                                                               In Progress ...
 │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
 │ ╭─ Description ──────────────────────────────────────────────────────────────────────────────────────── 1-4 of 39 ─╮ │
 │ │ Heading one                                                                                                     ▲│ │
@@ -29,8 +32,5 @@
 │ │ Ola Nordmann · 5 min ago                                                                                         │ │
 │ │ See also café and 😀 in the second paragraph, which is long enough to wrap.                                      │ │
 │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12      j/k field  Enter edit/open  Esc back  <space>o browser  ? help  : commands  q quit

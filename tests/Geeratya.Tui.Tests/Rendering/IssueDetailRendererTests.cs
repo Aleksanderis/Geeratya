@@ -370,7 +370,7 @@ public class IssueDetailRendererTests
 
         Assert.Contains("My open issues", frame.Body[0].PlainText);
         Assert.All(frame.Body[0].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
-        Assert.StartsWith("╭─ GCM-12", frame.Body[1].PlainText[2..]);
+        Assert.StartsWith("╭─ GCM-12", frame.Body[4].PlainText[2..]);
         Assert.All(frame.Body[^1].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
     }
 

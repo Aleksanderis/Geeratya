@@ -23,9 +23,9 @@ public class DetailOverlayTests
     [Theory]
     [InlineData(64, 24, 0, 0, 64, 24, true)]
     [InlineData(99, 24, 0, 0, 99, 24, true)]
-    [InlineData(100, 24, 2, 1, 96, 22, false)]
-    [InlineData(120, 30, 2, 1, 116, 28, false)]
-    [InlineData(200, 40, 20, 1, 160, 38, false)]
+    [InlineData(100, 24, 2, 4, 96, 19, false)]
+    [InlineData(120, 30, 2, 4, 116, 25, false)]
+    [InlineData(200, 40, 20, 4, 160, 35, false)]
     public void GivenATerminal_WhenPlacing_ThenTheOverlayIsCentredCappedAndFillsBelow100(
         int width,
         int bodyHeight,
@@ -46,11 +46,11 @@ public class DetailOverlayTests
     {
         var box = DetailOverlayGeometry.Place(120, 30);
 
-        Assert.True(box.Contains(2, 1));
+        Assert.True(box.Contains(2, 4));
         Assert.True(box.Contains(117, 28));
         Assert.False(box.Contains(1, 5));
         Assert.False(box.Contains(118, 5));
-        Assert.False(box.Contains(5, 0));
+        Assert.False(box.Contains(5, 3));
         Assert.False(box.Contains(5, 29));
     }
 
@@ -151,6 +151,35 @@ public class DetailOverlayTests
         Assert.Equal(state, above.State);
     }
 
+    [Theory]
+    [InlineData("h")]
+    [InlineData("l")]
+    [InlineData("0")]
+    [InlineData("$")]
+    public void GivenAnOpenIssueOverABoard_WhenAColumnKeyArrives_ThenTheViewUnderneathIsUnchanged(string key)
+    {
+        var board = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State, ViewLayout.Columns);
+        var before = Active(board);
+
+        var after = Active(_reducer.Reduce(board, new KeyPressed(key)).State);
+
+        Assert.Equal(before.Selected, after.Selected);
+        Assert.Equal(before.SelectedKey, after.SelectedKey);
+        Assert.Equal(before.Detail.Count, after.Detail.Count);
+        Assert.Equal(before.Definition.Layout, after.Definition.Layout);
+    }
+
+    [Fact]
+    public void GivenAnOpenIssueOverABoard_WhenTheColumnActionRuns_ThenTheReducerRefusesIt()
+    {
+        var board = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State, ViewLayout.Columns);
+
+        var result = _reducer.Reduce(board, new KeyPressed("l"));
+
+        Assert.Equal(board, result.State);
+        Assert.Empty(result.Effects);
+    }
+
     private AppState TwoOpen()
     {
         var first = Open(_reducer.Reduce(Start(), new ViewportChanged(20, 120, 23)).State);
@@ -158,9 +187,9 @@ public class DetailOverlayTests
         return _reducer.Reduce(first, new IssueDetailOpenRequested(Active(first).Id, "A-2", null)).State;
     }
 
-    private AppState Open(AppState state)
+    private AppState Open(AppState state, ViewLayout layout = ViewLayout.List)
     {
-        var opened = _reducer.Reduce(state, new ViewOpenRequested(Definition()));
+        var opened = _reducer.Reduce(state, new ViewOpenRequested(Definition() with { Layout = layout }));
         var tab = Active(opened.State);
         var page = new IssuePage([Row(1), Row(2)], null, null);
         var loaded = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now));
