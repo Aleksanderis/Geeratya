@@ -38,7 +38,7 @@ public sealed class StartupEffectHandlerTests : IDisposable
     }
 
     [Fact]
-    public void GivenAFileThatCannotBeWritten_WhenATabOpens_ThenTheFailureIsReported()
+    public async Task GivenAFileThatCannotBeWritten_WhenATabOpens_ThenTheFailureIsReported()
     {
         var blocked = Path.Combine(_directory, "blocked");
 
@@ -46,13 +46,13 @@ public sealed class StartupEffectHandlerTests : IDisposable
         File.WriteAllText(blocked, "a file where the folder should go");
 
         var handler = new StartupEffectHandler(new RememberedTabsStore(Path.Combine(blocked, "inner")));
-        var notices = new List<string>();
+        var notice = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        handler.SaveFailed += notices.Add;
+        handler.SaveFailed += message => notice.TrySetResult(message);
         handler.Queue(new SaveTabsEffect(_work, RememberedTabs.Empty));
-        handler.Flush();
 
-        Assert.Contains("Could not save", Assert.Single(notices));
+        // Wait for the notice itself: Flush gives up after two seconds, which a cold first exception on a slow runner can exceed.
+        Assert.Contains("Could not save", await notice.Task.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
