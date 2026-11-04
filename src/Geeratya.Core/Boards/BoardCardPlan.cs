@@ -61,6 +61,27 @@ public static class BoardCardPlan
         return rows;
     }
 
+    /// <summary>
+    /// The number of rows <see cref="Rows"/> would return, without building them (the scroll maths asks for it per
+    /// card).
+    /// </summary>
+    public static int Height(IssueSummary issue, CardGroupPart part, int cellWidth)
+    {
+        var nested = part is CardGroupPart.Middle or CardGroupPart.Last;
+        var text = TextWidth(cellWidth, nested);
+        var labelRows = CardLabelLayout.Rows(issue.Labels, text).Count;
+
+        // Summary lines, the blank row, the key row and the bottom border or divider.
+        var rows = SummaryLines(issue, text) + 3;
+
+        if (part is CardGroupPart.None or CardGroupPart.First)
+        {
+            rows++;
+        }
+
+        return labelRows > 0 ? rows + labelRows + 1 : rows;
+    }
+
     /// <summary>The summary lines the card shows in <paramref name="text"/> cells: one, or two when it wraps.</summary>
     public static int SummaryLines(IssueSummary issue, int text)
     {

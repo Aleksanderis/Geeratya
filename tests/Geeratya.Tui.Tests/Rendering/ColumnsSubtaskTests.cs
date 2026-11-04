@@ -333,7 +333,10 @@ public class ColumnsSubtaskTests
         var (column, row) = (cell.Column, cell.Row);
 
         var opened = _reducer.Reduce(state, new PointerPlaced(column, row, Width)).State;
-        var closed = _reducer.Reduce(opened, new PointerPlaced(column, row, Width)).State;
+
+        // Expanding adds cards below, so scrolloff may scroll the column: the fold mark is looked up again.
+        var again = SubtaskRowCell(opened, "▾1/2");
+        var closed = _reducer.Reduce(opened, new PointerPlaced(again.Column, again.Row, Width)).State;
 
         Assert.Equal([parent], Active(opened).ExpandedSubtasks);
         Assert.Equal(2, Listed(opened).Count);
@@ -376,7 +379,7 @@ public class ColumnsSubtaskTests
         int width,
         int height)
     {
-        var state = await BoardStateFixtures.WithSubtasksAsync("gcm", true, height - 1 - 2 - 2 - 1);
+        var state = await BoardStateFixtures.WithSubtasksAsync("gcm", true, height - 1 - 2 - 2 - 1, width);
         state = Select(state, "GCM-10");
 
         var actual = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap)) + "\n";
@@ -408,18 +411,18 @@ public class ColumnsSubtaskTests
     private readonly record struct Cell(int Column, int Row);
 
     // The cell is read from the drawn frame (the line with the fold mark), not from the geometry under test.
-    private static Cell SubtaskRowCell(AppState state)
+    private static Cell SubtaskRowCell(AppState state, string mark = "▸1/2")
     {
         var lines = FrameBuilder.Build(state, Width, Height, _keymap);
         var top = lines.ToList().FindIndex(line => line.StartsWith('╭'));
-        var line = lines.ToList().FindIndex(each => each.Contains("▸1/2", StringComparison.Ordinal));
+        var line = lines.ToList().FindIndex(each => each.Contains(mark, StringComparison.Ordinal));
 
-        return new Cell(lines[line].IndexOf("▸1/2", StringComparison.Ordinal), line - top);
+        return new Cell(lines[line].IndexOf(mark, StringComparison.Ordinal), line - top);
     }
 
     private static async Task<AppState> OpenAsync(string kind, bool filtered, string selectKey)
     {
-        var state = await BoardStateFixtures.WithSubtasksAsync(kind, filtered, Rows);
+        var state = await BoardStateFixtures.WithSubtasksAsync(kind, filtered, Rows, Width);
 
         return Select(state, selectKey);
     }

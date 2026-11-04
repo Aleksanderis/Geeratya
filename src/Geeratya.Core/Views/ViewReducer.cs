@@ -72,7 +72,10 @@ public static partial class ViewReducer
         var sequence = state.Sequence;
         var id = new TabId(++sequence);
         var requestId = ++sequence;
-        var tab = TabState.Opened(id, definition, requestId, ++sequence, state.ViewportRows);
+        var tab = TabState.Opened(id, definition, requestId, ++sequence, state.ViewportRows) with
+        {
+            ViewWidth = state.ViewportColumns,
+        };
         var tabs = Stamp(state.Session.Tabs, state.Session.Active, ++sequence);
 
         effects.Add(new LoadViewPageEffect(id, definition, null, requestId, LoadReason.Open, false));
@@ -249,7 +252,7 @@ public static partial class ViewReducer
         if (state.ViewportRows == height
             && state.ViewportColumns == columns
             && state.ViewportBodyHeight == bodyHeight
-            && state.Session.Tabs.All(tab => tab.VisibleRows == height))
+            && state.Session.Tabs.All(tab => tab.VisibleRows == height && tab.ViewWidth == columns))
         {
             return state;
         }
@@ -257,7 +260,7 @@ public static partial class ViewReducer
         var layoutColumns = DetailSize.Columns(columns, bodyHeight);
         var tabs = state.Session.Tabs
             .Select(tab => DetailReducer.Resized(
-                Resized(tab, height),
+                Resized(tab, height) with { ViewWidth = columns },
                 layoutColumns,
                 DetailSize.ForTab(tab, DetailSize.ListRows(columns, bodyHeight, height))))
             .ToArray();
