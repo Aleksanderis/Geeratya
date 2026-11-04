@@ -22,7 +22,7 @@ public class ColumnsMemoTests
     {
         var tab = Tab([Issue("A-1", "1")]);
 
-        Assert.Same(ColumnsNavigation.ColumnsOf(tab), ColumnsNavigation.ColumnsOf(tab with { Selected = 0 }));
+        Assert.Same(ColumnsNavigation.ColumnsOf(tab), ColumnsNavigation.ColumnsOf(tab with { Scroll = 3 }));
     }
 
     [Fact]
@@ -34,6 +34,21 @@ public class ColumnsMemoTests
         var changed = tab with { Rows = [Issue("A-1", "1"), Issue("A-2", "1")] };
 
         Assert.Equal(2, ColumnsNavigation.ColumnsOf(changed)[0].Rows.Count);
+    }
+
+    [Fact]
+    public void GivenCachedColumns_WhenACardIsFoldedOut_ThenTheListedSubtaskRowAppears()
+    {
+        var parent = Issue("A-1", "1") with
+        {
+            Subtasks = [new IssueSubtask("A-2", "Child", new IssueStatus("1", "To Do", "new"), "Sub-task")],
+        };
+        var tab = Tab([parent]);
+        Assert.Single(ColumnsNavigation.ColumnsOf(tab)[0].Rows);
+
+        var expanded = tab with { ExpandedSubtasks = ["A-1"] };
+
+        Assert.Equal(2, ColumnsNavigation.ColumnsOf(expanded)[0].Rows.Count);
     }
 
     [Fact]
