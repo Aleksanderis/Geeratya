@@ -61,6 +61,13 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
+    /// <summary>The hints shown while the flash jump prompt is open (Insert mode, <see cref="AppState.FlashJump"/>).</summary>
+    public static IReadOnlyList<StatusHint> FlashHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormNext, "nearest"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
     /// <summary>The hints shown while the profile manager is open (Insert mode, <see cref="AppState.ProfileList"/>).</summary>
     public static readonly IReadOnlyList<StatusHint> ManagerHints =
     [
@@ -138,6 +145,11 @@ public static partial class StatusBar
         if (FormReducer.IsOpen(state))
         {
             return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap, level));
+        }
+
+        if (state.FlashJump is not null)
+        {
+            return new HintList([], TextsOf(FlashHints, state.Mode, HintScope.Global, keymap, level));
         }
 
         if (state.Picker is not null || state.Jump is not null || state.ContextMenu is not null)

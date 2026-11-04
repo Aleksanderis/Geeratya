@@ -1,4 +1,5 @@
 using Geeratya.Core.Detail;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
@@ -50,7 +51,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var framed = FrameGrid.CanFrame(width, height);
         var inner = framed ? width - 2 : width;
         var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
-        var columns = OptionalColumns(tab, inner, area);
+        var columns = ListViewColumns.For(tab, inner, area);
         var footer = FooterLine(tab, glyphs);
         var shown = tab.Rows.Count == 0 ? 0 : Math.Min(area, tab.Rows.Count - FirstRow(tab));
         var footerFits = footer is not null && tab.Rows.Count > 0 && shown < area && LastRowShown(tab, shown);
@@ -77,12 +78,15 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var range = RowSelection.VisualRange(tab);
         var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
 
+        var flash = FlashLabelsOf(state, tab, inner, area);
+
         for (var index = first; index < first + shown; index++)
         {
             var row = tab.Rows[index];
             var set = SetMarkOf(row, index, marks, range);
+            var line = RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, inner, glyphs);
 
-            lines.Add(RowLine(BusyMarks.Mark(row, busy, glyphs), columns, index == tab.Selected, set, inner, glyphs));
+            lines.Add(flash.TryGetValue(index, out var label) ? FlashOverlay.Apply(line, label) : line);
         }
 
         if (footerFits)
@@ -125,22 +129,19 @@ public sealed class ListBodyRenderer : IBodyRenderer
         return PaneFrame.Build(width, height, chips.Left, chips.Right, content, []);
     }
 
-    // Sprint, estimate and epic columns show only while a row in view has the value, so a Kanban list stays as before.
-    private static ListColumns OptionalColumns(TabState tab, int width, int area)
+    private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner, int area)
     {
-        bool sprint = false, points = false, epic = false;
-        var first = FirstRow(tab);
-        var end = Math.Min(tab.Rows.Count, first + area);
+        var labels = new Dictionary<int, FlashLabel>();
 
-        for (var index = first; index < end; index++)
+        if (state.FlashJump is { Text.Length: > 0 } flash)
         {
-            var row = tab.Rows[index];
-            sprint |= row.CurrentSprint is not null;
-            points |= row.Estimate is not null;
-            epic |= row.Epic is not null;
+            foreach (var label in FlashLabeler.Compute(tab, flash.Text, inner, area))
+            {
+                labels[label.Row] = label;
+            }
         }
 
-        return ListColumns.For(width, tab.KeyWidth, sprint, points, epic);
+        return labels;
     }
 
     internal static TabState? ActiveTab(AppState state)

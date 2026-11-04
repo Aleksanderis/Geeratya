@@ -20,6 +20,7 @@
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
 │           │               │              section                                                         │           │
+│           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
 │           │               │   q          Quit  (Ctrl-c)                                                  │           │
@@ -29,8 +30,7 @@
 │           │               │   <space>n   Show the message history                                        │           │
 │           │               │   <space>x   Dismiss the status message                                      │           │
 │           │               │   <space>,   Open or close the settings screen                               │           │
-│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
-│           │               │              screen)                                                        ▼│           │
+│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings  ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
