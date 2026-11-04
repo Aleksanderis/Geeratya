@@ -21,12 +21,13 @@ public class WhichKeyBuilderTests
     {
         var rows = WhichKeyBuilder.Build(_keymap, InputMode.Normal, "Space");
         var firstGroup = rows.ToList().FindIndex(row => row.Label.StartsWith('+'));
-        var lastBlank = rows.ToList().FindLastIndex(row => row.IsBlank);
+        var lastHeader = rows.ToList().FindLastIndex(row => row.IsHeader);
 
         Assert.True(firstGroup > 0);
         Assert.True(rows.Take(firstGroup).All(row => !row.Label.StartsWith('+')));
-        Assert.True(rows[firstGroup - 1].IsBlank);
-        Assert.True(lastBlank < rows.Count - 1);
+        Assert.Equal("More", rows[firstGroup - 1].Label);
+        Assert.True(rows[firstGroup - 1].IsHeader);
+        Assert.True(lastHeader < firstGroup);
         var issueCount = _keymap.NextKeys(InputMode.Normal, "Space").First(next => next.Key == "i").Count;
 
         Assert.Contains(rows, row => row.Label == $"+issue ({issueCount})");
@@ -35,7 +36,7 @@ public class WhichKeyBuilderTests
     }
 
     [Fact]
-    public void GivenAnActionListWithSharedPrefixes_WhenBuilding_ThenClustersAreSeparatedByABlankRow()
+    public void GivenAnActionListWithSharedPrefixes_WhenBuilding_ThenEachClusterHasAHeaderAndABlankRowBeforeIt()
     {
         var keymap = new KeymapTable(
         [
@@ -47,7 +48,20 @@ public class WhichKeyBuilderTests
         ]);
         var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, "Space");
 
-        Assert.Equal(["d", "c", "", "a", "b", "", "z"], rows.Select(row => row.Key));
+        Assert.Equal(["", "d", "c", "", "", "a", "b", "", "", "z"], rows.Select(row => row.Key));
+        Assert.Equal(["Issue", "Rank", "Other"], rows.Where(row => row.IsHeader).Select(row => row.Label));
+    }
+
+    [Fact]
+    public void GivenOnlyOnePart_WhenBuilding_ThenNoHeaderShows()
+    {
+        var keymap = new KeymapTable(
+        [
+            new KeyBinding(InputMode.Normal, "Space b", "rank.top"),
+            new KeyBinding(InputMode.Normal, "Space a", "rank.bottom"),
+        ]);
+
+        Assert.DoesNotContain(WhichKeyBuilder.Build(keymap, InputMode.Normal, "Space"), row => row.IsHeader);
     }
 
     [Fact]

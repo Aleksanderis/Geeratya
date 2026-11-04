@@ -175,7 +175,7 @@ public class SelectedIssueTextTests
     public void GivenAStatusNameWithAControlCharacter_WhenGettingTheText_ThenItIsReplacedBySpace()
     {
         var tab = ListTab(1);
-        var issue = tab.Rows[0] with { Status = new IssueStatus("1", "Do\u001b[31mne", "done") };
+        var issue = tab.Rows[0] with { Status = new IssueStatus("1", $"Do{(char)27}[31mne", "done") };
 
         Assert.Equal("A-1 Do [31mne", SelectedIssueText.Text(tab with { Rows = [issue] }));
     }

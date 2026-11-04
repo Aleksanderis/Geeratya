@@ -52,6 +52,25 @@ public class ContextMenuOverlayTests
     }
 
     [Fact]
+    public void GivenALongMenuWithSeveralPrefixes_WhenBuildingTheFrame_ThenHeadersShowAndOnlyItemsHaveIndexes()
+    {
+        var items = new[]
+        {
+            ActionIds.IssueEdit, ActionIds.IssueDelete, ActionIds.IssueLink, ActionIds.RankUp, ActionIds.RankDown,
+            ActionIds.RankTop, ActionIds.Quit,
+        }.Select(action => new ContextMenuItem(action, ActionCatalog.FindTitle(action)!)).ToList();
+        var state = Sample() with { ContextMenu = new ContextMenuState(items, 6) };
+        var frame = FrameBuilder.BuildStyled(state, 100, 30, _keymap)!;
+        var text = string.Join('\n', frame.PlainLines());
+        var rows = RegionProbe.Rows(frame, MouseTarget.ContextMenu);
+
+        Assert.Contains(" Issue ", text, StringComparison.Ordinal);
+        Assert.Contains(" Rank ", text, StringComparison.Ordinal);
+        Assert.Contains(" Quit ", text, StringComparison.Ordinal);
+        Assert.Equal(Enumerable.Range(0, 7), rows.Select(row => row.Index));
+    }
+
+    [Fact]
     public void GivenAnyTerminalSize_WhenBuildingTheFrame_ThenItNeverThrows()
     {
         for (var width = 0; width <= 30; width++)

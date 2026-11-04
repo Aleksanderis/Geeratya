@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -18,6 +19,7 @@ public static class ContextMenuOverlay
     private const int MinimumBoxHeight = 4;
     private const int KeyGap = 2;
     private const int TopGap = 2;
+    private const int MinimumItemsForHeaders = 6;
 
     /// <summary>
     /// Draws the menu of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).
@@ -38,18 +40,14 @@ public static class ContextMenuOverlay
         }
 
         var selected = Math.Clamp(menu.Selected, 0, menu.Items.Count - 1);
-        var area = Math.Min(menu.Items.Count, height - 2);
-        var first = area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, menu.Items.Count - area);
+        var rows = DisplayRows(menu, keymap, selected, boxWidth - 4);
+        var selectedRow = rows.FindIndex(row => row.Item == selected);
+        var area = Math.Min(rows.Count, height - 2);
+        var first = area <= 0 || selectedRow < area ? 0 : Math.Min(selectedRow - area + 1, rows.Count - area);
         var contentWidth = boxWidth - 2;
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title) };
 
-        for (var index = first; index < first + area; index++)
-        {
-            var item = menu.Items[index];
-            var keys = keymap.FindKeyLabel(InputMode.Normal, item.Action) ?? string.Empty;
-
-            lines.Add(OverlayBox.Wall(RowLine(item.Title, keys, index == selected, boxWidth - 4), contentWidth));
-        }
+        lines.AddRange(rows.Skip(first).Take(area).Select(row => OverlayBox.Wall(row.Line, contentWidth)));
 
         lines.Add(OverlayBox.Bottom(boxWidth));
 
@@ -59,7 +57,7 @@ public static class ContextMenuOverlay
 
         OverlayBox.Cover(regions, top, left, boxWidth, lines.Count);
 
-        OverlayBox.Mark(regions, MouseTarget.ContextMenu, top, left, boxWidth, 1, Enumerable.Range(first, area));
+        OverlayBox.Mark(regions, MouseTarget.ContextMenu, top, left, boxWidth, 1, rows.Skip(first).Take(area).Select(row => row.Item));
 
         for (var index = 0; index < lines.Count && top + index < result.Count; index++)
         {
@@ -67,6 +65,35 @@ public static class ContextMenuOverlay
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The rows of the box: a header row (not selectable, item -1) wherever the action prefix changes, when the menu
+    /// has more than one prefix and enough items to need them, then the item rows.
+    /// </summary>
+    private static List<MenuRow> DisplayRows(ContextMenuState menu, KeymapTable keymap, int selected, int width)
+    {
+        var prefixes = menu.Items.Select(item => WhichKeyBuilder.PrefixOf(item.Action)).ToList();
+        var headed = menu.Items.Count >= MinimumItemsForHeaders && prefixes.Distinct().Count() > 1;
+        var rows = new List<MenuRow>();
+
+        for (var index = 0; index < menu.Items.Count; index++)
+        {
+            var item = menu.Items[index];
+
+            if (headed && (index == 0 || prefixes[index] != prefixes[index - 1]))
+            {
+                var header = StyledLine.Of($"  {WhichKeyBuilder.GroupTitle(prefixes[index])}", TextRole.Heading);
+
+                rows.Add(new MenuRow(-1, header));
+            }
+
+            var keys = keymap.FindKeyLabel(InputMode.Normal, item.Action) ?? string.Empty;
+
+            rows.Add(new MenuRow(index, RowLine(item.Title, keys, index == selected, width)));
+        }
+
+        return rows;
     }
 
     private static StyledLine RowLine(string title, string keys, bool selected, int width)
@@ -87,7 +114,9 @@ public static class ContextMenuOverlay
             new StyledSpan($"{marker} ", TextRole.Muted),
             new StyledSpan(text, TextRole.Body),
             new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(keyText, TextRole.Muted),
+            new StyledSpan(keyText, TextRole.Key),
         ]);
     }
+
+    private sealed record MenuRow(int Item, StyledLine Line);
 }

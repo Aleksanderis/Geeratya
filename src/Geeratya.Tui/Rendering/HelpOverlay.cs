@@ -172,7 +172,7 @@ public static class HelpOverlay
     private static StyledLine MenuEntry(string name, bool active, int cells)
     {
         var text = $"{(active ? ActiveMark : IdleMark)}{name}";
-        var role = active ? TextRole.Selected : TextRole.Muted;
+        var role = active ? TextRole.Heading : TextRole.Muted;
         var line = StyledLines.Fit(StyledLine.Of(text, role), cells);
         var missing = cells - line.Spans.Sum(span => DisplayWidth.Of(span.Text));
 

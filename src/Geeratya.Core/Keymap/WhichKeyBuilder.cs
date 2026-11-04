@@ -2,13 +2,18 @@ namespace Geeratya.Core.Keymap;
 
 /// <summary>
 /// The rows of the which-key popup, from the keymap and the action titles (never hand-written). Order: the plain
-/// actions first, kept in clusters of actions that share an id prefix (<c>issue.*</c>, <c>rank.*</c>) with a blank row
-/// between clusters and the lone actions last, then the <c>+noun (n)</c> groups; inside each part alphabetical by
-/// label, lowercase before uppercase. Pure.
+/// actions first, kept in clusters of actions that share an id prefix (<c>issue.*</c>, <c>rank.*</c>) each under a
+/// header row naming the cluster (a blank row before every header but the first) and the lone actions last under
+/// "Other", then the <c>+noun (n)</c> groups under "More"; inside each part alphabetical by label, lowercase before
+/// uppercase. The headers are left out when nothing but one part exists. Pure.
 /// </summary>
 public static class WhichKeyBuilder
 {
     private const string GroupMarker = "+";
+    private const string OtherHeader = "Other";
+    private const string MoreHeader = "More";
+
+    private sealed record Part(string Name, List<WhichKeyRow> Rows);
 
     private static readonly IComparer<WhichKeyRow> _rowOrder = Comparer<WhichKeyRow>.Create(CompareRows);
 
@@ -41,24 +46,54 @@ public static class WhichKeyBuilder
             .GroupBy(entry => entry.Prefix, StringComparer.Ordinal)
             .Select(group => Sorted(group.Select(entry => entry.Row)))
             .ToList();
-        var parts = byPrefix.Where(cluster => cluster.Count > 1).OrderBy(cluster => cluster[0], _rowOrder).ToList();
+        var parts = byPrefix
+            .Where(cluster => cluster.Count > 1)
+            .OrderBy(cluster => cluster[0], _rowOrder)
+            .Select(cluster => new Part(GroupTitle(PrefixOfRow(plain, cluster[0])), cluster))
+            .ToList();
 
-        parts.Add(Sorted(byPrefix.Where(cluster => cluster.Count == 1).Select(cluster => cluster[0])));
-        parts.Add(Sorted(groups));
+        var lone = Sorted(byPrefix.Where(cluster => cluster.Count == 1).Select(cluster => cluster[0]));
+
+        parts.Add(new Part(OtherHeader, lone));
+        parts.Add(new Part(MoreHeader, Sorted(groups)));
+        parts = [.. parts.Where(part => part.Rows.Count > 0)];
 
         var rows = new List<WhichKeyRow>();
+        var headed = parts.Count > 1;
 
-        foreach (var part in parts.Where(part => part.Count > 0))
+        foreach (var part in parts)
         {
             if (rows.Count > 0)
             {
                 rows.Add(WhichKeyRow.Blank);
             }
 
-            rows.AddRange(part);
+            if (headed)
+            {
+                rows.Add(WhichKeyRow.Header(part.Name));
+            }
+
+            rows.AddRange(part.Rows);
         }
 
         return rows;
+    }
+
+    /// <summary>The header for the actions whose ids start with <paramref name="prefix"/>: <c>issue</c> gives <c>Issue</c>.</summary>
+    public static string GroupTitle(string prefix)
+    {
+        return prefix.Length == 0 ? prefix : string.Concat(char.ToUpperInvariant(prefix[0]).ToString(), prefix.AsSpan(1));
+    }
+
+    /// <summary>The rows without the blank separators and headers, for a popup too short to show them.</summary>
+    public static IReadOnlyList<WhichKeyRow> WithoutHeaders(IReadOnlyList<WhichKeyRow> rows)
+    {
+        return rows.Where(row => !row.IsBlank && !row.IsHeader).ToList();
+    }
+
+    private static string PrefixOfRow(List<(string Prefix, WhichKeyRow Row)> plain, WhichKeyRow row)
+    {
+        return plain.First(entry => ReferenceEquals(entry.Row, row)).Prefix;
     }
 
     /// <summary>The rows without the blank separators, for a popup too short to show them.</summary>
@@ -84,7 +119,8 @@ public static class WhichKeyBuilder
         return byLabel != 0 ? byLabel : string.CompareOrdinal(right.Key, left.Key);
     }
 
-    private static string PrefixOf(string action)
+    /// <summary>The part of an action id before its first dot.</summary>
+    public static string PrefixOf(string action)
     {
         var dot = action.IndexOf('.');
 
