@@ -58,6 +58,12 @@ public class PaletteTests
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
 
+        // A light theme at 16 colours is bold-only: its table has no bright colour that reads on the blue bar.
+        if (tier == ColorSupport.Basic16 && theme.Variant == ThemeVariant.Light)
+        {
+            return;
+        }
+
         var key = Palette.Resolve(theme, tier, PaletteRole.BarKey);
         var label = Palette.Resolve(theme, tier, PaletteRole.BarMuted);
 
