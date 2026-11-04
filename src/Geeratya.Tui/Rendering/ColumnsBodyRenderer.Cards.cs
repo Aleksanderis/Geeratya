@@ -69,7 +69,6 @@ public sealed partial class ColumnsBodyRenderer
         }
 
         var selected = column == cursor.Column && card == cursor.Cards[column];
-        var quiet = column != cursor.Column && card == Math.Clamp(cursor.Wanted, 0, group.Rows.Count - 1);
         var issue = group.Rows[card];
         var marked = marks.Contains(issue.Key);
         var open = issue.Subtasks.Count > 0 && expanded.Contains(issue.Key);
@@ -78,7 +77,7 @@ public sealed partial class ColumnsBodyRenderer
         {
             var start = spans.Count;
 
-            AddCompact(spans, issue, group, card, selected, quiet, marked, inner);
+            AddCompact(spans, issue, group, card, selected, marked, inner);
             DrawFlash(spans, start, flash, issue, true, false);
 
             return;
@@ -100,11 +99,6 @@ public sealed partial class ColumnsBodyRenderer
         }
 
         var firstText = part is GroupPart.None or GroupPart.First ? 1 : 0;
-
-        if (quiet && within == firstText)
-        {
-            Mark(spans, first);
-        }
 
         DrawFlash(spans, first, flash, issue, within == firstText, true);
     }
@@ -156,7 +150,7 @@ public sealed partial class ColumnsBodyRenderer
 
     /// <summary>
     /// One-line card: only the cursor card is tinted, and it keeps the issue-type colour of its marker; a card the
-    /// cursor would land on in another column has just the quiet <c>&gt;</c>.
+    /// cursor would land on in another column is drawn like any other (no mark).
     /// </summary>
     private static void AddCompact(
         List<StyledSpan> spans,
@@ -164,13 +158,12 @@ public sealed partial class ColumnsBodyRenderer
         BoardColumnGroup group,
         int card,
         bool selected,
-        bool quiet,
         bool marked,
         int inner)
     {
         var nested = group.IsNested(card);
         var more = group.IsNested(card + 1);
-        var line = TextWidth.Pad(CompactLine(issue, selected || quiet, marked, nested, more, inner), inner);
+        var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, more, inner), inner);
         var at = nested ? 2 : 1;
         var ground = selected ? SpanGround.Selection : SpanGround.Page;
 
@@ -181,9 +174,7 @@ public sealed partial class ColumnsBodyRenderer
             return;
         }
 
-        var markRole = quiet ? TextRole.SelectedDim : TextRole.Body;
-
-        spans.Add(new StyledSpan(line[..1], markRole, ground));
+        spans.Add(new StyledSpan(line[..1], TextRole.Body, ground));
 
         if (at > 1)
         {
@@ -212,18 +203,6 @@ public sealed partial class ColumnsBodyRenderer
             {
                 spans[index] = span with { Ground = SpanGround.Selection };
             }
-        }
-    }
-
-    /// <summary>
-    /// The quiet <c>&gt;</c> in the left margin of the first text row of the card the cursor would land on in a column
-    /// without focus; the card itself keeps its own look.
-    /// </summary>
-    private static void Mark(List<StyledSpan> spans, int first)
-    {
-        if (spans[first].Text == Blank)
-        {
-            spans[first] = new StyledSpan(SelectedMark, TextRole.SelectedDim);
         }
     }
 

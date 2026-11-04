@@ -7,11 +7,11 @@
 │ │                                   │ │ │                                   │ │ │                                  │ │
 │ ├───────────────────────────────────┤ │ ├───────────────────────────────────┤ │ └──────────────────────────────────┘ │
 │ │   Story GCM-11                    │ │ │   Task GCM-14                     │ │ ┌──────────────────────────────────┐ │
-│ │   Welcome screen                  │ │ │   Pick a chart library            │ │>│ Task GCM-15                      │ │
+│ │   Welcome screen                  │ │ │   Pick a chart library            │ │ │ Task GCM-15                      │ │
 │ │                                   │ │ │                                   │ │ │ Write the setup guide            │ │
 │ │                                   │ │ │                                   │ │ │                                  │ │
 │ ├───────────────────────────────────┤ │ └───────────────────────────────────┘ │ └──────────────────────────────────┘ │
-│>│   Task GCM-13                     │ │ ┏━ ↑ GCM-8 Seed: Onboarding flow ━━━┓ │                                      │
+│ │   Task GCM-13                     │ │ ┏━ ↑ GCM-8 Seed: Onboarding flow ━━━┓ │                                      │
 │ │   Review onboarding copy          │ │ ┃ Story GCM-10                   ...┃ │                                      │
 │ │                                   │ │ ┃ Sign up with email                ┃ │                                      │
 │ │                                   │ │ ┃ ▸ Sub-tasks 1/2 ━━━───            ┃ │                                      │

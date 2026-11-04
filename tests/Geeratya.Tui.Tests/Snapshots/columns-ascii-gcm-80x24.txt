@@ -2,7 +2,7 @@
                                                                                 
 +- To Do 5 ----------------+- In Progress 4 ----------+- Done 3 ---------------+
 | +----------------------+ | +----------------------+ | +- ^ GCM-10 Sign u. -+ |
-| | Epic GCM-8           | |>| Epic GCM-9           | |>| Sub-task GCM-18    | |
+| | Epic GCM-8           | | | Epic GCM-9           | | | Sub-task GCM-18    | |
 | | Seed: Onboarding     | | | Seed: Reporting      | | | Build the form     | |
 | | flow                 | | |                      | | |                    | |
 | +----------------------+ | +----------------------+ | +--------------------+ |

@@ -20,7 +20,6 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
     private const string NoSprintText = "No active sprint on this board.";
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
-    private const string SelectedMark = ">";
     private const string MarkedMark = "*";
     private const string Blank = " ";
     private const int FirstSummaryLine = 2;
