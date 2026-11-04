@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
@@ -92,7 +93,7 @@ public static class FrameBuilder
             body = Fit(DetailOverlay.Compose(body, shownState, context, width, bodyHeight), width, bodyHeight);
         }
 
-        var marker = helpOpen || settingsOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
+        var marker = helpOpen || settingsOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state, MarkerLimit(detailShown, width, bodyHeight));
 
         if (helpOpen)
         {
@@ -173,6 +174,14 @@ public static class FrameBuilder
         };
 
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
+    }
+
+    // The wide detail overlay keeps its right frame cell: the marker stops before it and never reaches the view around.
+    private static int? MarkerLimit(bool detailShown, int width, int bodyHeight)
+    {
+        var box = DetailOverlayGeometry.Place(width, bodyHeight);
+
+        return detailShown && !box.Fills ? box.Left + box.Width - 1 : null;
     }
 
     private static List<StyledLine> BodyOf(

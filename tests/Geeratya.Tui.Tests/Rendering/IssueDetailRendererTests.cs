@@ -370,7 +370,7 @@ public class IssueDetailRendererTests
 
         Assert.Contains("My open issues", frame.Body[0].PlainText);
         Assert.All(frame.Body[0].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
-        Assert.StartsWith("╭─ GCM-12", frame.Body[1].PlainText[2..]);
+        Assert.StartsWith("╭─ GCM-12", frame.Body[4].PlainText[2..]);
         Assert.All(frame.Body[^1].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
     }
 
@@ -532,6 +532,18 @@ public class IssueDetailRendererTests
 
         Assert.Equal(RowMenuMarker.Text, line.Substring(marker.Left, marker.Width));
         Assert.Single(frame.Body, candidate => candidate.PlainText.Contains(RowMenuMarker.Text));
+    }
+
+    [Fact]
+    public void GivenAnOpenedIssueInTheWideOverlay_WhenBuilding_ThenTheMarkerStaysInsideTheOverlayBox()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(120, 36), 120, 36, _keymap)!;
+        var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
+        var box = DetailOverlayGeometry.Place(120, FrameBuilder.BodyHeight(36));
+        var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
+
+        Assert.True(marker.Left + marker.Width < box.Left + box.Width);
+        Assert.EndsWith("...│ │", line.TrimEnd());
     }
 
     [Fact]

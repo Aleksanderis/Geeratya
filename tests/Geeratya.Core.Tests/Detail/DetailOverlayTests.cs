@@ -4,6 +4,7 @@ using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
@@ -23,9 +24,11 @@ public class DetailOverlayTests
     [Theory]
     [InlineData(64, 24, 0, 0, 64, 24, true)]
     [InlineData(99, 24, 0, 0, 99, 24, true)]
-    [InlineData(100, 24, 2, 1, 96, 22, false)]
-    [InlineData(120, 30, 2, 1, 116, 28, false)]
-    [InlineData(200, 40, 20, 1, 160, 38, false)]
+    [InlineData(100, 24, 2, 4, 96, 19, false)]
+    [InlineData(120, 30, 2, 4, 116, 25, false)]
+    [InlineData(200, 40, 20, 4, 160, 35, false)]
+    [InlineData(120, 9, 2, 1, 116, 7, false)]
+    [InlineData(120, 12, 2, 3, 116, 8, false)]
     public void GivenATerminal_WhenPlacing_ThenTheOverlayIsCentredCappedAndFillsBelow100(
         int width,
         int bodyHeight,
@@ -46,11 +49,11 @@ public class DetailOverlayTests
     {
         var box = DetailOverlayGeometry.Place(120, 30);
 
-        Assert.True(box.Contains(2, 1));
+        Assert.True(box.Contains(2, 4));
         Assert.True(box.Contains(117, 28));
         Assert.False(box.Contains(1, 5));
         Assert.False(box.Contains(118, 5));
-        Assert.False(box.Contains(5, 0));
+        Assert.False(box.Contains(5, 3));
         Assert.False(box.Contains(5, 29));
     }
 
@@ -151,6 +154,65 @@ public class DetailOverlayTests
         Assert.Equal(state, above.State);
     }
 
+    [Theory]
+    [InlineData("l")]
+    [InlineData("$")]
+    public void GivenABoardWithTwoColumns_WhenAColumnKeyArrivesWithoutAnIssue_ThenTheCursorMoves(string key)
+    {
+        var board = Board(false);
+
+        var after = Active(_reducer.Reduce(board, new KeyPressed(key)).State);
+
+        Assert.NotEqual(Active(board).SelectedKey, after.SelectedKey);
+    }
+
+    [Theory]
+    [InlineData("l")]
+    [InlineData("$")]
+    [InlineData("h")]
+    [InlineData("0")]
+    public void GivenAnOpenIssueOverABoard_WhenAColumnKeyArrives_ThenTheViewUnderneathIsUnchanged(string key)
+    {
+        var board = Board(true);
+
+        var result = _reducer.Reduce(board, new KeyPressed(key));
+
+        Assert.Equal(board, result.State);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenAnOpenIssueOverABoardInInsertMode_WhenAKeyArrives_ThenTheGateDoesNotSwallowIt()
+    {
+        var board = Board(true) with { Mode = InputMode.Insert };
+
+        var result = _reducer.Reduce(board, new KeyPressed("l"));
+
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+    }
+
+    private AppState Board(bool withIssue)
+    {
+        var start = _reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State;
+        var definition = new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
+        var opened = _reducer.Reduce(start, new ViewOpenRequested(definition)).State;
+        var tab = Active(opened);
+        var configuration = new BoardConfiguration(
+            4,
+            "Board",
+            BoardType.Kanban,
+            [new BoardColumn("To Do", ["1"]), new BoardColumn("Done", ["2"])],
+            "10001",
+            null,
+            null,
+            null);
+        var configured = _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, configuration));
+        var page = new IssuePage([Row(1), Row(2, new IssueStatus("2", "Done", "done"))], null, 2);
+        var loaded = _reducer.Reduce(configured.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
+
+        return withIssue ? _reducer.Reduce(loaded, new KeyPressed("Enter")).State : loaded;
+    }
+
     private AppState TwoOpen()
     {
         var first = Open(_reducer.Reduce(Start(), new ViewportChanged(20, 120, 23)).State);
@@ -158,9 +220,9 @@ public class DetailOverlayTests
         return _reducer.Reduce(first, new IssueDetailOpenRequested(Active(first).Id, "A-2", null)).State;
     }
 
-    private AppState Open(AppState state)
+    private AppState Open(AppState state, ViewLayout layout = ViewLayout.List)
     {
-        var opened = _reducer.Reduce(state, new ViewOpenRequested(Definition()));
+        var opened = _reducer.Reduce(state, new ViewOpenRequested(Definition() with { Layout = layout }));
         var tab = Active(opened.State);
         var page = new IssuePage([Row(1), Row(2)], null, null);
         var loaded = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now));
@@ -185,13 +247,13 @@ public class DetailOverlayTests
         return new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
     }
 
-    private static IssueSummary Row(int number)
+    private static IssueSummary Row(int number, IssueStatus? status = null)
     {
         return new IssueSummary(
             $"{number}",
             $"A-{number}",
             $"Issue {number}",
-            _status,
+            status ?? _status,
             _type,
             null,
             null,
