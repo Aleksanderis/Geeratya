@@ -6,6 +6,13 @@ namespace Geeratya.Tui.Rendering;
 
 public static partial class FormOverlay
 {
+    private const string BoxTopStart = "┌─";
+    private const string BoxTopEnd = "┐";
+    private const string BoxBottomStart = "└";
+    private const string BoxBottomEnd = "┘";
+    private const string BoxWallStart = "│ ";
+    private const string BoxWallEnd = " │";
+
     /// <summary>
     /// One field as a labelled box: the label (with the required mark and state) in the top edge, the value rows
     /// inside the walls, then the suggestion rows and the error line under the box. The focused box is accent
@@ -30,7 +37,7 @@ public static partial class FormOverlay
             lines.Add(BoxRow(value, width, frame));
         }
 
-        lines.Add(StyledLine.Of($"└{new string(OverlayBox.Horizontal, width - 2)}┘", frame));
+        lines.Add(StyledLine.Of($"{BoxBottomStart}{new string(OverlayBox.Horizontal, width - 2)}{BoxBottomEnd}", frame));
 
         if (field.IsEditable)
         {
@@ -52,18 +59,18 @@ public static partial class FormOverlay
 
         return new StyledLine(
         [
-            new StyledSpan("┌─", frame),
+            new StyledSpan(BoxTopStart, frame),
             new StyledSpan(text, labelRole),
-            new StyledSpan($"{new string(OverlayBox.Horizontal, fill)}┐", frame),
+            new StyledSpan($"{new string(OverlayBox.Horizontal, fill)}{BoxTopEnd}", frame),
         ]);
     }
 
     private static StyledLine BoxRow(StyledLine value, int width, TextRole frame)
     {
-        var spans = new List<StyledSpan> { new("│ ", frame) };
+        var spans = new List<StyledSpan> { new(BoxWallStart, frame) };
 
         spans.AddRange(StyledLines.Fit(value, width - 4).Spans);
-        spans.Add(new StyledSpan(" │", frame));
+        spans.Add(new StyledSpan(BoxWallEnd, frame));
 
         return new StyledLine(spans);
     }
