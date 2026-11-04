@@ -104,6 +104,45 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenFocusOnAWrappedField_WhenRendering_ThenEveryRowOfItIsSelectedAndOnlyTheFirstHasTheMark()
+    {
+        var labels = Enumerable.Range(1, 12).Select(number => $"label-number-{number}").ToArray();
+        var state = WithLabels(labels);
+        var context = new BodyContext(_keymap);
+        var lines = new IssueDetailRenderer().Render(state, context, 80, 24);
+        var first = lines.ToList().FindIndex(line => line.PlainText.Contains("Labels"));
+
+        Assert.StartsWith("│>Labels", lines[first].PlainText);
+        Assert.DoesNotContain(lines[first + 1].PlainText, ">");
+
+        foreach (var row in lines.Skip(first).Take(2))
+        {
+            Assert.Contains(row.Spans, span => span.Role == TextRole.Selected && span.Text.Trim().Length > 0);
+            Assert.DoesNotContain(row.Spans, span => span.Role is TextRole.Strong or TextRole.Editable);
+        }
+    }
+
+    [Fact]
+    public void GivenFocusOnAnEditableFieldInTheAsciiSet_WhenBuilding_ThenTheMarkerIsAnAsciiVAndNoUnicodeTriangleRemains()
+    {
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap, null, GlyphSet.Ascii);
+
+        Assert.Contains(lines, line => line.StartsWith("|>Status    In Progress v"));
+        Assert.DoesNotContain(lines, line => line.Contains('▾'));
+    }
+
+    [Fact]
+    public void GivenOnlyTheListRowIsKnown_WhenRendering_ThenEditableFieldsStillShowAsFormRows()
+    {
+        var lines = FrameBuilder.Build(Opened(100, 24), 100, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Priority"));
+        Assert.Contains(lines, line => line.Contains("Assignee") && line.Contains("Unassigned"));
+    }
+
+    [Fact]
     public void GivenAnOpenIssue_WhenBuilding_ThenTheBreadcrumbNamesTheViewAndTheKey()
     {
         var lines = FrameBuilder.Build(Loaded(160, 30), 160, 30, _keymap);
@@ -472,6 +511,24 @@ public class IssueDetailRendererTests
         state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now)).State;
 
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now)).State;
+    }
+
+    private AppState WithLabels(string[] labels)
+    {
+        var state = Opened(80, 24);
+        var tab = state.Session.Tabs[0];
+        var detail = tab.Detail[0];
+
+        state = _reducer.Reduce(
+            state,
+            new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue() with { Labels = labels }, _now)).State;
+
+        while (state.Session.Tabs[0].Detail[0].Document!.Targets[state.Session.Tabs[0].Detail[0].Cursor]?.Value != "labels")
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j")).State;
+        }
+
+        return state;
     }
 
     private AppState Loaded(int width, int height)

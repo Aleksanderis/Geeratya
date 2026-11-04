@@ -55,8 +55,10 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 ╭─ GEN-5 · Story ──────────────────────────────────────────────────────────────╮
 │ Generated issue 5                                                            │
 │                                                                              │
-│ Status    To Do ▾                      Priority  Medium ▾                    │
-│ Reporter  Generated Reporter           Labels    generated, sample ▾         │
+│ Status    To Do ▾                                                            │
+│ Priority  Medium ▾                                                           │
+│ Reporter  Generated Reporter                                                 │
+│ Labels    generated, sample ▾                                                │
 ├─ Description ────────────────────────────────────────────────────────────────┤
 │ Summary                                                                      │
 │                                                                              │

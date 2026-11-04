@@ -104,6 +104,30 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
+    public void GivenFocusOnTheParent_WhenPressingEnter_ThenTheParentIssueOpens()
+    {
+        var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
+        var state = OnTarget(Opened(Issue() with { Parent = parent }), DetailFieldIds.Parent);
+
+        var result = Press(state, "Enter");
+
+        Assert.Equal("A-0", Assert.Single(result.Effects.OfType<LoadIssueDetailEffect>()).Key);
+    }
+
+    [Fact]
+    public void GivenFocusOnATallField_WhenPagingDown_ThenTheCursorLeavesTheField()
+    {
+        var labels = Enumerable.Range(1, 60).Select(number => $"label-number-{number}").ToArray();
+        var state = OnTarget(Opened(Issue() with { Labels = labels }), DetailFieldIds.Labels);
+        var start = Top(state).Cursor;
+
+        var next = Press(state, "Ctrl-d").State;
+
+        Assert.True(Top(next).Cursor > start);
+        Assert.NotEqual(DetailFieldIds.Labels, Document(next).Targets[Top(next).Cursor]?.Value);
+    }
+
+    [Fact]
     public void GivenFocusOnAReadOnlyField_WhenPressingEnter_ThenTheStatusLineSaysSoAndNothingLoads()
     {
         var result = Press(OnTarget(Opened(Issue()), DetailFieldIds.Reporter), "Enter");

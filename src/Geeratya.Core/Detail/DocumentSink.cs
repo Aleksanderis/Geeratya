@@ -55,14 +55,27 @@ internal sealed class DocumentSink
     {
         Pad();
 
-        var stops = Enumerable.Range(0, Lines.Count).Where(line => !_edges.Contains(line) && !_skipped.Contains(line) && !InsideBlock(line)).ToArray();
+        var blocked = new bool[Lines.Count];
 
-        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles, PaneRightTitles = _rightTitles, Blocks = _blocks };
-    }
+        foreach (var block in _blocks)
+        {
+            for (var line = block.Start + 1; line < block.End; line++)
+            {
+                blocked[line] = true;
+            }
+        }
 
-    private bool InsideBlock(int line)
-    {
-        return _blocks.Any(block => line > block.Start && line < block.End);
+        var edges = _edges.ToHashSet();
+        var stops = Enumerable.Range(0, Lines.Count)
+            .Where(line => !edges.Contains(line) && !_skipped.Contains(line) && !blocked[line])
+            .ToArray();
+
+        return new DetailDocument(width, Lines, _targets, _sections, stops)
+        {
+            PaneTitles = _titles,
+            PaneRightTitles = _rightTitles,
+            Blocks = _blocks,
+        };
     }
 
     private void Pad()
