@@ -175,3 +175,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (remove autoCompleteUrl, #627)
 
 **Jira layer:** The field `autoCompleteUrl` is not mapped and `SuggestionClient.SearchByAutoCompleteUrlAsync` is removed (#627). Why: no form used them; the pickers for people, labels, issues, components and versions use their own endpoints, and custom pickers (`autoCompleteUrl` of non-standard fields) are Unsupported/read-only with a browser link, which is outside the feature list. Re-add with a concrete picker when one is needed, restricted to the connection's own scheme and host under `/rest/api/` as the removed code was.
+
+## 2026-11-04 (start target, #577)
+
+**UI:** The command line takes one start target (issue key, `--board`, `--backlog`, `--jql`, `--filter`) and `--profile`, added to the README features (owner's yes by recommended default). Why: scripts, aliases and link handlers need to open an issue or view from a shell (Gitunia opens `gitunia <path>`). The target is held in `AppState.PendingStart` and opened by `StartupReducer` after the remembered tabs are read, so it never races the restore; the opened tab is saved with the others like any palette-opened tab. Details: `ux-workflows.md`, workflow 0.

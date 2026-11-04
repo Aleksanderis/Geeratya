@@ -1,3 +1,4 @@
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
@@ -30,14 +31,80 @@ public static class StartupReducer
 
         if (!state.Settings.RestoreTabs)
         {
-            return new ReduceResult(WithPhase(state, StartupPhase.AwaitingConnection), result.Effects);
+            return OpenPending(new ReduceResult(WithPhase(state, StartupPhase.AwaitingConnection), result.Effects));
         }
 
         return new ReduceResult(WithPhase(state, StartupPhase.Loading), [.. result.Effects, new LoadTabsEffect(profile)]);
     }
 
+    /// <summary>
+    /// Applies the command line's start choices to a freshly loaded state: the named profile becomes the active one
+    /// for this run (not saved), and the target waits for the start to finish. An unknown profile is a notice and
+    /// drops the target, so nothing opens on the wrong site.
+    /// </summary>
+    public static AppState WithOptions(AppState state, StartOptions options)
+    {
+        if (options.Profile is not { } name)
+        {
+            return WithTarget(state, options.Target);
+        }
+
+        if (state.Profiles.Find(name) is null)
+        {
+            return state with
+            {
+                Message = $"No profile named \"{name}\": the command line target was not opened.",
+                MessageSeverity = StatusSeverity.Warning,
+            };
+        }
+
+        var catalog = state.Profiles.Activate(name);
+        var switched = state with { Profiles = catalog, Session = SiteSession.Empty(catalog.Active) };
+
+        return WithTarget(switched, options.Target);
+    }
+
     /// <summary>The remembered tabs arrived: reopen them, or prepare the first-start screen.</summary>
     public static ReduceResult Loaded(AppState state, TabsLoaded loaded)
+    {
+        return OpenPending(LoadedTabs(state, loaded));
+    }
+
+    private static AppState WithTarget(AppState state, StartTarget? target)
+    {
+        return state.Profiles.Active is null ? state : state with { PendingStart = target };
+    }
+
+    // The command line's tab opens on top of whatever the start restored; with nothing restored it replaces the
+    // board picker. Never before the remembered tabs are read.
+    private static ReduceResult OpenPending(ReduceResult result)
+    {
+        var state = result.State;
+
+        if (state.PendingStart is not { } target || state.Session.Startup == StartupPhase.Loading)
+        {
+            return result;
+        }
+
+        var cleared = WithPhase(state with { PendingStart = null }, StartupPhase.Done);
+        var opened = OpenTarget(cleared, target);
+
+        return Combine(new ReduceResult(cleared, result.Effects), opened);
+    }
+
+    private static ReduceResult OpenTarget(AppState state, StartTarget target)
+    {
+        return target.Kind switch
+        {
+            StartTargetKind.Issue => JumpReducer.OpenInTab(state, target.Value),
+            StartTargetKind.Jql => SourceReducer.Palette(state, PaletteCommands.Jql, target.Value),
+            StartTargetKind.Board => SourceReducer.Palette(state, PaletteCommands.Board, target.Value),
+            StartTargetKind.Backlog => SourceReducer.Palette(state, PaletteCommands.Backlog, target.Value),
+            _ => SourceReducer.Palette(state, PaletteCommands.Filter, target.Value),
+        };
+    }
+
+    private static ReduceResult LoadedTabs(AppState state, TabsLoaded loaded)
     {
         if (loaded.Profile != state.Profiles.Active || state.Session.Startup != StartupPhase.Loading)
         {
@@ -60,7 +127,12 @@ public static class StartupReducer
         {
             var waiting = WithPhase(state, StartupPhase.AwaitingConnection);
 
-            return waiting.Session.Connection is Connected ? FirstStart(waiting) : Plain(waiting);
+            if (waiting.Session.Connection is Connected && waiting.PendingStart is null)
+            {
+                return FirstStart(waiting);
+            }
+
+            return Plain(waiting);
         }
 
         var effects = new List<Effect>();

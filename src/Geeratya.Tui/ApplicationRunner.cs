@@ -1,6 +1,7 @@
 using Geeratya.App;
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Startup;
 using Geeratya.Platform;
 using Geeratya.Platform.Terminal;
 
@@ -20,7 +21,7 @@ public sealed partial class ApplicationRunner
     private const string ColorsFlag = "--colors";
     private const string SourceFlag = "--source";
     private const string LayoutFlag = "--layout";
-    private const string ProfileFlag = "--profile";
+    private const string ProfileFlag = StartArguments.ProfileFlag;
     private const string LightFlag = "--light";
     private const string AsciiFlag = "--ascii";
 
@@ -31,12 +32,23 @@ public sealed partial class ApplicationRunner
         [VersionFlag, PrintKeymapFlag, PrintFrameFlag, LightFlag, AsciiFlag, HelpFlag, ShortHelpFlag];
 
     private static readonly string[] _valueFlags =
-        [SizeFlag, ModeFlag, HelpScrollFlag, HelpPageFlag, LevelFlag, ColorsFlag, SourceFlag, LayoutFlag, ProfileFlag];
+    [
+        SizeFlag, ModeFlag, HelpScrollFlag, HelpPageFlag, LevelFlag, ColorsFlag, SourceFlag, LayoutFlag, ProfileFlag,
+        .. StartArguments.TargetFlags,
+    ];
 
     /// <summary>The single usage text; docs quote it and <c>--help</c> prints it.</summary>
     public static readonly string Usage = string.Join(
         '\n',
-        "Usage: geeratya [options]",
+        "Usage: geeratya [options] [KEY | --board <name> | --backlog <name> | --jql <query> | --filter <name>]",
+        "",
+        "Start target (one; opens as a tab after the first frame, on top of the restored tabs):",
+        "  KEY, e.g. GEN-123     Open the issue.",
+        $"  {StartArguments.BoardFlag} <name>      Open a board as columns.",
+        $"  {StartArguments.BacklogFlag} <name>    Open a board's backlog.",
+        $"  {StartArguments.JqlFlag} <query>       Open a JQL query.",
+        $"  {StartArguments.FilterFlag} <name>     Open a saved filter.",
+        $"  {ProfileFlag} <name>          Use this saved profile for this run (the saved active one is unchanged).",
         "",
         "Options:",
         $"  {ShortHelpFlag}, {HelpFlag}        Print this usage and exit.",
@@ -126,10 +138,20 @@ public sealed partial class ApplicationRunner
             return 1;
         }
 
-        return RunShell(keymap);
+        var start = StartArguments.Parse(arguments, _valueFlags, out var startError);
+
+        if (start is null)
+        {
+            _error.WriteLine($"{ApplicationInfo.Name}: {startError}");
+            _error.WriteLine(Usage);
+
+            return 2;
+        }
+
+        return RunShell(keymap, start);
     }
 
-    private int RunShell(KeymapTable keymap)
+    private int RunShell(KeymapTable keymap, StartOptions start)
     {
         ProfileServices profiles;
 
@@ -146,7 +168,7 @@ public sealed partial class ApplicationRunner
 
         using var host = new ShellHost(keymap, _colors, profiles, _glyphs, _background);
 
-        return host.Run();
+        return host.Run(start);
     }
 
     private static string? FindUnknownArgument(string[] arguments)
@@ -159,7 +181,7 @@ public sealed partial class ApplicationRunner
             {
                 index++;
             }
-            else if (Array.IndexOf(_bareFlags, argument) < 0)
+            else if (Array.IndexOf(_bareFlags, argument) < 0 && !StartArguments.IsIssueKey(argument))
             {
                 return argument;
             }

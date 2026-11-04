@@ -5,6 +5,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
+using Geeratya.Core.Startup;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 
@@ -39,6 +40,9 @@ public sealed record AppState(
     int ViewportRows,
     SourcePickerState? Picker = null)
 {
+    /// <summary>The tab the command line asked for, opened once the start is over; null when none or done.</summary>
+    public StartTarget? PendingStart { get; init; }
+
     /// <summary>The tab chip under the pointer, null when the pointer is elsewhere (the chip shows its close x).</summary>
     public TabId? HoveredTab { get; init; }
 

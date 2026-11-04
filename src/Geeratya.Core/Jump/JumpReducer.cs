@@ -106,12 +106,18 @@ public static class JumpReducer
         return state with { Session = state.Session with { RecentKeys = recent } };
     }
 
-    private static ReduceResult OpenKey(AppState state, string key)
+    /// <summary>Opens <paramref name="key"/> in a tab of its own (the command line's start target).</summary>
+    public static ReduceResult OpenInTab(AppState state, string key)
+    {
+        return OpenKey(state, key, alwaysTab: true);
+    }
+
+    private static ReduceResult OpenKey(AppState state, string key, bool alwaysTab = false)
     {
         var effects = new List<Effect>();
         var shown = state;
 
-        if (state.Session.Active is null || state.Settings.JumpTarget == JumpTarget.Tab)
+        if (alwaysTab || state.Session.Active is null || state.Settings.JumpTarget == JumpTarget.Tab)
         {
             var view = ViewReducer.Reduce(state, new ViewOpenRequested(KeyView(key)));
 

@@ -19,6 +19,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 - Company-managed and team-managed projects alike
 - Profiles: saved sites and accounts, one active at a time, quick switch
 - Tabs over the active site, local cache so views open instantly
+- Start target on the command line: `geeratya GEN-123`, `--board`, `--backlog`, `--jql`, `--filter` open one tab
 - Command palette, configurable vim-style keys and full mouse support
 - Settings screen: change the theme and the options visually, saved at once
 

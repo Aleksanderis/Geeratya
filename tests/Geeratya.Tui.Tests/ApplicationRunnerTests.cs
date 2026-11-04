@@ -34,7 +34,7 @@ public class ApplicationRunnerTests
 
     [Theory]
     [InlineData("--bogus")]
-    [InlineData("GEN-1")]
+    [InlineData("notakey")]
     public void GivenUnknownArgument_WhenRunning_ThenNamesItPrintsUsageAndExitsTwo(string argument)
     {
         using var writer = new StringWriter();
