@@ -53,6 +53,11 @@ public static class IssueDocumentBuilder
         var inner = Panel.InnerWidth(columns);
         var sink = new DocumentSink { Only = detail.Zoomed };
 
+        if (detail.Zoomed is not (null or PaneIds.Comments) && viewportRows is { } shown)
+        {
+            sink.Window = new PaneWindow(detail.ZoomOffset, Math.Max(1, shown - Panel.EdgeRows));
+        }
+
         AddTitle(sink, detail, columns, inner);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)

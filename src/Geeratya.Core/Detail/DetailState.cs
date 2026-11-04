@@ -94,6 +94,12 @@ public sealed record DetailState(
     public int DescriptionOffset { get; init; }
 
     /// <summary>
+    /// The first content row of the zoomed pane that is shown (its inner scroll, #740); Comments and the cut
+    /// Description keep their own offsets. Reset when the zoom changes.
+    /// </summary>
+    public int ZoomOffset { get; init; }
+
+    /// <summary>
     /// The pane shown zoomed (a <see cref="PaneIds"/> member), null when the panes show together. Kept with the
     /// issue on the tab's stack, so it stays while the tab is open (#705).
     /// </summary>

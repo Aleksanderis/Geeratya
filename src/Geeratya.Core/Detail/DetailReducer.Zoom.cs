@@ -76,7 +76,7 @@ internal static partial class DetailReducer
         var top = tab.Detail[^1];
         var leaving = top.Zoomed;
         var target = keepTarget ? TargetOf(top) : null;
-        var changed = top with { Zoomed = pane, SideCursor = null, Cursor = 0, Scroll = 0 };
+        var changed = top with { Zoomed = pane, SideCursor = null, Cursor = 0, Scroll = 0, ZoomOffset = 0 };
         var shown = ReplaceTop(tab, changed);
         var columns = DetailSize.Columns(state);
         var rows = DetailSize.ListRows(state, shown);
