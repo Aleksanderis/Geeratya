@@ -13,6 +13,7 @@ public sealed partial class ColumnsBodyRenderer
         BoardCursor cursor,
         BoardWindow window,
         List<PaneRect> panes,
+        List<IReadOnlyList<PlacedCard>> placements,
         int start,
         int length,
         int row,
@@ -31,7 +32,7 @@ public sealed partial class ColumnsBodyRenderer
         var column = window.First + position;
         var spans = new List<StyledSpan>();
 
-        AddCell(spans, columns[column], cursor, column, row, compact, length, marks, expanded, flash);
+        AddCell(spans, columns[column], cursor, column, placements[position], row, compact, length, marks, expanded, flash);
 
         return spans;
     }
@@ -41,6 +42,7 @@ public sealed partial class ColumnsBodyRenderer
         BoardColumnGroup group,
         BoardCursor cursor,
         int column,
+        IReadOnlyList<PlacedCard> placed,
         int row,
         bool compact,
         int inner,
@@ -57,11 +59,10 @@ public sealed partial class ColumnsBodyRenderer
             return;
         }
 
-        var pitch = compact ? 1 : BoardCards.FullRows;
-        var card = row == BlankRow ? BlankRow : cursor.Scrolls[column] + (row / pitch);
-        var within = row % pitch;
+        var found = compact ? null : BoardColumnLayout.At(placed, row);
+        var card = compact ? cursor.Scrolls[column] + row : found?.Card ?? group.Rows.Count;
 
-        if (card >= group.Rows.Count)
+        if (row == BlankRow || card >= group.Rows.Count)
         {
             spans.Add(new StyledSpan(new string(' ', inner), TextRole.Body));
 
@@ -83,24 +84,19 @@ public sealed partial class ColumnsBodyRenderer
             return;
         }
 
-        var part = group.IsNested(card)
-            ? (group.IsNested(card + 1) ? GroupPart.Middle : GroupPart.Last)
-            : (group.IsNested(card + 1) ? GroupPart.First : GroupPart.None);
-
+        var part = found!.Part;
+        var line = found.Rows[row - found.Top];
         var nextSelected = column == cursor.Column && card + 1 == cursor.Cards[column] && group.IsNested(card + 1);
-
         var first = spans.Count;
 
-        AddBoxRow(spans, issue, within, selected, marked, open, part, inner, selected || nextSelected);
+        AddBoxRow(spans, issue, line, part, new CardState(selected, nextSelected, marked, open), inner);
 
         if (selected)
         {
             Tint(spans, first);
         }
 
-        var bottom = part is GroupPart.None or GroupPart.First ? BottomRow : BottomRow - 1;
-
-        DrawFlash(spans, first, flash, issue, within == bottom, true);
+        DrawFlash(spans, first, flash, issue, line.Kind == CardRowKind.Key, true);
     }
 
     /// <summary>
@@ -208,25 +204,10 @@ public sealed partial class ColumnsBodyRenderer
 
     private static bool IsQuietable(TextRole role)
     {
-        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.Warning
+        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.PriorityHigh
+            or TextRole.PriorityMedium or TextRole.PriorityLow
             or TextRole.TypeEpic or TextRole.TypeStory or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask
             or TextRole.StatusToDo
             or TextRole.StatusInProgress or TextRole.StatusDone;
-    }
-
-    /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>
-    private enum GroupPart
-    {
-        /// <summary>A card of its own, with its own box.</summary>
-        None,
-
-        /// <summary>The parent: it opens the shared frame.</summary>
-        First,
-
-        /// <summary>A child with more children after it in the frame.</summary>
-        Middle,
-
-        /// <summary>The last child: it closes the shared frame.</summary>
-        Last,
     }
 }

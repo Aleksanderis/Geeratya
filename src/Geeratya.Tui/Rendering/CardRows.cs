@@ -16,7 +16,6 @@ public static class CardRows
     private const int MinTypeName = 4;
     private const int ChipCells = 4;
     private const int InitialsCells = 2;
-    private const int MinCutChip = 4;
     private const int GlyphCells = 2;
     private const string UnassignedText = "--";
     private const int ChipBrackets = 2;
@@ -26,44 +25,34 @@ public static class CardRows
 
 
     /// <summary>
-    /// Labels as filled chips, one row: <c>[label]</c> each in the stable colour of its text. Chips that do not fit
-    /// give way to <c>+N</c>; a first label wider than the row is cut with an ellipsis.
+    /// One row of label chips as spans: <c>[label]</c> each in the stable colour of its text, then <c>+N</c> on the last
+    /// row when labels did not fit; padded to <paramref name="width"/>.
     /// </summary>
-    public static List<StyledSpan> Labels(IReadOnlyList<string> labels, int width)
+    public static List<StyledSpan> Labels(CardLabelRow row, int width)
     {
         var spans = new List<StyledSpan>();
         var used = 0;
-        var placed = 0;
 
-        for (var index = 0; index < labels.Count; index++)
+        foreach (var chip in row.Chips)
         {
-            var more = labels.Count - index - 1;
-            var reserve = more == 0 ? 0 : 1 + TextWidth.Of($"+{labels.Count}");
-            var gap = placed == 0 ? 0 : 1;
-            var room = width - used - gap - reserve;
-            var chip = $"[{labels[index]}]";
-
-            if (TextWidth.Of(chip) > room)
-            {
-                if (placed > 0 || room < MinCutChip)
-                {
-                    break;
-                }
-
-                chip = $"[{CardText.Shorten(labels[index], room - ChipBrackets)}]";
-            }
-
-            if (gap > 0)
+            if (used > 0)
             {
                 spans.Add(new StyledSpan(Blank, TextRole.Body));
+                used++;
             }
 
-            spans.Add(new StyledSpan(chip, LabelChips.For(labels[index])));
-            used += gap + TextWidth.Of(chip);
-            placed++;
+            spans.Add(new StyledSpan(chip.Text, LabelChips.For(chip.Label)));
+            used += TextWidth.Of(chip.Text);
         }
 
-        used += AddRest(spans, labels.Count - placed, placed > 0, width - used);
+        if (row.Hidden > 0)
+        {
+            var rest = $"{(used > 0 ? Blank : string.Empty)}+{row.Hidden}";
+
+            spans.Add(new StyledSpan(rest, TextRole.Muted));
+            used += TextWidth.Of(rest);
+        }
+
         spans.Add(new StyledSpan(new string(' ', Math.Max(0, width - used)), TextRole.Body));
 
         return spans;
@@ -122,25 +111,6 @@ public static class CardRows
         }
 
         return CardText.Shorten(issue.IssueType.Name, room);
-    }
-
-    private static int AddRest(List<StyledSpan> spans, int hidden, bool gap, int room)
-    {
-        if (hidden == 0)
-        {
-            return 0;
-        }
-
-        var rest = $"{(gap ? Blank : string.Empty)}+{hidden}";
-
-        if (TextWidth.Of(rest) > room)
-        {
-            return 0;
-        }
-
-        spans.Add(new StyledSpan(rest, TextRole.Muted));
-
-        return TextWidth.Of(rest);
     }
 
     private static string Counter(IssueSummary issue, bool open)
@@ -250,9 +220,9 @@ public static class CardRows
     {
         return PriorityTierOf.Name(priority) switch
         {
-            PriorityTier.High => TextRole.Warning,
-            PriorityTier.Low => TextRole.Muted,
-            _ => TextRole.Body,
+            PriorityTier.High => TextRole.PriorityHigh,
+            PriorityTier.Medium => TextRole.PriorityMedium,
+            _ => TextRole.PriorityLow,
         };
     }
 }

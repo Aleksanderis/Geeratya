@@ -2,23 +2,23 @@
                                                                                 
 ╭─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done (14d) 3 ───╮
 │ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-10 … ─┐ │
-│ ┃ Seed: Onboar… ┃ │ │ Seed: Report… │ │ │ Backlog: dar… │ │ │ Export repo… │ │
-│ ┃ [geeraty…] +1 ┃ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
+│ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
+│ ┃               ┃ │ │               │ │ │               │ │ │              │ │
+│ ┃ [geeratya-s…] ┃ │ │ [geeratya-s…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ ┃ [geeratya-s…] ┃ │ │ [geeratya-s…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ ┃               ┃ │ │               │ │ │               │ │ │              │ │
 │ ┃ GTM-9  Epic   ┃ │ │ GTM-10  Epic  │ │ │ GTM-21  Task  │ │ │ GTM-13  Sto… │ │
 │ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
-│ │   Welcome sc… │ │ │   Pick a cha… │ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │   [geera…] +1 │ │ │   [geera…] +1 │ │ │ Backlog: key… │ │ │ Write the s… │ │
-│ │   GTM-12  S   │ │ │   GTM-15  T   │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
-│ │               │ │ │               │ │ │ GTM-22  Story │ │ │ GTM-16  Task │ │
-│ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│ │   Review onb… │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
-│ │   [geera…] +1 │ │ │ Sign up with… │ │ │ Backlog: too… │ │ │ Build the f… │ │
-│ │   GTM-14  T   │ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
-│ │               │ │ │ GTM-11  Story │ │ │ GTM-23  Bug   │ │ │ GTM-19  Sub… │ │
-│ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│                   │                   │                   │                  │
-│                   │                   │                   │                  │
-│                   │                   │                   │                  │
+│ │   Welcome     │ │ │   Pick a      │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
+│ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ │   [geeratya…] │ │ │   [geeratya…] │ │ │               │ │ │              │ │
+│ │   [geeratya…] │ │ │   [geeratya…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ │               │ │ │               │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ │   GTM-12  S   │ │ │   GTM-15  T   │ │ │               │ │ │              │ │
+│ ├───────────────┤ │ └───────────────┘ │ │ GTM-22  Story │ │ │ GTM-16  Task │ │
+│                   │                   │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
 ╰───────────────────┴───────────────────┴───────────────────┴──────────────────╯
  NORMAL  GTM board · 16 iss…    h/l column  j/k card  ? help  : commands  q quit

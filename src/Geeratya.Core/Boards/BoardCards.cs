@@ -8,9 +8,6 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class BoardCards
 {
-    /// <summary>Rows of a card in full form: top border, key line, two summary lines and bottom border.</summary>
-    public const int FullRows = 5;
-
     /// <summary>Cells of margin on each side of a card in a column; the labeler and the renderer share it.</summary>
     public const int CardMargin = 1;
 
@@ -28,12 +25,6 @@ public static class BoardCards
 
     /// <summary>The body height below which cards collapse to one line.</summary>
     public const int CompactBelowBodyRows = 12;
-
-    /// <summary>Rows between the first row of one card and the first row of the next.</summary>
-    public static int Pitch(int visibleRows, int headerRows)
-    {
-        return IsCompact(visibleRows, headerRows) ? 1 : FullRows;
-    }
 
     /// <summary>Whether cards are drawn on one line for a card area of <paramref name="visibleRows"/> rows.</summary>
     public static bool IsCompact(int visibleRows, int headerRows)
@@ -54,7 +45,10 @@ public static class BoardCards
     }
 
     /// <summary>
-    /// How many cards a column shows at once. Zero while there is no room.
+    /// How many cards a column is sure to show at once: cards differ in height (<see cref="BoardCardPlan"/>), so a
+    /// full card is counted at its tallest. The columns usually draw more (<see cref="BoardColumnLayout"/> places
+    /// them by their real height), never fewer, so a cursor inside this window is always drawn. Zero while there is no
+    /// room.
     /// </summary>
     public static int Visible(int visibleRows, int headerRows)
     {
@@ -65,6 +59,6 @@ public static class BoardCards
             return 0;
         }
 
-        return IsCompact(visibleRows, headerRows) ? rows : Math.Max(1, rows / FullRows);
+        return IsCompact(visibleRows, headerRows) ? rows : Math.Max(1, rows / BoardCardPlan.MaxRows);
     }
 }

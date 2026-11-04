@@ -11,9 +11,6 @@ namespace Geeratya.Core.Views;
 /// </summary>
 public static class ColumnsNavigation
 {
-    private const int SubtaskRowInCard = 3;
-    private const int SubtaskRowInChild = 2;
-
     /// <summary>Moves inside the selected column.</summary>
     public static TabState Move(TabState tab, ListMove move)
     {
@@ -53,7 +50,7 @@ public static class ColumnsNavigation
 
     /// <summary>
     /// True when the body cell is on the bottom row of the selected card that lists sub-tasks (<c>▸1/3</c>, #558,
-    /// #706): the third text row, the fourth row of a card (the third in a grouped child, which has no top border).
+    /// #706): the key row of the card, wherever its height puts it.
     /// A click on an unselected card only selects it, so clicking its key never folds it. One-line cards have no
     /// such row.
     /// </summary>
@@ -63,17 +60,14 @@ public static class ColumnsNavigation
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
 
         if (BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows)
-            || BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null)
-                is not { Card: { } card } hit
-            || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 } target
-            || !string.Equals(target.Key, tab.SelectedKey, StringComparison.Ordinal))
+            || BoardHits.Locate(columns, cursor, tab.VisibleRows, width, column, row)
+                is not { Row.Kind: CardRowKind.Key, Hit: { Card: { } card } hit }
+            || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 } target)
         {
             return false;
         }
 
-        var within = (row - BoardCards.TopRows) % BoardCards.FullRows;
-
-        return within == (columns[hit.Column].IsNested(card) ? SubtaskRowInChild : SubtaskRowInCard);
+        return string.Equals(target.Key, tab.SelectedKey, StringComparison.Ordinal);
     }
 
     /// <summary>

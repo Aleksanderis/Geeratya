@@ -21,6 +21,15 @@ public enum TextRole
     TypeBug,
     TypeTask,
     TypeSubtask,
+
+    /// <summary>The priority glyph of a high, highest, critical or blocker issue.</summary>
+    PriorityHigh,
+
+    /// <summary>The priority glyph of a medium issue.</summary>
+    PriorityMedium,
+
+    /// <summary>The priority glyph of a low, lowest or minor issue.</summary>
+    PriorityLow,
     Error,
     Loading,
     Offline,
