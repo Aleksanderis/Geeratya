@@ -38,7 +38,7 @@ public sealed class StartupEffectHandlerTests : IDisposable
     }
 
     [Fact]
-    public void GivenAFileThatCannotBeWritten_WhenATabOpens_ThenTheFailureIsReported()
+    public async Task GivenAFileThatCannotBeWritten_WhenATabOpens_ThenTheFailureIsReported()
     {
         var blocked = Path.Combine(_directory, "blocked");
 
@@ -52,8 +52,7 @@ public sealed class StartupEffectHandlerTests : IDisposable
         handler.Queue(new SaveTabsEffect(_work, RememberedTabs.Empty));
 
         // Wait for the notice itself: Flush gives up after two seconds, which a cold first exception on a slow runner can exceed.
-        Assert.True(notice.Task.Wait(TimeSpan.FromSeconds(30)));
-        Assert.Contains("Could not save", notice.Task.Result);
+        Assert.Contains("Could not save", await notice.Task.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
