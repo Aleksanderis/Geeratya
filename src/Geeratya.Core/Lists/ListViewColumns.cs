@@ -16,9 +16,25 @@ public static class ListViewColumns
     /// <param name="height">The body height, negative when not reported yet (a frame is assumed).</param>
     public static int InnerWidth(int width, int height)
     {
-        var framed = width >= MinFramedWidth && (height < 0 || height >= MinFramedHeight);
+        return IsFramed(width, height) ? width - 2 : width;
+    }
 
-        return framed ? width - 2 : width;
+    /// <summary>Whether a body of this size gets a frame (a negative height, not reported yet, assumes one).</summary>
+    public static bool IsFramed(int width, int height)
+    {
+        return width >= MinFramedWidth && (height < 0 || height >= MinFramedHeight);
+    }
+
+    /// <summary>
+    /// The columns of a Scrum backlog: the optional ones follow the whole backlog, not the window, so they do not jump
+    /// while scrolling, and the sprint column is left out because the section header says it.
+    /// </summary>
+    public static ListColumns ForBacklog(TabState tab, int innerWidth)
+    {
+        var points = tab.Rows.Any(row => row.Estimate is not null);
+        var epic = tab.Rows.Any(row => row.Epic is not null);
+
+        return ListColumns.For(innerWidth, tab.KeyWidth, false, points, epic);
     }
 
     /// <summary>

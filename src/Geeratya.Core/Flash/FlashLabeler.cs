@@ -1,4 +1,5 @@
 using System.Text;
+using Geeratya.Core.Backlog;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -16,7 +17,7 @@ public static class FlashLabeler
     /// <summary>Label letters, home row first.</summary>
     public const string Alphabet = "asdfghjklqwertyuiopzxcvbnm";
 
-    private const char Eligible = '\u0001';
+    internal const char Eligible = '\u0001';
     private const int KeySeparator = 1;
 
     /// <summary>The labels for <paramref name="text"/>, nearest to the selected row first. Empty text has none.</summary>
@@ -32,13 +33,56 @@ public static class FlashLabeler
         }
 
         var columns = ListViewColumns.For(tab, innerWidth, area);
-        var summaryStart = ListColumns.MarkWidth + columns.Key + KeySeparator + ListColumns.MarkerWidth + 1;
         var first = Math.Clamp(tab.Scroll, 0, tab.Rows.Count - 1);
         var end = Math.Min(tab.Rows.Count, first + area);
+        var rows = new List<int>(Math.Max(0, end - first));
+
+        for (var row = first; row < end; row++)
+        {
+            rows.Add(row);
+        }
+
+        return ForRows(tab, text, columns, rows);
+    }
+
+    /// <summary>
+    /// The labels for the rows of a Scrum backlog in view (section headers, notes and collapsed rows have none),
+    /// drawn with the columns of <see cref="ListViewColumns.ForBacklog"/>.
+    /// </summary>
+    public static IReadOnlyList<FlashLabel> ComputeBacklog(TabState tab, string text, int innerWidth)
+    {
+        if (text.Length == 0 || tab.Rows.Count == 0 || tab.VisibleRows <= 0)
+        {
+            return [];
+        }
+
+        var layout = BacklogSections.Build(tab);
+        var first = Math.Clamp(tab.Scroll, 0, Math.Max(0, layout.LineCount - 1));
+        var end = Math.Min(layout.LineCount, first + tab.VisibleRows);
+        var rows = new List<int>();
+
+        for (var line = first; line < end; line++)
+        {
+            if (layout.LineAt(line) is { Row: { } row })
+            {
+                rows.Add(row);
+            }
+        }
+
+        return ForRows(tab, text, ListViewColumns.ForBacklog(tab, innerWidth), rows);
+    }
+
+    private static List<FlashLabel> ForRows(
+        TabState tab,
+        string text,
+        ListColumns columns,
+        IReadOnlyList<int> rows)
+    {
+        var summaryStart = ListColumns.MarkWidth + columns.Key + KeySeparator + ListColumns.MarkerWidth + 1;
         var found = new List<FlashLabel>();
         var blocked = new HashSet<char>();
 
-        for (var row = first; row < end; row++)
+        foreach (var row in rows)
         {
             var issue = tab.Rows[row];
 
@@ -123,7 +167,8 @@ public static class FlashLabeler
         return Math.Max(1, DisplayWidth.Of(rune));
     }
 
-    private static void BlockContinuations(string subject, string text, HashSet<char> blocked)
+    /// <summary>Blocks the letters that would continue a match of <paramref name="text"/> in <paramref name="subject"/>.</summary>
+    internal static void BlockContinuations(string subject, string text, HashSet<char> blocked)
     {
         var start = subject.IndexOf(text, StringComparison.OrdinalIgnoreCase);
 
@@ -148,7 +193,8 @@ public static class FlashLabeler
         return byDistance != 0 ? byDistance : left.CompareTo(right);
     }
 
-    private static void AssignLetters(List<FlashLabel> labels, HashSet<char> blocked)
+    /// <summary>Gives the eligible labels their letters in order; a blocked letter is skipped.</summary>
+    internal static void AssignLetters(List<FlashLabel> labels, HashSet<char> blocked)
     {
         var letters = Alphabet.Where(letter => !blocked.Contains(letter)).ToArray();
         var next = 0;

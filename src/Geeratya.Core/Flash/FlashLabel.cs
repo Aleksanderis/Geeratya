@@ -13,6 +13,12 @@ public readonly record struct FlashLabel(int Row, int MatchColumn, int MatchWidt
     /// <summary>The value of <see cref="Letter"/> for a match that only Enter can take.</summary>
     public const char NoLetter = '\0';
 
+    /// <summary>The board column of the card in the columns layout; 0 in the list layout and the backlog.</summary>
+    public int Column { get; init; }
+
+    /// <summary>The issue key of the card in the columns layout (the row there counts cards of the column); else null.</summary>
+    public string? Key { get; init; }
+
     /// <summary>Whether a key selects this row.</summary>
     public bool HasLetter => Letter != NoLetter;
 }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Backlog;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
@@ -48,7 +49,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         var inner = framed ? width - 2 : width;
         var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
         var layout = BacklogSections.Build(tab);
-        var columns = ColumnsFor(tab, inner);
+        var columns = ListViewColumns.ForBacklog(tab, inner);
         var note = ListBodyRenderer.FooterLine(tab, glyphs);
         var lines = new List<StyledLine>(Math.Min(height, ListLayout.HeaderRows + area));
         var dividers = new List<PaneDivider>();
@@ -62,6 +63,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
         lines.Add(ListBodyRenderer.TitlesLine(columns));
 
+        var flash = FlashLabelsOf(state, tab, inner);
         var busy = BusyMarks.Keys(state);
         var range = RowSelection.VisualRange(tab);
         var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
@@ -87,7 +89,9 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
                     focusLine = lines.Count;
                 }
 
-                lines.Add(ListBodyRenderer.RowLine(row, columns, onCursor, set, inner, glyphs));
+                var rowLine = ListBodyRenderer.RowLine(row, columns, onCursor, set, inner, glyphs);
+
+                lines.Add(flash.TryGetValue(index, out var label) ? FlashOverlay.Apply(rowLine, label) : rowLine);
 
                 continue;
             }
@@ -108,6 +112,21 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         var chips = ListBodyRenderer.ChipsOf(tab, note, glyphs);
 
         return PaneFrame.Build(width, height, chips.Left, chips.Right, lines, dividers, focusLine);
+    }
+
+    private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner)
+    {
+        var labels = new Dictionary<int, FlashLabel>();
+
+        if (state.FlashJump is { Text.Length: > 0 } flash)
+        {
+            foreach (var label in FlashLabeler.ComputeBacklog(tab, flash.Text, inner))
+            {
+                labels[label.Row] = label;
+            }
+        }
+
+        return labels;
     }
 
     /// <summary>
@@ -207,18 +226,6 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         var to = end.ToString(DateFormat, CultureInfo.InvariantCulture);
 
         return $"{from}{DateRangeSeparator}{to}";
-    }
-
-    /// <summary>
-    /// The optional columns of the whole backlog, not of the window, so they do not jump while scrolling. The sprint
-    /// column is left out: the section header already says it.
-    /// </summary>
-    private static ListColumns ColumnsFor(TabState tab, int width)
-    {
-        var points = tab.Rows.Any(row => row.Estimate is not null);
-        var epic = tab.Rows.Any(row => row.Epic is not null);
-
-        return ListColumns.For(width, tab.KeyWidth, false, points, epic);
     }
 
     private static StyledLine NonRowLine(TabState tab, BacklogSection section, int line, int width, Glyphs glyphs)

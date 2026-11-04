@@ -32,18 +32,18 @@ public class FlashJumpTests
         var result = Press(AppState.Initial, "Space", "j");
 
         Assert.Null(result.State.FlashJump);
-        Assert.Contains("list layout", result.State.Message);
+        Assert.Contains("No rows", result.State.Message);
     }
 
     [Fact]
-    public void GivenAColumnsLayout_WhenPressingSpaceJ_ThenNothingOpens()
+    public void GivenAColumnsLayout_WhenPressingSpaceJ_ThenThePromptOpens()
     {
         var state = WithList(5, ViewLayout.Columns);
 
         var result = Press(state, "Space", "j");
 
-        Assert.Null(result.State.FlashJump);
-        Assert.Equal(InputMode.Normal, result.State.Mode);
+        Assert.NotNull(result.State.FlashJump);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
     }
 
     [Fact]
