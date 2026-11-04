@@ -26,4 +26,15 @@ public readonly record struct BoardWindow(int First, int Count, int Total, int W
 
         return (Width / Count) + (position < Width % Count ? 1 : 0);
     }
+
+    /// <summary>
+    /// The cells between the borders of the <paramref name="position"/>th drawn column: neighbours share their border,
+    /// so every column but the last is one cell narrower than <see cref="ColumnWidth"/>, the last two.
+    /// </summary>
+    public int CellWidth(int position)
+    {
+        var width = ColumnWidth(position);
+
+        return Math.Max(0, position == Count - 1 ? width - 2 : width - 1);
+    }
 }

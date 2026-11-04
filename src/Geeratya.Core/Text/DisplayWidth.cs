@@ -32,6 +32,30 @@ public static class DisplayWidth
         return width;
     }
 
+    /// <summary>Cuts <paramref name="text"/> to at most <paramref name="width"/> columns without splitting a character.</summary>
+    public static string Fit(string text, int width)
+    {
+        var builder = new StringBuilder();
+        var used = 0;
+        var elements = StringInfo.GetTextElementEnumerator(text);
+
+        while (elements.MoveNext())
+        {
+            var element = elements.GetTextElement();
+            var elementWidth = OfCluster(element);
+
+            if (used + elementWidth > width)
+            {
+                break;
+            }
+
+            builder.Append(element);
+            used += elementWidth;
+        }
+
+        return builder.ToString();
+    }
+
     /// <summary>Width of one code point: 0, 1 or 2.</summary>
     public static int Of(Rune rune)
     {

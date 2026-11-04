@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;

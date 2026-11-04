@@ -120,6 +120,18 @@ public static class ColumnsNavigation
         return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, CardsVisible(tab)));
     }
 
+    /// <summary>
+    /// Puts the cursor on the card with <paramref name="key"/> in whatever column it is, keeping the scroll of the
+    /// columns (a flash jump). A tab without that card is returned with its cursor settled.
+    /// </summary>
+    public static TabState Select(TabState tab, string key)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, CardsVisible(tab));
+
+        return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, CardsVisible(tab)));
+    }
+
     /// <summary>The issue under the cursor, null when the selected column is empty or the tab has no rows.</summary>
     public static IssueSummary? SelectedIssue(TabState tab)
     {

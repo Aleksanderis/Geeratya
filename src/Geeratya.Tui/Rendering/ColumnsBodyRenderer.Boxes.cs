@@ -241,14 +241,7 @@ public sealed partial class ColumnsBodyRenderer
 
     private static string CompactLine(IssueSummary issue, bool selected, bool marked, bool nested, bool more, int width)
     {
-        var mark = selected ? SelectedMark : Blank;
-        var marker = IssueTypeMarker.For(issue.IssueType);
-        var branch = nested ? (more ? "├" : "└") : string.Empty;
-        var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
-
-        var star = marked ? MarkedMark : Blank;
-
-        return CardText.Shorten($"{mark}{branch}{marker}{star}{issue.Key}{parent} {issue.Summary}", width);
+        return CardText.Compact(issue, selected, marked, nested, more, width);
     }
 
     /// <summary>

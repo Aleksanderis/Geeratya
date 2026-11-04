@@ -18,7 +18,8 @@ public sealed partial class ColumnsBodyRenderer
         int row,
         bool compact,
         HashSet<string> marks,
-        HashSet<string> expanded)
+        HashSet<string> expanded,
+        FlashCards? flash)
     {
         var position = 0;
 
@@ -30,7 +31,7 @@ public sealed partial class ColumnsBodyRenderer
         var column = window.First + position;
         var spans = new List<StyledSpan>();
 
-        AddCell(spans, columns[column], cursor, column, row, compact, length, marks, expanded);
+        AddCell(spans, columns[column], cursor, column, row, compact, length, marks, expanded, flash);
 
         return spans;
     }
@@ -44,7 +45,8 @@ public sealed partial class ColumnsBodyRenderer
         bool compact,
         int inner,
         HashSet<string> marks,
-        HashSet<string> expanded)
+        HashSet<string> expanded,
+        FlashCards? flash)
     {
         if (group.Rows.Count == 0)
         {
@@ -74,7 +76,10 @@ public sealed partial class ColumnsBodyRenderer
 
         if (compact)
         {
+            var start = spans.Count;
+
             AddCompact(spans, issue, group, card, selected, quiet, marked, inner);
+            DrawFlash(spans, start, flash, issue, true, false);
 
             return;
         }
@@ -100,6 +105,53 @@ public sealed partial class ColumnsBodyRenderer
         {
             Mark(spans, first);
         }
+
+        DrawFlash(spans, first, flash, issue, within == firstText, true);
+    }
+
+    /// <summary>
+    /// Draws the flash jump on a card row: the match strong and, on the key row (or the one line of a compact card),
+    /// the letter over the cell before the type name. A card without a label is left alone.
+    /// </summary>
+    private static void DrawFlash(
+        List<StyledSpan> spans,
+        int first,
+        FlashCards? flash,
+        IssueSummary issue,
+        bool letterRow,
+        bool full)
+    {
+        if (flash is null || !flash.Labels.TryGetValue(issue.Key, out var label))
+        {
+            return;
+        }
+
+        var line = new StyledLine(spans.GetRange(first, spans.Count - first));
+        var plain = line.PlainText;
+        var from = label.LabelColumn + 1;
+        var start = full && letterRow
+            ? MatchInKey(plain, issue.Key, flash.Text, from)
+            : plain.IndexOf(flash.Text, from, StringComparison.OrdinalIgnoreCase);
+        var width = start < 0 ? 0 : DisplayWidth.Of(plain.Substring(start, flash.Text.Length));
+        var column = start < 0 ? 0 : DisplayWidth.Of(plain[..start]);
+        var drawn = label with
+        {
+            MatchColumn = column,
+            MatchWidth = width,
+            LabelColumn = letterRow ? label.LabelColumn : -1,
+        };
+
+        spans.RemoveRange(first, spans.Count - first);
+        spans.AddRange(FlashOverlay.Apply(line, drawn).Spans);
+    }
+
+    /// <summary>Where the typed text sits inside the key on the key row, -1 when it is not part of the key.</summary>
+    private static int MatchInKey(string plain, string key, string text, int from)
+    {
+        var keyAt = plain.IndexOf(key, from, StringComparison.Ordinal);
+        var inKey = keyAt < 0 ? -1 : key.IndexOf(text, StringComparison.OrdinalIgnoreCase);
+
+        return inKey < 0 ? -1 : keyAt + inKey;
     }
 
     /// <summary>

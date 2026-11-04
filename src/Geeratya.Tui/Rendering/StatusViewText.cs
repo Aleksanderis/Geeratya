@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Core.State;
 using Geeratya.Platform.Terminal;
 using Geeratya.Core.Views;

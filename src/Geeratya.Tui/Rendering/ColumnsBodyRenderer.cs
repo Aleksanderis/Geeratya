@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.State;
@@ -65,6 +66,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
         var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
+        var flash = FlashCardsOf(state, tab, width, height);
         var grid = new FrameGrid(width, height, panes, cursor.Column - window.First);
         var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
 
@@ -73,7 +75,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
             var card = row < cards * (compact ? 1 : BoardCards.FullRows) ? row : BlankRow;
             var spans = grid.Row(
                 row + BoardCards.TopRows,
-                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks, expanded));
+                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks, expanded, flash));
 
             lines.Add(new StyledLine(spans));
         }
@@ -81,6 +83,23 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         lines.Add(new StyledLine(grid.Row(height - 1, static (_, _) => [])));
 
         return lines;
+    }
+
+    private static FlashCards? FlashCardsOf(AppState state, TabState tab, int width, int height)
+    {
+        if (state.FlashJump is not { Text.Length: > 0 } flash)
+        {
+            return null;
+        }
+
+        var labels = new Dictionary<string, FlashLabel>(StringComparer.Ordinal);
+
+        foreach (var label in FlashBoardLabeler.Compute(tab, flash.Text, width, height))
+        {
+            labels[label.Key!] = label;
+        }
+
+        return labels.Count == 0 ? null : new FlashCards(labels, flash.Text);
     }
 
     /// <summary>The empty and loading states: the message lines inside the frame, the board title as the chip.</summary>
