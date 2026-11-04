@@ -105,10 +105,8 @@ internal static partial class CommentEditing
             return detail with { Comments = replaced };
         }
 
-        // A comment added while later pages are still unloaded is not shown out of place: "Load more" brings it.
-        var appended = detail.NextComments is null ? [.. detail.Comments, stored] : detail.Comments;
-
-        return detail with { Comments = appended, CommentTotal = Counted(detail.CommentTotal, 1) };
+        // Newest first: the added comment is the newest, so it goes on top whatever pages are still unloaded.
+        return detail with { Comments = [stored, .. detail.Comments], CommentTotal = Counted(detail.CommentTotal, 1) };
     }
 
     private static int? Counted(int? total, int change)

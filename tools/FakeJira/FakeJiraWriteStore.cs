@@ -408,7 +408,7 @@ public sealed partial class FakeJiraWriteStore
     /// The comments list: the recorded one (or an empty one) with its edits and deletes, plus the comments added
     /// through the fake.
     /// </summary>
-    public byte[]? Comments(string key, byte[]? recorded)
+    public byte[]? Comments(string key, byte[]? recorded, bool newestFirst = false)
     {
         lock (_lock)
         {
@@ -444,11 +444,29 @@ public sealed partial class FakeJiraWriteStore
                 list.Add(entry.DeepClone());
             }
 
+            if (newestFirst)
+            {
+                list = [.. list.Reverse().Select(entry => entry?.DeepClone())];
+            }
+
             node[CommentsName] = list;
             node[TotalName] = list.Count;
 
             return Encoding.UTF8.GetBytes(node.ToJsonString());
         }
+    }
+
+    /// <summary>A recorded comments list with its comments in reverse order (newest first).</summary>
+    public static byte[] ReverseComments(byte[] list)
+    {
+        var node = (JsonObject)JsonNode.Parse(list)!;
+
+        if (node[CommentsName] is JsonArray comments)
+        {
+            node[CommentsName] = new JsonArray([.. comments.Reverse().Select(entry => entry?.DeepClone())]);
+        }
+
+        return Encoding.UTF8.GetBytes(node.ToJsonString());
     }
 
     /// <summary>The reply of a board or backlog list with the rank calls laid over its order.</summary>

@@ -18,7 +18,7 @@ namespace Geeratya.Core.Detail;
 /// <param name="Issue">The loaded issue, null until it arrives.</param>
 /// <param name="IssueLoad">Whether the issue is loading or failed.</param>
 /// <param name="IssueRequest">The id of the issue request in flight, 0 when none.</param>
-/// <param name="Comments">The comments loaded so far, oldest first.</param>
+/// <param name="Comments">The comments loaded so far, newest first.</param>
 /// <param name="NextComments">The offset of the next comment page, null when the last page is loaded.</param>
 /// <param name="CommentTotal">The number of comments Jira reports, when it does.</param>
 /// <param name="CommentsLoad">Whether a comment page is loading or failed.</param>

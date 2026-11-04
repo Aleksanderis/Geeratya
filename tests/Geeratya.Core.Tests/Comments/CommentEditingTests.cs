@@ -198,7 +198,7 @@ public class CommentEditingTests
         Assert.Equal("Added a comment to A-1", done.State.Message);
         Assert.Empty(done.State.Session.Operations);
         var detail = Active(done.State).Detail[0];
-        Assert.Equal(["1", "2", "77"], detail.Comments.Select(comment => comment.Id));
+        Assert.Equal(["77", "1", "2"], detail.Comments.Select(comment => comment.Id));
         Assert.Equal(3, detail.CommentTotal);
         Assert.Contains("Comments 3", Text(detail));
         Assert.Empty(done.Effects.OfType<LoadIssueDetailEffect>());
@@ -208,7 +208,7 @@ public class CommentEditingTests
     }
 
     [Fact]
-    public void GivenMoreCommentPagesUnloaded_WhenACommentIsAdded_ThenItIsNotShownOutOfPlaceButTheCountGrows()
+    public void GivenMoreCommentPagesUnloaded_WhenACommentIsAdded_ThenItGoesOnTopAndTheCountGrows()
     {
         var saving = Press(Typed("Late"), "Ctrl-s");
         var withMore = WithNextPage(saving.State);
@@ -217,7 +217,7 @@ public class CommentEditingTests
         var done = _reducer.Reduce(withMore, new WriteSucceeded(id, _now, [], Comment(90, _me, "Late")));
 
         var detail = Active(done.State).Detail[0];
-        Assert.Equal(["1", "2"], detail.Comments.Select(comment => comment.Id));
+        Assert.Equal(["90", "1", "2"], detail.Comments.Select(comment => comment.Id));
         Assert.Equal(6, detail.CommentTotal);
     }
 

@@ -69,7 +69,7 @@ internal static class CommentWriter
     {
         var found = request switch
         {
-            AddCommentRequest add => thread.Comments.LastOrDefault(comment => IsNew(comment, add)),
+            AddCommentRequest add => thread.Comments.FirstOrDefault(comment => IsNew(comment, add)),
             EditCommentRequest edit => thread.Comments.FirstOrDefault(
                 comment => comment.Id == edit.CommentId && SameText(comment.Body, edit.Body)),
             DeleteCommentRequest delete => thread.Comments.FirstOrDefault(comment => comment.Id == delete.CommentId),

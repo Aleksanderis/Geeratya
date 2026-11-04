@@ -581,7 +581,7 @@ public class IssueDetailReducerTests
         Assert.Equal(DetailPaging.MaxComments, capped.Comments.Count);
         Assert.Null(capped.NextComments);
         Assert.DoesNotContain("Load more comments", Text(capped));
-        Assert.Contains("Showing the first comments only.", Text(capped));
+        Assert.Contains("Showing the newest comments only.", Text(capped));
     }
 
     [Fact]

@@ -185,6 +185,26 @@ public sealed class FakeJiraServerTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenOrderByMinusCreated_WhenReadingComments_ThenTheNewestComesFirst()
+    {
+        var baseUrl = StartServer(10, 0, 0);
+
+        using var generated = JsonDocument.Parse(
+            await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-5/comment?orderBy=-created&startAt=0&maxResults=2"));
+        using var recorded = JsonDocument.Parse(
+            await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GTM-5/comment?orderBy=-created"));
+        using var oldestFirst = JsonDocument.Parse(
+            await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GTM-5/comment?orderBy=created"));
+
+        Assert.Equal(["120", "119"], generated.RootElement.GetProperty("comments").EnumerateArray().Select(Id));
+        Assert.Equal(
+            oldestFirst.RootElement.GetProperty("comments").EnumerateArray().Select(Id).Reverse(),
+            recorded.RootElement.GetProperty("comments").EnumerateArray().Select(Id));
+    }
+
+    private static string? Id(JsonElement comment) => comment.GetProperty("id").GetString();
+
     [Theory]
     [InlineData("GTM-9", true)]
     [InlineData("GCM-1", false)]
