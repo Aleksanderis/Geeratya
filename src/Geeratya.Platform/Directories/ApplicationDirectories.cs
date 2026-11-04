@@ -2,7 +2,9 @@ namespace Geeratya.Platform.Directories;
 
 /// <summary>
 /// Where Geeratya keeps its configuration, state and cache. Linux and macOS follow the XDG base directories
-/// (a relative XDG value is ignored, as the specification says); Windows uses the known folders.
+/// (a relative XDG value is ignored, as the specification says); Windows uses the known folders unless an absolute
+/// XDG value is set, which scripts and tests use to keep the real profile, state and cache out of a run (.NET reads
+/// the known folders from the shell, so changing <c>APPDATA</c> does not redirect them).
 /// </summary>
 public sealed class ApplicationDirectories
 {
@@ -16,9 +18,12 @@ public sealed class ApplicationDirectories
     {
         if (operatingSystem == OperatingSystemKind.Windows)
         {
-            ConfigDirectory = Path.Combine(folders.RoamingAppData, WindowsApplicationFolder);
-            StateDirectory = Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "State");
-            CacheDirectory = Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "Cache");
+            ConfigDirectory = AbsoluteXdg(environment, "XDG_CONFIG_HOME")
+                ?? Path.Combine(folders.RoamingAppData, WindowsApplicationFolder);
+            StateDirectory = AbsoluteXdg(environment, "XDG_STATE_HOME")
+                ?? Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "State");
+            CacheDirectory = AbsoluteXdg(environment, "XDG_CACHE_HOME")
+                ?? Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "Cache");
 
             return;
         }
@@ -43,6 +48,15 @@ public sealed class ApplicationDirectories
         }
 
         return OperatingSystem.IsMacOS() ? OperatingSystemKind.MacOs : OperatingSystemKind.Linux;
+    }
+
+    private static string? AbsoluteXdg(EnvironmentReader environment, string variable)
+    {
+        var configured = environment.Get(variable);
+
+        return configured is not null && Path.IsPathRooted(configured)
+            ? Path.Combine(configured, ApplicationFolder)
+            : null;
     }
 
     private static string XdgDirectory(
