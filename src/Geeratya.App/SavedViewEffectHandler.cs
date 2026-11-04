@@ -9,7 +9,7 @@ namespace Geeratya.App;
 /// stored list. A file that cannot be read or written is answered with <see cref="SavedViewsFailed"/>; the list on
 /// screen keeps the change until the next reply replaces it.
 /// </summary>
-public sealed class SavedViewEffectHandler
+public sealed class SavedViewEffectHandler : ILocalEffectHandler
 {
     private readonly SavedViewStore _store;
     private readonly object _gate = new();
@@ -18,6 +18,17 @@ public sealed class SavedViewEffectHandler
     public SavedViewEffectHandler(SavedViewStore store)
     {
         _store = store;
+    }
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is LoadSavedViewsEffect or SaveViewEffect or RenameSavedViewEffect
+            or DeleteSavedViewEffect;
+    }
+
+    public Task<Command?> RunAsync(Effect effect, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Run(effect));
     }
 
     /// <summary>The command that reports the stored views, or null when the effect is not a saved-view effect.</summary>

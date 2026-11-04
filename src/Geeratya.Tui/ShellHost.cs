@@ -1,19 +1,8 @@
 using Geeratya.App;
-using Geeratya.Core.Cache;
-using Geeratya.Core.Comments;
-using Geeratya.Core.Detail;
-using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Sources;
-using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
-using Geeratya.Core.Writes;
-using Geeratya.Platform.Browser;
-using Geeratya.Platform.Directories;
-using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Rendering.Themes;
@@ -48,24 +37,11 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
-    private readonly ProfileEffectHandler _profileEffects;
-    private readonly HistoryEffectHandler _historyEffects;
-    private readonly SavedViewEffectHandler? _savedViewEffects;
-    private readonly StartupEffectHandler? _startupEffects;
-    private readonly BrowserEffectHandler _browserEffects;
-    private readonly SettingsEffectHandler? _settingsEffects;
     private readonly SiteConnections _connections;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly CancellationToken _shutdownToken;
     private readonly NetworkRunner _network;
-    private readonly ViewLoadHandler _viewLoads;
-    private readonly IssueDetailLoadHandler _detailLoads;
-    private readonly SourceLoadHandler _sourceLoads;
-    private readonly WriteHandler _writes;
-    private readonly FormMetadataHandler _formMetadata;
-    private readonly SuggestionHandler _suggestions;
-    private readonly MentionCheckHandler _mentionCheck;
-    private readonly ConnectionCheckHandler _connectionChecks;
+    private readonly EffectRunner _effects;
     private readonly TerminalBackgroundDetector? _background;
     private bool? _lightBackground;
     private IApplication? _application;
@@ -93,29 +69,13 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _themes = new ThemeSwitcher(new ThemeCatalog(profiles.ThemesDirectory));
         _glyphs = glyphs;
         _profiles = profiles;
-        _profileEffects = new ProfileEffectHandler(profiles);
-        _settingsEffects = profiles.Settings is null ? null : new SettingsEffectHandler(profiles.Settings);
-        _historyEffects = new HistoryEffectHandler(profiles.Histories);
-        _savedViewEffects = profiles.SavedViews is { } savedViews ? new SavedViewEffectHandler(savedViews) : null;
-        _startupEffects = profiles.Tabs is { } tabs ? new StartupEffectHandler(tabs) : null;
-        _browserEffects = new BrowserEffectHandler(
-            BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner()));
         _connections = new SiteConnections(profiles.Tokens, boardKinds: profiles.BoardKinds);
         _reducer = new AppReducer(keymap);
         _shutdownToken = _shutdown.Token;
         _network = new NetworkRunner(_connections, this, _shutdownToken);
-        _viewLoads = new ViewLoadHandler(_network);
-        _detailLoads = new IssueDetailLoadHandler(_network);
-        _sourceLoads = new SourceLoadHandler(_network);
-        _writes = new WriteHandler(_network);
-        _formMetadata = new FormMetadataHandler(_network);
-        _suggestions = new SuggestionHandler(_network, TimeProvider.System);
-        _mentionCheck = new MentionCheckHandler(_network);
-        _connectionChecks = new ConnectionCheckHandler(_connections, _network);
+        _effects = new EffectRunner(profiles, _connections, _network, this, _shutdownToken);
         profiles.Caches.WriteFailed += OnCacheProblem;
         profiles.Caches.ReadProblem += OnCacheProblem;
-
-        _startupEffects?.SaveFailed += OnTabsSaveFailed;
 
         _connections.RateLimitChanged += OnRateLimitChanged;
         _dragScroller.Stepped += OnDragScrollStep;
@@ -126,14 +86,13 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _profiles.Caches.WriteFailed -= OnCacheProblem;
         _profiles.Caches.ReadProblem -= OnCacheProblem;
 
-        _startupEffects?.SaveFailed -= OnTabsSaveFailed;
-
         _connections.RateLimitChanged -= OnRateLimitChanged;
         _tickTimer?.Dispose();
         _whichKeyTimer?.Dispose();
         _dragScroller.Stepped -= OnDragScrollStep;
         _dragScroller.Dispose();
         _profiles.Caches.Dispose();
+        _effects.Dispose();
         _network.Dispose();
         _connections.Dispose();
         _shutdown.Dispose();
@@ -179,7 +138,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         application.Run(screen);
         _shutdown.Cancel();
         _profiles.Caches.FlushAll();
-        _startupEffects?.Flush();
+        _effects.FlushTabs();
 
         return 0;
     }
@@ -195,12 +154,12 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _quitting = true;
         _network.CancelReads();
 
-        if (_writes.HasRunning)
+        if (_effects.HasRunningWrites)
         {
             _state = _state with { Message = "Waiting for running writes to finish (up to 5 s) ...", Status = null };
             _screen!.Render(_state, TimeProvider.System.GetUtcNow());
 
-            await _writes.WaitForRunningAsync(_quitWait, CancellationToken.None);
+            await _effects.WaitForWritesAsync(_quitWait, CancellationToken.None);
         }
 
         _application!.Invoke(_application.RequestStop);
@@ -298,77 +257,6 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             {
                 _ = QuitAsync();
             }
-            else if (effect is DropSiteCacheEffect drop)
-            {
-                _network.CancelAll();
-                _profiles.Caches.Drop(drop.Profile);
-                _connections.Drop(drop.Profile);
-            }
-            else if (effect is CancelTabEffect cancel)
-            {
-                _network.CancelScope(cancel.Tab.Value);
-            }
-            else if (effect is LoadViewPageEffect load)
-            {
-                _ = _viewLoads.StartAsync(load, ActiveCache());
-            }
-            else if (effect is LoadQuickFiltersEffect quickFilters)
-            {
-                _ = _viewLoads.StartQuickFiltersAsync(quickFilters);
-            }
-            else if (effect is LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect
-                or LoadIssueChildrenEffect)
-            {
-                _ = _detailLoads.StartAsync(effect, ActiveCache());
-            }
-            else if (effect is LoadSourcesEffect sources)
-            {
-                _ = _sourceLoads.StartAsync(sources);
-            }
-            else if (effect is LoadSprintsEffect sprints)
-            {
-                _ = _sourceLoads.StartSprintsAsync(sprints);
-            }
-            else if (effect is ExecuteWriteEffect or VerifyWriteEffect or CountSubtasksEffect)
-            {
-                _ = _writes.StartAsync(effect);
-            }
-            else if (effect is LoadFormMetadataEffect formMetadata)
-            {
-                _ = _formMetadata.StartAsync(formMetadata);
-            }
-            else if (effect is SearchSuggestionsEffect search)
-            {
-                _ = _suggestions.StartAsync(search);
-            }
-            else if (effect is CheckMentionsEffect mentions)
-            {
-                _ = _mentionCheck.StartAsync(mentions);
-            }
-            else if (effect is CancelSuggestionsEffect stop)
-            {
-                _suggestions.Cancel(stop.Tab);
-            }
-            else if (effect is InvalidateCacheEffect invalidate)
-            {
-                InvalidateCaches(invalidate);
-            }
-            else if (effect is WriteCacheEffect write)
-            {
-                ActiveCache()?.Put(write.Key, write.View);
-            }
-            else if (effect is RemoveIssueCacheEffect removeIssue)
-            {
-                ActiveCache()?.RemoveIssue(removeIssue.Key);
-            }
-            else if (effect is WriteIssueCacheEffect writeIssue)
-            {
-                ActiveCache()?.PutIssue(writeIssue.Issue);
-            }
-            else if (effect is SaveTabsEffect saveTabs)
-            {
-                _startupEffects?.Queue(saveTabs);
-            }
             else if (effect is ReloadKeymapEffect)
             {
                 reloaded = ReloadKeymap();
@@ -383,7 +271,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             }
             else
             {
-                _ = RunEffectAsync(effect);
+                _effects.Run(effect, _state.Profiles.Active);
             }
         }
 
@@ -408,7 +296,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         // After ConnectAsync, so the check waits for the connection the same dispatch asked for.
         foreach (var check in checks)
         {
-            _ = _connectionChecks.StartAsync(check);
+            _ = _effects.StartConnectionCheckAsync(check);
         }
     }
 }

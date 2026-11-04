@@ -1,13 +1,9 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
-using Geeratya.Core.Startup;
 using Geeratya.Core.State;
-using Geeratya.Core.Writes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering.Themes;
-
-using AppCommand = Geeratya.Core.State.Command;
 
 namespace Geeratya.Tui;
 
@@ -77,37 +73,6 @@ public sealed partial class ShellHost
         return new KeymapReloaded(load?.Notice ?? "Keymap reloaded", load?.Problems);
     }
 
-    /// <summary>Drops the cached details of written issues and every cached first page of the profile.</summary>
-    private void InvalidateCaches(InvalidateCacheEffect effect)
-    {
-        var cache = ActiveCache();
-
-        if (cache is null)
-        {
-            return;
-        }
-
-        foreach (var key in effect.Keys)
-        {
-            cache.RemoveIssue(key);
-        }
-
-        cache.RemoveViews();
-    }
-
-    /// <summary>The cache of the active profile, or null while there is none.</summary>
-    private SiteCache? ActiveCache()
-    {
-        var profile = _state.Profiles.Active;
-
-        return profile is null ? null : _profiles.Caches.For(profile);
-    }
-
-    private void OnTabsSaveFailed(string notice)
-    {
-        Post(new TabsSaveFailed(notice));
-    }
-
     private void OnCacheProblem(string notice)
     {
         Post(new CacheProblem(notice));
@@ -128,27 +93,6 @@ public sealed partial class ShellHost
 
         // After the connection exists, off the first-frame path: the first issue detail finds the field ids ready.
         _connections.WarmFields();
-    }
-
-    /// <summary>Runs a profile effect off the UI thread and feeds its outcome back as a command.</summary>
-    private async Task RunEffectAsync(Effect effect)
-    {
-        var outcome = await Task.Run(() => RunHandlersAsync(effect));
-
-        if (outcome is not null && !_shutdownToken.IsCancellationRequested)
-        {
-            _application!.Invoke(() => Dispatch(outcome));
-        }
-    }
-
-    private async Task<AppCommand?> RunHandlersAsync(Effect effect)
-    {
-        return _settingsEffects?.Run(effect)
-            ?? await _profileEffects.RunAsync(effect, _shutdownToken)
-            ?? _historyEffects.Run(effect)
-            ?? _savedViewEffects?.Run(effect)
-            ?? _startupEffects?.Run(effect)
-            ?? await _browserEffects.RunAsync(effect, _shutdownToken);
     }
 
     private SettingsLoad LoadSettings()

@@ -8,7 +8,7 @@ namespace Geeratya.App;
 /// reducer asked and only the latest waiting one is written, off the calling thread, so a burst of tab changes costs
 /// one write and an older state never overwrites a newer one.
 /// </summary>
-public sealed class StartupEffectHandler
+public sealed class StartupEffectHandler : ILocalEffectHandler
 {
     private static readonly TimeSpan _flushWait = TimeSpan.FromSeconds(2);
 
@@ -25,6 +25,16 @@ public sealed class StartupEffectHandler
 
     /// <summary>Raised when a save fails (not on the calling thread); the host posts the notice.</summary>
     public event Action<string>? SaveFailed;
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is LoadTabsEffect;
+    }
+
+    public Task<Command?> RunAsync(Effect effect, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Run(effect));
+    }
 
     /// <summary>The reply of a read effect, or null when the effect is not one.</summary>
     public Command? Run(Effect effect)

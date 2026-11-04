@@ -4,13 +4,23 @@ using Geeratya.Core.State;
 namespace Geeratya.App;
 
 /// <summary>Writes one setting into the settings file for <see cref="SaveSettingsEffect"/>; answers only when that fails.</summary>
-public sealed class SettingsEffectHandler
+public sealed class SettingsEffectHandler : ILocalEffectHandler
 {
     private readonly SettingsStore _store;
 
     public SettingsEffectHandler(SettingsStore store)
     {
         _store = store;
+    }
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is SaveSettingsEffect;
+    }
+
+    public Task<Command?> RunAsync(Effect effect, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Run(effect));
     }
 
     /// <summary>A failure command, or null on success and for effects that are not settings effects.</summary>
