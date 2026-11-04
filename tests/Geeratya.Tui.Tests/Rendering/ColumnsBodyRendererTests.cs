@@ -13,6 +13,7 @@ using Geeratya.Jira.Sprints.Models;
 using Geeratya.Platform.Terminal;
 using Geeratya.Jira.Transport;
 using Geeratya.Tui.Rendering;
+using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
@@ -569,6 +570,24 @@ public class ColumnsBodyRendererTests
             body.Where(line => !line.PlainText.Contains("A-2", StringComparison.Ordinal)
                 && !line.PlainText.Contains("Summary", StringComparison.Ordinal)),
             line => Assert.DoesNotContain(line.Spans.Skip(1).Take(5), span => span.Ground == SpanGround.Selection));
+    }
+
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    public void GivenTheCursorCard_WhenResolvingColours_ThenTheTypeNameKeepsItsColourOnTheTint(ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(BuiltInThemes.DefaultDarkName)!.Theme!;
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
+
+        var span = Render(tab, 120, 30).SelectMany(line => line.Spans)
+            .First(candidate => candidate.Role == TextRole.TypeTask && candidate.Ground == SpanGround.Selection);
+        var style = Palette.Resolve(theme, tier, PaletteTable.For(span.Role), span.Ground, true);
+        var plain = Palette.Resolve(theme, tier, PaletteTable.For(TextRole.Selected), SpanGround.Page, true);
+        var own = Palette.Resolve(theme, tier, PaletteTable.For(span.Role), SpanGround.Page, true);
+
+        Assert.NotEqual(plain.Foreground, style.Foreground);
+        Assert.Equal(own.Foreground, style.Foreground);
     }
 
     [Fact]
