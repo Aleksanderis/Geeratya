@@ -29,6 +29,11 @@ public static partial class FormReducer
             return Result(state);
         }
 
+        if (clicked.Target == MouseTarget.FormMoreFields)
+        {
+            return MoreFields(state, tab, form);
+        }
+
         if (clicked.Target == MouseTarget.FormChoice)
         {
             return ChosenSuggestion(state, tab, form, clicked);

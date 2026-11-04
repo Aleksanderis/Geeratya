@@ -160,23 +160,6 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains("Choose the issue type", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void GivenACreateFormWithAParent_WhenBuildingTheFrame_ThenTheParentShowsPrefilledAndOpenAfterIsInTheFooter()
-    {
-        var parent = FormField.Create("parent", "Parent", FormFieldKind.Parent, false, [])
-            .WithInitial(FormValue.OfChosen(["A-1"]));
-        var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, true, []);
-        var target = new CreateFormTarget("A", "A-1", false, new CreateIssueType("10", "Task", string.Empty, 0, false));
-        var form = FormState.Opened(target, 3, null) with { Fields = [summary, parent], IsLoading = false };
-
-        var lines = FrameBuilder.Build(WithForm(form), 120, 36, _keymap);
-
-        Assert.Contains(lines, line => line.Contains("Create Task under A-1", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("Parent", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Trim('│', ' ') == "A-1" || line.Contains("    A-1", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
-    }
-
     internal static FormState PickerForm()
     {
         CreateIssueType[] types =

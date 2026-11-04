@@ -52,6 +52,7 @@ public static class DefaultMouseMap
         new(MouseTarget.ProfileCancelButton, MouseGesture.Click, ActionIds.Cancel, 1, 'O'),
         new(MouseTarget.FormField, MouseGesture.Click, ActionIds.FormFieldNext, 1, 'O'),
         new(MouseTarget.FormChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
+        new(MouseTarget.FormMoreFields, MouseGesture.Click, ActionIds.FormMoreFields, 1, 'O'),
         new(MouseTarget.EditorChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.HelpPage, MouseGesture.Click, ActionIds.HelpPageNext, 1, 'O'),
         new(MouseTarget.ConfirmYes, MouseGesture.Click, ActionIds.ConfirmYes, 1, 'O'),

@@ -13,7 +13,7 @@ using Geeratya.Jira.Writes.Models;
 namespace Geeratya.Core.Tests.Forms;
 
 [Trait("Os", "Independent")]
-public class CreateFormReducerTests
+public partial class CreateFormReducerTests
 {
     private static readonly DateTimeOffset _start = new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
@@ -303,7 +303,7 @@ public class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(state, "Esc");
+        var asked = Press(Press(state, "Esc").State, "Esc");
         var kept = Press(asked.State, "n");
 
         Assert.True(asked.State.Session.Tabs[0].Form!.DiscardPending);
@@ -317,7 +317,7 @@ public class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(state, "Esc");
+        var asked = Press(Press(state, "Esc").State, "Esc");
         var discarded = Press(asked.State, "y");
 
         Assert.Null(discarded.State.Session.Tabs[0].Form);

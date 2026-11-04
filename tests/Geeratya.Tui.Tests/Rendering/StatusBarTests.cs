@@ -40,7 +40,12 @@ public class StatusBarTests
     [Fact]
     public void GivenEveryHint_WhenCheckingTheDefaultKeymap_ThenItBindsTheNamedActionInTheHintMode()
     {
-        foreach (var hint in StatusBar.Hints)
+        var hints = StatusBar.Hints
+            .Concat(StatusBar.FormHints)
+            .Concat(StatusBar.CreateHints)
+            .Concat(StatusBar.CreateEditingHints);
+
+        foreach (var hint in hints)
         {
             Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.ActionId));
             Assert.NotNull(ActionCatalog.FindTitle(hint.ActionId));
@@ -56,6 +61,8 @@ public class StatusBarTests
             .Concat(StatusBar.HelpHints)
             .Concat(StatusBar.EditorHints)
             .Concat(StatusBar.FormHints)
+            .Concat(StatusBar.CreateHints)
+            .Concat(StatusBar.CreateEditingHints)
             .Concat(StatusBar.DropdownHints);
 
         Assert.All(all, hint => Assert.True(StatusBar.IsShownAt(hint, CommandLevel.Everyday), hint.ActionId));

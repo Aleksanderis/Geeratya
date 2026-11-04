@@ -17,8 +17,8 @@ public static partial class FormOverlay
     private const string LoadingText = "Loading fields…";
     private const string SavingText = "Saving…";
     private const string ChooseTypeText = "Choose the issue type";
-    private const string OpenAfterOnText = "on";
-    private const string OpenAfterOffText = "off";
+    internal const string OpenAfterOnText = "on";
+    internal const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "not editable here";
     private const string EmptyText = "-";
@@ -125,7 +125,21 @@ public static partial class FormOverlay
 
         var focused = form.Focus < form.Fields.Count ? form.Fields[form.Focus] : null;
 
-        return focused?.Error is { } error ? $"! {focused.Label}: {error}" : form.Target.Title;
+        if (focused?.Error is { } error)
+        {
+            return $"! {focused.Label}: {error}";
+        }
+
+        return CreatePanes.Applies(form) && focused is not null ? CreateStatusText(form, focused) : form.Target.Title;
+    }
+
+    // Create GEN · Story · Summary, with the state of the focused field in the navigate state.
+    private static string CreateStatusText(FormState form, FormField focused)
+    {
+        var create = (CreateFormTarget)form.Target;
+        var text = $"Create {create.ProjectKey} · {create.IssueType?.Name} · {focused.Label}";
+
+        return form.Navigating ? $"{text}  [navigate]" : text;
     }
 
     private static List<StyledLine> BoxLines(

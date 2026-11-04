@@ -55,6 +55,12 @@ public sealed record FormState(
     /// <summary>True while a <see cref="Navigable"/> form moves between fields (no field takes text).</summary>
     public bool Navigating { get; init; }
 
+    /// <summary>
+    /// The create form shows every optional field (<c>Ctrl-f</c>); off, the optional fields past the first five are
+    /// folded (<see cref="CreatePanes.IsFolded"/>).
+    /// </summary>
+    public bool ShowAllFields { get; init; }
+
     /// <summary>True while the create form asks for the issue type.</summary>
     public bool IsChoosingType => TypeChoices is not null;
 

@@ -164,6 +164,7 @@
     { "mode": "insert", "keys": "Shift-Tab", "action": "form.field-previous" },
     { "mode": "insert", "keys": "Ctrl-s", "action": "form.submit" },
     { "mode": "insert", "keys": "Ctrl-g", "action": "form.open-after" },
+    { "mode": "insert", "keys": "Ctrl-f", "action": "form.more-fields" },
     { "mode": "insert", "keys": "Alt-Enter", "action": "form.submit" },
     { "mode": "insert", "keys": "Left", "action": "editor.left" },
     { "mode": "insert", "keys": "Right", "action": "editor.right" },

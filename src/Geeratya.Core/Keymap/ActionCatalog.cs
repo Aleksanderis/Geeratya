@@ -195,6 +195,7 @@ public static class ActionCatalog
         new(ActionIds.FormFieldPrevious, "Previous field of the form"),
         new(ActionIds.FormSubmit, "Save the form"),
         new(ActionIds.FormOpenAfter, "Open the new issue after it is created (on or off)"),
+        new(ActionIds.FormMoreFields, "Show or fold the optional fields of the create form"),
         new(ActionIds.FormOpenBrowser, "Open the issue page in the browser from the form"),
     ];
 
@@ -249,6 +250,7 @@ public static class ActionCatalog
         ActionIds.FormFieldPrevious,
         ActionIds.FormSubmit,
         ActionIds.FormOpenAfter,
+        ActionIds.FormMoreFields,
         ActionIds.FormOpenBrowser,
     ];
 

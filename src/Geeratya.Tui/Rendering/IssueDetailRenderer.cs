@@ -223,7 +223,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     /// <summary>
     /// The chips of a top edge (the runs between border spans) restyled: the first one for the focus state.
     /// </summary>
-    private static List<StyledSpan> Chips(List<StyledSpan> spans, bool focused)
+    internal static List<StyledSpan> Chips(List<StyledSpan> spans, bool focused)
     {
         var result = new List<StyledSpan>(spans.Count);
         var run = new List<StyledSpan>();
@@ -289,7 +289,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         };
     }
 
-    private static StyledSpan FocusBorder(StyledSpan span)
+    internal static StyledSpan FocusBorder(StyledSpan span)
     {
         return span with { Role = TextRole.FrameFocus };
     }

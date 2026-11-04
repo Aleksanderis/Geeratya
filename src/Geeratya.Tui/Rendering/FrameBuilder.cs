@@ -134,12 +134,7 @@ public static class FrameBuilder
 
         if (FormReducer.OpenForm(state) is { } form)
         {
-            var dropdown = DetailDropdown.Applies(state, form);
-            var composed = dropdown
-                ? DetailDropdown.Compose(body, state, form, width, bodyHeight, regions)
-                : FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions);
-
-            body = Fit(composed, width, bodyHeight);
+            body = Fit(ComposeForm(body, state, form, context, width, bodyHeight, regions), width, bodyHeight);
         }
 
         var dialogShown = false;
@@ -179,6 +174,31 @@ public static class FrameBuilder
         };
 
         return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
+    }
+
+    // The dropdown under a Details field, the create form's panes, or the small field form box.
+    private static IReadOnlyList<StyledLine> ComposeForm(
+        IReadOnlyList<StyledLine> body,
+        AppState state,
+        FormState form,
+        BodyContext context,
+        int width,
+        int height,
+        List<OverlayRegion> regions)
+    {
+        if (DetailDropdown.Applies(state, form))
+        {
+            return DetailDropdown.Compose(body, state, form, width, height, regions);
+        }
+
+        if (CreatePaneOverlay.Applies(form))
+        {
+            var ascii = context.Glyphs == GlyphSet.Ascii;
+
+            return CreatePaneOverlay.Compose(body, form, context.Keymap, ascii, width, height, regions);
+        }
+
+        return FormOverlay.Compose(body, form, context.Keymap, width, height, regions);
     }
 
     // The wide detail overlay keeps its right frame cell: the marker stops before it and never reaches the view around.

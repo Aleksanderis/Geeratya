@@ -135,6 +135,24 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints shown while the create form is open as panes (#708).</summary>
+    public static IReadOnlyList<StatusHint> CreateHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormMoreFields, MoreFieldsLabel),
+        new(InputMode.Insert, ActionIds.FormSubmit, "create"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
+    /// <summary>As <see cref="CreateHints"/> while a field of the create form is edited (<c>Esc</c> stops).</summary>
+    public static IReadOnlyList<StatusHint> CreateEditingHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormMoreFields, MoreFieldsLabel),
+        new(InputMode.Insert, ActionIds.FormSubmit, "create"),
+        new(InputMode.Insert, ActionIds.Cancel, "stop editing"),
+    ];
+
     /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
     public static IReadOnlyList<StatusHint> DropdownHints { get; } =
     [
@@ -142,6 +160,47 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.FormNext, "accept"),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
+
+    private const string MoreFieldsLabel = "more fields";
+    private const string CtrlPrefix = "Ctrl-";
+
+    private static IReadOnlyList<StatusHint> FormHintsOf(FormState form)
+    {
+        if (form.Dropdown is not null)
+        {
+            return DropdownHints;
+        }
+
+        if (!CreatePanes.Applies(form))
+        {
+            return FormHints;
+        }
+
+        return form.Navigating ? CreateHints : CreateEditingHints;
+    }
+
+    // Ctrl-h/j/k/l when the four pane keys are Ctrl plus a letter, else the keys joined by a slash.
+    private static string PaneKeys(KeymapTable keymap)
+    {
+        string[] actions =
+        [
+            ActionIds.PaneFocusLeft,
+            ActionIds.PaneFocusDown,
+            ActionIds.PaneFocusUp,
+            ActionIds.PaneFocusRight,
+        ];
+        var keys = actions
+            .Select(action => KeyNotation.Display(keymap.FindKeys(InputMode.Normal, action)) ?? string.Empty)
+            .ToList();
+
+        if (keys.All(static key => key.Length == CtrlPrefix.Length + 1
+            && key.StartsWith(CtrlPrefix, StringComparison.Ordinal)))
+        {
+            return $"{CtrlPrefix}{string.Join('/', keys.Select(static key => key[^1]))}";
+        }
+
+        return string.Join('/', keys);
+    }
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
@@ -159,9 +218,33 @@ public static partial class StatusBar
 
         if (FormReducer.IsOpen(state))
         {
-            var hints = FormReducer.OpenForm(state) is { Dropdown: not null } ? DropdownHints : FormHints;
+            var form = FormReducer.OpenForm(state)!;
+            var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
 
-            return new HintList([], TextsOf(hints, state.Mode, HintScope.Global, keymap, level));
+            // The pane keys act in the navigate state only; typing and choosing keep the Insert rows.
+            if (CreatePanes.Applies(form) && !CreatePanes.CanFold(form))
+            {
+                texts.RemoveAll(static chip => chip.Label == MoreFieldsLabel);
+            }
+
+            if (CreatePanes.Applies(form) && form.Navigating)
+            {
+                texts.Insert(Math.Min(1, texts.Count), new HintChip(PaneKeys(keymap), "pane"));
+            }
+
+            if (CreatePanes.Applies(form) && form.Target is CreateFormTarget create)
+            {
+                var open = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter));
+                var openState = create.OpenAfter ? FormOverlay.OpenAfterOnText : FormOverlay.OpenAfterOffText;
+                var chip = new HintChip(open ?? string.Empty, $"open after: {openState}");
+
+                texts.Insert(Math.Max(0, texts.Count - 2), chip);
+
+                // The last two (create, cancel) stay on a narrow line; the others drop from the end.
+                return new HintList(texts[..^2], texts[^2..]);
+            }
+
+            return new HintList([], texts);
         }
 
         if (state.FlashJump is not null)
