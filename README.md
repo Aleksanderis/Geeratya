@@ -9,6 +9,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 ## Features
 
 - Kanban board with the board's own columns
+- Done cutoff of a Kanban board: follows Jira's own "Hide done work items after" (read, never written), with a quick picker per tab (1 to 4 weeks, all)
 - Backlog, with ranking
 - Scrum: sprint board, backlog as sprints, move issues between sprints, create, start and complete sprints
 - JQL search and saved filters as issue lists

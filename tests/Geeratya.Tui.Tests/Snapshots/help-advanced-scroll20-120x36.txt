@@ -19,6 +19,8 @@
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │
 │           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │           │
+│           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
+│           │               │              weeks, all, or follow Jira)                                     │           │
 │           │               │   <space>vv  Open a saved view in a new tab                                  │           │
 │           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
 │           │               │   <space>*   Switch the command level for the session                        │           │
@@ -28,9 +30,7 @@
 │           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
 │           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
 │           │               │   <space>sg  Show the full goal of the sprint                                │           │
-│           │               │ Tabs                                                                         │           │
-│           │               │   Tab        Next tab  (gt)                                                  │           │
-│           │               │   Shift-Tab  Previous tab  (gT)                                             ▼│           │
+│           │               │ Tabs                                                                        ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

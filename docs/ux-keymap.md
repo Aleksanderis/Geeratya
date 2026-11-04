@@ -100,6 +100,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>sc` | `sprint.complete` | Complete the active sprint: when it has open issues and a future sprint exists a form asks where they go (backlog by default, or the next future sprint); then the Confirm says done and open counts, the destination, that it is two steps (complete, then move) and that Jira cannot undo it. Built (#186) | E | view menu; header button waits for #178 | M5 #186 |
 | `<space>vf` | `view.quick-filter` | Switch the board's quick filters one at a time (off, each in turn, off); `:quickfilter` toggles several. Built (#192) | E | view menu (right-click a tab or the status line) | M6 #192 |
 | `<space>vs` | `view.swimlane` | Choose the swimlane grouping (none, assignee, epic); `]]` and `[[` change the lane. Built (#192) | E | view menu; the lane keys have no click yet (follow-up) | M6 #192 |
+| `<space>vd` | `view.done-cutoff` | Pick how long this Kanban board keeps Done issues for the tab: opens the command palette on the rows `Done cutoff: follow Jira`, `1 week` ... `4 weeks`, `all` (Jira's own choices); `:donecutoff [auto\|1w\|2w\|3w\|4w\|all]` does the same. Per tab, kept with the remembered tab, never written to Jira. Built (#681) | E | view menu on a loaded Kanban board | M6 #681 |
 | `<space>vv` / `<space>vw` | `view.saved-open` / `view.saved-save` | Open a saved view in a new tab (the picker lists the saved views first); save the active tab's view (the command line opens with `view save ` typed, then the name). Built (#191) | E | view menu (right-click a tab or the status line) | M6 #191 |
 | `v` | `selection.visual` | Start or end Visual mode (a contiguous range of rows) | E | drag over rows | M5 #393 (built) |
 | `Alt-m` | `selection.mark` | Mark or unmark the selected row and move down (marks may be scattered) | E | `Ctrl`-click | M5 #393 (built) |
@@ -109,6 +110,21 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 The estimate has no key of its own: `:estimate` opens the form limited to the estimate field (#183); `<space>ie` offers it among the other editable fields. Deleting a sprint is not planned (sprints are completed; the web UI does the rest).
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
+
+### Panes and zoom (planned, M8)
+
+Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
+
+| Key | Action id | Does | Context |
+|---|---|---|---|
+| `Ctrl-h` `Ctrl-w h` | `pane.focus-left` | Focus the pane to the left | Normal, detail and form |
+| `Ctrl-j` `Ctrl-w j` | `pane.focus-down` | Focus the pane below | Normal, detail and form |
+| `Ctrl-k` `Ctrl-w k` | `pane.focus-up` | Focus the pane above | Normal, detail and form |
+| `Ctrl-l` `Ctrl-w l` | `pane.focus-right` | Focus the pane to the right | Normal, detail and form |
+| `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves) | Normal, detail |
+| `Down` `Ctrl-j` / `Up` `Ctrl-k` | `picker.next` / `picker.previous` | Choose in a dropdown or suggestion list | Insert, popups |
+
+`Alt-h/j/k/l` stay card move and rank. The detail drops `]]`/`[[` (`detail.section-next`/`detail.section-previous`); the Scrum backlog keeps them. `Ctrl-h` is Backspace in terminals without an enhanced keyboard protocol: `Ctrl-w h` is the fallback there.
 
 ### Selection and counts
 

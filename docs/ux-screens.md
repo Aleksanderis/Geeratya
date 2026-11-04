@@ -291,6 +291,136 @@ GCM board › GCM-12 · Top
  NORMAL  ? help  : commands  q quit
 ```
 
+## Pane layout for the issue detail, board cards and forms (planned, M8)
+
+Agreed with the owner in a mockup session on 2026-11-04 (Claude Design canvas, iterated with the owner until approved; the canvas is private, this section is the source of truth). It replaces the layout of "Issue detail" above, the card layout of "Columns layout" and the box-per-field look of "Field form overlay" once built; until then those sections describe what runs. Rules from `ux-look.md` hold unless this section says otherwise (rounded frames, chips in the top edge, muted quiet panes, accent only for focus, no colour alone). The mockups below are 104 columns wide; the tint of a header bar, a filled value or a chip cannot be drawn in text, so each mockup says what is tinted.
+
+### Panes, focus and zoom
+
+- A detail is a stack of bordered **panes**: title, Description, Sub-tasks, Comments on the left, a Details pane on the right (a sidebar, 33 columns, from 100 columns of width up; below that the Details pane moves under the main panes and the screen is one column). Attachments are a section of the Details pane (up to three rows: name, type, size; more in the zoomed section) and open in the browser with `o` (attachments are never rendered, see CLAUDE.md).
+- One pane has the focus: its frame is accent and its chip is the filled accent chip (`ux-look.md` section 4), every other pane is quiet. A pane's chip is its title (`Comments 50 of 120`), its right-hand dim chip a count or position (`1-4 of 14`, `newest first`).
+- **`Ctrl-h`/`Ctrl-j`/`Ctrl-k`/`Ctrl-l`** focus the pane to the left, below, above, right (Gitunia's `pane.focus-*`; `Ctrl-w h/j/k/l` are the same). They replace `]]` and `[[` in the detail (`detail.section-next` and `detail.section-previous` are removed there; the backlog keeps the chords until it has panes). `Alt-h/j/k/l` stay taken by card move and rank, which is why the pane modifier is Ctrl. Pane keys apply in Normal mode; in text input `Ctrl-h` stays Backspace. A terminal that cannot tell `Ctrl-h` from Backspace keeps `Ctrl-w h` working and the hint chips show the key that works there (check it in Terminal.Gui v2 first, see the pane-key issue).
+- `h`/`j`/`k`/`l` move inside the focused pane: between fields in Details, between comments in Comments, by line in text panes, between rows in Sub-tasks.
+- **`<space>z`** zooms the focused pane: it fills the tab body, the other panes are hidden, the chip says `· zoomed` and the hints show `<space>z unzoom`. While zoomed, a **section strip** (`Description  Sub-tasks 3  Attachments 1  Comments 120  Details`, the current one accent and underlined) replaces the panes, and `Ctrl-h`/`Ctrl-l` switch section. `<space>z` again or `Esc` leaves the zoom (`Esc` before it pops the view). Zoom is part of the tab's state and is kept while the tab is open. Action id `pane.zoom` (Gitunia's id).
+- A long pane (Description, Comments, Sub-tasks) scrolls inside its frame: a scrollbar in the right padding column (`▲ █ ░ ▼`, ASCII `^ # . v`) and a position chip (`1-4 of 14`). The screen itself does not scroll. A pane shows the first rows of its content; `Enter` on a cut pane or comment expands it in place (again collapses), `<space>z` zooms it.
+
+### Issue detail
+
+```text
+ 1 JQL project = GEN x   +                                                    : commands  <space>g jump
+╭─ GEN-5 · Story ────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮
+│ Generated issue 5                                            To Do │ │ Status  moves via transition  │
+╰────────────────────────────────────────────────────────────────────╯ │ ● To Do ▾                     │
+╭─ Description ────────────────────────────────────────── 1-4 of 14 ─╮ │                               │
+│ This is generated issue 5. It has formatted text,                ▲ │ │ Priority                      │
+│ a list and a code block, so it has something to scroll.          █ │ │ = Medium ▾                    │
+│ - First generated step                                           ░ │ │                               │
+│ … 11 more lines   Enter expand                                   ▼ │ │ Assignee                      │
+╰────────────────────────────────────────────────────────────────────╯ │ [--] Unassigned ▾             │
+╭─ Sub-tasks 3 ──────────────────────────────────────── 1 of 3 done ─╮ │                               │
+│ GEN-100051  Sub-task 1 of 5  In Progress  [GW] Generated Writer    │ │ Reporter                      │
+│ GEN-100052  Sub-task 2 of 5  Done         [GR] Generated Reporter  │ │ [GR] Generated Reporter       │
+│ GEN-100053  Sub-task 3 of 5  Backlog      [--] Unassigned          │ │                               │
+╰────────────────────────────────────────────────────────────────────╯ │ Labels                        │
+╭─ Comments 50 of 120 ──────────────────────────────── newest first ─╮ │ [generated] [sample]          │
+│ Generated Writer 2                                       5 d ago ▲ │ │                               │
+│ Generated comment 3 on issue 5. The workflow needs a             █ │ │ Sprint                        │
+│ resolution on Done, so the move opens the transition form        █ │ │ Generated Sprint 2            │
+│ … 9 more lines   Enter expand   <space>z zoom                    ░ │ │                               │
+│                                                                  ░ │ │ Due none · Updated 5 d ago    │
+│ Generated Writer 1                                       4 d ago ░ │ │ Attachments 1 · spec.pdf 212  │
+│ Generated comment 2 on issue 5.                                  ░ │ │                               │
+│                                                                  ░ │ │                               │
+│ Generated Reporter                                       6 d ago ░ │ │                               │
+│ See the attached spec before starting.                           ░ │ │                               │
+│                                                                  ▼ │ │                               │
+╰────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯
+```
+
+Mockup notes: Comments has the focus (accent frame); each comment's first row is a tinted bar across the pane (author bold on the left, time on the right); `[GW]` is the initials chip (muted fill), `[--]` the same-size muted outline chip for unassigned; values in Details are filled blocks, the focused one has the selection tint and an accent bar on its left.
+
+- **Title pane**: one row when the summary fits (summary left, status right, the status in its status-category colour); two rows only when it does not.
+- **Description pane**: markdown rendered as today (ADF to text), four body rows when cut, `… N more lines` as the last row, `Enter` expands.
+- **Sub-tasks pane**: one row per sub-task as aligned columns: key (as wide as the longest key in the pane, so `GEN-100051` needs no extra space), 2 spaces, summary (flexible, cut with `…`), 2 spaces, status (as wide as the longest status name, in the status colour, never touching the summary), 2 spaces, assignee as initials chip plus real name (`[GW] Generated Writer`; the name is dropped, then the chip, as the width shrinks). Unassigned is `[--] Unassigned`, muted. `Enter` opens the sub-task like any row. The chip title shows `n of m done`.
+- **Details pane**: for each field the label (accent) above its value in a filled block. Fields: Status, Priority, Assignee, Reporter, Labels, Sprint, Due date and the other fields the screen shows today, then dates (`Created`, `Updated`) and Attachments as muted text rows. The kinds and what is editable come from the edit metadata, never from code (`jira-layer.md`); a field that cannot be edited is plain text without a `▾`.
+- **Dropdowns in Details**: `Enter` on an editable field opens its popup under the value (the suggestion popup of the field form: ranked rows, `>` on the highlighted one, up to five rows; Priority shows all its values). `Down`/`Up` or `Ctrl-j`/`Ctrl-k` choose (the picker keys of `keymap.md`), `Enter` accepts and writes at once through the existing write path (the same confirmations as today), `Esc` closes the list. **Status** is not a free field: its label says `moves via transition` and `Enter` opens the `Move to` picker and the transition form with its confirmation (workflow side effects, `ux-workflows.md`). Assignee opens the people picker (`Me`, `Unassigned`, suggestions). Labels use the labels popup.
+
+### Comments
+
+- Comments is a pane like Description, in the main column, taking the space the other panes leave (the most of any pane). It has its own scroll and its own zoom.
+- Each comment is a **block**: a header bar (tint across the full pane width: author bold, relative time at the right, `edited` after the time when edited), its body on the page background below it, and one empty row after the body before the next header bar. The selected comment's bar takes the selection tint with the accent bar on its left.
+- A body is cut after 3 lines in the pane (6 when zoomed): the last row is `… N more lines   Enter expand   <space>z zoom` (muted, keys accent). `Enter` expands the selected comment in place; `j`/`k` move between comments, and inside an expanded comment move by line and leave it past its ends. Lists, code blocks and quotes keep their shape; attachments mentioned in a comment show as name, type and size with `o` to open in the browser.
+- The list is newest first as today, loads further pages at its ends, and the chip says `50 of 120`. Comment actions (add, edit, delete, with their confirmations) are unchanged.
+- Zoomed Comments is the one scroll through all loaded comments, as in Jira's web page, but each comment stays cut so one huge comment cannot hide the rest.
+
+### Board card
+
+```text
+╭─ IN PROGRESS ────────── 2 / 3 limit ─╮
+│ Seed: Reporting overhaul             │
+│ [geeratya-seed]                      │
+│ [geeratya-seed-GEN-epic-reporting]   │
+│ GEN-1  Bug                    = [GR] │
+│                                      │
+│ Generated issue 6                    │
+│ GEN-6  Task                   ▼ [--] │
+╰──────────────────────────────────────╯
+```
+
+- Rows of a card: **summary** (wraps to at most two lines, then `…`), **labels** as filled chips (one row, wrapping to a second row at most, then `+N`; a label wider than the card is cut with `…`; the fill is a stable colour per label text from the theme's accent colours, text in the chip text colour, like Gitunia's branch labels), and the **bottom row**: key first (as today), two spaces, the issue type as a **full word** in its type colour (`Epic`, `Story`, `Bug`, `Task`, `Sub-task`), then the sub-task counter when there is room (`1/3`); at the right the priority glyph and the assignee as the initials chip. An unassigned card shows the `--` chip in the same place and width as initials, never a different glyph, so the right edge stays aligned. Cards without labels have no label row.
+- The selected card, the group-under-parent rule and the focus border of the column are unchanged (`ux-look.md`, section 4).
+
+### Edit and create forms
+
+```text
+╭─ Edit GEN-1 · Story ───────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮
+│ Generated issue 1_                                      required * │ │ Status  moves via transition  │
+╰────────────────────────────────────────────────────────────────────╯ │ ● In Progress ▾               │
+╭─ Description ─────────────────────────────────────────── markdown ─╮ │                               │
+│ ## Summary                                                       ▲ │ │ Priority                      │
+│ This is generated issue 1. It has **formatted** text,            █ │ │ ▲ Medium ▾                    │
+│ - First generated step                                           █ │ │                               │
+│ - Second generated step                                          ░ │ │ Labels                        │
+│                                                                  ░ │ │ [backend] [ui]                │
+│                                                                  ░ │ │                               │
+│                                                                  ░ │ │ Due date  yyyy-MM-dd          │
+│                                                                  ▼ │ │ 2026-12-01                    │
+╰────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯
+```
+
+```text
+╭─ Create · GEN · Story ─────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮
+│ What needs to be done?_                                 required * │ │ Parent *  from selection      │
+╰────────────────────────────────────────────────────────────────────╯ │ [GEN-12 Checkout epic]        │
+╭─ Description ──────────────────────── markdown, Enter adds a line ─╮ │                               │
+│ Describe it.                                                       │ │ Priority                      │
+│                                                                    │ │ = Medium ▾                    │
+│                                                                    │ │                               │
+│                                                                    │ │ Assignee                      │
+│                                                                    │ │ [--] Unassigned ▾             │
+│                                                                    │ │                               │
+│                                                                    │ │ Labels                        │
+│                                                                    │ │ none                          │
+╰────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯
+```
+
+- The edit and the create form use one component of three panes: a title pane holding **Summary** (one row, `required *` at the right), a **Description** pane (markdown, own scrollbar, `Enter` adds a line) and a **Details** pane with the other fields (label above a filled value, as in the detail). Required fields are marked `*` and sort first in Details; with fewer than six fields shown, nothing is folded.
+- **Edit** stays an overlay (`OverlayBox`, up to 104 columns, the dimmed view behind) with these panes inside; the Status row of Details opens the transition picker like in the detail (an edit of the status goes through a transition, never as a field write). Fields the form cannot edit are listed in one muted line (`Not editable here: ...` and `Ctrl-o: browser`), not as a box each. **Create** is a **tab view** (not an overlay): it opens in the active tab, with the type picker first as today, and closes back to the view that opened it; project and parent come from the selection as today (`decisions.md`, 2026-11-02). Optional fields beyond the first five are folded behind `Ctrl-f` (`show more fields`).
+- Below 100 columns the Details pane moves under the Description pane (one column); the form keeps the same order for navigation.
+- **Navigate and edit states** are unchanged (`ux-keymap.md`, "Edit form: navigate and edit states"). In the navigate state `h`/`j`/`k`/`l` move between fields (`j`/`k` within a pane, `h`/`l` to the nearest field of the other pane), `Ctrl-h/j/k/l` move between panes, `Tab`/`Shift-Tab` still go to the next and previous field in reading order, `Enter` or `i` edits. In the edit state typing goes to the field, `Esc` returns to navigate, and dropdowns use `Down`/`Up` or `Ctrl-j`/`Ctrl-k` with `Enter` to accept.
+- Save, validation and error rules (`Ctrl-s`, required fields, errors at the field, `Esc` asks before discarding) are unchanged; only the look and the grouping change.
+
+### Colours and glyphs
+
+- **Key hints** in every bar and overlay footer: the key bold in the accent colour, the label muted (Gitunia's `StatusKey`). This replaces the `warn` key role for overlay footers and menus in `ux-look.md` (section 5, "Hint popups"); the keys in which-key popups follow the same role.
+- **Field labels** and section titles are the accent colour (not teal or cyan: teal reads as green next to the green `INSERT` badge).
+- **Selection** is the one tint of `ux-look.md` (neutral, about 1.8:1 against the page on dark themes); filled values use a quieter tint one step off the page; the initials chip a muted fill; the `--` chip a muted outline.
+- Glyphs: priority `▲` (high and above), `=` (medium), `▼` (low and below) in the tier's priority colours; `●` before a status in Details; `▾` on a field with a popup; `▲ █ ░ ▼` scrollbar. ASCII tier equivalents are `^ = v`, `*`, `v`, `^ # . v`. Wide characters are never split.
+
+### Testing and screenshots
+
+Layout is pure (no terminal): unit tests on the pane geometry at widths 64, 80, 104 and 120 and with no colour; key tests for pane focus, zoom and the dropdown keys in the pure reducers; a screenshot scenario per screen (`detail-panes`, `detail-comments-zoom`, `board-card`, `form-edit-panes`, `form-create-panes`, plus a narrow variant) against the fake Jira, with a long-description and a long-comment fixture.
+
 ## Tab bar
 
 > The tab rows in the sketches of this document (`[3 JQL: ...]`, a colon after the kind, a bracketed active tab) predate the chip look; the rule is the paragraphs below and [ux-look.md](ux-look.md), section 5.
@@ -479,6 +609,7 @@ project = GEN · 40 issues
 | `:tab new` | the source picker; `:tab close`, `:tab next`, `:tab prev`, `:tab <n>` are aliases of the tab keys; `:tab rename [name]` names the active tab (empty restores the source label) |
 | `:layout list`, `:layout columns` | switch the layout of the tab (alias of `<space>l`) |
 | `:quickfilter [off\|name\|number]` | list the quick filters of the board, switch one on or off, or clear them (`<space>vf` cycles them one at a time); a board tab only |
+| `:donecutoff [auto\|1w\|2w\|3w\|4w\|all]` | show what Done cutoff the Kanban board applies and where it came from, or choose another for this tab (`auto` follows Jira again; `<space>vd` opens the picker) |
 | `:refresh` | alias of `<space>r` |
 | `:browse` | alias of `<space>o` |
 
@@ -487,7 +618,7 @@ Without a board name and exactly one board on the site, `:board` and `:backlog` 
 ## Decisions for the screens (defaults)
 
 - The Backlog column of a company-managed Kanban board (first column, named `Backlog`) is hidden in the columns layout, as in Jira; a team-managed board shows its Backlog column like any other.
-- On a Kanban board the last column is titled `Done (14d)`: Jira's board hides Done issues resolved more than N days ago (its view option "Hide done work items after") and Geeratya does the same (#674) with the setting `board.done-cutoff` (days, default 14, `all` turns it off; it cannot be read from Jira, so set it by hand to match the board, #681). With `all` the title stays plain. Older ones are also reachable through a JQL view (`resolution is not EMPTY`). A board restored from the cache shows the plain title until the first reply, and a board whose kind probe failed loads without the cutoff.
+- On a Kanban board the last column is titled `Done (14d)`: Jira's board hides Done issues resolved more than N days ago (its view option "Hide done work items after") and Geeratya does the same (#674, #681). N is the tab's quick choice, else the value Jira reports for the board (read through the gateway, see `docs/jira-layer.md`; it is the current user's own view setting, else the published one, and the read is optional and experimental), else the setting `board.done-cutoff` (days, default 14, `all` turns it off). With no cutoff the title stays plain. Where the value came from shows in `:donecutoff` without an argument (`Done cutoff: 2 weeks, from Jira.`) and on the first row of the picker. **Quick picker:** `<space>vd` (`view.done-cutoff`, also in the view menu of a loaded Kanban board) opens the command palette on the rows `Done cutoff: follow Jira (...)`, `1 week`, `2 weeks`, `3 weeks`, `4 weeks` and `all` (Jira's own choices; the row in use says so); `:donecutoff [auto|1w|2w|3w|4w|all]` does the same from the command line. A choice applies to the current tab only, loads the board again, is kept with the remembered tab (so per profile and board) and is never written to Jira; `auto` follows Jira again. Refused on a tab that is not a loaded Kanban board. Older ones are also reachable through a JQL view (`resolution is not EMPTY`). A board restored from the cache shows the plain title until the first reply, and a board whose kind probe failed loads without the cutoff.
 - Attachments open the issue page in the browser (the download URL needs the auth header).
 - The board opens in Columns; backlog, JQL and filters open in List; the layout can be switched per tab (boards only in M1).
 - A loaded issue whose status is in no column gets a trailing `Unmapped` column rather than being hidden (the board endpoint itself never returns such issues, #138).

@@ -8,6 +8,7 @@ using Geeratya.Jira.Rank;
 using Geeratya.Jira.RemoteLinks;
 using Geeratya.Jira.Fields;
 using Geeratya.Jira.Filters;
+using Geeratya.Jira.Gateway;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Suggestions;
@@ -24,8 +25,14 @@ namespace Geeratya.App;
 /// </summary>
 public sealed class JiraServices
 {
-    private JiraServices(JiraTransport transport, BoardKindResolver boardKinds, SiteFields fields, int generation)
+    private JiraServices(
+        JiraTransport transport,
+        BoardKindResolver boardKinds,
+        SiteFields fields,
+        DoneCutoffReader cutoffs,
+        int generation)
     {
+        DoneCutoffs = cutoffs;
         Transport = transport;
         Generation = generation;
         BoardKinds = boardKinds;
@@ -47,6 +54,9 @@ public sealed class JiraServices
         SprintWrites = new SprintWriteClient(transport);
         SprintMoves = new SprintMoveClient(transport);
     }
+
+    /// <summary>Jira's own Done cutoff per Kanban board (the gateway; optional, kept for the connection).</summary>
+    public DoneCutoffReader DoneCutoffs { get; }
 
     /// <summary>Scrum or Kanban per board; answers are kept per profile, so a board is probed once.</summary>
     public BoardKindResolver BoardKinds { get; }
@@ -114,11 +124,11 @@ public sealed class JiraServices
 
         // Generation is read first: if a switch lands in between, the stamp is older than the transport and the
         // result is dropped as stale, never the other way round.
-        if (parts is not { Transport: { } transport, Kinds: { } kinds, Fields: { } fields })
+        if (parts is not { Transport: { } transport, Kinds: { } kinds, Fields: { } fields, Cutoffs: { } cutoffs })
         {
             return null;
         }
 
-        return new JiraServices(transport, kinds, fields, generation);
+        return new JiraServices(transport, kinds, fields, cutoffs, generation);
     }
 }

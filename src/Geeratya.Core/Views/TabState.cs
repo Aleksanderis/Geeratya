@@ -133,6 +133,18 @@ public sealed record TabState(
     public int DoneCutoffDays { get; init; }
 
     /// <summary>
+    /// Where <see cref="DoneCutoffDays"/> came from; null until a Kanban board load applied a cutoff, so a tab with
+    /// null is not a Kanban board (the cutoff choice does not apply to it).
+    /// </summary>
+    public DoneCutoffSource? CutoffSource { get; init; }
+
+    /// <summary>
+    /// The quick choice of the cutoff for this tab (<c>view.done-cutoff</c>): days, 0 for all, null to follow Jira.
+    /// Kept with the remembered tab, so it belongs to the profile and the board of the tab; never written to Jira.
+    /// </summary>
+    public int? DoneCutoffChoice { get; init; }
+
+    /// <summary>
     /// The open and future sprints of a Scrum backlog or Sprint view tab (the latter for Complete, #504), ordered as Jira lists them: the metadata for the section
     /// headers (dates, goal) and the sprints that have no loaded issue yet. Empty until the sprint list arrives.
     /// </summary>

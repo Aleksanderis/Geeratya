@@ -88,6 +88,17 @@ Goal: someone else can install it and trust it.
 - Name availability check, README demo recording (hosted outside the repo), landing page, contributor docs, issue templates.
 - Idle CPU, startup and memory measurements on a real board and a release check on the first tag.
 
+## M8 - Pane-based detail, cards and forms
+
+Goal: the issue detail, board cards and the edit and create forms look and navigate like the approved mockups (`ux-screens.md`, "Pane layout for the issue detail, board cards and forms").
+
+- Pane focus (`Ctrl-h/j/k/l`), zoom (`<space>z`) and inner scrolling.
+- Detail as panes: title, Description, Sub-tasks table, Comments blocks with cut and expand, Details pane with dropdowns.
+- Board card with filled label chips, full type word and aligned assignee chip.
+- Edit and create forms on the same panes (create as a tab view); accent-blue key hints and labels.
+
+Can run before the M7 release check; it changes no Jira calls.
+
 ## Open questions
 
 Each with the recommended default and what changes if it is wrong.

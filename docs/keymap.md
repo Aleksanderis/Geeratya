@@ -58,6 +58,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>l` | Switch between list and columns | `view.layout-toggle` | everyday |
 | `<space>vf` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
 | `<space>vs` | Group the board columns into lanes (none, assignee, epic) | `view.swimlane` | everyday |
+| `<space>vd` | Pick how long this Kanban board keeps Done issues (1 to 4 weeks, all, or follow Jira) | `view.done-cutoff` | everyday |
 | `<space>o` | Open the issue in the browser | `issue.open-in-browser` | everyday |
 | `<space>p` | Open the parent issue | `issue.open-parent` | everyday |
 | `<space>a` | Open the actions menu of the selected issue | `menu.context` | everyday |
@@ -227,6 +228,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:history clear` | Forget the recent JQL queries and issues of this profile |
 | `:view [name]|save <name>|rename <old> <new>|delete <name>` | Open, save, rename or delete a saved view (source and layout) |
 | `:tab new|rename [name]|close|next|prev|<n>` | Open the source picker, close or switch tabs |
+| `:donecutoff [auto|1w|2w|3w|4w|all]` | Choose how long a Kanban board keeps Done issues for this tab (auto follows Jira) |
 | `:edit` | Edit the fields of the selected or shown issue (field form) |
 | `:status [next|prev]` | Change the status of the selected or shown issue; next or prev moves the card a column |
 | `:labels` | Edit the labels of the selected or shown issue (field form) |
