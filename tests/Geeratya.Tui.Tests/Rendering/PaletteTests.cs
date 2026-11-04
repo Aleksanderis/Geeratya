@@ -98,17 +98,22 @@ public class PaletteTests
 
     [Theory]
     [MemberData(nameof(ThemeNames))]
-    public void GivenBuiltInThemeAtSixteenColours_WhenResolvingHintKey_ThenItIsBrightYellowOnTheBar(string name)
+    public void GivenBuiltInThemeAtSixteenColours_WhenResolvingHintKey_ThenItIsTheAccentOnTheUnfilledBar(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
         var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
-        var expectedBar = theme.Variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
+        var expectedBar = theme.Variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
+        var page = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Body);
 
         var button = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarButton);
 
-        Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
-        Assert.Equal(Ansi16Color.BrightYellow, button.Foreground16);
+        Assert.Equal(Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Heading).Foreground16, key.Foreground16);
+        Assert.True(key.Style.HasFlag(RoleStyle.Bold));
+        Assert.Equal(key.Foreground16, button.Foreground16);
+        Assert.NotEqual(Ansi16Color.BrightYellow, key.Foreground16);
         Assert.Equal(expectedBar, key.Background16);
+        Assert.Equal(page.Background16, key.Background16);
+        Assert.Equal(page.Background16, Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Status).Background16);
     }
 
     [Theory]
@@ -119,8 +124,10 @@ public class PaletteTests
 
         var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey, SpanGround.Dim, true);
 
+        var undimmed = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
+
         Assert.False(key.Style.HasFlag(RoleStyle.Faint));
-        Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
+        Assert.Equal(undimmed.Foreground16, key.Foreground16);
     }
 
     [Fact]
