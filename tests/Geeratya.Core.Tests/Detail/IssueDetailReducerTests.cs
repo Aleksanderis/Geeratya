@@ -539,7 +539,7 @@ public class IssueDetailReducerTests
     public void GivenANextPageThatOverlapsLoadedComments_WhenItArrives_ThenNoCommentIsShownTwice()
     {
         var state = LoadedLongIssue(commentCount: 3, rows: 10, hasMore: true);
-        var requested = Press(Press(state, "G").State, "Enter");
+        var requested = Press(OnLine(state, "Load more comments"), "Enter");
         var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
 
         // Someone commented elsewhere: the page starts one comment earlier (c3 again).
