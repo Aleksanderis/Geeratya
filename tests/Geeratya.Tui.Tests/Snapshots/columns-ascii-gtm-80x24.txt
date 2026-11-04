@@ -1,4 +1,4 @@
-[1 Board GTM board x]  +                            [: commands] [<space>g jump]
+[1 Board GTM board x] [+]                           [: commands] [<space>g jump]
                                                                                 
 +- To Do 5 ---------+- In Progress 4 ---+- Backlog 4 -------+- Done (14d) 3 ---+
 | +---------------+ | +---------------+ | +---------------+ | +- ^ GTM-10 . -+ |

@@ -1,4 +1,4 @@
-[1 JQL My open issues ! x]  +                       [: commands] [<space>g jump]
+[1 JQL My open issues ! x] [+]                      [: commands] [<space>g jump]
  ERROR  Jira rejected the token (401). Replace it: :profile edit work and type t
 +- My open issues -------------------------------------------------- 0 issues -+
 |  Key    T Summary                                              Status        |

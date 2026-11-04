@@ -68,13 +68,46 @@ public class PaletteTests
 
     [Theory]
     [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtTrueColour_WhenResolvingTheBar_ThenKeysAreAccentAndTextIsMutedLikeGitunia(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var key = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.BarKey);
+        var text = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Status);
+
+        var button = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.BarButton);
+
+        Assert.Equal(theme.Colors[ThemeColor.Accent], key.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.Accent], button.Foreground);
+        Assert.True(button.Style.HasFlag(RoleStyle.Bold));
+        Assert.Equal(theme.Colors[ThemeColor.Muted], text.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.BarBackground], key.Background);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtTrueColour_WhenResolvingAnInactiveTab_ThenItIsAButtonApartFromTheBar(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var tab = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.TabInactive);
+        var bar = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Status);
+
+        Assert.NotEqual(bar.Background, tab.Background);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
     public void GivenBuiltInThemeAtSixteenColours_WhenResolvingHintKey_ThenItIsBrightYellowOnTheBar(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
         var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
         var expectedBar = theme.Variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
 
+        var button = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarButton);
+
         Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
+        Assert.Equal(Ansi16Color.BrightYellow, button.Foreground16);
         Assert.Equal(expectedBar, key.Background16);
     }
 

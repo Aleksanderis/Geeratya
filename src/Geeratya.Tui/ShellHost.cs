@@ -33,7 +33,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly MouseDragTracker _dragTracker = new();
     private readonly KeymapLoadResult? _keymapLoad;
     private readonly KeymapTable _defaultBindings;
-    private readonly ColorSupport _colors;
+    private ColorSupport _colors;
     private readonly GlyphSet _glyphs;
     private readonly AppReducer _reducer;
     private readonly ProfileServices _profiles;
@@ -115,9 +115,15 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         application.Init();
         application.Keyboard.KeyBindings.Clear();
 
+        var driver = application.Driver!;
+
+        _colors = ConsoleCapabilities.LimitedByDriver(
+            _colors,
+            driver is { SupportsTrueColor: true, Force16Colors: false });
+
         if (_colors == ColorSupport.Basic16)
         {
-            application.Driver!.Force16Colors = true;
+            driver.Force16Colors = true;
         }
 
         application.Keyboard.KeyDown += OnKeyDown;

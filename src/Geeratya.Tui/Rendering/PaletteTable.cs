@@ -12,12 +12,13 @@ public static class PaletteTable
     private const double RangeAccentShare = 0.35;
     private const double RangeAccentStep = 0.05;
     private const double RangeTextShare = 0.9;
+    private const double TabButtonShare = 0.5;
 
     private static readonly Dictionary<PaletteRole, RoleSpec> _specs = new()
     {
         [PaletteRole.Body] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Status] = new(
-            ThemeColor.BaseForeground,
+            ThemeColor.Muted,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
             RoleGround.OnBar),
@@ -76,9 +77,19 @@ public static class PaletteTable
             RoleStyle.Reverse,
             RoleGround.OnBar),
         [PaletteRole.BarKey] = new(
-            ThemeColor.Warn,
+            ThemeColor.Accent,
             ThemeColor.BarBackground,
             RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.OnBarKey),
+        [PaletteRole.BarButton] = new(
+            ThemeColor.Accent,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse | RoleStyle.Bold,
+            RoleGround.OnBarKey),
+        [PaletteRole.TabInactive] = new(
+            ThemeColor.BaseForeground,
+            ThemeColor.BarBackground,
+            RoleStyle.Reverse,
             RoleGround.OnBar),
         [PaletteRole.BarError] = new(
             ThemeColor.Bad,
@@ -161,8 +172,9 @@ public static class PaletteTable
         [TextRole.Editable] = PaletteRole.Editable,
         [TextRole.BarText] = PaletteRole.Status,
         [TextRole.BarMuted] = PaletteRole.BarMuted,
-        [TextRole.TabDim] = PaletteRole.BarMuted,
+        [TextRole.TabDim] = PaletteRole.TabInactive,
         [TextRole.BarKey] = PaletteRole.BarKey,
+        [TextRole.BarButton] = PaletteRole.BarButton,
         [TextRole.BarError] = PaletteRole.BarError,
         [TextRole.BarWarning] = PaletteRole.BarWarning,
         [TextRole.BarSuccess] = PaletteRole.BarSuccess,
@@ -215,7 +227,7 @@ public static class PaletteTable
                 Background16(theme, spec),
                 spec.Style,
                 IsOnPage(spec),
-                spec.Ground == RoleGround.OnBar);
+                spec.Ground is RoleGround.OnBar or RoleGround.OnBarKey);
         }
 
         return entries;
@@ -233,8 +245,16 @@ public static class PaletteTable
         return role switch
         {
             PaletteRole.Range => RangeSelection(theme),
+            PaletteRole.TabInactive => TabButton(theme),
             _ => theme.Colors[spec.Background],
         };
+    }
+
+    // An inactive tab is a button on the bar: the bar moved halfway towards the selection tint, so it stands apart
+    // from the bar and stays quieter than the selected row (derived like Gitunia's tab button, so theme files need no new colour).
+    private static Rgb TabButton(Theme theme)
+    {
+        return Rgb.Blend(theme.Colors[ThemeColor.BarBackground], theme.Colors[ThemeColor.Selection], TabButtonShare);
     }
 
     // The text of a range row: the theme's text moved towards black or white, so the tint can go further from the
@@ -288,9 +308,14 @@ public static class PaletteTable
             return Ansi16Color.White;
         }
 
+        if (spec.Ground == RoleGround.OnBarKey)
+        {
+            return Ansi16Color.BrightYellow;
+        }
+
         if (spec.Ground == RoleGround.OnBar)
         {
-            return spec.Foreground == ThemeColor.Warn ? Ansi16Color.BrightYellow : Ansi16Color.White;
+            return Ansi16Color.White;
         }
 
         if (spec.Ground == RoleGround.Range)
@@ -329,7 +354,7 @@ public static class PaletteTable
             return Ansi16Color.Blue;
         }
 
-        if (spec.Ground == RoleGround.OnBar)
+        if (spec.Ground is RoleGround.OnBar or RoleGround.OnBarKey)
         {
             return variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
         }

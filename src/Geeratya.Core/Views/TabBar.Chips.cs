@@ -71,14 +71,14 @@ public static partial class TabBar
         if (chips.Commands is { } commands)
         {
             spans.Add(new StyledSpan(new string(' ', commands.Start - column), TextRole.BarText));
-            spans.Add(new StyledSpan(CommandsChipText(keymap), TextRole.TabDim));
+            spans.Add(new StyledSpan(CommandsChipText(keymap), TextRole.BarButton));
             column = commands.End;
         }
 
         if (chips.Jump is { } jump)
         {
             spans.Add(new StyledSpan(new string(' ', jump.Start - column), TextRole.BarText));
-            spans.Add(new StyledSpan(JumpChipText(keymap), TextRole.TabDim));
+            spans.Add(new StyledSpan(JumpChipText(keymap), TextRole.BarButton));
         }
 
         var used = spans.Sum(span => DisplayWidth.Of(span.Text));

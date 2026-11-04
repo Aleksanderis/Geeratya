@@ -230,7 +230,8 @@ public static class FrameBuilder
     private static string Bracketed(StyledSpan span)
     {
         var text = Glyphs.ToAscii(span.Text);
-        var isChip = span.Role is TextRole.TabActive or TextRole.TabDim or TextRole.BadgeNormal or TextRole.BadgeVisual
+        var isChip = span.Role is TextRole.TabActive or TextRole.TabDim or TextRole.BarButton
+            or TextRole.BadgeNormal or TextRole.BadgeVisual
             or TextRole.BadgeInsert or TextRole.BadgeCommand or TextRole.BadgeConfirm or TextRole.BadgeHelp;
 
         if (isChip && text.Length > 2 && text[0] == ' ' && text[^1] == ' ')

@@ -33,6 +33,17 @@ public sealed record ConsoleCapabilities(ColorSupport Colors, bool IsInteractive
     }
 
     /// <summary>
+    /// The tier the screen can really show: the environment says 24-bit, but a UI toolkit driver that does not write
+    /// 24-bit sequences turns every colour into one of the 16 named ones, so the 16-colour tables are used then
+    /// (the colours would otherwise collapse, for example a yellow key and a grey label into the same grey, #688).
+    /// No colour stays no colour.
+    /// </summary>
+    public static ColorSupport LimitedByDriver(ColorSupport detected, bool driverEmitsTrueColor)
+    {
+        return detected == ColorSupport.TrueColor && !driverEmitsTrueColor ? ColorSupport.Basic16 : detected;
+    }
+
+    /// <summary>
     /// Linux: the virtual terminal (<c>TERM=linux</c>) and its relatives (<c>ansi</c>, <c>cons25</c>, the <c>vt</c> family).
     /// Windows: the console host, told apart by what it does not set: Windows Terminal sets <c>WT_SESSION</c>, other modern
     /// terminals (VS Code, mintty, ConEmu, Git Bash) set <c>TERM</c>, <c>TERM_PROGRAM</c>, <c>COLORTERM</c>, <c>ConEmuANSI</c>

@@ -329,7 +329,7 @@ public static partial class TabBar
         if (column + Separator.Length + NewTabText.Length <= width)
         {
             spans.Add(new StyledSpan(Separator, TextRole.BarText));
-            spans.Add(new StyledSpan(NewTabText, TextRole.BarMuted));
+            spans.Add(new StyledSpan(NewTabText, TextRole.BarButton));
 
             var buttonStart = column + Separator.Length;
 

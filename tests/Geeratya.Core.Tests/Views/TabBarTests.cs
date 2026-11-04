@@ -29,7 +29,7 @@ public class TabBarTests
 
         Assert.Equal(" 1 JQL project = A x   + ", line.PlainText);
         Assert.Contains(line.Spans, span => span.Role == TextRole.TabActive && span.Text == " 1 JQL project = A x ");
-        Assert.Contains(line.Spans, span => span.Role == TextRole.BarMuted && span.Text == " + ");
+        Assert.Contains(line.Spans, span => span.Role == TextRole.BarButton && span.Text == " + ");
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class TabBarTests
 
         Assert.Equal(80, DisplayWidth.Of(line.PlainText));
         Assert.EndsWith(" <space>g jump ", line.PlainText);
-        Assert.Equal(TextRole.TabDim, line.Spans[^1].Role);
+        Assert.Equal(TextRole.BarButton, line.Spans[^1].Role);
         Assert.Equal(80, DisplayWidth.Of(TabBar.BuildWithJumpChip([], null, 80).PlainText));
     }
 
