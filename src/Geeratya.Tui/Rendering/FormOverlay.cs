@@ -125,7 +125,21 @@ public static partial class FormOverlay
 
         var focused = form.Focus < form.Fields.Count ? form.Fields[form.Focus] : null;
 
-        return focused?.Error is { } error ? $"! {focused.Label}: {error}" : form.Target.Title;
+        if (focused?.Error is { } error)
+        {
+            return $"! {focused.Label}: {error}";
+        }
+
+        return CreatePanes.Applies(form) && focused is not null ? CreateStatusText(form, focused) : form.Target.Title;
+    }
+
+    // Create GEN · Story · Summary, with the state of the focused field in the navigate state.
+    private static string CreateStatusText(FormState form, FormField focused)
+    {
+        var create = (CreateFormTarget)form.Target;
+        var text = $"Create {create.ProjectKey} · {create.IssueType?.Name} · {focused.Label}";
+
+        return form.Navigating ? $"{text}  [navigate]" : text;
     }
 
     private static List<StyledLine> BoxLines(

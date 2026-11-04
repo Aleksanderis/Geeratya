@@ -205,6 +205,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Shift-Tab` | Previous field of the form | `form.field-previous` | everyday |
 | `Ctrl-s` | Save the form | `form.submit` | everyday |
 | `Ctrl-g` | Open the new issue after it is created (on or off) | `form.open-after` | everyday |
+| `Ctrl-f` | Show or fold the optional fields of the create form | `form.more-fields` | everyday |
 | `Alt-Enter` | Save the form | `form.submit` | everyday |
 | `Left` | Move the cursor left | `editor.left` | everyday |
 | `Right` | Move the cursor right | `editor.right` | everyday |

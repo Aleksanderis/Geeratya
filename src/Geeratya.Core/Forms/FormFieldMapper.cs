@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Edit.Models;
@@ -95,7 +96,31 @@ public static class FormFieldMapper
             result.Add(isParent ? mapped.WithInitial(FormValue.OfChosen([parentKey!])) : mapped);
         }
 
-        return Ordered(result);
+        return CreateOrdered(result);
+    }
+
+    // The reading order of the create panes: Summary, Description, then Parent, the other required fields and the
+    // optional ones in the order Jira lists them, the fields the form cannot edit last.
+    private static List<FormField> CreateOrdered(List<FormField> fields)
+    {
+        var rest = Ordered(fields).Where(field => !IsLead(field)).ToList();
+        var leading = new[] { FormFieldIds.Summary, FormFieldIds.Description }
+            .Select(id => fields.FirstOrDefault(field => field.Id == id && IsLead(field)))
+            .OfType<FormField>();
+        var parent = rest.FirstOrDefault(field => field.Id == FormFieldIds.Parent && field.IsEditable);
+
+        if (parent is not null)
+        {
+            rest.Remove(parent);
+            rest.Insert(0, parent);
+        }
+
+        return [.. leading, .. rest];
+    }
+
+    private static bool IsLead(FormField field)
+    {
+        return CreatePanes.PaneOf(field) is PaneIds.Title or PaneIds.Description;
     }
 
     /// <summary>The fields a transition screen asks for.</summary>

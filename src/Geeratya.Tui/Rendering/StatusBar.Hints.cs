@@ -135,6 +135,16 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints shown while the create form is open as panes (#708).</summary>
+    public static IReadOnlyList<StatusHint> CreateHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Normal, ActionIds.PaneFocusDown, "pane", HintScope.Global, ActionIds.PaneFocusUp),
+        new(InputMode.Insert, ActionIds.FormMoreFields, "more fields"),
+        new(InputMode.Insert, ActionIds.FormSubmit, "create"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
     /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
     public static IReadOnlyList<StatusHint> DropdownHints { get; } =
     [
@@ -142,6 +152,16 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.FormNext, "accept"),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
+
+    private static IReadOnlyList<StatusHint> FormHintsOf(FormState form)
+    {
+        if (form.Dropdown is not null)
+        {
+            return DropdownHints;
+        }
+
+        return CreatePanes.Applies(form) ? CreateHints : FormHints;
+    }
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
@@ -159,7 +179,7 @@ public static partial class StatusBar
 
         if (FormReducer.IsOpen(state))
         {
-            var hints = FormReducer.OpenForm(state) is { Dropdown: not null } ? DropdownHints : FormHints;
+            var hints = FormHintsOf(FormReducer.OpenForm(state)!);
 
             return new HintList([], TextsOf(hints, state.Mode, HintScope.Global, keymap, level));
         }

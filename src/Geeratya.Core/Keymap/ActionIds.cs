@@ -128,5 +128,6 @@ public static class ActionIds
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";
     public const string FormOpenAfter = "form.open-after";
+    public const string FormMoreFields = "form.more-fields";
     public const string FormOpenBrowser = "form.open-browser";
 }

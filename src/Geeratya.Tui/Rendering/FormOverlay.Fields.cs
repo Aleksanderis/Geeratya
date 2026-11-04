@@ -108,7 +108,7 @@ public static partial class FormOverlay
     }
 
     /// <summary>The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).</summary>
-    private static string Caretted(PromptText prompt, int width)
+    internal static string Caretted(PromptText prompt, int width)
     {
         var window = PromptWindow.Of(prompt, width);
 
@@ -141,7 +141,7 @@ public static partial class FormOverlay
     }
 
     // The row with the caret gets the caret mark; the other rows are cut to the width.
-    private static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int valueWidth)
+    internal static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int valueWidth)
     {
         if (index != caretRow)
         {
@@ -263,7 +263,7 @@ public static partial class FormOverlay
         return LabelLines(field, true, valueWidth);
     }
 
-    private static string LabelOf(FormField field, string id)
+    internal static string LabelOf(FormField field, string id)
     {
         return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
     }
