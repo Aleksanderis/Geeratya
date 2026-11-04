@@ -178,7 +178,8 @@ public sealed partial class ColumnsBodyRenderer
     private static bool IsQuietable(TextRole role)
     {
         return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.TypeEpic or TextRole.TypeStory
-            or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask;
+            or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask or TextRole.StatusToDo
+            or TextRole.StatusInProgress or TextRole.StatusDone;
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>

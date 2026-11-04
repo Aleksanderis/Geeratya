@@ -1,11 +1,14 @@
 using Geeratya.App.Tests.Fakes;
-using Geeratya.Core.Detail;
 using Geeratya.Core.Boards;
+using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Writes.Models;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
@@ -173,6 +176,115 @@ public class ColumnsSubtaskTests
 
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.Contains(lines, line => line.Contains("v Sub-tasks", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenAnExpandedCard_WhenDrawing_ThenEachSubtaskShowsItsStatusAsAChipInTheCategoryColour(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a");
+
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var spans = frame.Body.SelectMany(line => line.Spans).ToList();
+
+        foreach (var row in Listed(state))
+        {
+            Assert.Contains(spans, span => span.Text == $"[{row.Status.Name}]" && span.Role == StatusRoles.Of(row.Status));
+        }
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenTheCursorOnAListedSubtask_WhenPressingTheStatusKey_ThenThePickerOpensForThatSubtask(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a", "j");
+        var subtask = ColumnsNavigation.SelectedIssue(Active(state))!;
+
+        var result = _reducer.Reduce(Press(state, "Space", "i"), new KeyPressed("s"));
+
+        Assert.True(subtask.IsListed);
+        var form = Assert.IsType<TransitionPickTarget>(Active(result.State).Form!.Target);
+        Assert.Equal(subtask.Key, form.IssueKey);
+        Assert.Equal(subtask.Key, Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects)).Target.IssueKey);
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenAListedSubtask_WhenItsTransitionIsWritten_ThenTheChipShowsTheNewStatusAtOnce(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a", "j");
+        var subtask = ColumnsNavigation.SelectedIssue(Active(state))!;
+        var target = new IssueStatus("999", "Zebra", StatusCategoryKeys.Done);
+        var request = new TransitionRequest(
+            subtask.Key,
+            new TransitionChoice("1", "Zebra", target, false, false, []),
+            [],
+            false);
+
+        var started = _reducer.Reduce(state, new WriteRequested(Active(state).Id, request, DateTimeOffset.UnixEpoch));
+
+        var shown = Listed(started.State).Single(row => row.Key == subtask.Key);
+        Assert.Equal("Zebra", shown.Status.Name);
+        Assert.Contains(
+            FrameBuilder.BuildStyled(started.State, Width, Height, _keymap)!.Body.SelectMany(line => line.Spans),
+            span => span.Text == "[Zebra]" && span.Role == StatusRoles.Of(target));
+    }
+
+    [Fact]
+    public async Task GivenAListedSubtaskWrite_WhenItFails_ThenTheChipShowsTheOldStatusAgain()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a", "j");
+        var subtask = ColumnsNavigation.SelectedIssue(Active(state))!;
+        var target = new IssueStatus("999", "Zebra", StatusCategoryKeys.Done);
+        var request = new TransitionRequest(
+            subtask.Key,
+            new TransitionChoice("1", "Zebra", target, false, false, []),
+            [],
+            false);
+        var started = _reducer.Reduce(state, new WriteRequested(Active(state).Id, request, DateTimeOffset.UnixEpoch));
+        var operation = Assert.Single(started.State.Session.Operations);
+        var error = new WriteError(WriteErrorKind.Permission, null, "No", [], ["No"]);
+
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, DateTimeOffset.UnixEpoch, error));
+
+        var shown = Active(failed.State).Rows.SelectMany(row => row.Subtasks).Single(stub => stub.Key == subtask.Key);
+        Assert.Equal(subtask.Status.Name, shown.Status.Name);
+    }
+
+    [Fact]
+    public async Task GivenANarrowExpandedCard_WhenDrawing_ThenALongStatusIsCutNotDropped()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a");
+        var longStatus = IssueStatusLong();
+        var tab = Active(state);
+        var rows = tab.Rows.Select(row => row.Subtasks.Count == 0 ? row : row with
+        {
+            Subtasks = [.. row.Subtasks.Select(stub => stub with { Status = longStatus })],
+        }).ToArray();
+        var narrow = state with
+        {
+            Session = state.Session with { Tabs = [.. state.Session.Tabs.Select(each => each.Id == tab.Id ? each with { Rows = rows } : each)] },
+        };
+
+        var frame = FrameBuilder.BuildStyled(narrow, 80, 24, _keymap)!;
+
+        Assert.Contains(
+            frame.Body.SelectMany(line => line.Spans),
+            span => span.Text.StartsWith("[In", StringComparison.Ordinal) && span.Role == StatusRoles.Of(longStatus));
+    }
+
+    private static IssueStatus IssueStatusLong()
+    {
+        return new IssueStatus("77", "In Progress Review", StatusCategoryKeys.Indeterminate);
     }
 
     [Fact]

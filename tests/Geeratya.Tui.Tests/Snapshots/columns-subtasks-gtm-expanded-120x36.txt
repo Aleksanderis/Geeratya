@@ -16,12 +16,12 @@
 │ │   copy                  │ │ ┃ Sign up with email      ┃ │ │ Backlog: tooltip        │ │                            │
 │ │                         │ │ ┃ ▾ Sub-tasks 1/2 ━━━───  ┃ │ │ clipped                 │ │                            │
 │ └─────────────────────────┘ │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ └─────────────────────────┘ │                            │
-│ ┌─ ↑ GTM-10 Seed: Repor… ─┐ │ │   Subtask GTM-19   Done │ │ ┌─────────────────────────┐ │                            │
+│ ┌─ ↑ GTM-10 Seed: Repor… ─┐ │ │   Subtask GTM-19 [Done] │ │ ┌─────────────────────────┐ │                            │
 │ │ Bug GTM-18              │ │ │   Build the form        │ │ │ Task GTM-24             │ │                            │
 │ │ Wrong date format in    │ │ │                         │ │ │ Backlog: update         │ │                            │
 │ │ report                  │ │ │                         │ │ │ dependencies            │ │                            │
 │ └─────────────────────────┘ │ ├─────────────────────────┤ │ └─────────────────────────┘ │                            │
-│                             │ │   Subtask GTM-20  To Do │ │                             │                            │
+│                             │ │   Subta… GTM-20 [To Do] │ │                             │                            │
 │                             │ │   Validate the email    │ │                             │                            │
 │                             │ │                         │ │                             │                            │
 │                             │ │                         │ │                             │                            │

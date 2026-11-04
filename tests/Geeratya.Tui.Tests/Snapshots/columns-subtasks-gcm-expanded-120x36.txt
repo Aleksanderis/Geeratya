@@ -16,12 +16,12 @@
 │ │                                   │ │ ┃ Sign up with email                ┃ │                                      │
 │ │                                   │ │ ┃ ▾ Sub-tasks 1/2 ━━━───            ┃ │                                      │
 │ └───────────────────────────────────┘ │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫ │                                      │
-│ ┌─ ↑ GCM-9 Seed: Reporting ─────────┐ │ │   Sub-task GCM-18            Done │ │                                      │
+│ ┌─ ↑ GCM-9 Seed: Reporting ─────────┐ │ │   Sub-task GCM-18          [Done] │ │                                      │
 │ │ Bug GCM-17                        │ │ │   Build the form                  │ │                                      │
 │ │ Wrong date format in report       │ │ │                                   │ │                                      │
 │ │                                   │ │ │                                   │ │                                      │
 │ └───────────────────────────────────┘ │ ├───────────────────────────────────┤ │                                      │
-│                                       │ │   Sub-task GCM-19           To Do │ │                                      │
+│                                       │ │   Sub-task GCM-19         [To Do] │ │                                      │
 │                                       │ │   Validate the email              │ │                                      │
 │                                       │ │                                   │ │                                      │
 │                                       │ │                                   │ │                                      │

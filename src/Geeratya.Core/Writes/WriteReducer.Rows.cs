@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -270,12 +271,9 @@ public static partial class WriteReducer
 
         for (var index = 0; index < rows.Count; index++)
         {
-            if (!keys.Contains(rows[index].Key, StringComparer.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var mapped = map(rows[index]);
+            var mapped = keys.Contains(rows[index].Key, StringComparer.OrdinalIgnoreCase)
+                ? map(rows[index])
+                : MapStubs(rows[index], keys, map);
 
             if (ReferenceEquals(mapped, rows[index]))
             {
@@ -287,6 +285,38 @@ public static partial class WriteReducer
         }
 
         return copy ?? rows;
+    }
+
+    /// <summary>
+    /// The row with the status and title of its sub-task stubs mapped too: an expanded sub-task of a board card is not
+    /// a row of the tab, it is listed from the parent's stub, so a write on it must change the stub to show (#645).
+    /// </summary>
+    private static IssueSummary MapStubs(IssueSummary parent, IReadOnlyList<string> keys, Func<IssueSummary, IssueSummary> map)
+    {
+        IssueSubtask[]? copy = null;
+
+        for (var index = 0; index < parent.Subtasks.Count; index++)
+        {
+            var stub = parent.Subtasks[index];
+
+            if (!keys.Contains(stub.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var listed = BoardColumns.Listed(parent, stub);
+            var mapped = map(listed);
+
+            if (ReferenceEquals(mapped, listed))
+            {
+                continue;
+            }
+
+            copy ??= [.. parent.Subtasks];
+            copy[index] = stub with { Status = mapped.Status, Summary = mapped.Summary };
+        }
+
+        return copy is null ? parent : parent with { Subtasks = copy };
     }
 
     private static Operation? Find(AppState state, long operationId)

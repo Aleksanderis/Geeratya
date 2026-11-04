@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
@@ -173,7 +174,29 @@ public sealed partial class ColumnsBodyRenderer
 
         spans.Add(new StyledSpan(star, starRole));
         spans.Add(new StyledSpan(label, IssueTypeRole.For(issue.IssueType)));
-        spans.Add(new StyledSpan(tail, text));
+
+        var trimmed = tail.TrimEnd();
+        var cut = issue.IsListed && trimmed.EndsWith(']') ? trimmed.LastIndexOf('[') : -1;
+
+        if (cut < 0)
+        {
+            spans.Add(new StyledSpan(tail, text));
+
+            return;
+        }
+
+        var chip = trimmed[cut..];
+
+        // A listed sub-task shows its status as a bracketed chip in the colour of its category (#645).
+        spans.Add(new StyledSpan(tail[..cut], text));
+        spans.Add(new StyledSpan(chip, StatusRoles.Of(issue.Status)));
+        spans.Add(new StyledSpan(tail[(cut + chip.Length)..], text));
+    }
+
+    /// <summary>The status of a listed sub-task as <c>[Name]</c>: readable without colour too.</summary>
+    private static string StatusChip(IssueStatus status)
+    {
+        return $"[{status.Name}]";
     }
 
     /// <summary>
@@ -239,7 +262,13 @@ public sealed partial class ColumnsBodyRenderer
 
         if (issue.IsListed)
         {
-            initials = issue.Status.Name;
+            // A long status is cut to keep the chip before the type name gives way (#645).
+            var chipRoom = width - TextWidth.Of(issue.Key) - 1 - MinTypeName - 1;
+            var chip = StatusChip(issue.Status);
+
+            initials = TextWidth.Of(chip) <= chipRoom || chipRoom < 5
+                ? chip
+                : $"[{CardText.Shorten(issue.Status.Name, chipRoom - 2)}]";
         }
 
         if (issue.Estimate is not null)

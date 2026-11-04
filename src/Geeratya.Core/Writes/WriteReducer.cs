@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Boards;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -215,6 +216,11 @@ public static partial class WriteReducer
                 if (string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))
                 {
                     return row;
+                }
+
+                if (row.Subtasks.FirstOrDefault(stub => string.Equals(stub.Key, key, StringComparison.OrdinalIgnoreCase)) is { } found)
+                {
+                    return BoardColumns.Listed(row, found);
                 }
             }
         }
