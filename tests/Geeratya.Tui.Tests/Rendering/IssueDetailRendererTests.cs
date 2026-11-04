@@ -480,6 +480,65 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheSummaryIsEditedInPlace_WhenBuildingTheFrame_ThenTheTitlePaneShowsTheCaretAndMatchesTheSnapshot()
+    {
+        AssertSnapshot(EditingSummary(120, 36), 120, 36, "detail-edit-summary-120x36.txt");
+    }
+
+    [Fact]
+    public void GivenTheSummaryIsEditedInPlace_WhenBuilding_ThenNoFormBoxCoversTheDetailAndTheHintsOfThePaneShow()
+    {
+        var frame = FrameBuilder.BuildStyled(EditingSummary(120, 36), 120, 36, _keymap)!;
+
+        Assert.Contains(frame.Body, line => line.PlainText.Contains("Fix login redirect_"));
+        Assert.DoesNotContain(frame.Body, line => line.PlainText.Contains("Edit GCM-12"));
+        Assert.Contains("Ctrl-s", frame.StatusLine);
+        Assert.Contains("INSERT", frame.StatusLine);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionIsEditedZoomed_WhenBuildingTheFrame_ThenTheEditorFillsTheOverlayAndMatchesTheSnapshot()
+    {
+        AssertSnapshot(EditingDescriptionZoomed(120, 36), 120, 36, "detail-edit-description-zoom-120x36.txt");
+    }
+
+    [Theory]
+    [InlineData(GlyphSet.Unicode)]
+    [InlineData(GlyphSet.Ascii)]
+    public void GivenAnEditedPane_WhenBuildingAtAnySize_ThenEveryLineKeepsTheWidthAndTheCaretShows(GlyphSet glyphs)
+    {
+        foreach (var (width, height) in new[] { (120, 36), (104, 30), (80, 24), (64, 20), (40, 10) })
+        {
+            var lines = FrameBuilder.Build(EditingSummary(width, height), width, height, _keymap, null, glyphs);
+
+            Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+        }
+    }
+
+    private AppState EditingSummary(int width, int height)
+    {
+        var state = OnField(Loaded(width, height), DetailFieldIds.Summary);
+        var opened = Keys(state, "Enter");
+        var tab = opened.Session.Tabs[0];
+        var field = FormField.Create(FormFieldIds.Summary, "Summary", FormFieldKind.Text, true, [])
+            .WithInitial(FormValue.OfText("Fix login redirect"));
+
+        return _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [field])).State;
+    }
+
+    private AppState EditingDescriptionZoomed(int width, int height)
+    {
+        var plain = AdfMarkdownParser.Parse("Plain text that edits as it reads");
+        var state = Keys(OnField(Loaded(width, height, plain), DetailFieldIds.Description), "Space", "z", "Enter");
+        var tab = state.Session.Tabs[0];
+        var text = string.Join('\n', Enumerable.Range(1, 60).Select(number => $"Line {number} of the description"));
+        var field = FormField.Create(FormFieldIds.Description, "Description", FormFieldKind.Paragraph, false, [])
+            .WithInitial(FormValue.OfText(text));
+
+        return _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [field])).State;
+    }
+
+    [Fact]
     public void GivenAFieldWithoutEditMetadata_WhenBuildingTheSidebar_ThenOnlyTheStatusBlockCarriesTheMark()
     {
         var lines = FrameBuilder.Build(Loaded(120, 36), 120, 36, _keymap);
@@ -834,7 +893,7 @@ public class IssueDetailRendererTests
         return state;
     }
 
-    private AppState Loaded(int width, int height)
+    private AppState Loaded(int width, int height, AdfDocument? description = null)
     {
         var state = Opened(width, height);
         var tab = state.Session.Tabs[0];
@@ -847,7 +906,9 @@ public class IssueDetailRendererTests
         };
         var page = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, 3, true);
 
-        state = _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(), _now)).State;
+        var issue = description is null ? Issue() : Issue() with { Description = description };
+
+        state = _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, issue, _now)).State;
 
         state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now)).State;
 

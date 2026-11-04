@@ -155,6 +155,7 @@ public sealed partial class AppReducer
                 () => BacklogActions.Toggle(state)
                     ?? SubtaskActions.Toggle(state)
                     ?? Result(state)),
+            ActionIds.DetailEdit => InNormal(state, () => DetailActions.EditText(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
             ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
             ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),

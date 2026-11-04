@@ -66,7 +66,7 @@ Design in `architecture.md`, "Write pipeline". What the user sees:
 
 ## 9. Edit with the field form
 
-The edit form (`<space>ie`, or `:edit`, `:priority`, `:labels` for one field) and the people picker (`<space>ia`); transition and create open the same form (`ux-screens.md`, "Field form overlay").
+The title and Description are edited in place in the detail (`<space>ie`, `:edit`, or `Enter`/`i` on the pane; `ux-screens.md`, "Editing in place"); the one-field edit form (`:priority`, `:labels`) and the people picker (`<space>ia`); transition and create open the same form (`ux-screens.md`, "Field form overlay").
 
 1. `<space>ie` (or `:labels`) on a selected row (or the shown issue) opens the form at once with `Loading fields…`; the metadata (`editmeta`) is fetched, never at startup. A failure shows on the top line and `Esc` closes the form.
    After editmeta the form reads the issue once with exactly the ids of the other editable fields (due date, components, versions, custom fields such as a number estimate) so each starts with its current value: date text, the chosen options or the rich text. A user or parent field is not offered yet; if the read fails only the fields the view already holds are offered.

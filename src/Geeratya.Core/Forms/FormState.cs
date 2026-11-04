@@ -42,6 +42,12 @@ public sealed record FormState(
     /// </summary>
     public string? Dropdown { get; init; }
 
+    /// <summary>
+    /// The detail pane this form edits in place (<c>PaneIds.Title</c> or <c>PaneIds.Description</c>), null for a
+    /// form drawn as its own box. The keys and the write path are the form's; the pane draws the editor itself.
+    /// </summary>
+    public string? Pane { get; init; }
+
     /// <summary>The highlighted type of <see cref="TypeChoices"/>.</summary>
     public int TypeCursor { get; init; }
 

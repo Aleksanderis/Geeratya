@@ -45,6 +45,27 @@ internal static class DetailActions
     }
 
     /// <summary>
+    /// <c>detail.edit</c> (<c>i</c>): the title or Description pane under the cursor goes into its edit state, like
+    /// <c>Enter</c> on it. Outside an issue detail the key does nothing.
+    /// </summary>
+    public static ReduceResult EditText(AppState state)
+    {
+        if (TopOf(state) is not { } top)
+        {
+            return new ReduceResult(state, _noEffects);
+        }
+
+        var target = DetailReducer.TargetOf(top.Detail);
+
+        if (target is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.Summary or DetailFieldIds.Description })
+        {
+            return DetailFieldActions.Open(state, target.Value);
+        }
+
+        return Say(state, "i edits the title or the Description: move to one of them (Enter edits any field).");
+    }
+
+    /// <summary>
     /// <c>issue.open-in-browser</c>: the cursor row when it is a remote link, attachment or related issue, else the
     /// shown issue.
     /// </summary>

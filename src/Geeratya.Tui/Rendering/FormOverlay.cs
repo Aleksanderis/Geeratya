@@ -130,6 +130,11 @@ public static partial class FormOverlay
             return $"! {focused.Label}: {error}";
         }
 
+        if (form.Pane is not null && focused is not null)
+        {
+            return $"{form.Target.Title} · {focused.Label}";
+        }
+
         return CreatePanes.Applies(form) && focused is not null ? CreateStatusText(form, focused) : form.Target.Title;
     }
 

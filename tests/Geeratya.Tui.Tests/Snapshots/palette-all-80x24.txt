@@ -2,14 +2,14 @@
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
-│ ╭─ Commands ─────────────────────────────────────────────────────── 79/79 ─╮ │
+│ ╭─ Commands ─────────────────────────────────────────────────────── 80/80 ─╮ │
 │ │ : _                                                                      │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ Issue                                                                    │ │
 │ │ > Jump to an issue by key                                       <space>g │ │
 │ │   Open the issue in the browser                                 <space>o │ │
 │ │   Open the parent issue                                         <space>p │ │
-│ │   Edit fields of the issue (summary, labels, priority, descri  <space>ie │ │
+│ │   Edit the issue title in place (opens the detail from a list  <space>ie │ │
 │ │   Assign the issue: search people, or unassign                 <space>ia │ │
 │ │   Assign the issue to me                                       <space>im │ │
 │ │   Change the status of the issue                               <space>is │ │

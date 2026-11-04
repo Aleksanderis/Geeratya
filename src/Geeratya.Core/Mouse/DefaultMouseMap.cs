@@ -194,6 +194,8 @@ public static class DefaultMouseMap
             [ActionIds.PaneFocusUp] = paneClick,
             [ActionIds.PaneFocusRight] = paneClick,
             [ActionIds.PaneZoom] = "the zoom chip of a pane (a click on it) comes with the pane screens (#702); its palette row runs it meanwhile",
+            [ActionIds.DetailEdit] =
+                "a double click on the title or Description pane edits it (item.open, the same handler as Enter)",
             [ActionIds.RowJump] = "its palette row (click the status line, then the row) runs it",
         };
 

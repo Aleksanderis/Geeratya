@@ -161,6 +161,13 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
+    /// <summary>The hints shown while the title or Description of the detail is edited in place (#709).</summary>
+    public static IReadOnlyList<StatusHint> PaneEditHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
     private const string MoreFieldsLabel = "more fields";
     private const string CtrlPrefix = "Ctrl-";
 
@@ -169,6 +176,11 @@ public static partial class StatusBar
         if (form.Dropdown is not null)
         {
             return DropdownHints;
+        }
+
+        if (form.Pane is not null)
+        {
+            return PaneEditHints;
         }
 
         if (!CreatePanes.Applies(form))
