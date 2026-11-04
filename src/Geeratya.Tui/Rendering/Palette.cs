@@ -52,9 +52,9 @@ public static class Palette
                 var background = PageBackground(theme, entry, ground);
                 var keep = KeepsTerminal(theme, entry) && !ground.HasFlag(SpanGround.Surface);
 
-                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry, true), keep);
+                return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry), keep);
             case ColorSupport.Basic16:
-                var plain = entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
+                var plain = !entry.IsBar16 && entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
                 var faint = dim && plain && faintSupported;
                 var named = dim && plain && !faintSupported ? Ansi16Color.DarkGray : entry.Foreground16;
 
@@ -71,7 +71,7 @@ public static class Palette
                     null,
                     Ansi16Color.Gray,
                     Ansi16Color.Black,
-                    LowTier(entry.NoColorStyle),
+                    entry.NoColorStyle,
                     KeepsTerminal(theme, entry));
         }
     }
@@ -160,18 +160,8 @@ public static class Palette
 
     // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because
     // the colour tiers already give a role its own background.
-    private static RoleStyle ColourStyle(PaletteEntry entry, bool truecolor = false)
+    private static RoleStyle ColourStyle(PaletteEntry entry)
     {
-        var style = entry.NoColorStyle & ~RoleStyle.Reverse;
-
-        return truecolor ? style & ~RoleStyle.UnderlineWithoutTint : LowTier(style);
-    }
-
-    // A role that is a tint at 24 bits is an underline where there is no tint to draw.
-    private static RoleStyle LowTier(RoleStyle style)
-    {
-        return style.HasFlag(RoleStyle.UnderlineWithoutTint)
-            ? (style & ~RoleStyle.UnderlineWithoutTint) | RoleStyle.Underline
-            : style;
+        return entry.NoColorStyle & ~RoleStyle.Reverse;
     }
 }

@@ -28,6 +28,8 @@ public class PaletteTests
         }
     }
 
+    public static TheoryData<string> ThemeNames => [.. BuiltInThemes.Names];
+
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
 
     [Theory]
@@ -58,16 +60,34 @@ public class PaletteTests
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
 
-        // A light theme at 16 colours is bold-only: its table has no bright colour that reads on the blue bar.
-        if (tier == ColorSupport.Basic16 && theme.Variant == ThemeVariant.Light)
-        {
-            return;
-        }
-
         var key = Palette.Resolve(theme, tier, PaletteRole.BarKey);
         var label = Palette.Resolve(theme, tier, PaletteRole.BarMuted);
 
         Assert.NotEqual(label.Foreground, key.Foreground);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtSixteenColours_WhenResolvingHintKey_ThenItIsBrightYellowOnTheBar(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
+        var expectedBar = theme.Variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
+
+        Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
+        Assert.Equal(expectedBar, key.Background16);
+    }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenBuiltInThemeAtSixteenColours_WhenDimmingTheBar_ThenItsFillAndKeyStay(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey, SpanGround.Dim, true);
+
+        Assert.False(key.Style.HasFlag(RoleStyle.Faint));
+        Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
     }
 
     [Fact]

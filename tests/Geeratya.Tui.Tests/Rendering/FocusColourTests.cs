@@ -28,28 +28,8 @@ public class FocusColourTests
         {
             Assert.True(Ratio(theme, tier, PaletteRole.FrameFocus) >= FrameContrast, $"{name} {tier}: frame");
             Assert.True(Ratio(theme, tier, PaletteRole.ChipFocus) >= TextContrast, $"{name} {tier}: chip");
-            Assert.True(Ratio(theme, tier, PaletteRole.SelectedDim) >= TextContrast, $"{name} {tier}: dim selection");
             Assert.True(Ratio(theme, tier, PaletteRole.Divider) >= FrameContrast, $"{name} {tier}: quiet border");
         }
-    }
-
-    [Theory]
-    [MemberData(nameof(Themes))]
-    public void GivenATheme_WhenResolvingTheQuietSelectionAtTrueColour_ThenItIsATintBetweenThePageAndTheSelection(
-        string name)
-    {
-        var theme = BuiltInThemes.Find(name)!.Theme!;
-        var dim = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.SelectedDim);
-        var full = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Selected);
-
-        Assert.NotEqual(theme.PageBackground, dim.Background);
-        Assert.NotEqual(full.Background, dim.Background);
-        Assert.True(
-            Contrast.Ratio(dim.Background!.Value, theme.PageBackground)
-            <= Contrast.Ratio(full.Background!.Value, theme.PageBackground),
-            $"{name}: the quiet tint must be quieter than the selection");
-        Assert.False(dim.Style.HasFlag(RoleStyle.Underline));
-        Assert.False(dim.Style.HasFlag(RoleStyle.Reverse));
     }
 
     [Theory]
@@ -62,29 +42,11 @@ public class FocusColourTests
         var border = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Divider).Style;
         var chip = Palette.Resolve(theme, ColorSupport.None, PaletteRole.ChipFocus).Style;
         var selected = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Selected).Style;
-        var dim = Palette.Resolve(theme, ColorSupport.None, PaletteRole.SelectedDim).Style;
 
         Assert.True(frame.HasFlag(RoleStyle.Bold));
         Assert.Equal(RoleStyle.None, border);
         Assert.True(chip.HasFlag(RoleStyle.Reverse) && chip.HasFlag(RoleStyle.Bold));
         Assert.True(selected.HasFlag(RoleStyle.Reverse));
-        Assert.True(dim.HasFlag(RoleStyle.Underline));
-        Assert.False(dim.HasFlag(RoleStyle.Reverse));
-        Assert.NotEqual(selected, dim);
-    }
-
-    [Theory]
-    [MemberData(nameof(Themes))]
-    public void GivenATheme_WhenResolvingAtSixteenColours_ThenTheQuietSelectionIsUnderlinedAndTheFocusIsBold(string name)
-    {
-        var theme = BuiltInThemes.Find(name)!.Theme!;
-
-        var dim = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.SelectedDim).Style;
-        var frame = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.FrameFocus).Style;
-
-        Assert.True(dim.HasFlag(RoleStyle.Underline));
-        Assert.False(dim.HasFlag(RoleStyle.UnderlineWithoutTint));
-        Assert.True(frame.HasFlag(RoleStyle.Bold));
     }
 
     [Fact]
@@ -93,7 +55,6 @@ public class FocusColourTests
         Assert.Equal(PaletteRole.Divider, PaletteTable.For(TextRole.Border));
         Assert.Equal(PaletteRole.FrameFocus, PaletteTable.For(TextRole.FrameFocus));
         Assert.Equal(PaletteRole.ChipFocus, PaletteTable.For(TextRole.ChipFocus));
-        Assert.Equal(PaletteRole.SelectedDim, PaletteTable.For(TextRole.SelectedDim));
     }
 
     [Fact]
