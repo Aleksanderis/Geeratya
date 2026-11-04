@@ -257,8 +257,8 @@ if [ "${SCENARIO:-}" = scrum ]; then
   backlog_ready='Generated Sprint [0-9]+ · (active|future)'
   sprint_ready='GEN-[0-9]+  (Task|Bug|Story)' # the sprint tab is columns of cards (key, then type)
   for ((run = 1; run <= runs; run++)); do
-    export XDG_CACHE_HOME=$work/cache-s$run XDG_STATE_HOME=$work/state-s$run
-    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    export XDG_CACHE_HOME=$work/cache-s$run
+    mkdir -p "$XDG_CACHE_HOME"
     for pass in fresh cached; do
       tmux -L "$socket" kill-server 2> /dev/null || true
       socket=$socket_base-s$run$pass
