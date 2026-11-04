@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  loading · 3/10+        j/k move  Enter open  ? help  : commands  q quit
+ NORMAL  loading                j/k move  Enter open  ? help  : commands  q quit

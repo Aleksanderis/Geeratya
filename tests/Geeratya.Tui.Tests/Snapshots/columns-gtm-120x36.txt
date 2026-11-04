@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done 3 ───────────────────╮
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
-│ ┃ Epic GTM-9           ...┃ │ │ Epic GTM-10             │ │ │ Task GTM-21             │ │ │ Story GTM-13           │ │
+│ ┃ Epic GTM-9           ...┃ │>│ Epic GTM-10             │ │>│ Task GTM-21             │ │>│ Story GTM-13           │ │
 │ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
 │ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
 │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
@@ -33,4 +33,4 @@
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │
 ╰─────────────────────────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────────╯
- NORMAL  col 1/4  card 1/5 · GTM board ·…    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+ NORMAL  GTM-9 To Do · GTM board · 16 is…    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit

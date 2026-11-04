@@ -310,7 +310,7 @@ Keys: `Tab`/`Shift-Tab` (also `g t`/`g T`) next and previous, `Alt-1` to `Alt-9`
 
 ## Connection check and network states
 
-Implemented (#83): the check line is shown on the start screen under the profile line and in the status line whenever no notice or pending keys occupy it (text only, no `Loading` role yet); `:profile check` runs it again. Connection check line: while the first request of a profile is in flight the text reads `Checking example.atlassian.net...`; on success `Connected as <display name> on <host>`, and the body shows what is cached. The first frame is drawn before any reply. On failure the banner states the reason (below).
+Implemented (#83): the check line is shown on the start screen under the profile line and, unless the connection is healthy (#646), in the status line whenever no notice or pending keys occupy it (text only, no `Loading` role yet); `:profile check` runs it again. Connection check line: while the first request of a profile is in flight the text reads `Checking example.atlassian.net...`; on success `Connected as <display name> on <host>`, and the body shows what is cached. The first frame is drawn before any reply. On failure the banner states the reason (below).
 
 States, as a one-line banner under the tab bar (highest priority wins: error, offline, rate limited, stale):
 

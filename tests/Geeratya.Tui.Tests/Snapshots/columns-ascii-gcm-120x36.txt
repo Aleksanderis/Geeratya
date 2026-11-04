@@ -2,7 +2,7 @@
                                                                                                                         
 +- To Do 5 -----------------------------+- In Progress 4 -----------------------+- Done 3 -----------------------------+
 | +-----------------------------------+ | +-----------------------------------+ | +- ^ GCM-10 Sign up with email ----+ |
-| | Epic GCM-8                     ...| | | Epic GCM-9                        | | | Sub-task GCM-18                  | |
+| | Epic GCM-8                     ...| |>| Epic GCM-9                        | |>| Sub-task GCM-18                  | |
 | | Seed: Onboarding flow             | | | Seed: Reporting                   | | | Build the form                   | |
 | |                                   | | |                                   | | |                                  | |
 | +-----------------------------------+ | +-----------------------------------+ | +----------------------------------+ |
@@ -33,4 +33,4 @@
 |                                       |                                       |                                      |
 |                                       |                                       |                                      |
 +---------------------------------------+---------------------------------------+--------------------------------------+
-[NORMAL] col 1/3  card 1/5 - GCM board -.    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+[NORMAL] GCM-8 To Do - GCM board - 24 is.    h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit

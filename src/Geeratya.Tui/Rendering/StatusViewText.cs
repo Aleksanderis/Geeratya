@@ -68,7 +68,7 @@ internal static class StatusViewText
             return spare;
         }
 
-        var position = CursorPosition.Text(tab);
+        var position = SelectedIssueText.Text(tab);
 
         if (position.Length == 0)
         {

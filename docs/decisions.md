@@ -179,3 +179,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (start target, #577)
 
 **UI:** The command line takes one start target (issue key, `--board`, `--backlog`, `--jql`, `--filter`) and `--profile`, added to the README features (owner's yes by recommended default). Why: scripts, aliases and link handlers need to open an issue or view from a shell (Gitunia opens `gitunia <path>`). The target is held in `AppState.PendingStart` and opened by `StartupReducer` after the remembered tabs are read, so it never races the restore; the opened tab is saved with the next change of the tabs (not at once, so a launch that only looks leaves the remembered tabs alone). Details: `ux-workflows.md`, workflow 0.
+
+## 2026-11-04 (status bar content, #646)
+
+**UI:** The status bar in Normal mode shows the source and count, the selected issue (key and status) and the connection only when it is not healthy (Checking, Offline, rate limited, check failure); `Connected as ...` and the `col n/N  card n/N` counters are gone from it (owner request, overrides the cursor position of #569). Why: both were noise; the key hints already carry the contextual help. The profile screens keep the connected line.
