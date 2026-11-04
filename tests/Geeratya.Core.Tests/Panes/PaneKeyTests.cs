@@ -1,3 +1,4 @@
+using Geeratya.Core.Tests.Forms;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Panes;
@@ -291,7 +292,8 @@ public class PaneKeyTests
         var one = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
         var two = FormField.Create("labelsText", "Other", FormFieldKind.Text, false, []);
 
-        return _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [one, two])).State;
+        return NavigableFormState.Apply(
+            _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [one, two])).State);
     }
 
     private AppState Tabbed()

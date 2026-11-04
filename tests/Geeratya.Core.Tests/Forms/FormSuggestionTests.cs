@@ -449,10 +449,10 @@ public class FormSuggestionTests
             return loaded;
         }
 
-        var form = loaded.Session.Tabs[0].Form!;
-        var focused = form with { Focus = 1, Navigating = false };
+        var navigable = NavigableFormState.Apply(loaded);
+        var focused = navigable.Session.Tabs[0].Form! with { Focus = 1, Navigating = false };
 
-        return WithTab(loaded, loaded.Session.Tabs[0] with { Form = focused });
+        return WithTab(navigable, navigable.Session.Tabs[0] with { Form = focused });
     }
 
     private static AppState WithTab(AppState state, TabState tab)

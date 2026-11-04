@@ -186,6 +186,8 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-04 (edit form navigate state, #650)
 
+**Superseded in part by #762:** the multi-field edit form is gone (Summary and Description are edited in place, every other edit form has one field); the navigate state remains for the create form only.
+
 **UI:** The edit form (more than one editable field) has a navigate state inside Insert mode: `j`/`k` (the Normal `nav.down`/`nav.up` rows), `Tab`, `Down`/`Up` move, `Enter` or the literal `i` start editing; the status bar keeps `INSERT`, the form shows `[navigate]`/`[editing]` and its own footer. Why: no new input mode for one overlay; `i` is a fixed key like `y`/`n` in discard (an Insert row for `i` would swallow typed text). Amends `ux-keymap.md` principle 7 for this form only.
 
 ## 2026-11-04 (M6 hand-over, owner answers)

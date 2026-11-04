@@ -10,7 +10,7 @@ using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Tests.Forms;
 
-/// <summary>The navigate and edit states of the edit form (#650), through the real reducer and its keys.</summary>
+/// <summary>The navigate and edit states of a multi-field form (#650), through the real reducer and its keys.</summary>
 [Trait("Os", "Independent")]
 public class FormNavigationTests
 {
@@ -173,7 +173,8 @@ public class FormNavigationTests
             : FormField.Create("summary", "Summary", FormFieldKind.Text, false, []).WithInitial(FormValue.OfText("Fix it"));
         var two = FormField.Create("labelsText", "Other", FormFieldKind.Text, false, []).WithInitial(FormValue.OfText("Fix it"));
 
-        return _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [one, two])).State;
+        return NavigableFormState.Apply(
+            _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [one, two])).State);
     }
 
     private ReduceResult Press(AppState state, string key)

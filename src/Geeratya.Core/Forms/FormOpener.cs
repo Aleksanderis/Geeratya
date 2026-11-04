@@ -152,7 +152,7 @@ public static class FormOpener
         return WriteReducer.Reduce(state, new AssignToMeRequested(subject.Tab.Id, subject.Key, at));
     }
 
-    private static ReduceResult Open(AppState state, string? onlyId)
+    private static ReduceResult Open(AppState state, string onlyId)
     {
         if (Subject.Of(state) is not { } subject)
         {
