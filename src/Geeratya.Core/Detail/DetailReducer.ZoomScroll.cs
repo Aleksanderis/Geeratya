@@ -1,4 +1,5 @@
 using Geeratya.Core.Lists;
+using Geeratya.Core.Panes;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -33,5 +34,42 @@ internal static partial class DetailReducer
         var cursor = rebuilt.Snap(target - revealed.ClampedOffset);
 
         return ViewReducer.Replace(state, ReplaceTop(tab, moved with { Document = rebuilt, Cursor = cursor }));
+    }
+
+    /// <summary>
+    /// A new layout (resize, data arriving) of a scrolled zoomed pane: the window is moved the least that still shows
+    /// the row the cursor was on, and is clamped to the new size, so the cursor stays on its row (#740).
+    /// </summary>
+    private static DetailState ZoomWindowKept(DetailState detail, int width, int viewport)
+    {
+        if (detail.Zoomed is null or PaneIds.Comments || detail.Document is not { } old
+            || old.Targets.Count == 0 || detail.Cursor < 0 || detail.Cursor >= old.Targets.Count)
+        {
+            return detail;
+        }
+
+        var whole = IssueDocumentBuilder.Build(detail with { ZoomOffset = 0 }, width);
+
+        if (whole.Sections.Count != 1)
+        {
+            return detail;
+        }
+
+        var section = whole.Sections[0];
+        var rows = Math.Max(1, viewport - Panel.EdgeRows);
+        var scroll = new PaneScroll(detail.ZoomOffset, Math.Max(0, whole.Lines.Count - Panel.EdgeRows), rows);
+        var line = old.Targets[detail.Cursor] is { } target
+            ? whole.Targets.ToList().FindIndex(candidate => Equals(candidate, target))
+            : -1;
+
+        if (line < 0)
+        {
+            return detail with { ZoomOffset = scroll.ClampedOffset };
+        }
+
+        var end = (whole.BlockAt(line)?.End ?? line + 1) - 1;
+        var revealed = scroll.Reveal(end - section).Reveal(line - section);
+
+        return detail with { ZoomOffset = revealed.ClampedOffset };
     }
 }

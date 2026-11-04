@@ -227,6 +227,8 @@ internal static partial class DetailReducer
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
         var viewport = DetailLayout.ViewportRows(listRows);
         var row = commentsRow ?? FollowedCommentsRow(detail, width);
+        detail = ZoomWindowKept(detail, width, viewport);
+
         var document = IssueDocumentBuilder.Build(detail, width, viewport);
 
         // The zoomed pane is gone (its data went away): the zoom ends and the full layout shows.

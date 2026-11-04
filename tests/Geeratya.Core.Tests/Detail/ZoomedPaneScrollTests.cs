@@ -17,6 +17,7 @@ public class ZoomedPaneScrollTests
 {
     private const int SubtaskCount = 40;
     private const int FirstSubtask = 100;
+    private const int AttachmentCount = 60;
 
     private static readonly DateTimeOffset _now = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
@@ -120,9 +121,58 @@ public class ZoomedPaneScrollTests
         Assert.Equal(document.ViewportRows, document.Lines.Count);
     }
 
-    private AppState Zoomed(string pane)
+    [Fact]
+    public void GivenAScrolledZoomedList_WhenTheTerminalShrinks_ThenTheCursorStaysOnItsIssue()
     {
-        var state = Opened();
+        var scrolled = Press(Zoomed("subtasks"), [.. Enumerable.Repeat("j", 25)]);
+        var before = Document(scrolled).Lines[Top(scrolled).Cursor].PlainText;
+        var resized = Deliver(scrolled, new ViewportChanged(16, 80));
+        var document = Document(resized);
+
+        Assert.True(Document(scrolled).ViewportRows > document.ViewportRows);
+        Assert.Equal(before, document.Lines[Top(resized).Cursor].PlainText);
+        Assert.Equal(document.ViewportRows, document.Lines.Count);
+    }
+
+    [Fact]
+    public void GivenAZoomedDetailsPaneTallerThanItsFrame_WhenMovingDown_ThenTheWholeFieldStaysInTheWindow()
+    {
+        var zoomed = Zoomed("details", 12);
+        var scroll = Document(zoomed).PaneScrolls.Single();
+
+        Assert.NotNull(scroll);
+
+        var moved = Press(zoomed, "j", "j", "j", "j");
+        var document = Document(moved);
+        var target = document.Targets[Top(moved).Cursor];
+        var block = document.BlockAt(Top(moved).Cursor);
+
+        Assert.True(Top(moved).ZoomOffset > 0);
+        Assert.NotNull(target);
+        Assert.NotNull(block);
+        Assert.True(block.End < document.Lines.Count);
+        Assert.All(
+            Enumerable.Range(block.Start, block.End - block.Start),
+            line => Assert.Equal(target, document.Targets[line]));
+    }
+
+    [Fact]
+    public void GivenAZoomedAttachmentList_WhenItIsLong_ThenItScrollsInsideItsFrame()
+    {
+        var zoomed = Press(Zoomed("details"), "Ctrl-h", "Ctrl-h");
+
+        Assert.Equal("attachments", Document(zoomed).SectionIds.Single());
+
+        var moved = Press(zoomed, "G");
+
+        Assert.True(Document(zoomed).PaneScrolls.Single()!.Scrollable);
+        Assert.Equal(Document(moved).PaneScrolls.Single()!.MaxOffset, Top(moved).ZoomOffset);
+        Assert.Contains($"file-{AttachmentCount}", Document(moved).Lines[Top(moved).Cursor].PlainText);
+    }
+
+    private AppState Zoomed(string pane, int rows = 30)
+    {
+        var state = Opened(rows);
         var steps = 0;
 
         while (Document(state).SectionIds[Document(state).SectionAt(Top(state).Cursor)] != pane && steps++ < 20)
@@ -165,11 +215,11 @@ public class ZoomedPaneScrollTests
         return current;
     }
 
-    private AppState Opened()
+    private AppState Opened(int rows)
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
-        var sized = _reducer.Reduce(start, new ViewportChanged(30, 80)).State;
+        var sized = _reducer.Reduce(start, new ViewportChanged(rows, 80)).State;
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));
         var tab = Active(opened.State);
@@ -207,6 +257,8 @@ public class ZoomedPaneScrollTests
             null,
             subtasks,
             [],
-            []);
+            Enumerable.Range(1, AttachmentCount)
+                .Select(number => new IssueAttachment($"{number}", $"file-{number}.txt", "text/plain", 10, _now, null, null))
+                .ToList());
     }
 }
