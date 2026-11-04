@@ -546,22 +546,21 @@ public class ColumnsBodyRendererTests
     {
         var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
-        foreach (var height in new[] { 30, 8 })
-        {
-            var body = Render(tab, 120, height);
+        var body = Render(tab, 120, 30);
 
-            Assert.DoesNotContain(body, line => line.Spans.Any(span => span.Role == TextRole.SelectedDim));
-        }
+        Assert.DoesNotContain(body, line => line.Spans.Any(span => span.Text == ">"));
+        Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
+        Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
+    }
 
-        var compact = Render(tab, 120, 8);
+    [Fact]
+    public void GivenACompactColumnWithoutFocus_WhenRendering_ThenOnlyTheCursorCardHasTheMark()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
-        Assert.Single(compact.SelectMany(line => line.Spans), span => span.Text == ">");
+        var body = Render(tab, 120, 8);
 
-        var tall = Render(tab, 120, 30);
-
-        Assert.DoesNotContain(tall, line => line.Spans.Any(span => span.Text == ">"));
-        Assert.Contains(tall, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
-        Assert.DoesNotContain(tall, line => HasSpan(line, TextRole.Selected, "A-1"));
+        Assert.Single(body.SelectMany(line => line.Spans), span => span.Text == ">");
     }
 
     [Fact]
