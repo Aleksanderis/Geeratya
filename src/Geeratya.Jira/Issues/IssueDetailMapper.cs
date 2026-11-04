@@ -36,8 +36,28 @@ internal static class IssueDetailMapper
             MapAttachments(fields?.Attachments, pool))
         {
             Sprints = IssueSummaryMapper.MapSprints(fields?.Extra, extras?.SprintFieldId),
+            DueDate = MapDueDate(fields?.Extra),
             Estimate = IssueSummaryMapper.MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
         };
+    }
+
+    private static DateOnly? MapDueDate(Dictionary<string, JsonElement>? extra)
+    {
+        if (extra is null
+            || !extra.TryGetValue(IssueFields.DueDate, out var value)
+            || value.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        return DateOnly.TryParseExact(
+            value.GetString(),
+            "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None,
+            out var date)
+            ? date
+            : null;
     }
 
     private static AdfDocument? MapDescription(JsonElement? description)

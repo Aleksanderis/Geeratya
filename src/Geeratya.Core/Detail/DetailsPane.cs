@@ -84,12 +84,23 @@ internal static class DetailsPane
     {
         var rows = new List<StyledLine>();
 
-        if (header.Updated is { } updated && detail.LoadedAt is { } now)
+        var due = detail.Issue is { } issue ? $"Due {DueText(issue.DueDate)}" : null;
+        var updated = header.Updated is { } at && detail.LoadedAt is { } now
+            ? $"Updated {RelativeTime.Format(at, now)}"
+            : null;
+        var text = due is not null && updated is not null ? $"{due} · {updated}" : due ?? updated;
+
+        if (text is not null)
         {
-            rows.Add(Muted($"Updated {RelativeTime.Format(updated, now)}", inner));
+            rows.Add(Muted(text, inner));
         }
 
         return rows;
+    }
+
+    private static string DueText(DateOnly? due)
+    {
+        return due is { } date ? date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "none";
     }
 
     // The way into the zoomed Attachments list: a cursor stop of its own, Enter zooms.

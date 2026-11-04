@@ -23,6 +23,7 @@ public static class IssueFields
     public const string Subtasks = "subtasks";
     public const string IssueLinks = "issuelinks";
     public const string Attachment = "attachment";
+    public const string DueDate = "duedate";
 
     /// <summary>The fields every list row needs, in the order they are sent.</summary>
     public static readonly IReadOnlyList<string> ListRow =
@@ -48,6 +49,7 @@ public static class IssueFields
         Subtasks,
         IssueLinks,
         Attachment,
+        DueDate,
     ];
 
     /// <summary>The detail list as one comma-separated query value.</summary>

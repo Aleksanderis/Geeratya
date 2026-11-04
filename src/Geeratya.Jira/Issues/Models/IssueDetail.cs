@@ -46,6 +46,9 @@ public sealed record IssueDetail(
     /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>
     public double? Estimate { get; init; }
 
+    /// <summary>The due date; null when the issue has none or the project does not have the field.</summary>
+    public DateOnly? DueDate { get; init; }
+
     /// <summary>The epic of the issue: its parent when that parent's type is on the epic level, otherwise null.</summary>
     public IssueStub? Epic => Parent is { IssueType.HierarchyLevel: EpicHierarchyLevel } ? Parent : null;
 
