@@ -6,6 +6,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Gateway;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform;
 using Geeratya.Platform.Secrets;
@@ -270,6 +271,40 @@ public sealed class ViewLoadHandlerCutoffTests
         Assert.Equal(7, other.Session.Tabs[0].DoneCutoffDays);
     }
 
+    [Fact]
+    public async Task GivenTheCachedCutoffExpiresBetweenPages_WhenABoardOfThreePagesLoads_ThenEveryPageUsesTheFirstPagesDays()
+    {
+        using var fixture = await ConnectedAsync(
+            http =>
+            {
+                http.Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("board-gcm-config"))
+                    .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues-page1"))
+                    .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues-page2"))
+                    .Reply(HttpStatusCode.OK, BoardFixtureFiles.Read("rows-gcm-issues-page3-last"));
+                ScriptChain(http, "gcm4");
+                ScriptChain(http, "gcm4", SevenDays);
+                ScriptChain(http, "gcm4", SevenDays);
+            });
+
+        // Each effect batch (one page) takes longer than the 5 minute lifetime of Jira's answer.
+        var state = await RunAsync(
+            fixture,
+            Start() with { Settings = new AppSettings(DoneCutoffDays: 21) },
+            () => fixture.Clock.Advance(DoneCutoffReader.ValueLifetime + TimeSpan.FromMinutes(1)),
+            new ViewOpenRequested(Definition("4")));
+
+        var tab = state.Session.Tabs[0];
+        Assert.Equal(24, tab.Rows.Count);
+        Assert.Equal(14, tab.DoneCutoffDays);
+        Assert.Equal(DoneCutoffSource.Jira, tab.CutoffSource);
+        Assert.Equal("Done (14d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
+        Assert.Contains("startAt=10", fixture.Query(2));
+        Assert.Contains("statusCategoryChangedDate >= -14d", fixture.Query(1));
+        Assert.Contains("statusCategoryChangedDate >= -14d", fixture.Query(2));
+        Assert.Contains("statusCategoryChangedDate >= -14d", fixture.Query(3));
+        Assert.Equal(3, fixture.Http.GatewayRequests.Count);
+    }
+
     private static void AssertFellBack(AppState state, Fixture fixture, int days)
     {
         var tab = state.Session.Tabs[0];
@@ -313,7 +348,16 @@ public sealed class ViewLoadHandlerCutoffTests
     }
 
     /// <summary>Feeds <paramref name="commands"/> to the reducer and every effect and reply that follows.</summary>
-    private static async Task<AppState> RunAsync(Fixture fixture, AppState start, params Command[] commands)
+    private static Task<AppState> RunAsync(Fixture fixture, AppState start, params Command[] commands)
+    {
+        return RunAsync(fixture, start, () => { }, commands);
+    }
+
+    private static async Task<AppState> RunAsync(
+        Fixture fixture,
+        AppState start,
+        Action afterPage,
+        params Command[] commands)
     {
         var reducer = new AppReducer(DefaultKeymap.Load());
         var pending = new Queue<Command>(commands);
@@ -329,6 +373,7 @@ public sealed class ViewLoadHandlerCutoffTests
             foreach (var effect in result.Effects.OfType<LoadViewPageEffect>())
             {
                 await fixture.Handler.StartAsync(effect);
+                afterPage();
             }
 
             foreach (var posted in fixture.Posted)
@@ -345,6 +390,8 @@ public sealed class ViewLoadHandlerCutoffTests
         var http = new ScriptedJiraHandler();
         var store = new FakeSecretStore();
 
+        var clock = new ManualTimeProvider();
+
         script(http);
         await store.SetAsync(_a.CredentialKey, "token-a", CancellationToken.None);
         await store.SetAsync(_b.CredentialKey, "token-b", CancellationToken.None);
@@ -358,22 +405,26 @@ public sealed class ViewLoadHandlerCutoffTests
 
         var connections = new SiteConnections(
             new TokenProvider(store, new EnvironmentReader(_ => null)),
-            new FakeTransportFactory(http, options));
+            new FakeTransportFactory(http, options),
+            clock: clock);
 
         await connections.ActivateAsync(_a, 2, CancellationToken.None);
 
-        return new Fixture(connections, http);
+        return new Fixture(connections, http, clock);
     }
 
     private sealed class Fixture : IDisposable
     {
-        public Fixture(SiteConnections connections, ScriptedJiraHandler http)
+        public Fixture(SiteConnections connections, ScriptedJiraHandler http, ManualTimeProvider clock)
         {
+            Clock = clock;
             Connections = connections;
             Http = http;
             Runner = new NetworkRunner(connections, new ListCommandSink(Posted), CancellationToken.None);
             Handler = new ViewLoadHandler(Runner);
         }
+
+        public ManualTimeProvider Clock { get; }
 
         public SiteConnections Connections { get; }
 

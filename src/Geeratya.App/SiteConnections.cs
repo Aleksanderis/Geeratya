@@ -28,6 +28,7 @@ public sealed class SiteConnections : IDisposable
     private readonly TokenProvider _tokens;
     private readonly ITransportFactory _transports;
     private readonly BoardKindStore? _boardKinds;
+    private readonly TimeProvider? _clock;
     private readonly object _lock = new();
     private Profile? _profile;
     private JiraTransport? _transport;
@@ -42,8 +43,10 @@ public sealed class SiteConnections : IDisposable
     public SiteConnections(
         TokenProvider tokens,
         ITransportFactory? transports = null,
-        BoardKindStore? boardKinds = null)
+        BoardKindStore? boardKinds = null,
+        TimeProvider? clock = null)
     {
+        _clock = clock;
         _boardKinds = boardKinds;
         _tokens = tokens;
         _transports = transports ?? new DefaultTransportFactory();
@@ -255,7 +258,7 @@ public sealed class SiteConnections : IDisposable
                 _transport = transport;
                 _kinds = CreateResolver(profile, transport);
                 _fields = new SiteFields(new FieldClient(transport));
-                _cutoffs = new DoneCutoffReader(new BoardViewClient(transport));
+                _cutoffs = new DoneCutoffReader(new BoardViewClient(transport), _clock);
                 transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
 
                 return null;

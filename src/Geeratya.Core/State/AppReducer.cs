@@ -76,7 +76,17 @@ public sealed partial class AppReducer
     {
         var tab = ViewReducer.Find(state.Session.Tabs, load.Tab);
 
-        return load with { DoneCutoffDays = state.Settings.DoneCutoffDays, DoneCutoffChoice = tab?.DoneCutoffChoice };
+        // Later pages of a load keep the value the first page applied (#699).
+        var pinned = load.Cursor is not null && tab?.CutoffSource is { } source
+            ? new PinnedCutoff(tab.DoneCutoffDays, source)
+            : null;
+
+        return load with
+        {
+            DoneCutoffDays = state.Settings.DoneCutoffDays,
+            DoneCutoffChoice = tab?.DoneCutoffChoice,
+            PinnedCutoff = pinned,
+        };
     }
 
     // The time a command carries (a default time means the sender had none), used to stamp and expire the notice.
