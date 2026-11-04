@@ -199,3 +199,7 @@ Idle timer expiries by cause:
 | Spinners, Jira polling, file watchers | none exist | |
 
 The library accounts for 75 of the 76 expiries a second, so there is nothing cheap left to fix on our side; the switches per expiry are not split by cause (not measured). Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 6 805 and 7 086 switches per 20 s against 8 664 and 8 926 (about 20 % fewer, more than the main-loop share alone predicts, because each iteration also runs a size query and a draw check) and 1 and 3 ticks against 6 and 4, which is within the noise of the machine load (other agents were building). It costs a slower first key after a pause, so it was not applied; whether an idle governor pays off is #624. For comparison only: Gitunia measured the same library at 25/s 1.04 % and 10/s 0.91 % on another workload and a 45 s window, so those figures are not comparable with the ones above.
+
+## Kanban Done cutoff (#674)
+
+A Kanban board no longer loads Done issues resolved more than 14 days ago (`resolution = Unresolved OR resolutiondate >= -14d` on the board call). Effect by construction: pages requested = ceil(matching issues / 100), so a board with 2 000 old Done issues and 60 current ones drops from 21 requests (and 2 060 rows against the 10 000 rows per tab cap) to 1 request and 60 rows. Not measured against a live board: no dev-site host was available to the agent run, and the fake Jira serves recorded pages regardless of `jql`.

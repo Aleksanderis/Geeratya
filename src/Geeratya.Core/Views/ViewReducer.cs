@@ -45,6 +45,7 @@ public static partial class ViewReducer
             SprintLoaded sprint => SprintArrived(state, sprint),
             SprintsLoaded sprints => SprintsReceived(state, sprints),
             BacklogBecameScrum scrum => BecameScrum(state, scrum),
+            DoneCutoffApplied cutoff => CutoffApplied(state, cutoff),
             ViewTotalLoaded counted => TotalLoaded(state, counted),
             ViewPageLoaded loaded => PageLoaded(state, loaded, effects),
             ViewLoadFailed failed => LoadFailed(state, failed, effects),

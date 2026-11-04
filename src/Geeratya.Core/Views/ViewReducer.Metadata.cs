@@ -249,6 +249,19 @@ public static partial class ViewReducer
         return Replace(state, tab with { Definition = tab.Definition with { Source = ViewSourceKind.ScrumBacklog } });
     }
 
+    /// <summary>A Kanban board load applies the Done cutoff: the tab remembers it for the last column's title.</summary>
+    private static AppState CutoffApplied(AppState state, DoneCutoffApplied applied)
+    {
+        var tab = Find(state.Session.Tabs, applied.Tab);
+
+        if (tab is null || tab.RequestId != applied.RequestId || tab.Load is not Loading)
+        {
+            return state;
+        }
+
+        return Replace(state, tab with { DoneCutoffApplied = true });
+    }
+
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>
     private static AppState TotalLoaded(AppState state, ViewTotalLoaded counted)
     {
