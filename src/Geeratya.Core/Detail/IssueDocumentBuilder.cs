@@ -62,9 +62,9 @@ public static class IssueDocumentBuilder
         AddDescription(sink, detail, columns, inner);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
         AddDetails(sink, detail, columns, inner);
-        AddComments(sink, detail, columns, inner, viewportRows);
+        var commentIds = AddComments(sink, detail, columns, inner, viewportRows);
 
-        return sink.ToDocument(columns) with { ViewportRows = viewportRows };
+        return sink.ToDocument(columns) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
     }
 
     private static string FailureText(string key, Failed failed)
@@ -318,9 +318,10 @@ public static class IssueDocumentBuilder
         sink.AddPanel(PaneIds.Description, [title], panel, width, [chip], scroll);
     }
 
-    private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner, int? viewport)
+    private static List<string?> AddComments(DocumentSink sink, DetailState detail, int width, int inner, int? viewport)
     {
         var rows = CommentRows.Build(detail, inner);
+        var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);
         var order = new StyledSpan(NewestFirstText, TextRole.Muted);
@@ -332,7 +333,7 @@ public static class IssueDocumentBuilder
             AddRows(content, rows, 0, rows.Count);
             sink.AddPanel(PaneIds.Comments, [heading], content, width, detail.Comments.Count > 0 ? [order] : null);
 
-            return;
+            return ids;
         }
 
         var scroll = new PaneScroll(detail.CommentsOffset, rows.Count, height);
@@ -340,6 +341,8 @@ public static class IssueDocumentBuilder
 
         AddRows(content, rows, first, height);
         sink.AddPanel(PaneIds.Comments, [heading], content, width, [order], scroll);
+
+        return ids;
     }
 
     private static void AddRows(PanelContent content, IReadOnlyList<CommentRow> rows, int first, int count)

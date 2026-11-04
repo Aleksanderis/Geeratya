@@ -1,7 +1,7 @@
 using Geeratya.Core.Adf;
 using Geeratya.Core.Text;
-using Geeratya.Jira.Comments.Models;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Comments.Models;
 
 namespace Geeratya.Core.Detail;
 

@@ -45,6 +45,12 @@ public sealed record DetailDocument(
     /// </summary>
     public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
 
+    /// <summary>
+    /// The comment id of every content row of the Comments pane (all rows, not only the shown window), null for rows
+    /// that belong to no comment; empty without a Comments pane.
+    /// </summary>
+    public IReadOnlyList<string?> CommentRowIds { get; init; } = [];
+
     /// <summary>The rows the screen showed when the document was laid out; null when it was laid out in full.</summary>
     public int? ViewportRows { get; init; }
 

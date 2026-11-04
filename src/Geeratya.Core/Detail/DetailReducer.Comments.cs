@@ -18,7 +18,8 @@ internal static partial class DetailReducer
         var top = tab.Detail[^1];
         var row = CommentsRowOf(top);
 
-        if ((row is null && move != ListMove.Bottom) || move == ListMove.Top || top.Document is not { } document)
+        if ((row is null && move != ListMove.Bottom) || move == ListMove.Top || top.Document is not { } document
+            || !document.SectionIds.Contains(PaneIds.Comments))
         {
             return null;
         }
@@ -53,7 +54,7 @@ internal static partial class DetailReducer
         }
 
         var ahead = move is ListMove.Down or ListMove.PageDown or ListMove.Bottom;
-        var placed = PlaceInComments(top, target, DetailSize.ListRows(state, tab), ahead);
+        var placed = PlaceInComments(top, target, DetailSize.ListRows(state, tab), ahead, rows);
 
         return ViewReducer.Replace(state, ReplaceTop(tab, placed));
     }
@@ -81,6 +82,28 @@ internal static partial class DetailReducer
         return offset + detail.Cursor - document.Sections[section];
     }
 
+    /// <summary>
+    /// The row the cursor goes to after the comment list changed: the same line of the same comment as before, so a
+    /// comment added above, one removed or one that grew does not move the cursor onto another comment. The old row
+    /// stands when the comment is gone.
+    /// </summary>
+    private static int? FollowedCommentsRow(DetailState detail, int width)
+    {
+        var row = CommentsRowOf(detail);
+
+        if (row is not { } old || detail.Document is not { } document || old >= document.CommentRowIds.Count
+            || document.CommentRowIds[old] is not { } id)
+        {
+            return row;
+        }
+
+        var offset = old - document.CommentRowIds.ToList().IndexOf(id);
+        var rows = CommentRows.Build(detail, Panel.InnerWidth(width));
+        var header = CommentRows.HeaderOf(rows, id);
+
+        return header < 0 ? row : Math.Min(header + offset, CommentRows.EndOf(rows, header));
+    }
+
     private static int? CommentsViewport(DetailDocument document)
     {
         var section = document.SectionIds.ToList().IndexOf(PaneIds.Comments);
@@ -93,7 +116,12 @@ internal static partial class DetailReducer
     /// when there is none) and scrolls the pane the least that shows it; <paramref name="ahead"/> shows the rest of
     /// the comment too when it fits.
     /// </summary>
-    private static DetailState PlaceInComments(DetailState detail, int row, int listRows, bool ahead)
+    private static DetailState PlaceInComments(
+        DetailState detail,
+        int row,
+        int listRows,
+        bool ahead,
+        IReadOnlyList<CommentRow>? known = null)
     {
         if (detail.Document is not { } document)
         {
@@ -101,7 +129,7 @@ internal static partial class DetailReducer
         }
 
         var section = document.SectionIds.ToList().IndexOf(PaneIds.Comments);
-        var rows = CommentRows.Build(detail, Panel.InnerWidth(document.Width));
+        var rows = known ?? CommentRows.Build(detail, Panel.InnerWidth(document.Width));
         var stop = NearestStop(rows, row);
 
         if (section < 0 || stop < 0)

@@ -188,7 +188,7 @@ internal static partial class DetailReducer
     {
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
         var viewport = DetailLayout.ViewportRows(listRows);
-        var row = commentsRow ?? CommentsRowOf(detail);
+        var row = commentsRow ?? FollowedCommentsRow(detail, width);
         var document = IssueDocumentBuilder.Build(detail, width, viewport);
         var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
         var laidOut = Clamp(detail with { Document = document, Cursor = anchored }, listRows);

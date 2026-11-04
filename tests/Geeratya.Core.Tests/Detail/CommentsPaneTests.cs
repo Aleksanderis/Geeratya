@@ -195,9 +195,64 @@ public class CommentsPaneTests
         Assert.Equal(8, Top(arrived).Comments.Count);
     }
 
+    [Fact]
+    public void GivenTheCursorOnAComment_WhenANewerCommentArrivesOnTop_ThenTheCursorStaysOnThatComment()
+    {
+        var comments = Enumerable.Range(1, 30).Select(number => Comment(number.ToString(), 8)).Reverse().ToArray();
+        var state = Press(ToComments(Opened(comments)), "j", "j", "j").State;
+        var refreshed = Enumerable.Range(1, 31).Select(number => Comment(number.ToString(), 8)).Reverse().ToArray();
+
+        var arrived = Refresh(state, refreshed);
+
+        Assert.Equal("27", TargetOf(state).Value);
+        Assert.Equal("27", TargetOf(arrived).Value);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAComment_WhenACommentAboveItIsDeleted_ThenTheCursorStaysOnThatComment()
+    {
+        var comments = Enumerable.Range(1, 30).Select(number => Comment(number.ToString(), 8)).Reverse().ToArray();
+        var state = Press(ToComments(Opened(comments)), "j", "j", "j").State;
+
+        var arrived = Refresh(state, comments[1..]);
+
+        Assert.Equal("27", TargetOf(arrived).Value);
+    }
+
+    [Fact]
+    public void GivenTheCursorInsideAnExpandedComment_WhenTheListRefreshes_ThenTheCursorKeepsItsLineOfThatComment()
+    {
+        var comments = Enumerable.Range(1, 10).Select(number => Comment(number.ToString(), 8)).Reverse().ToArray();
+        var state = Press(ToComments(Opened(comments)), "j", "Enter", "j", "j", "j").State;
+        var line = Document(state).Lines[Top(state).Cursor].PlainText;
+        var refreshed = Enumerable.Range(1, 11).Select(number => Comment(number.ToString(), 8)).Reverse().ToArray();
+
+        var arrived = Refresh(state, refreshed);
+
+        Assert.Contains("item 3", line);
+        Assert.Equal("9", TargetOf(arrived).Value);
+        Assert.Equal(line, Document(arrived).Lines[Top(arrived).Cursor].PlainText);
+    }
+
+    private AppState Refresh(AppState state, IssueComment[] comments)
+    {
+        var tab = Active(state);
+        var page = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Length, true);
+        var loading = Top(state) with { CommentsRequest = 78, CommentsLoad = new Loading(LoadReason.Refresh) };
+        var waiting = state with { Session = state.Session with { Tabs = [tab with { Detail = [loading] }] } };
+
+        return Deliver(waiting, new IssueCommentsLoaded(tab.Id, 78, page, _now));
+    }
+
     private static DetailState DetailOf(IReadOnlyList<IssueComment> comments)
     {
-        return DetailState.Opened("A-1", null, 1, 2, 3) with { Comments = comments, LoadedAt = _now, CommentsLoad = LoadState.Idle, NextComments = null };
+        return DetailState.Opened("A-1", null, 1, 2, 3) with
+        {
+            Comments = comments,
+            LoadedAt = _now,
+            CommentsLoad = LoadState.Idle,
+            NextComments = null,
+        };
     }
 
     private static TabState Active(AppState state)
