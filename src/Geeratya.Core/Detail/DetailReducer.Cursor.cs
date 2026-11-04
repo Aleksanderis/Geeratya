@@ -37,6 +37,11 @@ internal static partial class DetailReducer
             return inComments;
         }
 
+        if (MoveInZoomedPane(state, tab, move, viewport) is { } inZoomed)
+        {
+            return inZoomed;
+        }
+
         var target = Target(document, top.Cursor, move, viewport);
 
         return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));

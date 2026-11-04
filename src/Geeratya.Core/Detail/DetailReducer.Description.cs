@@ -16,7 +16,7 @@ internal static partial class DetailReducer
     {
         var top = tab.Detail[^1];
 
-        if (move is not (ListMove.Down or ListMove.Up) || top.Document is not { } document)
+        if (move is not (ListMove.Down or ListMove.Up) || top.Zoomed is not null || top.Document is not { } document)
         {
             return null;
         }
