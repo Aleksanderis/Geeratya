@@ -7,4 +7,4 @@
 |  GCM-15 T As a user I can filter by x|
 |                                      |
 +--------------------------------------+
-[NORMAL] offline - 1/3                  
+[NORMAL] offline - GCM-12 In Progress   

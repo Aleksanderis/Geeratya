@@ -28,7 +28,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 │ │ GCM-11  Story        │ │ │ GCM-14  Task         │ │                        │
 │ └──────────────────────┘ │ └──────────────────────┘ │                        │
 ╰──────────────────────────┴──────────────────────────┴────────────────────────╯
- NORMAL  GCM board 24  ·  Connected as Test User 1      ? help  : commands  q quit
+ NORMAL  GCM board 24  ·  GCM-12 In Progress     ? help  : commands  q quit
 ```
 
 | Part | Unicode tier | ASCII tier |
@@ -70,7 +70,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 │ Generated Writer 1 · 3 d ago                                                 │
 │ Generated comment 2 on issue 5.                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GEN-5  13%  ·  Connected as Test User 1       ? help  : commands  q quit
+ NORMAL  GEN-5  13%                              ? help  : commands  q quit
 ```
 
 The panes are the sections the detail already has (header and fields, Description, Comments, then Relations, Attachments and Links when present, in that order). Heights: the header pane is its content height; the others share the rest by content, each at least 3 rows, and the focused pane gets the surplus. The detail stays one scrolling document with one cursor (`ux-screens.md`, "Issue detail"): the panes are how that document is drawn, scroll and the `Top/NN%/Bot` ruler stay document-wide (the status bar shows the ruler), `j`/`k` cross from one pane to the next, and the focused pane is the one holding the cursor. There is no side-by-side layout and no collapse.
@@ -91,7 +91,7 @@ The panes are the sections the detail already has (header and fields, Descriptio
 │  GEN-31 B Generated issue 31                               To Do            2│
 │  GEN-32 S Generated issue 32                               Backlog          3│
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GEN board 29  ·  Connected as Test User 1      ? help  : commands  q quit
+ NORMAL  GEN board 29  ·  GEN-12 In Progress     ? help  : commands  q quit
 ```
 
 The mockup draws the first sprint's chip in the top edge; the render keeps the source and count there and the first sprint's chip on the shared edge under the column titles, so the list and the backlog share one geometry (decided in #537, see `ux-screens.md` for the snapshot). The sprint goal is the pane's first content line (`Goal: ...`, muted) when set. The column header line (`Key T Summary ...`) is shown once in the top pane's first content row and repeats nowhere. A section collapsed with `za` stays a pane that is only its title edge, with `▸` (ASCII `>`) before the chip text; `j`/`k` step over all sections as in `ux-screens.md`.
@@ -150,12 +150,12 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 **Status bar** (last row):
 
 ```
- NORMAL  GCM board 24 · Connected as Test User 1       ? help  : commands  q quit
+ NORMAL  GCM board 24 · GCM-12 In Progress    ? help  : commands  q quit
  ^^^^^^^ mode badge       ^ message / state                  ^ hint chips
 ```
 
 - Column 0: a one-space-padded **mode badge** (` NORMAL `, then one more space before the text) as a filled chip, bold: `NORMAL` accent, `VISUAL` the `remote` role, `INSERT` `good`, `COMMAND` `warn`, `CONFIRM` `bad`, `HELP` `info`. Text on a badge is the theme's chip text colour. Without colour the badge is reversed-bold and the word tells the mode.
-- Then the message or state text: the pending keys in Normal mode; otherwise the message of the status history, coloured by severity (info normal text, warning `warn`, error `bad` bold, success `good`; a message always carries a word as well, `Failed:`, `Warning:`, so colour is not the only carrier). When there is none: the cursor position (#569: `5/40` in a list or backlog, `col 2/4  card 3/7` on a board, counted over the loaded rows with a `+` after the total while more pages exist; nothing with no row to stand on), the source and its count (`GCM board 24`, sprint name for a sprint board, `GEN-5 13%` in the detail), then the connection state (`Connected as ...`, `Offline`, `Rate limited, retry in 12 s`). The network word stays first. On a Sprint board the sprint goal (one line) ends the board text (#610): it shows only whole and only in cells left after the hints and the rest of the board text, never cut, never taking hint cells, and it ranks above the position (a position that would push it out stays hidden). The position is shown last in priority: it appears only when the line, the screen hints and the global hints all still fit, and on a board it takes cells from the board text (which is cut with an ellipsis) before a hint is dropped; on a short line it is the first part to go.
+- Then the message or state text: the pending keys in Normal mode; otherwise the message of the status history, coloured by severity (info normal text, warning `warn`, error `bad` bold, success `good`; a message always carries a word as well, `Failed:`, `Warning:`, so colour is not the only carrier). When there is none: the source and its count (`GCM board 24`, sprint name for a sprint board, `GEN-5 13%` in the detail), the selected issue (`GCM-12 In Progress`: key and status of the row under the cursor, in a list, backlog or board; nothing with no row to stand on; #646, replacing the cursor counters `5/40` and `col 2/4  card 3/7` of #569), and the connection state only when it is abnormal or still being checked (`Checking site...`, `Offline`, `Rate limited, retry in 12 s`, an auth or other check error; a healthy connection shows nothing, the profile screens still show `Connected as ...`). The network word stays first. On a Sprint board the sprint goal (one line) ends the board text (#610): it shows only whole and only in cells left after the hints and the rest of the board text, never cut, never taking hint cells, and it ranks above the selected issue (an issue text that would push it out stays hidden). The selected issue is shown last in priority: it appears only when the line, the screen hints and the global hints all still fit, and on a board it takes cells from the board text (which is cut with an ellipsis) before a hint is dropped; on a short line it is the first part to go.
 - **Key hints** (right side, `HintBar`): chips `key label`, the key bold in the key role of `ux.md` (`warn`; the accent stays for focus), the label muted, two spaces between chips, right-aligned, within the keymap rules of `ux.md`, "Hints". When the width is short, chips drop from the right end towards the left (the global `? help  : commands  q quit` are dropped last and never partly). In the other modes the same bar shows that mode's hints (`Tab/Shift-Tab field  Ctrl-s save  Esc cancel`).
 - Whole-line fallbacks: 16-colour uses the bar as white-on-blue as today with bold keys; no colour: the bar is reversed.
 

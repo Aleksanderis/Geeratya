@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  rate limited 25s · 1/3     j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit
+ NORMAL  rate limited 25s           j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit

@@ -7,4 +7,4 @@
 │> GCM-15 S As a user I can filter b...│
 │  GCM-17 E Reporting overhaul with a ◐│
 ╰──────────────────────────────────────╯
- NORMAL  loading · 3/10+                
+ NORMAL  loading · GCM-15 To Do         

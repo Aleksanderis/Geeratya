@@ -88,7 +88,7 @@ public static partial class StatusBar
             left = Left(state, shown);
         }
 
-        // The cursor position is last in line: it shows only when the line, the hints and their gap still fit.
+        // The selected issue is last in line: it shows only when the line, the hints and their gap still fit.
         var viewRoom = shown == text ? 0 : StatusViewText.PositionedRoom(state, spare);
         var positioned = Text(state, width, keymap, clock, confirmDialogShown, viewRoom, true);
 
