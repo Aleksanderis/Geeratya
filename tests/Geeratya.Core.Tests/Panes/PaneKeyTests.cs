@@ -58,15 +58,13 @@ public class PaneKeyTests
     }
 
     [Fact]
-    public void GivenNoPanes_WhenPaneKeysArePressed_ThenNothingChangesAndNoEffectRuns()
+    public void GivenNoPanes_WhenPaneKeysArePressed_ThenTheTabKeepsNoPanes()
     {
         var state = Tabbed();
 
         foreach (var keys in new[] { "Ctrl-h", "Ctrl-j", "Ctrl-k", "Ctrl-l", "Ctrl-w l", "Space z" })
         {
-            var result = _reducer.Reduce(Press(state, keys), new KeyPressed("Esc"));
-
-            Assert.Equal(PaneState.None, Panes(result.State));
+            Assert.Equal(PaneState.None, Panes(Press(state, keys)));
         }
     }
 
@@ -155,17 +153,41 @@ public class PaneKeyTests
     }
 
     [Fact]
-    public void GivenAnEditingFormWithPanes_WhenCtrlJIsPressed_ThenItStaysThePickerKeyAndPanesDoNotMove()
+    public void GivenANavigatingFormWithoutPanes_WhenCtrlLIsPressed_ThenItStillStartsEditing()
+    {
+        var moved = Press(WithForm(Tabbed()), "Ctrl-l");
+
+        Assert.False(moved.Session.Tabs[0].Form!.Navigating);
+    }
+
+    [Fact]
+    public void GivenAnEditingFormWithPanes_WhenCtrlJKLArePressed_ThenPaneFocusDoesNotMove()
     {
         var editing = Press(WithForm(WithPanes()), "i");
         Assert.False(editing.Session.Tabs[0].Form!.Navigating);
 
-        foreach (var keys in new[] { "Ctrl-j", "Ctrl-k", "Ctrl-l", "Ctrl-h" })
+        foreach (var keys in new[] { "Ctrl-j", "Ctrl-k", "Ctrl-h" })
         {
-            var after = Press(editing, keys);
-
-            Assert.Equal(PaneState.None.Focused, Panes(after).Focused);
+            Assert.Null(Panes(Press(editing, keys)).Focused);
         }
+
+        var accepted = Press(editing, "Ctrl-l");
+
+        Assert.Null(Panes(accepted).Focused);
+        Assert.True(accepted.Session.Tabs[0].Form!.Navigating);
+    }
+
+    [Fact]
+    public void GivenAZoomAndAnOpenPalette_WhenEscIsPressed_ThenThePaletteClosesAndTheZoomStays()
+    {
+        var zoomed = Press(WithPanes(), "Space z");
+        var palette = Press(zoomed, ":");
+        Assert.Equal(InputMode.Command, palette.Mode);
+
+        var closed = Press(palette, "Esc");
+
+        Assert.Equal(InputMode.Normal, closed.Mode);
+        Assert.Equal("title", Panes(closed).Zoomed);
     }
 
     [Fact]

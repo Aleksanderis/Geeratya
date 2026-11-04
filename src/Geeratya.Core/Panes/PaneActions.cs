@@ -42,12 +42,26 @@ public static class PaneActions
     }
 
     /// <summary>
-    /// <c>Esc</c> while the active tab is zoomed: leaves the zoom (before it pops an issue or clears marks). Null
-    /// when nothing is zoomed.
+    /// <c>Esc</c> while the active tab is zoomed: leaves the zoom (before it pops an issue or clears marks, and
+    /// before a rank pickup or Visual mode ends). Null when nothing is zoomed or an overlay or prompt is open: the
+    /// overlay takes the <c>Esc</c> first.
     /// </summary>
     public static AppState? LeaveZoom(AppState state)
     {
-        if (ActiveTab(state) is not { } tab || tab.Panes.Zoomed is null)
+        var overlayOpen = state.Mode != InputMode.Normal
+            || state.Picker is not null
+            || state.Jump is not null
+            || state.FlashJump is not null
+            || state.Confirm is not null
+            || state.Form is not null
+            || state.ContextMenu is not null
+            || state.SettingsScreen is not null
+            || state.ProfileList is not null
+            || state.MessagesOpen
+            || state.Editor is not null
+            || state.PendingKeys.Length > 0;
+
+        if (overlayOpen || ActiveTab(state) is not { } tab || tab.Panes.Zoomed is null)
         {
             return null;
         }
