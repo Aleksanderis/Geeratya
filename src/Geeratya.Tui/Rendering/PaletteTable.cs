@@ -62,10 +62,7 @@ public static class PaletteTable
         [PaletteRole.Key] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.StatusToDo] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.StatusInProgress] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
-        [PaletteRole.StatusDone] = new(
-            ThemeColor.Good,
-            ThemeColor.BaseBackground,
-            RoleStyle.Bold | RoleStyle.Italic),
+        [PaletteRole.StatusDone] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.TypeEpic] = new(ThemeColor.Remote, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.TypeStory] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.TypeBug] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
