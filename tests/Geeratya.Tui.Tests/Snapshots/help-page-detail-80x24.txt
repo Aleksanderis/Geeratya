@@ -10,7 +10,7 @@
 │ │                │   Ctrl-u     Page up  (PageUp)                          │ │
 ├─│                │   <space>a   Open the actions menu of the selected      │─┤
 │ │                │              issue                                      │ │
-  │                │   Enter      Open the selected item                     │  
+╰─│                │   Enter      Open the selected item                     │─╯
   │                │   ]]         Next section of the issue or the Scrum     │  
   │                │              backlog                                    │  
   │                │   [[         Previous section of the issue or the       │  
@@ -20,5 +20,5 @@
   │                │   <space>ie  Edit fields of the issue (summary,         │  
   │                │              labels, priority, description)            ▼│  
   ╰──────────────────────────────────────────────────────────────────────────╯  
-╰──────────────────────────────────────────────────────────────────────────────╯
+                                                                                
  HELP                                   j section  J scroll  / filter  Esc close
