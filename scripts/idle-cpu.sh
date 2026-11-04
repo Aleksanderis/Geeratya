@@ -9,7 +9,11 @@ printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"
 tm="tmux -L idle$$"
 $tm -f /dev/null new-session -d -s m -x 120 -y 40 "$bin"
 sleep 2
-if [ $mode = list ]; then $tm send-keys -t m ':jql project = GCM' Enter; sleep 3; fi
+# list: open the first board of the start picker (Down, Enter) as idle-frames.sh does, then check issue keys show
+if [ $mode = list ]; then
+  $tm send-keys -t m Down Enter; sleep 4
+  $tm capture-pane -p -t m | grep -q 'GCM-' || echo "WARNING: no issue keys on screen, the list did not load"
+fi
 pid=$(pgrep -n -f "^$bin")
 snap() { for t in /proc/$pid/task/*; do echo "$(basename $t) $(awk '{print $14+$15}' $t/stat) $(awk '/^voluntary/{print $2}' $t/status) $(cat $t/comm | tr ' ' _)"; done; }
 snap > $w/a; sleep 20; snap > $w/b
