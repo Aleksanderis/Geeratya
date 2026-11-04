@@ -175,8 +175,8 @@ public sealed partial class ColumnsBodyRenderer
         spans.Add(new StyledSpan(star, starRole));
         spans.Add(new StyledSpan(label, IssueTypeRole.For(issue.IssueType)));
 
-        var chip = issue.IsListed ? StatusChip(issue.Status) : string.Empty;
-        var cut = chip.Length > 0 ? tail.TrimEnd().LastIndexOf(chip, StringComparison.Ordinal) : -1;
+        var trimmed = tail.TrimEnd();
+        var cut = issue.IsListed && trimmed.EndsWith(']') ? trimmed.LastIndexOf('[') : -1;
 
         if (cut < 0)
         {
@@ -184,6 +184,8 @@ public sealed partial class ColumnsBodyRenderer
 
             return;
         }
+
+        var chip = trimmed[cut..];
 
         // A listed sub-task shows its status as a bracketed chip in the colour of its category (#645).
         spans.Add(new StyledSpan(tail[..cut], text));
@@ -260,7 +262,13 @@ public sealed partial class ColumnsBodyRenderer
 
         if (issue.IsListed)
         {
-            initials = StatusChip(issue.Status);
+            // A long status is cut to keep the chip before the type name gives way (#645).
+            var chipRoom = width - TextWidth.Of(issue.Key) - 1 - MinTypeName - 1;
+            var chip = StatusChip(issue.Status);
+
+            initials = TextWidth.Of(chip) <= chipRoom || chipRoom < 5
+                ? chip
+                : $"[{CardText.Shorten(issue.Status.Name, chipRoom - 2)}]";
         }
 
         if (issue.Estimate is not null)
