@@ -127,6 +127,9 @@ public sealed partial class AppReducer
             PaletteCommands.Assign => FormOpener.Assign(normal),
             PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
+            _ when IsDoneCutoffCommand(text) => DoneCutoffPicker.Command(
+                normal,
+                text[PaletteCommands.DoneCutoff.Length..].Trim()),
             _ when IsQuickFilterCommand(text) => BoardViewOptions.FilterCommand(
                 normal,
                 text["quickfilter".Length..].Trim()),
@@ -167,6 +170,12 @@ public sealed partial class AppReducer
         var key = text["browse".Length..].Trim().ToUpperInvariant();
 
         return key.Length == 0 ? null : key;
+    }
+
+    private static bool IsDoneCutoffCommand(string text)
+    {
+        return text == PaletteCommands.DoneCutoff
+            || text.StartsWith($"{PaletteCommands.DoneCutoff} ", StringComparison.Ordinal);
     }
 
     private static bool IsQuickFilterCommand(string text)

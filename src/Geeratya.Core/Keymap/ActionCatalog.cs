@@ -28,6 +28,7 @@ public static class ActionCatalog
         [ActionIds.ViewLayoutToggle] = ActionScope.Lists,
         [ActionIds.ViewQuickFilter] = ActionScope.Columns | ActionScope.Backlog,
         [ActionIds.ViewSwimlane] = ActionScope.Columns,
+        [ActionIds.ViewDoneCutoff] = ActionScope.Columns,
         [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
         [ActionIds.IssueOpenParent] = ActionScope.Detail,
         [ActionIds.IssueEdit] = ActionScope.Views,
@@ -115,6 +116,9 @@ public static class ActionCatalog
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.ViewQuickFilter, "Cycle the quick filter of the board (off, then each filter in turn)"),
         new(ActionIds.ViewSwimlane, "Group the board columns into lanes (none, assignee, epic)"),
+        new(
+            ActionIds.ViewDoneCutoff,
+            "Pick how long this Kanban board keeps Done issues (1 to 4 weeks, all, or follow Jira)"),
         new(ActionIds.ViewSavedOpen, "Open a saved view in a new tab"),
         new(ActionIds.ViewSavedSave, "Save this view under a name (opens :view save)"),
         new(ActionIds.ViewCycleCommandLevel, "Switch the command level for the session"),

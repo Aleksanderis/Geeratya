@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>T   Show a list of open tabs                                       ▲│           │
-│           │ > All actions │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
-│           │   Commands    │ Navigate                                                                     │           │
+│           │   Global      │   <space>c   Close the tab                                                  ▲│           │
+│           │ > All actions │   <space>T   Show a list of open tabs                                        │           │
+│           │   Commands    │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
+│           │               │ Navigate                                                                     │           │
 │           │               │   j          Move down  (Down)                                               │           │
 │           │               │   k          Move up  (Up)                                                   │           │
 │           │               │   h          Move left  (Left)                                               │           │
@@ -29,8 +30,7 @@
 │           │               │   <space>a   Open the actions menu of the selected issue                     │           │
 │           │               │   <space>n   Show the message history                                        │           │
 │           │               │   <space>x   Dismiss the status message                                      │           │
-│           │               │   <space>,   Open or close the settings screen                               │           │
-│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings  ▼│           │
+│           │               │   <space>,   Open or close the settings screen                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

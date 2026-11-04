@@ -33,7 +33,8 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
                 tab.ActiveQuickFilters.Count == 0 ? null : tab.ActiveQuickFilters,
                 tab.Swimlane == SwimlaneKind.None ? null : tab.Swimlane.ToString(),
                 tab.Swimlane == SwimlaneKind.None ? null : tab.Lane,
-                tab.Name))
+                tab.Name,
+                tab.DoneCutoffChoice))
             .ToArray();
 
         var active = session.Tabs.ToList().FindIndex(tab => tab.Id == session.Active);
@@ -106,6 +107,7 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             && left.Swimlane == right.Swimlane
             && left.Lane == right.Lane
             && left.Name == right.Name
+            && left.DoneCutoff == right.DoneCutoff
             && (left.QuickFilters ?? []).SequenceEqual(right.QuickFilters ?? []);
     }
 
@@ -124,7 +126,19 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             tab.QuickFilters ?? [],
             swimlane,
             swimlane == SwimlaneKind.None ? null : tab.Lane,
-            TabNames.Clean(tab.Name));
+            TabNames.Clean(tab.Name),
+            ValidChoice(tab.DoneCutoff));
+    }
+
+    // A choice from a file is one the picker offers; anything else follows Jira.
+    private static int? ValidChoice(int? days)
+    {
+        if (days is { } choice && (choice == DoneCutoff.AllDays || DoneCutoff.ChoiceDays.Contains(choice)))
+        {
+            return choice;
+        }
+
+        return null;
     }
 
     private static bool TryParse<TEnum>(string? text, out TEnum value)

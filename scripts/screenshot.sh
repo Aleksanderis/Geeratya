@@ -47,6 +47,10 @@ all_scenarios=(
   "sprint-points;120;36;dark;:board GEN| sv|;5p"
   "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."
   "sprint-goal;120;36;dark;:board GEN| sv| sg;Sprint goal"
+  # done-cutoff*: the recorded Kanban board 4 (the fake serves the recorded gateway chain: Jira says 14 days); the picker
+  # opens the palette on the Done cutoff rows
+  "done-cutoff;120;36;dark;:board GCM|;Done (14d)"
+  "done-cutoff-picker;120;36;dark;:board GCM| vd;2 weeks, from Jira)"
   "list-selection;120;36;dark;:jql project = GCM|^^jvjj;2 selected"
   "jql-history;120;36;dark;:jql project = GCM|:jql|;Recent"
   "palette;120;36;dark;:jql project = GCM|:;Commands"

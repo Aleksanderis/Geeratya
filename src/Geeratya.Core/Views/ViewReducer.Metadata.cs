@@ -194,6 +194,7 @@ public static partial class ViewReducer
                     Swimlane = entry.Swimlane,
                     Lane = entry.Lane,
                     Name = entry.Name,
+                    DoneCutoffChoice = entry.DoneCutoff,
                 });
         }
 
@@ -259,7 +260,7 @@ public static partial class ViewReducer
             return state;
         }
 
-        return Replace(state, tab with { DoneCutoffDays = applied.Days });
+        return Replace(state, tab with { DoneCutoffDays = applied.Days, CutoffSource = applied.Source });
     }
 
     /// <summary>The approximate count of a JQL source; ignored when the tab is gone or is not a JQL source.</summary>

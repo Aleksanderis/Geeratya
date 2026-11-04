@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.State;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
@@ -88,9 +89,14 @@ public sealed record BacklogBecameScrum(TabId Tab, long RequestId) : ViewCommand
 
 /// <summary>
 /// The board load applies Jira's Done cutoff (a Kanban board): older Done issues are not requested. Applied only while
-/// <paramref name="RequestId"/> is the tab's current request.
+/// <paramref name="RequestId"/> is the tab's current request. <paramref name="Source"/> says which of the choice,
+/// Jira's own value and the setting <paramref name="Days"/> came from.
 /// </summary>
-public sealed record DoneCutoffApplied(TabId Tab, long RequestId, int Days) : ViewCommand;
+public sealed record DoneCutoffApplied(
+    TabId Tab,
+    long RequestId,
+    int Days,
+    DoneCutoffSource Source = DoneCutoffSource.Setting) : ViewCommand;
 
 /// <summary>
 /// The host's clock tick (once a second while a tab is active). The reducer decides from it whether the active tab

@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Alt-4      Go to tab 4                                                    ▲│           │
-│           │ > All actions │   Alt-5      Go to tab 5                                                     │           │
-│           │   Commands    │   Alt-6      Go to tab 6                                                     │           │
+│           │   Global      │   Alt-3      Go to tab 3                                                    ▲│           │
+│           │ > All actions │   Alt-4      Go to tab 4                                                     │           │
+│           │   Commands    │   Alt-5      Go to tab 5                                                     │           │
+│           │               │   Alt-6      Go to tab 6                                                     │           │
 │           │               │   Alt-7      Go to tab 7                                                     │           │
 │           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
@@ -29,8 +30,7 @@
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog or    │           │
 │           │               │              issue section                                                   │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
-│           │               │ General                                                                      │           │
-│           │               │   ?          Show or hide help                                              ▼│           │
+│           │               │ General                                                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

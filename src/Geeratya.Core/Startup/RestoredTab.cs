@@ -9,4 +9,5 @@ public sealed record RestoredTab(
     IReadOnlyList<long> QuickFilters,
     SwimlaneKind Swimlane,
     string? Lane,
-    string? Name = null);
+    string? Name = null,
+    int? DoneCutoff = null);

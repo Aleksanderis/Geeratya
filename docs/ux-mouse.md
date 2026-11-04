@@ -102,6 +102,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `view.layout-toggle` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `view.quick-filter` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `view.swimlane` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `view.done-cutoff` | V | Item of the menu of the tab and the view, on a loaded Kanban board (right-click on a tab or the status line, `<space>A`): same as its key (opens the Done cutoff picker) |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.open-parent` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.edit` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |

@@ -12,6 +12,8 @@ namespace Geeratya.Core.Startup;
 /// <param name="Swimlane">The <see cref="Boards.SwimlaneKind"/> by name.</param>
 /// <param name="Lane">The key of the lane shown, or null.</param>
 /// <param name="Name">The name the user gave the tab (<c>tab.rename</c>), or null for the source label.</param>
+/// <param name="DoneCutoff">The quick choice of the Done cutoff of a Kanban board (<c>view.done-cutoff</c>): days,
+/// 0 for all, or null to follow Jira.</param>
 public sealed record RememberedTab(
     string Source,
     string SourceValue,
@@ -20,4 +22,5 @@ public sealed record RememberedTab(
     IReadOnlyList<long>? QuickFilters = null,
     string? Swimlane = null,
     string? Lane = null,
-    string? Name = null);
+    string? Name = null,
+    int? DoneCutoff = null);
