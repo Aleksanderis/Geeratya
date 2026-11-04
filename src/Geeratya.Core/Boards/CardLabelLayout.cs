@@ -74,6 +74,7 @@ public static class CardLabelLayout
     private static List<CardLabelRow> Close(List<List<CardLabelChip>> rows, int hidden, int width)
     {
         var result = new List<CardLabelRow>();
+        var lastFilled = rows.FindLastIndex(static row => row.Count > 0);
 
         for (var index = 0; index < rows.Count; index++)
         {
@@ -82,7 +83,7 @@ public static class CardLabelLayout
                 continue;
             }
 
-            var last = index == rows.Count - 1;
+            var last = index == lastFilled;
             var fits = Width(rows[index]) + 1 + DisplayWidth.Of($"+{hidden}") <= width;
 
             result.Add(new CardLabelRow(rows[index], hidden > 0 && last && fits ? hidden : 0));

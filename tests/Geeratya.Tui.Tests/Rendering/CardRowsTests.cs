@@ -50,6 +50,22 @@ public class CardRowsTests
         Assert.Equal("[a-very-lo…]", Text(row).TrimEnd());
     }
 
+    [Theory]
+    [InlineData("Highest", "▲", TextRole.PriorityHigh)]
+    [InlineData("Major", "=", TextRole.PriorityMedium)]
+    [InlineData("Medium", "=", TextRole.PriorityMedium)]
+    [InlineData("Minor", "▼", TextRole.PriorityLow)]
+    [InlineData("Trivial", "▼", TextRole.PriorityLow)]
+    public void GivenAPriority_WhenBuildingTheBottomRow_ThenTheGlyphHasItsOwnRole(
+        string priority,
+        string glyph,
+        TextRole role)
+    {
+        var row = CardRows.Bottom(Issue() with { Priority = priority }, false, 32, TextRole.Body);
+
+        Assert.Equal(role, row.Single(span => span.Text == glyph).Role);
+    }
+
     [Fact]
     public void GivenAnAssignee_WhenBuildingTheBottomRow_ThenKeyTypeWordPriorityAndInitialsChipShow()
     {

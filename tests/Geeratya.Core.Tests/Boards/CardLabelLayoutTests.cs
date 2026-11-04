@@ -61,6 +61,16 @@ public class CardLabelLayoutTests
         Assert.Equal(2, row.Hidden);
     }
 
+    [Fact]
+    public void GivenASecondRowThatCannotHoldAChip_WhenLayingOut_ThenTheHiddenCountStaysOnTheLastFilledRow()
+    {
+        var rows = CardLabelLayout.Rows(["aaaa", "bbbb", "cccc"], 6);
+
+        var row = Assert.Single(rows);
+        Assert.Equal(["[aaaa]"], row.Chips.Select(static chip => chip.Text));
+        Assert.Equal(0, row.Hidden);
+    }
+
     private static int Width(CardLabelRow row)
     {
         var chips = row.Chips.Sum(static chip => DisplayWidth.Of(chip.Text)) + Math.Max(0, row.Chips.Count - 1);
