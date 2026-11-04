@@ -214,7 +214,8 @@ public static class PaletteTable
                 Foreground16(theme, spec),
                 Background16(theme, spec),
                 spec.Style,
-                IsOnPage(spec));
+                IsOnPage(spec),
+                spec.Ground == RoleGround.OnBar);
         }
 
         return entries;

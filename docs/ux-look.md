@@ -167,7 +167,7 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 | Quiet box | `border` role | bright black / gray | plain | `+ - \|` |
 | Focused chip | accent fill, chip text | cyan/blue fill, black text, bold | reversed, bold | plain `- text -` in an edge, bracketed only in the bars (section 10) |
 | Dim chip | muted on page | bright black on default | plain | plain, muted |
-| Selected row | `selection` tint | white on blue (focused), underlined (unfocused, as in Gitunia) | reversed + `>` in the padding column (unfocused: underlined) | `>` marker |
+| Selected row | `selection` tint | white on blue | reversed + `>` in the padding column | `>` marker |
 | Visual range row | `selection` tint moved towards the accent, bold, own colours kept | reverse video (black on gray; white on black on a light theme), bold | reversed, bold, `+` in the second cell (same reversal as the selected row, the `+` and the underline on the cursor row tell them apart) | `+` marker |
 | Bars | `barBackground` | blue (black on light themes), white text, hint keys bright yellow | reversed | unchanged |
 | Overlay box | accent frame, the theme's own page colour as fill | bright cyan frame, default background | bold frame | `+ - \|` frame |

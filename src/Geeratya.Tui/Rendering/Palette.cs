@@ -54,7 +54,7 @@ public static class Palette
 
                 return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry), keep);
             case ColorSupport.Basic16:
-                var plain = entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
+                var plain = !entry.IsBar16 && entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
                 var faint = dim && plain && faintSupported;
                 var named = dim && plain && !faintSupported ? Ansi16Color.DarkGray : entry.Foreground16;
 
