@@ -21,4 +21,4 @@
 ├─ Comments ───────────────────────────────────────────────────────────────────┤
 │>No comments.                                                             ... │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Bot    j/k scroll  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Bot     j/k field  ? help  : commands  q quit

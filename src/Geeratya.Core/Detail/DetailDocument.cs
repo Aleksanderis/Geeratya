@@ -23,6 +23,15 @@ public sealed record DetailDocument(
     /// <summary>The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).</summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneRightTitles { get; init; } = [];
 
+    /// <summary>The line ranges that are one cursor stop each (a wrapped field), ascending; other lines are their own stop.</summary>
+    public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
+
+    /// <summary>The block that holds <paramref name="line"/>, null when the line stands alone.</summary>
+    public LineBlock? BlockAt(int line)
+    {
+        return Blocks.FirstOrDefault(block => line >= block.Start && line < block.End);
+    }
+
     /// <summary>The index of the section that holds <paramref name="line"/>; a shared edge line still belongs to the pane above it.</summary>
     public int SectionAt(int line)
     {
@@ -56,6 +65,8 @@ public sealed record DetailDocument(
     /// <summary>The stop at <paramref name="line"/>, else the first one below it, else the last one.</summary>
     public int Snap(int line)
     {
-        return Stops.Count == 0 ? 0 : Stops.FirstOrDefault(stop => stop >= line, Stops[^1]);
+        var from = BlockAt(line)?.Start ?? line;
+
+        return Stops.Count == 0 ? 0 : Stops.FirstOrDefault(stop => stop >= from, Stops[^1]);
     }
 }

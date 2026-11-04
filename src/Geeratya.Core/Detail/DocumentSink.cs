@@ -14,6 +14,8 @@ internal sealed class DocumentSink
     private readonly List<int> _edges = [];
     private readonly List<IReadOnlyList<StyledSpan>> _titles = [];
     private readonly List<IReadOnlyList<StyledSpan>> _rightTitles = [];
+    private readonly List<LineBlock> _blocks = [];
+    private readonly HashSet<int> _skipped = [];
 
     public List<StyledLine> Lines { get; } = [];
 
@@ -44,15 +46,23 @@ internal sealed class DocumentSink
         {
             _targets[first + index] = content.Targets[index];
         }
+
+        _blocks.AddRange(content.Blocks.Select(block => new LineBlock(first + block.Start, first + block.End)));
+        _skipped.UnionWith(content.Skipped.Select(line => first + line));
     }
 
     public DetailDocument ToDocument(int width)
     {
         Pad();
 
-        var stops = Enumerable.Range(0, Lines.Count).Where(line => !_edges.Contains(line)).ToArray();
+        var stops = Enumerable.Range(0, Lines.Count).Where(line => !_edges.Contains(line) && !_skipped.Contains(line) && !InsideBlock(line)).ToArray();
 
-        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles, PaneRightTitles = _rightTitles };
+        return new DetailDocument(width, Lines, _targets, _sections, stops) { PaneTitles = _titles, PaneRightTitles = _rightTitles, Blocks = _blocks };
+    }
+
+    private bool InsideBlock(int line)
+    {
+        return _blocks.Any(block => line > block.Start && line < block.End);
     }
 
     private void Pad()
@@ -70,6 +80,32 @@ internal sealed class PanelContent
     public List<StyledLine> Lines { get; } = [];
 
     public List<DetailTarget?> Targets { get; } = [];
+
+    /// <summary>Line ranges (content line numbers) that are one cursor stop each, such as a wrapped field.</summary>
+    public List<LineBlock> Blocks { get; } = [];
+
+    /// <summary>Content lines the cursor never rests on (the gap between fields).</summary>
+    public HashSet<int> Skipped { get; } = [];
+
+    /// <summary>Appends the lines as one cursor stop that opens <paramref name="target"/>.</summary>
+    public void AddBlock(IReadOnlyList<StyledLine> lines, DetailTarget target)
+    {
+        var start = Lines.Count;
+
+        foreach (var line in lines)
+        {
+            Add(line, target);
+        }
+
+        Blocks.Add(new LineBlock(start, Lines.Count));
+    }
+
+    /// <summary>Appends a line the cursor skips.</summary>
+    public void AddGap(StyledLine line)
+    {
+        Skipped.Add(Lines.Count);
+        Add(line);
+    }
 
     public void Add(StyledLine line, DetailTarget? target = null)
     {

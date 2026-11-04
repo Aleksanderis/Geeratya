@@ -3,9 +3,12 @@
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────────── In Progress ─╮
 │>Fix login redirect after token refresh                                                                           ... │
 │                                                                                                                      │
-│ Status    In Progress ▾                                    Priority  High ▾                                          │
-│ Assignee  Jane Doe ▾                                       Reporter  Ola Nordmann                                    │
-│ Labels    auth, bug-bash ▾                                 Parent    GCM-17 Reporting overhaul                       │
+│ Status    In Progress ▾                                                                                              │
+│ Priority  High ▾                                                                                                     │
+│ Assignee  Jane Doe ▾                                                                                                 │
+│ Reporter  Ola Nordmann                                                                                               │
+│ Labels    auth, bug-bash ▾                                                                                           │
+│ Parent    GCM-17 Reporting overhaul                                                                                  │
 │ Updated   2 h ago                                                                                                    │
 ├─ Description ────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Heading one                                                                                                          │
@@ -29,8 +32,5 @@
 │                                                                                                                      │
 │ ```csharp                                                                                                            │
 │ var x = 1;                                                                                                           │
-│ Console.WriteLine(x);                                                                                                │
-│ ```                                                                                                                  │
-│                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Top    j/k scroll  Enter open  Esc back  <space>o browser  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Top                  j/k field  Enter edit/open  Esc back  ? help  : commands  q quit

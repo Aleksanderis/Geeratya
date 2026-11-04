@@ -193,3 +193,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **UI:** `Ctrl-t` and `Ctrl-w r` keep Gitunia's meaning (new tab, tab prefix) although they shadow vim's tag-pop and window prefix. Why: same keys as Gitunia, nothing else uses them here. `<space>j` (flash jump to a visible row, #578) is built now, and the command-line start target (#577) is wanted; `--profile` stays out (no such option).
 
 **UI:** The Settings screen is a popup over the dimmed view (Help-style `OverlayBox`), not a full-body screen (#677, owner feedback); this reverses the full-body choice of #556 in `ux-look.md`. Controls follow Gitunia's look (`[x]`, `[value ▾]`, list under the row); number and path-list controls and the `/` filter are not built because Geeratya has no such settings or feature.
+
+## 2026-11-04 (issue detail as a form, #678)
+
+**UI:** The issue detail's fields are one cursor stop each (one per row, a wrapped value still one stop) and `Enter` edits the focused field through the existing paths; `Tab` stays tab-next and `i`/`e` stay unbound. The work is two PRs (fields, then sections) and the mock-up was posted on the issue without waiting for the owner (the owner is never the bottleneck). Why: the earlier #650/#651 only changed the edit popup, so the screen the owner means is the read-only detail; `Tab` and the vim keys are taken.

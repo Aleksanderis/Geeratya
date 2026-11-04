@@ -4,16 +4,16 @@
 │>╭─ Help ───────────────────────────────────────────────────────────────────╮ │
 │ │ > Issue detail │   j          Move down  (Down)                          │ │
 │ │   Global       │   k          Move up  (Up)                              │ │
-├─│   All actions  │   gg         Go to the top  (Home)                      │─┤
+│ │   All actions  │   gg         Go to the top  (Home)                      │ │
 │ │   Commands     │   G          Go to the bottom  (End)                    │ │
-├─│                │   Ctrl-d     Page down  (PageDown)                      │─┤
-│ │                │   Ctrl-u     Page up  (PageUp)                          │ │
-├─│                │   <space>a   Open the actions menu of the selected      │─┤
-│ │                │              issue                                      │ │
-╰─│                │   Enter      Open the selected item                     │─╯
-  │                │   ]]         Next section of the issue or the Scrum     │  
-  │                │              backlog                                    │  
-  │                │   [[         Previous section of the issue or the       │  
+│ │                │   Ctrl-d     Page down  (PageDown)                      │ │
+├─│                │   Ctrl-u     Page up  (PageUp)                          │─┤
+│ │                │   <space>a   Open the actions menu of the selected      │ │
+├─│                │              issue                                      │─┤
+│ │                │   Enter      Open the selected item                     │ │
+├─│                │   ]]         Next section of the issue or the Scrum     │─┤
+│ │                │              backlog                                    │ │
+╰─│                │   [[         Previous section of the issue or the       │─╯
   │                │              Scrum backlog                              │  
   │                │   <space>o   Open the issue in the browser              │  
   │                │   <space>p   Open the parent issue                      │  

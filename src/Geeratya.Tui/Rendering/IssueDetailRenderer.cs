@@ -35,11 +35,14 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var shown = Math.Max(0, Math.Min(rows, document.Lines.Count - first));
         var lines = new List<StyledLine>(height);
         var focused = document.Sections.Count == 0 ? -1 : document.SectionAt(top.Cursor);
+        var block = document.BlockAt(top.Cursor);
 
         for (var index = first; index < first + shown; index++)
         {
             var drawn = Focus(document, index, focused);
-            var line = index == top.Cursor ? CursorLine(drawn) : drawn;
+            var line = block is not null && index >= block.Start && index < block.End
+                ? FieldLine(drawn, index == block.Start)
+                : index == top.Cursor ? CursorLine(drawn) : drawn;
 
             lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(line) : line);
         }
@@ -132,6 +135,18 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return new StyledLine(line.Spans.Select(static span => span with { Role = TextRole.Selected }).ToArray());
+    }
+
+    /// <summary>
+    /// A row of the focused field: the whole row between the borders in the selected role (label, value and padding), so
+    /// a wrapped value reads as one bar; the first row also carries the <c>&gt;</c> mark, so focus is not colour alone.
+    /// </summary>
+    private static StyledLine FieldLine(StyledLine line, bool first)
+    {
+        var marked = first ? CursorLine(line) : line;
+        var spans = marked.Spans.Select(static span => IsBorderSpan(span) ? span : span with { Role = TextRole.Selected });
+
+        return new StyledLine(spans.ToArray());
     }
 
     /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>

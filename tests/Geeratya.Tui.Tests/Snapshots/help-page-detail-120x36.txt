@@ -4,16 +4,16 @@
 │>Summary   ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │ > Issue detail │   j          Move down  (Down)                                              │           │
 │ Status    │   Global       │   k          Move up  (Up)                                                  │           │
-├─ Descripti│   All actions  │   gg         Go to the top  (Home)                                          │───────────┤
-│ Loading…  │   Commands     │   G          Go to the bottom  (End)                                        │           │
-├─ Remote li│                │   Ctrl-d     Page down  (PageDown)                                          │───────────┤
-│ Loading…  │                │   Ctrl-u     Page up  (PageUp)                                              │           │
-├─ Comments │                │   <space>a   Open the actions menu of the selected issue                    │───────────┤
-│ Loading…  │                │   Enter      Open the selected item                                         │           │
-╰───────────│                │   ]]         Next section of the issue or the Scrum backlog                 │───────────╯
-            │                │   [[         Previous section of the issue or the Scrum backlog             │            
-            │                │   <space>o   Open the issue in the browser                                  │            
-            │                │   <space>p   Open the parent issue                                          │            
+│ Priority  │   All actions  │   gg         Go to the top  (Home)                                          │           │
+│ Assignee  │   Commands     │   G          Go to the bottom  (End)                                        │           │
+│ Labels    │                │   Ctrl-d     Page down  (PageDown)                                          │           │
+├─ Descripti│                │   Ctrl-u     Page up  (PageUp)                                              │───────────┤
+│ Loading…  │                │   <space>a   Open the actions menu of the selected issue                    │           │
+├─ Remote li│                │   Enter      Open the selected item                                         │───────────┤
+│ Loading…  │                │   ]]         Next section of the issue or the Scrum backlog                 │           │
+├─ Comments │                │   [[         Previous section of the issue or the Scrum backlog             │───────────┤
+│ Loading…  │                │   <space>o   Open the issue in the browser                                  │           │
+╰───────────│                │   <space>p   Open the parent issue                                          │───────────╯
             │                │   <space>ie  Edit fields of the issue (summary, labels, priority,           │            
             │                │              description)                                                   │            
             │                │   <space>ia  Assign the issue: search people, or unassign                   │            

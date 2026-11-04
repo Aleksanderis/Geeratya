@@ -25,6 +25,12 @@ public static class FormOpener
         return Open(state, null);
     }
 
+    /// <summary>Enter on a field of the issue detail: the edit form limited to <paramref name="fieldId"/>.</summary>
+    public static ReduceResult EditField(AppState state, string fieldId)
+    {
+        return Open(state, fieldId);
+    }
+
     /// <summary><c>:priority</c>: the edit form limited to the priority.</summary>
     public static ReduceResult Priority(AppState state)
     {
