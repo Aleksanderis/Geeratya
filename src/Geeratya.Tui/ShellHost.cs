@@ -129,6 +129,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         application.Keyboard.KeyDown += OnKeyDown;
         application.Paste += OnPaste;
         application.Mouse.MouseEvent += OnMouse;
+        application.Iteration += OnIteration;
 
         var startTheme = StartTheme();
 
@@ -217,6 +218,16 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private void OnRateLimitChanged(DateTimeOffset? until)
     {
         Post(new LinkChanged(SiteLink.FromRateLimit(until)));
+    }
+
+    /// <summary>
+    /// Terminal.Gui sets "cursor needs update" on every focus change and never clears it, so each main-loop iteration
+    /// (25 a second) hid the cursor again and moved it home (<c>ESC[1;1H ESC[?25l</c>): an idle screen was never quiet
+    /// (#744). The shell never shows the hardware cursor (the driver hides it at start), so there is nothing to update.
+    /// </summary>
+    private void OnIteration(object? sender, EventArgs<IApplication?> eventArgs)
+    {
+        _application?.Driver?.SetCursorNeedsUpdate(false);
     }
 
     private void OnKeyDown(object? sender, Key key)

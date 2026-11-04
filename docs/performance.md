@@ -200,6 +200,20 @@ Idle timer expiries by cause:
 
 The library accounts for 75 of the 76 expiries a second, so there is nothing cheap left to fix on our side; the switches per expiry are not split by cause (not measured). Lowering `Application.MaximumIterationsPerSecond` to 10 was tried: 6 805 and 7 086 switches per 20 s against 8 664 and 8 926 (about 20 % fewer, more than the main-loop share alone predicts, because each iteration also runs a size query and a draw check) and 1 and 3 ticks against 6 and 4, which is within the noise of the machine load (other agents were building). It costs a slower first key after a pause, so it was not applied; whether an idle governor pays off is #624. For comparison only: Gitunia measured the same library at 25/s 1.04 % and 10/s 0.91 % on another workload and a 45 s window, so those figures are not comparable with the ones above.
 
+## Idle output (#744)
+
+Owner report: Ghostty at about 380 % CPU and Hyprland at 160 % with geeratya idle (Foot calm). Cause: Terminal.Gui 2.5.0 sets "cursor needs update" on every focus change and never clears it, so `ApplicationNavigation.UpdateCursor` hid the cursor and moved it home in every main-loop iteration (`ESC[1;1H ESC[?25l`, 25 a second), although no cell changed. Not a layout or draw loop: `LayoutAndDraw` found nothing dirty and wrote no cells. Fix: `ShellHost.OnIteration` clears the flag on every iteration (the shell never shows the hardware cursor; the driver hides it at start).
+
+Measured with `scripts/idle-frames.sh <binary> <fake url> [start|list] [seconds]` (Native AOT binary in a 120x36 pty under `script`, fake Jira with the recorded fixtures, window of 10 s after the screen settled; `MOTION=1` adds 10 pointer-move reports a second over the body):
+
+| Case | Before (`main` `90f7625b`) | After |
+|---|---|---|
+| Start screen, 10 s idle | 2 988 bytes, 248 frames (cursor-home repaints) | 0 bytes, 0 frames |
+| Loaded list (`:jql project = GCM`), 10 s idle | 2 988 bytes, 249 frames | 0 bytes, 0 frames |
+| Loaded list, 10 s of pointer moves | not measured | 0 bytes, 0 frames |
+
+Mouse mode: Terminal.Gui enables `?1003h` (any-event) itself and offers no switch for `?1002h`. Geeratya uses plain moves for the tab hover (`ShellHost.OnHover`, which returns at once below the tab row when no tab is hovered), so `?1003h` is needed; a pointer move costs no output. Ghostty CPU was not measured here (no Ghostty in the agent environment); the owner's check is on the issue.
+
 ## Kanban Done cutoff (#674)
 
 A Kanban board no longer loads Done issues whose status category changed more than N days ago (Jira's own "Hide done work items after", else the setting `board.done-cutoff`, default 14, #681; `statusCategory != Done OR statusCategoryChangedDate >= -14d OR (statusCategoryChangedDate is EMPTY AND updated >= -14d)` on the board call). Effect by construction: pages requested = ceil(matching issues / 100), so a board with 2 000 old Done issues and 60 current ones drops from 21 requests (and 2 060 rows against the 10 000 rows per tab cap) to 1 request and 60 rows. Not measured against a live board: the dev site's Done issues are few, and the fake Jira serves recorded pages regardless of `jql`.
