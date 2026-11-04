@@ -4,13 +4,18 @@ using Geeratya.Platform.Browser;
 namespace Geeratya.App;
 
 /// <summary>Runs <see cref="OpenUrlEffect"/> through the platform launcher and reports the outcome.</summary>
-public sealed class BrowserEffectHandler
+public sealed class BrowserEffectHandler : ILocalEffectHandler
 {
     private readonly IBrowserLauncher _launcher;
 
     public BrowserEffectHandler(IBrowserLauncher launcher)
     {
         _launcher = launcher;
+    }
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is OpenUrlEffect;
     }
 
     /// <summary>The command that reports the outcome, or null when the effect is not an open-URL effect.</summary>

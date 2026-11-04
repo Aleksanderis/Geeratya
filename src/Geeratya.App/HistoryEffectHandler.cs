@@ -8,7 +8,7 @@ namespace Geeratya.App;
 /// Runs the history effects (read, remember, clear the profile's history file). A file that cannot be written is
 /// ignored: history is a convenience and never a reason to fail or to show an error.
 /// </summary>
-public sealed class HistoryEffectHandler
+public sealed class HistoryEffectHandler : ILocalEffectHandler
 {
     private readonly HistoryStore _store;
     private readonly object _gate = new();
@@ -17,6 +17,16 @@ public sealed class HistoryEffectHandler
     public HistoryEffectHandler(HistoryStore store)
     {
         _store = store;
+    }
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is LoadHistoryEffect or RecordHistoryEffect or ClearHistoryEffect;
+    }
+
+    public Task<Command?> RunAsync(Effect effect, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Run(effect));
     }
 
     /// <summary>The command that reports the stored history, or null when the effect is not a history effect.</summary>

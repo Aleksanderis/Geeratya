@@ -11,7 +11,7 @@ namespace Geeratya.App;
 /// Runs the profile effects of the reducer (secret store and profile file) and answers with the command that
 /// reports the result. Tokens are only handed to the store; no message ever contains one.
 /// </summary>
-public sealed class ProfileEffectHandler
+public sealed class ProfileEffectHandler : ILocalEffectHandler
 {
     private const string NoStoreSeveralProfilesHint =
         "GEERATYA_TOKEN works for a single profile only, so several profiles need a secret store";
@@ -31,6 +31,12 @@ public sealed class ProfileEffectHandler
     {
         _services = services;
         _transports = transports ?? new DefaultTransportFactory();
+    }
+
+    public bool CanRun(Effect effect)
+    {
+        return effect is AddProfileEffect or RemoveProfileEffect or SaveProfilesEffect or UpdateProfileEffect
+            or TestProfileEffect or LoadTokenSourcesEffect;
     }
 
     /// <summary>The command that reports the outcome, or null when the effect is not a profile effect.</summary>
