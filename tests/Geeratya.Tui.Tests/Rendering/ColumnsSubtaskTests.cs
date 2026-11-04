@@ -1,5 +1,7 @@
 using Geeratya.App.Tests.Fakes;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
+using Geeratya.Core.Writes;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
@@ -173,6 +175,67 @@ public class ColumnsSubtaskTests
 
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.Contains(lines, line => line.Contains("v Sub-tasks", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenAnExpandedCard_WhenDrawing_ThenEachSubtaskShowsItsStatusAsAChipInTheCategoryColour(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a");
+
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var spans = frame.Body.SelectMany(line => line.Spans).ToList();
+
+        foreach (var row in Listed(state))
+        {
+            Assert.Contains(spans, span => span.Text == $"[{row.Status.Name}]" && span.Role == StatusRoles.Of(row.Status));
+        }
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenTheCursorOnAListedSubtask_WhenPressingTheStatusKey_ThenThePickerOpensForThatSubtask(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a", "j");
+        var subtask = ColumnsNavigation.SelectedIssue(Active(state))!;
+
+        var result = _reducer.Reduce(Press(state, "Space", "i"), new KeyPressed("s"));
+
+        Assert.True(subtask.IsListed);
+        var form = Assert.IsType<TransitionPickTarget>(Active(result.State).Form!.Target);
+        Assert.Equal(subtask.Key, form.IssueKey);
+        Assert.Equal(subtask.Key, Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects)).Target.IssueKey);
+    }
+
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenAListedSubtask_WhenItsTransitionIsWritten_ThenTheChipShowsTheNewStatusAtOnce(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a", "j");
+        var subtask = ColumnsNavigation.SelectedIssue(Active(state))!;
+        var target = new IssueStatus("999", "Zebra", StatusCategoryKeys.Done);
+        var request = new TransitionRequest(
+            subtask.Key,
+            new TransitionChoice("1", "Zebra", target, false, false, []),
+            [],
+            false);
+
+        var started = _reducer.Reduce(state, new WriteRequested(Active(state).Id, request, DateTimeOffset.UnixEpoch));
+
+        var shown = Listed(started.State).Single(row => row.Key == subtask.Key);
+        Assert.Equal("Zebra", shown.Status.Name);
+        Assert.Contains(
+            FrameBuilder.BuildStyled(started.State, Width, Height, _keymap)!.Body.SelectMany(line => line.Spans),
+            span => span.Text == "[Zebra]" && span.Role == StatusRoles.Of(target));
     }
 
     [Fact]

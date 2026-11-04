@@ -4,7 +4,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Detail;
 
 /// <summary>The text role of a status, by its category.</summary>
-internal static class StatusRoles
+public static class StatusRoles
 {
     public static TextRole Of(IssueStatus status)
     {

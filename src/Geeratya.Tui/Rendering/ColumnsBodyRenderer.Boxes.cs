@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
@@ -173,7 +174,27 @@ public sealed partial class ColumnsBodyRenderer
 
         spans.Add(new StyledSpan(star, starRole));
         spans.Add(new StyledSpan(label, IssueTypeRole.For(issue.IssueType)));
-        spans.Add(new StyledSpan(tail, text));
+
+        var chip = issue.IsListed ? StatusChip(issue.Status) : string.Empty;
+        var cut = chip.Length > 0 ? tail.TrimEnd().LastIndexOf(chip, StringComparison.Ordinal) : -1;
+
+        if (cut < 0)
+        {
+            spans.Add(new StyledSpan(tail, text));
+
+            return;
+        }
+
+        // A listed sub-task shows its status as a bracketed chip in the colour of its category (#645).
+        spans.Add(new StyledSpan(tail[..cut], text));
+        spans.Add(new StyledSpan(chip, StatusRoles.Of(issue.Status)));
+        spans.Add(new StyledSpan(tail[(cut + chip.Length)..], text));
+    }
+
+    /// <summary>The status of a listed sub-task as <c>[Name]</c>: readable without colour too.</summary>
+    private static string StatusChip(IssueStatus status)
+    {
+        return $"[{status.Name}]";
     }
 
     /// <summary>
@@ -239,7 +260,7 @@ public sealed partial class ColumnsBodyRenderer
 
         if (issue.IsListed)
         {
-            initials = issue.Status.Name;
+            initials = StatusChip(issue.Status);
         }
 
         if (issue.Estimate is not null)
