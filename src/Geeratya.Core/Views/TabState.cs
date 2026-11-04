@@ -193,6 +193,9 @@ public sealed record TabState(
     /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
     public string? Lane { get; init; }
 
+    /// <summary>The columns last built for this tab (a cache, see <see cref="ColumnsMemo"/>).</summary>
+    public ColumnsMemo Columns { get; init; } = new();
+
     /// <summary>
     /// The tab came back from the remembered tabs and has not loaded from the network yet: a board that no longer
     /// exists drops it instead of showing an error.
