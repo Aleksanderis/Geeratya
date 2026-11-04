@@ -20,6 +20,9 @@ namespace Geeratya.Core.Views;
 /// issues that reached Done longer ago than this; 0 shows every Done issue. It is the last fallback.</param>
 /// <param name="DoneCutoffChoice">The tab's quick choice (<c>view.done-cutoff</c>): days, 0 for all, null for none.
 /// It wins over what Jira says and over the setting. Stamped like <paramref name="DoneCutoffDays"/>.</param>
+/// <param name="PinnedCutoff">Set on the later pages of a Kanban board load: the days and source the first page
+/// applied, so every page of one load is cut by the same value even if Jira's answer expires or is retried in
+/// between (#699). Null on the first page; stamped by <c>AppReducer</c> from the tab.</param>
 public sealed record LoadViewPageEffect(
     TabId Tab,
     ViewDefinition Definition,
@@ -29,4 +32,10 @@ public sealed record LoadViewPageEffect(
     bool Background,
     string? ExtraJql = null,
     int DoneCutoffDays = DoneCutoff.DefaultDays,
-    int? DoneCutoffChoice = null) : Effect;
+    int? DoneCutoffChoice = null,
+    PinnedCutoff? PinnedCutoff = null) : Effect;
+
+/// <summary>The Done cutoff the first page of a board load applied, carried to its later pages.</summary>
+/// <param name="Days">The days; 0 for none.</param>
+/// <param name="Source">Where the days came from.</param>
+public sealed record PinnedCutoff(int Days, DoneCutoffSource Source);
