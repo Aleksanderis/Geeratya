@@ -84,6 +84,8 @@ Only on the owner's dev site, opt-in, never part of the review or CI gate; rules
 
 ## Scripts without a PowerShell variant
 
+The Linux test run also parses every `scripts/*.ps1` with pwsh (`PowerShellScriptSyntaxTests`); it is skipped when pwsh is not installed, so CI needs pwsh for it to count.
+
 Bash only, on purpose: `record-fixture.sh`, `seed-dev-site.sh` and `scrub-fixture.py` (they need the owner's dev-site token and run in the owner's or an agent's Linux session), `test-owner-feedback.sh` (needs `jq` and `gh`, an orchestrator tool), `gen-display-width.py`. Bash only, no Windows variant planned: `screenshot.sh` (a PowerShell port was tried in #632 and dropped), `smoke-browser.sh`, `smoke-mouse-overlays.sh`, `idle-cpu.sh` (reads `/proc`). Windows has `inspect.ps1` (verified in #632: same findings as `inspect.sh`, `--changed` and globs), `measure.ps1` (default scenario, verified) and `gen-keymap-doc.ps1`. On Windows the Native AOT publish needs `vswhere.exe` on `PATH` (`C:\Program Files (x86)\Microsoft Visual Studio\Installer`) next to the VS Build Tools.
 
 ## Measurement harness

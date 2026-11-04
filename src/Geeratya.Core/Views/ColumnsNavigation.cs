@@ -150,9 +150,7 @@ public static class ColumnsNavigation
         return new ColumnSelection(
             columns[cursor.Column].Rows,
             cursor.Card,
-            columns[cursor.Column].Nested,
-            cursor.Column,
-            columns.Count);
+            columns[cursor.Column].Nested);
     }
 
     /// <summary>The columns the layout draws for the tab's rows.</summary>
