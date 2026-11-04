@@ -50,6 +50,26 @@ public class PaletteTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingHintKeyAndLabel_ThenForegroundsDiffer(
+        string name,
+        ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        // A light theme at 16 colours is bold-only: its table has no bright colour that reads on the blue bar.
+        if (tier == ColorSupport.Basic16 && theme.Variant == ThemeVariant.Light)
+        {
+            return;
+        }
+
+        var key = Palette.Resolve(theme, tier, PaletteRole.BarKey);
+        var label = Palette.Resolve(theme, tier, PaletteRole.BarMuted);
+
+        Assert.NotEqual(label.Foreground, key.Foreground);
+    }
+
     [Fact]
     public void GivenHighContrastTheme_WhenResolvingEveryRoleAtTrueColour_ThenTextReachesSevenToOne()
     {
