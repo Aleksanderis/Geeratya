@@ -88,17 +88,19 @@ public class IssueDetailSectionTests
     public void GivenALongComment_WhenOpening_ThenItIsCutAndTheCommentKeysStillFindItOnTheMoreLine()
     {
         var state = Opened(null, [Comment("7", 14)]);
-        var onMore = OnLine(state, "more lines   Enter expand");
+        var onMore = Press(state, "G").State;
 
         var target = Document(onMore).Targets[Top(onMore).Cursor]!;
 
         Assert.Equal(DetailTargetKind.Comment, target.Kind);
         Assert.Equal("7", target.Value);
+        Assert.True(target.Expands);
+        Assert.Contains("more lines   Enter expand", Text(state));
         Assert.DoesNotContain("item 14", Text(state));
 
         var expanded = Press(onMore, "Enter").State;
 
-        Assert.Contains("item 14", Text(expanded));
+        Assert.Contains("item 14", Text(Press(expanded, "G").State));
         Assert.Equal(["comment:7"], Top(expanded).Expanded);
     }
 

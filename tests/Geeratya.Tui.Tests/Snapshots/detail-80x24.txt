@@ -18,7 +18,7 @@
 │ Parent    GCM-17 Reporting overhaul                                          │
 │ Updated   2 h ago                                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments 3 ─────────────────────────────────────────────────────────────────╮
-│ Jane Doe · 1 d ago                                                           │
-│ Found it: the redirect target is dropped after the refresh.                  │
+╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
+│ Jane Doe                                                             1 d ago▲│
+│ Found it: the redirect target is dropped after the refresh.                 █│
  NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit
