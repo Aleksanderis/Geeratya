@@ -1,6 +1,7 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
+using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -73,23 +74,7 @@ public sealed partial class ColumnsBodyRenderer
 
         if (compact)
         {
-            var role = selected ? TextRole.Selected : quiet ? TextRole.SelectedDim : TextRole.Body;
-
-            var nested = group.IsNested(card);
-            var more = group.IsNested(card + 1);
-            var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, more, inner), inner);
-            var at = nested ? 2 : 1;
-
-            if (selected || quiet || line.Length < at + 1)
-            {
-                spans.Add(new StyledSpan(line, role));
-            }
-            else
-            {
-                spans.Add(new StyledSpan(line[..at], role));
-                spans.Add(new StyledSpan(line.Substring(at, 1), IssueTypeRole.For(issue.IssueType)));
-                spans.Add(new StyledSpan(line[(at + 1)..], role));
-            }
+            AddCompact(spans, issue, group, card, selected, quiet, marked, inner);
 
             return;
         }
@@ -104,9 +89,89 @@ public sealed partial class ColumnsBodyRenderer
 
         AddBoxRow(spans, issue, within, selected, marked, open, part, inner, selected || nextSelected);
 
-        if (quiet)
+        if (selected)
         {
-            Quieten(spans, first);
+            Tint(spans, first);
+        }
+
+        var firstText = part is GroupPart.None or GroupPart.First ? 1 : 0;
+
+        if (quiet && within == firstText)
+        {
+            Mark(spans, first);
+        }
+    }
+
+    /// <summary>
+    /// One-line card: only the cursor card is tinted, and it keeps the issue-type colour of its marker; a card the
+    /// cursor would land on in another column has just the quiet <c>&gt;</c>.
+    /// </summary>
+    private static void AddCompact(
+        List<StyledSpan> spans,
+        IssueSummary issue,
+        BoardColumnGroup group,
+        int card,
+        bool selected,
+        bool quiet,
+        bool marked,
+        int inner)
+    {
+        var nested = group.IsNested(card);
+        var more = group.IsNested(card + 1);
+        var line = TextWidth.Pad(CompactLine(issue, selected || quiet, marked, nested, more, inner), inner);
+        var at = nested ? 2 : 1;
+        var ground = selected ? SpanGround.Selection : SpanGround.Page;
+
+        if (line.Length < at + 1)
+        {
+            spans.Add(new StyledSpan(line, TextRole.Body, ground));
+
+            return;
+        }
+
+        var markRole = quiet ? TextRole.SelectedDim : TextRole.Body;
+
+        spans.Add(new StyledSpan(line[..1], markRole, ground));
+
+        if (at > 1)
+        {
+            spans.Add(new StyledSpan(line[1..at], TextRole.Body, ground));
+        }
+
+        spans.Add(new StyledSpan(line.Substring(at, 1), IssueTypeRole.For(issue.IssueType), ground));
+        spans.Add(new StyledSpan(line[(at + 1)..], TextRole.Body, ground));
+    }
+
+    /// <summary>
+    /// The selected card: its text and type colour sit on the selection tint (<see cref="SpanGround.Selection"/>), so
+    /// the type colour survives; the frame keeps the focus accent and the margins stay on the page.
+    /// </summary>
+    private static void Tint(List<StyledSpan> spans, int first)
+    {
+        for (var index = first + 1; index < spans.Count - 1; index++)
+        {
+            var span = spans[index];
+
+            if (span.Role == TextRole.Selected)
+            {
+                spans[index] = span with { Role = TextRole.Body, Ground = SpanGround.Selection };
+            }
+            else if (IsQuietable(span.Role))
+            {
+                spans[index] = span with { Ground = SpanGround.Selection };
+            }
+        }
+    }
+
+    /// <summary>
+    /// The quiet <c>&gt;</c> in the left margin of the first text row of the card the cursor would land on in a column
+    /// without focus; the card itself keeps its own look.
+    /// </summary>
+    private static void Mark(List<StyledSpan> spans, int first)
+    {
+        if (spans[first].Text == Blank)
+        {
+            spans[first] = new StyledSpan(SelectedMark, TextRole.SelectedDim);
         }
     }
 
@@ -114,21 +179,6 @@ public sealed partial class ColumnsBodyRenderer
     {
         return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.TypeEpic or TextRole.TypeStory
             or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask;
-    }
-
-    /// <summary>
-    /// Marks the card of a column without focus: the text and frame cells of the row become the quiet selection (the
-    /// one-cell margins on each side stay on the page).
-    /// </summary>
-    private static void Quieten(List<StyledSpan> spans, int first)
-    {
-        for (var index = first + 1; index < spans.Count - 1; index++)
-        {
-            if (IsQuietable(spans[index].Role))
-            {
-                spans[index] = spans[index] with { Role = TextRole.SelectedDim };
-            }
-        }
     }
 
     /// <summary>Where a card sits in the shared frame of a parent and its children in one column.</summary>

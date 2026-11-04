@@ -7,12 +7,12 @@
 │ │                         │ │ │                         │ │ │                         │ │ │                        │ │
 │ ├─────────────────────────┤ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
 │ │   Story GTM-12          │ │ │   Task GTM-15           │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
-│ │   Welcome screen        │ │ │   Pick a chart library  │ │ │ Story GTM-22            │ │ │ Task GTM-16            │ │
+│ │   Welcome screen        │ │ │   Pick a chart library  │ │ │ Story GTM-22            │ │>│ Task GTM-16            │ │
 │ │                         │ │ │                         │ │ │ Backlog: keyboard       │ │ │ Write the setup guide  │ │
 │ │                         │ │ │                         │ │ │ shortcuts help          │ │ │                        │ │
 │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
-│ │   Task GTM-14           │ │ ┏━ ↑ GTM-9 Seed: Onboar… ━┓ │ ┌─────────────────────────┐ │                            │
-│ │   Review onboarding     │ │ ┃ Story GTM-11         ...┃ │ │ Bug GTM-23              │ │                            │
+│>│   Task GTM-14           │ │ ┏━ ↑ GTM-9 Seed: Onboar… ━┓ │ ┌─────────────────────────┐ │                            │
+│ │   Review onboarding     │ │ ┃ Story GTM-11         ...┃ │>│ Bug GTM-23              │ │                            │
 │ │   copy                  │ │ ┃ Sign up with email      ┃ │ │ Backlog: tooltip        │ │                            │
 │ │                         │ │ ┃ ▾ Sub-tasks 1/2 ━━━───  ┃ │ │ clipped                 │ │                            │
 │ └─────────────────────────┘ │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ └─────────────────────────┘ │                            │

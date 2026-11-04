@@ -172,7 +172,7 @@ public sealed partial class ColumnsBodyRenderer
         var starRole = marked && !selected ? TextRole.Strong : text;
 
         spans.Add(new StyledSpan(star, starRole));
-        spans.Add(new StyledSpan(label, selected ? text : IssueTypeRole.For(issue.IssueType)));
+        spans.Add(new StyledSpan(label, IssueTypeRole.For(issue.IssueType)));
         spans.Add(new StyledSpan(tail, text));
     }
 

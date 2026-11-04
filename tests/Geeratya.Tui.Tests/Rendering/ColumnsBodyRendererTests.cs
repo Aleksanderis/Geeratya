@@ -138,8 +138,8 @@ public class ColumnsBodyRendererTests
         var top = body[7].Spans.First(span => span.Text.Contains('┏', StringComparison.Ordinal));
         var summary = body[9].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
         Assert.Equal(TextRole.FrameFocus, top.Role);
-        Assert.Equal(TextRole.Selected, summary.Role);
-        Assert.DoesNotContain(body[2].Spans, span => span.Role == TextRole.Selected);
+        Assert.Equal(SpanGround.Selection, summary.Ground);
+        Assert.DoesNotContain(body[2].Spans, span => span.Ground == SpanGround.Selection);
         Assert.Single(body, line => line.PlainText.Contains('┏', StringComparison.Ordinal));
         Assert.All(body.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
     }
@@ -541,21 +541,49 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenAColumnWithoutFocus_WhenRendering_ThenItsRememberedCardCarriesTheQuietSelection()
+    public void GivenAColumnWithoutFocus_WhenRendering_ThenItsRememberedCardHasOnlyTheQuietMarker()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
         var body = Render(tab, 120, 30);
+        var quiet = body.Where(line => line.Spans.Any(span => span.Role == TextRole.SelectedDim)).ToList();
 
-        Assert.Contains(body, line => HasSpan(line, TextRole.SelectedDim, "A-1"));
+        Assert.Single(quiet);
+        Assert.Equal(">", quiet[0].Spans.Single(span => span.Role == TextRole.SelectedDim).Text);
         Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
-        Assert.DoesNotContain(
-            body.Where(line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal)),
-            line => line.Spans.Any(span => span.Role.ToString().StartsWith("Type", StringComparison.Ordinal)
-                && span.Text.Contains("Task", StringComparison.Ordinal)));
+        Assert.Contains(body, line => HasSpan(line, TextRole.TypeTask, "Task"));
         Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
-        Assert.Contains(body, line => HasSpan(line, TextRole.Selected, "A-2"));
-        Assert.DoesNotContain(body, line => HasSpan(line, TextRole.SelectedDim, "A-2"));
+    }
+
+    [Fact]
+    public void GivenTheCursorCard_WhenRendering_ThenOnlyItsTextIsTintedAndKeepsTheTypeColour()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 30);
+        var tinted = body.SelectMany(line => line.Spans).Where(span => span.Ground == SpanGround.Selection).ToList();
+
+        Assert.Contains(tinted, span => span.Role == TextRole.TypeTask && span.Text == "Task");
+        Assert.All(tinted, span => Assert.NotEqual(TextRole.Selected, span.Role));
+        Assert.All(
+            body.Where(line => !line.PlainText.Contains("A-2", StringComparison.Ordinal)
+                && !line.PlainText.Contains("Summary", StringComparison.Ordinal)),
+            line => Assert.DoesNotContain(line.Spans.Skip(1).Take(5), span => span.Ground == SpanGround.Selection));
+    }
+
+    [Fact]
+    public void GivenACompactBoard_WhenRendering_ThenOnlyTheCursorCardIsTintedWithItsTypeColourAndOthersHaveTheMarker()
+    {
+        var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
+
+        var body = Render(tab, 120, 8);
+        var line = body.Single(row => row.Spans.Any(span => span.Ground == SpanGround.Selection));
+
+        Assert.Contains("A-1", line.PlainText, StringComparison.Ordinal);
+        Assert.Contains("A-2", line.PlainText, StringComparison.Ordinal);
+        Assert.Contains(line.Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Selection);
+        Assert.Contains(line.Spans, span => span.Role == TextRole.SelectedDim && span.Text == ">");
+        Assert.Contains(line.Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Page);
     }
 
     private static bool HasSpan(StyledLine line, TextRole role, string text)
@@ -612,7 +640,7 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenATaskCard_WhenRendering_ThenOnlyItsTypeNameCarriesTheTypeRoleUnlessSelected()
+    public void GivenATaskCard_WhenRendering_ThenOnlyItsTypeNameCarriesTheTypeRoleAndTheSelectedCardKeepsItOnTheTint()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2")) with { SelectedKey = "A-2" };
 
@@ -620,7 +648,8 @@ public class ColumnsBodyRendererTests
 
         var plain = body[3].Spans.Single(span => span.Role == TextRole.TypeTask);
         Assert.Equal("Task", plain.Text);
-        Assert.DoesNotContain(body[8].Spans, span => span.Role == TextRole.TypeTask);
+        Assert.Equal(SpanGround.Page, plain.Ground);
+        Assert.Contains(body[8].Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Selection);
         Assert.Equal(120, TextWidth.Of(body[3].PlainText));
     }
 
@@ -631,7 +660,7 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 20, 30);
 
-        var line = body.Single(l => l.Spans.Any(span => span.Role == TextRole.TypeTask));
+        var line = body.First(l => l.Spans.Any(span => span.Role == TextRole.TypeTask));
         Assert.Equal(20, TextWidth.Of(line.PlainText));
     }
 
