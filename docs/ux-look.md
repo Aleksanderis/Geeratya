@@ -63,7 +63,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-The detail stays one scrolling document with one cursor: the panes are how that document is drawn, the `Top/NN%/Bot` ruler is in the status bar, `j`/`k` cross from one pane to the next, `Ctrl-j`/`Ctrl-k` jump between panes, and the focused pane is the one holding the cursor. Inner scroll per pane, the sidebar and zoom come with later M7 issues.
+The detail stays one scrolling document with one cursor: the panes are how that document is drawn, the `Top/NN%/Bot` ruler is in the status bar, `j`/`k` cross from one pane to the next, `Ctrl-j`/`Ctrl-k` jump between panes, and the focused pane is the one holding the cursor. Inner scroll per pane (Comments, #703), the sidebar (#704) and zoom (#705, the section strip is `ChipFocus` for the current section and `Muted` for the others) are built; the Description's inner scroll is #729.
 
 **Backlog (Scrum and Kanban).** Panes are the sprint sections and the Backlog section, stacked; each pane's chip carries the sprint name and state, its right-hand chip dates and points:
 

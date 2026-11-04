@@ -16,4 +16,7 @@ public enum HintScope
     /// <summary>The columns layout with the cursor on a card that lists sub-tasks (or on one of them).</summary>
     ColumnsSubtasks,
     Detail,
+
+    /// <summary>The issue detail with one pane zoomed (#705).</summary>
+    DetailZoomed,
 }

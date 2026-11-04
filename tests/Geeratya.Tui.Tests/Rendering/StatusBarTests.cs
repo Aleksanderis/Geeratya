@@ -414,6 +414,18 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenTheDetail_WhenListingItsHints_ThenZoomIsNamedAndTheZoomedScreenNamesUnzoomAndSections()
+    {
+        Assert.Contains("<space>z zoom", StatusBar.ScreenHintsFor(HintScope.Detail, _keymap));
+
+        var zoomed = StatusBar.ScreenHintsFor(HintScope.DetailZoomed, _keymap);
+
+        Assert.Contains("<space>z unzoom", zoomed);
+        Assert.Contains("Ctrl-l/Ctrl-h section", zoomed);
+        Assert.DoesNotContain("<space>z zoom", zoomed);
+    }
+
+    [Fact]
     public void GivenARemappedBrowserKey_WhenRendering_ThenTheHintShowsTheNewKey()
     {
         var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Space b", ActionIds.IssueOpenInBrowser)]);
