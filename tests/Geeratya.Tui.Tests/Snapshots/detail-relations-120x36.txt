@@ -3,9 +3,12 @@
 ╭─ GCM-12 · Epic ──────────────────────────────────────────────────────────────────────────────────────── In Progress ─╮
 │ Fix login redirect after token refresh                                                                               │
 │                                                                                                                      │
-│ Status    In Progress ▾                                    Priority  High ▾                                          │
-│ Assignee  Jane Doe ▾                                       Reporter  Ola Nordmann                                    │
-│ Labels    auth, bug-bash ▾                                 Parent    GCM-17 Reporting overhaul                       │
+│ Status    In Progress ▾                                                                                              │
+│ Priority  High ▾                                                                                                     │
+│ Assignee  Jane Doe ▾                                                                                                 │
+│ Reporter  Ola Nordmann                                                                                               │
+│ Labels    auth, bug-bash ▾                                                                                           │
+│ Parent    GCM-17 Reporting overhaul                                                                                  │
 │ Updated   2 h ago                                                                                                    │
 ├─ Description ────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ No description.                                                                                                      │
@@ -30,7 +33,4 @@
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                                                                                        
-                                                                                                                        
-                                                                                                                        
- NORMAL  My open issues › GCM-12          j/k scroll  Enter open  Esc back  <space>o browser  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12      j/k field  Enter edit/open  Esc back  <space>o browser  ? help  : commands  q quit

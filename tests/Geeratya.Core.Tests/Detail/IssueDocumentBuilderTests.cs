@@ -81,12 +81,14 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenWideTerminal_WhenBuilding_ThenFieldsShareLinesAndNarrowTerminalsPutOneOnEach()
+    public void GivenAnyWidth_WhenBuilding_ThenEveryFieldHasARowOfItsOwn()
     {
         var wide = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 120));
         var narrow = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 50));
 
-        Assert.Contains(wide, line => line.Contains("Status    In Progress") && line.Contains("Priority  High"));
+        Assert.Contains("Status    In Progress ▾", wide);
+        Assert.Contains("Priority  High ▾", wide);
+        Assert.DoesNotContain(wide, line => line.Contains("Status") && line.Contains("Priority"));
         Assert.Contains("Status    In Progress ▾", narrow);
         Assert.Contains("Priority  High ▾", narrow);
     }
@@ -147,16 +149,16 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenMissingValues_WhenBuilding_ThenThoseFieldsAreOmitted()
+    public void GivenMissingValues_WhenBuilding_ThenReadOnlyFieldsAreOmittedAndEditableOnesShowAPlaceholder()
     {
         var detail = Loaded(null, []) with { Issue = Issue(null) with { Priority = null, Reporter = null, Assignee = null, Labels = [] } };
 
         var text = string.Join('\n', Texts(IssueDocumentBuilder.Build(detail, 120)));
 
-        Assert.DoesNotContain("Priority", text);
         Assert.DoesNotContain("Reporter", text);
-        Assert.DoesNotContain("Assignee", text);
-        Assert.DoesNotContain("Labels", text);
+        Assert.Contains("Priority  None ▾", text);
+        Assert.Contains("Assignee  Unassigned ▾", text);
+        Assert.Contains("Labels    none ▾", text);
     }
 
     [Fact]
@@ -280,7 +282,7 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenShortAndLongFields_WhenBuilding_ThenShortOnesPairAndTheParentKeepsItsOwnRow()
+    public void GivenALongParent_WhenBuilding_ThenEachFieldKeepsItsOwnRow()
     {
         var detail = Loaded(null, []) with
         {
@@ -289,7 +291,7 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 100));
 
-        Assert.Contains(lines, line => line.StartsWith("Status    In Progress") && line.Contains("Priority  High"));
+        Assert.Contains(lines, line => line.StartsWith("Status    In Progress"));
         Assert.Contains(lines, line => line.StartsWith("Parent    A-0 xxxx"));
     }
 

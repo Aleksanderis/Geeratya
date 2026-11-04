@@ -24,6 +24,11 @@ internal static class DetailActions
             return null;
         }
 
+        if (target.Kind == DetailTargetKind.Field)
+        {
+            return DetailFieldActions.Open(state, target.Value);
+        }
+
         return target.Kind is DetailTargetKind.Issue or DetailTargetKind.Comment ? null : OpenTarget(state, target);
     }
 
@@ -40,7 +45,7 @@ internal static class DetailActions
 
         var target = DetailReducer.TargetOf(top.Detail);
 
-        if (target is null or { Kind: DetailTargetKind.Comment })
+        if (target is null or { Kind: DetailTargetKind.Comment or DetailTargetKind.Field })
         {
             return BrowserReducer.OpenIssue(state, top.Detail.Key);
         }

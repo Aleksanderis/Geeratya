@@ -390,7 +390,7 @@ public class StatusBarTests
 
         var line = StatusBar.Render(state, 150, _keymap);
 
-        Assert.Contains("j/k scroll  Enter open  Esc back  <space>o browser  <space>p parent", line);
+        Assert.Contains("j/k field  Enter edit/open  Esc back  <space>o browser  <space>p parent", line);
         Assert.DoesNotContain("card", line);
     }
 

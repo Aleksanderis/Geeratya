@@ -35,13 +35,15 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var shown = Math.Max(0, Math.Min(rows, document.Lines.Count - first));
         var lines = new List<StyledLine>(height);
         var focused = document.Sections.Count == 0 ? -1 : document.SectionAt(top.Cursor);
+        var block = document.BlockAt(top.Cursor);
 
         for (var index = first; index < first + shown; index++)
         {
             var drawn = Focus(document, index, focused);
-            var line = index == top.Cursor ? CursorLine(drawn) : drawn;
+            var ascii = context.Glyphs == GlyphSet.Ascii;
+            var line = RowLine(drawn, index, top.Cursor, block, ascii);
 
-            lines.Add(context.Glyphs == GlyphSet.Ascii ? AsciiBorders(line) : line);
+            lines.Add(ascii ? AsciiBorders(line) : line);
         }
 
         if (!FrameGrid.CanFrame(width, height) || document.Sections.Count == 0)
@@ -132,6 +134,35 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return new StyledLine(line.Spans.Select(static span => span with { Role = TextRole.Selected }).ToArray());
+    }
+
+    private static StyledLine RowLine(StyledLine drawn, int index, int cursor, LineBlock? block, bool ascii)
+    {
+        if (block is not null && index >= block.Start && index < block.End)
+        {
+            return FieldLine(drawn, index == block.Start, ascii);
+        }
+
+        return index == cursor ? CursorLine(drawn) : drawn;
+    }
+
+    /// <summary>
+    /// A row of the focused field: the whole row between the borders in the selected role (label, value and padding), so
+    /// a wrapped value reads as one bar; the first row also carries the <c>&gt;</c> mark, so focus is not colour alone.
+    /// </summary>
+    private static StyledLine FieldLine(StyledLine line, bool first, bool ascii)
+    {
+        var marked = first ? CursorLine(line) : line;
+        var spans = marked.Spans.Select(span => IsBorderSpan(span) ? span : Focused(span, ascii));
+
+        return new StyledLine(spans.ToArray());
+    }
+
+    private static StyledSpan Focused(StyledSpan span, bool ascii)
+    {
+        var text = ascii && span.Role == TextRole.Editable ? span.Text.Replace('▾', 'v') : span.Text;
+
+        return span with { Text = text, Role = TextRole.Selected };
     }
 
     /// <summary>Swaps the panel border characters for ASCII, one cell for one cell.</summary>

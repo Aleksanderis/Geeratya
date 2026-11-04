@@ -17,9 +17,7 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 public static class IssueDocumentBuilder
 {
-    private const int PairingWidth = 60;
     private const int StackedFieldsWidth = 24;
-    private const int ColumnGap = 3;
     private const int LabelWidth = 10;
     private const string EditableMarker = " ▾";
     private const string DescriptionTitle = "Description";
@@ -79,18 +77,32 @@ public static class IssueDocumentBuilder
     private static void AddHeader(DocumentSink sink, DetailState detail, int width, int inner)
     {
         var header = HeaderFields.Of(detail);
-        var content = new List<StyledLine>();
+        var content = new PanelContent();
         var wrapped = new WrappedText(inner, false);
+        var summary = new List<StyledLine>();
 
         wrapped.Append(header.Summary, TextRole.Strong);
-        wrapped.Finish(content);
+        wrapped.Finish(summary);
+
+        if (header.Known && summary.Count > 0)
+        {
+            content.AddBlock(summary, new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Summary));
+        }
+        else
+        {
+            content.AddRange(summary);
+        }
 
         var fields = Fields(header, detail.LoadedAt, detail.EstimateLabel);
 
         if (fields.Count > 0)
         {
-            content.Add(StyledLine.Empty);
-            AddFields(content, fields, inner);
+            content.AddGap(StyledLine.Empty);
+
+            foreach (var field in fields)
+            {
+                content.AddBlock(FieldRows(field, inner), new DetailTarget(DetailTargetKind.Field, field.Id));
+            }
         }
 
         var title = new List<StyledSpan> { new(Clean(detail.Key), TextRole.Key) };
@@ -104,7 +116,7 @@ public static class IssueDocumentBuilder
             ? [new StyledSpan(Clean(current.Name), StatusRoles.Of(current))]
             : null;
 
-        sink.AddPanel(title, Wrap(content), width, status);
+        sink.AddPanel(title, content, width, status);
     }
 
     private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference, string? estimateLabel)
@@ -113,109 +125,85 @@ public static class IssueDocumentBuilder
 
         if (header.Status is { } status)
         {
-            fields.Add(new Field("Status", status.Name, StatusRoles.Of(status), true));
+            fields.Add(new Field(DetailFieldIds.Status, "Status", status.Name, StatusRoles.Of(status), true));
         }
 
-        AddField(fields, "Priority", header.Priority, true);
-        AddField(fields, "Assignee", header.Assignee, true);
-        AddField(fields, "Reporter", header.Reporter);
-        AddField(fields, "Labels", header.Labels.Count == 0 ? null : string.Join(", ", header.Labels), true);
-        AddField(fields, "Parent", header.Parent);
-        AddField(fields, "Epic", header.Epic);
-        AddField(fields, "Sprint", header.Sprint);
-        AddField(fields, string.IsNullOrWhiteSpace(estimateLabel) ? "Estimate" : Clean(estimateLabel), header.Estimate);
+        if (header.Known)
+        {
+            AddOrPlaceholder(fields, DetailFieldIds.Priority, "Priority", header.Priority, "None");
+            AddOrPlaceholder(fields, DetailFieldIds.Assignee, "Assignee", header.Assignee, "Unassigned");
+        }
+
+        AddField(fields, DetailFieldIds.Reporter, "Reporter", header.Reporter);
+
+        if (header.Known)
+        {
+            var labels = header.Labels.Count == 0 ? null : string.Join(", ", header.Labels);
+
+            AddOrPlaceholder(fields, DetailFieldIds.Labels, "Labels", labels, "none");
+        }
+
+        AddField(fields, DetailFieldIds.Parent, "Parent", header.Parent);
+        AddField(fields, DetailFieldIds.Epic, "Epic", header.Epic);
+        AddField(fields, DetailFieldIds.Sprint, "Sprint", header.Sprint, true);
+
+        var estimate = string.IsNullOrWhiteSpace(estimateLabel) ? "Estimate" : Clean(estimateLabel);
+
+        AddField(fields, DetailFieldIds.Estimate, estimate, header.Estimate, true);
 
         if (header.Updated is { } updated && reference is { } now)
         {
-            AddField(fields, "Updated", RelativeTime.Format(updated, now));
+            AddField(fields, DetailFieldIds.Updated, "Updated", RelativeTime.Format(updated, now));
         }
 
         return fields;
     }
 
-    private static void AddField(List<Field> fields, string label, string? value, bool editable = false)
+    private static void AddField(List<Field> fields, string id, string label, string? value, bool editable = false)
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
-            fields.Add(new Field(label, value, TextRole.Strong, editable));
+            fields.Add(new Field(id, label, value, TextRole.Strong, editable));
+        }
+    }
+
+    /// <summary>An editable field that always shows, so it can be set: a missing value reads as muted text.</summary>
+    private static void AddOrPlaceholder(List<Field> fields, string id, string label, string? value, string placeholder)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            fields.Add(new Field(id, label, placeholder, TextRole.Muted, true));
+        }
+        else
+        {
+            fields.Add(new Field(id, label, value, TextRole.Strong, true));
         }
     }
 
     /// <summary>
-    /// A label column of fixed width, then the value. On a wide panel two short fields share a row; a value that does
-    /// not fit half the panel gets a row of its own and wraps under its first line.
+    /// A label column of fixed width, then the value, one field per cursor stop: a value that does not fit wraps under
+    /// its first line. Below 24 inner columns the label and value run together.
     /// </summary>
-    private static void AddFields(List<StyledLine> content, List<Field> fields, int inner)
+    private static List<StyledLine> FieldRows(Field field, int inner)
     {
-        var half = (inner - ColumnGap) / 2;
-        var pairing = inner >= PairingWidth;
-        Field? held = null;
+        var content = new List<StyledLine>();
 
-        foreach (var field in fields)
-        {
-            if (pairing && field.Fits(half))
-            {
-                if (held is null)
-                {
-                    held = field;
-                }
-                else
-                {
-                    content.Add(FieldRow(held, half, field));
-                    held = null;
-                }
-
-                continue;
-            }
-
-            if (held is not null)
-            {
-                content.Add(FieldRow(held, half, null));
-                held = null;
-            }
-
-            AddFieldRows(content, field, inner);
-        }
-
-        if (held is not null)
-        {
-            content.Add(FieldRow(held, half, null));
-        }
-    }
-
-    private static StyledLine FieldRow(Field left, int half, Field? right)
-    {
-        var spans = new List<StyledSpan>();
-
-        left.AddCell(spans);
-
-        if (right is not null)
-        {
-            spans.Add(new StyledSpan(new string(' ', Math.Max(0, half + ColumnGap - left.CellWidth)), TextRole.Body));
-            right.AddCell(spans);
-        }
-
-        return new StyledLine(spans);
-    }
-
-    private static void AddFieldRows(List<StyledLine> content, Field field, int inner)
-    {
         if (inner < StackedFieldsWidth)
         {
             var stacked = new WrappedText(inner, false);
 
             stacked.Append($"{field.Label}: ", TextRole.FieldLabel);
-            stacked.Append(field.Value, field.Role);
+            stacked.Append(Clean(field.Value), field.Role);
             field.AppendMarker(stacked);
             stacked.Finish(content);
 
-            return;
+            return content;
         }
 
         var wrapped = new WrappedText(Math.Max(1, inner - LabelWidth), false);
         var rows = new List<StyledLine>();
 
-        wrapped.Append(field.Value, field.Role);
+        wrapped.Append(Clean(field.Value), field.Role);
         field.AppendMarker(wrapped);
         wrapped.Finish(rows);
 
@@ -227,6 +215,8 @@ public static class IssueDocumentBuilder
 
             content.Add(new StyledLine([lead, .. rows[index].Spans]));
         }
+
+        return content;
     }
 
     private static void AddDescription(DocumentSink sink, DetailState detail, int width, int inner)
@@ -246,7 +236,15 @@ public static class IssueDocumentBuilder
             content.AddRange(AdfRenderer.Render(detail.Issue.Description, inner).Lines);
         }
 
-        sink.AddPanel([new StyledSpan(DescriptionTitle, TextRole.Heading)], Wrap(content), width);
+        var panel = new PanelContent();
+        var target = detail.Issue is null ? null : new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Description);
+
+        foreach (var line in content)
+        {
+            panel.Add(line, target);
+        }
+
+        sink.AddPanel([new StyledSpan(DescriptionTitle, TextRole.Heading)], panel, width);
     }
 
     private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)
@@ -268,15 +266,6 @@ public static class IssueDocumentBuilder
         AddCommentsFooter(footer, detail);
         content.AddRange(footer);
         sink.AddPanel([new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
-    }
-
-    private static PanelContent Wrap(List<StyledLine> lines)
-    {
-        var content = new PanelContent();
-
-        content.AddRange(lines);
-
-        return content;
     }
 
     private static string CommentsHeading(DetailState detail)
@@ -372,34 +361,15 @@ public static class IssueDocumentBuilder
         return string.Concat(text.Select(static character => char.IsControl(character) ? ' ' : character));
     }
 
-    private sealed record Field(string Label, string Value, TextRole Role, bool Editable = false)
+    private sealed record Field(string Id, string Label, string Value, TextRole Role, bool Editable = false)
     {
+        public string PaddedLabel => Label.PadRight(LabelWidth);
+
         public void AppendMarker(WrappedText text)
         {
             if (Editable)
             {
                 text.Append(EditableMarker, TextRole.Editable);
-            }
-        }
-
-        public string PaddedLabel => Label.PadRight(LabelWidth);
-
-        /// <summary>Columns of the label and the value on one row.</summary>
-        public int CellWidth => LabelWidth + DisplayWidth.Of(Clean(Value)) + (Editable ? DisplayWidth.Of(EditableMarker) : 0);
-
-        public bool Fits(int half)
-        {
-            return CellWidth <= half;
-        }
-
-        public void AddCell(List<StyledSpan> spans)
-        {
-            spans.Add(new StyledSpan(PaddedLabel, TextRole.FieldLabel));
-            spans.Add(new StyledSpan(Clean(Value), Role));
-
-            if (Editable)
-            {
-                spans.Add(new StyledSpan(EditableMarker, TextRole.Editable));
             }
         }
     }
@@ -416,10 +386,11 @@ public static class IssueDocumentBuilder
         DateTimeOffset? Updated,
         string? Epic = null,
         string? Sprint = null,
-        string? Estimate = null)
+        string? Estimate = null,
+        bool Known = true)
     {
         private static readonly HeaderFields _empty =
-            new(string.Empty, string.Empty, null, null, null, null, [], null, null);
+            new(string.Empty, string.Empty, null, null, null, null, [], null, null, Known: false);
 
         public static HeaderFields Of(DetailState detail)
         {

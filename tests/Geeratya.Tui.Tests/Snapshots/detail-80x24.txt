@@ -3,9 +3,12 @@
 ╭─ GCM-12 · Task ──────────────────────────────────────────────── In Progress ─╮
 │>Fix login redirect after token refresh                                   ... │
 │                                                                              │
-│ Status    In Progress ▾                Priority  High ▾                      │
-│ Assignee  Jane Doe ▾                   Reporter  Ola Nordmann                │
-│ Labels    auth, bug-bash ▾             Parent    GCM-17 Reporting overhaul   │
+│ Status    In Progress ▾                                                      │
+│ Priority  High ▾                                                             │
+│ Assignee  Jane Doe ▾                                                         │
+│ Reporter  Ola Nordmann                                                       │
+│ Labels    auth, bug-bash ▾                                                   │
+│ Parent    GCM-17 Reporting overhaul                                          │
 │ Updated   2 h ago                                                            │
 ├─ Description ────────────────────────────────────────────────────────────────┤
 │ Heading one                                                                  │
@@ -17,8 +20,5 @@
 │ after break                                                                  │
 │                                                                              │
 │ Colored H_2 underlined 2026-01-01 [READY]                                    │
-│                                                                              │
-│ - bullet one                                                                 │
-│ - bullet two                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Top    j/k scroll  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit

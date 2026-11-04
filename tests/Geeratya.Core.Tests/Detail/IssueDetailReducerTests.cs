@@ -289,7 +289,7 @@ public class IssueDetailReducerTests
         Assert.Contains("The description of A-1", Text(failed));
         Assert.Contains("Jira did not answer in time. (Enter to retry)", Text(failed));
 
-        var retry = Press(state, "Enter");
+        var retry = Press(Press(state, "G").State, "Enter");
         var effect = Assert.Single(retry.Effects.OfType<LoadIssueCommentsEffect>());
         Assert.Equal(0, effect.StartAt);
         Assert.NotEqual(detail.CommentsRequest, effect.RequestId);
@@ -526,7 +526,7 @@ public class IssueDetailReducerTests
         var narrowDetail = Active(narrower).Detail[0];
         Assert.Equal(0, tallerDetail.Scroll);
         Assert.Equal(40, narrowDetail.Document!.Width);
-        Assert.True(narrowDetail.Document.Lines.Count > before.Document!.Lines.Count);
+        Assert.True(narrowDetail.Document.Lines.Count >= before.Document!.Lines.Count);
         Assert.All(narrowDetail.Document.Lines, line => Assert.True(line.PlainText.Length <= 40));
         Assert.InRange(
             narrowDetail.Scroll,
@@ -542,7 +542,7 @@ public class IssueDetailReducerTests
         Assert.Contains("Load more comments (Enter)", Text(detail));
         Assert.Equal(3, detail.NextComments);
 
-        var requested = Press(state, "Enter");
+        var requested = Press(Press(state, "G").State, "Enter");
         var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
         var again = Press(requested.State, "Enter");
         var arrived = Deliver(

@@ -24,7 +24,7 @@ internal static partial class DetailReducer
         {
             ListMove.Down => document.StopAfter(top.Cursor),
             ListMove.Up => document.StopBefore(top.Cursor),
-            ListMove.PageDown => document.Snap(top.Cursor + Math.Max(1, viewport / 2)),
+            ListMove.PageDown => PageDown(document, top.Cursor, viewport),
             ListMove.PageUp => document.StopBefore(top.Cursor - Math.Max(1, viewport / 2) + 1),
             ListMove.Top => document.Snap(0),
             _ => document.Stops.Count == 0 ? 0 : document.Stops[^1],
@@ -66,6 +66,14 @@ internal static partial class DetailReducer
         var scroll = Math.Clamp(cursor, 0, Math.Max(0, lines - viewport));
 
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = cursor, Scroll = scroll }));
+    }
+
+    /// <summary>Half a window down; a landing inside the field the cursor is on still moves past that field.</summary>
+    private static int PageDown(DetailDocument document, int cursor, int viewport)
+    {
+        var target = document.Snap(cursor + Math.Max(1, viewport / 2));
+
+        return target > cursor ? target : document.StopAfter((document.BlockAt(cursor)?.End ?? cursor + 1) - 1);
     }
 
     private static DetailState WithCursor(DetailState detail, int target, int viewport)
