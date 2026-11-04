@@ -3,8 +3,8 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// How the labels of a card are laid out as chips: <c>[label]</c> each, wrapping from the first row to a second one,
-/// then <c>+N</c> for what does not fit. A chip wider than a row is cut with an ellipsis. Pure.
+/// How the labels of a card are laid out as chips: a filled chip each (the label with one cell of padding on both sides, no brackets: the fill marks it),
+/// wrapping from the first row to a second one, then <c>+N</c> for what does not fit. A chip wider than a row is cut with an ellipsis. Pure.
 /// </summary>
 public static class CardLabelLayout
 {
@@ -12,7 +12,7 @@ public static class CardLabelLayout
     public const int MaxRows = 2;
 
     private const int MinCutChip = 4;
-    private const int ChipBrackets = 2;
+    private const int ChipPadding = 2;
 
     /// <summary>The rows for <paramref name="labels"/> in <paramref name="width"/> cells; empty without labels.</summary>
     public static IReadOnlyList<CardLabelRow> Rows(IReadOnlyList<string> labels, int width)
@@ -56,7 +56,7 @@ public static class CardLabelLayout
         var reserve = last && more > 0 ? 1 + DisplayWidth.Of($"+{labels.Count}") : 0;
         var gap = used == 0 ? 0 : 1;
         var room = width - used - gap - reserve;
-        var text = $"[{labels[index]}]";
+        var text = $" {labels[index]} ";
 
         if (DisplayWidth.Of(text) <= room)
         {
@@ -68,7 +68,7 @@ public static class CardLabelLayout
             return null;
         }
 
-        return new CardLabelChip(labels[index], $"[{CardText.Shorten(labels[index], room - ChipBrackets)}]");
+        return new CardLabelChip(labels[index], $" {CardText.Shorten(labels[index], room - ChipPadding)} ");
     }
 
     private static List<CardLabelRow> Close(List<List<CardLabelChip>> rows, int hidden, int width)

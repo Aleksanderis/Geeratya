@@ -181,10 +181,10 @@ public class ColumnsBodyRendererTests
 
         Assert.Contains("A summary", body[3].PlainText);
         Assert.Contains("enough to need", body[4].PlainText);
-        Assert.Contains("[alpha] [beta]", body[6].PlainText);
+        Assert.Contains(" alpha   beta ", body[6].PlainText);
         Assert.Contains("A-1  Task", body[8].PlainText);
         Assert.Contains("▲ [--]", body[8].PlainText);
-        Assert.Contains(body[6].Spans, span => span.Role == LabelChips.For("alpha") && span.Text == "[alpha]");
+        Assert.Contains(body[6].Spans, span => span.Role == LabelChips.For("alpha") && span.Text == " alpha ");
         Assert.Contains(body[8].Spans, span => span.Role == TextRole.UnassignedChip);
         Assert.Contains(body[8].Spans, span => span.Role == TextRole.PriorityHigh && span.Text == "▲");
         Assert.Equal(string.Empty, body[5].PlainText[2..^2].Trim('│', '┃', ' '));
@@ -216,7 +216,7 @@ public class ColumnsBodyRendererTests
         if (width >= 40)
         {
             Assert.Contains(frame, line => line.Contains("^ [JD]", StringComparison.Ordinal));
-            Assert.Contains(frame, line => line.Contains("[alpha] [a-very-long-label-name]", StringComparison.Ordinal));
+            Assert.Contains(frame, line => line.Contains(" alpha   a-very-long-label-name ", StringComparison.Ordinal));
         }
     }
 

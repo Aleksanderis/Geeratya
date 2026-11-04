@@ -37,6 +37,17 @@ public class PaletteTests
 
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
 
+    [Fact]
+    public void GivenNoColour_WhenResolvingLabelChips_ThenTheyAreReversedAndKeepNoReverseInColourTiers()
+    {
+        foreach (var role in _labelRoles)
+        {
+            Assert.True(Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, role).Style.HasFlag(RoleStyle.Reverse));
+            Assert.False(Palette.Resolve(BuiltInThemes.Default, ColorSupport.TrueColor, role).Style.HasFlag(RoleStyle.Reverse));
+            Assert.False(Palette.Resolve(BuiltInThemes.Default, ColorSupport.Basic16, role).Style.HasFlag(RoleStyle.Reverse));
+        }
+    }
+
     [Theory]
     [MemberData(nameof(ThemesAndTiers))]
     public void GivenBuiltInThemeAndTier_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(

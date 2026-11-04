@@ -363,8 +363,8 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 ```text
 ╭─ IN PROGRESS ────────── 2 / 3 limit ─╮
 │ Seed: Reporting overhaul             │
-│ [geeratya-seed]                      │
-│ [geeratya-seed-GEN-epic-reporting]   │
+│  geeratya-seed                       │
+│  geeratya-seed-GEN-epic-reporting    │
 │ GEN-1  Bug                    = [GR] │
 │                                      │
 │ Generated issue 6                    │

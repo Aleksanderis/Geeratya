@@ -4,26 +4,26 @@
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
 │ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
 │ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
-│ ┃ [geeratya-seed]         ┃ │ │ [geeratya-seed]         │ │ │ [geeratya-seed]         │ │ │ [geeratya-seed]        │ │
-│ ┃ [geeratya-seed-GTM-ep...┃ │ │ [geeratya-seed-GTM-ep…] │ │ │ [geeratya-seed-GTM-ba…] │ │ │ [geeratya-seed-GTM-s…] │ │
+│ ┃  geeratya-seed          ┃ │ │  geeratya-seed          │ │ │  geeratya-seed          │ │ │  geeratya-seed         │ │
+│ ┃  geeratya-seed-GTM-ep...┃ │ │  geeratya-seed-GTM-ep…  │ │ │  geeratya-seed-GTM-ba…  │ │ │  geeratya-seed-GTM-s…  │ │
 │ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
 │ ┃ GTM-9  Epic      = [--] ┃ │ │ GTM-10  Epic     = [--] │ │ │ GTM-21  Task     = [--] │ │ │ GTM-13  Story   = [--] │ │
 │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
 │ │   Welcome screen        │ │ │   Pick a chart library  │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
 │ │                         │ │ │                         │ │ │ Backlog: keyboard       │ │ │ Write the setup guide  │ │
-│ │   [geeratya-seed]       │ │ │   [geeratya-seed]       │ │ │ shortcuts help          │ │ │                        │ │
-│ │   [geeratya-seed-GTM-…] │ │ │   [geeratya-seed-GTM-…] │ │ │                         │ │ │ [geeratya-seed]        │ │
-│ │                         │ │ │                         │ │ │ [geeratya-seed]         │ │ │ [geeratya-seed-GTM-t…] │ │
-│ │   GTM-12  Story  = [--] │ │ │   GTM-15  Task   = [--] │ │ │ [geeratya-seed-GTM-ba…] │ │ │                        │ │
+│ │    geeratya-seed        │ │ │    geeratya-seed        │ │ │ shortcuts help          │ │ │                        │ │
+│ │    geeratya-seed-GTM-…  │ │ │    geeratya-seed-GTM-…  │ │ │                         │ │ │  geeratya-seed         │ │
+│ │                         │ │ │                         │ │ │  geeratya-seed          │ │ │  geeratya-seed-GTM-t…  │ │
+│ │   GTM-12  Story  = [--] │ │ │   GTM-15  Task   = [--] │ │ │  geeratya-seed-GTM-ba…  │ │ │                        │ │
 │ ├─────────────────────────┤ │ └─────────────────────────┘ │ │                         │ │ │ GTM-16  Task    = [--] │ │
 │ │   Review onboarding     │ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ │ GTM-22  Story    = [--] │ │ └────────────────────────┘ │
 │ │   copy                  │ │ │ Sign up with email      │ │ └─────────────────────────┘ │ ┌─ ↑ GTM-11 Sign up wi… ─┐ │
 │ │                         │ │ │                         │ │ ┌─────────────────────────┐ │ │ Build the form         │ │
-│ │   [geeratya-seed]       │ │ │ [geeratya-seed]         │ │ │ Backlog: tooltip        │ │ │                        │ │
-│ │   [geeratya-seed-GTM-…] │ │ │ [geeratya-seed-GTM-st…] │ │ │ clipped                 │ │ │ [geeratya-seed]        │ │
-│ │                         │ │ │                         │ │ │                         │ │ │ [geeratya-seed-GTM-s…] │ │
-│ │   GTM-14  Task   = [--] │ │ │ GTM-11  Story    = [--] │ │ │ [geeratya-seed]         │ │ │                        │ │
-│ └─────────────────────────┘ │ └─────────────────────────┘ │ │ [geeratya-seed-GTM-ba…] │ │ │ GTM-19  Subtask = [--] │ │
+│ │    geeratya-seed        │ │ │  geeratya-seed          │ │ │ Backlog: tooltip        │ │ │                        │ │
+│ │    geeratya-seed-GTM-…  │ │ │  geeratya-seed-GTM-st…  │ │ │ clipped                 │ │ │  geeratya-seed         │ │
+│ │                         │ │ │                         │ │ │                         │ │ │  geeratya-seed-GTM-s…  │ │
+│ │   GTM-14  Task   = [--] │ │ │ GTM-11  Story    = [--] │ │ │  geeratya-seed          │ │ │                        │ │
+│ └─────────────────────────┘ │ └─────────────────────────┘ │ │  geeratya-seed-GTM-ba…  │ │ │ GTM-19  Subtask = [--] │ │
 │                             │                             │ │                         │ │ └────────────────────────┘ │
 │                             │                             │ │ GTM-23  Bug      = [--] │ │                            │
 │                             │                             │ └─────────────────────────┘ │                            │

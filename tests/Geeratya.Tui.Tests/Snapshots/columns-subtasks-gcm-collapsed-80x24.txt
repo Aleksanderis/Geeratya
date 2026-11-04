@@ -4,18 +4,18 @@
 │ ┌──────────────────────┐ │ │   Pick a chart       │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
 │ │ Seed: Onboarding     │ │ │   library            │ │ │ Export report as   │ │
 │ │ flow                 │ │ │                      │ │ │ CSV                │ │
-│ │                      │ │ │   [geeratya-seed]    │ │ │                    │ │
-│ │ [geeratya-seed]      │ │ │   [geeratya-seed-G…] │ │ │ [geeratya-seed]    │ │
-│ │ [geeratya-seed-GCM…] │ │ │                      │ │ │ [geeratya-seed-G…] │ │
+│ │                      │ │ │    geeratya-seed     │ │ │                    │ │
+│ │  geeratya-seed       │ │ │    geeratya-seed-G…  │ │ │  geeratya-seed     │ │
+│ │  geeratya-seed-GCM…  │ │ │                      │ │ │  geeratya-seed-G…  │ │
 │ │                      │ │ │   GCM-14  Task  [--] │ │ │                    │ │
 │ │ GCM-8  Epic   = [--] │ │ └──────────────────────┘ │ │ GCM-12  Story [--] │ │
 │ ├──────────────────────┤ │ ┏━ ↑ GCM-8 Seed: Onb… ━┓ │ └────────────────────┘ │
 │ │   Welcome screen     │ │ ┃ Sign up with email   ┃ │ ┌────────────────────┐ │
 │ │                      │ │ ┃                      ┃ │ │ Write the setup    │ │
-│ │   [geeratya-seed]    │ │ ┃ [geeratya-seed]      ┃ │ │ guide              │ │
-│ │   [geeratya-seed-G…] │ │ ┃ [geeratya-seed-GCM…] ┃ │ │                    │ │
-│ │                      │ │ ┃                      ┃ │ │ [geeratya-seed]    │ │
-│ │   GCM-11  Story [--] │ │ ┃ GCM-10  Story   [--] ┃ │ │ [geeratya-seed-G…] │ │
+│ │    geeratya-seed     │ │ ┃  geeratya-seed       ┃ │ │ guide              │ │
+│ │    geeratya-seed-G…  │ │ ┃  geeratya-seed-GCM…  ┃ │ │                    │ │
+│ │                      │ │ ┃                      ┃ │ │  geeratya-seed     │ │
+│ │   GCM-11  Story [--] │ │ ┃ GCM-10  Story   [--] ┃ │ │  geeratya-seed-G…  │ │
 │ ├──────────────────────┤ │ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │ │                    │ │
 │                          │                          │ │ GCM-15  Task  [--] │ │
 │                          │                          │ └────────────────────┘ │
