@@ -215,6 +215,17 @@ public static partial class StatusBar
                 texts.Insert(Math.Min(1, texts.Count), new HintChip(PaneKeys(keymap), "pane"));
             }
 
+            if (CreatePanes.Applies(form) && form.Target is CreateFormTarget create)
+            {
+                var open = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormOpenAfter));
+                var chip = new HintChip(open ?? string.Empty, $"open after: {(create.OpenAfter ? "on" : "off")}");
+
+                texts.Insert(Math.Max(0, texts.Count - 2), chip);
+
+                // The last two (create, cancel) stay on a narrow line; the others drop from the end.
+                return new HintList(texts[..^2], texts[^2..]);
+            }
+
             return new HintList([], texts);
         }
 

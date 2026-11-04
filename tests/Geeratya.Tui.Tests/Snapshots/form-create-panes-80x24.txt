@@ -21,4 +21,4 @@
 │                                                                             ▼│
 │ Optional 2 · Optional 3 · Optional 4 · Optional 5…   Ctrl-f show more fields │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- INSERT  Create A · Task · Summary                                              
+ INSERT  Create A · Task · Summary               Ctrl-s create  Esc stop editing

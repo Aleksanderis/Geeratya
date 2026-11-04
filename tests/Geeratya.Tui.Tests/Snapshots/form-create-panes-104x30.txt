@@ -27,4 +27,4 @@
 │ │ Team                                                           │ │ Ctrl-f show more fields       │ │
 │ ╰────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯
- INSERT  Create A · Task · Summary                                                                      
+ INSERT  Create A · Task · Summary                   Tab/Shift-Tab next  Ctrl-s create  Esc stop editing

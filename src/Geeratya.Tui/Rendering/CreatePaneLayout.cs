@@ -20,6 +20,7 @@ internal sealed class CreatePaneLayout
     private const string DescriptionHint = "markdown, Enter adds a line";
     private const string NotEditableTitle = "Not editable here";
     private const string NotEditableText = "Attachments and comments are added after the issue exists.";
+    private const string OpenAfterText = "opens after create";
     private const string SavingText = "Saving…";
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string TitlePlaceholder = "What needs to be done?";
@@ -177,7 +178,9 @@ internal sealed class CreatePaneLayout
 
         rows.AddRange(Notices().Select(static line => new CreatePaneRow(line)));
 
-        return new CreatePaneSpec([heading], null, rows, focused);
+        var openAfter = create.OpenAfter ? new[] { new StyledSpan(OpenAfterText, TextRole.Muted) } : null;
+
+        return new CreatePaneSpec([heading], openAfter, rows, focused);
     }
 
     private StyledLine SummaryLine(int index, int inner)

@@ -199,6 +199,18 @@ public class CreatePaneOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenOpenAfter_WhenToggled_ThenTheTitleChipAndTheHintShowTheState()
+    {
+        var off = FrameBuilder.Build(Open(Form()), 160, 36, _keymap);
+        var on = FrameBuilder.Build(Open(Form() with { Target = Target() with { OpenAfter = true } }), 160, 36, _keymap);
+
+        Assert.Contains(off, line => line.Contains("Ctrl-g open after: off", StringComparison.Ordinal));
+        Assert.DoesNotContain(off, line => line.Contains("opens after create", StringComparison.Ordinal));
+        Assert.Contains(on, line => line.Contains("Ctrl-g open after: on", StringComparison.Ordinal));
+        Assert.Contains(on, line => line.Contains("opens after create", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenTheTypePickerOrLoading_WhenBuildingTheFrame_ThenTheSmallBoxStillShows()
     {
         var loading = FormState.Opened(Target(), 3, null);
