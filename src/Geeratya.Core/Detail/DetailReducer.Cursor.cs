@@ -27,6 +27,11 @@ internal static partial class DetailReducer
             return ViewReducer.Replace(state, ReplaceTop(tab, moved));
         }
 
+        if (MoveInDescription(state, tab, move) is { } inDescription)
+        {
+            return inDescription;
+        }
+
         if (MoveInComments(state, tab, move) is { } inComments)
         {
             return inComments;

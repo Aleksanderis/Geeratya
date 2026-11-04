@@ -208,7 +208,10 @@ public static class IssueDocumentBuilder
         var rows = detail.Zoomed == PaneIds.Description ? int.MaxValue : LongText.DescriptionRows;
         var cut = target is not null && !expanded && content.Count > rows;
 
-        LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true));
+        var textRows = LongText.DescriptionRows - 1;
+        var scroll = new PaneScroll(detail.DescriptionOffset, content.Count, textRows);
+
+        LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true, First: scroll.ClampedOffset));
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
@@ -218,8 +221,6 @@ public static class IssueDocumentBuilder
 
             return;
         }
-
-        var scroll = new PaneScroll(0, content.Count, LongText.DescriptionRows);
 
         var chip = new StyledSpan(scroll.Chip(), TextRole.Muted);
 
