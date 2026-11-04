@@ -184,6 +184,23 @@ public class IssueDocumentBuilderTests
         Assert.Contains(lines, line => line.Contains("Sprint 2 (active)") && !line.Contains("earlier"));
     }
 
+    [Theory]
+    [InlineData(null, "Due none")]
+    [InlineData("2026-12-31", "Due 2026-12-31")]
+    public void GivenLoadedIssue_WhenBuilding_ThenTheDetailsPaneShowsTheDueDateOrNone(string? due, string expected)
+    {
+        var detail = Loaded(null, []);
+        detail = detail with
+        {
+            Issue = detail.Issue! with { DueDate = due is null ? null : new DateOnly(2026, 12, 31) },
+        };
+
+        var text = string.Join('\n', Texts(IssueDocumentBuilder.Build(detail, 140)));
+
+        Assert.Contains(expected, text);
+        Assert.Contains("· Updated", text);
+    }
+
     [Fact]
     public void GivenNoSprintEstimateOrEpic_WhenBuilding_ThenThoseFieldsAreQuiet()
     {
