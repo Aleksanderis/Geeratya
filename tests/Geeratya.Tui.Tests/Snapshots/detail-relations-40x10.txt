@@ -1,10 +1,10 @@
  1 JQL My open issues   +               
                                         
-│ Labels    auth, bug-bash ▾           │
-│ Parent    GCM-17 Reporting overhaul  │
-│ Updated   2 h ago                    │
+│ 日本語のノート.txt · text/plain · 47 │
+│ B · 2 d ago                          │
+│ screenshot.png · image/png · 3.3 MiB │
+│ · 5 h ago                            │
 ╰──────────────────────────────────────╯
 ╭─ Comments ───────────────────────────╮
 │>No comments.                     ... │
-╰──────────────────────────────────────╯
  NORMAL       ? help  : commands  q quit

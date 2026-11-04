@@ -53,7 +53,8 @@ public static partial class FormReducer
     {
         var taken = Accepted(form, picked);
 
-        if (form.Fields[form.Focus].Kind != FormFieldKind.Select)
+        // A dropdown under a detail field writes as soon as a row is taken (the popup is the whole form).
+        if (form.Fields[form.Focus].Kind != FormFieldKind.Select && !(enter && form.Dropdown is not null))
         {
             return Result(Replace(state, tab, taken), tab.Id);
         }

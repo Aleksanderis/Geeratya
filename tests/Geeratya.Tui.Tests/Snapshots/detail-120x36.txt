@@ -4,33 +4,33 @@
 │  Key    T Summary                                                                     Status         Assignee        │
 │> GCM-12 T Row summary                                                                 In Progress    -               │
 │                                                                                                                      │
-│ ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────────────────────────────────────────╮ │
-│ │>Fix login redirect after token refresh                                                               In Progre...│ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
-│ ╭─ Description ──────────────────────────────────────────────────────────────────────────────────────── 1-4 of 39 ─╮ │
-│ │ Heading one                                                                                                     ▲│ │
-│ │                                                                                                                 █│ │
-│ │ Heading three                                                                                                   ░│ │
-│ │ … 36 more lines   Enter expand                                                                                  ▼│ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
-│ ╭─ Details ────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
-│ │ Status    In Progress ▾                                                                                          │ │
-│ │ Priority  High ▾                                                                                                 │ │
-│ │ Assignee  Jane Doe ▾                                                                                             │ │
-│ │ Reporter  Ola Nordmann                                                                                           │ │
-│ │ Labels    auth, bug-bash ▾                                                                                       │ │
-│ │ Parent    GCM-17 Reporting overhaul                                                                              │ │
-│ │ Updated   2 h ago                                                                                                │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
-│ ╭─ Comments 3 ────────────────────────────────────────────────────────────────────────────────────── newest first ─╮ │
-│ │ Jane Doe                                                                                                 1 d ago▲│ │
-│ │ Found it: the redirect target is dropped after the refresh.                                                     █│ │
-│ │                                                                                                                 █│ │
-│ │ 日本語の作者                                                                                             3 h ago█│ │
-│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                                                  █│ │
-│ │                                                                                                                 █│ │
-│ │ Ola Nordmann                                                                                           5 min ago░│ │
-│ │ See also café and 😀 in the second paragraph, which is long enough to wrap.                                     ▼│ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │
+│ │>Fix login redirect after token refresh                             In Progress │ │ Status  moves via transitio...│ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │
+│ ╭─ Description ────────────────────────────────────────────────────── 1-4 of 40 ─╮ │                               │ │
+│ │ Heading one                                                                   ▲│ │ Priority                      │ │
+│ │                                                                               █│ │  ▲ High                       │ │
+│ │ Heading three                                                                 ░│ │                               │ │
+│ │ … 37 more lines   Enter expand                                                ▼│ │ Assignee                      │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │  [JD] Jane Doe                │ │
+│ ╭─ Comments 3 ──────────────────────────────────────────────────── newest first ─╮ │                               │ │
+│ │ Jane Doe                                                               1 d ago │ │ Reporter                      │ │
+│ │ Found it: the redirect target is dropped after the refresh.                    │ │  [ON] Ola Nordmann            │ │
+│ │                                                                                │ │                               │ │
+│ │ 日本語の作者                                                           3 h ago │ │ Labels                        │ │
+│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │  [auth] [bug-bash]            │ │
+│ │                                                                                │ │                               │ │
+│ │ Ola Nordmann                                                         5 min ago │ │ Parent                        │ │
+│ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
+│ │                                                                                │ │                               │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │ Updated 2 h ago               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    ╰───────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12      j/k field  Enter edit/open  Esc back  <space>o browser  ? help  : commands  q quit

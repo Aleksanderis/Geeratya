@@ -36,7 +36,7 @@ public class IssueDocumentBuilderTests
 
         Assert.Equal(width, document.Width);
         Assert.All(document.Lines, line => Assert.True(DisplayWidth.Of(line.PlainText) <= width, line.PlainText));
-        Assert.True(document.Lines.Count > 20);
+        Assert.True(document.Lines.Count > 15);
     }
 
     [Theory]
@@ -68,29 +68,74 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenHeader_WhenBuilding_ThenEditableFieldsCarryMarkerAndLabelsHaveOwnRole()
+    public void GivenHeader_WhenBuilding_ThenOnlyFieldsTheEditMetadataAllowsCarryTheDropdownMark()
     {
-        var document = IssueDocumentBuilder.Build(Loaded(null, []), 120);
-        var spans = document.Lines.SelectMany(line => line.Spans).ToList();
+        var detail = Loaded(null, []) with { EditableFields = [DetailFieldIds.Priority, DetailFieldIds.Labels] };
+        var texts = Texts(IssueDocumentBuilder.Build(detail, 90));
 
-        Assert.Contains(spans, span => span.Role == TextRole.FieldLabel && span.Text.StartsWith("Status"));
-        Assert.Contains(spans, span => span.Role == TextRole.Editable && span.Text == " ▾");
-        Assert.DoesNotContain(
-            document.Lines.Where(line => line.PlainText.Contains("Reporter")),
-            line => line.Spans.Any(span => span.Role == TextRole.Editable && line.PlainText.EndsWith('▾')));
+        Assert.Contains("Status  moves via transition", texts);
+        Assert.Contains(" ● In Progress ▾", texts);
+        Assert.Contains(" ▲ High ▾", texts);
+        Assert.Contains(" [AA] Ann Assignee", texts);
+        Assert.Contains(" [RR] Rita Reporter", texts);
+        Assert.DoesNotContain(texts, text => text.Contains("Rita Reporter ▾"));
+        Assert.DoesNotContain(texts, text => text.Contains("Ann Assignee ▾"));
     }
 
     [Fact]
-    public void GivenAnyWidth_WhenBuilding_ThenEveryFieldHasARowOfItsOwn()
+    public void GivenEditMetadataNotLoadedYet_WhenBuilding_ThenOnlyTheStatusCarriesTheDropdownMark()
+    {
+        var marked = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 90)).Where(text => text.EndsWith('▾')).ToList();
+
+        Assert.Equal([" ● In Progress ▾"], marked);
+    }
+
+    [Fact]
+    public void GivenAnyWidth_WhenBuilding_ThenEveryFieldHasABlockOfItsOwn()
     {
         var wide = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 120));
         var narrow = Texts(IssueDocumentBuilder.Build(Loaded(null, []), 50));
 
-        Assert.Contains("Status    In Progress ▾", wide);
-        Assert.Contains("Priority  High ▾", wide);
+        Assert.Contains("Status  moves via transition", wide);
+        Assert.Contains("Priority", wide);
         Assert.DoesNotContain(wide, line => line.Contains("Status") && line.Contains("Priority"));
-        Assert.Contains("Status    In Progress ▾", narrow);
-        Assert.Contains("Priority  High ▾", narrow);
+        Assert.Contains("Status  moves via transition", narrow);
+        Assert.Contains("Priority", narrow);
+    }
+
+    [Fact]
+    public void GivenWideLayout_WhenBuilding_ThenDetailsIsASidebarAndNotInTheMainColumn()
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 120);
+
+        Assert.NotNull(document.Side);
+        Assert.Equal(DetailLayout.SidebarWidth, document.Side.Width);
+        Assert.DoesNotContain(PaneIds.Details, document.SectionIds);
+        Assert.Equal([PaneIds.Details], document.Side.SectionIds);
+        Assert.All(document.Lines, line => Assert.Equal(DetailLayout.MainWidth(120), DisplayWidth.Of(line.PlainText)));
+        Assert.All(document.Side.Lines, line => Assert.Equal(DetailLayout.SidebarWidth, DisplayWidth.Of(line.PlainText)));
+    }
+
+    [Theory]
+    [InlineData(99)]
+    [InlineData(80)]
+    [InlineData(50)]
+    public void GivenNarrowLayout_WhenBuilding_ThenDetailsSitsUnderTheMainPanes(int width)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, [Comment("Eve", "Text")]), width);
+
+        Assert.Null(document.Side);
+        Assert.Equal(PaneIds.Details, document.SectionIds[^1]);
+        Assert.Equal(PaneIds.Comments, document.SectionIds[^2]);
+    }
+
+    [Theory]
+    [InlineData(99, false)]
+    [InlineData(100, true)]
+    public void GivenTheSidebarThreshold_WhenAskingForASidebar_ThenItStartsAtOneHundredColumns(int width, bool expected)
+    {
+        Assert.Equal(expected, DetailLayout.HasSidebar(width));
+        Assert.Equal(expected, IssueDocumentBuilder.Build(Loaded(null, []), width).Side is not null);
     }
 
     [Fact]
@@ -110,12 +155,13 @@ public class IssueDocumentBuilderTests
             },
         };
 
-        var lines = Texts(IssueDocumentBuilder.Build(detail, 140));
+        var lines = Texts(IssueDocumentBuilder.Build(detail, 60));
 
-        Assert.Contains(lines, line => line.Contains("Sprint    Sprint 2 (active); earlier: Sprint 1"));
-        Assert.Contains(lines, line => line.Contains("Estimate  5"));
-        Assert.Contains(lines, line => line.Contains("Epic      A-0 Onboarding"));
-        Assert.DoesNotContain(lines, line => line.Contains("Parent"));
+        Assert.Contains(lines, line => line.Contains("Sprint 2 (active); earlier: Sprint 1"));
+        Assert.Contains(" 5 ▾", lines);
+        Assert.Contains("Estimate", lines);
+        Assert.Contains(" A-0 Onboarding", lines);
+        Assert.DoesNotContain("Parent", lines);
     }
 
     [Fact]
@@ -149,28 +195,33 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenMissingValues_WhenBuilding_ThenReadOnlyFieldsAreOmittedAndEditableOnesShowAPlaceholder()
+    public void GivenMissingValues_WhenBuilding_ThenReadOnlyFieldsAreOmittedAndTheOthersShowAPlaceholder()
     {
-        var detail = Loaded(null, []) with { Issue = Issue(null) with { Priority = null, Reporter = null, Assignee = null, Labels = [] } };
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with { Priority = null, Reporter = null, Assignee = null, Labels = [] },
+            EditableFields = [DetailFieldIds.Priority, DetailFieldIds.Assignee, DetailFieldIds.Labels],
+        };
 
-        var text = string.Join('\n', Texts(IssueDocumentBuilder.Build(detail, 120)));
+        var texts = Texts(IssueDocumentBuilder.Build(detail, 120));
 
-        Assert.DoesNotContain("Reporter", text);
-        Assert.Contains("Priority  None ▾", text);
-        Assert.Contains("Assignee  Unassigned ▾", text);
-        Assert.Contains("Labels    none ▾", text);
+        Assert.DoesNotContain("Reporter", texts);
+        Assert.Contains(" None ▾", texts);
+        Assert.Contains(" [--] Unassigned ▾", texts);
+        Assert.Contains(" none ▾", texts);
     }
 
     [Fact]
-    public void GivenVeryLongLabelList_WhenBuilding_ThenTheFieldWrapsInsteadOfBeingCut()
+    public void GivenVeryLongLabelList_WhenBuilding_ThenTheChipsWrapInsteadOfBeingCut()
     {
         var labels = Enumerable.Range(1, 40).Select(number => $"label-number-{number}").ToArray();
         var detail = Loaded(null, []) with { Issue = Issue(null) with { Labels = labels } };
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 60));
 
-        Assert.Contains(lines, line => line.StartsWith("Labels    label-number-1,"));
-        Assert.Contains(lines, line => line.Contains("label-number-40"));
+        Assert.Contains(lines, line => line.StartsWith(" [label-number-1] [label-number-2]"));
+        Assert.Contains(lines, line => line.Contains("[label-number-40]"));
+        Assert.All(IssueDocumentBuilder.Build(detail, 60).Lines, line => Assert.Equal(60, DisplayWidth.Of(line.PlainText)));
     }
 
     [Fact]
@@ -252,10 +303,11 @@ public class IssueDocumentBuilderTests
 
         // Every pane carries a rounded frame of its own: a top edge and a bottom edge each.
         Assert.Equal(
-            ["A-1", "Description", "Details", "Comments"],
+            ["A-1", "Description", "Comments", "Details"],
             document.PaneTitles.Select((_, index) => Title(document, index).Split(' ')[0]));
         Assert.Equal(4, lines.Count(line => line.StartsWith('╭')));
         Assert.Equal(4, lines.Count(line => line.StartsWith('╰')));
+        Assert.Null(document.Side);
         Assert.DoesNotContain(lines, line => line.StartsWith('├'));
     }
 
@@ -270,7 +322,10 @@ public class IssueDocumentBuilderTests
         var comments = new[] { Comment("日本語の作者", "日本語のコメント。これはとても長い文章です。") };
 
         var document = IssueDocumentBuilder.Build(Loaded(description, comments), width);
-        Assert.All(document.Lines, line => Assert.Equal(width, DisplayWidth.Of(line.PlainText)));
+        var main = DetailLayout.HasSidebar(width) ? DetailLayout.MainWidth(width) : width;
+
+        Assert.All(document.Lines, line => Assert.Equal(main, DisplayWidth.Of(line.PlainText)));
+        Assert.All(document.Side?.Lines ?? [], line => Assert.Equal(DetailLayout.SidebarWidth, DisplayWidth.Of(line.PlainText)));
     }
 
     [Fact]
@@ -284,7 +339,7 @@ public class IssueDocumentBuilderTests
     }
 
     [Fact]
-    public void GivenALongParent_WhenBuilding_ThenEachFieldKeepsItsOwnRow()
+    public void GivenALongParent_WhenBuilding_ThenEachFieldKeepsItsOwnBlock()
     {
         var detail = Loaded(null, []) with
         {
@@ -293,8 +348,8 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 100));
 
-        Assert.Contains(lines, line => line.StartsWith("Status    In Progress"));
-        Assert.Contains(lines, line => line.StartsWith("Parent    A-0 xxxx"));
+        Assert.Contains("Status  moves via transition", lines);
+        Assert.Contains(lines, line => line.StartsWith(" A-0 xxxx") && line.EndsWith('…'));
     }
 
     [Fact]
@@ -326,9 +381,10 @@ public class IssueDocumentBuilderTests
         return string.Concat(document.PaneTitles[pane].Select(static span => span.Text));
     }
 
+    /// <summary>The lines of the main column, then those of the sidebar when there is one.</summary>
     private static List<string> Texts(DetailDocument document)
     {
-        return [.. document.Lines.Select(static line => Inside(line.PlainText))];
+        return [.. document.Lines.Concat(document.Side?.Lines ?? []).Select(static line => Inside(line.PlainText))];
     }
 
     /// <summary>The text between the side borders; border lines stay as they are.</summary>

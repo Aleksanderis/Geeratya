@@ -51,6 +51,15 @@ internal static partial class DetailReducer
                 : null);
     }
 
+    /// <summary>The edit metadata arrived: the stacked issue of the tab with that key learns which fields are editable.</summary>
+    public static AppState EditableLoaded(AppState state, IssueEditableLoaded loaded)
+    {
+        return Update(
+            state,
+            loaded.Tab,
+            detail => IsKey(detail, loaded.Key) ? detail with { EditableFields = loaded.FieldIds } : null);
+    }
+
     public static AppState CommentsLoaded(AppState state, IssueCommentsLoaded loaded)
     {
         return Update(state, loaded.Tab, detail => AppendComments(detail, loaded));

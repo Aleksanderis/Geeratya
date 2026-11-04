@@ -20,31 +20,48 @@ internal static partial class DetailReducer
             return state;
         }
 
+        if (top.SideCursor is { } sideCursor && document.Side is { } side)
+        {
+            var moved = top with { SideCursor = Target(side, sideCursor, move, viewport) };
+
+            return ViewReducer.Replace(state, ReplaceTop(tab, moved));
+        }
+
         if (MoveInComments(state, tab, move) is { } inComments)
         {
             return inComments;
         }
 
-        var target = move switch
+        var target = Target(document, top.Cursor, move, viewport);
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
+    }
+
+    private static int Target(DetailDocument document, int cursor, ListMove move, int viewport)
+    {
+        return move switch
         {
-            ListMove.Down => document.StopAfter(top.Cursor),
-            ListMove.Up => document.StopBefore(top.Cursor),
-            ListMove.PageDown => PageDown(document, top.Cursor, viewport),
-            ListMove.PageUp => document.StopBefore(top.Cursor - Math.Max(1, viewport / 2) + 1),
+            ListMove.Down => document.StopAfter(cursor),
+            ListMove.Up => document.StopBefore(cursor),
+            ListMove.PageDown => PageDown(document, cursor, viewport),
+            ListMove.PageUp => document.StopBefore(cursor - Math.Max(1, viewport / 2) + 1),
             ListMove.Top => document.Snap(0),
             _ => document.Stops.Count == 0 ? 0 : document.Stops[^1],
         };
-
-        return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
     }
 
     /// <summary>
     /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
     /// first row of the overlay is row 0), without scrolling. Null for rows outside the document.
     /// </summary>
-    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
+    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow, int bodyColumn = 0)
     {
         var top = tab.Detail[^1];
+        if (SidePlaced(state, tab, bodyRow, bodyColumn) is { } onSide)
+        {
+            return onSide;
+        }
+
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
 
         var shown = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
@@ -55,7 +72,9 @@ internal static partial class DetailReducer
             return null;
         }
 
-        return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));
+        return ViewReducer.Replace(
+            state,
+            ReplaceTop(tab, top with { Cursor = document.Snap(line), SideCursor = null }));
     }
 
     /// <summary>
@@ -120,12 +139,18 @@ internal static partial class DetailReducer
         {
             scroll = cursor;
         }
-        else if (cursor >= scroll + viewport)
+        else if (BottomOf(detail, cursor) >= scroll + viewport)
         {
-            scroll = cursor - viewport + 1;
+            // The whole field shows, not only its first row (a field block is a label and its value rows).
+            scroll = Math.Min(cursor, BottomOf(detail, cursor) - viewport + 1);
         }
 
         return detail with { Cursor = cursor, Scroll = Math.Clamp(scroll, 0, Math.Max(0, lines - viewport)) };
+    }
+
+    private static int BottomOf(DetailState detail, int cursor)
+    {
+        return (detail.Document?.BlockAt(cursor)?.End ?? cursor + 1) - 1;
     }
 
     /// <summary>
@@ -150,14 +175,16 @@ internal static partial class DetailReducer
     /// <summary>What Enter opens on the cursor line of <paramref name="detail"/>, null on a plain line.</summary>
     public static DetailTarget? TargetOf(DetailState detail)
     {
-        var targets = detail.Document?.Targets;
+        var onSide = detail.SideCursor is not null && detail.Document?.Side is not null;
+        var targets = onSide ? detail.Document!.Side!.Targets : detail.Document?.Targets;
+        var cursor = onSide ? detail.SideCursor!.Value : detail.Cursor;
 
-        if (targets is null || detail.Cursor < 0 || detail.Cursor >= targets.Count)
+        if (targets is null || cursor < 0 || cursor >= targets.Count)
         {
             return null;
         }
 
-        return targets[detail.Cursor];
+        return targets[cursor];
     }
 
     /// <summary>
@@ -191,7 +218,8 @@ internal static partial class DetailReducer
         var row = commentsRow ?? FollowedCommentsRow(detail, width);
         var document = IssueDocumentBuilder.Build(detail, width, viewport);
         var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
-        var laidOut = Clamp(detail with { Document = document, Cursor = anchored }, listRows);
+        var side = document.Side is null ? null : SideAnchored(detail, document.Side);
+        var laidOut = Clamp(detail with { Document = document, Cursor = anchored, SideCursor = side }, listRows);
 
         return row is { } kept ? PlaceInComments(laidOut, kept, listRows, false) : laidOut;
     }

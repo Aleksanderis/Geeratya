@@ -49,3 +49,6 @@ public sealed record IssueChildrenLoaded(TabId Tab, long RequestId, IssuePage Pa
 
 /// <summary>One of the loads failed; the part is the one whose current request id matches.</summary>
 public sealed record IssueDetailFailed(TabId Tab, long RequestId, JiraError Error) : ViewCommand;
+
+/// <summary>The edit metadata of an issue arrived: the ids of the fields the account can edit on it now.</summary>
+public sealed record IssueEditableLoaded(TabId Tab, string Key, IReadOnlyList<string> FieldIds) : ViewCommand;

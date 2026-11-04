@@ -141,6 +141,7 @@ internal static partial class DetailReducer
         var cached = new CachedIssue(WriteMerge.KeepEndedFields(current, loaded.Issue), loaded.At);
 
         effects.Add(new WriteIssueCacheEffect(cached));
+        effects.Add(new LoadEditableFieldsEffect(loaded.Tab, loaded.Issue.Key));
 
         var accepted = loaded with { Issue = issue };
         var next = JumpReducer.Remember(

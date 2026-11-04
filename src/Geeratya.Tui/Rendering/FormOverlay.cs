@@ -349,7 +349,7 @@ public static partial class FormOverlay
         return tags;
     }
 
-    private static int PopupFirst(SuggestionState popup)
+    internal static int PopupFirst(SuggestionState popup)
     {
         var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
 
@@ -395,7 +395,7 @@ public static partial class FormOverlay
         return StyledLine.Of($"{new string(' ', Indent)}{text}", role);
     }
 
-    private sealed record PopupNotice(string Text, TextRole Role);
+    internal sealed record PopupNotice(string Text, TextRole Role);
 
     private sealed record RowTag(MouseTarget Target, int Index);
 

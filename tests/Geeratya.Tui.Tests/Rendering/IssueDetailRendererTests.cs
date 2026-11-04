@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
@@ -15,6 +16,7 @@ using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.RemoteLinks.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.App.Tests.Fakes;
@@ -72,12 +74,11 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        var marked = lines.Where(line => line.StartsWith("│>")).ToList();
+        var marked = lines.Where(line => line.Contains(FieldBlock.Bar)).ToList();
         Assert.Single(marked);
-        Assert.StartsWith("│>Status", marked[0]);
+        Assert.Contains("In Progress", marked[0]);
         Assert.DoesNotContain(lines, line => line.StartsWith('>'));
-        Assert.Contains(lines, line => line.StartsWith("│ Fix login"));
-        Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12"));
+        Assert.Contains(lines, line => line.StartsWith("╭─ Details"));
     }
 
     [Theory]
@@ -98,11 +99,12 @@ public class IssueDetailRendererTests
 
         var lines = new IssueDetailRenderer().Render(state, context, 80, 24);
 
-        var status = lines.Single(line => line.PlainText.Contains("Status"));
-        var priority = lines.Single(line => line.PlainText.Contains("Priority"));
-        Assert.Contains(status.Spans, span => span.Role == TextRole.Selected && span.Text.Contains("Status"));
+        var status = lines.Single(line => line.PlainText.Contains("In Progress ▾"));
+        var priority = lines.Single(line => line.PlainText.Contains("High"));
+        Assert.Contains(status.Spans, span => span.Role == TextRole.SelectionBar);
+        Assert.Contains(status.Spans, span => span.Role == TextRole.Selected && span.Text.Contains("In Progress"));
         Assert.Contains(status.Spans, span => span.Role == TextRole.Selected && span.Text.Contains('▾'));
-        Assert.DoesNotContain(priority.Spans, span => span.Role == TextRole.Selected);
+        Assert.DoesNotContain(priority.Spans, span => span.Role is TextRole.Selected or TextRole.SelectionBar);
     }
 
     [Fact]
@@ -153,13 +155,13 @@ public class IssueDetailRendererTests
         var lines = new IssueDetailRenderer().Render(state, context, 80, 24);
         var first = lines.ToList().FindIndex(line => line.PlainText.Contains("Labels"));
 
-        Assert.StartsWith("│>Labels", lines[first].PlainText);
-        Assert.DoesNotContain(lines[first + 1].PlainText, ">");
+        Assert.DoesNotContain(lines[first].Spans, span => span.Role is TextRole.Selected or TextRole.SelectionBar);
 
-        foreach (var row in lines.Skip(first).Take(2))
+        foreach (var row in lines.Skip(first + 1).Take(2))
         {
-            Assert.Contains(row.Spans, span => span.Role == TextRole.Selected && span.Text.Trim().Length > 0);
-            Assert.DoesNotContain(row.Spans, span => span.Role is TextRole.Strong or TextRole.Editable);
+            Assert.Contains(row.Spans, span => span.Role == TextRole.SelectionBar);
+            Assert.Contains(row.Spans, span => span.Role == TextRole.Selected);
+            Assert.DoesNotContain(row.Spans, span => span.Role is TextRole.ValueBlock);
         }
     }
 
@@ -170,17 +172,17 @@ public class IssueDetailRendererTests
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap, null, GlyphSet.Ascii);
 
-        Assert.Contains(lines, line => line.StartsWith("|>Status    In Progress v"));
-        Assert.DoesNotContain(lines, line => line.Contains('▾'));
+        Assert.Contains(lines, line => line.StartsWith("| >* In Progress v") || line.StartsWith("|>* In Progress v"));
+        Assert.DoesNotContain(lines, line => line.Contains('▾') || line.Contains('●'));
     }
 
     [Fact]
     public void GivenOnlyTheListRowIsKnown_WhenRendering_ThenEditableFieldsStillShowAsFormRows()
     {
-        var lines = FrameBuilder.Build(Opened(100, 24), 100, 24, _keymap);
+        var lines = FrameBuilder.Build(Opened(120, 40), 120, 40, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Priority"));
-        Assert.Contains(lines, line => line.Contains("Assignee") && line.Contains("Unassigned"));
+        Assert.Contains(lines, line => line.Contains("[--] Unassigned"));
     }
 
     [Fact]
@@ -207,8 +209,7 @@ public class IssueDetailRendererTests
         Assert.EndsWith("-+", body[2].TrimEnd());
         Assert.Contains(body, line => line.Contains("^ |") || line.Contains("# |") || line.Contains(". |"));
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
-        Assert.Contains(lines, line => line.Contains("In Progress v"));
-        Assert.DoesNotContain(lines, line => line.Contains('▾'));
+        Assert.DoesNotContain(lines, line => line.Contains('▾') || line.Contains('●'));
         Assert.All(lines, line => Assert.Equal(80, DisplayWidth.Of(line)));
     }
 
@@ -287,13 +288,18 @@ public class IssueDetailRendererTests
     public void GivenTallTerminalAndShortIssue_WhenBuilding_ThenTheLastPaneClosesDirectlyUnderItsLastLine(
         int width, int height)
     {
-        var body = Overlay(FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap), width, height);
+        var box = DetailOverlayGeometry.Place(width, FrameBuilder.BodyHeight(height));
+        var sidebar = DetailLayout.HasSidebar(box.Width);
+        var mainWidth = sidebar ? DetailLayout.MainWidth(box.Width) : box.Width;
+        var body = Overlay(FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap), width, height)
+            .Select(line => line[..mainWidth])
+            .ToList();
         var closing = body.FindLastIndex(static line => line.StartsWith('╰'));
 
         Assert.True(closing > 0);
-        Assert.True(closing < 25, $"closing edge at row {closing}");
+        Assert.True(closing < 45, $"closing edge at row {closing}");
         Assert.EndsWith("╯", body[closing]);
-        Assert.Contains("No comments", body[closing - 1]);
+        Assert.Contains(sidebar ? "No comments" : "Updated", body[closing - 1]);
         Assert.All(body.Take(closing + 1), line => Assert.Contains(line[0], "│╭╰"));
     }
 
@@ -304,13 +310,13 @@ public class IssueDetailRendererTests
 
         var body = Overlay(FrameBuilder.Build(state, 100, 60, _keymap), 100, 60);
 
-        Assert.True(body.FindLastIndex(static line => line.StartsWith('╰')) < 25);
+        Assert.True(body.FindLastIndex(static line => line.StartsWith('╰')) < 45);
     }
 
     [Fact]
     public void GivenALongIssue_WhenScrolledToTheEnd_ThenTheLastPaneClosesAtTheOverlayBottom()
     {
-        var state = _reducer.Reduce(Loaded(100, 30), new KeyPressed("G")).State;
+        var state = Keys(Loaded(100, 30), "G", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j");
 
         var body = Overlay(FrameBuilder.Build(state, 100, 30, _keymap), 100, 30);
 
@@ -360,7 +366,7 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(state, 50, 24, _keymap);
 
         Assert.All(lines, line => Assert.Equal(50, DisplayWidth.Of(line)));
-        Assert.Contains("Status    In Progress", string.Join('\n', lines));
+        Assert.Contains("GCM-12", string.Join('\n', lines));
     }
 
     [Fact]
@@ -408,6 +414,90 @@ public class IssueDetailRendererTests
 
         Assert.DoesNotContain(" Bot", lines[^1]);
         Assert.Matches(@" \d+%", lines[^1]);
+    }
+
+    [Fact]
+    public void GivenThePriorityDropdownIsOpen_WhenBuildingTheFrame_ThenItHangsUnderTheValueAndMatchesTheSnapshot()
+    {
+        AssertSnapshot(PriorityDropdown(120, 36), 120, 36, "detail-dropdown-120x36.txt");
+    }
+
+    [Fact]
+    public void GivenThePriorityDropdownIsOpen_WhenBuilding_ThenTheDetailBehindItIsNotDimmed()
+    {
+        var frame = FrameBuilder.BuildStyled(PriorityDropdown(120, 36), 120, 36, _keymap)!;
+
+        Assert.Contains(frame.Body, line => line.PlainText.Contains("> Highest"));
+        var heading = frame.Body.First(line => line.PlainText.Contains("Heading one"));
+
+        Assert.DoesNotContain(
+            heading.Spans.Where(span => span.Text.Contains("Heading one")),
+            span => span.Ground.HasFlag(SpanGround.Dim));
+    }
+
+    [Theory]
+    [InlineData(GlyphSet.Unicode)]
+    [InlineData(GlyphSet.Ascii)]
+    public void GivenThePriorityDropdownIsOpen_WhenBuildingAtAnyHeight_ThenEveryLineKeepsTheWidthAndTheRowsShow(
+        GlyphSet glyphs)
+    {
+        for (var height = 10; height <= 44; height += 2)
+        {
+            var lines = FrameBuilder.Build(PriorityDropdown(120, height), 120, height, _keymap, null, glyphs);
+
+            Assert.All(lines, line => Assert.Equal(120, DisplayWidth.Of(line)));
+            Assert.Contains(lines, line => line.Contains("Highest"));
+        }
+    }
+
+    [Fact]
+    public void GivenAFieldWithoutEditMetadata_WhenBuildingTheSidebar_ThenOnlyTheStatusBlockCarriesTheMark()
+    {
+        var lines = FrameBuilder.Build(Loaded(120, 36), 120, 36, _keymap);
+
+        Assert.Single(lines, line => line.Contains('▾'));
+    }
+
+    [Fact]
+    public void GivenFocusOnTheSidebar_WhenBuilding_ThenOnlyTheSidebarFrameIsFocusedAndTheFieldShowsTheBar()
+    {
+        var state = Keys(Loaded(120, 36), "Ctrl-l");
+
+        var body = FrameBuilder.BuildStyled(state, 120, 36, _keymap)!.Body;
+        var details = body.First(line => line.PlainText.Contains("Details"));
+
+        Assert.Contains(body, line => line.Spans.Any(span => span.Role == TextRole.SelectionBar));
+        Assert.Contains(details.Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Details"));
+        Assert.DoesNotContain(
+            body.Where(line => line.PlainText.Contains("Description")),
+            line => line.Spans.Any(span => span.Role == TextRole.ChipFocus));
+    }
+
+    private AppState PriorityDropdown(int width, int height)
+    {
+        var state = Loaded(width, height);
+        var tab = state.Session.Tabs[0];
+
+        state = _reducer.Reduce(
+            state,
+            new IssueEditableLoaded(tab.Id, "GCM-12", [DetailFieldIds.Priority, DetailFieldIds.Labels])).State;
+        state = Keys(state, "Ctrl-l", "j", "Enter");
+
+        var form = state.Session.Tabs[0].Form!;
+        FieldOption[] options =
+        [
+            new("1", "Highest"),
+            new("2", "High"),
+            new("3", "Medium"),
+            new("4", "Low"),
+            new("5", "Lowest"),
+        ];
+        var field = FormField.Create(FormFieldIds.Priority, "Priority", FormFieldKind.Select, false, options)
+            .WithInitial(FormValue.OfChosen(["2"]));
+
+        state = _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, form.RequestId, [field])).State;
+
+        return Keys(state, "Down", "Down");
     }
 
     // The rows of the detail overlay with the margin and the backdrop around it cut away.

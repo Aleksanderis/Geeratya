@@ -88,10 +88,8 @@ public static partial class ViewReducer
 
         if (tab.Detail.Count > 0)
         {
-            var placedLine = DetailReducer.PlaceCursor(
-                state,
-                tab,
-                placed.Row - DetailOverlayGeometry.Place(state.ViewportColumns, state.ViewportBodyHeight).Top);
+            var box = DetailOverlayGeometry.Place(state.ViewportColumns, state.ViewportBodyHeight);
+            var placedLine = DetailReducer.PlaceCursor(state, tab, placed.Row - box.Top, placed.Column - box.Left);
 
             return placedLine is null ? null : new ReduceResult(placedLine, _noEffects);
         }

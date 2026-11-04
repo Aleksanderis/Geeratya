@@ -14,11 +14,7 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 public static class IssueDocumentBuilder
 {
-    private const int StackedFieldsWidth = 24;
-    private const int LabelWidth = 10;
-    private const string EditableMarker = " ▾";
     private const string DescriptionTitle = "Description";
-    private const string DetailsTitle = "Details";
     private const int StatusGap = 2;
     private const string CommentsTitle = "Comments";
     private const string NewestFirstText = "newest first";
@@ -42,7 +38,9 @@ public static class IssueDocumentBuilder
     /// </param>
     public static DetailDocument Build(DetailState detail, int width, int? viewportRows = null)
     {
-        var columns = Math.Max(1, width);
+        var total = Math.Max(1, width);
+        var sidebar = DetailLayout.HasSidebar(total);
+        var columns = sidebar ? DetailLayout.MainWidth(total) : total;
         var inner = Panel.InnerWidth(columns);
         var sink = new DocumentSink();
 
@@ -56,15 +54,38 @@ public static class IssueDocumentBuilder
             error.Add(StyledLine.Of(BackText, TextRole.Muted));
             sink.AddPanel(PaneIds.Error, [new StyledSpan(ErrorTitle, TextRole.Error)], error, columns);
 
-            return sink.ToDocument(columns);
+            return sink.ToDocument(total);
         }
 
         AddDescription(sink, detail, columns, inner);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
-        AddDetails(sink, detail, columns, inner);
         var commentIds = AddComments(sink, detail, columns, inner, viewportRows);
 
-        return sink.ToDocument(columns) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
+        if (!sidebar)
+        {
+            DetailsPane.Add(sink, detail, columns, inner);
+
+            return sink.ToDocument(total) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
+        }
+
+        var side = BuildSide(detail);
+
+        return sink.ToDocument(total) with
+        {
+            Side = side.Lines.Count == 0 ? null : side,
+            ViewportRows = viewportRows,
+            CommentRowIds = commentIds,
+        };
+    }
+
+    /// <summary>The Details sidebar: a document of its own, laid out for the sidebar width.</summary>
+    private static DetailDocument BuildSide(DetailState detail)
+    {
+        var side = new DocumentSink();
+
+        DetailsPane.Add(side, detail, DetailLayout.SidebarWidth, Panel.InnerWidth(DetailLayout.SidebarWidth));
+
+        return side.ToDocument(DetailLayout.SidebarWidth);
     }
 
     private static string FailureText(string key, Failed failed)
@@ -153,129 +174,6 @@ public static class IssueDocumentBuilder
         wrapped.Finish(rows);
 
         return rows;
-    }
-
-    /// <summary>
-    /// The Details pane (until the sidebar of #704): the editable fields and the dates, one cursor stop per field.
-    /// Nothing is drawn when the issue has no fields to show.
-    /// </summary>
-    private static void AddDetails(DocumentSink sink, DetailState detail, int width, int inner)
-    {
-        var fields = Fields(HeaderFields.Of(detail), detail.LoadedAt, detail.EstimateLabel);
-
-        if (fields.Count == 0)
-        {
-            return;
-        }
-
-        var content = new PanelContent();
-
-        foreach (var field in fields)
-        {
-            content.AddBlock(FieldRows(field, inner), new DetailTarget(DetailTargetKind.Field, field.Id));
-        }
-
-        sink.AddPanel(PaneIds.Details, [new StyledSpan(DetailsTitle, TextRole.Heading)], content, width);
-    }
-
-    private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference, string? estimateLabel)
-    {
-        var fields = new List<Field>();
-
-        if (header.Status is { } status)
-        {
-            fields.Add(new Field(DetailFieldIds.Status, "Status", status.Name, StatusRoles.Of(status), true));
-        }
-
-        if (header.Known)
-        {
-            AddOrPlaceholder(fields, DetailFieldIds.Priority, "Priority", header.Priority, "None");
-            AddOrPlaceholder(fields, DetailFieldIds.Assignee, "Assignee", header.Assignee, "Unassigned");
-        }
-
-        AddField(fields, DetailFieldIds.Reporter, "Reporter", header.Reporter);
-
-        if (header.Known)
-        {
-            var labels = header.Labels.Count == 0 ? null : string.Join(", ", header.Labels);
-
-            AddOrPlaceholder(fields, DetailFieldIds.Labels, "Labels", labels, "none");
-        }
-
-        AddField(fields, DetailFieldIds.Parent, "Parent", header.Parent);
-        AddField(fields, DetailFieldIds.Epic, "Epic", header.Epic);
-        AddField(fields, DetailFieldIds.Sprint, "Sprint", header.Sprint, true);
-
-        var estimate = string.IsNullOrWhiteSpace(estimateLabel) ? "Estimate" : Clean(estimateLabel);
-
-        AddField(fields, DetailFieldIds.Estimate, estimate, header.Estimate, true);
-
-        if (header.Updated is { } updated && reference is { } now)
-        {
-            AddField(fields, DetailFieldIds.Updated, "Updated", RelativeTime.Format(updated, now));
-        }
-
-        return fields;
-    }
-
-    private static void AddField(List<Field> fields, string id, string label, string? value, bool editable = false)
-    {
-        if (!string.IsNullOrWhiteSpace(value))
-        {
-            fields.Add(new Field(id, label, value, TextRole.Strong, editable));
-        }
-    }
-
-    /// <summary>An editable field that always shows, so it can be set: a missing value reads as muted text.</summary>
-    private static void AddOrPlaceholder(List<Field> fields, string id, string label, string? value, string placeholder)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            fields.Add(new Field(id, label, placeholder, TextRole.Muted, true));
-        }
-        else
-        {
-            fields.Add(new Field(id, label, value, TextRole.Strong, true));
-        }
-    }
-
-    /// <summary>
-    /// A label column of fixed width, then the value, one field per cursor stop: a value that does not fit wraps under
-    /// its first line. Below 24 inner columns the label and value run together.
-    /// </summary>
-    private static List<StyledLine> FieldRows(Field field, int inner)
-    {
-        var content = new List<StyledLine>();
-
-        if (inner < StackedFieldsWidth)
-        {
-            var stacked = new WrappedText(inner, false);
-
-            stacked.Append($"{field.Label}: ", TextRole.FieldLabel);
-            stacked.Append(Clean(field.Value), field.Role);
-            field.AppendMarker(stacked);
-            stacked.Finish(content);
-
-            return content;
-        }
-
-        var wrapped = new WrappedText(Math.Max(1, inner - LabelWidth), false);
-        var rows = new List<StyledLine>();
-
-        wrapped.Append(Clean(field.Value), field.Role);
-        field.AppendMarker(wrapped);
-        wrapped.Finish(rows);
-
-        for (var index = 0; index < rows.Count; index++)
-        {
-            var lead = index == 0
-                ? new StyledSpan(field.PaddedLabel, TextRole.FieldLabel)
-                : new StyledSpan(new string(' ', LabelWidth), TextRole.Body);
-
-            content.Add(new StyledLine([lead, .. rows[index].Spans]));
-        }
-
-        return content;
     }
 
     private static void AddDescription(DocumentSink sink, DetailState detail, int width, int inner)
@@ -377,18 +275,5 @@ public static class IssueDocumentBuilder
     private static string Clean(string text)
     {
         return TextClean.Of(text);
-    }
-
-    private sealed record Field(string Id, string Label, string Value, TextRole Role, bool Editable = false)
-    {
-        public string PaddedLabel => Label.PadRight(LabelWidth);
-
-        public void AppendMarker(WrappedText text)
-        {
-            if (Editable)
-            {
-                text.Append(EditableMarker, TextRole.Editable);
-            }
-        }
     }
 }

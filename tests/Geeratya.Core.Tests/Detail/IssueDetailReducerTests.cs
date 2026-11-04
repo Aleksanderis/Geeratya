@@ -233,8 +233,9 @@ public class IssueDetailReducerTests
 
         var text = Text(Active(state).Detail[0]);
         Assert.Contains("A-1 · Task", text);
-        Assert.Contains("Status    To Do", text);
-        Assert.Contains("Reporter  Rita Reporter", text);
+        Assert.Contains("Status  moves via transition", text);
+        Assert.Contains("● To Do", text);
+        Assert.Contains("[RR] Rita Reporter", text);
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
         Assert.Contains("Comments 2", text);
@@ -470,7 +471,10 @@ public class IssueDetailReducerTests
         Assert.Equal(0, Active(down).Detail[0].Scroll);
         Assert.InRange(Active(page).Detail[0].Cursor, document.Stops[1] + (viewport / 2), lines);
         Assert.Contains(Active(bottom).Detail[0].Cursor, Active(bottom).Detail[0].Document!.Stops);
-        Assert.Equal(Active(bottom).Detail[0].Cursor, Active(beyond).Detail[0].Cursor);
+
+        // Under the comments (the narrow layout) the Details pane follows, so j goes on into it.
+        Assert.True(Active(beyond).Detail[0].Cursor > Active(bottom).Detail[0].Cursor);
+        Assert.Equal(PaneIds.Details, document.SectionIds[^1]);
         Assert.Equal(Active(bottom).Detail[0].CommentsOffset, Active(beyond).Detail[0].CommentsOffset);
         Assert.Equal(document.Stops[0], Active(top).Detail[0].Cursor);
         Assert.Equal(0, Active(top).Detail[0].Scroll);
@@ -875,7 +879,9 @@ public class IssueDetailReducerTests
         var titles = document.PaneTitles.Select(title => string.Concat(title.Select(span => span.Text)));
 
         // The first panel's title is drawn in the top edge of the screen frame, so it is not a document line.
-        return string.Join('\n', titles.Concat(document.Lines.Select(line => line.PlainText)));
+        var side = document.Side?.Lines ?? [];
+
+        return string.Join('\n', titles.Concat(document.Lines.Concat(side).Select(line => line.PlainText)));
     }
 
     private static IssueSummary Row(int number)

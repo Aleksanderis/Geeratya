@@ -24,7 +24,11 @@ internal static partial class DetailReducer
             return null;
         }
 
-        var rows = CommentRows.Build(top, Panel.InnerWidth(document.Width));
+        // Comments is the last pane of its column only beside the sidebar; under it (narrow) the Details pane follows,
+        // so the keys that would run past the last comment move on to it (G still lands on the last comment).
+        var last = document.SectionIds[^1] == PaneIds.Comments;
+
+        var rows = CommentRows.Build(top, Panel.InnerWidth(DetailLayout.ColumnWidth(document.Width)));
         var stops = Enumerable.Range(0, rows.Count).Where(index => rows[index].IsStop).ToArray();
         var current = row ?? -1;
         var page = Math.Max(1, (CommentsViewport(document) ?? rows.Count) / 2);
@@ -45,12 +49,12 @@ internal static partial class DetailReducer
 
         if (target < 0)
         {
-            return move == ListMove.Up ? null : state;
+            return move == ListMove.Up || !last ? null : state;
         }
 
         if (target == current)
         {
-            return move is ListMove.PageUp ? null : state;
+            return move is ListMove.PageUp || !last ? null : state;
         }
 
         var ahead = move is ListMove.Down or ListMove.PageDown or ListMove.Bottom;
@@ -98,7 +102,7 @@ internal static partial class DetailReducer
         }
 
         var offset = old - document.CommentRowIds.ToList().IndexOf(id);
-        var rows = CommentRows.Build(detail, Panel.InnerWidth(width));
+        var rows = CommentRows.Build(detail, Panel.InnerWidth(DetailLayout.ColumnWidth(width)));
         var header = CommentRows.HeaderOf(rows, id);
 
         return header < 0 ? row : Math.Min(header + offset, CommentRows.EndOf(rows, header));
@@ -129,7 +133,7 @@ internal static partial class DetailReducer
         }
 
         var section = document.SectionIds.ToList().IndexOf(PaneIds.Comments);
-        var rows = known ?? CommentRows.Build(detail, Panel.InnerWidth(document.Width));
+        var rows = known ?? CommentRows.Build(detail, Panel.InnerWidth(DetailLayout.ColumnWidth(document.Width)));
         var stop = NearestStop(rows, row);
 
         if (section < 0 || stop < 0)
@@ -180,7 +184,8 @@ internal static partial class DetailReducer
         }
 
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
-        var header = CommentRows.HeaderOf(CommentRows.Build(detail, Panel.InnerWidth(width)), target.Value);
+        var rows = CommentRows.Build(detail, Panel.InnerWidth(DetailLayout.ColumnWidth(width)));
+        var header = CommentRows.HeaderOf(rows, target.Value);
 
         return header < 0 ? null : header;
     }

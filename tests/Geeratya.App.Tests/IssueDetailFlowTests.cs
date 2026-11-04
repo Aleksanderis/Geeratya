@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -100,7 +101,13 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.Equal(LoadState.Idle, detail.LinksLoad);
         Assert.NotNull(detail.RemoteLinks);
         Assert.Equal(
-            ["/rest/api/3/field", $"{Site}/GTM-5", $"{Site}/GTM-5/comment", $"{Site}/GTM-5/remotelink"],
+            [
+                "/rest/api/3/field",
+                $"{Site}/GTM-5",
+                $"{Site}/GTM-5/comment",
+                $"{Site}/GTM-5/editmeta",
+                $"{Site}/GTM-5/remotelink",
+            ],
             _http.Requests.Select(uri => uri.AbsolutePath).Order());
     }
 
@@ -222,6 +229,82 @@ public sealed class IssueDetailFlowTests : IDisposable
         Assert.IsType<IssueDetailFailed>(_posted.ToArray()[1]);
     }
 
+    [Theory]
+    [InlineData("GCM-6", "issues/issue-gcm6.json", "comments/comments-gcm6.json", "metadata/editmeta-gcm-26.json")]
+    [InlineData(
+        "GTM-5",
+        "adf/issue-gtm5-rich-description.json",
+        "adf/comments-gtm5.json",
+        "metadata/editmeta-gtm-11.json")]
+    public async Task GivenEitherProjectKind_WhenOpened_ThenTheEditMetadataDecidesWhichDetailsFieldsAreMarkedEditable(
+        string key,
+        string issueFixture,
+        string commentsFixture,
+        string editmetaFixture)
+    {
+        _http.Fixture($"{Site}/{key}", issueFixture)
+            .Fixture($"{Site}/{key}/comment", commentsFixture)
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-empty.json")
+            .Fixture($"{Site}/{key}/editmeta", editmetaFixture)
+            .Fixture("/rest/api/3/field", "metadata/field-list.json");
+        await ConnectAsync();
+
+        var state = await OpenAsync(key);
+
+        var detail = Top(state);
+        Assert.Contains(DetailFieldIds.Priority, detail.EditableFields!);
+        Assert.Contains(DetailFieldIds.Labels, detail.EditableFields!);
+        Assert.Contains(DetailFieldIds.Assignee, detail.EditableFields!);
+        Assert.True(detail.Document!.Side!.Lines.Count(line => line.PlainText.Contains('▾')) >= 4);
+        Assert.Contains(_http.Requests, uri => uri.AbsolutePath == $"{Site}/{key}/editmeta");
+    }
+
+    [Theory]
+    [InlineData("GCM-10", "gcm10", "metadata/editmeta-gcm-26.json")]
+    [InlineData("GTM-11", "gtm11", "metadata/editmeta-gtm-11.json")]
+    public async Task GivenEitherProjectKind_WhenOpeningThePriorityDropdown_ThenTheRecordedEditMetadataFillsThePopup(
+        string key,
+        string fixture,
+        string editmetaFixture)
+    {
+        _http.Fixture($"{Site}/{key}", $"issues/issue-{fixture}.json")
+            .Fixture($"{Site}/{key}/comment", "comments/comments-empty.json")
+            .Fixture($"{Site}/{key}/remotelink", "links/remotelink-list-empty.json")
+            .Fixture($"{Site}/{key}/editmeta", editmetaFixture);
+        await ConnectAsync();
+        var state = await OpenAsync(key);
+
+        foreach (var pressed in new[] { "Ctrl-l", "j" })
+        {
+            state = _reducer.Reduce(state, new KeyPressed(pressed)).State;
+        }
+
+        var opened = await PumpAsync(state, new KeyPressed("Enter"));
+
+        var form = Tab(opened).Form!;
+        Assert.Equal(DetailFieldIds.Priority, form.Dropdown);
+        Assert.True(form.Fields.Count > 0, form.TopError);
+        Assert.Equal(DetailFieldIds.Priority, Assert.Single(form.Fields).Id);
+        Assert.NotEmpty(form.Suggest!.Items);
+    }
+
+    [Fact]
+    public async Task GivenEditMetadataFails_WhenOpened_ThenTheDetailStillShowsAndOnlyStatusIsMarked()
+    {
+        _http.Fixture($"{Site}/GCM-6", "issues/issue-gcm6.json")
+            .Fixture($"{Site}/GCM-6/comment", "comments/comments-gcm6.json")
+            .Fixture($"{Site}/GCM-6/remotelink", "links/remotelink-list-gcm6.json")
+            .Fixture($"{Site}/GCM-6/editmeta", "errors/issue-404.json", HttpStatusCode.NotFound);
+        await ConnectAsync();
+
+        var state = await OpenAsync("GCM-6");
+
+        var detail = Top(state);
+        Assert.Null(detail.EditableFields);
+        Assert.Equal(LoadState.Idle, detail.IssueLoad);
+        Assert.Equal(["▾"], detail.Document!.Side!.Lines.Where(line => line.PlainText.Contains('▾')).Select(_ => "▾"));
+    }
+
     [Fact]
     public async Task GivenCompanyManagedIssueWithComments_WhenOpened_ThenTheNoDescriptionTextAndAllCommentsShow()
     {
@@ -234,7 +317,8 @@ public sealed class IssueDetailFlowTests : IDisposable
 
         var text = Text(Top(state));
         Assert.Contains("No description.", text);
-        Assert.Contains("Parent    GCM-1", text);
+        Assert.Contains("Parent", text);
+        Assert.Contains(" GCM-1", text);
         Assert.Contains("Comments 3", text);
         Assert.Contains("Written by an inactive account", text);
         Assert.Contains("żółć 日本語", text);
@@ -285,7 +369,8 @@ public sealed class IssueDetailFlowTests : IDisposable
         var state = await OpenAsync(key);
 
         var text = Text(Top(state));
-        Assert.Contains($"Epic      {parent}", text);
+        Assert.Contains("Epic", text);
+        Assert.Contains($" {parent}", text);
         Assert.Contains("Sub-tasks 2", text);
         Assert.Contains(firstSubtask, text);
         Assert.Contains("Linked issues 2", text);
@@ -573,7 +658,9 @@ public sealed class IssueDetailFlowTests : IDisposable
 
     private static string Text(DetailState detail)
     {
-        return string.Join('\n', detail.Document!.Lines.Select(line => line.PlainText));
+        var side = detail.Document!.Side?.Lines ?? [];
+
+        return string.Join('\n', detail.Document.Lines.Concat(side).Select(line => line.PlainText));
     }
 
     private AppState ListState(string key)
@@ -625,6 +712,13 @@ public sealed class IssueDetailFlowTests : IDisposable
         return await PumpAsync(typed, new KeyPressed("Enter"));
     }
 
+    private Task StartEffect(Effect effect)
+    {
+        return effect is LoadFormMetadataEffect form
+            ? new FormMetadataHandler(_runner!).StartAsync(form)
+            : _handler!.StartAsync(effect);
+    }
+
     private async Task<AppState> PumpAsync(AppState state, Command command)
     {
         var pending = new Queue<Command>([command]);
@@ -636,7 +730,7 @@ public sealed class IssueDetailFlowTests : IDisposable
             state = result.State;
             _posted.Clear();
 
-            var runs = result.Effects.Select(effect => _handler!.StartAsync(effect)).ToList();
+            var runs = result.Effects.Select(StartEffect).ToList();
 
             await Task.WhenAll(runs);
 

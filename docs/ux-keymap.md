@@ -113,7 +113,7 @@ Checks against the M1 keys (the generated conflict test is the proof when rows a
 
 ### Panes and zoom (model built in #701, screens in #702)
 
-The pane model (focus over a grid, zoom, inner scroll, the keys below) is built and a tab without a pane grid ignores the keys; the screens that use it come with #702. Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
+The pane model (focus over a grid, zoom, inner scroll, the keys below) is built and a tab without a pane grid ignores the keys; the issue detail uses it (#702), and with the Details sidebar (#704) `Ctrl-l` focuses the sidebar and `Ctrl-h` returns to the main column. Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
 
 | Key | Action id | Does | Context |
 |---|---|---|---|

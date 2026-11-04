@@ -1,5 +1,15 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
+╭─ Sub-tasks 1 ────────────────────────────────────────────────── 0 of 1 done ─╮
+│ GCM-18  Write the migration                                            To Do │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Child issues 2 ─────────────────────────────────────────────────────────────╮
+│ GCM-21  Child story                             In Progress  [--] Unassigned │
+│ GCM-22  Another child                           In Progress  [--] Unassigned │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Linked issues 2 ────────────────────────────────────────────────────────────╮
+│ GCM-30  blocks Launch                                                  To Do │
+│ GCM-9   is blocked by Legal review                                     Done  │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Remote links 1 ─────────────────────────────────────────────────────────────╮
 │ Design spec · Confluence                                                     │
@@ -9,16 +19,6 @@
 │ 日本語のノート.txt · text/plain · 47 B · 2 d ago                             │
 │ screenshot.png · image/png · 3.3 MiB · 5 h ago                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Details ────────────────────────────────────────────────────────────────────╮
-│ Status    In Progress ▾                                                      │
-│ Priority  High ▾                                                             │
-│ Assignee  Jane Doe ▾                                                         │
-│ Reporter  Ola Nordmann                                                       │
-│ Labels    auth, bug-bash ▾                                                   │
-│ Parent    GCM-17 Reporting overhaul                                          │
-│ Updated   2 h ago                                                            │
-╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Comments ───────────────────────────────────────────────────────────────────╮
 │>No comments.                                                             ... │
-╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Bot     j/k field  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · 20%     j/k field  ? help  : commands  q quit

@@ -239,7 +239,7 @@ public static partial class FormOverlay
         return lines;
     }
 
-    private static PopupNotice? PopupStatus(SuggestionState popup)
+    internal static PopupNotice? PopupStatus(SuggestionState popup)
     {
         return popup.Status switch
         {

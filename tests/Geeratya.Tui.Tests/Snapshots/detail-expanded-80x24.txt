@@ -21,4 +21,4 @@
 │ [x] done task                                                                │
 │ [ ] todo task                                                                │
 │                                                                              │
- NORMAL  My open issues › GCM-12 · 7%      j/k field  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · 5%      j/k field  ? help  : commands  q quit

@@ -46,6 +46,12 @@ public sealed record DetailDocument(
     public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
 
     /// <summary>
+    /// The Details sidebar of a wide layout (<see cref="DetailLayout.HasSidebar"/>), drawn right of the main column
+    /// and as tall as the overlay; null when the Details pane is part of the main column.
+    /// </summary>
+    public DetailDocument? Side { get; init; }
+
+    /// <summary>
     /// The comment id of every content row of the Comments pane (all rows, not only the shown window), null for rows
     /// that belong to no comment; empty without a Comments pane.
     /// </summary>

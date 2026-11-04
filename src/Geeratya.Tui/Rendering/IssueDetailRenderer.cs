@@ -18,6 +18,7 @@ namespace Geeratya.Tui.Rendering;
 public sealed class IssueDetailRenderer : IBodyRenderer
 {
     private const string CursorMark = ">";
+    private const string StatusDot = "●";
 
     public bool AppliesTo(AppState state)
     {
@@ -33,21 +34,111 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             ? laidOut
             : IssueDocumentBuilder.Build(top, width, rows);
         var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
-        var shown = Math.Max(0, Math.Min(rows, document.Lines.Count - first));
+        var side = document.Side;
+        var onSide = side is not null && top.SideCursor is not null;
+        var shown = side is null ? Math.Max(0, Math.Min(rows, document.Lines.Count - first)) : rows;
         var lines = new List<StyledLine>(height);
-        var focused = document.Sections.Count == 0 ? -1 : document.SectionAt(top.Cursor);
-        var block = document.BlockAt(top.Cursor);
+        var focused = document.Sections.Count == 0 || onSide ? -1 : document.SectionAt(top.Cursor);
+        var block = onSide ? null : document.BlockAt(top.Cursor);
         var ascii = context.Glyphs == GlyphSet.Ascii;
+        var sideLines = side is null ? [] : SideColumn(side, top.SideCursor, rows, ascii);
+        var mainWidth = side is null ? width : DetailLayout.MainWidth(width);
 
-        for (var index = first; index < first + shown; index++)
+        for (var row = 0; row < shown; row++)
         {
-            var drawn = Pane(document, index, focused);
-            var line = RowLine(drawn, index, top.Cursor, block, ascii);
+            var index = first + row;
+            var line = index < document.Lines.Count
+                ? RowLine(Pane(document, index, focused), index, onSide ? -1 : top.Cursor, block, document, ascii)
+                : StyledLine.Empty;
+
+            if (side is not null)
+            {
+                line = Joined(line, mainWidth, row < sideLines.Count ? sideLines[row] : StyledLine.Empty);
+            }
 
             lines.Add(ascii ? AsciiBorders(line) : line);
         }
 
         return lines;
+    }
+
+    /// <summary>The main column line padded to its width, a gap, then the sidebar line.</summary>
+    private static StyledLine Joined(StyledLine main, int mainWidth, StyledLine side)
+    {
+        var spans = new List<StyledSpan>(main.Spans);
+        var padding = mainWidth + DetailLayout.SidebarGap - TextWidth.Of(main.PlainText);
+
+        if (padding > 0)
+        {
+            spans.Add(new StyledSpan(new string(' ', padding), TextRole.Body));
+        }
+
+        spans.AddRange(side.Spans);
+
+        return new StyledLine(spans);
+    }
+
+    /// <summary>
+    /// The Details sidebar as <paramref name="rows"/> lines: the top edge, the content window that keeps the cursor
+    /// field visible, blank framed rows down to the bottom edge, so the frame is as tall as the overlay.
+    /// </summary>
+    private static List<StyledLine> SideColumn(DetailDocument side, int? cursor, int rows, bool ascii)
+    {
+        var focused = cursor is not null;
+        var first = SideView.FirstLine(side, cursor, rows);
+        var block = cursor is { } at ? side.BlockAt(at) : null;
+        var lines = new List<StyledLine>(rows);
+
+        for (var row = 0; row < rows; row++)
+        {
+            var index = first + row;
+
+            if (row == 0)
+            {
+                lines.Add(SideEdge(side.Lines[0], focused, true));
+            }
+            else if (row == rows - 1)
+            {
+                lines.Add(SideEdge(side.Lines[^1], focused, false));
+            }
+            else if (index < side.Lines.Count - 1)
+            {
+                var line = SideEdge(side.Lines[index], focused, false);
+                var inBlock = block is not null && index > block.Start && index < block.End;
+
+                lines.Add(inBlock ? FieldBlock.Focus(line, ascii) : line);
+            }
+            else
+            {
+                lines.Add(BlankFramed(side.Width, focused));
+            }
+        }
+
+        return lines;
+    }
+
+    private static StyledLine SideEdge(StyledLine line, bool focused, bool top)
+    {
+        var spans = top ? Chips([.. line.Spans], focused) : [.. line.Spans];
+
+        if (focused)
+        {
+            spans = [.. spans.Select(static span => span.Role == TextRole.Border ? FocusBorder(span) : span)];
+        }
+
+        return new StyledLine(spans);
+    }
+
+    private static StyledLine BlankFramed(int width, bool focused)
+    {
+        var role = focused ? TextRole.FrameFocus : TextRole.Border;
+
+        return new StyledLine(
+        [
+            new StyledSpan("│", role),
+            new StyledSpan(new string(' ', Math.Max(0, width - 2)), TextRole.Body),
+            new StyledSpan("│", role),
+        ]);
     }
 
     /// <summary>
@@ -179,10 +270,23 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         return new StyledLine(line.Spans.Select(static span => span with { Role = TextRole.Selected }).ToArray());
     }
 
-    private static StyledLine RowLine(StyledLine drawn, int index, int cursor, LineBlock? block, bool ascii)
+    private static StyledLine RowLine(
+        StyledLine drawn,
+        int index,
+        int cursor,
+        LineBlock? block,
+        DetailDocument document,
+        bool ascii)
     {
         if (block is not null && index >= block.Start && index < block.End)
         {
+            var filled = document.SectionIds[document.SectionAt(index)] == PaneIds.Details;
+
+            if (filled)
+            {
+                return index == block.Start ? drawn : FieldBlock.Focus(drawn, ascii);
+            }
+
             return FieldLine(drawn, index == block.Start, ascii);
         }
 
@@ -229,7 +333,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     private static StyledLine AsciiBorders(StyledLine line)
     {
         if (!line.Spans.Any(static span => (IsBorderSpan(span) && span.Text.Any(IsBorder))
-            || span.Role == TextRole.Editable))
+            || span.Role == TextRole.Editable || span.Text == StatusDot))
         {
             return line;
         }
@@ -238,6 +342,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         {
             TextRole.Border or TextRole.FrameFocus => span with { Text = SwapBorders(span.Text) },
             TextRole.Editable => span with { Text = span.Text.Replace('▾', 'v') },
+            _ when span.Text == StatusDot => span with { Text = "*" },
             _ => span,
         }).ToArray());
     }

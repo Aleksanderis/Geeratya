@@ -23,7 +23,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
-# caret) and `>` sends Ctrl-j (focus the pane below).
+# caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -61,13 +61,15 @@ all_scenarios=(
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
   "profile-list;120;36;dark;:profile|;Details"
   "settings;120;36;dark;:settings|;Settings"
-  "detail;120;36;dark;:jql project = GEN|jjjj|;Reporter  Generated"
-  "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
+  "detail;120;36;dark;:jql project = GEN|jjjj|;moves via transition"
+  "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Description"
   "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
-  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;Reporter  Generated"
+  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via transition"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
   "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;newest first"
-  "detail-field;120;36;dark;:jql project = GEN|jjjj|jjj;Reporter  Generated"
+  "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transition"
+  # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
+  "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"
@@ -233,6 +235,8 @@ capture_scenario() {
       tmux -L "$socket" send-keys -t s Left
     elif [ "$key" = ">" ]; then
       tmux -L "$socket" send-keys -t s C-j
+    elif [ "$key" = "]" ]; then
+      tmux -L "$socket" send-keys -t s C-l
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi

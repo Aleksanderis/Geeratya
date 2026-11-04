@@ -63,6 +63,8 @@ public sealed class IssueDetailLoadHandler
             LoadRemoteLinksEffect links => Run(links.Tab.Value, links.Tab, links.RequestId, LinksAsync(links)),
             LoadIssueChildrenEffect children =>
                 Run(children.Tab.Value, children.Tab, children.RequestId, ChildrenAsync(children)),
+            LoadEditableFieldsEffect editable =>
+                Run(editable.Tab.Value, editable.Tab, 0, EditableAsync(editable)),
             _ => Task.CompletedTask,
         };
     }
@@ -113,6 +115,24 @@ public sealed class IssueDetailLoadHandler
             return result.IsSuccess
                 ? new IssueCommentsLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())
                 : Failure(effect.Tab, effect.RequestId, result.Error);
+        };
+    }
+
+    // A failed read posts nothing: the pane keeps showing no dropdown marks, and Enter still tries the edit form.
+    private static Func<JiraServices, CancellationToken, Task<Command?>> EditableAsync(LoadEditableFieldsEffect effect)
+    {
+        return async (services, token) =>
+        {
+            var result = await services.Edits.GetEditFieldsAsync(effect.Key, token);
+
+            if (!result.IsSuccess)
+            {
+                return null;
+            }
+
+            var ids = result.Value.Where(static field => field.IsEditable).Select(static field => field.FieldId);
+
+            return new IssueEditableLoaded(effect.Tab, effect.Key, [.. ids]);
         };
     }
 

@@ -128,6 +128,14 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
+    public static IReadOnlyList<StatusHint> DropdownHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.PickerPrevious, "choose", HintScope.Global, ActionIds.PickerNext),
+        new(InputMode.Insert, ActionIds.FormNext, "accept"),
+        new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
     private static HintList HintTexts(AppState state, KeymapTable keymap)
     {
         var level = state.Settings.CommandLevel;
@@ -144,7 +152,9 @@ public static partial class StatusBar
 
         if (FormReducer.IsOpen(state))
         {
-            return new HintList([], TextsOf(FormHints, state.Mode, HintScope.Global, keymap, level));
+            var hints = FormReducer.OpenForm(state) is { Dropdown: not null } ? DropdownHints : FormHints;
+
+            return new HintList([], TextsOf(hints, state.Mode, HintScope.Global, keymap, level));
         }
 
         if (state.FlashJump is not null)

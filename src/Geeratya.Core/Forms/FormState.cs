@@ -35,6 +35,13 @@ public sealed record FormState(
     /// </summary>
     public IReadOnlyList<CreateIssueType>? TypeChoices { get; init; }
 
+    /// <summary>
+    /// The detail field this form hangs under as a dropdown (a <c>DetailFieldIds</c> member), null for a form drawn
+    /// as its own box. The keys and the write path are the form's; only the drawing differs, and accepting a row
+    /// writes at once.
+    /// </summary>
+    public string? Dropdown { get; init; }
+
     /// <summary>The highlighted type of <see cref="TypeChoices"/>.</summary>
     public int TypeCursor { get; init; }
 

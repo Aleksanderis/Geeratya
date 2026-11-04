@@ -134,7 +134,12 @@ public static class FrameBuilder
 
         if (FormReducer.OpenForm(state) is { } form)
         {
-            body = Fit(FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions), width, bodyHeight);
+            var dropdown = DetailDropdown.Applies(state, form);
+            var composed = dropdown
+                ? DetailDropdown.Compose(body, state, form, width, bodyHeight, regions)
+                : FormOverlay.Compose(body, form, keymap, width, bodyHeight, regions);
+
+            body = Fit(composed, width, bodyHeight);
         }
 
         var dialogShown = false;

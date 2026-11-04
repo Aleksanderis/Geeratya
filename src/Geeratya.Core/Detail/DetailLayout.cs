@@ -15,6 +15,37 @@ public static class DetailLayout
     public const int DefaultWidth = 80;
 
     /// <summary>
+    /// Overlay widths from this up show the Details pane as a sidebar; below it the pane is under the others.
+    /// </summary>
+    public const int SidebarMinWidth = 100;
+
+    /// <summary>The width of the Details sidebar, frame included.</summary>
+    public const int SidebarWidth = 33;
+
+    /// <summary>The columns between the main column and the sidebar.</summary>
+    public const int SidebarGap = 1;
+
+    /// <summary>Whether a detail <paramref name="width"/> columns wide shows the Details pane as a sidebar.</summary>
+    public static bool HasSidebar(int width)
+    {
+        return width >= SidebarMinWidth;
+    }
+
+    /// <summary>The width of the column the main panes are laid out for: all of it, or less the sidebar.</summary>
+    public static int ColumnWidth(int width)
+    {
+        return HasSidebar(width) ? MainWidth(width) : width;
+    }
+
+    /// <summary>
+    /// The width of the main column for a detail <paramref name="width"/> columns wide with a sidebar.
+    /// </summary>
+    public static int MainWidth(int width)
+    {
+        return width - SidebarWidth - SidebarGap;
+    }
+
+    /// <summary>
     /// Document rows the detail can show, from the list's row count (<see cref="Views.TabState.VisibleRows"/> is the
     /// body height without the list's own header rows).
     /// </summary>
