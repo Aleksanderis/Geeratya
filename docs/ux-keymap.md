@@ -111,6 +111,21 @@ The estimate has no key of its own: `:estimate` opens the form limited to the es
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 
+### Panes and zoom (planned, M8)
+
+Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
+
+| Key | Action id | Does | Context |
+|---|---|---|---|
+| `Ctrl-h` `Ctrl-w h` | `pane.focus-left` | Focus the pane to the left | Normal, detail and form |
+| `Ctrl-j` `Ctrl-w j` | `pane.focus-down` | Focus the pane below | Normal, detail and form |
+| `Ctrl-k` `Ctrl-w k` | `pane.focus-up` | Focus the pane above | Normal, detail and form |
+| `Ctrl-l` `Ctrl-w l` | `pane.focus-right` | Focus the pane to the right | Normal, detail and form |
+| `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves) | Normal, detail |
+| `Down` `Ctrl-j` / `Up` `Ctrl-k` | `picker.next` / `picker.previous` | Choose in a dropdown or suggestion list | Insert, popups |
+
+`Alt-h/j/k/l` stay card move and rank. The detail drops `]]`/`[[` (`detail.section-next`/`detail.section-previous`); the Scrum backlog keeps them. `Ctrl-h` is Backspace in terminals without an enhanced keyboard protocol: `Ctrl-w h` is the fallback there.
+
 ### Selection and counts
 
 - **Target of a write.** One set, decided in this order: the marked rows (`Alt-m`), else the Visual range, else the selected row. Marks and the range belong to the tab, survive scrolling and refresh by issue key, and `Esc` clears them, but only at the view root: inside an issue the stack pops first (built in #393; the `ux.md` Esc paragraph says so). In Visual mode the first `Esc` leaves the range, the next clears the marks. The status bar shows `N selected` while a set is active, and the badge reads `VISUAL` while the range is open. Built (#393): marks and the range are kept per tab as issue keys (`TabState.Marks`, `TabState.VisualAnchor`); a row in the list or backlog shows `*` (marked) or `+` (in the range) next to the cursor mark; a complete reload drops marks of issues that left the result and deleting an issue unmarks it. `Alt-m` in Visual mode marks the whole range (or unmarks it when every row is marked) and leaves Visual mode. Built (follow-up to #393): the columns layout has marks but no Visual mode (`v` says so, switching to the layout ends Visual mode). `Alt-m` marks the selected card and moves down its column, `Ctrl`-click marks the clicked card in place, and a marked card shows `*` in the cell before its type name (compact cards: the cell after the type marker); single-issue writes refuse with a set active there too.
