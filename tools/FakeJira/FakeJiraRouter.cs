@@ -156,6 +156,11 @@ public sealed partial class FakeJiraRouter
             return AssignableUsers(query);
         }
 
+        if (FakeGateway.TryRoute(method, path, body, ReadFixture) is { } gateway)
+        {
+            return gateway;
+        }
+
         if (_scrum.TryRoute(method, path, query, body) is { } scrum)
         {
             return method == Get && IsScrumIssueList(path) ? _writes.Ranked(scrum) : scrum;

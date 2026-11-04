@@ -1,0 +1,11 @@
+{
+  "data": {
+    "jira_boardsByIds": [
+      {
+        "defaultNavigationItem": {
+          "id": "ari:cloud:jira:00000000-0000-0000-0000-000000000001:navigation-item/activation/00000000-0000-0000-0000-000000000002/board/4/board"
+        }
+      }
+    ]
+  }
+}

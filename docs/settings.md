@@ -15,7 +15,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 | `transparent` | `transparent` | on or off | `off` | Keep the terminal's own background instead of the theme's page colour; text colours stay. |
 | `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
 | `startup.restore` | `startup.restore` | on or off | `on` | Reopen the tabs of the last run on start; off starts on the board picker every time. |
-| `board.done-cutoff` | `board.doneCutoff` | a number of days (1-3650) or all | `14` | Days after which a Kanban board hides resolved issues, or all to show every one. Mirrors Jira's "Hide done work items after" and must be set by hand to match it. |
+| `board.done-cutoff` | `board.doneCutoff` | a number of days (1-3650) or all | `14` | Days after which a Kanban board hides resolved issues, or all to show every one. Used when Jira's own "Hide done work items after" cannot be read; <space>vd picks one per tab. |
 
 ## Settings screen
 

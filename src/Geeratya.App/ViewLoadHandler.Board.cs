@@ -220,13 +220,15 @@ public sealed partial class ViewLoadHandler
         if (effect.Definition.Source == ViewSourceKind.Board && kind == BoardKind.Kanban)
         {
             // Jira's board hides Done issues resolved long ago; the agile endpoint does not (docs/jira-layer.md).
-            if (effect.DoneCutoffDays > 0)
+            var cutoff = await ResolveCutoffAsync(services, effect, id, token);
+
+            if (cutoff.Days > 0)
             {
-                query = query with { Jql = DoneCutoff.Jql(effect.DoneCutoffDays) };
+                query = query with { Jql = DoneCutoff.Jql(cutoff.Days) };
             }
 
             // Reported with 0 too, so a title from an earlier load with a cutoff does not stay.
-            report(new DoneCutoffApplied(effect.Tab, effect.RequestId, effect.DoneCutoffDays));
+            report(new DoneCutoffApplied(effect.Tab, effect.RequestId, cutoff.Days, cutoff.Source));
         }
 
         query = query with

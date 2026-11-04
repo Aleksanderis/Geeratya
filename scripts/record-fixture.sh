@@ -12,6 +12,8 @@
 # there only: create a sprint on board 5/6, update, delete or move issues into a sprint whose originBoardId
 # (read live before the write) is 5 or 6.
 # Also allowed: PUT /assignee on a GCM/GTM issue. Send only a made-up account id (Jira answers 404) to an issue the run created; a real id would reassign a seeded issue, and Jira has no undo.
+# Also allowed: POST /gateway/api/graphql with a read-only GraphQL query document (starts with `query`, never
+# contains `mutation` or `subscription`; #681 reads the Done cutoff of a board view). No other gateway write.
 # Refuses hosts outside GEERATYA_LIVE_HOSTS. Never prints the token; the credential
 # goes to curl through a private config file, not argv.
 # Scrubbing (scripts/scrub-fixture.py): host -> example.atlassian.net, account ids -> fake-account-N,
@@ -61,6 +63,8 @@ if [ "$method" != GET ]; then
   issue_re='^/rest/api/3/issue/G[CT][MS]-[0-9]+(/(comment(/[0-9]+)?|transitions|remotelink|attachments|assignee))?(\?[A-Za-z0-9=&,._-]*)?$'
   case "$path" in
     /rest/api/3/issue | /rest/api/3/search/jql | /rest/api/3/search/approximate-count) ;;
+    # Read-only GraphQL queries only; the body is checked below.
+    /gateway/api/graphql) ;;
     # Ranking, moving to the backlog and issue links name issues in the body; checked below.
     /rest/agile/1.0/issue/rank | /rest/agile/1.0/backlog/issue | /rest/api/3/issueLink | /rest/agile/1.0/sprint) ;;
     # Sprint by id (update, delete) and its issues; the sprint's board is checked below.
@@ -74,6 +78,16 @@ if [ "$method" != GET ]; then
   if [ -n "$body" ] && [ "${RECORD_CONTENT_TYPE:-application/json}" = application/json ] \
     && ! jq -e '((.fields | objects | .project.key) // "GCM") | IN("GCM","GTM","GCS","GTS")' "$body" > /dev/null 2>&1; then
     echo "write refused: body names a project other than GCM/GTM/GCS/GTS" >&2; exit 3
+  fi
+fi
+
+# The gateway takes POST for reads too: allow a query document, refuse every mutation or subscription.
+if [ "$path" = /gateway/api/graphql ]; then
+  graphql_re='^\s*query[\s({]'
+  if [ "$method" != POST ] || [ -z "$body" ] \
+    || ! jq -e --arg re "$graphql_re" '.query | type == "string" and test($re) and (test("mutation|subscription"; "i") | not)' \
+      "$body" > /dev/null 2>&1; then
+    echo "write refused: the gateway accepts only a read-only GraphQL query" >&2; exit 3
   fi
 fi
 

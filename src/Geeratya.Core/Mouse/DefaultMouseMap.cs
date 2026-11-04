@@ -88,6 +88,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.ViewLayoutToggle, 'V'),
         ContextMenuRow(ActionIds.ViewQuickFilter, 'V'),
         ContextMenuRow(ActionIds.ViewSwimlane, 'V'),
+        ContextMenuRow(ActionIds.ViewDoneCutoff, 'V'),
         ContextMenuRow(ActionIds.IssueOpenInBrowser),
         ContextMenuRow(ActionIds.IssueOpenParent),
         ContextMenuRow(ActionIds.IssueEdit),

@@ -18,6 +18,7 @@ public static class PaletteRows
     private const string OtherGroup = "Other";
     private const string GeneralGroup = "General";
     private const string IssueGroup = "Issue";
+    private const string ViewGroup = "View";
     private const string KeySeparator = ", ";
 
     private static readonly string[] _extraCommandWords = ["q", "h", "browse", "layout", "quickfilter"];
@@ -93,6 +94,12 @@ public static class PaletteRows
             var row = new PaletteRow(PaletteRowKind.Command, $"theme {name}", $"Theme: {name}", string.Empty);
 
             AddCandidate(candidates, filter, row, GeneralGroup, false);
+        }
+
+        // The picker rows of a Kanban board's Done cutoff: found by typing "Done cutoff:" (the key opens it so).
+        foreach (var row in filter.Length > 0 ? DoneCutoffPicker.Rows(state) : [])
+        {
+            AddCandidate(candidates, filter, row, ViewGroup, true);
         }
 
         var rows = Arrange(candidates, filter.Length > 0);

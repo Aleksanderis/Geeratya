@@ -6,7 +6,8 @@ usage: scrub-fixture.py <site-host>
 Host -> example.atlassian.net, account ids -> fake-account-N, emails ->
 userN@example.com, display names of users (and ADF mention texts) -> Test User N,
 avatar URLs dropped,
-cloud ids zeroed, time zones set to UTC. Used by record-fixture.sh.
+cloud ids zeroed, time zones set to UTC, UUIDs inside Atlassian resource ids (ari:...: the cloud id, the
+activation id) -> stable fakes (the cloud id keeps the all-zero value). Used by record-fixture.sh.
 """
 import json
 import re
@@ -19,6 +20,17 @@ data = json.load(sys.stdin)
 
 accounts = {}
 emails = {}
+uuids = {}
+cloud_ids = set()
+UUID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+ZERO_UUID = "00000000-0000-0000-0000-000000000000"
+
+
+def fake_uuid(raw):
+    if raw.lower() in cloud_ids:
+        return ZERO_UUID
+    number = uuids.setdefault(raw.lower(), len(uuids) + 1)
+    return "00000000-0000-0000-0000-%012d" % number
 
 
 def acct(raw):
@@ -36,6 +48,9 @@ def collect(node):
             acct(node["accountId"])
         if node.get("type") == "mention" and isinstance(node.get("attrs", {}).get("id"), str):
             acct(node["attrs"]["id"])
+        for key in ("cloudId", "cloud_id"):
+            if isinstance(node.get(key), str):
+                cloud_ids.add(node[key].lower())
         for v in node.values():
             collect(v)
     elif isinstance(node, list):
@@ -48,6 +63,8 @@ collect(data)
 
 def text(s):
     s = s.replace(host, "example.atlassian.net")
+    if "ari:" in s:
+        s = UUID.sub(lambda m: fake_uuid(m.group(0)), s)
     s = EMAIL.sub(lambda m: "user%d@example.com" % emails.setdefault(m.group(0), len(emails) + 1), s)
     for raw in sorted(accounts, key=lambda r: -len(r)):
         fake = "fake-account-%d" % accounts[raw]
@@ -69,8 +86,8 @@ def walk(node):
                 out[k] = "Test User %d" % accounts[node["accountId"]] if "accountId" in node else "Test User"
             elif k == "timeZone" and isinstance(v, str):
                 out[k] = "UTC"
-            elif k == "cloudId" and isinstance(v, str):
-                out[k] = "00000000-0000-0000-0000-000000000000"
+            elif k in ("cloudId", "cloud_id") and isinstance(v, str):
+                out[k] = ZERO_UUID
             else:
                 out[k] = walk(v)
         if node.get("type") == "mention" and isinstance(out.get("attrs"), dict) and "text" in out["attrs"]:

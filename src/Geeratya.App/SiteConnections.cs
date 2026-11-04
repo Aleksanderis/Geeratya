@@ -3,6 +3,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Jira;
 using Geeratya.Jira.Fields;
+using Geeratya.Jira.Gateway;
 using Geeratya.Jira.Sprints;
 using Geeratya.Jira.Transport;
 using Geeratya.Platform.Secrets;
@@ -32,6 +33,7 @@ public sealed class SiteConnections : IDisposable
     private JiraTransport? _transport;
     private BoardKindResolver? _kinds;
     private SiteFields? _fields;
+    private DoneCutoffReader? _cutoffs;
     private Profile? _failedProfile;
     private int _failedProfileCount;
     private int _generation;
@@ -73,7 +75,7 @@ public sealed class SiteConnections : IDisposable
     {
         lock (_lock)
         {
-            return new ConnectionParts(_transport, _kinds, _fields);
+            return new ConnectionParts(_transport, _kinds, _fields, _cutoffs);
         }
     }
 
@@ -253,6 +255,7 @@ public sealed class SiteConnections : IDisposable
                 _transport = transport;
                 _kinds = CreateResolver(profile, transport);
                 _fields = new SiteFields(new FieldClient(transport));
+                _cutoffs = new DoneCutoffReader(new BoardViewClient(transport));
                 transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
 
                 return null;
@@ -307,10 +310,12 @@ public sealed class SiteConnections : IDisposable
     private int Replace(Profile? profile)
     {
         var old = _transport;
+        var oldCutoffs = _cutoffs;
 
         _transport = null;
         _kinds = null;
         _fields = null;
+        _cutoffs = null;
         _profile = profile;
         _failedProfile = null;
         _generation++;
@@ -318,6 +323,7 @@ public sealed class SiteConnections : IDisposable
         // Last: disposing cancels requests in flight, and their continuations may run right here (same thread, inside
         // the lock). The generation has to be the new one by then, or such a reply would be posted as current.
         old?.Dispose();
+        oldCutoffs?.Dispose();
 
         return _generation;
     }

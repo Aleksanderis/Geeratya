@@ -199,3 +199,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **UI:** The issue detail's fields are one cursor stop each (one per row, a wrapped value still one stop) and `Enter` edits the focused field through the existing paths; `Tab` stays tab-next and `i`/`e` stay unbound. The work is two PRs (fields, then sections) and the mock-up was posted on the issue without waiting for the owner (the owner is never the bottleneck). Why: the earlier #650/#651 only changed the edit popup, so the screen the owner means is the read-only detail; `Tab` and the vim keys are taken.
 
 **UI:** The issue detail's sections fold with `z a` (the backlog's fold key) and long text is cut with a `more lines` row, not with new keys; fold state is per issue in the tab, keyed by pane title without its count. Why: vim's fold key already exists here; counts change as pages arrive. Fold marks are the text `(folded)`, not glyphs, so the ASCII set needs no mapping.
+
+## 2026-11-04 (Done cutoff from Jira, #681)
+
+**UI:** The Done cutoff picker is rows of the command palette (found by "Done cutoff:", opened by `<space>vd`), not a new overlay, and the choice lives on the tab and in the remembered tab (so per profile and board) instead of a separate per-board store. Why: least new state and no second file; the palette already is the picker used for themes. Source order: tab choice, Jira's value (gateway, optional), setting.

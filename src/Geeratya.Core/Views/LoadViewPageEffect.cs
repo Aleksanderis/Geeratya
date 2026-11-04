@@ -17,7 +17,9 @@ namespace Geeratya.Core.Views;
 /// <param name="ExtraJql">The JQL of the switched-on quick filters, null when none (#192). Not part of the cache
 /// key, so a load with it neither reads nor writes the view cache.</param>
 /// <param name="DoneCutoffDays">The setting <c>board.done-cutoff</c> when the load was issued: a Kanban board hides
-/// issues resolved longer ago than this; 0 shows every Done issue.</param>
+/// issues resolved longer ago than this; 0 shows every Done issue. It is the last fallback.</param>
+/// <param name="DoneCutoffChoice">The tab's quick choice (<c>view.done-cutoff</c>): days, 0 for all, null for none.
+/// It wins over what Jira says and over the setting. Stamped like <paramref name="DoneCutoffDays"/>.</param>
 public sealed record LoadViewPageEffect(
     TabId Tab,
     ViewDefinition Definition,
@@ -26,4 +28,5 @@ public sealed record LoadViewPageEffect(
     LoadReason Reason,
     bool Background,
     string? ExtraJql = null,
-    int DoneCutoffDays = DoneCutoff.DefaultDays) : Effect;
+    int DoneCutoffDays = DoneCutoff.DefaultDays,
+    int? DoneCutoffChoice = null) : Effect;
