@@ -30,7 +30,7 @@ if (-not (Get-Command psmux -ErrorAction SilentlyContinue)) { Write-Err "missing
 $Binary = (Resolve-Path $Binary).Path
 
 $savedEnv = @{}
-foreach ($name in 'XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME', 'GEERATYA_TOKEN') {
+foreach ($name in 'XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME', 'GEERATYA_TOKEN', 'GEERATYA_USE_XDG') {
     $savedEnv[$name] = [Environment]::GetEnvironmentVariable($name)
 }
 $work = Join-Path ([System.IO.Path]::GetTempPath()) "geeratya-measure-$PID"
@@ -77,6 +77,7 @@ try {
     $env:XDG_STATE_HOME = Join-Path $work 'state'
     $env:XDG_CACHE_HOME = Join-Path $work 'cache'
     $env:GEERATYA_TOKEN = 'fake'
+    $env:GEERATYA_USE_XDG = '1' # Windows ignores XDG_*_HOME without it and would read the real profile
     $profiles = [ordered]@{ activeName = 'fake'; profiles = @([ordered]@{ name = 'fake'; siteUrl = $FakeUrl; email = 'fake@example.com' }) }
     [System.IO.File]::WriteAllText((Join-Path $config 'geeratya/profiles.json'), ($profiles | ConvertTo-Json -Compress -Depth 4), [System.Text.UTF8Encoding]::new($false))
 

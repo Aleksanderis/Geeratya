@@ -2,9 +2,10 @@ namespace Geeratya.Platform.Directories;
 
 /// <summary>
 /// Where Geeratya keeps its configuration, state and cache. Linux and macOS follow the XDG base directories
-/// (a relative XDG value is ignored, as the specification says); Windows uses the known folders unless an absolute
-/// XDG value is set, which scripts and tests use to keep the real profile, state and cache out of a run (.NET reads
-/// the known folders from the shell, so changing <c>APPDATA</c> does not redirect them).
+/// (a relative XDG value is ignored, as the specification says); Windows uses the known folders. Only with
+/// <c>GEERATYA_USE_XDG=1</c> does Windows honour a fully qualified XDG value too, which scripts and tests use to keep
+/// the real profile, state and cache out of a run (.NET reads the known folders from the shell, so changing
+/// <c>APPDATA</c> does not redirect them); a global <c>XDG_CONFIG_HOME</c> alone never moves a Windows install.
 /// </summary>
 public sealed class ApplicationDirectories
 {
@@ -18,11 +19,13 @@ public sealed class ApplicationDirectories
     {
         if (operatingSystem == OperatingSystemKind.Windows)
         {
-            ConfigDirectory = AbsoluteXdg(environment, "XDG_CONFIG_HOME")
+            var useXdg = environment.Get("GEERATYA_USE_XDG") == "1";
+
+            ConfigDirectory = (useXdg ? ConfiguredXdg(environment, "XDG_CONFIG_HOME", Path.IsPathFullyQualified) : null)
                 ?? Path.Combine(folders.RoamingAppData, WindowsApplicationFolder);
-            StateDirectory = AbsoluteXdg(environment, "XDG_STATE_HOME")
+            StateDirectory = (useXdg ? ConfiguredXdg(environment, "XDG_STATE_HOME", Path.IsPathFullyQualified) : null)
                 ?? Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "State");
-            CacheDirectory = AbsoluteXdg(environment, "XDG_CACHE_HOME")
+            CacheDirectory = (useXdg ? ConfiguredXdg(environment, "XDG_CACHE_HOME", Path.IsPathFullyQualified) : null)
                 ?? Path.Combine(folders.LocalAppData, WindowsApplicationFolder, "Cache");
 
             return;
@@ -50,11 +53,11 @@ public sealed class ApplicationDirectories
         return OperatingSystem.IsMacOS() ? OperatingSystemKind.MacOs : OperatingSystemKind.Linux;
     }
 
-    private static string? AbsoluteXdg(EnvironmentReader environment, string variable)
+    private static string? ConfiguredXdg(EnvironmentReader environment, string variable, Func<string, bool> isAbsolute)
     {
         var configured = environment.Get(variable);
 
-        return configured is not null && Path.IsPathRooted(configured)
+        return configured is not null && isAbsolute(configured)
             ? Path.Combine(configured, ApplicationFolder)
             : null;
     }
@@ -65,11 +68,11 @@ public sealed class ApplicationDirectories
         string home,
         params string[] fallbackSegments)
     {
-        var configured = environment.Get(variable);
+        var configured = ConfiguredXdg(environment, variable, Path.IsPathRooted);
 
-        if (configured is not null && Path.IsPathRooted(configured))
+        if (configured is not null)
         {
-            return Path.Combine(configured, ApplicationFolder);
+            return configured;
         }
 
         if (!Path.IsPathRooted(home))

@@ -202,4 +202,4 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-04 (Windows scripts, #632)
 
-**Testing:** On Windows an absolute `XDG_CONFIG_HOME`, `XDG_STATE_HOME` or `XDG_CACHE_HOME` overrides the known folders (relative values are ignored, as on Linux; overrides the "Windows ignores XDG" rule in `architecture.md`). Why: .NET reads the known folders from the shell, so `APPDATA` cannot be redirected and `measure.ps1` would otherwise read the real profile and talk to a real site. `screenshot.ps1` was tried and dropped (not worth it on Windows, #632).
+**Testing:** On Windows the known folders stay the default; with `GEERATYA_USE_XDG=1` a fully qualified `XDG_CONFIG_HOME`, `XDG_STATE_HOME` or `XDG_CACHE_HOME` overrides them (overrides the "Windows ignores XDG" rule in `architecture.md`). Why: .NET reads the known folders from the shell, so `APPDATA` cannot be redirected and `measure.ps1` would otherwise read the real profile and talk to a real site; the opt-in keeps a global `XDG_CONFIG_HOME` (neovim, starship) from moving a real install. `screenshot.ps1` was tried and dropped (not worth it on Windows, #632).
