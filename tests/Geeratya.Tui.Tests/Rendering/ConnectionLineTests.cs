@@ -73,6 +73,14 @@ public class ConnectionLineTests
         Assert.DoesNotContain("Connected as", line);
     }
 
+    [Fact]
+    public void GivenChecking_WhenRenderingTheStatusLine_ThenCheckingShows()
+    {
+        var line = StatusBar.Render(With(new Checking()), 120, _keymap);
+
+        Assert.Contains("Checking work.atlassian.net...", line);
+    }
+
     private static AppState With(ConnectionState connection)
     {
         var session = SiteSession.Empty(_profile) with { Connection = connection };
