@@ -104,9 +104,9 @@ public static class FlashBoardLabeler
         var room = box - Borders - (nested ? ChildIndent : 0);
         var key = DisplayWidth.Fit(issue.Key, room - KeyLineReserve);
 
-        if (issue.Subtasks.Count > 0 && !issue.IsListed)
+        if (BoardCardPlan.SummaryLines(issue) == 1)
         {
-            return [key, CardText.Shorten(issue.Summary, room - Padding)];
+            return [key, CardText.Shorten(issue.Summary.Trim(), room - Padding)];
         }
 
         var lines = CardText.TwoLines(issue.Summary, room - Padding);

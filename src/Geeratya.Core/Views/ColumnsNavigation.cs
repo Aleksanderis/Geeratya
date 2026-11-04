@@ -52,9 +52,10 @@ public static class ColumnsNavigation
     }
 
     /// <summary>
-    /// True when the body cell is on the sub-task row of a card that lists sub-tasks (<c>▸ Sub-tasks 1/3</c>, #558):
-    /// the second summary line, which is the fourth row of a card (the third in a grouped child, which has no top
-    /// border). One-line cards have no such row.
+    /// True when the body cell is on the bottom row of the selected card that lists sub-tasks (<c>▸1/3</c>, #558,
+    /// #706): the third text row, the fourth row of a card (the third in a grouped child, which has no top border).
+    /// A click on an unselected card only selects it, so clicking its key never folds it. One-line cards have no
+    /// such row.
     /// </summary>
     public static bool IsSubtaskRowAt(TabState tab, int width, int column, int row)
     {
@@ -64,7 +65,8 @@ public static class ColumnsNavigation
         if (BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows)
             || BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null)
                 is not { Card: { } card } hit
-            || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 })
+            || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 } target
+            || !string.Equals(target.Key, tab.SelectedKey, StringComparison.Ordinal))
         {
             return false;
         }

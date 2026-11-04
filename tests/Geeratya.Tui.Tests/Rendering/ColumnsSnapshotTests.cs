@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 using Geeratya.App.Tests.Fakes;
@@ -48,6 +49,13 @@ public class ColumnsSnapshotTests
         int height)
     {
         var state = await OpenAsync(kind, height);
+        var tab = state.Session.Tabs[0];
+
+        // The recorded board's first card is the one the cursor draws; the key the state holds is not on the board.
+        var first = ColumnsNavigation.ColumnsOf(tab)[0].Rows[0].Key;
+
+        state = state with { Session = state.Session with { Tabs = [tab with { SelectedKey = first }] } };
+
         var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
         var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
         var context = MouseContext.From(state, width, height, FrameBuilder.HeaderRows, default) with
@@ -58,6 +66,15 @@ public class ColumnsSnapshotTests
         var commands = MouseResolver.Resolve(context, marker.Left, marker.Top, MouseGesture.Click, default);
 
         Assert.Single(frame.Body, line => line.PlainText.Contains(RowMenuMarker.Text));
+
+        if (width >= 100)
+        {
+            var row = frame.Body.ToList().FindIndex(line => line.PlainText.Contains(RowMenuMarker.Text));
+
+            Assert.DoesNotContain(first, frame.Body[row].PlainText);
+            Assert.Contains($"{first}  ", frame.Body[row + 2].PlainText);
+        }
+
         Assert.Equal(ActionIds.ContextMenuOpen, Assert.IsType<ActionRequested>(Assert.Single(commands)).Action);
     }
 

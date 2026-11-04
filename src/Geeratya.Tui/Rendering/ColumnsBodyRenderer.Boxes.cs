@@ -1,6 +1,4 @@
 using Geeratya.Core.Boards;
-using Geeratya.Core.Detail;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 
@@ -132,7 +130,10 @@ public sealed partial class ColumnsBodyRenderer
         spans.Add(new StyledSpan(side, frame));
     }
 
-    /// <summary>The text between the side borders; the type name on the key line is coloured by type.</summary>
+    /// <summary>
+    /// The text between the side borders, three rows: the summary (two lines, or one when a label row follows),
+    /// the label row, and the bottom row with the key, type word, counter, priority and assignee chip.
+    /// </summary>
     private static void AddBoxText(
         List<StyledSpan> spans,
         IssueSummary issue,
@@ -143,83 +144,41 @@ public sealed partial class ColumnsBodyRenderer
         int room,
         TextRole text)
     {
-        if (within != 1 && issue.Subtasks.Count > 0 && !issue.IsListed)
-        {
-            var line = within == FirstSummaryLine
-                ? CardText.Shorten(issue.Summary, room - 2)
-                : SubtaskRow(issue.Subtasks, open, room - 2);
+        var inner = room - 2;
 
-            spans.Add(new StyledSpan(TextWidth.Pad($" {line} ", room), text));
+        if (within == BottomRow)
+        {
+            // The cell before the key is the set mark: `*` for a marked card (never colour alone).
+            var star = marked ? MarkedMark : Blank;
+            var starRole = marked && !selected ? TextRole.Strong : text;
+
+            spans.Add(new StyledSpan(star, starRole));
+            spans.AddRange(CardRows.Bottom(issue, open, inner, text));
+            spans.Add(new StyledSpan(Blank, text));
 
             return;
         }
 
-        if (within != 1)
+        spans.Add(new StyledSpan(Blank, text));
+
+        if (within == LabelRow && BoardCardPlan.HasLabelRow(issue))
         {
-            var lines = CardText.TwoLines(issue.Summary, room - 2);
+            spans.AddRange(CardRows.Labels(issue.Labels, inner));
+        }
+        else
+        {
+            var lines = CardText.TwoLines(issue.Summary, inner);
+            var line = within == FirstSummaryLine ? lines.First : lines.Second;
 
-            spans.Add(new StyledSpan(
-                TextWidth.Pad($" {(within == FirstSummaryLine ? lines.First : lines.Second)} ", room),
-                text));
+            if (within == FirstSummaryLine && BoardCardPlan.SummaryLines(issue) == 1 && lines.Second.Length > 0)
+            {
+                line = CardText.Shorten(issue.Summary.Trim(), inner);
+            }
 
-            return;
+            spans.Add(new StyledSpan(TextWidth.Pad(line, inner), text));
         }
 
-        var (label, remainder) = KeyLine(issue, room - 2);
-        var tail = TextWidth.Pad($"{remainder} ", room - 1 - TextWidth.Of(label));
-
-        // The cell before the type name is the set mark: `*` for a marked card (never colour alone).
-        var star = marked ? MarkedMark : Blank;
-        var starRole = marked && !selected ? TextRole.Strong : text;
-
-        spans.Add(new StyledSpan(star, starRole));
-        spans.Add(new StyledSpan(label, IssueTypeRole.For(issue.IssueType)));
-
-        var trimmed = tail.TrimEnd();
-        var cut = issue.IsListed && trimmed.EndsWith(']') ? trimmed.LastIndexOf('[') : -1;
-
-        if (cut < 0)
-        {
-            spans.Add(new StyledSpan(tail, text));
-
-            return;
-        }
-
-        var chip = trimmed[cut..];
-
-        // A listed sub-task shows its status as a bracketed chip in the colour of its category (#645).
-        spans.Add(new StyledSpan(tail[..cut], text));
-        spans.Add(new StyledSpan(chip, StatusRoles.Of(issue.Status)));
-        spans.Add(new StyledSpan(tail[(cut + chip.Length)..], text));
-    }
-
-    /// <summary>The status of a listed sub-task as <c>[Name]</c>: readable without colour too.</summary>
-    private static string StatusChip(IssueStatus status)
-    {
-        return $"[{status.Name}]";
-    }
-
-    /// <summary>
-    /// The sub-task row of a card, the second summary line: the fold mark, <c>Sub-tasks done/total</c> and a bar of
-    /// <see cref="SubtaskBarCells"/> cells; the word and then the bar go first when the card is narrow (#520).
-    /// </summary>
-    private static string SubtaskRow(IReadOnlyList<IssueSubtask> subtasks, bool open, int room)
-    {
-        var done = subtasks.Count(subtask => subtask.IsDone);
-        var mark = open ? "▾" : "▸";
-        var count = $"{done}/{subtasks.Count}";
-        var filled = done * SubtaskBarCells / subtasks.Count;
-        var bar = $"{new string('━', filled)}{new string('─', SubtaskBarCells - filled)}";
-        var full = $"{mark} Sub-tasks {count} {bar}";
-
-        if (TextWidth.Of(full) <= room)
-        {
-            return full;
-        }
-
-        var narrow = $"{mark} {count} {bar}";
-
-        return TextWidth.Of(narrow) <= room ? narrow : CardText.Shorten($"{mark} {count}", room);
+        spans.Add(new StyledSpan(Blank, text));
     }
 
     /// <summary>
@@ -242,51 +201,5 @@ public sealed partial class ColumnsBodyRenderer
     private static string CompactLine(IssueSummary issue, bool selected, bool marked, bool nested, bool more, int width)
     {
         return CardText.Compact(issue, selected, marked, nested, more, width);
-    }
-
-    /// <summary>
-    /// The key line: type name and key, with the assignee's initials at the right edge when there is room. The type
-    /// name wins over the initials: it is cut down to <see cref="MinTypeName"/> cells, then the initials go, then the
-    /// name is replaced by the one-cell marker.
-    /// </summary>
-    private static (string Label, string Remainder) KeyLine(IssueSummary issue, int width)
-    {
-        var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
-
-        if (issue.IsListed)
-        {
-            // A long status is cut to keep the chip before the type name gives way (#645).
-            var chipRoom = width - TextWidth.Of(issue.Key) - 1 - MinTypeName - 1;
-            var chip = StatusChip(issue.Status);
-
-            initials = TextWidth.Of(chip) <= chipRoom || chipRoom < 5
-                ? chip
-                : $"[{CardText.Shorten(issue.Status.Name, chipRoom - 2)}]";
-        }
-
-        if (issue.Estimate is not null)
-        {
-            initials = $"{SprintHeaderText.Estimate(issue.Estimate)}p {initials}".TrimEnd();
-        }
-
-        var keyRoom = width - TextWidth.Of(issue.Key) - 1;
-
-        if (initials.Length > 0 && keyRoom - TextWidth.Of(initials) - 1 < MinTypeName)
-        {
-            initials = string.Empty;
-        }
-
-        var nameRoom = initials.Length > 0 ? keyRoom - TextWidth.Of(initials) - 1 : keyRoom;
-        var label = nameRoom >= MinTypeName && !string.IsNullOrWhiteSpace(issue.IssueType.Name)
-            ? CardText.Shorten(issue.IssueType.Name, nameRoom)
-            : IssueTypeMarker.For(issue.IssueType).ToString();
-        var key = $" {issue.Key}";
-
-        if (initials.Length == 0)
-        {
-            return (label, TextWidth.Fit(key, Math.Max(0, width - TextWidth.Of(label))));
-        }
-
-        return (label, $"{TextWidth.Pad(key, width - TextWidth.Of(initials) - 1 - TextWidth.Of(label))} {initials}");
     }
 }
