@@ -9,8 +9,12 @@
 │           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
 │           │               │              section                                                         │           │
+│           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
+│           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
 │           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
 │           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                                │           │
+│           │               │   Ctrl-l     Focus the pane to the right (zoomed: the next section)          │           │
+│           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
@@ -26,11 +30,7 @@
 │           │               │              screen)                                                         │           │
 │           │               │ Dialogs                                                                      │           │
 │           │               │   Esc        Close help  (q)                                                 │           │
-│           │               │   /          Filter the help by key, title or action id                      │           │
-│           │               │   Tab        Next help section                                               │           │
-│           │               │   Shift-Tab  Previous help section                                           │           │
-│           │               │   J          Scroll help down a line                                         │           │
-│           │               │   K          Scroll help up a line                                          ▼│           │
+│           │               │   /          Filter the help by key, title or action id                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

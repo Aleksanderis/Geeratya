@@ -534,6 +534,31 @@ public class IssueDetailRendererTests
         return builder.ToString();
     }
 
+    [Fact]
+    public void GivenAZoomedPane_WhenDrawing_ThenTheStripIsTheFirstOverlayRowAndNamesTheCurrentSection()
+    {
+        var state = Keys(Loaded(120, 36), "Ctrl-j", "Space", "z");
+        var lines = FrameBuilder.Build(state, 120, 36, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Description") && line.Contains("Comments 3"));
+        Assert.Contains(lines, line => line.Contains("Description · zoomed"));
+        Assert.DoesNotContain(lines, line => line.Contains("Comments 3 ─"));
+    }
+
+    [Fact]
+    public void GivenAStripWiderThanTheScreen_WhenSwitchingToTheLastSection_ThenTheCurrentSectionStaysInView()
+    {
+        var state = Keys(Loaded(40, 14), "Ctrl-j", "Space", "z", "Ctrl-l", "Ctrl-l", "Ctrl-l", "Ctrl-l", "Ctrl-l");
+        var lines = FrameBuilder.Build(state, 40, 14, _keymap);
+
+        Assert.Contains(lines, line => line.Contains(" Details ") && !line.Contains("Description"));
+    }
+
+    private AppState Keys(AppState state, params string[] keys)
+    {
+        return keys.Aggregate(state, (current, key) => _reducer.Reduce(current, new KeyPressed(key)).State);
+    }
+
     private static void AssertSnapshot(AppState state, int width, int height, string name)
     {
         var lines = FrameBuilder.Build(state, width, height, _keymap);
@@ -738,11 +763,6 @@ public class IssueDetailRendererTests
     private static DetailDocument Document(AppState state)
     {
         return Active(state).Document!;
-    }
-
-    private AppState Keys(AppState state, params string[] keys)
-    {
-        return keys.Aggregate(state, (current, key) => _reducer.Reduce(current, new KeyPressed(key)).State);
     }
 
     private AppState WithLabels(string[] labels)

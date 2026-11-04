@@ -16,5 +16,6 @@ public static class DetailFieldIds
     public const string Sprint = "sprint";
     public const string Estimate = "estimate";
     public const string Updated = "updated";
+    public const string Attachments = "attachments";
     public const string Description = FormFieldIds.Description;
 }

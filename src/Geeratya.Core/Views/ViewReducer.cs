@@ -259,7 +259,7 @@ public static partial class ViewReducer
             .Select(tab => DetailReducer.Resized(
                 Resized(tab, height),
                 layoutColumns,
-                DetailSize.ListRows(columns, bodyHeight, height)))
+                DetailSize.ForTab(tab, DetailSize.ListRows(columns, bodyHeight, height))))
             .ToArray();
 
         var resized = WithSession(state, tabs, state.Session.Active, state.Sequence)

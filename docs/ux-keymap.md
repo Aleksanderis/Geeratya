@@ -117,11 +117,11 @@ The pane model (focus over a grid, zoom, inner scroll, the keys below) is built 
 
 | Key | Action id | Does | Context |
 |---|---|---|---|
-| `Ctrl-h` `Ctrl-w h` | `pane.focus-left` | Focus the pane to the left | Normal, detail and form |
+| `Ctrl-h` `Ctrl-w h` | `pane.focus-left` | Focus the pane to the left (zoomed in the detail: the previous section) | Normal, detail and form |
 | `Ctrl-j` `Ctrl-w j` | `pane.focus-down` | Focus the pane below | Normal, detail and form |
 | `Ctrl-k` `Ctrl-w k` | `pane.focus-up` | Focus the pane above | Normal, detail and form |
-| `Ctrl-l` `Ctrl-w l` | `pane.focus-right` | Focus the pane to the right | Normal, detail and form |
-| `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves) | Normal, detail |
+| `Ctrl-l` `Ctrl-w l` | `pane.focus-right` | Focus the pane to the right (zoomed in the detail: the next section) | Normal, detail and form |
+| `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves, before it pops an issue); built in #705 | Normal, detail |
 | `Down` `Ctrl-j` / `Up` `Ctrl-k` | `picker.next` / `picker.previous` | Choose in a dropdown or suggestion list | Insert, popups |
 
 In the Comments pane (#703) `j`/`k` (and the wheel) move between comments, or by line in an expanded one, `Ctrl-d`/`Ctrl-u` half the pane, `G` to the last stop, `Enter` expands or cuts the comment; the pane scrolls to keep the cursor in view. No new key rows.

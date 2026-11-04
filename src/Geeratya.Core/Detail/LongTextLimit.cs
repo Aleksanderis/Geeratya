@@ -8,4 +8,5 @@ namespace Geeratya.Core.Detail;
 /// <param name="NoteRow">
 /// The "more lines" note takes one of <paramref name="Lines"/> rows (a pane of fixed height).
 /// </param>
-internal sealed record LongTextLimit(int Lines, int Width, bool NoteRow = false);
+/// <param name="ZoomHint">The "more lines" note also names <c>&lt;space&gt;z zoom</c>.</param>
+internal sealed record LongTextLimit(int Lines, int Width, bool NoteRow = false, bool ZoomHint = false);

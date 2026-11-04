@@ -29,7 +29,8 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     {
         var tab = ActiveTab(state)!;
         var top = tab.Detail[^1];
-        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows);
+        var stripRows = top.Zoomed is null ? 0 : DetailZoom.StripRows;
+        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows - stripRows);
         var document = top.Document is { } laidOut && laidOut.Width == width
             ? laidOut
             : IssueDocumentBuilder.Build(top, width, rows);
@@ -38,6 +39,12 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var onSide = side is not null && top.SideCursor is not null;
         var shown = side is null ? Math.Max(0, Math.Min(rows, document.Lines.Count - first)) : rows;
         var lines = new List<StyledLine>(height);
+
+        if (document.IsZoomed)
+        {
+            lines.Add(SectionStrip(document, top.Zoomed, width));
+        }
+
         var focused = document.Sections.Count == 0 || onSide ? -1 : document.SectionAt(top.Cursor);
         var block = onSide ? null : document.BlockAt(top.Cursor);
         var ascii = context.Glyphs == GlyphSet.Ascii;
@@ -61,6 +68,54 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         return lines;
     }
+
+    /// <summary>
+    /// The section strip of a zoomed pane: every section by its title, the current one as the filled accent chip, the
+    /// others muted. A strip wider than the screen drops sections from the left until the current one is in view, so
+    /// <c>Ctrl-h</c>/<c>Ctrl-l</c> always show where they went.
+    /// </summary>
+    private static StyledLine SectionStrip(DetailDocument document, string? current, int width)
+    {
+        var chips = document.Strip.Select(section => new StripChip(section.Id, $" {section.Label} ")).ToList();
+        var first = 0;
+
+        while (first < chips.Count - 1 && ReachOf(chips, first, current) > width)
+        {
+            first++;
+        }
+
+        var spans = new List<StyledSpan>();
+
+        foreach (var chip in chips.Skip(first))
+        {
+            spans.Add(new StyledSpan(chip.Text, chip.Id == current ? TextRole.ChipFocus : TextRole.Muted));
+            spans.Add(new StyledSpan(" ", TextRole.Body));
+        }
+
+        return StyledLines.Fit(new StyledLine(spans), width);
+    }
+
+    // The column where the current chip ends when the strip starts at chip first.
+    private static int ReachOf(List<StripChip> chips, int first, string? current)
+    {
+        var reach = 0;
+
+        for (var index = first; index < chips.Count; index++)
+        {
+            reach += TextWidth.Of(chips[index].Text);
+
+            if (chips[index].Id == current)
+            {
+                return reach;
+            }
+
+            reach++;
+        }
+
+        return reach;
+    }
+
+    private sealed record StripChip(string Id, string Text);
 
     /// <summary>The main column line padded to its width, a gap, then the sidebar line.</summary>
     private static StyledLine Joined(StyledLine main, int mainWidth, StyledLine side)

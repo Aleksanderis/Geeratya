@@ -102,12 +102,13 @@ public static class DetailDropdown
         var onSide = document.Side is not null && detail.SideCursor is not null;
         var shown = onSide ? document.Side! : document;
         var cursor = onSide ? detail.SideCursor!.Value : detail.Cursor;
-        var offset = onSide ? SideView.FirstLine(shown, cursor, box.Height) : detail.Scroll;
+        var strip = detail.Zoomed is null || onSide ? 0 : DetailZoom.StripRows;
+        var offset = onSide ? SideView.FirstLine(shown, cursor, box.Height) : detail.Scroll - strip;
         var block = shown.BlockAt(cursor) ?? new LineBlock(cursor, cursor + 1);
         var under = box.Top + block.End - offset;
         var above = box.Top + block.Start - offset - rows;
 
-        if (block.End - offset > box.Height || block.Start - offset < 0)
+        if (block.End - offset > box.Height || block.Start - offset < strip)
         {
             return -1;
         }

@@ -253,7 +253,7 @@ internal static class IssueRelationsBuilder
                 text.Append($"{Separator}{RelativeTime.Format(created, now)}", TextRole.Muted);
             }
 
-            content.Finish(text, new DetailTarget(DetailTargetKind.Attachment, key));
+            content.Finish(text, new DetailTarget(DetailTargetKind.Attachment, key, AttachmentId: attachment.Id));
         }
 
         lines.AddPanel(PaneIds.Attachments, Title(AttachmentsTitle, attachments.Count), content, width);

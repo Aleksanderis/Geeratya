@@ -67,6 +67,9 @@ all_scenarios=(
   "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via transition"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
   "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;newest first"
+  # detail-zoom: Ctrl-j to the Description pane, <space>z zooms it; detail-comments-zoom: the same on the Comments pane
+  "detail-zoom;120;36;dark;:jql project = GEN|jjjj|> z;zoomed"
+  "detail-comments-zoom;120;36;dark;:jql project = GEN|jjjj|>>>> z;Comments"
   "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transition"
   # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
   "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"

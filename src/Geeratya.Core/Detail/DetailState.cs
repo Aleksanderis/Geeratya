@@ -90,6 +90,12 @@ public sealed record DetailState(
     /// <summary>The first content row of the Comments pane that is shown (its inner scroll).</summary>
     public int CommentsOffset { get; init; }
 
+    /// <summary>
+    /// The pane shown zoomed (a <see cref="PaneIds"/> member), null when the panes show together. Kept with the
+    /// issue on the tab's stack, so it stays while the tab is open (#705).
+    /// </summary>
+    public string? Zoomed { get; init; }
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

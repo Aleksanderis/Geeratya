@@ -42,7 +42,7 @@ internal static class LongText
 
         if (expanded)
         {
-            AddNote(content, "Show less", "collapse", limit.Width, target with { Collapses = true });
+            AddNote(content, "Show less", "collapse", limit.Width, target with { Collapses = true }, false);
 
             return;
         }
@@ -50,13 +50,19 @@ internal static class LongText
         var hidden = lines.Count - shown;
         var text = hidden == 1 ? "… 1 more line" : $"… {hidden} more lines";
 
-        AddNote(content, text, "expand", limit.Width, target with { Expands = true });
+        AddNote(content, text, "expand", limit.Width, target with { Expands = true }, limit.ZoomHint);
     }
 
     /// <summary>
     /// A muted note with the key that acts on it in the accent: <c>… 11 more lines   Enter expand</c>.
     /// </summary>
-    private static void AddNote(PanelContent content, string text, string action, int width, DetailTarget target)
+    private static void AddNote(
+        PanelContent content,
+        string text,
+        string action,
+        int width,
+        DetailTarget target,
+        bool zoomHint)
     {
         var spans = new List<StyledSpan>
         {
@@ -65,6 +71,14 @@ internal static class LongText
             new("Enter", TextRole.Key),
             new($" {action}", TextRole.Muted),
         };
+
+        if (zoomHint)
+        {
+            spans.Add(new StyledSpan("   ", TextRole.Muted));
+            spans.Add(new StyledSpan("<space>z", TextRole.Key));
+            spans.Add(new StyledSpan(" zoom", TextRole.Muted));
+        }
+
         var line = new StyledLine(spans);
 
         if (DisplayWidth.Of(line.PlainText) <= width)

@@ -51,6 +51,13 @@ public static partial class StatusBar
         new(InputMode.Normal, ActionIds.IssueOpenParent, "parent", HintScope.Detail),
         new(InputMode.Normal, ActionIds.CommentAdd, "comment", HintScope.Detail),
         new(InputMode.Normal, ActionIds.PaneFocusDown, "pane", HintScope.Detail, ActionIds.PaneFocusUp),
+        new(InputMode.Normal, ActionIds.PaneZoom, "zoom", HintScope.Detail),
+        new(InputMode.Normal, ActionIds.NavigateDown, "field", HintScope.DetailZoomed, ActionIds.NavigateUp),
+        new(InputMode.Normal, ActionIds.ItemOpen, "edit/open", HintScope.DetailZoomed),
+        new(InputMode.Normal, ActionIds.PaneZoom, "unzoom", HintScope.DetailZoomed),
+        new(InputMode.Normal, ActionIds.PaneFocusRight, "section", HintScope.DetailZoomed, ActionIds.PaneFocusLeft),
+        new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.DetailZoomed),
+        new(InputMode.Normal, ActionIds.Cancel, "back", HintScope.DetailZoomed),
     ];
 
     /// <summary>The hints shown while the source picker is open (Insert mode, <see cref="AppState.Picker"/>).</summary>
@@ -208,7 +215,7 @@ public static partial class StatusBar
 
         if (tab.Detail.Count > 0)
         {
-            return HintScope.Detail;
+            return tab.Detail[^1].Zoomed is null ? HintScope.Detail : HintScope.DetailZoomed;
         }
 
         if (tab.Definition.Layout == ViewLayout.Columns)

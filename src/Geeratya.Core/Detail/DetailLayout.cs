@@ -38,6 +38,15 @@ public static class DetailLayout
     }
 
     /// <summary>
+    /// The width the panes of <paramref name="detail"/> are laid out for in a document <paramref name="width"/> columns
+    /// wide: all of it when a pane is zoomed (no sidebar), else <see cref="ColumnWidth"/>.
+    /// </summary>
+    public static int PaneWidth(DetailState detail, int width)
+    {
+        return detail.Zoomed is not null ? width : ColumnWidth(width);
+    }
+
+    /// <summary>
     /// The width of the main column for a detail <paramref name="width"/> columns wide with a sidebar.
     /// </summary>
     public static int MainWidth(int width)

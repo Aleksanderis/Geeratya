@@ -39,15 +39,18 @@ public static class IssueDocumentBuilder
     public static DetailDocument Build(DetailState detail, int width, int? viewportRows = null)
     {
         var total = Math.Max(1, width);
-        var sidebar = DetailLayout.HasSidebar(total);
+        var zoomed = detail.Zoomed is not null;
+        var sidebar = DetailLayout.HasSidebar(total) && !zoomed;
         var columns = sidebar ? DetailLayout.MainWidth(total) : total;
         var inner = Panel.InnerWidth(columns);
-        var sink = new DocumentSink();
+        var sink = new DocumentSink { Only = detail.Zoomed };
 
         AddTitle(sink, detail, columns, inner);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)
         {
+            sink.Only = null;
+
             var error = new PanelContent();
 
             error.Add(StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error));
@@ -64,6 +67,12 @@ public static class IssueDocumentBuilder
         if (!sidebar)
         {
             DetailsPane.Add(sink, detail, columns, inner);
+
+            // A zoomed pane that is gone (its data went away) shows the normal layout again.
+            if (zoomed && sink.Lines.Count == 0)
+            {
+                return Build(detail with { Zoomed = null }, width, viewportRows);
+            }
 
             return sink.ToDocument(total) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
         }
@@ -196,9 +205,10 @@ public static class IssueDocumentBuilder
         var panel = new PanelContent();
         var target = detail.Issue is null ? null : new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Description);
         var expanded = detail.Expanded.Contains(DetailFieldIds.Description);
-        var cut = target is not null && !expanded && content.Count > LongText.DescriptionRows;
+        var rows = detail.Zoomed == PaneIds.Description ? int.MaxValue : LongText.DescriptionRows;
+        var cut = target is not null && !expanded && content.Count > rows;
 
-        LongText.Add(panel, content, target, expanded, new LongTextLimit(LongText.DescriptionRows, inner, true));
+        LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true));
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
@@ -218,7 +228,7 @@ public static class IssueDocumentBuilder
 
     private static List<string?> AddComments(DocumentSink sink, DetailState detail, int width, int inner, int? viewport)
     {
-        var rows = CommentRows.Build(detail, inner);
+        var rows = CommentRows.Build(detail, inner, DetailZoom.BodyLines(detail));
         var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);

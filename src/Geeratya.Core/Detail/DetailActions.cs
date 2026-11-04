@@ -13,7 +13,6 @@ namespace Geeratya.Core.Detail;
 internal static class DetailActions
 {
     private const string StackFullText = "Too many issues open: press Esc to go back.";
-    private const string ZoomPendingText = "Zoom is not available in the issue detail yet.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -30,6 +29,11 @@ internal static class DetailActions
         if (target.Toggles)
         {
             return new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target), _noEffects);
+        }
+
+        if (target is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.Attachments })
+        {
+            return new ReduceResult(DetailReducer.ZoomPane(state, top.Tab, PaneIds.Attachments), _noEffects);
         }
 
         if (target.Kind == DetailTargetKind.Field)
@@ -85,7 +89,8 @@ internal static class DetailActions
     /// <summary>
     /// <c>pane.focus-*</c> in the issue detail: the cursor goes to the first row of the neighbouring pane, and the
     /// pane is shown from its top edge. Null when no issue is open, so the caller falls back to the other pane users.
-    /// <c>pane.zoom</c> says that zoom is not built yet (the zoomed sections are #705).
+    /// <c>pane.zoom</c> zooms the pane that holds the cursor (or leaves the zoom); while zoomed, <c>pane.focus-left</c>
+    /// and <c>pane.focus-right</c> switch the section of the strip and the other two do nothing.
     /// </summary>
     public static ReduceResult? FocusPane(AppState state, string? action)
     {
@@ -96,7 +101,12 @@ internal static class DetailActions
 
         if (action == ActionIds.PaneZoom)
         {
-            return Say(state, ZoomPendingText);
+            return new ReduceResult(DetailReducer.ToggleZoom(state, top.Tab), _noEffects);
+        }
+
+        if (top.Detail.Zoomed is not null)
+        {
+            return new ReduceResult(ZoomedFocus(state, top.Tab, action), _noEffects);
         }
 
         if (top.Detail.Document is not { } document || document.SectionIds.Count == 0)
@@ -130,6 +140,16 @@ internal static class DetailActions
         }
 
         return new ReduceResult(DetailReducer.JumpToPane(state, top.Tab, target), _noEffects);
+    }
+
+    private static AppState ZoomedFocus(AppState state, TabState tab, string? action)
+    {
+        return action switch
+        {
+            ActionIds.PaneFocusLeft => DetailReducer.SwitchSection(state, tab, -1),
+            ActionIds.PaneFocusRight => DetailReducer.SwitchSection(state, tab, 1),
+            _ => state,
+        };
     }
 
     /// <summary>

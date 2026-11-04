@@ -29,8 +29,8 @@
 │           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
 │           │               │              section                                                         │           │
-│           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
-│           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                               ▼│           │
+│           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
+│           │               │              (Ctrl-Backspace, Ctrl-w h)                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

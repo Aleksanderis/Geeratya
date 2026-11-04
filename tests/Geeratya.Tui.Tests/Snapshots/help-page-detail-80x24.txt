@@ -11,14 +11,14 @@
 ╰─│                │   <space>a   Open the actions menu of the selected      │─╯
 ╭─│                │              issue                                      │─╮
 │ │                │   Enter      Open the selected item                     │ │
-╰─│                │   Ctrl-j     Focus the pane below  (Ctrl-w j)           │─╯
-╭─│                │   Ctrl-k     Focus the pane above  (Ctrl-w k)           │─╮
-│ │                │   <space>z   Zoom the focused pane, or leave the zoom   │ │
-│ │                │   <space>o   Open the issue in the browser              │ │
-│ │                │   <space>p   Open the parent issue                      │ │
-│ │                │   <space>ie  Edit fields of the issue (summary,         │ │
-│ │                │              labels, priority, description)             │ │
-│ │                │   <space>ia  Assign the issue: search people, or       ▼│ │
+╰─│                │   Ctrl-h     Focus the pane to the left (zoomed: the    │─╯
+╭─│                │              previous section)  (Ctrl-Backspace,        │─╮
+│ │                │              Ctrl-w h)                                  │ │
+│ │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)           │ │
+│ │                │   Ctrl-k     Focus the pane above  (Ctrl-w k)           │ │
+│ │                │   Ctrl-l     Focus the pane to the right (zoomed: the   │ │
+│ │                │              next section)  (Ctrl-w l)                  │ │
+│ │                │   <space>z   Zoom the focused pane, or leave the zoom  ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 │  [--] Unassigned                                                             │
  HELP                                   j section  J scroll  / filter  Esc close

@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -61,7 +62,17 @@ public static class PaneActions
             || state.Editor is not null
             || state.PendingKeys.Length > 0;
 
-        if (overlayOpen || ActiveTab(state) is not { } tab || tab.Panes.Zoomed is null)
+        if (overlayOpen || ActiveTab(state) is not { } tab)
+        {
+            return null;
+        }
+
+        if (DetailReducer.LeaveZoom(state, tab) is { } detail)
+        {
+            return detail;
+        }
+
+        if (tab.Panes.Zoomed is null)
         {
             return null;
         }
@@ -72,7 +83,9 @@ public static class PaneActions
     /// <summary>True when the active tab has a zoomed pane.</summary>
     public static bool IsZoomed(AppState state)
     {
-        return ActiveTab(state)?.Panes.Zoomed is not null;
+        var tab = ActiveTab(state);
+
+        return tab?.Panes.Zoomed is not null || tab is { Detail: [.., { Zoomed: not null }] };
     }
 
     private static TabState? ActiveTab(AppState state)
