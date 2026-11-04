@@ -124,6 +124,8 @@ The pane model (focus over a grid, zoom, inner scroll, the keys below) is built 
 | `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves) | Normal, detail |
 | `Down` `Ctrl-j` / `Up` `Ctrl-k` | `picker.next` / `picker.previous` | Choose in a dropdown or suggestion list | Insert, popups |
 
+In the Comments pane (#703) `j`/`k` (and the wheel) move between comments, or by line in an expanded one, `Ctrl-d`/`Ctrl-u` half the pane, `G` to the last stop, `Enter` expands or cuts the comment; the pane scrolls to keep the cursor in view. No new key rows.
+
 `Alt-h/j/k/l` stay card move and rank. The detail drops `]]`/`[[` (`detail.section-next`/`detail.section-previous`); the Scrum backlog keeps them. `Ctrl-h` is Backspace in terminals without an enhanced keyboard protocol: `Ctrl-w h` is the fallback there (`Ctrl-Backspace` is bound too). **Against the Insert rows** (decision 2026-11-04, #701): the pane rows are Normal mode; a form in its navigate state takes `Ctrl-h/j/k/l` as pane focus when the tab has panes (otherwise `Ctrl-j/k` step the field as before), and a form being edited, a dropdown and the suggestion popup keep `Ctrl-j/k` as `picker.next`/`picker.previous` and `Ctrl-l` as `form.next`; `Ctrl-w` chords work in Normal mode only.
 
 ### Selection and counts
