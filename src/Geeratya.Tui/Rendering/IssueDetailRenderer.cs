@@ -74,7 +74,9 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         return new StyledLine(spans);
     }
 
-    /// <summary>The chips of a top edge (the runs between border spans) restyled: the first one for the focus state.</summary>
+    /// <summary>
+    /// The chips of a top edge (the runs between border spans) restyled: the first one for the focus state.
+    /// </summary>
     private static List<StyledSpan> Chips(List<StyledSpan> spans, bool focused)
     {
         var result = new List<StyledSpan>(spans.Count);
@@ -106,7 +108,9 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         return result;
     }
 
-    /// <summary>The right padding cell of a content row replaced by the scrollbar cell of its row, when the pane scrolls.</summary>
+    /// <summary>
+    /// The right padding cell of a content row replaced by the scrollbar cell of its row, when the pane scrolls.
+    /// </summary>
     private static List<StyledSpan> Scrollbar(DetailDocument document, int pane, int index, List<StyledSpan> spans)
     {
         if (document.PaneScrolls[pane] is not { } scroll || spans.Count < 2)
@@ -145,7 +149,8 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     }
 
     /// <summary>
-    /// Marks the cursor row: the padding cell after the border (the border is always the first span) becomes <c>&gt;</c> in
+    /// Marks the cursor row: the padding cell after the border (the border is always the first span) becomes
+    /// <c>&gt;</c> in
     /// the selected role; a line without one (frames are dropped on a very narrow screen) is shown selected as a whole.
     /// </summary>
     private static StyledLine CursorLine(StyledLine line)
@@ -185,7 +190,8 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     }
 
     /// <summary>
-    /// A row of the focused field: the whole row between the borders in the selected role (label, value and padding), so
+    /// A row of the focused field: the whole row between the borders in the selected role (label, value and padding),
+    /// so
     /// a wrapped value reads as one bar; the first row also carries the <c>&gt;</c> mark, so focus is not colour alone.
     /// </summary>
     private static StyledLine FieldLine(StyledLine line, bool first, bool ascii)

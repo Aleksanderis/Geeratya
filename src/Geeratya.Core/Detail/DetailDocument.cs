@@ -18,22 +18,31 @@ public sealed record DetailDocument(
     IReadOnlyList<int> Sections,
     IReadOnlyList<int> Stops)
 {
-    /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
+    /// <summary>
+    /// The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.
+    /// </summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
 
     /// <summary>The line of the top edge of each pane, parallel to <see cref="Sections"/>.</summary>
     public IReadOnlyList<int> PaneStarts { get; init; } = [];
 
-    /// <summary>The inner scroll of each pane that shows a scrollbar, parallel to <see cref="Sections"/>; null for a pane that fits.</summary>
+    /// <summary>
+    /// The inner scroll of each pane that shows a scrollbar, parallel to <see cref="Sections"/>; null for a pane that
+    /// fits.
+    /// </summary>
     public IReadOnlyList<PaneScroll?> PaneScrolls { get; init; } = [];
 
     /// <summary>The pane id of each section (<see cref="PaneIds"/>), parallel to <see cref="Sections"/>.</summary>
     public IReadOnlyList<string> SectionIds { get; init; } = [];
 
-    /// <summary>The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).</summary>
+    /// <summary>
+    /// The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).
+    /// </summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneRightTitles { get; init; } = [];
 
-    /// <summary>The line ranges that are one cursor stop each (a wrapped field), ascending; other lines are their own stop.</summary>
+    /// <summary>
+    /// The line ranges that are one cursor stop each (a wrapped field), ascending; other lines are their own stop.
+    /// </summary>
     public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
 
     /// <summary>The block that holds <paramref name="line"/>, null when the line stands alone.</summary>

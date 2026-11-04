@@ -56,7 +56,9 @@ internal static class LongText
         AddNote(content, text, "expand", limit.Width, target with { Expands = true });
     }
 
-    /// <summary>A muted note with the key that acts on it in the accent: <c>… 11 more lines   Enter expand</c>.</summary>
+    /// <summary>
+    /// A muted note with the key that acts on it in the accent: <c>… 11 more lines   Enter expand</c>.
+    /// </summary>
     private static void AddNote(PanelContent content, string text, string action, int width, DetailTarget target)
     {
         var spans = new List<StyledSpan>

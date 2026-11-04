@@ -4,7 +4,9 @@ using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.Detail;
 
-/// <summary>The header facts of the shown issue, from the loaded issue or else from the list row it was opened from.</summary>
+/// <summary>
+/// The header facts of the shown issue, from the loaded issue or else from the list row it was opened from.
+/// </summary>
 internal sealed record HeaderFields(
     string TypeName,
     string Summary,

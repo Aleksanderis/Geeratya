@@ -11,7 +11,9 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
 
-/// <summary>Long text starts cut short and expands in place; the state is per issue (#678). Panes do not fold (#702).</summary>
+/// <summary>
+/// Long text starts cut short and expands in place; the state is per issue (#678). Panes do not fold (#702).
+/// </summary>
 [Trait("Os", "Independent")]
 public class IssueDetailSectionTests
 {
@@ -64,7 +66,8 @@ public class IssueDetailSectionTests
     [Fact]
     public void GivenShowLess_WhenPressingEnter_ThenTheCursorLandsOnTheMoreLineNotInALaterPane()
     {
-        var expanded = Press(OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines   Enter expand"), "Enter").State;
+        var onMore = OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines   Enter expand");
+        var expanded = Press(onMore, "Enter").State;
 
         var collapsed = Press(OnLine(expanded, "Show less   Enter collapse"), "Enter").State;
 

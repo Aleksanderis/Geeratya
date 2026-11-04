@@ -1,4 +1,3 @@
-using System.Text;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 
@@ -20,7 +19,9 @@ internal static class RelationTable
     private const string UnassignedName = "Unassigned";
     private const string UnassignedInitials = "--";
 
-    /// <summary>The lines of the table for <paramref name="inner"/> columns; each line opens its row's target.</summary>
+    /// <summary>
+    /// The lines of the table for <paramref name="inner"/> columns; each line opens its row's target.
+    /// </summary>
     public static void Add(PanelContent content, IReadOnlyList<RelationRow> rows, int inner)
     {
         if (rows.Count == 0)
@@ -40,26 +41,26 @@ internal static class RelationTable
     {
         var spans = new List<StyledSpan>
         {
-            new(Pad(Cut(TextClean.Of(row.Key), plan.KeyWidth), plan.KeyWidth), TextRole.Key),
+            new(Pad(DisplayText.Cut(TextClean.Of(row.Key), plan.KeyWidth), plan.KeyWidth), TextRole.Key),
             new(new string(' ', Gap), TextRole.Body),
         };
         var room = plan.SummaryWidth;
 
         if (row.Prefix.Length > 0 && room > 0)
         {
-            var prefix = Cut($"{TextClean.Of(row.Prefix)} ", room);
+            var prefix = DisplayText.Cut($"{TextClean.Of(row.Prefix)} ", room);
 
             spans.Add(new StyledSpan(prefix, TextRole.Emphasis));
             room -= DisplayWidth.Of(prefix);
         }
 
-        var summary = Cut(TextClean.Of(row.Summary), room);
+        var summary = DisplayText.Cut(TextClean.Of(row.Summary), room);
 
         spans.Add(new StyledSpan(Pad(summary, room), TextRole.Body));
 
         if (plan.StatusWidth > 0)
         {
-            var status = Cut(TextClean.Of(row.StatusName), plan.StatusWidth);
+            var status = DisplayText.Cut(TextClean.Of(row.StatusName), plan.StatusWidth);
 
             spans.Add(new StyledSpan(new string(' ', Gap), TextRole.Body));
             spans.Add(new StyledSpan(Pad(status, plan.StatusWidth), row.StatusRole));
@@ -99,40 +100,8 @@ internal static class RelationTable
             var role = unassigned ? TextRole.Muted : TextRole.Body;
 
             spans.Add(new StyledSpan(" ", TextRole.Body));
-            spans.Add(new StyledSpan(Pad(Cut(name, plan.NameWidth), plan.NameWidth), role));
+            spans.Add(new StyledSpan(Pad(DisplayText.Cut(name, plan.NameWidth), plan.NameWidth), role));
         }
-    }
-
-    /// <summary>The text cut to <paramref name="width"/> cells, ending in an ellipsis when something was cut.</summary>
-    internal static string Cut(string text, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (DisplayWidth.Of(text) <= width)
-        {
-            return text;
-        }
-
-        var builder = new StringBuilder();
-        var used = 0;
-
-        foreach (var rune in text.EnumerateRunes())
-        {
-            var size = DisplayWidth.Of(rune);
-
-            if (used + size > width - 1)
-            {
-                break;
-            }
-
-            builder.Append(rune.ToString());
-            used += size;
-        }
-
-        return builder.Append('…').ToString();
     }
 
     private static string Pad(string text, int width)
@@ -181,16 +150,22 @@ internal static class RelationTable
 
         private static int InitialsWidth(RelationRow row)
         {
-            return string.IsNullOrWhiteSpace(row.Assignee)
-                ? UnassignedInitials.Length
-                : DisplayWidth.Of(AssigneeInitials.Of(row.Assignee));
+            if (string.IsNullOrWhiteSpace(row.Assignee))
+            {
+                return UnassignedInitials.Length;
+            }
+
+            return DisplayWidth.Of(AssigneeInitials.Of(row.Assignee));
         }
 
         private static int NameWidthOf(RelationRow row)
         {
-            return string.IsNullOrWhiteSpace(row.Assignee)
-                ? UnassignedName.Length
-                : DisplayWidth.Of(TextClean.Of(row.Assignee));
+            if (string.IsNullOrWhiteSpace(row.Assignee))
+            {
+                return UnassignedName.Length;
+            }
+
+            return DisplayWidth.Of(TextClean.Of(row.Assignee));
         }
 
         /// <summary>The columns taken by everything but the summary, gaps included.</summary>

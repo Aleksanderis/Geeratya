@@ -5,7 +5,8 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// A pane of the issue detail: a rounded border of its own with the title set into the top edge and one column of
-/// padding inside the side edges (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"). The border characters are Unicode box drawing;
+/// padding inside the side edges (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"). The border
+/// characters are Unicode box drawing;
 /// the renderer swaps them for ASCII on terminals that cannot show them, one cell for one cell.
 /// </summary>
 public static class Panel
@@ -102,7 +103,9 @@ public static class Panel
         return new StyledLine([new StyledSpan($"{BottomLeft}{rule}{BottomRight}", TextRole.Border)]);
     }
 
-    /// <summary>The spans padded with one space each side, cut to <paramref name="room"/> cells; empty when too tight.</summary>
+    /// <summary>
+    /// The spans padded with one space each side, cut to <paramref name="room"/> cells; empty when too tight.
+    /// </summary>
     private static List<StyledSpan> Chip(IReadOnlyList<StyledSpan> spans, int room)
     {
         var fitted = new List<StyledSpan>();

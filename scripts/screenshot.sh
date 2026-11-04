@@ -22,7 +22,8 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
-# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark) `<` sends Left (the prompt caret) and `>` sends Ctrl-j (focus the pane below).
+# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
+# caret) and `>` sends Ctrl-j (focus the pane below).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"

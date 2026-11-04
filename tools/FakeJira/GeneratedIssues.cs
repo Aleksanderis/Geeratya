@@ -200,11 +200,10 @@ public static class GeneratedIssues
     /// </summary>
     public static byte[]? ChildrenPage(int total, string key)
     {
-        var number = int.TryParse(key.StartsWith("GEN-", StringComparison.Ordinal) ? key[4..] : null, out var parsed)
-            ? parsed
-            : 0;
-
-        if (number < 1 || number > total)
+        if (!key.StartsWith("GEN-", StringComparison.Ordinal)
+            || !int.TryParse(key[4..], CultureInfo.InvariantCulture, out var number)
+            || number < 1
+            || number > total)
         {
             return null;
         }

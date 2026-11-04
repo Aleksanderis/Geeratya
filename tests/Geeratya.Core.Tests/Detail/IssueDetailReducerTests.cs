@@ -649,7 +649,8 @@ public class IssueDetailReducerTests
         var tab = Active(opened.State);
         var story = Detailed("A-1") with { Subtasks = [new IssueStub("A-18", "Write", _status, _type)] };
 
-        var result = _reducer.Reduce(opened.State, new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, story, _now));
+        var loaded = new IssueDetailLoaded(tab.Id, tab.Detail[0].IssueRequest, story, _now);
+        var result = _reducer.Reduce(opened.State, loaded);
 
         var children = Assert.Single(result.Effects.OfType<LoadIssueChildrenEffect>());
         Assert.Equal("A-1", children.Key);

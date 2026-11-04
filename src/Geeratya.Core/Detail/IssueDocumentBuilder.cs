@@ -113,7 +113,7 @@ public static class IssueDocumentBuilder
             return Wrapped(header.Summary, inner);
         }
 
-        var status = new StyledSpan(RelationTable.Cut(Clean(current.Name), inner), StatusRoles.Of(current));
+        var status = new StyledSpan(DisplayText.Cut(Clean(current.Name), inner), StatusRoles.Of(current));
         var statusWidth = DisplayWidth.Of(status.Text) + StatusGap;
         var wrapped = new WrappedText(Math.Max(1, inner - statusWidth), false);
 
@@ -140,7 +140,9 @@ public static class IssueDocumentBuilder
             room = inner - DisplayWidth.Of(status.Text);
         }
 
-        rows[^1] = new StyledLine([.. last.Spans, new StyledSpan(new string(' ', Math.Max(0, room)), TextRole.Body), status]);
+        var gap = new StyledSpan(new string(' ', Math.Max(0, room)), TextRole.Body);
+
+        rows[^1] = new StyledLine([.. last.Spans, gap, status]);
 
         return rows;
     }
@@ -314,7 +316,9 @@ public static class IssueDocumentBuilder
 
         var scroll = new PaneScroll(0, content.Count, LongText.DescriptionRows);
 
-        sink.AddPanel(PaneIds.Description, [title], panel, width, [new StyledSpan(scroll.Chip(), TextRole.Muted)], scroll);
+        var chip = new StyledSpan(scroll.Chip(), TextRole.Muted);
+
+        sink.AddPanel(PaneIds.Description, [title], panel, width, [chip], scroll);
     }
 
     private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)

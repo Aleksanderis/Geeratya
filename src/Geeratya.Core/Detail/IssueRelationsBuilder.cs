@@ -135,7 +135,9 @@ internal static class IssueRelationsBuilder
 
         var count = detail.ChildrenMore ? $"{children.Count}+" : children.Count.ToString();
 
-        lines.AddPanel(PaneIds.Children, [new StyledSpan($"{ChildrenTitle} {count}", TextRole.Heading)], content, width);
+        var title = new StyledSpan($"{ChildrenTitle} {count}", TextRole.Heading);
+
+        lines.AddPanel(PaneIds.Children, [title], content, width);
     }
 
     private static void AddLinks(DocumentSink lines, IReadOnlyList<IssueLink> links, int width, int inner)
@@ -173,17 +175,18 @@ internal static class IssueRelationsBuilder
     private static void AddRemoteLinks(DocumentSink lines, DetailState detail, int width, int inner)
     {
         var content = new PanelContent();
+        var heading = new StyledSpan(RemoteLinksTitle, TextRole.Heading);
 
         switch (detail.LinksLoad)
         {
             case Loading:
                 content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                lines.AddPanel(PaneIds.RemoteLinks, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.RemoteLinks, [heading], content, width);
 
                 return;
             case Failed failed:
                 content.Add(StyledLine.Of(failed.Message, TextRole.Error));
-                lines.AddPanel(PaneIds.RemoteLinks, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.RemoteLinks, [heading], content, width);
 
                 return;
         }
