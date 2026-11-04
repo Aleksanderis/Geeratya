@@ -184,6 +184,39 @@ public class InPaneEditTests
     }
 
     [Fact]
+    public void GivenTheCaretInTheMiddleOfALongDescription_WhenBuildingTheDocument_ThenRowsAboveAndBelowShow()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 30).Select(number => $"line {number}"));
+        var field = DescriptionField(text) with { Back = text.Length - text.IndexOf("line 15", StringComparison.Ordinal) };
+        var state = Loaded(Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"), field);
+
+        var plain = Plain(Build(state, 100, 30));
+
+        Assert.Contains("line 11", plain);
+        Assert.Contains("|line 15", plain);
+        Assert.Contains("line 18", plain);
+        Assert.DoesNotContain("line 19", plain);
+        Assert.Contains("11-18 of 30", plain);
+    }
+
+    [Fact]
+    public void GivenAShortScreen_WhenEditingTheDescription_ThenTheEditorShrinksToTheRowsThatFit()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 30).Select(number => $"line {number}"));
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField(text));
+
+        var document = Build(state, 100, 6);
+
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
+        var start = document.PaneStarts[pane];
+        var end = document.PaneStarts[pane + 1];
+        Assert.Contains("line 30_", Plain(document));
+        Assert.True(end - start <= 6, $"editor is {end - start} lines");
+    }
+
+    [Fact]
     public void GivenAZoomedDescription_WhenEditing_ThenTheEditorTakesTheWholeHeight()
     {
         var text = string.Join('\n', Enumerable.Range(1, 40).Select(number => $"line {number}"));

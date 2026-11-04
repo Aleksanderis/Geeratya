@@ -6,7 +6,9 @@ namespace Geeratya.Core.Text;
 /// </summary>
 public static class CaretRows
 {
-    /// <summary>The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).</summary>
+    /// <summary>
+    /// The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).
+    /// </summary>
     public static string Caretted(PromptText prompt, int width)
     {
         var window = PromptWindow.Of(prompt, width);

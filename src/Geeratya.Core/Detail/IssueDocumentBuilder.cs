@@ -24,6 +24,7 @@ public static class IssueDocumentBuilder
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
     private const string BackText = "Esc to go back.";
+    private const string ChipSeparator = " · ";
     private const string EditInBrowserText = "(edit in browser)";
 
     /// <summary>The not-found text, shared with the status and the tests.</summary>
@@ -148,7 +149,9 @@ public static class IssueDocumentBuilder
             title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
         }
 
-        sink.AddPanel(PaneIds.Title, title, content, width, edit is { Pane: PaneIds.Title } ? PaneEdit.Chip() : null);
+        var right = edit is { Pane: PaneIds.Title } ? PaneEdit.Chip() : null;
+
+        sink.AddPanel(PaneIds.Title, title, content, width, right);
     }
 
     private static List<StyledLine> SummaryRows(HeaderFields header, int inner)
@@ -248,9 +251,7 @@ public static class IssueDocumentBuilder
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
-        var browser = detail.Issue?.Description is { } document && !DescriptionEditability.CanEdit(document)
-            ? EditInBrowser()
-            : null;
+        var browser = BrowserNote(detail);
 
         if (!cut)
         {
@@ -261,11 +262,27 @@ public static class IssueDocumentBuilder
 
         var chip = new StyledSpan(scroll.Chip(), TextRole.Muted);
 
-        sink.AddPanel(PaneIds.Description, [title], panel, width, browser is null ? [chip] : [chip, new StyledSpan(" · ", TextRole.Muted), .. browser], scroll);
+        sink.AddPanel(PaneIds.Description, [title], panel, width, ScrollAndBrowser(chip, browser), scroll);
     }
 
-    private static StyledSpan[] EditInBrowser()
+    private static StyledSpan[] ScrollAndBrowser(StyledSpan chip, StyledSpan[]? browser)
     {
+        if (browser is null)
+        {
+            return [chip];
+        }
+
+        return [chip, new StyledSpan(ChipSeparator, TextRole.Muted), .. browser];
+    }
+
+    // The note of a description that cannot be edited here, null when it can.
+    private static StyledSpan[]? BrowserNote(DetailState detail)
+    {
+        if (detail.Issue?.Description is not { } document || DescriptionEditability.CanEdit(document))
+        {
+            return null;
+        }
+
         return [new StyledSpan(EditInBrowserText, TextRole.Muted)];
     }
 
@@ -282,9 +299,10 @@ public static class IssueDocumentBuilder
         var zoomed = detail.Zoomed == PaneIds.Description;
         var rows = PaneEdit.EditorRows;
 
-        if (zoomed && viewportRows is { } shown)
+        if (viewportRows is { } shown)
         {
-            rows = Math.Max(1, shown - Panel.EdgeRows);
+            // Zoomed, the editor takes the pane's height; unzoomed, at most the screen minus the frame.
+            rows = zoomed ? Math.Max(1, shown - Panel.EdgeRows) : Math.Clamp(shown - Panel.EdgeRows, 1, rows);
         }
 
         var content = new PanelContent();

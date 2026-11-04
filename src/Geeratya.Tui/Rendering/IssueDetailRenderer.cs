@@ -31,10 +31,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var top = tab.Detail[^1];
         var stripRows = top.Zoomed is null ? 0 : DetailZoom.StripRows;
         var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows - stripRows);
-        var editing = tab.Form is { Pane: { } editedPane, IsLoading: false, Fields.Count: > 0 } form
-            && string.Equals(form.Target.IssueKey, top.Key, StringComparison.Ordinal)
-            ? editedPane
-            : null;
+        var editing = PaneEdit.PaneOf(tab.Form, top.Key);
         var document = top.Document is { } laidOut && laidOut.Width == width && editing is null
             ? laidOut
             : IssueDocumentBuilder.Build(top, width, rows, null, tab.Form);
@@ -49,7 +46,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         {
             // The edited pane keeps the focus, whatever its rows did to the line numbers; a screen scrolled past it
             // shows it from its top edge.
-            focused = document.SectionIds.ToList().IndexOf(editing);
+            focused = IndexOf(document.SectionIds, editing);
             block = null;
             cursor = -1;
             first = focused >= 0 ? Math.Min(first, document.PaneStarts[focused]) : first;
@@ -83,6 +80,19 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return lines;
+    }
+
+    private static int IndexOf(IReadOnlyList<string> ids, string id)
+    {
+        for (var index = 0; index < ids.Count; index++)
+        {
+            if (ids[index] == id)
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>

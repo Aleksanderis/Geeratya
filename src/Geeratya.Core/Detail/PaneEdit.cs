@@ -5,12 +5,12 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// A pane of the detail in its edit state (<c>docs/ux-screens.md</c>, "Editing in place"): the field the open form edits
-/// in place, drawn with its caret instead of the pane's normal content. Pure.
+/// A pane of the detail in its edit state (<c>docs/ux-screens.md</c>, "Editing in place"): the field the open form
+/// edits in place, drawn with its caret instead of the pane's normal content. Pure.
 /// </summary>
 /// <param name="Pane">The pane (<see cref="PaneIds.Title"/> or <see cref="PaneIds.Description"/>).</param>
 /// <param name="Form">The form that holds the text, its errors and its save state.</param>
-internal sealed record PaneEdit(string Pane, FormState Form)
+public sealed record PaneEdit(string Pane, FormState Form)
 {
     /// <summary>Body rows of the Description editor when the pane is not zoomed.</summary>
     public const int EditorRows = 8;
@@ -21,7 +21,9 @@ internal sealed record PaneEdit(string Pane, FormState Form)
 
     private FormField Field => Form.Fields[Math.Clamp(Form.Focus, 0, Form.Fields.Count - 1)];
 
-    /// <summary>The edit of the open form when it edits a pane of the issue <paramref name="key"/> in place, else null.</summary>
+    /// <summary>
+    /// The edit of the open form when it edits a pane of the issue <paramref name="key"/> in place, else null.
+    /// </summary>
     public static PaneEdit? Of(FormState? form, string key)
     {
         if (form is not { Pane: { } pane, IsLoading: false, Fields.Count: > 0 }
@@ -31,6 +33,12 @@ internal sealed record PaneEdit(string Pane, FormState Form)
         }
 
         return new PaneEdit(pane, form);
+    }
+
+    /// <summary>The pane the open form edits in place on the issue <paramref name="key"/>, else null.</summary>
+    public static string? PaneOf(FormState? form, string key)
+    {
+        return Of(form, key)?.Pane;
     }
 
     /// <summary>The dim chip at the right of the top edge: the pane is being edited.</summary>
@@ -52,8 +60,9 @@ internal sealed record PaneEdit(string Pane, FormState Form)
     }
 
     /// <summary>
-    /// The description as the rows of its editor: a window of at most <paramref name="maxRows"/> text rows that keeps
-    /// the caret row in view, then the notices. <paramref name="scroll"/> is set when the text has more rows.
+    /// The description as the rows of its editor: a window of at most <paramref name="maxRows"/> text rows with
+    /// the caret row in the middle of it (at the ends of the text it sits nearer the edge), then the notices.
+    /// <paramref name="scroll"/> is set when the text has more rows.
     /// </summary>
     public List<StyledLine> DescriptionRows(int inner, int maxRows, out PaneScroll? scroll)
     {
@@ -64,7 +73,7 @@ internal sealed record PaneEdit(string Pane, FormState Form)
         var notices = Notices(inner);
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);
-        var first = Math.Clamp(caretRow - shown + 1, 0, lines.Length - shown);
+        var first = Math.Clamp(caretRow - (shown / 2), 0, lines.Length - shown);
         var rows = new List<StyledLine>(shown + notices.Count);
 
         for (var index = first; index < first + shown; index++)
