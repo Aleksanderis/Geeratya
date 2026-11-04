@@ -19,7 +19,9 @@ public sealed record StripChip(string Id, string Text, int Start)
 /// </summary>
 public static class DetailStrip
 {
-    /// <summary>The chips that show in a strip <paramref name="width"/> columns wide, in order, with their columns.</summary>
+    /// <summary>
+    /// The chips that show in a strip <paramref name="width"/> columns wide, in order, with their columns.
+    /// </summary>
     public static IReadOnlyList<StripChip> Chips(DetailDocument document, string? current, int width)
     {
         var texts = document.Strip.Select(section => $" {section.Label} ").ToList();
@@ -44,7 +46,9 @@ public static class DetailStrip
         return chips;
     }
 
-    /// <summary>The section whose chip covers <paramref name="column"/>, null on a separator or past the strip.</summary>
+    /// <summary>
+    /// The section whose chip covers <paramref name="column"/>, null on a separator or past the strip.
+    /// </summary>
     public static string? SectionAt(DetailDocument document, string? current, int width, int column)
     {
         var chip = Chips(document, current, width)

@@ -19,6 +19,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// drawn frame's regions, the resolver and the reducer: a click on a row accepts it, a click outside closes it, a click
 /// elsewhere while a pane is edited in place is ignored.
 /// </summary>
+[Trait("Os", "Independent")]
 public class DetailDropdownMouseTests
 {
     private const int Width = 120;

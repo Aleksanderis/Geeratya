@@ -380,7 +380,8 @@ public class DetailMouseTests
     private static SideRowPair SideRows(AppState state, string field)
     {
         var side = Document(state).Side!;
-        var line = side.Targets.ToList().FindIndex(target => target is { Kind: DetailTargetKind.Field } && target.Value == field);
+        var line = side.Targets.ToList()
+            .FindIndex(target => target is { Kind: DetailTargetKind.Field } && target.Value == field);
         var start = side.BlockAt(line)!.Start;
 
         return new SideRowPair(start, start + 1);
@@ -452,9 +453,12 @@ public class DetailMouseTests
         var detail = Active(shown).Detail[0];
         var loaded = _reducer.Reduce(shown, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(), _now)).State;
         var comments = new[] { Comment("1", 8), Comment("2", 1) };
-        var commentPage = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Length, true);
+        var size = DetailPaging.CommentPageSize;
+        var commentPage = new OffsetPage<IssueComment>(comments, 0, size, comments.Length, true);
 
-        return _reducer.Reduce(loaded, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now)).State;
+        var delivered = new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now);
+
+        return _reducer.Reduce(loaded, delivered).State;
     }
 
     private static IssueDetail Issue()

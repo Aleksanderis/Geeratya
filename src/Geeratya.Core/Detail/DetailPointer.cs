@@ -50,6 +50,8 @@ internal static class DetailPointer
             return _nothing;
         }
 
+        // The layout of the document (width, sidebar split) is the one the last layout produced; a click in the one
+        // frame between a resize and its re-layout resolves against it.
         var rows = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
         var strip = top.Zoomed is null ? 0 : DetailZoom.StripRows;
 
@@ -96,7 +98,8 @@ internal static class DetailPointer
 
         var shown = hit.OnSide ? document.Side : document;
 
-        if (shown is null || hit.Line < 0 || hit.Line >= shown.Targets.Count || shown.Targets[hit.Line] is not { } target)
+        if (shown is null || hit.Line < 0 || hit.Line >= shown.Targets.Count
+            || shown.Targets[hit.Line] is not { } target)
         {
             return false;
         }
