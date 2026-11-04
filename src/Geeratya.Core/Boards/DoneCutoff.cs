@@ -10,7 +10,7 @@ public static class DoneCutoff
     public const int Days = 14;
 
     /// <summary>The JQL clause that keeps open issues and recently resolved ones.</summary>
-    public const string Jql = "resolution = Unresolved OR resolutiondate >= -14d";
+    public const string Jql = $"resolution = Unresolved OR resolutiondate >= -{Days}d";
 
     /// <summary>The column title with the cutoff noted, so the user sees older issues are hidden.</summary>
     public static string Title(string columnName)

@@ -294,7 +294,9 @@ public sealed class ViewLoadHandlerBoardTests
         Assert.Contains("/board/4/quickfilter", fixture.Path(2));
         Assert.Contains("/board/4/configuration", fixture.Path(3));
         Assert.Contains("/board/4/issue", fixture.Path(4));
-        Assert.Contains("(updatedDate >= -1d)", fixture.Query(4));
+        Assert.Contains(
+            "jql=(resolution = Unresolved OR resolutiondate >= -14d) AND (updatedDate >= -1d)",
+            fixture.Query(4));
         Assert.Contains("resolutiondate", fixture.Query(4));
         Assert.Contains("resolutiondate", fixture.Query(1));
         Assert.Equal(LoadState.Idle, tab.Load);
