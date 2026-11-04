@@ -1,16 +1,17 @@
 #requires -Version 7
 # Measure cold start to first frame and key-to-frame of the real binary in a private psmux server (Windows;
 # PowerShell 7 and psmux: `winget install marlocarlo.psmux`, which accepts the tmux commands used here).
-# PowerShell twin of the default scenario of measure.sh. UNTESTED: written without a Windows machine; the first
-# Windows run is tracked by a windows-vm issue. The scenarios list, detail, views and scrum are not ported (they
-# exit 2); use measure.sh on Linux for them.
+# PowerShell twin of the default scenario of measure.sh (verified on Windows 11 with psmux 3.4, #632). The scenarios
+# list, detail, views and scrum are not ported (they exit 2); use measure.sh on Linux for them.
 # Usage: scripts/measure.ps1 <binary> <fake url> [runs] [-Keys N] [-TimeoutMs N]
 #   <binary>    the Native AOT geeratya binary (never dotnet run: JIT numbers differ)
 #   <fake url>  loopback base URL printed by tools/FakeJira; written as the site of one active fake profile into
 #               a private configuration directory (token: GEERATYA_TOKEN=fake)
-# Prints median and p95 in milliseconds. psmux polls are expected to cost far more than tmux's few ms (to be measured), so the numbers are only
-# comparable between runs of this script, never with measure.sh. Private XDG directories keep the owner's profiles,
-# tokens and cache unread (no `-f` equivalent for the psmux config is known: a user psmux config could still apply). Exit 2 for bad arguments, 3 for a missing tool, 1 when a frame never appears.
+# Prints median and p95 in milliseconds. A psmux poll costs far more than tmux's few ms and psmux starts the pane
+# command through pwsh (the "floor" line shows that cost), so the numbers are only comparable between runs of this
+# script, never with measure.sh. Private XDG directories keep the owner's profiles, tokens and cache unread, and
+# psmux reads an empty configuration file (`-f`), never the user's. Exit 2 for bad arguments, 3 for a missing tool,
+# 1 when a frame never appears.
 param(
     [Parameter(Position = 0)][string]$Binary,
     [Parameter(Position = 1)][string]$FakeUrl,
@@ -29,13 +30,13 @@ if (-not (Get-Command psmux -ErrorAction SilentlyContinue)) { Write-Err "missing
 $Binary = (Resolve-Path $Binary).Path
 
 $savedEnv = @{}
-foreach ($name in 'XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME', 'GEERATYA_TOKEN') {
+foreach ($name in 'XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME', 'GEERATYA_TOKEN', 'GEERATYA_USE_XDG') {
     $savedEnv[$name] = [Environment]::GetEnvironmentVariable($name)
 }
 $work = Join-Path ([System.IO.Path]::GetTempPath()) "geeratya-measure-$PID"
 $baseSocket = "geeratya-measure-$PID"
 $script:socket = $baseSocket
-function T { psmux -L $script:socket @args }
+function T { psmux -L $script:socket -f $script:emptyConfig @args }
 
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 function Get-Now { $clock.Elapsed.TotalMilliseconds }
@@ -70,19 +71,21 @@ function Start-Session([string]$Name, [string]$Command) {
 try {
     $config = Join-Path $work 'config'
     New-Item -ItemType Directory -Force (Join-Path $config 'geeratya'), (Join-Path $work 'state'), (Join-Path $work 'cache') | Out-Null
+    $script:emptyConfig = Join-Path $work 'psmux.conf'
+    New-Item -ItemType File -Force $script:emptyConfig | Out-Null
     $env:XDG_CONFIG_HOME = $config
     $env:XDG_STATE_HOME = Join-Path $work 'state'
     $env:XDG_CACHE_HOME = Join-Path $work 'cache'
     $env:GEERATYA_TOKEN = 'fake'
+    $env:GEERATYA_USE_XDG = '1' # Windows ignores XDG_*_HOME without it and would read the real profile
     $profiles = [ordered]@{ activeName = 'fake'; profiles = @([ordered]@{ name = 'fake'; siteUrl = $FakeUrl; email = 'fake@example.com' }) }
     [System.IO.File]::WriteAllText((Join-Path $config 'geeratya/profiles.json'), ($profiles | ConvertTo-Json -Compress -Depth 4), [System.Text.UTF8Encoding]::new($false))
 
-    # Which shell psmux runs the command through is unverified: a path without spaces is passed bare so it works with
-    # cmd and pwsh alike; with spaces it is quoted, which pwsh would print instead of run (check on the first Windows run).
-    $appCommand = if ($Binary -match '\s') { "`"$Binary`"" } else { $Binary }
+    # Quoted so a path with spaces works (checked on Windows: psmux starts the quoted binary, not a pwsh string).
+    $appCommand = "`"$Binary`""
     $floor = @(); $cold = @(); $keyed = @()
-    # The floor: a cmd.exe command that prints one character (cheap to start, unlike pwsh), so the numbers can be read net of psmux and polling cost.
-    for ($run = 1; $run -le $Runs; $run++) { $floor += Start-Session "f$run" 'cmd /c "echo x& ping -n 30 127.0.0.1 >nul"' }
+    # The floor: a command that prints one character and then waits, so the numbers can be read net of psmux, its pwsh and the polling.
+    for ($run = 1; $run -le $Runs; $run++) { $floor += Start-Session "f$run" 'Write-Host x; Start-Sleep 30' }
     for ($run = 1; $run -le $Runs; $run++) {
         $cold += Start-Session "c$run" $appCommand
         for ($press = 1; $press -le $Keys; $press++) {

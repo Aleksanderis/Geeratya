@@ -83,15 +83,57 @@ public class ApplicationDirectoriesTests
     }
 
     [Fact]
-    public void GivenWindows_WhenResolving_ThenUsesKnownFoldersAndIgnoresXdg()
+    public void GivenWindowsAndNoXdg_WhenResolving_ThenUsesKnownFolders()
     {
-        var environment = CreateEnvironment(new Dictionary<string, string> { ["XDG_CONFIG_HOME"] = _home });
+        var environment = CreateEnvironment([]);
 
         var directories = new ApplicationDirectories(OperatingSystemKind.Windows, environment, _folders);
 
         Assert.Equal(Path.Combine(_roaming, "Geeratya"), directories.ConfigDirectory);
         Assert.Equal(Path.Combine(_local, "Geeratya", "State"), directories.StateDirectory);
         Assert.Equal(Path.Combine(_local, "Geeratya", "Cache"), directories.CacheDirectory);
+    }
+
+    [Fact]
+    public void GivenWindowsAndXdgWithoutOptIn_WhenResolving_ThenXdgIsIgnored()
+    {
+        var environment = CreateEnvironment(new Dictionary<string, string> { ["XDG_CONFIG_HOME"] = _home });
+
+        var directories = new ApplicationDirectories(OperatingSystemKind.Windows, environment, _folders);
+
+        Assert.Equal(Path.Combine(_roaming, "Geeratya"), directories.ConfigDirectory);
+    }
+
+    [Fact]
+    public void GivenWindowsAndOptIn_WhenResolving_ThenFullyQualifiedXdgWinsAndOtherValuesAreIgnored()
+    {
+        var environment = CreateEnvironment(new Dictionary<string, string>
+        {
+            ["GEERATYA_USE_XDG"] = "1",
+            ["XDG_CONFIG_HOME"] = _home,
+            ["XDG_STATE_HOME"] = Path.Combine(_home, "state"),
+            ["XDG_CACHE_HOME"] = "relative/cache",
+        });
+
+        var directories = new ApplicationDirectories(OperatingSystemKind.Windows, environment, _folders);
+
+        Assert.Equal(Path.Combine(_home, "geeratya"), directories.ConfigDirectory);
+        Assert.Equal(Path.Combine(_home, "state", "geeratya"), directories.StateDirectory);
+        Assert.Equal(Path.Combine(_local, "Geeratya", "Cache"), directories.CacheDirectory);
+    }
+
+    [Fact]
+    public void GivenWindowsAndOptIn_WhenXdgIsDriveRelative_ThenKnownFoldersAreUsed()
+    {
+        var environment = CreateEnvironment(new Dictionary<string, string>
+        {
+            ["GEERATYA_USE_XDG"] = "1",
+            ["XDG_CONFIG_HOME"] = @"	mp",
+        });
+
+        var directories = new ApplicationDirectories(OperatingSystemKind.Windows, environment, _folders);
+
+        Assert.Equal(Path.Combine(_roaming, "Geeratya"), directories.ConfigDirectory);
     }
 
     private static EnvironmentReader CreateEnvironment(Dictionary<string, string> variables)
