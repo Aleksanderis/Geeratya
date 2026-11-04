@@ -88,7 +88,7 @@ public sealed record AppState(
     /// </summary>
     public IReadOnlyDictionary<string, TokenSourceKind> TokenSources { get; init; } = new Dictionary<string, TokenSourceKind>();
 
-    /// <summary>The open settings screen (Normal mode, a full-body screen), otherwise null.</summary>
+    /// <summary>The open settings screen (Normal mode, a popup over the view), otherwise null.</summary>
     public SettingsScreenState? SettingsScreen { get; init; }
 
     /// <summary>The paths the settings screen names; the host sets them at start.</summary>

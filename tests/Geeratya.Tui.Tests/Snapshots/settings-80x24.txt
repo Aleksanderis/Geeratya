@@ -1,24 +1,24 @@
- Settings                                                                       
+                                                                     : commands 
                                                                                 
-╭─ Categories ─────┬─ Settings: Appearance ────────────────────────────────────╮
-│ > Appearance     │ > theme             auto                                  │
-│   Hints and keys │   transparent       off                                   │
-│   Startup        │                                                           │
-│   Profiles       │                                                           │
-│   About          │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │                                                           │
-│                  │ The colour theme: a built-in one or a file in the themes  │
-│                  │ folder. Default: auto. Values: auto, dark, light, nord.   │
-│                  │ j/k move  Enter change  Alt-r reset  Esc close            │
-╰──────────────────┴───────────────────────────────────────────────────────────╯
+╭─ Geeratya ───────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│ ╭─ Settings ───────────────────────────────────────────────────────────────╮ │
+│ │ > Appearance       │ > theme                                    [auto ▾] │ │
+│ │   Hints and keys   │   transparent                                   [ ] │ │
+│ │   Startup          │                                                     │ │
+│ │   Profiles         │                                                     │ │
+│ │   About            │                                                     │ │
+│ ├────────────────────┴─────────────────────────────────────────────────────┤ │
+│ │ The colour theme: a built-in one or a file in the themes folder.         │ │
+│ │ Default: auto. Values: auto, dark, light, nord.                          │ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ j/k move  Enter change  Alt-r reset  Esc close                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL  Settings: a change applies at once and is saved                        

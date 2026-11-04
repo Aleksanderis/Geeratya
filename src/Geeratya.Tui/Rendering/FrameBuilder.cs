@@ -84,11 +84,17 @@ public static class FrameBuilder
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
         var regions = new List<OverlayRegion>();
         var body = BodyOf(state, viewState, renderer, context, width, bodyHeight, regions);
-        var marker = helpOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
+        var settingsOpen = state is { SettingsScreen: not null, Mode: InputMode.Normal, ProfileList: null };
+        var marker = helpOpen || settingsOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
 
         if (helpOpen)
         {
             body = Fit(HelpOverlay.Compose(body, state, keymap, width, bodyHeight, regions), width, bodyHeight);
+        }
+
+        if (settingsOpen)
+        {
+            body = Fit(SettingsScreen.Compose(body, state, context, width, bodyHeight, regions), width, bodyHeight);
         }
 
         if (state.ContextMenu is not null)
@@ -176,11 +182,6 @@ public static class FrameBuilder
             return ManagerBody(state, context, width, height, regions);
         }
 
-        if (state.SettingsScreen is not null && state.Mode == InputMode.Normal)
-        {
-            return Fit(SettingsScreen.Render(state, context, width, height, regions), width, height);
-        }
-
         return Fit(renderer.Render(viewState, context, width, height), width, height);
     }
 
@@ -252,12 +253,6 @@ public static class FrameBuilder
         if (rows > 0 && state.ProfileList is not null)
         {
             lines.Add(ProfilesChip(width));
-        }
-        else if (rows > 0 && state is { SettingsScreen: not null, Mode: InputMode.Normal })
-        {
-            var chip = new StyledLine([new StyledSpan(" Settings ", TextRole.TabActive)]);
-
-            lines.Add(StyledLines.Fit(chip, width, TextRole.BarText));
         }
         else if (rows > 0)
         {

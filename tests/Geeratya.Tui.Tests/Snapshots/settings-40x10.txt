@@ -1,10 +1,10 @@
- Settings                               
+                                        
                                         
 ╭─ Settings ───────────────────────────╮
-│ Appearance                           │
-│ > theme             auto             │
-│   transparent       off              │
-│ Hints and keys                       │
-│ j/k move  Enter change  Alt-r reset  │
+│ Terminal too small                   │
+╰──────────────────────────────────────╯
+│     ? help   : commands   q quit     │
+│                                      │
+│                                      │
 ╰──────────────────────────────────────╯
  NORMAL  Settings: a change applies at o
