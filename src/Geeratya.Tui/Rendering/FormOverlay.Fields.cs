@@ -14,9 +14,10 @@ public static partial class FormOverlay
         var required = field.Required ? " *" : string.Empty;
         var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
         var role = focused ? TextRole.Strong : TextRole.FieldLabel;
-        var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}", role) };
+        var state = focused && form.Navigable ? (form.Navigating ? "  [navigate]" : "  [editing]") : string.Empty;
+        var lines = new List<StyledLine> { StyledLine.Of($"{marker} {field.Label}{required}{readOnly}{state}", role) };
 
-        lines.AddRange(ValueLines(field, focused, form, valueWidth));
+        lines.AddRange(ValueLines(field, focused && !form.Navigating, form, valueWidth));
 
         if (field.Error is not null)
         {

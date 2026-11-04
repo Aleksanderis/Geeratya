@@ -73,12 +73,14 @@ public static partial class FormReducer
 
     private static ReduceResult FocusedField(AppState state, TabState tab, FormState form, int index)
     {
-        if (index < 0 || index >= form.Fields.Count || index == form.Focus || !form.Fields[index].IsEditable)
+        if (index < 0 || index >= form.Fields.Count || !form.Fields[index].IsEditable
+            || (index == form.Focus && !form.Navigating))
         {
             return Result(state);
         }
 
-        var moved = Result(Replace(state, tab, form with { Focus = index }));
+        // In a navigable form a click on a field is one action: focus it and start editing it.
+        var moved = Result(Replace(state, tab, form with { Focus = index, Navigating = false }));
 
         return Choosing(Unsuggested(moved, tab.Id), tab.Id);
     }

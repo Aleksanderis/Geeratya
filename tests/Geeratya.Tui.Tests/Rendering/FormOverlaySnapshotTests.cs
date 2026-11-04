@@ -54,6 +54,21 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenANavigableForm_WhenNavigatingAndWhenEditing_ThenTheLabelAndFooterShowTheState()
+    {
+        var navigating = SampleForm() with { Navigable = true, Navigating = true };
+        var editing = navigating with { Navigating = false };
+
+        var navigate = FrameBuilder.Build(WithForm(navigating), 120, 36, _keymap);
+        var edit = FrameBuilder.Build(WithForm(editing), 120, 36, _keymap);
+
+        Assert.Contains(navigate, line => line.Contains("[navigate]", StringComparison.Ordinal));
+        Assert.Contains(navigate, line => line.Contains("edit", StringComparison.Ordinal) && line.Contains("j/k"));
+        Assert.Contains(edit, line => line.Contains("[editing]", StringComparison.Ordinal));
+        Assert.Contains(edit, line => line.Contains("stop editing", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenALoadingForm_WhenBuildingTheFrame_ThenItSaysLoading()
     {
         var state = WithForm(FormState.Opened(Target(), 3, null));

@@ -51,7 +51,7 @@ public class FormChoiceTests
     }
 
     [Fact]
-    public void GivenAMatch_WhenEnterIsPressed_ThenTheSingleChoiceTakesItAndTheFocusMovesOn()
+    public void GivenAMatch_WhenEnterIsPressed_ThenTheSingleChoiceTakesItAndTheFormReturnsToNavigating()
     {
         var typed = Press(Focused(FormFieldKind.Select, true), "m");
 
@@ -60,7 +60,8 @@ public class FormChoiceTests
         var form = accepted.State.Session.Tabs[0].Form!;
         Assert.Equal(["3"], form.Fields[0].Value.Chosen);
         Assert.Equal(string.Empty, form.Fields[0].Entry);
-        Assert.Equal(1, form.Focus);
+        Assert.Equal(0, form.Focus);
+        Assert.True(form.Navigating);
         Assert.Null(form.Suggest);
     }
 
@@ -83,7 +84,7 @@ public class FormChoiceTests
 
         Assert.Equal(-1, Popup(state).Cursor);
         Assert.Equal(["2"], entered.State.Session.Tabs[0].Form!.Fields[0].Value.Chosen);
-        Assert.Equal(1, entered.State.Session.Tabs[0].Form!.Focus);
+        Assert.True(entered.State.Session.Tabs[0].Form!.Navigating);
     }
 
     [Fact]
@@ -167,7 +168,10 @@ public class FormChoiceTests
         choice = chosen is null ? choice : choice.WithInitial(FormValue.OfChosen([chosen]));
         var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
 
-        return _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [choice, summary])).State;
+        var loaded = _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [choice, summary]));
+
+        // The edit form opens in the navigate state; Enter starts editing the first field (#650).
+        return Press(loaded.State, "Enter").State;
     }
 
     private ReduceResult Press(AppState state, string key)
