@@ -232,9 +232,9 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(Loaded(null, [edited, empty]), 80));
 
-        Assert.Contains("Eve · 2 h ago (edited)", lines);
-        Assert.Contains("Unknown · 5 min ago", lines);
-        Assert.Contains("(no text)", lines);
+        Assert.Contains(lines, line => line.Contains("Eve") && line.Contains("2 h ago · edited"));
+        Assert.Contains(lines, line => line.Contains("Unknown") && line.Contains("5 min ago"));
+        Assert.Contains(lines, line => line.Contains("(no text)"));
     }
 
     [Fact]

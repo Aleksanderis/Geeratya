@@ -9,16 +9,16 @@
 │ Heading three                                                               ░│
 │ … 37 more lines   Enter expand                                              ▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments 3 ─────────────────────────────────────────────────────────────────╮
-│ Jane Doe · 1 d ago                                                           │
+╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
+│ Jane Doe                                                             1 d ago │
 │ Found it: the redirect target is dropped after the refresh.                  │
 │                                                                              │
-│ 日本語の作者 · 3 h ago                                                       │
+│ 日本語の作者                                                         3 h ago │
 │ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
 │                                                                              │
-│ Ola Nordmann · 5 min ago                                                     │
+│ Ola Nordmann                                                       5 min ago │
 │ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
+│                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Details ────────────────────────────────────────────────────────────────────╮
-│ Status  moves via transition                                                 │
  NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit

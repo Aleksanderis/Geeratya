@@ -92,12 +92,40 @@ public static class GeneratedIssues
             var index = newestFirst ? total - 1 - position : position;
 
             comments.Add(
-                $$$"""{"id":"{{{index + 1}}}","author":{"accountId":"gen-{{{index % 3}}}","displayName":"Generated Writer {{{index % 3}}}"},"body":{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Generated comment {{{index + 1}}} on issue {{{number}}}."}]}]},"created":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000","updated":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000"}""");
+                $$$"""{"id":"{{{index + 1}}}","author":{"accountId":"gen-{{{index % 3}}}","displayName":"Generated Writer {{{index % 3}}}"},"body":{{{CommentBody(index, number, total)}}},"created":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000","updated":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000"}""");
         }
 
         var json = $$$"""{"startAt":{{{Math.Max(0, startAt)}}},"maxResults":{{{pageSize}}},"total":{{{total}}},"comments":[{{{string.Join(',', comments)}}}]}""";
 
         return Encoding.UTF8.GetBytes(json);
+    }
+
+    /// <summary>
+    /// The ADF body of generated comment <paramref name="index"/>: one paragraph, except on the long threads, where the
+    /// newest comment is very long (sixteen paragraphs) and the one before it holds a list and a code block.
+    /// </summary>
+    private static string CommentBody(int index, int number, int total)
+    {
+        var wanted = number % LongThreadEvery == 0;
+
+        if (wanted && index == total - 1)
+        {
+            var paragraphs = Enumerable.Range(1, 16).Select(line => Paragraph(index + 1, number, line));
+
+            return $$$"""{"version":1,"type":"doc","content":[{{{string.Join(',', paragraphs)}}}]}""";
+        }
+
+        if (wanted && index == total - 2)
+        {
+            return $$$"""{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Generated comment {{{index + 1}}} on issue {{{number}}} with a list and code."}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"First step"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Second step"}]}]}]},{"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":"generated --issue {{{number}}}\nrun --all"}]}]}""";
+        }
+
+        return $$$"""{"version":1,"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Generated comment {{{index + 1}}} on issue {{{number}}}."}]}]}""";
+    }
+
+    private static string Paragraph(int comment, int number, int line)
+    {
+        return $$$"""{"type":"paragraph","content":[{"type":"text","text":"Generated comment {{{comment}}} on issue {{{number}}}, paragraph {{{line}}}."}]}""";
     }
 
     /// <summary>

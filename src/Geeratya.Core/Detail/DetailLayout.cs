@@ -31,6 +31,12 @@ public static class DetailLayout
         return width >= SidebarMinWidth;
     }
 
+    /// <summary>The width of the column the main panes are laid out for: all of it, or less the sidebar.</summary>
+    public static int ColumnWidth(int width)
+    {
+        return HasSidebar(width) ? MainWidth(width) : width;
+    }
+
     /// <summary>
     /// The width of the main column for a detail <paramref name="width"/> columns wide with a sidebar.
     /// </summary>

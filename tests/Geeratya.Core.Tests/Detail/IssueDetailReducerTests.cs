@@ -239,7 +239,8 @@ public class IssueDetailReducerTests
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
         Assert.Contains("Comments 2", text);
-        Assert.Contains("Writer 2 · 2 h ago", text);
+        Assert.Contains("Writer 2", text);
+        Assert.Contains("2 h ago", text);
         Assert.Contains("Comment body 2", text);
         Assert.Equal(LoadState.Idle, Active(state).Detail[0].IssueLoad);
         Assert.Empty(Active(state).Detail[0].RemoteLinks!);
@@ -290,7 +291,7 @@ public class IssueDetailReducerTests
         Assert.Contains("The description of A-1", Text(failed));
         Assert.Contains("Jira did not answer in time. (Enter to retry)", Text(failed));
 
-        var retry = Press(OnLine(state, "(Enter to retry)"), "Enter");
+        var retry = Press(Press(state, "G").State, "Enter");
         var effect = Assert.Single(retry.Effects.OfType<LoadIssueCommentsEffect>());
         Assert.Equal(0, effect.StartAt);
         Assert.NotEqual(detail.CommentsRequest, effect.RequestId);
@@ -469,10 +470,12 @@ public class IssueDetailReducerTests
         Assert.Equal(document.Stops[1], Active(down).Detail[0].Cursor);
         Assert.Equal(0, Active(down).Detail[0].Scroll);
         Assert.InRange(Active(page).Detail[0].Cursor, document.Stops[1] + (viewport / 2), lines);
-        Assert.Equal(document.Stops[^1], Active(bottom).Detail[0].Cursor);
-        Assert.Equal(lines - viewport, Active(bottom).Detail[0].Scroll);
-        Assert.Equal(document.Stops[^1], Active(beyond).Detail[0].Cursor);
-        Assert.Equal(lines - viewport, Active(beyond).Detail[0].Scroll);
+        Assert.Contains(Active(bottom).Detail[0].Cursor, Active(bottom).Detail[0].Document!.Stops);
+
+        // Under the comments (the narrow layout) the Details pane follows, so j goes on into it.
+        Assert.True(Active(beyond).Detail[0].Cursor > Active(bottom).Detail[0].Cursor);
+        Assert.Equal(PaneIds.Details, document.SectionIds[^1]);
+        Assert.Equal(Active(bottom).Detail[0].CommentsOffset, Active(beyond).Detail[0].CommentsOffset);
         Assert.Equal(document.Stops[0], Active(top).Detail[0].Cursor);
         Assert.Equal(0, Active(top).Detail[0].Scroll);
         Assert.Equal(document.Stops[0], Active(above).Detail[0].Cursor);
@@ -482,11 +485,12 @@ public class IssueDetailReducerTests
     public void GivenLongIssue_WhenMovingTheCursor_ThenItNeverRestsOnAPanelEdge()
     {
         var state = LoadedLongIssue(commentCount: 20, rows: 10);
-        var document = Active(state).Detail[0].Document!;
 
-        for (var step = 0; step < document.Lines.Count; step++)
+        for (var step = 0; step < 80; step++)
         {
             state = Press(state, "j").State;
+
+            var document = Active(state).Detail[0].Document!;
 
             Assert.Contains(Active(state).Detail[0].Cursor, document.Stops);
             Assert.DoesNotMatch("^[╭╰]", document.Lines[Active(state).Detail[0].Cursor].PlainText);
@@ -539,7 +543,7 @@ public class IssueDetailReducerTests
     public void GivenANextPageThatOverlapsLoadedComments_WhenItArrives_ThenNoCommentIsShownTwice()
     {
         var state = LoadedLongIssue(commentCount: 3, rows: 10, hasMore: true);
-        var requested = Press(OnLine(state, "Load more comments"), "Enter");
+        var requested = Press(Press(state, "G").State, "Enter");
         var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
 
         // Someone commented elsewhere: the page starts one comment earlier (c3 again).
@@ -556,11 +560,11 @@ public class IssueDetailReducerTests
     public void GivenMoreCommentsThanOnePage_WhenPressingEnter_ThenTheNextPageLoadsAndAppendsOnce()
     {
         var state = LoadedLongIssue(commentCount: 3, rows: 10, hasMore: true);
-        var detail = Active(state).Detail[0];
+        var detail = Active(Press(state, "G").State).Detail[0];
         Assert.Contains("Load more comments (Enter)", Text(detail));
         Assert.Equal(3, detail.NextComments);
 
-        var requested = Press(OnLine(state, "Load more comments"), "Enter");
+        var requested = Press(Press(state, "G").State, "Enter");
         var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
         var again = Press(requested.State, "Enter");
         var arrived = Deliver(
@@ -595,7 +599,7 @@ public class IssueDetailReducerTests
             state,
             new IssueCommentsLoaded(tab.Id, 77, CommentPage(5, startAt: DetailPaging.MaxComments - 1, total: 5000, last: false), _now));
 
-        var capped = Active(state).Detail[0];
+        var capped = Active(Press(state, "G").State).Detail[0];
         Assert.Equal(DetailPaging.MaxComments, capped.Comments.Count);
         Assert.Null(capped.NextComments);
         Assert.DoesNotContain("Load more comments", Text(capped));
@@ -875,25 +879,9 @@ public class IssueDetailReducerTests
         var titles = document.PaneTitles.Select(title => string.Concat(title.Select(span => span.Text)));
 
         // The first panel's title is drawn in the top edge of the screen frame, so it is not a document line.
-        return string.Join('\n', titles.Concat(document.Lines.Concat(document.Side?.Lines ?? []).Select(line => line.PlainText)));
-    }
+        var side = document.Side?.Lines ?? [];
 
-    /// <summary>Moves the cursor of the shown issue (by j and k) to the first line that contains <paramref name="text"/>.</summary>
-    private AppState OnLine(AppState state, string text)
-    {
-        var document = Active(state).Detail[^1].Document!;
-        var target = document.Lines.ToList().FindIndex(line => line.PlainText.Contains(text, StringComparison.Ordinal));
-
-        Assert.True(target >= 0, $"no line with {text}");
-
-        for (var steps = 0; steps < document.Lines.Count * 2 && Active(state).Detail[^1].Cursor != document.Snap(target); steps++)
-        {
-            var down = Active(state).Detail[^1].Cursor < document.Snap(target);
-
-            state = Press(state, down ? "j" : "k").State;
-        }
-
-        return state;
+        return string.Join('\n', titles.Concat(document.Lines.Concat(side).Select(line => line.PlainText)));
     }
 
     private static IssueSummary Row(int number)

@@ -10,17 +10,17 @@
 │ │ Heading three                                                                 ░│ │                               │ │
 │ │ … 37 more lines   Enter expand                                                ▼│ │ Assignee                      │ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │  [JD] Jane Doe                │ │
-│ ╭─ Comments 3 ───────────────────────────────────────────────────────────────────╮ │                               │ │
-│ │ Jane Doe · 1 d ago                                                             │ │ Reporter                      │ │
+│ ╭─ Comments 3 ──────────────────────────────────────────────────── newest first ─╮ │                               │ │
+│ │ Jane Doe                                                               1 d ago │ │ Reporter                      │ │
 │ │ Found it: the redirect target is dropped after the refresh.                    │ │  [ON] Ola Nordmann            │ │
 │ │                                                                                │ │                               │ │
-│ │ 日本語の作者 · 3 h ago                                                         │ │ Labels                        │ │
+│ │ 日本語の作者                                                           3 h ago │ │ Labels                        │ │
 │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │  [auth] [bug-bash]            │ │
 │ │                                                                                │ │                               │ │
-│ │ Ola Nordmann · 5 min ago                                                       │ │ Parent                        │ │
+│ │ Ola Nordmann                                                         5 min ago │ │ Parent                        │ │
 │ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
-│ ╰────────────────────────────────────────────────────────────────────────────────╯ │                               │ │
-│                                                                                    │ Updated 2 h ago               │ │
+│ │                                                                                │ │                               │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │ Updated 2 h ago               │ │
 │                                                                                    │                               │ │
 │                                                                                    │                               │ │
 │                                                                                    │                               │ │

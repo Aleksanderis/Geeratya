@@ -1,7 +1,7 @@
-using Geeratya.Jira.Comments.Models;
 using Geeratya.Core.Cache;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;

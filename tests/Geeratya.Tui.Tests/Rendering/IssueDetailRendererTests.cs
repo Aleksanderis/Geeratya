@@ -316,7 +316,7 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenALongIssue_WhenScrolledToTheEnd_ThenTheLastPaneClosesAtTheOverlayBottom()
     {
-        var state = _reducer.Reduce(Loaded(100, 30), new KeyPressed("G")).State;
+        var state = Keys(Loaded(100, 30), "G", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j", "j");
 
         var body = Overlay(FrameBuilder.Build(state, 100, 30, _keymap), 100, 30);
 

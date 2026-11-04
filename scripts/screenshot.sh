@@ -65,7 +65,8 @@ all_scenarios=(
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Description"
   "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
   "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via transition"
-  "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 3"
+  "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
+  "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;newest first"
   "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transition"
   # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
   "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"

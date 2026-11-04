@@ -29,10 +29,10 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     {
         var tab = ActiveTab(state)!;
         var top = tab.Detail[^1];
+        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows);
         var document = top.Document is { } laidOut && laidOut.Width == width
             ? laidOut
-            : IssueDocumentBuilder.Build(top, width);
-        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows);
+            : IssueDocumentBuilder.Build(top, width, rows);
         var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
         var side = document.Side;
         var onSide = side is not null && top.SideCursor is not null;
@@ -290,7 +290,23 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             return FieldLine(drawn, index == block.Start, ascii);
         }
 
-        return index == cursor ? CursorLine(drawn) : drawn;
+        return index == cursor ? CursorLine(Untinted(drawn)) : drawn;
+    }
+
+    /// <summary>A comment's header bar loses its tint under the cursor: the selection tint takes its place.</summary>
+    private static StyledLine Untinted(StyledLine line)
+    {
+        if (!line.Spans.Any(static span => span.Role == TextRole.ValueBlock))
+        {
+            return line;
+        }
+
+        return new StyledLine([.. line.Spans.Select(Untinted)]);
+    }
+
+    private static StyledSpan Untinted(StyledSpan span)
+    {
+        return span.Role == TextRole.ValueBlock ? span with { Role = TextRole.Selected } : span;
     }
 
     /// <summary>

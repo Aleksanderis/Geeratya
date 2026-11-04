@@ -27,6 +27,11 @@ internal static partial class DetailReducer
             return ViewReducer.Replace(state, ReplaceTop(tab, moved));
         }
 
+        if (MoveInComments(state, tab, move) is { } inComments)
+        {
+            return inComments;
+        }
+
         var target = Target(document, top.Cursor, move, viewport);
 
         return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
@@ -160,7 +165,8 @@ internal static partial class DetailReducer
 
         var top = tab.Detail[^1];
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
-        var sameWidth = top.Document?.Width == width;
+        var sameWidth = top.Document?.Width == width
+            && top.Document.ViewportRows == DetailLayout.ViewportRows(listRows);
         var resized = sameWidth ? Clamp(top, listRows) : Layout(top, columns, listRows);
 
         return ReplaceTop(tab, resized);
@@ -203,16 +209,19 @@ internal static partial class DetailReducer
         return tab with { Detail = stack };
     }
 
-    private static DetailState Layout(DetailState detail, int columns, int listRows)
+    // The commentsRow is the Comments pane row the cursor goes to, when the caller knows it; else the cursor stays on
+    // its row there.
+    private static DetailState Layout(DetailState detail, int columns, int listRows, int? commentsRow = null)
     {
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
-
-        var document = IssueDocumentBuilder.Build(detail, width);
+        var viewport = DetailLayout.ViewportRows(listRows);
+        var row = commentsRow ?? FollowedCommentsRow(detail, width);
+        var document = IssueDocumentBuilder.Build(detail, width, viewport);
         var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
-
         var side = document.Side is null ? null : SideAnchored(detail, document.Side);
+        var laidOut = Clamp(detail with { Document = document, Cursor = anchored, SideCursor = side }, listRows);
 
-        return Clamp(detail with { Document = document, Cursor = anchored, SideCursor = side }, listRows);
+        return row is { } kept ? PlaceInComments(laidOut, kept, listRows, false) : laidOut;
     }
 
     /// <summary>

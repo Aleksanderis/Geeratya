@@ -2,7 +2,6 @@ using Geeratya.Core.Adf;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
-using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
@@ -18,20 +17,12 @@ public static class IssueDocumentBuilder
     private const string DescriptionTitle = "Description";
     private const int StatusGap = 2;
     private const string CommentsTitle = "Comments";
+    private const string NewestFirstText = "newest first";
+    private const int MinCommentRows = 6;
     private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
-    private const string NoCommentsText = "No comments.";
-    private const string EmptyCommentText = "(no text)";
-    private const string LoadMoreText = "Load more comments (Enter)";
-    private const string LoadingMoreText = "Loading more comments…";
-    private const string RetryText = " (Enter to retry)";
     private const string BackText = "Esc to go back.";
-    private const string UnknownAuthor = "Unknown";
-    private const string EditedText = " (edited)";
-    private const string TooManyText = "Showing the newest comments only.";
-
-    private static readonly TimeSpan _editedAfter = TimeSpan.FromMinutes(1);
 
     /// <summary>The not-found text, shared with the status and the tests.</summary>
     public static string NotFoundText(string key)
@@ -39,7 +30,13 @@ public static class IssueDocumentBuilder
         return $"Not found or no access: {key}";
     }
 
-    public static DetailDocument Build(DetailState detail, int width)
+    /// <param name="detail">The issue to lay out.</param>
+    /// <param name="width">The columns of the document.</param>
+    /// <param name="viewportRows">
+    /// The rows the screen shows; the Comments pane takes what the panes above leave and scrolls inside it. Null lays
+    /// every comment out.
+    /// </param>
+    public static DetailDocument Build(DetailState detail, int width, int? viewportRows = null)
     {
         var total = Math.Max(1, width);
         var sidebar = DetailLayout.HasSidebar(total);
@@ -62,18 +59,23 @@ public static class IssueDocumentBuilder
 
         AddDescription(sink, detail, columns, inner);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
-        AddComments(sink, detail, columns, inner);
+        var commentIds = AddComments(sink, detail, columns, inner, viewportRows);
 
         if (!sidebar)
         {
             DetailsPane.Add(sink, detail, columns, inner);
 
-            return sink.ToDocument(total);
+            return sink.ToDocument(total) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
         }
 
         var side = BuildSide(detail);
 
-        return sink.ToDocument(total) with { Side = side.Lines.Count == 0 ? null : side };
+        return sink.ToDocument(total) with
+        {
+            Side = side.Lines.Count == 0 ? null : side,
+            ViewportRows = viewportRows,
+            CommentRowIds = commentIds,
+        };
     }
 
     /// <summary>The Details sidebar: a document of its own, laid out for the sidebar width.</summary>
@@ -214,25 +216,46 @@ public static class IssueDocumentBuilder
         sink.AddPanel(PaneIds.Description, [title], panel, width, [chip], scroll);
     }
 
-    private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)
+    private static List<string?> AddComments(DocumentSink sink, DetailState detail, int width, int inner, int? viewport)
     {
+        var rows = CommentRows.Build(detail, inner);
+        var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
+        var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);
+        var order = new StyledSpan(NewestFirstText, TextRole.Muted);
+        var rowsLeft = viewport is { } shown ? shown - sink.Lines.Count - Panel.EdgeRows : rows.Count;
+        var height = Math.Max(MinCommentRows, rowsLeft);
 
-        for (var index = 0; index < detail.Comments.Count; index++)
+        if (rows.Count <= height)
         {
-            if (index > 0)
-            {
-                content.Add(StyledLine.Empty);
-            }
+            AddRows(content, rows, 0, rows.Count);
+            sink.AddPanel(PaneIds.Comments, [heading], content, width, detail.Comments.Count > 0 ? [order] : null);
 
-            AddComment(content, detail.Comments[index], detail, inner);
+            return ids;
         }
 
-        var footer = new List<StyledLine>();
+        var scroll = new PaneScroll(detail.CommentsOffset, rows.Count, height);
+        var first = scroll.ClampedOffset;
 
-        AddCommentsFooter(footer, detail);
-        content.AddRange(footer);
-        sink.AddPanel(PaneIds.Comments, [new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
+        AddRows(content, rows, first, height);
+        sink.AddPanel(PaneIds.Comments, [heading], content, width, [order], scroll);
+
+        return ids;
+    }
+
+    private static void AddRows(PanelContent content, IReadOnlyList<CommentRow> rows, int first, int count)
+    {
+        for (var index = first; index < first + count && index < rows.Count; index++)
+        {
+            var row = rows[index];
+
+            if (!row.IsStop)
+            {
+                content.Skipped.Add(content.Lines.Count);
+            }
+
+            content.Add(row.Line, row.Target);
+        }
     }
 
     private static string CommentsHeading(DetailState detail)
@@ -247,78 +270,6 @@ public static class IssueDocumentBuilder
         return detail.CommentTotal is { } total && total > loaded
             ? $"{CommentsTitle} {loaded} of {total}"
             : $"{CommentsTitle} {loaded}";
-    }
-
-    /// <summary>One comment; every line of it opens the comment, so the edit and delete keys find it.</summary>
-    private static void AddComment(PanelContent content, IssueComment comment, DetailState detail, int inner)
-    {
-        var reference = detail.LoadedAt;
-        var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
-        var byline = new WrappedText(inner, false);
-
-        byline.Append(Clean(comment.Author?.DisplayName ?? UnknownAuthor), TextRole.Strong);
-
-        if (comment.Created is { } created && reference is { } now)
-        {
-            byline.Append($" · {RelativeTime.Format(created, now)}", TextRole.Muted);
-        }
-
-        if (comment.Created is { } first && comment.Updated is { } last && last - first > _editedAfter)
-        {
-            byline.Append(EditedText, TextRole.Muted);
-        }
-
-        var lines = new List<StyledLine>();
-
-        byline.Finish(lines);
-
-        if (comment.Body.Content.Count == 0)
-        {
-            lines.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted));
-        }
-        else
-        {
-            lines.AddRange(AdfRenderer.Render(comment.Body, inner).Lines);
-        }
-
-        var expanded = detail.Expanded.Contains(target.ExpandKey);
-
-        LongText.Add(content, lines, target, expanded, new LongTextLimit(LongText.CommentLines, inner));
-    }
-
-    private static void AddCommentsFooter(List<StyledLine> lines, DetailState detail)
-    {
-        switch (detail.CommentsLoad)
-        {
-            case Loading when detail.Comments.Count == 0:
-                lines.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                break;
-            case Loading:
-                lines.Add(StyledLine.Of(LoadingMoreText, TextRole.Loading));
-                break;
-            case Failed failed:
-                lines.Add(StyledLine.Of($"{failed.Message}{RetryText}", TextRole.Error));
-                break;
-            default:
-                AddIdleFooter(lines, detail);
-                break;
-        }
-    }
-
-    private static void AddIdleFooter(List<StyledLine> lines, DetailState detail)
-    {
-        if (detail.NextComments is not null)
-        {
-            lines.Add(StyledLine.Of(LoadMoreText, TextRole.Link));
-        }
-        else if (detail.Comments.Count == 0)
-        {
-            lines.Add(StyledLine.Of(NoCommentsText, TextRole.Muted));
-        }
-        else if (detail.CommentTotal is { } total && total > detail.Comments.Count)
-        {
-            lines.Add(StyledLine.Of(TooManyText, TextRole.Muted));
-        }
     }
 
     private static string Clean(string text)

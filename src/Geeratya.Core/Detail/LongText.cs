@@ -12,9 +12,6 @@ internal static class LongText
     /// <summary>Body rows of the Description pane when it is cut: three text lines and the note.</summary>
     public const int DescriptionRows = 4;
 
-    /// <summary>Lines of one comment (the byline included) shown before the rest is cut.</summary>
-    public const int CommentLines = 6;
-
     /// <summary>
     /// Appends <paramref name="lines"/> to <paramref name="content"/>, each opening <paramref name="target"/>;
     /// more than <paramref name="limit"/> lines are cut unless <paramref name="expanded"/>.
