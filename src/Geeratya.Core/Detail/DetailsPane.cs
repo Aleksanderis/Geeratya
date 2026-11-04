@@ -1,3 +1,4 @@
+using System.Globalization;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
@@ -84,11 +85,19 @@ internal static class DetailsPane
     {
         var rows = new List<StyledLine>();
 
-        var due = detail.Issue is { } issue ? $"Due {DueText(issue.DueDate)}" : null;
-        var updated = header.Updated is { } at && detail.LoadedAt is { } now
-            ? $"Updated {RelativeTime.Format(at, now)}"
-            : null;
-        var text = due is not null && updated is not null ? $"{due} · {updated}" : due ?? updated;
+        var parts = new List<string>();
+
+        if (detail.Issue is { } issue)
+        {
+            parts.Add($"Due {DueText(issue.DueDate)}");
+        }
+
+        if (header.Updated is { } updated && detail.LoadedAt is { } now)
+        {
+            parts.Add($"Updated {RelativeTime.Format(updated, now)}");
+        }
+
+        var text = parts.Count == 0 ? null : string.Join(" · ", parts);
 
         if (text is not null)
         {
@@ -100,7 +109,7 @@ internal static class DetailsPane
 
     private static string DueText(DateOnly? due)
     {
-        return due is { } date ? date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "none";
+        return due is { } date ? date.ToString("O", CultureInfo.InvariantCulture) : "none";
     }
 
     // The way into the zoomed Attachments list: a cursor stop of its own, Enter zooms.

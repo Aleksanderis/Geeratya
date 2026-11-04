@@ -43,7 +43,10 @@ public sealed class IssueClientTests
     [InlineData("GCM-10", "issues/issue-gcm10.json", "2026-12-31")]
     [InlineData("GTM-11", "issues/issue-gtm11.json", null)]
     [InlineData("GTM-9", "issues/issue-gtm9.json", null)]
-    public async Task GivenSetNullOrMissingDueDate_WhenGetting_ThenItIsMappedOrNull(string key, string file, string? due)
+    public async Task GivenSetNullOrMissingDueDate_WhenGetting_ThenItIsMappedOrNull(
+        string key,
+        string file,
+        string? due)
     {
         using var fixture = Serving(key, file);
 

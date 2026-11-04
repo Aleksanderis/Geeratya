@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
@@ -53,8 +54,8 @@ internal static class IssueDetailMapper
         return DateOnly.TryParseExact(
             value.GetString(),
             "yyyy-MM-dd",
-            System.Globalization.CultureInfo.InvariantCulture,
-            System.Globalization.DateTimeStyles.None,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
             out var date)
             ? date
             : null;
