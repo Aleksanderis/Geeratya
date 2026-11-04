@@ -81,7 +81,7 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenCommentRowsBuiltForTheKey_WhenBuildingTheDocument_ThenThosePrebuiltRowsAreUsedNotBuiltAgain()
+    public void GivenPrebuiltCommentRows_WhenBuildingTheDocument_ThenThoseRowsAreUsed()
     {
         var loaded = Loaded(80, 24);
         var top = loaded.Session.Tabs.First(tab => tab.Id == loaded.Session.Active).Detail[^1];
