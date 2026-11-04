@@ -301,6 +301,7 @@ Agreed with the owner in a mockup session on 2026-11-04 (Claude Design canvas, i
 - Size: the terminal width minus 4 columns and the body height minus 2 rows, centred, at most 160 columns wide (a wider terminal shows more of the view behind). Below 100 columns it fills the body (no margin, no backdrop) and is one column.
 - The tab keeps its view underneath. The overlay holds the **issue stack**: `Enter` on a sub-task, parent or link opens that issue in the same overlay, `Esc` pops one issue, the last `Esc` closes the overlay and the view is as it was left. Writes patch the rows behind as today. A click on the visible backdrop closes the overlay (`ux-mouse.md`). Zoom fills the overlay.
 - This replaces opening the detail in the tab's own body (the stack of "Issue detail" above).
+- Built in #712: the document is laid out for the overlay size (`DetailOverlayGeometry`, `DetailSize`), not the body; the stack stays in the tab state (`TabState.Detail`) and a backdrop click closes it all (`IssueDetailCloseRequested`); the wheel over the backdrop still scrolls the detail. The create form moves into the overlay in a later M7 issue; the pane layout itself is #702.
 
 ### Panes, focus and zoom
 

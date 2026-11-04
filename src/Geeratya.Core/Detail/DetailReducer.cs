@@ -72,7 +72,7 @@ internal static partial class DetailReducer
         {
             EstimateLabel = tab.Board?.EstimationFieldName,
         };
-        var detail = Layout(opened, state.ViewportColumns, tab.VisibleRows);
+        var detail = Layout(opened, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
         effects.Add(new LoadIssueDetailEffect(id, key, issueRequest));
         effects.Add(new LoadIssueCommentsEffect(id, key, 0, commentsRequest));
@@ -98,7 +98,17 @@ internal static partial class DetailReducer
 
         var remaining = tab.Detail.Take(tab.Detail.Count - 1).ToArray();
 
-        return ViewReducer.Replace(state, Resized(tab with { Detail = remaining }, state.ViewportColumns));
+        var shown = tab with { Detail = remaining };
+
+        return ViewReducer.Replace(state, Resized(shown, DetailSize.Columns(state), DetailSize.ListRows(state, tab)));
+    }
+
+    /// <summary>Closes the overlay: the whole issue stack of the tab is dropped, the view is as it was left.</summary>
+    public static AppState Close(AppState state, TabId id)
+    {
+        var tab = ViewReducer.Find(state.Session.Tabs, id);
+
+        return tab is null || tab.Detail.Count == 0 ? state : ViewReducer.Replace(state, tab with { Detail = [] });
     }
 
     public static bool CanGoBack(AppState state)
@@ -231,8 +241,8 @@ internal static partial class DetailReducer
 
         stack[index] = Layout(
             stack[index] with { CommentsLoad = new Loading(LoadReason.Refresh), CommentsRequest = requestId },
-            state.ViewportColumns,
-            tab.VisibleRows);
+            DetailSize.Columns(state),
+            DetailSize.ListRows(state, tab));
         effects.Add(new LoadIssueCommentsEffect(id, key, 0, requestId));
 
         return ViewReducer.Replace(state, tab with { Detail = stack }) with { Sequence = requestId };

@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
@@ -15,6 +16,15 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
 {
     /// <summary>The cells of each tab in the tab bar row.</summary>
     public IReadOnlyList<TabArea> TabAreas { get; init; } = [];
+
+    /// <summary>
+    /// Where the detail overlay sits in the body while an issue is open and no other overlay is; a click in the body
+    /// outside it is the backdrop. Null when none is open.
+    /// </summary>
+    public DetailOverlayGeometry? DetailBox { get; init; }
+
+    /// <summary>The active tab, whose issue stack a backdrop click closes.</summary>
+    public TabId? ActiveTab { get; init; }
 
     /// <summary>The cells of the <c>+</c> button after the last tab, null when the bar draws none.</summary>
     public TabButton? NewTabButton { get; init; }
@@ -83,6 +93,10 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             BannerShown = NetworkBanner.Line(state, now, width) is not null,
             Regions = regions ?? [],
             ColumnsLayout = tab?.Definition.Layout == ViewLayout.Columns,
+            ActiveTab = tab?.Id,
+            DetailBox = tab is { Detail.Count: > 0 }
+                ? DetailOverlayGeometry.Place(width, Math.Max(0, height - 1 - headerRows))
+                : null,
             WheelTarget = WheelTargetOf(state),
             ConfirmOpen = state.Mode == InputMode.Confirm && state.Confirm is not null,
         };

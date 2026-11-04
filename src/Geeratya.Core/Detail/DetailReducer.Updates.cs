@@ -14,7 +14,12 @@ internal static partial class DetailReducer
         string key,
         Func<DetailState, DetailState> change)
     {
-        return IsKey(detail, key) ? Layout(change(detail), state.ViewportColumns, tab.VisibleRows) : detail;
+        if (!IsKey(detail, key))
+        {
+            return detail;
+        }
+
+        return Layout(change(detail), DetailSize.Columns(state), DetailSize.ListRows(state, tab));
     }
 
     private static bool IsKey(DetailState detail, string key)
@@ -93,7 +98,7 @@ internal static partial class DetailReducer
 
         var requestId = state.Sequence + 1;
         var loading = top with { CommentsLoad = new Loading(LoadReason.NextPage), CommentsRequest = requestId };
-        var laidOut = Layout(loading, state.ViewportColumns, tab.VisibleRows);
+        var laidOut = Layout(loading, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
         effects.Add(new LoadIssueCommentsEffect(tab.Id, top.Key, startAt, requestId));
 
@@ -203,7 +208,7 @@ internal static partial class DetailReducer
 
             var stack = tab.Detail.ToArray();
 
-            stack[index] = Layout(changed, state.ViewportColumns, tab.VisibleRows);
+            stack[index] = Layout(changed, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
             return ViewReducer.Replace(state, tab with { Detail = stack });
         }

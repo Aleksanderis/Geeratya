@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -27,7 +28,10 @@ internal static class StatusViewText
 
         if (tab.Detail.Count > 0)
         {
-            return CardText.Shorten(DetailStatus.Text(tab, room), room);
+            return CardText.Shorten(DetailStatus.Text(
+                tab,
+                room,
+                DetailSize.ListRows(state, tab)), room);
         }
 
         if (tab.Definition.Layout != ViewLayout.Columns)

@@ -13,7 +13,7 @@ internal static partial class DetailReducer
     public static AppState MoveCursor(AppState state, TabState tab, ListMove move)
     {
         var top = tab.Detail[^1];
-        var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+        var viewport = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
 
         if (top.Document is not { } document)
         {
@@ -43,7 +43,7 @@ internal static partial class DetailReducer
         var top = tab.Detail[^1];
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
 
-        var shown = DetailLayout.ViewportRows(tab.VisibleRows);
+        var shown = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
 
         if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows
             || bodyRow >= DetailLayout.HeaderRows + shown || line >= document.Lines.Count)
@@ -67,7 +67,7 @@ internal static partial class DetailReducer
     {
         var top = tab.Detail[^1];
         var lines = top.Document?.Lines.Count ?? 0;
-        var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+        var viewport = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
         var cursor = top.Document?.Snap(Math.Clamp(line, 0, Math.Max(0, lines - 1))) ?? 0;
         var scroll = Math.Clamp(cursor, 0, Math.Max(0, lines - viewport));
 
@@ -111,7 +111,7 @@ internal static partial class DetailReducer
     /// <summary>
     /// After a viewport change: the top issue of every tab is laid out for the new width and re-clamped.
     /// </summary>
-    public static TabState Resized(TabState tab, int columns)
+    public static TabState Resized(TabState tab, int columns, int listRows)
     {
         if (tab.Detail.Count == 0)
         {
@@ -121,7 +121,7 @@ internal static partial class DetailReducer
         var top = tab.Detail[^1];
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
         var sameWidth = top.Document?.Width == width;
-        var resized = sameWidth ? Clamp(top, tab.VisibleRows) : Layout(top, columns, tab.VisibleRows);
+        var resized = sameWidth ? Clamp(top, listRows) : Layout(top, columns, listRows);
 
         return ReplaceTop(tab, resized);
     }
@@ -143,7 +143,7 @@ internal static partial class DetailReducer
     /// The board configuration arrived after issues were opened: the open details that fell back to the generic
     /// estimate label take the board's name for it, without reopening (#470).
     /// </summary>
-    public static TabState WithEstimateLabel(TabState tab, int columns)
+    public static TabState WithEstimateLabel(TabState tab, int columns, int listRows)
     {
         var label = tab.Board?.EstimationFieldName;
 
@@ -154,7 +154,7 @@ internal static partial class DetailReducer
 
         var stack = tab.Detail
             .Select(detail => detail.EstimateLabel is null
-                ? Layout(detail with { EstimateLabel = label }, columns, tab.VisibleRows)
+                ? Layout(detail with { EstimateLabel = label }, columns, listRows)
                 : detail)
             .ToArray();
 

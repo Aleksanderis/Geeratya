@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
@@ -175,7 +177,7 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(Loaded(160, 30), 160, 30, _keymap);
 
         Assert.Contains("My open issues › GCM-12", lines[^1]);
-        Assert.StartsWith("╭─ GCM-12", lines[FrameBuilder.HeaderRows]);
+        Assert.StartsWith("╭─ GCM-12", Overlay(lines, 160, 30)[0]);
     }
 
     [Fact]
@@ -204,8 +206,10 @@ public class IssueDetailRendererTests
         var lines = FrameBuilder.Build(state, 160, 30, _keymap);
 
         Assert.Contains("Loading…", lines[^1]);
-        Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12 · Task "));
-        Assert.Contains(lines, line => line.StartsWith("│>Row summary"));
+        var overlay = Overlay(lines, 160, 30);
+
+        Assert.Contains(overlay, line => line.StartsWith("╭─ GCM-12 · Task "));
+        Assert.Contains(overlay, line => line.StartsWith("│>Row summary"));
     }
 
     [Fact]
@@ -229,7 +233,7 @@ public class IssueDetailRendererTests
         Assert.Contains(" Bot", end[^1]);
         Assert.Matches(@" \d+%", half[^1]);
         Assert.NotEqual(top[FrameBuilder.HeaderRows + 1], end[FrameBuilder.HeaderRows + 1]);
-        Assert.Contains("second paragraph", string.Join('\n', end));
+        Assert.Contains("second paragraph", string.Join('\n', Overlay(end, 160, 12)));
     }
 
     [Theory]
@@ -270,8 +274,7 @@ public class IssueDetailRendererTests
     public void GivenTallTerminalAndShortIssue_WhenBuilding_ThenTheClosingEdgeSitsDirectlyUnderTheLastLine(
         int width, int height)
     {
-        var body = FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap)
-            .Skip(FrameBuilder.HeaderRows).ToList();
+        var body = Overlay(FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap), width, height);
         var closing = body.FindIndex(static line => line.StartsWith('╰'));
 
         Assert.True(closing > 0);
@@ -286,7 +289,7 @@ public class IssueDetailRendererTests
     {
         var state = _reducer.Reduce(LoadedShort(100, 60), new KeyPressed("G")).State;
 
-        var body = FrameBuilder.Build(state, 100, 60, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+        var body = Overlay(FrameBuilder.Build(state, 100, 60, _keymap), 100, 60);
 
         Assert.Single(body, static line => line.StartsWith('╰'));
         Assert.True(body.FindIndex(static line => line.StartsWith('╰')) < 25);
@@ -295,9 +298,9 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenTallTerminalAndLongIssue_WhenBuilding_ThenTheClosingEdgeIsAtThePaneBottom()
     {
-        var body = FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+        var body = Overlay(FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap), 100, 30);
 
-        Assert.StartsWith("╰", body[^2]);
+        Assert.StartsWith("╰", body[^1]);
     }
 
     [Fact]
@@ -305,13 +308,13 @@ public class IssueDetailRendererTests
     {
         var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("G")).State;
 
-        var body = FrameBuilder.Build(state, 160, 12, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+        var body = Overlay(FrameBuilder.Build(state, 160, 12, _keymap), 160, 12);
 
         Assert.StartsWith("╭", body[0]);
         Assert.DoesNotContain("GCM-12", body[0]);
         Assert.Matches(@"^╭─ (Description|Comments)", body[0]);
-        Assert.StartsWith("╰", body[^2]);
-        Assert.EndsWith("╯", body[^2]);
+        Assert.StartsWith("╰", body[^1]);
+        Assert.EndsWith("╯", body[^1]);
     }
 
     [Fact]
@@ -321,7 +324,7 @@ public class IssueDetailRendererTests
 
         state = _reducer.Reduce(state, new KeyPressed("]")).State;
 
-        var body = FrameBuilder.Build(state, 160, 12, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+        var body = Overlay(FrameBuilder.Build(state, 160, 12, _keymap), 160, 12);
 
         Assert.StartsWith("╭─ Description", body[0]);
         Assert.False(body[1].StartsWith('├'), body[1]);
@@ -361,6 +364,87 @@ public class IssueDetailRendererTests
         Assert.Contains("Status    In Progress", string.Join('\n', lines));
     }
 
+    [Fact]
+    public void GivenOpenIssueAt120Columns_WhenBuilding_ThenTheViewShowsMutedAroundTheOverlay()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(120, 36), 120, 36, _keymap)!;
+
+        Assert.Contains("My open issues", frame.Body[0].PlainText);
+        Assert.All(frame.Body[0].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
+        Assert.StartsWith("╭─ GCM-12", frame.Body[1].PlainText[2..]);
+        Assert.All(frame.Body[^1].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
+    }
+
+    [Fact]
+    public void GivenOpenIssueBelow100Columns_WhenBuilding_ThenTheOverlayFillsTheBodyWithNoView()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(99, 30), 99, 30, _keymap)!;
+
+        Assert.StartsWith("╭─ GCM-12", frame.Body[0].PlainText);
+        Assert.DoesNotContain(frame.Body, line => line.PlainText.Contains("My open issues"));
+    }
+
+    [Fact]
+    public void GivenOpenIssueAndTheProfileManager_WhenBuilding_ThenTheManagerWinsOverTheDetail()
+    {
+        var state = Loaded(120, 36) with { ProfileList = new ProfileListState(0) };
+
+        var lines = FrameBuilder.Build(state, 120, 36, _keymap);
+
+        Assert.DoesNotContain(lines, line => line.Contains("╭─ GCM-12"));
+        Assert.Contains(lines, line => line.Contains("Profiles"));
+    }
+
+    [Fact]
+    public void GivenOneLineHiddenBelowTheOverlay_WhenReadingTheRuler_ThenItShowsAPercentageNotBot()
+    {
+        var state = Loaded(120, 20);
+        var top = state.Session.Tabs[0].Detail[^1];
+        var rows = DetailLayout.ViewportRows(DetailSize.ListRows(state.ViewportColumns, state.ViewportBodyHeight, 0));
+        var scrolled = top with { Scroll = top.Document!.Lines.Count - rows - 1 };
+        var tab = state.Session.Tabs[0] with { Detail = [scrolled] };
+        var shown = state with { Session = state.Session with { Tabs = [tab] } };
+
+        var lines = FrameBuilder.Build(shown, 120, 20, _keymap);
+
+        Assert.DoesNotContain(" Bot", lines[^1]);
+        Assert.Matches(@" \d+%", lines[^1]);
+    }
+
+    // The rows of the detail overlay with the margin and the backdrop around it cut away.
+    private static List<string> Overlay(IReadOnlyList<string> frame, int width, int height)
+    {
+        var box = DetailOverlayGeometry.Place(width, FrameBuilder.BodyHeight(height));
+
+        return
+        [
+            .. frame.Skip(FrameBuilder.HeaderRows + box.Top).Take(box.Height)
+                .Select(line => Columns(line, box.Left, box.Width)),
+        ];
+    }
+
+    // The cells from column start for width columns; wide characters count two.
+    private static string Columns(string line, int start, int width)
+    {
+        var builder = new StringBuilder();
+        var column = 0;
+        var elements = StringInfo.GetTextElementEnumerator(line);
+
+        while (elements.MoveNext())
+        {
+            var element = (string)elements.Current;
+
+            if (column >= start && column < start + width)
+            {
+                builder.Append(element);
+            }
+
+            column += DisplayWidth.Of(element);
+        }
+
+        return builder.ToString();
+    }
+
     private static void AssertSnapshot(AppState state, int width, int height, string name)
     {
         var lines = FrameBuilder.Build(state, width, height, _keymap);
@@ -381,7 +465,8 @@ public class IssueDetailRendererTests
 
         state = _reducer.Reduce(state, new ViewportChanged(
             height - 1 - FrameBuilder.HeaderRows - ListLayout.HeaderRows - ListLayout.FooterRows,
-            width)).State;
+            width,
+            FrameBuilder.BodyHeight(height))).State;
 
         var definition = new ViewDefinition(ViewSourceKind.Jql, "assignee = currentUser()", ViewLayout.List, "My open issues");
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));

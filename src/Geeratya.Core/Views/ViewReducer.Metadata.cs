@@ -84,9 +84,12 @@ public static partial class ViewReducer
             return state;
         }
 
-        return Replace(
-            state,
-            DetailReducer.WithEstimateLabel(tab with { Board = configured.Configuration }, state.ViewportColumns));
+        var labelled = DetailReducer.WithEstimateLabel(
+            tab with { Board = configured.Configuration },
+            DetailSize.Columns(state),
+            DetailSize.ListRows(state, tab));
+
+        return Replace(state, labelled);
     }
 
     /// <summary>

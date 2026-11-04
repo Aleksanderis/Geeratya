@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -37,6 +38,23 @@ public static class MouseResolver
         if (hit.Target == MouseTarget.RowMenuButton && gesture != MouseGesture.Click)
         {
             hit = hit with { Target = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists };
+        }
+
+        if (hit.Target == MouseTarget.Backdrop
+            && context is { DetailOpen: true, OverlayOpen: false, ActiveTab: { } tab })
+        {
+            if (gesture == MouseGesture.Click)
+            {
+                return [new IssueDetailCloseRequested(tab)];
+            }
+
+            // The wheel over the backdrop still scrolls the detail, as it did when the detail filled the body.
+            if (gesture is not (MouseGesture.WheelUp or MouseGesture.WheelDown))
+            {
+                return _none;
+            }
+
+            hit = hit with { Target = MouseTarget.Detail };
         }
 
         if (IsOverlayRow(hit.Target))

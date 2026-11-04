@@ -17,6 +17,9 @@ public sealed record IssueDetailOpenRequested(TabId Tab, string Key, IssueSummar
 /// <summary>Pop the top of a tab's issue stack.</summary>
 public sealed record IssueDetailBackRequested(TabId Tab) : ViewCommand;
 
+/// <summary>Close the overlay of a tab: drop its whole issue stack (a click on the backdrop).</summary>
+public sealed record IssueDetailCloseRequested(TabId Tab) : ViewCommand;
+
 /// <summary>
 /// The issue arrived; applied only while <paramref name="RequestId"/> is the current issue request of a stacked issue.
 /// </summary>
