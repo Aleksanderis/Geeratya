@@ -50,7 +50,7 @@ public static class DetailOverlay
             return lines;
         }
 
-        var result = OverlayBox.Backdrop(body);
+        var result = OverlayBox.Inactive(body);
 
         // A document shorter than the overlay leaves blank surface below it, so the box stays one rectangle.
         for (var index = 0; index < box.Height && box.Top + index < result.Count; index++)

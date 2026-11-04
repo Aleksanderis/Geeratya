@@ -199,6 +199,27 @@ public static class OverlayBox
     }
 
     /// <summary>
+    /// The view behind the issue detail: muted like <see cref="Backdrop"/> and also inactive, so it carries no focus or
+    /// selection mark (the focused frame is a plain border and the column title muted, a selected row or card is not tinted).
+    /// </summary>
+    public static List<StyledLine> Inactive(IReadOnlyList<StyledLine> body)
+    {
+        const SpanGround marks = SpanGround.Selection | SpanGround.Range | SpanGround.Cursor;
+
+        return [.. body.Select(static line => new StyledLine([.. line.Spans.Select(static span => span with
+        {
+            Role = span.Role switch
+            {
+                TextRole.FrameFocus => TextRole.Border,
+                TextRole.ChipFocus => TextRole.Muted,
+                TextRole.Selected => TextRole.Body,
+                _ => span.Role,
+            },
+            Ground = (span.Ground & ~marks) | SpanGround.Dim,
+        })]))];
+    }
+
+    /// <summary>
     /// <paramref name="box"/> drawn over <paramref name="under"/> from column <paramref name="left"/>: the box cells on
     /// the raised surface, the cells of the row to the left and right of it as they were. Exactly
     /// <paramref name="width"/> columns; a wide character cut by the box edge becomes a space.

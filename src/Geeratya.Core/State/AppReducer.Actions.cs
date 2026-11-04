@@ -29,6 +29,11 @@ public sealed partial class AppReducer
             return onScreen;
         }
 
+        if (DetailUnderlayGate.Refuses(state, action))
+        {
+            return Result(state);
+        }
+
         if (ClosedSprintGate.Refuses(state, action))
         {
             return Result(state with { Message = ClosedSprintGate.Refusal });

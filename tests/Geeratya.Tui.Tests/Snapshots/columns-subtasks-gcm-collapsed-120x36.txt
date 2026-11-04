@@ -1,36 +1,36 @@
  1 Board GCM board x   +                                                                     : commands   <space>g jump 
                                                                                                                         
 ╭─ To Do 4 ─────────────────────────────┬─ In Progress 4 ───────────────────────┬─ Done (14d) 2 ───────────────────────╮
-│ ┌───────────────────────────────────┐ │ ┌───────────────────────────────────┐ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │
-│ │ Seed: Onboarding flow             │ │ │ Seed: Reporting                   │ │ │ Export report as CSV             │ │
-│ │ [geeratya-seed] +1                │ │ │ [geeratya-seed] +1                │ │ │ [geeratya-seed] +1               │ │
-│ │ GCM-8  Epic                = [--] │ │ │ GCM-9  Epic                = [--] │ │ │ GCM-12  Story             = [--] │ │
-│ ├───────────────────────────────────┤ │ ├───────────────────────────────────┤ │ └──────────────────────────────────┘ │
-│ │   Welcome screen                  │ │ │   Pick a chart library            │ │ ┌──────────────────────────────────┐ │
-│ │   [geeratya-seed] +1              │ │ │   [geeratya-seed] +1              │ │ │ Write the setup guide            │ │
-│ │   GCM-11  Story            = [--] │ │ │   GCM-14  Task             = [--] │ │ │ [geeratya-seed] +1               │ │
-│ │                                   │ │ │                                   │ │ │ GCM-15  Task              = [--] │ │
-│ ├───────────────────────────────────┤ │ └───────────────────────────────────┘ │ └──────────────────────────────────┘ │
-│ │   Review onboarding copy          │ │ ┏━ ↑ GCM-8 Seed: Onboarding flow ━━━┓ │                                      │
-│ │   [geeratya-seed] +1              │ │ ┃ Sign up with email             ...┃ │                                      │
-│ │   GCM-13  Task             = [--] │ │ ┃ [geeratya-seed] +1                ┃ │                                      │
-│ │                                   │ │ ┃ GCM-10  Story ▸1/2         = [--] ┃ │                                      │
-│ └───────────────────────────────────┘ │ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │                                      │
-│ ┌─ ↑ GCM-9 Seed: Reporting ─────────┐ │ ┌─ ↑ GCM-8 Seed: Onboarding flow ───┐ │                                      │
-│ │ Wrong date format in report       │ │ │ App crashes on empty profile      │ │                                      │
-│ │ [geeratya-seed] +1                │ │ │ [geeratya-seed] +1                │ │                                      │
-│ │ GCM-17  Bug                = [--] │ │ │ GCM-16  Bug                = [--] │ │                                      │
-│ └───────────────────────────────────┘ │ └───────────────────────────────────┘ │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
-│                                       │                                       │                                      │
+│ ┌───────────────────────────────────┐ │ │   Pick a chart library            │ │ ┌─ ↑ GCM-9 Seed: Reporting ────────┐ │
+│ │ Seed: Onboarding flow             │ │ │                                   │ │ │ Export report as CSV             │ │
+│ │                                   │ │ │   [geeratya-seed]                 │ │ │                                  │ │
+│ │ [geeratya-seed]                   │ │ │   [geeratya-seed-GCM-task-charts] │ │ │ [geeratya-seed]                  │ │
+│ │ [geeratya-seed-GCM-epic-onboard…] │ │ │                                   │ │ │ [geeratya-seed-GCM-story-export] │ │
+│ │                                   │ │ │   GCM-14  Task             = [--] │ │ │                                  │ │
+│ │ GCM-8  Epic                = [--] │ │ └───────────────────────────────────┘ │ │ GCM-12  Story             = [--] │ │
+│ ├───────────────────────────────────┤ │ ┏━ ↑ GCM-8 Seed: Onboarding flow ━━━┓ │ └──────────────────────────────────┘ │
+│ │   Welcome screen                  │ │ ┃ Sign up with email                ┃ │ ┌──────────────────────────────────┐ │
+│ │                                   │ │ ┃                                   ┃ │ │ Write the setup guide            │ │
+│ │   [geeratya-seed]                 │ │ ┃ [geeratya-seed]                   ┃ │ │                                  │ │
+│ │   [geeratya-seed-GCM-story-welc…] │ │ ┃ [geeratya-seed-GCM-story-signup...┃ │ │ [geeratya-seed]                  │ │
+│ │                                   │ │ ┃                                   ┃ │ │ [geeratya-seed-GCM-task-docs]    │ │
+│ │   GCM-11  Story            = [--] │ │ ┃ GCM-10  Story ▸1/2         = [--] ┃ │ │                                  │ │
+│ ├───────────────────────────────────┤ │ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │ │ GCM-15  Task              = [--] │ │
+│ │   Review onboarding copy          │ │ ┌─ ↑ GCM-8 Seed: Onboarding flow ───┐ │ └──────────────────────────────────┘ │
+│ │                                   │ │ │ App crashes on empty profile      │ │                                      │
+│ │   [geeratya-seed]                 │ │ │                                   │ │                                      │
+│ │   [geeratya-seed-GCM-task-copy]   │ │ │ [geeratya-seed]                   │ │                                      │
+│ │                                   │ │ │ [geeratya-seed-GCM-bug-crash]     │ │                                      │
+│ │   GCM-13  Task             = [--] │ │ │                                   │ │                                      │
+│ └───────────────────────────────────┘ │ │ GCM-16  Bug                = [--] │ │                                      │
+│ ┌─ ↑ GCM-9 Seed: Reporting ─────────┐ │ └───────────────────────────────────┘ │                                      │
+│ │ Wrong date format in report       │ │                                       │                                      │
+│ │                                   │ │                                       │                                      │
+│ │ [geeratya-seed]                   │ │                                       │                                      │
+│ │ [geeratya-seed-GCM-bug-date]      │ │                                       │                                      │
+│ │                                   │ │                                       │                                      │
+│ │ GCM-17  Bug                = [--] │ │                                       │                                      │
+│ └───────────────────────────────────┘ │                                       │                                      │
 │                                       │                                       │                                      │
 ╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
  NORMAL  GCM board · 20 is…    za sub-tasks  h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit

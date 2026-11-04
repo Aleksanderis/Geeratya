@@ -44,17 +44,56 @@ public static class BoardHits
             return new BoardHit(chosen, null);
         }
 
-        var pitch = BoardCards.Pitch(visibleRows, ListLayout.HeaderRows);
-        var offset = row - BoardCards.TopRows;
-        var shown = BoardCards.Visible(visibleRows, ListLayout.HeaderRows);
-        var card = cursor.Scrolls[chosen] + (offset / pitch);
+        return Locate(columns, cursor, visibleRows, width, column, row)?.Hit;
+    }
 
-        if (offset >= shown * pitch || card >= columns[chosen].Rows.Count)
+    /// <summary>
+    /// The card row under a body cell: the hit and which row of the card it is (summary, labels, key row ...), null
+    /// below the cards, in a blank column area or on a one-line card (those are all key rows).
+    /// </summary>
+    public static BoardCardHit? Locate(
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
+        int visibleRows,
+        int width,
+        int column,
+        int row)
+    {
+        if (columns.Count == 0 || row <= HeaderRow || column < 0 || column >= width)
         {
             return null;
         }
 
-        return new BoardHit(chosen, card);
+        var window = BoardWindows.For(columns.Count, cursor.Column, width);
+        var chosen = ColumnAt(window, column);
+        var offset = row - BoardCards.TopRows;
+
+        if (BoardCards.IsCompact(visibleRows, ListLayout.HeaderRows))
+        {
+            var card = cursor.Scrolls[chosen] + offset;
+            var shown = BoardCards.Visible(visibleRows, ListLayout.HeaderRows);
+
+            if (offset >= shown || card >= columns[chosen].Rows.Count)
+            {
+                return null;
+            }
+
+            return new BoardCardHit(new BoardHit(chosen, card), new CardRow(CardRowKind.Key, 0));
+        }
+
+        var rows = BoardCards.CardRows(visibleRows, ListLayout.HeaderRows);
+        var placed = BoardColumnLayout.Place(
+            columns[chosen],
+            cursor.Scrolls[chosen],
+            window.CellWidth(chosen - window.First),
+            rows);
+
+        if (BoardColumnLayout.At(placed, offset) is not { } found)
+        {
+            return null;
+        }
+
+        return new BoardCardHit(new BoardHit(chosen, found.Card), found.Rows[offset - found.Top]);
     }
 
     // The header of a one-column window names the neighbours ("‹ Name n  Title  Name n ›"): a click on a name steps to

@@ -1,8 +1,11 @@
  1 JQL My open issues x   +                                                                  : commands   <space>g jump 
                                                                                                                         
 ╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
+│  Key    T Summary                                                                     Status         Assignee        │
+│> GCM-12 T Row summary                                                                 In Progress    -               │
+│                                                                                                                      │
 │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │
-│>│ Fix login redirect after token refresh                             In Progress │ │ Status  moves via transition  │ │
+│ │ Fix login redirect after token refresh                             In Progress │ │ Status  moves via transition  │ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │
 │ ╭─ Description ────────────────────────────────────────────────────── 1-4 of 40 ─╮ │                               │ │
 │ │ Heading one                                                                   ▲│ │ Priority                      │ │
@@ -21,9 +24,6 @@
 │ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
 │ │                                                                                │ │                               │ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │ Updated 2 h ago               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
 │                                                                                    │                               │ │
 │                                                                                    │                               │ │
 │                                                                                    │                               │ │

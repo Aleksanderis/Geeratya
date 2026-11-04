@@ -2,8 +2,9 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// Where the wide overlay of the issue detail and the create form sits in the body (<c>docs/ux-screens.md</c>, "Where
-/// it is drawn"): the terminal width minus four columns and the body height minus two rows, centred, at most 160
-/// columns wide; below 100 columns it fills the body, with no margin and no backdrop. Pure.
+/// it is drawn"): the terminal width minus four columns, centred, at most 160 columns wide; the body height minus a
+/// top margin of four rows (so the column titles and first card rows of the view show above it) and one row below;
+/// below 100 columns it fills the body, with no margin and no backdrop. Pure.
 /// </summary>
 /// <param name="Left">The first column of the overlay.</param>
 /// <param name="Top">The first body row of the overlay.</param>
@@ -20,6 +21,9 @@ public sealed record DetailOverlayGeometry(int Left, int Top, int Width, int Hei
 
     private const int MarginColumns = 4;
     private const int MarginRows = 2;
+    private const int MinTopRows = 1;
+    private const int TopRows = 4;
+    private const int MinHeight = 8;
 
     /// <summary>The overlay for <paramref name="width"/> terminal columns and <paramref name="bodyHeight"/> body rows.</summary>
     public static DetailOverlayGeometry Place(int width, int bodyHeight)
@@ -30,9 +34,10 @@ public sealed record DetailOverlayGeometry(int Left, int Top, int Width, int Hei
         }
 
         var boxWidth = Math.Min(width - MarginColumns, MaxWidth);
-        var boxHeight = bodyHeight - MarginRows;
+        var top = Math.Min(TopRows, Math.Max(MinTopRows, bodyHeight - MinHeight - 1));
+        var boxHeight = bodyHeight - top - 1;
 
-        return new DetailOverlayGeometry((width - boxWidth) / 2, MarginRows / 2, boxWidth, boxHeight, false);
+        return new DetailOverlayGeometry((width - boxWidth) / 2, top, boxWidth, boxHeight, false);
     }
 
     /// <summary>Whether body cell (<paramref name="column"/>, <paramref name="row"/>) is inside the overlay.</summary>

@@ -1,23 +1,69 @@
+using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// How the three text rows of a full card are shared (<c>docs/ux-screens.md</c>, "Board card"): the bottom row is
-/// always the key row, a card with labels shows one summary line and the label row, a card without labels shows
-/// two summary lines. The renderer and the flash labeler agree on it through here.
+/// The rows of a full card (<c>docs/ux-screens.md</c>, "Board card"): the summary on one or two lines, a blank row,
+/// the label chips on one or two rows followed by a blank row (none without labels), and the key row, inside a top
+/// and a bottom border. So the height follows the content, from five to nine rows; a member of a shared frame has no
+/// own top border (a child) and a divider instead of a bottom border. The renderer, the hit test and the flash
+/// labeler agree on it through here. Pure.
 /// </summary>
 public static class BoardCardPlan
 {
-    /// <summary>The summary lines the card shows: two, or one when the label row takes the second.</summary>
-    public static int SummaryLines(IssueSummary issue)
+    /// <summary>The most rows a full card takes: top, two summary lines, blank, two label rows, blank, key, bottom.</summary>
+    public const int MaxRows = 9;
+
+    /// <summary>The cells of margin, side borders and padding around the text of a card of its own.</summary>
+    private const int FrameCells = (2 * BoardCards.CardMargin) + 4;
+
+    /// <summary>The cells available to the text of a card in a column cell of <paramref name="cellWidth"/> cells.</summary>
+    public static int TextWidth(int cellWidth, bool nested)
     {
-        return HasLabelRow(issue) ? 1 : 2;
+        return Math.Max(0, cellWidth - FrameCells - (nested ? BoardCards.ChildIndent : 0));
     }
 
-    /// <summary>Whether the card has a label row.</summary>
-    public static bool HasLabelRow(IssueSummary issue)
+    /// <summary>The rows of the card for <paramref name="issue"/> in a column cell of <paramref name="cellWidth"/>.</summary>
+    public static IReadOnlyList<CardRow> Rows(IssueSummary issue, CardGroupPart part, int cellWidth)
     {
-        return issue.Labels.Count > 0;
+        var nested = part is CardGroupPart.Middle or CardGroupPart.Last;
+        var text = TextWidth(cellWidth, nested);
+        var rows = new List<CardRow>();
+
+        if (part is CardGroupPart.None or CardGroupPart.First)
+        {
+            rows.Add(new CardRow(CardRowKind.Top, 0));
+        }
+
+        for (var line = 0; line < SummaryLines(issue, text); line++)
+        {
+            rows.Add(new CardRow(CardRowKind.Summary, line));
+        }
+
+        rows.Add(new CardRow(CardRowKind.Blank, 0));
+
+        var labelRows = CardLabelLayout.Rows(issue.Labels, text).Count;
+
+        for (var row = 0; row < labelRows; row++)
+        {
+            rows.Add(new CardRow(CardRowKind.Labels, row));
+        }
+
+        if (labelRows > 0)
+        {
+            rows.Add(new CardRow(CardRowKind.Blank, 1));
+        }
+
+        rows.Add(new CardRow(CardRowKind.Key, 0));
+        rows.Add(new CardRow(part == CardGroupPart.None ? CardRowKind.Bottom : CardRowKind.Divider, 0));
+
+        return rows;
+    }
+
+    /// <summary>The summary lines the card shows in <paramref name="text"/> cells: one, or two when it wraps.</summary>
+    public static int SummaryLines(IssueSummary issue, int text)
+    {
+        return CardText.TwoLines(issue.Summary, text).Second.Length > 0 ? 2 : 1;
     }
 }

@@ -6,17 +6,19 @@ namespace Geeratya.Tui.Rendering;
 
 public sealed partial class ColumnsBodyRenderer
 {
-    /// <summary>One row of the bordered card, in a margin of one cell on each side of the column.</summary>
+    /// <summary>
+    /// One row of a card, in a margin of one cell on each side of the column. A card of its own is a box; a parent
+    /// and its children share one frame (the parent is its top, a divider follows each member and the last member's
+    /// divider is the bottom of the frame; children are indented). A selected card has heavy sides and the
+    /// <c>Selected</c> role on its text.
+    /// </summary>
     private static void AddBoxRow(
         List<StyledSpan> spans,
         IssueSummary issue,
-        int within,
-        bool selected,
-        bool marked,
-        bool open,
-        GroupPart part,
-        int inner,
-        bool heavyBottom)
+        CardRow row,
+        CardGroupPart part,
+        CardState state,
+        int inner)
     {
         var width = inner - (2 * Margin);
 
@@ -27,133 +29,100 @@ public sealed partial class ColumnsBodyRenderer
             return;
         }
 
-        var frame = selected ? TextRole.FrameFocus : TextRole.Muted;
-        var text = selected ? TextRole.Selected : TextRole.Body;
-
         spans.Add(new StyledSpan(new string(' ', Margin), TextRole.Body));
 
-        if (part != GroupPart.None)
+        if (row.Kind is CardRowKind.Top or CardRowKind.Bottom or CardRowKind.Divider)
         {
-            AddGroupedRow(spans, issue, within, selected, marked, open, part, width, heavyBottom);
-        }
-        else if (within == 0 || within == BoardCards.FullRows - 1)
-        {
-            var heavy = selected;
-            var (left, right) = (within == 0, heavy) switch
-            {
-                (true, true) => ("┏", "┓"),
-                (true, false) => ("┌", "┐"),
-                (false, true) => ("┗", "┛"),
-                _ => ("└", "┘"),
-            };
-            var fill = heavy ? '━' : HorizontalChar;
-            var label = within == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
-            var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
-
-            spans.Add(new StyledSpan($"{left}{bar}{right}", frame));
+            AddEdge(spans, issue, row, part, state, width);
         }
         else
         {
-            var side = selected ? "┃" : Vertical;
-
-            spans.Add(new StyledSpan(side, frame));
-            AddBoxText(spans, issue, within, selected, marked, open, width - 2, text);
-            spans.Add(new StyledSpan(side, frame));
+            AddTextRow(spans, issue, row, part, state, width);
         }
 
         spans.Add(new StyledSpan(Blank, TextRole.Body));
     }
 
-    /// <summary>
-    /// One row of a card inside the shared frame of a parent and its children. The parent is the top of the frame
-    /// (top border, three text rows, divider); a child is three text rows, a blank row and a divider, the last
-    /// child's divider being the bottom of the frame. The rows keep the five-row pitch of a card. A selected card
-    /// has heavy sides and the <c>Selected</c> role on its text.
-    /// </summary>
-    private static void AddGroupedRow(
+    private static void AddEdge(
         List<StyledSpan> spans,
         IssueSummary issue,
-        int within,
-        bool selected,
-        bool marked,
-        bool open,
-        GroupPart part,
-        int width,
-        bool heavyBottom)
+        CardRow row,
+        CardGroupPart part,
+        CardState state,
+        int width)
     {
-        var first = part == GroupPart.First;
-        var textRows = first ? within is >= 1 and <= 3 : within <= 2;
-        var blank = !first && within == 3;
-
-        if (!textRows && !blank)
+        var top = row.Kind == CardRowKind.Top;
+        var heavy = top ? state.Selected : state.Selected || state.NextSelected;
+        var closing = row.Kind == CardRowKind.Bottom || part == CardGroupPart.Last;
+        var (left, right) = (top, closing) switch
         {
-            var top = first && within == 0;
-            var heavy = top ? selected : heavyBottom;
-            var (left, right) = (top, part == GroupPart.Last) switch
-            {
-                (true, _) => heavy ? ("┏", "┓") : ("┌", "┐"),
-                (_, true) => heavy ? ("┗", "┛") : ("└", "┘"),
-                _ => heavy ? ("┣", "┫") : ("├", "┤"),
-            };
-            var fill = heavy ? '━' : HorizontalChar;
+            (true, _) => heavy ? ("┏", "┓") : ("┌", "┐"),
+            (_, true) => heavy ? ("┗", "┛") : ("└", "┘"),
+            _ => heavy ? ("┣", "┫") : ("├", "┤"),
+        };
+        var fill = heavy ? '━' : HorizontalChar;
+        var label = top ? ParentLabel(issue, width - 2, fill) : string.Empty;
+        var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
 
-            var label = first && within == 0 ? ParentLabel(issue, width - 2, fill) : string.Empty;
-            var bar = label + new string(fill, width - 2 - TextWidth.Of(label));
+        spans.Add(new StyledSpan($"{left}{bar}{right}", heavy ? TextRole.FrameFocus : TextRole.Muted));
+    }
 
-            spans.Add(new StyledSpan($"{left}{bar}{right}", heavy ? TextRole.FrameFocus : TextRole.Muted));
-
-            return;
-        }
-
-        var side = selected ? "┃" : Vertical;
-        var frame = selected ? TextRole.FrameFocus : TextRole.Muted;
-        var text = selected ? TextRole.Selected : first ? TextRole.Strong : TextRole.Body;
+    private static void AddTextRow(
+        List<StyledSpan> spans,
+        IssueSummary issue,
+        CardRow row,
+        CardGroupPart part,
+        CardState state,
+        int width)
+    {
+        var side = state.Selected ? "┃" : Vertical;
+        var frame = state.Selected ? TextRole.FrameFocus : TextRole.Muted;
+        var text = TextOf(part, state);
+        var indent = part is CardGroupPart.Middle or CardGroupPart.Last ? ChildIndent : 0;
 
         spans.Add(new StyledSpan(side, frame));
 
-        if (blank)
+        if (indent > 0)
         {
-            spans.Add(new StyledSpan(new string(' ', width - 2), text));
-        }
-        else
-        {
-            var indent = first ? 0 : ChildIndent;
-
-            if (indent > 0)
-            {
-                spans.Add(new StyledSpan(new string(' ', indent), text));
-            }
-
-            AddBoxText(spans, issue, first ? within : within + 1, selected, marked, open, width - 2 - indent, text);
+            spans.Add(new StyledSpan(new string(' ', indent), text));
         }
 
+        AddBoxText(spans, issue, row, state, width - 2 - indent, text);
         spans.Add(new StyledSpan(side, frame));
     }
 
+    private static TextRole TextOf(CardGroupPart part, CardState state)
+    {
+        if (state.Selected)
+        {
+            return TextRole.Selected;
+        }
+
+        return part == CardGroupPart.First ? TextRole.Strong : TextRole.Body;
+    }
+
     /// <summary>
-    /// The text between the side borders, three rows: the summary (two lines, or one when a label row follows),
-    /// the label row, and the bottom row with the key, type word, counter, priority and assignee chip.
+    /// The text between the side borders: a summary line, a blank row, a row of label chips, or the key row with the
+    /// key, type word, counter, priority and assignee chip.
     /// </summary>
     private static void AddBoxText(
         List<StyledSpan> spans,
         IssueSummary issue,
-        int within,
-        bool selected,
-        bool marked,
-        bool open,
+        CardRow row,
+        CardState state,
         int room,
         TextRole text)
     {
         var inner = room - 2;
 
-        if (within == BottomRow)
+        if (row.Kind == CardRowKind.Key)
         {
             // The cell before the key is the set mark: `*` for a marked card (never colour alone).
-            var star = marked ? MarkedMark : Blank;
-            var starRole = marked && !selected ? TextRole.Strong : text;
+            var star = state.Marked ? MarkedMark : Blank;
+            var starRole = state.Marked && !state.Selected ? TextRole.Strong : text;
 
             spans.Add(new StyledSpan(star, starRole));
-            spans.AddRange(CardRows.Bottom(issue, open, inner, text));
+            spans.AddRange(CardRows.Bottom(issue, state.Open, inner, text));
             spans.Add(new StyledSpan(Blank, text));
 
             return;
@@ -161,24 +130,30 @@ public sealed partial class ColumnsBodyRenderer
 
         spans.Add(new StyledSpan(Blank, text));
 
-        if (within == LabelRow && BoardCardPlan.HasLabelRow(issue))
+        if (row.Kind == CardRowKind.Labels)
         {
-            spans.AddRange(CardRows.Labels(issue.Labels, inner));
+            var labels = CardLabelLayout.Rows(issue.Labels, inner);
+
+            spans.AddRange(CardRows.Labels(labels[Math.Min(row.Index, labels.Count - 1)], inner));
         }
         else
         {
-            var lines = CardText.TwoLines(issue.Summary, inner);
-            var line = within == FirstSummaryLine ? lines.First : lines.Second;
-
-            if (within == FirstSummaryLine && BoardCardPlan.SummaryLines(issue) == 1 && lines.Second.Length > 0)
-            {
-                line = CardText.Shorten(issue.Summary.Trim(), inner);
-            }
-
-            spans.Add(new StyledSpan(TextWidth.Pad(line, inner), text));
+            spans.Add(new StyledSpan(TextWidth.Pad(SummaryLine(issue, row, inner), inner), text));
         }
 
         spans.Add(new StyledSpan(Blank, text));
+    }
+
+    private static string SummaryLine(IssueSummary issue, CardRow row, int inner)
+    {
+        if (row.Kind != CardRowKind.Summary)
+        {
+            return string.Empty;
+        }
+
+        var lines = CardText.TwoLines(issue.Summary, inner);
+
+        return row.Index == 0 ? lines.First : lines.Second;
     }
 
     /// <summary>
