@@ -6,6 +6,7 @@ using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -471,6 +472,28 @@ public class IssueDetailRendererTests
         Assert.DoesNotContain(
             body.Where(line => line.PlainText.Contains("Description")),
             line => line.Spans.Any(span => span.Role == TextRole.ChipFocus));
+    }
+
+    [Fact]
+    public void GivenANavigatingFormWithPanes_WhenCtrlWIsPending_ThenTheStatusLineEchoesIt()
+    {
+        var state = Keys(Loaded(120, 36), "Space", "i", "e");
+        var tab = state.Session.Tabs[0];
+        var summary = FormField.Create(FormFieldIds.Summary, "Summary", FormFieldKind.Text, true, []);
+        var labels = FormField.Create(FormFieldIds.Labels, "Labels", FormFieldKind.Text, false, []);
+        state = _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [summary, labels])).State;
+        Assert.True(state.Session.Tabs[0].Form!.Navigating);
+        var grid = new PaneGrid([new PaneSlot("title", 0, 0)]);
+        var open = state.Session.Tabs[0];
+        state = state with
+        {
+            Session = state.Session with { Tabs = [open with { Panes = new PaneState(grid) }] },
+        };
+
+        var pending = Keys(state, "Ctrl-w");
+
+        Assert.Equal("Ctrl-w", pending.PendingKeys);
+        Assert.Contains("INSERT  Ctrl-w", StatusBar.Render(pending, 120, _keymap));
     }
 
     private AppState PriorityDropdown(int width, int height)

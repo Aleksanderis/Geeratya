@@ -117,6 +117,8 @@ public static partial class StatusBar
             InputMode.Confirm => ConfirmText(state, width, keymap, confirmDialogShown),
             InputMode.Help => string.Empty,
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
+            InputMode.Insert when state.PendingKeys.Length > 0 && FormReducer.OpenForm(state) is not null
+                => KeyNotation.Display(state.PendingKeys),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
             InputMode.Insert when state.FlashJump is { } flash => state.Message ?? FlashText(flash, width),
