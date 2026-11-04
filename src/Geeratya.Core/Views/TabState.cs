@@ -127,7 +127,7 @@ public sealed record TabState(
     public bool SprintResolved { get; init; }
 
     /// <summary>
-    /// The days after which the board load left out resolved issues (a Kanban board, like Jira's "Hide done work
+    /// The days after which the board load left out older Done issues (a Kanban board, like Jira's "Hide done work
     /// items after"); 0 when none were left out. The last column says so.
     /// </summary>
     public int DoneCutoffDays { get; init; }

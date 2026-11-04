@@ -57,7 +57,7 @@ public sealed class ViewLoadHandlerCutoffTests
         var tab = state.Session.Tabs[0];
         Assert.Equal(14, tab.DoneCutoffDays);
         Assert.Equal(DoneCutoffSource.Jira, tab.CutoffSource);
-        Assert.Contains("resolutiondate >= -14d", fixture.Query(probes ? 2 : 1));
+        Assert.Contains("statusCategoryChangedDate >= -14d", fixture.Query(probes ? 2 : 1));
         Assert.Equal("Done (14d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         Assert.Equal(
             [$"GET {TenantPath}", $"POST {GraphQlPath}", $"POST {GraphQlPath}"],
@@ -80,7 +80,7 @@ public sealed class ViewLoadHandlerCutoffTests
         var tab = state.Session.Tabs[0];
         Assert.Equal(0, tab.DoneCutoffDays);
         Assert.Equal(DoneCutoffSource.Jira, tab.CutoffSource);
-        Assert.DoesNotContain("resolutiondate", fixture.Query(1));
+        Assert.DoesNotContain("statusCategoryChangedDate", fixture.Query(1));
         Assert.Equal("Done", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         Assert.Equal(24, tab.Rows.Count);
     }
@@ -144,7 +144,7 @@ public sealed class ViewLoadHandlerCutoffTests
 
         var state = await RunAsync(fixture, start, new ViewOpenRequested(Definition("4")));
 
-        Assert.DoesNotContain("resolutiondate", fixture.Query(1));
+        Assert.DoesNotContain("statusCategoryChangedDate", fixture.Query(1));
         Assert.Equal(DoneCutoffSource.Setting, state.Session.Tabs[0].CutoffSource);
     }
 
@@ -166,7 +166,7 @@ public sealed class ViewLoadHandlerCutoffTests
         var tab = chosen.Session.Tabs[0];
         Assert.Equal(7, tab.DoneCutoffDays);
         Assert.Equal(DoneCutoffSource.Choice, tab.CutoffSource);
-        Assert.Contains("resolutiondate >= -7d", fixture.Query(3));
+        Assert.Contains("statusCategoryChangedDate >= -7d", fixture.Query(3));
         Assert.Equal("Done (7d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         Assert.Equal(3, fixture.Http.GatewayRequests.Count);
     }
@@ -186,7 +186,7 @@ public sealed class ViewLoadHandlerCutoffTests
 
         var chosen = await RunLineAsync(fixture, opened, "donecutoff all");
 
-        Assert.DoesNotContain("resolutiondate", fixture.Query(3));
+        Assert.DoesNotContain("statusCategoryChangedDate", fixture.Query(3));
         Assert.Equal("Done", ColumnsNavigation.ColumnsOf(chosen.Session.Tabs[0])[^1].Name);
         Assert.Equal(DoneCutoffSource.Choice, chosen.Session.Tabs[0].CutoffSource);
     }
@@ -231,7 +231,7 @@ public sealed class ViewLoadHandlerCutoffTests
 
         Assert.Equal(DoneCutoffSource.Jira, refreshed.Session.Tabs[0].CutoffSource);
         Assert.Equal(3, fixture.Http.GatewayRequests.Count);
-        Assert.Contains("resolutiondate >= -14d", fixture.Query(3));
+        Assert.Contains("statusCategoryChangedDate >= -14d", fixture.Query(3));
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public sealed class ViewLoadHandlerCutoffTests
 
         Assert.Empty(fixture.Http.GatewayRequests);
         Assert.Null(state.Session.Tabs[0].CutoffSource);
-        Assert.DoesNotContain("resolutiondate", fixture.Query(2));
+        Assert.DoesNotContain("statusCategoryChangedDate", fixture.Query(2));
     }
 
     [Fact]
@@ -277,7 +277,7 @@ public sealed class ViewLoadHandlerCutoffTests
         Assert.Equal(24, tab.Rows.Count);
         Assert.Equal(days, tab.DoneCutoffDays);
         Assert.Equal(DoneCutoffSource.Setting, tab.CutoffSource);
-        Assert.Contains($"resolutiondate >= -{days}d", fixture.Query(1));
+        Assert.Contains($"statusCategoryChangedDate >= -{days}d", fixture.Query(1));
         Assert.Equal($"Done ({days}d)", ColumnsNavigation.ColumnsOf(tab)[^1].Name);
         Assert.Null(state.Message);
     }
