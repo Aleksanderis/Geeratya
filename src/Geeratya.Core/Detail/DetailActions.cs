@@ -26,7 +26,7 @@ internal static class DetailActions
 
         if (target.Toggles)
         {
-            return new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target.ExpandKey), _noEffects);
+            return new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target), _noEffects);
         }
 
         if (target.Kind == DetailTargetKind.Field)

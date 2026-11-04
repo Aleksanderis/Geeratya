@@ -63,6 +63,45 @@ public class IssueDetailSectionTests
     }
 
     [Fact]
+    public void GivenShowLess_WhenPressingEnter_ThenTheCursorLandsOnTheMoreLineNotInALaterPane()
+    {
+        var expanded = Press(OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines (Enter)"), "Enter").State;
+
+        var collapsed = Press(OnLine(expanded, "Show less (Enter)"), "Enter").State;
+
+        Assert.Contains("more lines (Enter)", Document(collapsed).Lines[Top(collapsed).Cursor].PlainText);
+        Assert.True(Top(collapsed).Cursor < Document(collapsed).Sections[2]);
+    }
+
+    [Fact]
+    public void GivenAFoldedCommentsPane_WhenTheCursorIsOnItsFirstLine_ThenTheCommentKeysStillFindTheComment()
+    {
+        var state = OnLine(Opened(null, [Comment("7", 3), Comment("8", 3)]), "Eve Example ·");
+
+        var folded = Press(state, "z", "a").State;
+        var cursor = Document(folded).Targets[Top(folded).Cursor];
+
+        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "7"), cursor);
+    }
+
+    [Fact]
+    public void GivenARightClickOnAPaneTitle_WhenResolving_ThenTheSectionDoesNotFold()
+    {
+        var state = Opened(LongText(20), []);
+        var edge = Document(state).Sections[1] - 1;
+        var row = 2 + DetailLayout.HeaderRows + edge - Top(state).Scroll;
+        var context = MouseContext.From(state, 80, 30, 2, _now);
+        var current = state;
+
+        foreach (var command in MouseResolver.Resolve(context, 4, row, MouseGesture.RightClick, _now))
+        {
+            current = _reducer.Reduce(current, command).State;
+        }
+
+        Assert.Empty(Top(current).Folded);
+    }
+
+    [Fact]
     public void GivenAnExpandedDescription_WhenTheIssueReloads_ThenItStaysExpanded()
     {
         var state = Press(OnLine(Opened(LongText(20), []), "more lines (Enter)"), "Enter").State;

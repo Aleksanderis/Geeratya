@@ -20,7 +20,9 @@ public sealed record DetailDocument(
     /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
 
-    /// <summary>The fold id of each section, parallel to <see cref="Sections"/>; the first (the fields) is never folded.</summary>
+    /// <summary>
+    /// The fold id of each section, parallel to <see cref="Sections"/>; the first (the fields) is never folded.
+    /// </summary>
     public IReadOnlyList<string> SectionIds { get; init; } = [];
 
     /// <summary>The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).</summary>

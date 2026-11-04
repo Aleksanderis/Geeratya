@@ -16,8 +16,8 @@ internal static class LongText
     public const int CommentLines = 6;
 
     /// <summary>
-    /// Appends <paramref name="lines"/> to <paramref name="content"/>, each opening <paramref name="target"/>; more than
-    /// <paramref name="limit"/> lines are cut unless <paramref name="expanded"/>.
+    /// Appends <paramref name="lines"/> to <paramref name="content"/>, each opening <paramref name="target"/>;
+    /// more than <paramref name="limit"/> lines are cut unless <paramref name="expanded"/>.
     /// </summary>
     public static void Add(
         PanelContent content,

@@ -9,12 +9,23 @@ internal static partial class DetailReducer
     /// Shows the rest of a long text (<c>description</c> or <c>comment:ID</c>), or cuts it short again, and lays the
     /// document out again; the state is per issue, so a reload keeps it.
     /// </summary>
-    public static AppState ToggleExpanded(AppState state, TabState tab, string key)
+    public static AppState ToggleExpanded(AppState state, TabState tab, DetailTarget target)
     {
         var top = tab.Detail[^1];
-        var changed = top with { Expanded = Toggled(top.Expanded, key) };
+        var changed = top with { Expanded = Toggled(top.Expanded, target.ExpandKey) };
+        var laidOut = Layout(changed, state.ViewportColumns, tab.VisibleRows);
 
-        return ViewReducer.Replace(state, ReplaceTop(tab, Layout(changed, state.ViewportColumns, tab.VisibleRows)));
+        if (target.Collapses && laidOut.Document is { } document)
+        {
+            // The "Show less" row is gone: the cursor goes to the "more lines" row that replaces it.
+            var more = target with { Expands = true, Collapses = false };
+            var line = document.Targets.ToList().FindIndex(candidate => candidate == more);
+            var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+
+            laidOut = line < 0 ? laidOut : WithCursor(laidOut, line, viewport);
+        }
+
+        return ViewReducer.Replace(state, ReplaceTop(tab, laidOut));
     }
 
     /// <summary>
@@ -38,7 +49,7 @@ internal static partial class DetailReducer
         return JumpTo(moved, next, laidOut.Document!.Sections[section]);
     }
 
-    /// <summary>The section whose top edge is the document line <paramref name="line"/>, -1 for any other line.</summary>
+    /// <summary>The section whose top edge is document line <paramref name="line"/>, -1 for any other line.</summary>
     private static int EdgeSection(DetailDocument document, int line)
     {
         for (var section = 1; section < document.Sections.Count; section++)

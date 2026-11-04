@@ -106,13 +106,15 @@ internal sealed class DocumentSink
             return preview;
         }
 
-        preview.Add(content.Lines[0]);
+        preview.Add(content.Lines[0], content.Targets[0]);
 
         if (content.Lines.Count > 1)
         {
             var note = new WrappedText(inner, false);
+            var hidden = content.Lines.Count - 1;
+            var text = hidden == 1 ? "… 1 more line hidden (z a)" : $"… {hidden} more lines hidden (z a)";
 
-            note.Append($"… {content.Lines.Count - 1} more lines hidden (z a)", TextRole.Muted);
+            note.Append(text, TextRole.Muted);
             preview.Finish(note);
         }
 
