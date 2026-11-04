@@ -134,12 +134,18 @@ internal static partial class DetailReducer
         {
             scroll = cursor;
         }
-        else if (cursor >= scroll + viewport)
+        else if (BottomOf(detail, cursor) >= scroll + viewport)
         {
-            scroll = cursor - viewport + 1;
+            // The whole field shows, not only its first row (a field block is a label and its value rows).
+            scroll = Math.Min(cursor, BottomOf(detail, cursor) - viewport + 1);
         }
 
         return detail with { Cursor = cursor, Scroll = Math.Clamp(scroll, 0, Math.Max(0, lines - viewport)) };
+    }
+
+    private static int BottomOf(DetailState detail, int cursor)
+    {
+        return (detail.Document?.BlockAt(cursor)?.End ?? cursor + 1) - 1;
     }
 
     /// <summary>

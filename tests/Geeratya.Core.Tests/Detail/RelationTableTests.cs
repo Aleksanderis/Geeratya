@@ -163,7 +163,9 @@ public class RelationTableTests
         {
             var document = Build(detail, width);
 
-            Assert.All(document.Lines, line => Assert.Equal(width, DisplayWidth.Of(line.PlainText)));
+            var main = DetailLayout.HasSidebar(width) ? DetailLayout.MainWidth(width) : width;
+
+            Assert.All(document.Lines, line => Assert.Equal(main, DisplayWidth.Of(line.PlainText)));
         }
     }
 

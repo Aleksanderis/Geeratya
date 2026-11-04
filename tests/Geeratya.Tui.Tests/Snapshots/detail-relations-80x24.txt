@@ -1,24 +1,24 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Remote links 1 ─────────────────────────────────────────────────────────────╮
-│ Design spec · Confluence                                                     │
-│ https://example.com/spec                                                     │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Attachments 2 ──────────────────────────────────────────────────────────────╮
-│ 日本語のノート.txt · text/plain · 47 B · 2 d ago                             │
-│ screenshot.png · image/png · 3.3 MiB · 5 h ago                               │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Details ────────────────────────────────────────────────────────────────────╮
-│ Status    In Progress ▾                                                      │
-│ Priority  High ▾                                                             │
-│ Assignee  Jane Doe ▾                                                         │
-│ Reporter  Ola Nordmann                                                       │
-│ Labels    auth, bug-bash ▾                                                   │
-│ Parent    GCM-17 Reporting overhaul                                          │
-│ Updated   2 h ago                                                            │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments ───────────────────────────────────────────────────────────────────╮
-│>No comments.                                                             ... │
+│ Status  moves via transition                                                 │
+│  ● In Progress ▾                                                             │
+│                                                                              │
+│ Priority                                                                     │
+│  ▲ High                                                                      │
+│                                                                              │
+│ Assignee                                                                     │
+│  [JD] Jane Doe                                                               │
+│                                                                              │
+│ Reporter                                                                     │
+│  [ON] Ola Nordmann                                                           │
+│                                                                              │
+│ Labels                                                                       │
+│  [auth] [bug-bash]                                                           │
+│                                                                              │
+│ Parent                                                                       │
+│ ▌GCM-17 Reporting overhaul                                               ... │
+│                                                                              │
+│ Updated 2 h ago                                                              │
+│ Attachments 2 · 日本語のノート.txt…                                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12 · Bot     j/k field  ? help  : commands  q quit

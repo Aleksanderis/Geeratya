@@ -51,8 +51,8 @@ public class IssueRelationsBuilderTests
                 "Linked issues 2",
                 "Remote links 1",
                 "Attachments 1",
-                "Details",
                 "Comments",
+                "Details",
             ],
             titles);
     }

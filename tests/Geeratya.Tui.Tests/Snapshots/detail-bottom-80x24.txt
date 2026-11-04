@@ -1,24 +1,24 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-│ … 37 more lines   Enter expand                                              ▼│
-╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Details ────────────────────────────────────────────────────────────────────╮
-│ Status    In Progress ▾                                                      │
-│ Priority  High ▾                                                             │
-│ Assignee  Jane Doe ▾                                                         │
-│ Reporter  Ola Nordmann                                                       │
-│ Labels    auth, bug-bash ▾                                                   │
-│ Parent    GCM-17 Reporting overhaul                                          │
-│ Updated   2 h ago                                                            │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments 3 ─────────────────────────────────────────────────────────────────╮
-│ Jane Doe · 1 d ago                                                           │
-│ Found it: the redirect target is dropped after the refresh.                  │
+│ Status  moves via transition                                                 │
+│  ● In Progress ▾                                                             │
 │                                                                              │
-│ 日本語の作者 · 3 h ago                                                       │
-│ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
+│ Priority                                                                     │
+│  ▲ High                                                                      │
 │                                                                              │
-│ Ola Nordmann · 5 min ago                                                     │
-│>See also café and 😀 in the second paragraph, which is long enough to wra... │
+│ Assignee                                                                     │
+│  [JD] Jane Doe                                                               │
+│                                                                              │
+│ Reporter                                                                     │
+│  [ON] Ola Nordmann                                                           │
+│                                                                              │
+│ Labels                                                                       │
+│  [auth] [bug-bash]                                                           │
+│                                                                              │
+│ Parent                                                                       │
+│ ▌GCM-17 Reporting overhaul                                               ... │
+│                                                                              │
+│ Updated 2 h ago                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12 · Bot     j/k field  ? help  : commands  q quit

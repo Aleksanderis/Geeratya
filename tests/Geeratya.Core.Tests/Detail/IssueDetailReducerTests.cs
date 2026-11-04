@@ -233,8 +233,9 @@ public class IssueDetailReducerTests
 
         var text = Text(Active(state).Detail[0]);
         Assert.Contains("A-1 · Task", text);
-        Assert.Contains("Status    To Do", text);
-        Assert.Contains("Reporter  Rita Reporter", text);
+        Assert.Contains("Status  moves via transition", text);
+        Assert.Contains("● To Do", text);
+        Assert.Contains("[RR] Rita Reporter", text);
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
         Assert.Contains("Comments 2", text);
@@ -289,7 +290,7 @@ public class IssueDetailReducerTests
         Assert.Contains("The description of A-1", Text(failed));
         Assert.Contains("Jira did not answer in time. (Enter to retry)", Text(failed));
 
-        var retry = Press(Press(state, "G").State, "Enter");
+        var retry = Press(OnLine(state, "(Enter to retry)"), "Enter");
         var effect = Assert.Single(retry.Effects.OfType<LoadIssueCommentsEffect>());
         Assert.Equal(0, effect.StartAt);
         Assert.NotEqual(detail.CommentsRequest, effect.RequestId);
@@ -559,7 +560,7 @@ public class IssueDetailReducerTests
         Assert.Contains("Load more comments (Enter)", Text(detail));
         Assert.Equal(3, detail.NextComments);
 
-        var requested = Press(Press(state, "G").State, "Enter");
+        var requested = Press(OnLine(state, "Load more comments"), "Enter");
         var effect = Assert.Single(requested.Effects.OfType<LoadIssueCommentsEffect>());
         var again = Press(requested.State, "Enter");
         var arrived = Deliver(
@@ -874,7 +875,25 @@ public class IssueDetailReducerTests
         var titles = document.PaneTitles.Select(title => string.Concat(title.Select(span => span.Text)));
 
         // The first panel's title is drawn in the top edge of the screen frame, so it is not a document line.
-        return string.Join('\n', titles.Concat(document.Lines.Select(line => line.PlainText)));
+        return string.Join('\n', titles.Concat(document.Lines.Concat(document.Side?.Lines ?? []).Select(line => line.PlainText)));
+    }
+
+    /// <summary>Moves the cursor of the shown issue (by j and k) to the first line that contains <paramref name="text"/>.</summary>
+    private AppState OnLine(AppState state, string text)
+    {
+        var document = Active(state).Detail[^1].Document!;
+        var target = document.Lines.ToList().FindIndex(line => line.PlainText.Contains(text, StringComparison.Ordinal));
+
+        Assert.True(target >= 0, $"no line with {text}");
+
+        for (var steps = 0; steps < document.Lines.Count * 2 && Active(state).Detail[^1].Cursor != document.Snap(target); steps++)
+        {
+            var down = Active(state).Detail[^1].Cursor < document.Snap(target);
+
+            state = Press(state, down ? "j" : "k").State;
+        }
+
+        return state;
     }
 
     private static IssueSummary Row(int number)

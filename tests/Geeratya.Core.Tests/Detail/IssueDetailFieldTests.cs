@@ -25,7 +25,8 @@ public class IssueDetailFieldTests
     public void GivenAWrappedLabelsValue_WhenMovingDown_ThenTheFieldIsOneStopAndTheNextFieldFollows()
     {
         var labels = Enumerable.Range(1, 12).Select(number => $"label-number-{number}").ToArray();
-        var state = Opened(Issue() with { Labels = labels });
+        var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
+        var state = Opened(Issue() with { Labels = labels, Parent = parent });
         var document = Document(state);
         var labelsLine = document.Targets.ToList().FindIndex(IsField(DetailFieldIds.Labels));
         var block = document.BlockAt(labelsLine);
@@ -37,8 +38,8 @@ public class IssueDetailFieldTests
         var next = Press(onLabels, "j").State;
 
         Assert.Equal(block.Start, Top(onLabels).Cursor);
-        Assert.Equal(block.End, Top(next).Cursor);
-        Assert.Equal(DetailFieldIds.Updated, Document(next).Targets[Top(next).Cursor]?.Value);
+        Assert.True(Top(next).Cursor >= block.End);
+        Assert.Equal(DetailFieldIds.Parent, Document(next).Targets[Top(next).Cursor]?.Value);
     }
 
     [Fact]
@@ -90,6 +91,7 @@ public class IssueDetailFieldTests
 
         var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
         Assert.Equal(field, Assert.IsType<EditFormTarget>(effect.Target).OnlyId);
+        Assert.Equal(field == DetailFieldIds.Summary ? null : field, Active(result.State).Form!.Dropdown);
     }
 
     [Fact]
@@ -118,7 +120,8 @@ public class IssueDetailFieldTests
     public void GivenFocusOnATallField_WhenPagingDown_ThenTheCursorLeavesTheField()
     {
         var labels = Enumerable.Range(1, 60).Select(number => $"label-number-{number}").ToArray();
-        var state = OnTarget(Opened(Issue() with { Labels = labels }), DetailFieldIds.Labels);
+        var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
+        var state = OnTarget(Opened(Issue() with { Labels = labels, Parent = parent }), DetailFieldIds.Labels);
         var start = Top(state).Cursor;
 
         var next = Press(state, "Ctrl-d").State;
@@ -204,7 +207,7 @@ public class IssueDetailFieldTests
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
-        var sized = _reducer.Reduce(start, new ViewportChanged(30, 100)).State;
+        var sized = _reducer.Reduce(start, new ViewportChanged(30, 90)).State;
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));
         var tab = Active(opened.State);
