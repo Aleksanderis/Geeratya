@@ -26,4 +26,10 @@ public enum SpanGround
 
     /// <summary>On the row the cursor is on: underlined in every tier (the moving end of a Visual range).</summary>
     Cursor = 16,
+
+    /// <summary>
+    /// Text at the right end of a bar (the time of a comment) that the row menu marker must not cover: the marker
+    /// ends one cell before it. Draws like <see cref="Page"/>.
+    /// </summary>
+    Tail = 32,
 }

@@ -127,7 +127,7 @@ public static class CommentRows
 
         if (right.Length > 0)
         {
-            spans.Add(new StyledSpan(right, TextRole.ValueBlock));
+            spans.Add(new StyledSpan(right, TextRole.ValueBlock, SpanGround.Tail));
         }
 
         return new StyledLine(spans);

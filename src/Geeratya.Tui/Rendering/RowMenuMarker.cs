@@ -147,6 +147,7 @@ public static class RowMenuMarker
         int? start = null;
         var end = 0;
         var inner = 0;
+        var tail = -1;
 
         foreach (var span in line.Spans)
         {
@@ -158,6 +159,11 @@ public static class RowMenuMarker
                 end = column + width;
             }
 
+            if (tail < 0 && span.Ground.HasFlag(SpanGround.Tail))
+            {
+                tail = column;
+            }
+
             column += width;
 
             // Where the content ends: before the closing border of a framed pane.
@@ -166,6 +172,9 @@ public static class RowMenuMarker
 
         // The cursor line of an opened issue marks only its first cell; the row runs on to the border.
         end = noKey && start is not null ? Math.Max(end, inner) : end;
+
+        // The right-aligned text of a bar (the time of a comment) stays visible: the marker ends one cell before it.
+        end = tail > 0 ? Math.Min(end, tail - 1) : end;
 
         if (start is null || !keyNear)
         {

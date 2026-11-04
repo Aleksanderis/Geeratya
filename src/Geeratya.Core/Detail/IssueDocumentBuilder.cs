@@ -36,7 +36,15 @@ public static class IssueDocumentBuilder
     /// The rows the screen shows; the Comments pane takes what the panes above leave and scrolls inside it. Null lays
     /// every comment out.
     /// </param>
-    public static DetailDocument Build(DetailState detail, int width, int? viewportRows = null)
+    /// <param name="commentRows">
+    /// The rows of the Comments pane when the caller has just built them for this <paramref name="detail"/> and
+    /// <paramref name="width"/> (<see cref="DetailZoom.CommentRowsOf"/>), so a key builds them once. Null builds them.
+    /// </param>
+    public static DetailDocument Build(
+        DetailState detail,
+        int width,
+        int? viewportRows = null,
+        IReadOnlyList<CommentRow>? commentRows = null)
     {
         var total = Math.Max(1, width);
         var zoomed = detail.Zoomed is not null;
@@ -62,7 +70,7 @@ public static class IssueDocumentBuilder
 
         AddDescription(sink, detail, columns, inner);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
-        var commentIds = AddComments(sink, detail, columns, inner, viewportRows);
+        var commentIds = AddComments(sink, detail, columns, inner, viewportRows, commentRows);
 
         if (!sidebar)
         {
@@ -227,9 +235,15 @@ public static class IssueDocumentBuilder
         sink.AddPanel(PaneIds.Description, [title], panel, width, [chip], scroll);
     }
 
-    private static List<string?> AddComments(DocumentSink sink, DetailState detail, int width, int inner, int? viewport)
+    private static List<string?> AddComments(
+        DocumentSink sink,
+        DetailState detail,
+        int width,
+        int inner,
+        int? viewport,
+        IReadOnlyList<CommentRow>? known)
     {
-        var rows = CommentRows.Build(detail, inner, DetailZoom.BodyLines(detail));
+        var rows = known ?? CommentRows.Build(detail, inner, DetailZoom.BodyLines(detail));
         var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);
