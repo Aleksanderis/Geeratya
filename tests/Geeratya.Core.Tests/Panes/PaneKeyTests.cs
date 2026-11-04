@@ -160,6 +160,59 @@ public class PaneKeyTests
         Assert.False(moved.Session.Tabs[0].Form!.Navigating);
     }
 
+    [Theory]
+    [InlineData("Ctrl-w j", "description")]
+    [InlineData("Ctrl-w l", "details")]
+    public void GivenANavigatingFormWithPanes_WhenACtrlWChordIsPressed_ThenPaneFocusMoves(string keys, string expected)
+    {
+        var moved = Press(WithForm(WithPanes()), keys);
+
+        Assert.Equal(expected, Panes(moved).Focused);
+        Assert.Equal(string.Empty, moved.PendingKeys);
+        Assert.True(moved.Session.Tabs[0].Form!.Navigating);
+        Assert.Equal(0, moved.Session.Tabs[0].Form!.Focus);
+    }
+
+    [Fact]
+    public void GivenANavigatingFormWithPanes_WhenCtrlWHasBeenPressedAlone_ThenTheChordIsPending()
+    {
+        var pending = Press(WithForm(WithPanes()), "Ctrl-w");
+
+        Assert.Equal("Ctrl-w", pending.PendingKeys);
+    }
+
+    [Theory]
+    [InlineData("Ctrl-w x")]
+    [InlineData("Ctrl-w Esc")]
+    [InlineData("Ctrl-w i")]
+    public void GivenANavigatingFormWithPanes_WhenTheSecondKeyIsNotAPaneKey_ThenTheChordEndsWithoutAnyEffect(string keys)
+    {
+        var moved = Press(WithForm(WithPanes()), keys);
+
+        Assert.Equal(string.Empty, moved.PendingKeys);
+        Assert.Null(Panes(moved).Focused);
+        Assert.True(moved.Session.Tabs[0].Form!.Navigating);
+    }
+
+    [Fact]
+    public void GivenANavigatingFormWithoutPanes_WhenCtrlWIsPressed_ThenNoChordStarts()
+    {
+        var moved = Press(WithForm(Tabbed()), "Ctrl-w");
+
+        Assert.Equal(string.Empty, moved.PendingKeys);
+    }
+
+    [Fact]
+    public void GivenAnEditingFormWithPanes_WhenCtrlWIsPressed_ThenNoChordStartsAndItStaysDeleteWord()
+    {
+        var editing = Press(WithForm(WithPanes()), "i");
+
+        var moved = Press(editing, "Ctrl-w");
+
+        Assert.Equal(string.Empty, moved.PendingKeys);
+        Assert.False(moved.Session.Tabs[0].Form!.Navigating);
+    }
+
     [Fact]
     public void GivenAnEditingFormWithPanes_WhenCtrlJKLArePressed_ThenPaneFocusDoesNotMove()
     {
