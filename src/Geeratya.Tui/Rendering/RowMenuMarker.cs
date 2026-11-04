@@ -27,9 +27,10 @@ public static class RowMenuMarker
     /// <summary>
     /// Replaces the last cells of the selected line of <paramref name="body"/> with the marker and returns its cells
     /// (body rows), or null when no marker is drawn: not in Normal mode, an overlay or special screen covers the body,
-    /// the cursor is not on an issue (a sprint header), or the row is narrower than <see cref="MinRowWidth"/>.
+    /// the cursor is not on an issue (a sprint header), or the row is narrower than <see cref="MinRowWidth"/>. <paramref name="limit"/> is the first column the marker
+    /// may not cover (the right frame of the wide detail overlay), so it never reaches the view around the box.
     /// </summary>
-    public static OverlayRegion? Stamp(List<StyledLine> body, AppState state)
+    public static OverlayRegion? Stamp(List<StyledLine> body, AppState state, int? limit = null)
     {
         if (!Applies(state, out var key))
         {
@@ -43,13 +44,15 @@ public static class RowMenuMarker
                 continue;
             }
 
-            if (run.End - run.Start < MinRowWidth)
+            var end = Math.Min(run.End, limit ?? run.End);
+
+            if (end - run.Start < MinRowWidth)
             {
                 return null;
             }
 
-            var start = run.End - Text.Length;
-            body[row] = Replace(body[row], start, run.End);
+            var start = end - Text.Length;
+            body[row] = Replace(body[row], start, end);
 
             return new OverlayRegion(MouseTarget.RowMenuButton, row, start, Text.Length, 1, 0);
         }

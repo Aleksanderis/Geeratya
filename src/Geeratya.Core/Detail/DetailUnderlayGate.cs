@@ -5,7 +5,7 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// While an issue detail is open, the view underneath is inactive: actions that move or change the board, list or
-/// backlog (columns, layout, filters, sections, rank, row jump, sprint lifecycle) do nothing, so a key never acts
+/// backlog (columns, layout, filters, lanes, rank, row jump, sprint lifecycle) do nothing, so a key never acts
 /// on a view the user sees as inactive. Keys that belong to the detail (panes, rows, issue writes) pass.
 /// </summary>
 internal static class DetailUnderlayGate

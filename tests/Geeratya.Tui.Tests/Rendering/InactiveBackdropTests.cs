@@ -24,4 +24,14 @@ public class InactiveBackdropTests
             spans,
             span => span.Role is TextRole.ChipFocus or TextRole.FrameFocus or TextRole.Selected);
     }
+
+    [Fact]
+    public void GivenQuietSpans_WhenMadeInactive_ThenTheirRolesPassThrough()
+    {
+        var line = new StyledLine([new StyledSpan("a", TextRole.Muted), new StyledSpan("b", TextRole.Body)]);
+
+        var spans = OverlayBox.Inactive([line])[0].Spans;
+
+        Assert.Equal([TextRole.Muted, TextRole.Body], spans.Select(span => span.Role));
+    }
 }

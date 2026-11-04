@@ -200,7 +200,7 @@ public static class OverlayBox
 
     /// <summary>
     /// The view behind the issue detail: muted like <see cref="Backdrop"/> and also inactive, so it carries no focus or
-    /// selection mark (the focused frame and column title are plain muted, a selected row or card is not tinted).
+    /// selection mark (the focused frame is a plain border and the column title muted, a selected row or card is not tinted).
     /// </summary>
     public static List<StyledLine> Inactive(IReadOnlyList<StyledLine> body)
     {
@@ -210,7 +210,8 @@ public static class OverlayBox
         {
             Role = span.Role switch
             {
-                TextRole.FrameFocus or TextRole.ChipFocus => TextRole.Muted,
+                TextRole.FrameFocus => TextRole.Border,
+                TextRole.ChipFocus => TextRole.Muted,
                 TextRole.Selected => TextRole.Body,
                 _ => span.Role,
             },

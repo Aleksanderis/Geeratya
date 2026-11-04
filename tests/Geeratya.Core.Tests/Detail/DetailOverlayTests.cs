@@ -4,6 +4,7 @@ using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
@@ -26,6 +27,8 @@ public class DetailOverlayTests
     [InlineData(100, 24, 2, 4, 96, 19, false)]
     [InlineData(120, 30, 2, 4, 116, 25, false)]
     [InlineData(200, 40, 20, 4, 160, 35, false)]
+    [InlineData(120, 9, 2, 1, 116, 7, false)]
+    [InlineData(120, 12, 2, 3, 116, 8, false)]
     public void GivenATerminal_WhenPlacing_ThenTheOverlayIsCentredCappedAndFillsBelow100(
         int width,
         int bodyHeight,
@@ -152,32 +155,62 @@ public class DetailOverlayTests
     }
 
     [Theory]
-    [InlineData("h")]
     [InlineData("l")]
-    [InlineData("0")]
     [InlineData("$")]
-    public void GivenAnOpenIssueOverABoard_WhenAColumnKeyArrives_ThenTheViewUnderneathIsUnchanged(string key)
+    public void GivenABoardWithTwoColumns_WhenAColumnKeyArrivesWithoutAnIssue_ThenTheCursorMoves(string key)
     {
-        var board = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State, ViewLayout.Columns);
-        var before = Active(board);
+        var board = Board(false);
 
         var after = Active(_reducer.Reduce(board, new KeyPressed(key)).State);
 
-        Assert.Equal(before.Selected, after.Selected);
-        Assert.Equal(before.SelectedKey, after.SelectedKey);
-        Assert.Equal(before.Detail.Count, after.Detail.Count);
-        Assert.Equal(before.Definition.Layout, after.Definition.Layout);
+        Assert.NotEqual(Active(board).SelectedKey, after.SelectedKey);
     }
 
-    [Fact]
-    public void GivenAnOpenIssueOverABoard_WhenTheColumnActionRuns_ThenTheReducerRefusesIt()
+    [Theory]
+    [InlineData("l")]
+    [InlineData("$")]
+    [InlineData("h")]
+    [InlineData("0")]
+    public void GivenAnOpenIssueOverABoard_WhenAColumnKeyArrives_ThenTheViewUnderneathIsUnchanged(string key)
     {
-        var board = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State, ViewLayout.Columns);
+        var board = Board(true);
 
-        var result = _reducer.Reduce(board, new KeyPressed("l"));
+        var result = _reducer.Reduce(board, new KeyPressed(key));
 
         Assert.Equal(board, result.State);
         Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenAnOpenIssueOverABoardInInsertMode_WhenAKeyArrives_ThenTheGateDoesNotSwallowIt()
+    {
+        var board = Board(true) with { Mode = InputMode.Insert };
+
+        var result = _reducer.Reduce(board, new KeyPressed("l"));
+
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+    }
+
+    private AppState Board(bool withIssue)
+    {
+        var start = _reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State;
+        var definition = new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "Board");
+        var opened = _reducer.Reduce(start, new ViewOpenRequested(definition)).State;
+        var tab = Active(opened);
+        var configuration = new BoardConfiguration(
+            4,
+            "Board",
+            BoardType.Kanban,
+            [new BoardColumn("To Do", ["1"]), new BoardColumn("Done", ["2"])],
+            "10001",
+            null,
+            null,
+            null);
+        var configured = _reducer.Reduce(opened, new BoardConfigurationLoaded(tab.Id, tab.RequestId, configuration));
+        var page = new IssuePage([Row(1), Row(2, new IssueStatus("2", "Done", "done"))], null, 2);
+        var loaded = _reducer.Reduce(configured.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
+
+        return withIssue ? _reducer.Reduce(loaded, new KeyPressed("Enter")).State : loaded;
     }
 
     private AppState TwoOpen()
@@ -214,13 +247,13 @@ public class DetailOverlayTests
         return new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
     }
 
-    private static IssueSummary Row(int number)
+    private static IssueSummary Row(int number, IssueStatus? status = null)
     {
         return new IssueSummary(
             $"{number}",
             $"A-{number}",
             $"Issue {number}",
-            _status,
+            status ?? _status,
             _type,
             null,
             null,

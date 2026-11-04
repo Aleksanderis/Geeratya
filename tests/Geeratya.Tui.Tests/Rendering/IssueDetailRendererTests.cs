@@ -535,6 +535,18 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenAnOpenedIssueInTheWideOverlay_WhenBuilding_ThenTheMarkerStaysInsideTheOverlayBox()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(120, 36), 120, 36, _keymap)!;
+        var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
+        var box = DetailOverlayGeometry.Place(120, FrameBuilder.BodyHeight(36));
+        var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
+
+        Assert.True(marker.Left + marker.Width < box.Left + box.Width);
+        Assert.EndsWith("...│ │", line.TrimEnd());
+    }
+
+    [Fact]
     public void GivenTheTitlePane_WhenBuilding_ThenTheStatusKeepsItsCategoryRoleAtTheRightOfTheSummaryRow()
     {
         var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
