@@ -93,6 +93,19 @@ start_session() {
   wait_frame ""
 }
 
+# The start screen shows the "Open a view" picker, which takes typed text as its filter, so `:jql` sent at once
+# only fills the picker (#759). Waits for the picker, closes it with Escape, and leaves the empty tab area where
+# commands run (a loaded view needs `:jql`, `:backlog`, ...).
+dismiss_picker() {
+  wait_match 'Open a view' > /dev/null
+  local start
+  start=$(now_ms)
+  tmux -L "$socket" send-keys -t m Escape
+  while frame | grep -q 'Open a view'; do # the picker redraws as the boards arrive, so wait for it to be gone
+    if [ $(($(now_ms) - start)) -gt "$timeout_ms" ]; then echo "the start picker did not close" >&2; return 1; fi
+  done
+}
+
 case ${SCENARIO:-} in '' | list | views | detail | scrum) ;; *) echo "unknown SCENARIO: ${SCENARIO} (use list, views, detail or scrum)" >&2; exit 2 ;; esac
 base_runs=$runs
 if [ -n "${SCENARIO:-}" ]; then base_runs=0; fi
@@ -152,10 +165,11 @@ if [ "${SCENARIO:-}" = detail ]; then
     tmux -L "$socket" kill-server 2> /dev/null || true
     socket=$socket_base-d$run
     start_session "$binary" > /dev/null
+    dismiss_picker
     tmux -L "$socket" send-keys -t m ":jql $jql" Enter
     wait_match 'Generated issue 1  ' > /dev/null
     tmux -L "$socket" send-keys -t m Enter
-    detail+=("$(wait_match '› GEN-1 *$')")
+    detail+=("$(wait_match 'This is generated issue 1')")
   done
   read -r b1 b2 <<< "$(printf '%s\n' "${detail[@]}" | summarise)"
   echo "scenario detail, JQL: $jql"
@@ -178,20 +192,26 @@ if [ "${SCENARIO:-}" = views ]; then
     tmux -L "$socket" kill-server 2> /dev/null || true
     socket=$socket_base-v$run
     start_session "$binary" > /dev/null
+    dismiss_picker
     tmux -L "$socket" send-keys -t m ":jql $jql" Enter
     first+=("$(wait_match 'Generated issue 1  ')")
     sleep 0.5
     tmux -L "$socket" send-keys -t m Enter
-    detail+=("$(wait_match '› GEN-1 *$')")
+    detail+=("$(wait_match 'This is generated issue 1')")
     sleep 2 # the cache write is debounced; leave time for it before the first session is killed
     tmux -L "$socket" kill-server 2> /dev/null || true
     socket=$socket_base-w$run
+    # The first session saved its open tabs in the state directory and the second would restore them (no start picker,
+    # and `:jql` would add a tab); a fresh state directory with the same cache measures the cache hit of a new view.
+    export XDG_STATE_HOME=$work/state2-$run
+    mkdir -p "$XDG_STATE_HOME"
     start2+=("$(start_session "$binary")")
+    dismiss_picker
     tmux -L "$socket" send-keys -t m ":jql $jql" Enter
     second+=("$(wait_match 'Generated issue 1  ')")
     for ((tab = 2; tab <= 10; tab++)); do
       tmux -L "$socket" send-keys -t m ":jql $jql" Enter
-      wait_match "\\[$tab " > /dev/null
+      wait_match "  $tab JQL " > /dev/null
     done
     sleep 1
     rss+=("$(pane_rss_mb)")
@@ -243,6 +263,7 @@ if [ "${SCENARIO:-}" = scrum ]; then
       tmux -L "$socket" kill-server 2> /dev/null || true
       socket=$socket_base-s$run$pass
       cold_ms=$(start_session "$binary")
+      dismiss_picker
       tmux -L "$socket" send-keys -t m ":backlog GEN" Enter
       open_ms=$(wait_match "$backlog_ready")
       tmux -L "$socket" send-keys -t m Space s v
@@ -306,6 +327,7 @@ if [ "${SCENARIO:-}" = list ]; then
     export XDG_CACHE_HOME=$work/cache-l$run XDG_STATE_HOME=$work/state-l$run
     mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
     start_session "$binary" > /dev/null
+    dismiss_picker
     tmux -L "$socket" send-keys -t m ":jql $jql" Enter
     open+=("$(wait_match 'Generated issue 1  ')")
     for ((press = 1; press <= keys; press++)); do
@@ -316,14 +338,14 @@ if [ "${SCENARIO:-}" = list ]; then
     # Page in with G (the next page loads when the selection reaches the end); the header changes with each page.
     for ((page = 1; page <= rows / 100 + 5; page++)); do
       header=$(frame | sed -n 3p)
-      case $header in *"· $rows issues"*) break ;; esac
+      case $header in *" $rows issues "*) break ;; esac
       tmux -L "$socket" send-keys -t m G
       page_start=$(now_ms)
       while [ "$(frame | sed -n 3p)" = "$header" ] && [ $(($(now_ms) - page_start)) -lt "$timeout_ms" ]; do
         tmux -L "$socket" send-keys -t m G
       done
     done
-    wait_match "· $rows issues" > /dev/null
+    wait_match " $rows issues " > /dev/null
     last=$(frame)
     for ((settle = 0; settle < 20; settle++)); do # queued G presses may still redraw; wait for a stable frame
       sleep 0.1
