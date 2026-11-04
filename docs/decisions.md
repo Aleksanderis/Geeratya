@@ -176,6 +176,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **Jira layer:** The field `autoCompleteUrl` is not mapped and `SuggestionClient.SearchByAutoCompleteUrlAsync` is removed (#627). Why: no form used them; the pickers for people, labels, issues, components and versions use their own endpoints, and custom pickers (`autoCompleteUrl` of non-standard fields) are Unsupported/read-only with a browser link, which is outside the feature list. Re-add with a concrete picker when one is needed, restricted to the connection's own scheme and host under `/rest/api/` as the removed code was.
 
+## 2026-11-04 (start target, #577)
+
+**UI:** The command line takes one start target (issue key, `--board`, `--backlog`, `--jql`, `--filter`) and `--profile`, added to the README features (owner's yes by recommended default). Why: scripts, aliases and link handlers need to open an issue or view from a shell (Gitunia opens `gitunia <path>`). The target is held in `AppState.PendingStart` and opened by `StartupReducer` after the remembered tabs are read, so it never races the restore; the opened tab is saved with the next change of the tabs (not at once, so a launch that only looks leaves the remembered tabs alone). Details: `ux-workflows.md`, workflow 0.
+
 ## 2026-11-04 (status bar content, #646)
 
 **UI:** The status bar in Normal mode shows the source and count, the selected issue (key and status) and the connection only when it is not healthy (Checking, Offline, rate limited, check failure); `Connected as ...` and the `col n/N  card n/N` counters are gone from it (owner request, overrides the cursor position of #569). Why: both were noise; the key hints already carry the contextual help. The profile screens keep the connected line.

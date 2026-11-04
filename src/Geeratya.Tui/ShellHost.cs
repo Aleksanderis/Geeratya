@@ -139,11 +139,17 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _shutdown.Dispose();
     }
 
-    public int Run()
+    public int Run(StartOptions? start = null)
     {
         using var application = Application.Create();
 
         _state = LoadProfiles();
+
+        if (start is not null)
+        {
+            _state = StartupReducer.WithOptions(_state, start);
+        }
+
         _state = StatusMessages.KeymapStartup(_state, _keymapLoad);
         _application = application;
         DetectBackground();
