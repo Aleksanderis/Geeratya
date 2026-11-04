@@ -7,7 +7,8 @@ Host -> example.atlassian.net, account ids -> fake-account-N, emails ->
 userN@example.com, display names of users (and ADF mention texts) -> Test User N,
 avatar URLs dropped,
 cloud ids zeroed, time zones set to UTC, UUIDs inside Atlassian resource ids (ari:...: the cloud id, the
-activation id) -> stable fakes (the cloud id keeps the all-zero value). Used by record-fixture.sh.
+activation id) -> stable fakes (a cloud id that the same document names with a cloudId key keeps the all-zero
+value; one that only appears inside an id gets the next fake). Used by record-fixture.sh.
 """
 import json
 import re

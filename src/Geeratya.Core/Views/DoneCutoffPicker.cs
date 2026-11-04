@@ -25,7 +25,9 @@ public static class DoneCutoffPicker
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary><c>view.done-cutoff</c>: the palette with the picker rows; refused on a tab that is not a Kanban board.</summary>
+    /// <summary>
+    /// <c>view.done-cutoff</c>: the palette with the picker rows; refused on a tab that is not a Kanban board.
+    /// </summary>
     public static ReduceResult Open(AppState state)
     {
         if (KanbanTab(state) is null)
@@ -33,7 +35,13 @@ public static class DoneCutoffPicker
             return Refused(state, NoBoardText);
         }
 
-        var opened = state with { Mode = InputMode.Command, PaletteText = Prefix, PaletteBack = 0, PaletteSelected = 0 };
+        var opened = state with
+        {
+            Mode = InputMode.Command,
+            PaletteText = Prefix,
+            PaletteBack = 0,
+            PaletteSelected = 0,
+        };
 
         return new ReduceResult(opened with { Message = null }, _noEffects);
     }
@@ -92,11 +100,8 @@ public static class DoneCutoffPicker
 
         var effects = new List<Effect>();
         var reloaded = ViewReducer.Reopen(state, tab with { DoneCutoffChoice = choice }, effects);
-        var text = choice is { } days
-            ? $"Done cutoff for this tab: {DoneCutoff.Label(days)} (not saved in Jira)."
-            : "Done cutoff follows Jira again.";
 
-        return new ReduceResult(reloaded with { Message = text }, effects);
+        return new ReduceResult(reloaded with { Message = ChoiceText(choice) }, effects);
     }
 
     /// <summary>What is applied and where it came from, for example <c>2 weeks, from Jira</c>.</summary>
@@ -110,6 +115,16 @@ public static class DoneCutoffPicker
         };
 
         return $"{DoneCutoff.Label(tab.DoneCutoffDays)}, {source}";
+    }
+
+    private static string ChoiceText(int? choice)
+    {
+        if (choice is { } days)
+        {
+            return $"Done cutoff for this tab: {DoneCutoff.Label(days)} (not saved in Jira).";
+        }
+
+        return "Done cutoff follows Jira again.";
     }
 
     private static PaletteRow Row(string word, string text)

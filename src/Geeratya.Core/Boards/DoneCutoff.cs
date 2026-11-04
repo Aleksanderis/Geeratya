@@ -32,7 +32,7 @@ public static class DoneCutoff
         return $"{columnName} ({days}d)";
     }
 
-    /// <summary>The words of a choice: <c>1 week</c>, <c>2 weeks</c>, ... and <c>all</c> for none; days otherwise.</summary>
+    /// <summary>The words of a choice: <c>1 week</c>, <c>2 weeks</c> ... <c>all</c> for none; days otherwise.</summary>
     public static string Label(int days)
     {
         if (days == AllDays)

@@ -43,14 +43,18 @@ public sealed class BoardViewClient(JiraTransport transport)
             return JiraResults.Failure<string>(result.Error);
         }
 
-        return string.IsNullOrWhiteSpace(result.Value.CloudId)
-            ? Invalid<string>("The site did not name its cloud id.")
-            : JiraResults.Success(result.Value.CloudId);
+        if (string.IsNullOrWhiteSpace(result.Value.CloudId))
+        {
+            return Invalid<string>("The site did not name its cloud id.");
+        }
+
+        return JiraResults.Success(result.Value.CloudId);
     }
 
     /// <summary>
     /// The id of the board's view node: the default navigation item of the board with <c>navigation-item</c> read as
-    /// <c>view</c>. A Scrum board's default item is its backlog, which carries no cutoff (see <see cref="GetCutoffAsync"/>).
+    /// <c>view</c>. A Scrum board's default item is its backlog, which carries no cutoff
+    /// (see <see cref="GetCutoffAsync"/>).
     /// </summary>
     public async Task<JiraResult<string>> GetViewIdAsync(
         string cloudId,

@@ -133,9 +133,12 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
     // A choice from a file is one the picker offers; anything else follows Jira.
     private static int? ValidChoice(int? days)
     {
-        return days is { } choice && (choice == DoneCutoff.AllDays || DoneCutoff.ChoiceDays.Contains(choice))
-            ? choice
-            : null;
+        if (days is { } choice && (choice == DoneCutoff.AllDays || DoneCutoff.ChoiceDays.Contains(choice)))
+        {
+            return choice;
+        }
+
+        return null;
     }
 
     private static bool TryParse<TEnum>(string? text, out TEnum value)

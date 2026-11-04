@@ -23,7 +23,7 @@ public sealed class DoneCutoffReader(
     /// <summary>How long a failure is remembered.</summary>
     public static readonly TimeSpan FailureLifetime = TimeSpan.FromMinutes(1);
 
-    /// <summary>The longest a lookup may take before the caller goes on without it (unless a reader sets its own).</summary>
+    /// <summary>The longest a lookup may take before the caller goes on without it (a reader may set its own).</summary>
     public static readonly TimeSpan LookupTimeout = TimeSpan.FromSeconds(3);
 
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
@@ -71,13 +71,26 @@ public sealed class DoneCutoffReader(
         }
         finally
         {
-            _lookup.Release();
+            ReleaseLookup();
         }
     }
 
     public void Dispose()
     {
         _lookup.Dispose();
+    }
+
+    // A profile switch disposes the reader while a read may still be in flight; its late result is dropped anyway.
+    private void ReleaseLookup()
+    {
+        try
+        {
+            _lookup.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Disposed with the connection: nothing waits on it any more.
+        }
     }
 
     private async Task<JiraResult<BoardViewCutoff>> ReadChainAsync(

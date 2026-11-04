@@ -54,9 +54,9 @@ public static class FakeGateway
     {
         return variables switch
         {
-            _ when variables.Contains(":board/4\"", StringComparison.Ordinal) => Fixture("navigation-gcm4", readFixture),
-            _ when variables.Contains(":board/3\"", StringComparison.Ordinal) => Fixture("navigation-gtm3", readFixture),
-            _ when variables.Contains(":board/6\"", StringComparison.Ordinal) => Fixture("navigation-gcs6", readFixture),
+            _ when Names(variables, ":board/4\"") => Fixture("navigation-gcm4", readFixture),
+            _ when Names(variables, ":board/3\"") => Fixture("navigation-gtm3", readFixture),
+            _ when Names(variables, ":board/6\"") => Fixture("navigation-gcs6", readFixture),
             _ => new FakeReply(200, Text(NoBoard)),
         };
     }
@@ -65,10 +65,15 @@ public static class FakeGateway
     {
         return variables switch
         {
-            _ when variables.Contains("/board/4/board\"", StringComparison.Ordinal) => Fixture("cutoff-gcm4", readFixture),
-            _ when variables.Contains("/board/3/board\"", StringComparison.Ordinal) => Fixture("cutoff-gtm3", readFixture),
+            _ when Names(variables, "/board/4/board\"") => Fixture("cutoff-gcm4", readFixture),
+            _ when Names(variables, "/board/3/board\"") => Fixture("cutoff-gtm3", readFixture),
             _ => new FakeReply(200, Text(NoCutoffField)),
         };
+    }
+
+    private static bool Names(string variables, string part)
+    {
+        return variables.Contains(part, StringComparison.Ordinal);
     }
 
     private static FakeReply Fixture(string name, Func<string, byte[]> readFixture)
@@ -83,7 +88,9 @@ public static class FakeGateway
 
         try
         {
-            if (JsonNode.Parse(body) is not JsonObject document || document["query"]?.GetValue<string>() is not { } text)
+            var document = JsonNode.Parse(body) as JsonObject;
+
+            if (document?["query"]?.GetValue<string>() is not { } text)
             {
                 return false;
             }
