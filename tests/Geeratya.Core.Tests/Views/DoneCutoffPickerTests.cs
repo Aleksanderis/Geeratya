@@ -7,6 +7,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Paging;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Search.Models;
 
@@ -265,6 +266,25 @@ public class DoneCutoffPickerTests
 
         Assert.Equal(9, load.DoneCutoffDays);
         Assert.Null(load.DoneCutoffChoice);
+    }
+
+    [Fact]
+    public void GivenTheFirstPageAppliedACutoff_WhenTheNextPageIsRequested_ThenOnlyThatLoadCarriesThePinnedDays()
+    {
+        var state = Start() with { Settings = new AppSettings(DoneCutoffDays: 9) };
+        var opened = _reducer.Reduce(state, new ViewOpenRequested(BoardDefinition()));
+        var tab = Tab(opened.State);
+        var applied = _reducer.Reduce(
+            opened.State,
+            new DoneCutoffApplied(tab.Id, tab.RequestId, 14, DoneCutoffSource.Jira)).State;
+        var page = new IssuePage([], new PageCursor("2"), null);
+        var loaded = _reducer.Reduce(applied, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
+
+        var next = _reducer.Reduce(loaded, new NextPageRequested(tab.Id));
+
+        Assert.Null(LoadOf(opened).PinnedCutoff);
+        Assert.Equal(new PinnedCutoff(14, DoneCutoffSource.Jira), LoadOf(next).PinnedCutoff);
+        Assert.Equal(9, LoadOf(next).DoneCutoffDays);
     }
 
     private static ViewDefinition BoardDefinition(string id = "4")

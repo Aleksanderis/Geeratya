@@ -7,8 +7,8 @@ namespace Geeratya.App;
 public sealed partial class ViewLoadHandler
 {
     /// <summary>
-    /// The Done cutoff a Kanban board load applies (later pages repeat the first page's value, #699): the tab's quick choice, else Jira's own value (read through the
-    /// gateway, cached for the connection), else the <c>board.done-cutoff</c> setting. Jira's answer is optional: a
+    /// The Done cutoff a Kanban board load applies. Later pages repeat the first page's value (#699). The first page
+    /// takes the tab's quick choice, else Jira's own value (read through the gateway, cached for the connection), else the <c>board.done-cutoff</c> setting. Jira's answer is optional: a
     /// failed, slow, malformed or refused read falls back to the setting without a message and never fails the load.
     /// </summary>
     private static async Task<AppliedCutoff> ResolveCutoffAsync(
