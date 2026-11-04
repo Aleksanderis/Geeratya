@@ -105,7 +105,7 @@ public sealed partial class ColumnsBodyRenderer
 
     /// <summary>
     /// Draws the flash jump on a card row: the match strong and, on the key row (or the one line of a compact card),
-    /// the letter over the cell before the type name. A card without a label is left alone.
+    /// the letter over the cell before the key. A card without a label is left alone.
     /// </summary>
     private static void DrawFlash(
         List<StyledSpan> spans,
@@ -208,8 +208,9 @@ public sealed partial class ColumnsBodyRenderer
 
     private static bool IsQuietable(TextRole role)
     {
-        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.Warning or TextRole.TypeEpic or TextRole.TypeStory
-            or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask or TextRole.StatusToDo
+        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.Warning
+            or TextRole.TypeEpic or TextRole.TypeStory or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask
+            or TextRole.StatusToDo
             or TextRole.StatusInProgress or TextRole.StatusDone;
     }
 

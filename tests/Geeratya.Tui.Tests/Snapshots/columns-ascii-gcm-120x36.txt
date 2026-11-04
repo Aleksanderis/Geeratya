@@ -2,7 +2,7 @@
                                                                                                                         
 +- To Do 5 -----------------------------+- In Progress 4 -----------------------+- Done (14d) 3 -----------------------+
 | +-----------------------------------+ | +-----------------------------------+ | +- ^ GCM-10 Sign up with email ----+ |
-| | Seed: Onboarding flow          ...| | | Seed: Reporting                   | | | Build the form                   | |
+| | Seed: Onboarding flow             | | | Seed: Reporting                   | | | Build the form                   | |
 | | [geeratya-seed] +1                | | | [geeratya-seed] +1                | | | [geeratya-seed] +1               | |
 | | GCM-8  Epic                = [--] | | | GCM-9  Epic                = [--] | | | GCM-18  Sub-task          = [--] | |
 | +-----------------------------------+ | +-----------------------------------+ | +----------------------------------+ |

@@ -189,6 +189,34 @@ public class ColumnsBodyRendererTests
         Assert.All(body.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
     }
 
+    [Theory]
+    [InlineData(40)]
+    [InlineData(24)]
+    [InlineData(20)]
+    [InlineData(12)]
+    public void GivenALabelledPrioritisedCard_WhenRenderingWithAsciiGlyphs_ThenEveryLineKeepsItsWidthAndIsAscii(
+        int width)
+    {
+        var issue = Issue("1", "A-1", "Summary", "Jane Doe") with
+        {
+            Labels = ["alpha", "a-very-long-label-name", "gamma"],
+            Priority = "High",
+        };
+        var child = Issue("1", "A-2") with { Parent = new IssueParent("A-1", "P"), Labels = ["x"] };
+        var tab = Tab(issue, child);
+
+        var frame = FrameBuilder.Build(Active(tab), width, 30 + FrameBuilder.HeaderRows, _keymap, null, GlyphSet.Ascii);
+
+        Assert.All(frame, line => Assert.Equal(width, TextWidth.Of(line)));
+        Assert.All(frame, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
+
+        if (width >= 40)
+        {
+            Assert.Contains(frame, line => line.Contains("^ [JD]", StringComparison.Ordinal));
+            Assert.Contains(frame, line => line.Contains("[alpha] +2", StringComparison.Ordinal));
+        }
+    }
+
     [Fact]
     public void GivenAnEmptyTypeName_WhenRendering_ThenTheMarkerShowsInsteadOfABlank()
     {

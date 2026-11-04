@@ -3,6 +3,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -18,13 +19,11 @@ public static class CardRows
     private const int MinCutChip = 4;
     private const int GlyphCells = 2;
     private const string UnassignedText = "--";
+    private const int ChipBrackets = 2;
+    private const int MinStatusChip = 5;
+    private const string Gap = "  ";
     private const string Blank = " ";
-    private const string High = "▲";
-    private const string Medium = "=";
-    private const string Low = "▼";
 
-    private static readonly string[] _highWords = ["high", "critical", "blocker", "major"];
-    private static readonly string[] _lowWords = ["low", "minor", "trivial"];
 
     /// <summary>
     /// Labels as filled chips, one row: <c>[label]</c> each in the stable colour of its text. Chips that do not fit
@@ -51,7 +50,7 @@ public static class CardRows
                     break;
                 }
 
-                chip = $"[{CardText.Shorten(labels[index], room - 2)}]";
+                chip = $"[{CardText.Shorten(labels[index], room - ChipBrackets)}]";
             }
 
             if (gap > 0)
@@ -81,23 +80,21 @@ public static class CardRows
     {
         var counter = Counter(issue, open);
         var counterCells = counter.Length == 0 ? 0 : 1 + TextWidth.Of(counter);
-        var right = Right(issue, width - TextWidth.Of(issue.Key) - 2 - MinTypeName - 1, counterCells);
+        var right = Right(issue, width - TextWidth.Of(issue.Key) - Gap.Length - MinTypeName - 1, counterCells);
         var rightWidth = right.Sum(static span => TextWidth.Of(span.Text));
         var left = width - (rightWidth > 0 ? rightWidth + 1 : 0);
         var key = TextWidth.Fit(issue.Key, left);
         var used = TextWidth.Of(key);
         var spans = new List<StyledSpan> { new(key, TextRole.Key) };
-        var room = left - used - 2;
+        var room = left - used - Gap.Length;
 
         if (room >= 1)
         {
-            var name = room >= MinTypeName && !string.IsNullOrWhiteSpace(issue.IssueType.Name)
-                ? CardText.Shorten(issue.IssueType.Name, room)
-                : IssueTypeMarker.For(issue.IssueType).ToString();
+            var name = TypeWord(issue, room);
 
-            spans.Add(new StyledSpan("  ", text));
+            spans.Add(new StyledSpan(Gap, text));
             spans.Add(new StyledSpan(name, IssueTypeRole.For(issue.IssueType)));
-            used += 2 + TextWidth.Of(name);
+            used += Gap.Length + TextWidth.Of(name);
         }
 
         if (counter.Length > 0 && left - used - 1 >= TextWidth.Of(counter))
@@ -115,6 +112,16 @@ public static class CardRows
         }
 
         return spans;
+    }
+
+    private static string TypeWord(IssueSummary issue, int room)
+    {
+        if (room < MinTypeName || string.IsNullOrWhiteSpace(issue.IssueType.Name))
+        {
+            return IssueTypeMarker.For(issue.IssueType).ToString();
+        }
+
+        return CardText.Shorten(issue.IssueType.Name, room);
     }
 
     private static int AddRest(List<StyledSpan> spans, int hidden, bool gap, int room)
@@ -208,7 +215,9 @@ public static class CardRows
         if (TextWidth.Of(chip) > room)
         {
             // A long status is cut so the chip stays before the type name gives way (#645).
-            chip = room >= 5 ? $"[{CardText.Shorten(issue.Status.Name, room - 2)}]" : string.Empty;
+            var cut = CardText.Shorten(issue.Status.Name, room - ChipBrackets);
+
+            chip = room >= MinStatusChip ? $"[{cut}]" : string.Empty;
         }
 
         if (chip.Length == 0)
@@ -226,25 +235,23 @@ public static class CardRows
 
     private static string PriorityGlyph(string? priority)
     {
-        if (string.IsNullOrWhiteSpace(priority))
-        {
-            return string.Empty;
-        }
+        var glyphs = Glyphs.For(GlyphSet.Unicode);
 
-        if (_highWords.Any(word => priority.Contains(word, StringComparison.OrdinalIgnoreCase)))
+        return PriorityTierOf.Name(priority) switch
         {
-            return High;
-        }
-
-        return _lowWords.Any(word => priority.Contains(word, StringComparison.OrdinalIgnoreCase)) ? Low : Medium;
+            PriorityTier.High => glyphs.PriorityHigh,
+            PriorityTier.Medium => glyphs.PriorityMedium,
+            PriorityTier.Low => glyphs.PriorityLow,
+            _ => string.Empty,
+        };
     }
 
     private static TextRole PriorityRole(string? priority)
     {
-        return PriorityGlyph(priority) switch
+        return PriorityTierOf.Name(priority) switch
         {
-            High => TextRole.Warning,
-            Low => TextRole.Muted,
+            PriorityTier.High => TextRole.Warning,
+            PriorityTier.Low => TextRole.Muted,
             _ => TextRole.Body,
         };
     }

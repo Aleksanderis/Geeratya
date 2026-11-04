@@ -163,23 +163,23 @@ A Sprint view (Scrum, #176) uses the same columns; its first line is the sprint 
 One column per board column, in the order of the board configuration. Never assume the first is the backlog: on the team-managed dev board `Backlog` is third (jira-layer.md "Boards"). On a company-managed Kanban board whose first column is `Backlog` that column is hidden, as Jira does (those issues are in the `:backlog` view; `BoardColumns.HidesBacklogColumn`). Moving a card to the previous column stops at the first shown column. A team-managed board shows its `Backlog` column like any other.
 
 ```text
- 1 Board GTM board x   +                                          <space>g jump
-
-╭─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done 3 ─────────╮
+ 1 Board GTM board x   +                             : commands   <space>g jump 
+                                                                                
+╭─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done (14d) 3 ───╮
 │ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-10 … ─┐ │
-│ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
-│ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
-│ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
+│ ┃ Seed: Onboar… ┃ │ │ Seed: Report… │ │ │ Backlog: dar… │ │ │ Export repo… │ │
+│ ┃ [geeraty…] +1 ┃ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ ┃ GTM-9  Epic   ┃ │ │ GTM-10  Epic  │ │ │ GTM-21  Task  │ │ │ GTM-13  Sto… │ │
 │ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
-│ │   Sto… GTM-12 │ │ │   Task GTM-15 │ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │   Welcome     │ │ │   Pick a      │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
-│ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
-│ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ │   Welcome sc… │ │ │   Pick a cha… │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │   [geera…] +1 │ │ │   [geera…] +1 │ │ │ Backlog: key… │ │ │ Write the s… │ │
+│ │   GTM-12  S   │ │ │   GTM-15  T   │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ │               │ │ │               │ │ │ GTM-22  Story │ │ │ GTM-16  Task │ │
 │ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│ │   Task GTM-14 │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
-│ │   Review      │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
-│ │   onboarding… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
-│ │               │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
+│ │   Review onb… │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
+│ │   [geera…] +1 │ │ │ Sign up with… │ │ │ Backlog: too… │ │ │ Build the f… │ │
+│ │   GTM-14  T   │ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ │               │ │ │ GTM-11  Story │ │ │ GTM-23  Bug   │ │ │ GTM-19  Sub… │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │
@@ -377,7 +377,7 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 ╰──────────────────────────────────────╯
 ```
 
-- Rows of a card: **summary** (wraps to at most two lines, then `…`), **labels** as filled chips (one row, wrapping to a second row at most, then `+N`; a label wider than the card is cut with `…`; the fill is a stable colour per label text from the theme's accent colours, text in the chip text colour, like Gitunia's branch labels), and the **bottom row**: key first (as today), two spaces, the issue type as a **full word** in its type colour (`Epic`, `Story`, `Bug`, `Task`, `Sub-task`), then the sub-task counter when there is room (`1/3`); at the right the priority glyph and the assignee as the initials chip. An unassigned card shows the `--` chip in the same place and width as initials, never a different glyph, so the right edge stays aligned. Cards without labels have no label row.
+- Rows of a card: **summary** (wraps to at most two lines, then `…`), **labels** as filled chips (one row, wrapping to a second row at most, then `+N`; a label wider than the card is cut with `…`; the fill is a stable colour per label text from the theme's accent colours, text in the chip text colour, like Gitunia's branch labels), and the **bottom row**: key first (as today), two spaces, the issue type as a **full word** in its type colour (`Epic`, `Story`, `Bug`, `Task`, `Sub-task`), then the sub-task counter when there is room (`▸1/3`, the fold mark and done over total); at the right the priority glyph and the assignee as the initials chip. An unassigned card shows the `--` chip in the same place and width as initials, never a different glyph, so the right edge stays aligned. Cards without labels have no label row.
 - The selected card, the group-under-parent rule and the focus border of the column are unchanged (`ux-look.md`, section 4).
 
 ### Create form

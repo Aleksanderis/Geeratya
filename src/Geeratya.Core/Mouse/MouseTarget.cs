@@ -33,7 +33,7 @@ public enum MouseTarget
     Lists,
 
     /// <summary>
-    /// The sub-task row of a card in the columns layout (<c>▸ Sub-tasks 1/3</c>): a click expands or collapses its
+    /// The sub-task row of a card in the columns layout (<c>▸1/3</c>): a click expands or collapses its
     /// list. It lies inside <see cref="Lists"/>: the hit tester does not report it: the reducer finds it from the card
     /// geometry after the click placed the cursor and runs this table row's action, so the row is the contract.
     /// </summary>

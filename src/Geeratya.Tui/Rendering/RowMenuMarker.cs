@@ -2,14 +2,15 @@ using System.Text;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line, the summary) and
-/// the cursor line of an opened issue (<c>docs/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so it shows in every
-/// colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
+/// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line,
+/// the summary) and the cursor line of an opened issue (<c>docs/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so
+/// it shows in every colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
 /// <c>&lt;space&gt;a</c> for terminals whose multiplexer swallows the right-click. The cells it covers are reported
 /// back so the hit test uses what was drawn.
 /// </summary>
@@ -84,28 +85,52 @@ public static class RowMenuMarker
             return false;
         }
 
-        key = tab.Rows[tab.Selected].Key;
+        // The columns layout keeps its cursor card in SelectedKey; the list index does not follow it there.
+        var columns = tab.Definition.Layout == ViewLayout.Columns;
+
+        key = columns && tab.SelectedKey is { } card ? card : tab.Rows[tab.Selected].Key;
 
         return true;
     }
 
-    // The key is on the row or on one of the two rows under it: a board card shows its key on the last of its three
-    // text rows and the marker sits on the first, so it does not cover the priority glyph and the assignee chip.
+    // The key is on the row, or on one of the two rows under it that also hold selected cells: a board card shows its
+    // key on the last of its three text rows and the marker sits on the first, so it does not cover the priority
+    // glyph and the assignee chip. The key matches as a whole word, so A-1 is not found in A-10.
     private static bool NearKey(List<StyledLine> body, int row, string? key)
     {
-        if (key is null)
+        if (key is null || HasKey(body[row], key))
         {
             return true;
         }
 
         var last = Math.Min(body.Count - 1, row + KeyLookahead);
 
-        for (var index = row; index <= last; index++)
+        for (var index = row + 1; index <= last; index++)
         {
-            if (body[index].PlainText.Contains(key, StringComparison.Ordinal))
+            if (HasKey(body[index], key))
             {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private static bool HasKey(StyledLine line, string key)
+    {
+        var text = line.PlainText;
+        var at = text.IndexOf(key, StringComparison.Ordinal);
+
+        while (at >= 0)
+        {
+            var end = at + key.Length;
+
+            if (end == text.Length || !char.IsLetterOrDigit(text[end]))
+            {
+                return true;
+            }
+
+            at = text.IndexOf(key, end, StringComparison.Ordinal);
         }
 
         return false;

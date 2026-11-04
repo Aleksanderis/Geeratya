@@ -341,6 +341,20 @@ public class ColumnsSubtaskTests
     }
 
     [Fact]
+    public async Task GivenAnUnselectedCard_WhenClickingItsBottomRow_ThenItOnlySelectsAndDoesNotExpand()
+    {
+        var opened = await OpenAsync("gcm", true, "GCM-10");
+        var cell = SubtaskRowCell(opened);
+        var state = Press(opened, "j");
+
+        var result = _reducer.Reduce(state, new PointerPlaced(cell.Column, cell.Row, Width)).State;
+
+        Assert.NotEqual("GCM-10", Active(state).SelectedKey);
+        Assert.Empty(Active(result).ExpandedSubtasks);
+        Assert.Equal("GCM-10", Active(result).SelectedKey);
+    }
+
+    [Fact]
     public async Task GivenACard_WhenClickingOtherRowsOfIt_ThenNothingExpands()
     {
         var state = await OpenAsync("gcm", true, "GCM-10");

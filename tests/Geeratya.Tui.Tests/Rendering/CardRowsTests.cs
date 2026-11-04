@@ -1,4 +1,3 @@
-using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Tui.Rendering;
@@ -65,7 +64,8 @@ public class CardRowsTests
     [Fact]
     public void GivenNoAssignee_WhenBuildingTheBottomRow_ThenTheDashChipSitsInTheSamePlaceAndWidthAsInitials()
     {
-        var assigned = CardRows.Bottom(Issue() with { Assignee = new IssueAssignee("a", "Jane Doe") }, false, 32, TextRole.Body);
+        var jane = Issue() with { Assignee = new IssueAssignee("a", "Jane Doe") };
+        var assigned = CardRows.Bottom(jane, false, 32, TextRole.Body);
         var unassigned = CardRows.Bottom(Issue(), false, 32, TextRole.Body);
 
         Assert.Equal(Text(assigned).Length, Text(unassigned).Length);
@@ -74,9 +74,19 @@ public class CardRowsTests
     }
 
     [Fact]
+    public void GivenAnUnknownPriorityName_WhenBuildingTheBottomRow_ThenNoGlyphIsGuessed()
+    {
+        var row = CardRows.Bottom(Issue() with { Priority = "Urgent" }, false, 32, TextRole.Body);
+
+        Assert.DoesNotContain(row, span => span.Text is "▲" or "=" or "▼");
+    }
+
+    [Fact]
     public void GivenOneInitial_WhenBuildingTheBottomRow_ThenTheChipKeepsItsWidth()
     {
-        var row = CardRows.Bottom(Issue() with { Assignee = new IssueAssignee("a", "Madonna") }, false, 32, TextRole.Body);
+        var single = Issue() with { Assignee = new IssueAssignee("a", "Madonna") };
+
+        var row = CardRows.Bottom(single, false, 32, TextRole.Body);
 
         Assert.EndsWith("[M ]", Text(row));
     }
@@ -85,6 +95,7 @@ public class CardRowsTests
     [InlineData("Highest", "▲")]
     [InlineData("Medium", "=")]
     [InlineData("Lowest", "▼")]
+    [InlineData("Major", "=")]
     public void GivenAPriorityName_WhenBuildingTheBottomRow_ThenTheTierGlyphShows(string priority, string glyph)
     {
         var row = CardRows.Bottom(Issue() with { Priority = priority }, false, 32, TextRole.Body);
@@ -124,18 +135,6 @@ public class CardRowsTests
         };
 
         Assert.Equal(width, Width(CardRows.Bottom(issue, false, width, TextRole.Body)));
-    }
-
-    [Fact]
-    public void GivenALabelledCard_WhenAskingThePlan_ThenOneSummaryLineAndALabelRow()
-    {
-        var plain = Issue();
-        var labelled = Issue() with { Labels = ["x"] };
-
-        Assert.Equal(2, BoardCardPlan.SummaryLines(plain));
-        Assert.False(BoardCardPlan.HasLabelRow(plain));
-        Assert.Equal(1, BoardCardPlan.SummaryLines(labelled));
-        Assert.True(BoardCardPlan.HasLabelRow(labelled));
     }
 
     private static string Text(List<StyledSpan> row)

@@ -103,12 +103,13 @@ public static class FlashBoardLabeler
 
         var room = box - Borders - (nested ? ChildIndent : 0);
         var key = DisplayWidth.Fit(issue.Key, room - KeyLineReserve);
-        var lines = CardText.TwoLines(issue.Summary, room - Padding);
 
         if (BoardCardPlan.SummaryLines(issue) == 1)
         {
             return [key, CardText.Shorten(issue.Summary.Trim(), room - Padding)];
         }
+
+        var lines = CardText.TwoLines(issue.Summary, room - Padding);
 
         return [key, lines.First, lines.Second];
     }
