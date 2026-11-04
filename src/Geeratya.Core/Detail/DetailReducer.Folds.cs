@@ -28,41 +28,6 @@ internal static partial class DetailReducer
         return ViewReducer.Replace(state, ReplaceTop(tab, laidOut));
     }
 
-    /// <summary>
-    /// Folds section <paramref name="section"/> to a preview, or opens it again; the cursor goes to the start of the
-    /// section. The first section (the fields) is never folded: null.
-    /// </summary>
-    public static AppState? ToggleFolded(AppState state, TabState tab, int section)
-    {
-        var top = tab.Detail[^1];
-
-        if (section <= 0 || top.Document is not { } document || section >= document.SectionIds.Count)
-        {
-            return null;
-        }
-
-        var changed = top with { Folded = Toggled(top.Folded, document.SectionIds[section]) };
-        var laidOut = Layout(changed, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
-        var moved = ViewReducer.Replace(state, ReplaceTop(tab, laidOut));
-        var next = ViewReducer.Find(moved.Session.Tabs, tab.Id)!;
-
-        return JumpTo(moved, next, laidOut.Document!.Sections[section]);
-    }
-
-    /// <summary>The section whose top edge is document line <paramref name="line"/>, -1 for any other line.</summary>
-    private static int EdgeSection(DetailDocument document, int line)
-    {
-        for (var section = 1; section < document.Sections.Count; section++)
-        {
-            if (document.Sections[section] - 1 == line)
-            {
-                return section;
-            }
-        }
-
-        return -1;
-    }
-
     private static List<string> Toggled(IReadOnlyList<string> keys, string key)
     {
         var next = keys.ToList();

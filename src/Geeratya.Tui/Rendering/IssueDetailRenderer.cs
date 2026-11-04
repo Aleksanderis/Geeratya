@@ -1,5 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Panes;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -8,8 +9,8 @@ using Geeratya.Platform.Terminal;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The body of the active tab while an issue is open on its stack (<c>docs/ux-screens.md</c>, "Issue detail"): one
-/// frame whose top edge carries the title of the pane in view, around a window of the laid-out document (the breadcrumb
+/// The body of the active tab while an issue is open on its stack (<c>docs/ux-screens.md</c>, "Pane layout for the
+/// issue detail"): a window of the laid-out document, a stack of panes that each carry their own frame (the breadcrumb
 /// and the ruler are in the status bar, <see cref="DetailStatus"/>). The reducer lays the document out for the reported
 /// width, so drawing only slices it; a document for another width (a size the host has not reported yet) is
 /// rebuilt here.
@@ -36,69 +37,106 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var lines = new List<StyledLine>(height);
         var focused = document.Sections.Count == 0 ? -1 : document.SectionAt(top.Cursor);
         var block = document.BlockAt(top.Cursor);
+        var ascii = context.Glyphs == GlyphSet.Ascii;
 
         for (var index = first; index < first + shown; index++)
         {
-            var drawn = Focus(document, index, focused);
-            var ascii = context.Glyphs == GlyphSet.Ascii;
+            var drawn = Pane(document, index, focused);
             var line = RowLine(drawn, index, top.Cursor, block, ascii);
 
             lines.Add(ascii ? AsciiBorders(line) : line);
         }
-
-        if (!FrameGrid.CanFrame(width, height) || document.Sections.Count == 0)
-        {
-            return lines;
-        }
-
-        IReadOnlyList<StyledSpan>? right = null;
-        var chips = new List<StyledSpan>();
-        var inView = document.SectionAt(first);
-
-        if (document.PaneTitles.Count > 0)
-        {
-            chips.AddRange(document.PaneTitles[inView]);
-            right = inView < document.PaneRightTitles.Count ? document.PaneRightTitles[inView] : null;
-        }
-
-        // A document shorter than the pane is not padded: the closing edge sits directly under the last line.
-        lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, right, inView == focused));
-        lines.Add(PaneFrame.OuterEdge(width, height, false, null, null, focused == document.Sections.Count - 1));
 
         return lines;
     }
 
     /// <summary>
     /// The line as drawn for the pane focus (<c>docs/ux-look.md</c>, section 4): the border cells of the focused pane's
-    /// box (the shared edges above and below it included) in the focus role, and the chip of a shared edge filled when it
-    /// titles the focused pane, dim otherwise.
+    /// box in the focus role, its title chip filled, every other chip dim; the scrollbar of a cut pane in the right
+    /// padding column.
     /// </summary>
-    private static StyledLine Focus(DetailDocument document, int index, int focused)
+    private static StyledLine Pane(DetailDocument document, int index, int focused)
     {
         var line = document.Lines[index];
-        var section = document.SectionAt(index);
-        var isEdge = document.Sections.Contains(index + 1);
-        var accent = focused == section || (isEdge && focused == section + 1);
-        var spans = line.Spans.ToList();
+        var pane = document.SectionAt(index);
+        var spans = Scrollbar(document, pane, index, [.. line.Spans]);
 
-        if (isEdge && spans.Count > 2 && spans[0].Role == TextRole.Border)
+        if (index == document.PaneStarts[pane] && spans.Count > 1 && spans[0].Role == TextRole.Border)
         {
-            var chip = ChipStyle.Dim(spans.GetRange(1, spans.Count - 2));
-
-            if (focused == section + 1)
-            {
-                chip = ChipStyle.Focused(chip);
-            }
-
-            spans = [spans[0], .. chip, spans[^1]];
+            spans = Chips(spans, pane == focused);
         }
 
-        if (accent)
+        if (pane == focused)
         {
             spans = [.. spans.Select(static span => span.Role == TextRole.Border ? FocusBorder(span) : span)];
         }
 
         return new StyledLine(spans);
+    }
+
+    /// <summary>The chips of a top edge (the runs between border spans) restyled: the first one for the focus state.</summary>
+    private static List<StyledSpan> Chips(List<StyledSpan> spans, bool focused)
+    {
+        var result = new List<StyledSpan>(spans.Count);
+        var run = new List<StyledSpan>();
+        var chip = 0;
+
+        foreach (var span in spans.Append(new StyledSpan(string.Empty, TextRole.Border)))
+        {
+            if (span.Role != TextRole.Border)
+            {
+                run.Add(span);
+
+                continue;
+            }
+
+            if (run.Count > 0)
+            {
+                result.AddRange(chip == 0 && focused ? ChipStyle.Focused(run) : ChipStyle.Dim(run));
+                run.Clear();
+                chip++;
+            }
+
+            if (span.Text.Length > 0)
+            {
+                result.Add(span);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>The right padding cell of a content row replaced by the scrollbar cell of its row, when the pane scrolls.</summary>
+    private static List<StyledSpan> Scrollbar(DetailDocument document, int pane, int index, List<StyledSpan> spans)
+    {
+        if (document.PaneScrolls[pane] is not { } scroll || spans.Count < 2)
+        {
+            return spans;
+        }
+
+        var row = index - document.Sections[pane];
+        var cells = ScrollBar.Cells(scroll, scroll.Viewport);
+
+        if (row < 0 || row >= cells.Count || spans[^1] is not { Role: TextRole.Border, Text: [' ', _] } edge)
+        {
+            return spans;
+        }
+
+        spans[^1] = new StyledSpan(GlyphOf(cells[row]), TextRole.Border);
+        spans.Add(edge with { Text = edge.Text[1..] });
+
+        return spans;
+    }
+
+    private static string GlyphOf(ScrollCell cell)
+    {
+        return cell switch
+        {
+            ScrollCell.Up => "▲",
+            ScrollCell.Thumb => "█",
+            ScrollCell.Track => "░",
+            _ => "▼",
+        };
     }
 
     private static StyledSpan FocusBorder(StyledSpan span)
@@ -194,7 +232,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
     private static bool IsBorder(char character)
     {
-        return character is '╭' or '╮' or '╰' or '╯' or '─' or '│';
+        return character is '╭' or '╮' or '╰' or '╯' or '─' or '│' or '▲' or '█' or '░' or '▼';
     }
 
     private static char AsciiOf(char character)
@@ -203,6 +241,10 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         {
             '─' => '-',
             '│' => '|',
+            '▲' => '^',
+            '█' => '#',
+            '░' => '.',
+            '▼' => 'v',
             _ => '+',
         };
     }

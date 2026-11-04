@@ -68,13 +68,13 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenCursorMoves_WhenBuilding_ThenOnlyTheFocusedFieldRowCarriesTheMarkerAndEdgesAreSkipped()
     {
-        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+        var state = OnField(Loaded(80, 24), DetailFieldIds.Status);
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
         var marked = lines.Where(line => line.StartsWith("│>")).ToList();
         Assert.Single(marked);
-        Assert.StartsWith("│>Status", lines[FrameBuilder.HeaderRows + 3]);
+        Assert.StartsWith("│>Status", marked[0]);
         Assert.DoesNotContain(lines, line => line.StartsWith('>'));
         Assert.Contains(lines, line => line.StartsWith("│ Fix login"));
         Assert.Contains(lines, line => line.StartsWith("╭─ GCM-12"));
@@ -93,7 +93,7 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenFocusOnAField_WhenRendering_ThenTheWholeRowIsSelectedAndOtherFieldsAreNot()
     {
-        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+        var state = OnField(Loaded(80, 24), DetailFieldIds.Status);
         var context = new BodyContext(_keymap);
 
         var lines = new IssueDetailRenderer().Render(state, context, 80, 24);
@@ -106,30 +106,22 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenTheDescriptionFolded_WhenBuildingTheFrame_ThenItShowsAPreviewAndMatchesTheSnapshot()
-    {
-        var state = Keys(Loaded(80, 24), "]", "]", "z", "a");
-
-        AssertSnapshot(state, 80, 24, "detail-folded-80x24.txt");
-    }
-
-    [Fact]
     public void GivenTheDescriptionExpanded_WhenBuildingTheFrame_ThenItShowsAllLinesAndMatchesTheSnapshot()
     {
-        var state = Keys(Loaded(80, 24), "]", "]", "j", "j", "j", "j", "j", "j", "j", "j", "Enter");
+        var cut = OnLineWith(Keys(Loaded(80, 24), "Ctrl-j"), "more lines");
+        var state = Keys(cut, "Enter");
 
         AssertSnapshot(state, 80, 24, "detail-expanded-80x24.txt");
     }
 
     [Fact]
-    public void GivenTheDescriptionFolded_WhenBuildingATinyFrame_ThenNothingOverflows()
+    public void GivenTheDescriptionCut_WhenBuildingATinyFrame_ThenNothingOverflows()
     {
-        var state = Keys(Loaded(40, 10), "]", "]", "z", "a");
+        var state = Keys(Loaded(40, 10), "Ctrl-j");
 
         var lines = FrameBuilder.Build(state, 40, 10, _keymap);
 
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
-        Assert.Contains(lines, line => line.Contains("folded"));
     }
 
     [Fact]
@@ -154,7 +146,7 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenFocusOnAnEditableFieldInTheAsciiSet_WhenBuilding_ThenTheMarkerIsAnAsciiVAndNoUnicodeTriangleRemains()
     {
-        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+        var state = OnField(Loaded(80, 24), DetailFieldIds.Status);
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap, null, GlyphSet.Ascii);
 
@@ -188,10 +180,12 @@ public class IssueDetailRendererTests
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(11).ToList();
         Assert.StartsWith("+- GCM-12 - Task ", body[0]);
         Assert.StartsWith("|>Fix login", body[1]);
-        Assert.StartsWith("| ", body[2]);
-        Assert.StartsWith("+- Description ", body[10]);
+        Assert.StartsWith("+--", body[2]);
+        Assert.StartsWith("+- Description ", body[3]);
+        Assert.Contains("1-4 of", body[3]);
         Assert.EndsWith("-+", body[0]);
-        Assert.EndsWith("-+", body[10].TrimEnd());
+        Assert.EndsWith("-+", body[2].TrimEnd());
+        Assert.Contains(body, line => line.Contains("^ |") || line.Contains("# |") || line.Contains(". |"));
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
         Assert.Contains(lines, line => line.Contains("In Progress v"));
         Assert.DoesNotContain(lines, line => line.Contains('▾'));
@@ -223,7 +217,6 @@ public class IssueDetailRendererTests
         {
             middle = _reducer.Reduce(middle, new KeyPressed("Ctrl-d")).State;
         }
-
 
         var top = FrameBuilder.Build(state, 160, 12, _keymap);
         var end = FrameBuilder.Build(bottom, 160, 12, _keymap);
@@ -271,17 +264,17 @@ public class IssueDetailRendererTests
     [Theory]
     [InlineData(100, 60)]
     [InlineData(160, 90)]
-    public void GivenTallTerminalAndShortIssue_WhenBuilding_ThenTheClosingEdgeSitsDirectlyUnderTheLastLine(
+    public void GivenTallTerminalAndShortIssue_WhenBuilding_ThenTheLastPaneClosesDirectlyUnderItsLastLine(
         int width, int height)
     {
         var body = Overlay(FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap), width, height);
-        var closing = body.FindIndex(static line => line.StartsWith('╰'));
+        var closing = body.FindLastIndex(static line => line.StartsWith('╰'));
 
         Assert.True(closing > 0);
         Assert.True(closing < 25, $"closing edge at row {closing}");
         Assert.EndsWith("╯", body[closing]);
         Assert.Contains("No comments", body[closing - 1]);
-        Assert.All(body.Take(closing).Skip(1), line => Assert.StartsWith("│", line.Replace("├", "│")));
+        Assert.All(body.Take(closing + 1), line => Assert.Contains(line[0], "│╭╰"));
     }
 
     [Fact]
@@ -291,38 +284,24 @@ public class IssueDetailRendererTests
 
         var body = Overlay(FrameBuilder.Build(state, 100, 60, _keymap), 100, 60);
 
-        Assert.Single(body, static line => line.StartsWith('╰'));
-        Assert.True(body.FindIndex(static line => line.StartsWith('╰')) < 25);
+        Assert.True(body.FindLastIndex(static line => line.StartsWith('╰')) < 25);
     }
 
     [Fact]
-    public void GivenTallTerminalAndLongIssue_WhenBuilding_ThenTheClosingEdgeIsAtThePaneBottom()
+    public void GivenALongIssue_WhenScrolledToTheEnd_ThenTheLastPaneClosesAtTheOverlayBottom()
     {
-        var body = Overlay(FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap), 100, 30);
+        var state = _reducer.Reduce(Loaded(100, 30), new KeyPressed("G")).State;
 
-        Assert.StartsWith("╰", body[^1]);
-    }
+        var body = Overlay(FrameBuilder.Build(state, 100, 30, _keymap), 100, 30);
 
-    [Fact]
-    public void GivenScrolledOpenIssue_WhenBuilding_ThenTheTopEdgeNamesThePaneInViewAndTheFrameStaysClosed()
-    {
-        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("G")).State;
-
-        var body = Overlay(FrameBuilder.Build(state, 160, 12, _keymap), 160, 12);
-
-        Assert.StartsWith("╭", body[0]);
-        Assert.DoesNotContain("GCM-12", body[0]);
-        Assert.Matches(@"^╭─ (Description|Comments)", body[0]);
         Assert.StartsWith("╰", body[^1]);
         Assert.EndsWith("╯", body[^1]);
     }
 
     [Fact]
-    public void GivenASectionJump_WhenBuilding_ThenTheTopEdgeNamesTheSectionAndNoSecondEdgeFollowsIt()
+    public void GivenAPaneJump_WhenBuilding_ThenTheWindowStartsAtTheTopEdgeOfThatPane()
     {
-        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("]")).State;
-
-        state = _reducer.Reduce(state, new KeyPressed("]")).State;
+        var state = _reducer.Reduce(Loaded(160, 12), new KeyPressed("Ctrl-j")).State;
 
         var body = Overlay(FrameBuilder.Build(state, 160, 12, _keymap), 160, 12);
 
@@ -536,38 +515,30 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenTheHeaderPane_WhenBuilding_ThenTheStatusChipKeepsItsCategoryRoleAtTheRightOfTheTopEdge()
+    public void GivenTheTitlePane_WhenBuilding_ThenTheStatusKeepsItsCategoryRoleAtTheRightOfTheSummaryRow()
     {
-        var top = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!.Body[0];
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("j")).State;
+        var row = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.Body[1];
 
-        var status = Assert.Single(top.Spans, span => span.Text.Contains("In Progress"));
+        var status = Assert.Single(row.Spans, span => span.Text.Contains("In Progress"));
         Assert.Equal(TextRole.StatusInProgress, status.Role);
-        Assert.EndsWith("In Progress ─╮", top.PlainText);
+        Assert.EndsWith("In Progress │", row.PlainText);
+        Assert.StartsWith("│ Fix login", row.PlainText);
     }
 
     [Fact]
-    public void GivenScrolledToAnotherPane_WhenBuilding_ThenTheTopEdgeHasNoStatusChip()
-    {
-        var state = _reducer.Reduce(Loaded(80, 14), new KeyPressed("G")).State;
-
-        var top = FrameBuilder.BuildStyled(state, 80, 14, _keymap)!.Body[0];
-
-        Assert.DoesNotContain("In Progress", top.PlainText);
-    }
-
-    [Fact]
-    public void GivenTheCursorInTheFirstPane_WhenBuilding_ThenItsBoxIsFocusedAndTheNextEdgeChipIsDim()
+    public void GivenTheCursorInTheFirstPane_WhenBuilding_ThenItsBoxIsFocusedAndTheNextPaneIsQuiet()
     {
         var body = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!.Body;
 
         var top = body[0].Spans;
-        var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ Description"));
+        var edge = Assert.Single(body, line => line.PlainText.StartsWith("╭─ Description"));
         var side = body.First(line => line.PlainText.StartsWith('│'));
 
         Assert.Contains(top, span => span.Role == TextRole.ChipFocus);
         Assert.Contains(top, span => span.Role == TextRole.FrameFocus);
         Assert.Equal(TextRole.FrameFocus, side.Spans[0].Role);
-        Assert.Equal(TextRole.FrameFocus, edge.Spans[0].Role);
+        Assert.Equal(TextRole.Border, edge.Spans[0].Role);
         Assert.DoesNotContain(edge.Spans, span => span.Role == TextRole.ChipFocus);
         Assert.Contains(edge.Spans, span => span.Role == TextRole.Muted && span.Text.Contains("Description"));
     }
@@ -575,21 +546,17 @@ public class IssueDetailRendererTests
     [Fact]
     public void GivenTheCursorMovedToTheNextPane_WhenBuilding_ThenTheFocusFollowsIntoThatPaneAndItsTitleChip()
     {
-        var state = _reducer.Reduce(Loaded(80, 14), new KeyPressed("]")).State;
-
-        state = _reducer.Reduce(state, new KeyPressed("]")).State;
+        var state = _reducer.Reduce(Loaded(80, 14), new KeyPressed("Ctrl-j")).State;
 
         var body = FrameBuilder.BuildStyled(state, 80, 14, _keymap)!.Body;
 
         Assert.Contains(body[0].Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Description"));
         Assert.Equal(TextRole.FrameFocus, body[0].Spans[0].Role);
-        Assert.DoesNotContain(
-            body,
-            line => line.Spans.Any(span => span.Role == TextRole.Border && span.Text.Contains('│')));
+        Assert.Equal(TextRole.FrameFocus, body[1].Spans[0].Role);
     }
 
     [Fact]
-    public void GivenTheCursorInLowerPanes_WhenBuilding_ThenAtMostOnePaneHasAFilledChipAndTheTopEdgeAgreesWithIt()
+    public void GivenTheCursorInLowerPanes_WhenBuilding_ThenAtMostOnePaneHasAFilledChipAndItsFrameIsFocused()
     {
         var state = Loaded(80, 12);
 
@@ -599,11 +566,10 @@ public class IssueDetailRendererTests
         }
 
         var body = FrameBuilder.BuildStyled(state, 80, 12, _keymap)!.Body;
+        var filled = body.Where(line => line.Spans.Any(span => span.Role == TextRole.ChipFocus)).ToList();
 
-        Assert.True(body.Count(line => line.Spans.Any(span => span.Role == TextRole.ChipFocus)) <= 1);
-        Assert.Equal(
-            body[0].Spans.Any(span => span.Role == TextRole.ChipFocus),
-            body[0].Spans[0].Role == TextRole.FrameFocus);
+        Assert.True(filled.Count <= 1);
+        Assert.All(filled, line => Assert.Equal(TextRole.FrameFocus, line.Spans[0].Role));
     }
 
     private static DetailState Active(AppState state)
@@ -623,6 +589,33 @@ public class IssueDetailRendererTests
         state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now)).State;
 
         return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now)).State;
+    }
+
+    private AppState OnField(AppState state, string field)
+    {
+        return OnLine(state, current => Document(current).Targets[Active(current).Cursor]?.Value == field);
+    }
+
+    private AppState OnLineWith(AppState state, string text)
+    {
+        return OnLine(state, current => Document(current).Lines[Active(current).Cursor].PlainText.Contains(text));
+    }
+
+    private AppState OnLine(AppState state, Func<AppState, bool> found)
+    {
+        for (var step = 0; step < 200 && !found(state); step++)
+        {
+            state = _reducer.Reduce(state, new KeyPressed("j")).State;
+        }
+
+        Assert.True(found(state));
+
+        return state;
+    }
+
+    private static DetailDocument Document(AppState state)
+    {
+        return Active(state).Document!;
     }
 
     private AppState Keys(AppState state, params string[] keys)

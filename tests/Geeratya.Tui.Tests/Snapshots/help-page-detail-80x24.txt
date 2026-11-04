@@ -1,24 +1,24 @@
  1 JQL Sample x   +                                  : commands   <space>g jump 
                                                                                 
-╭─ A-1 · Task ───────────────────────────────────────────────────────── To Do ─╮
+╭─ A-1 · Task ─────────────────────────────────────────────────────────────────╮
 │>╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│ │ > Issue detail │   j          Move down  (Down)                          │ │
-│ │   Global       │   k          Move up  (Up)                              │ │
+╰─│ > Issue detail │   j          Move down  (Down)                          │─╯
+╭─│   Global       │   k          Move up  (Up)                              │─╮
 │ │   All actions  │   gg         Go to the top  (Home)                      │ │
-│ │   Commands     │   G          Go to the bottom  (End)                    │ │
-│ │                │   Ctrl-d     Page down  (PageDown)                      │ │
-├─│                │   Ctrl-u     Page up  (PageUp)                          │─┤
-│ │                │   <space>a   Open the actions menu of the selected      │ │
-├─│                │              issue                                      │─┤
+╰─│   Commands     │   G          Go to the bottom  (End)                    │─╯
+╭─│                │   Ctrl-d     Page down  (PageDown)                      │─╮
+│ │                │   Ctrl-u     Page up  (PageUp)                          │ │
+╰─│                │   <space>a   Open the actions menu of the selected      │─╯
+╭─│                │              issue                                      │─╮
 │ │                │   Enter      Open the selected item                     │ │
-├─│                │   ]]         Next section of the issue or the Scrum     │─┤
-│ │                │              backlog                                    │ │
-╰─│                │   [[         Previous section of the issue or the       │─╯
-  │                │              Scrum backlog                              │  
-  │                │   za         Expand or collapse sub-tasks of a card,    │  
-  │                │              or fold a backlog or issue section         │  
-  │                │   <space>z   Zoom the focused pane, or leave the zoom   │  
-  │                │   <space>o   Open the issue in the browser             ▼│  
+│ │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)           │ │
+│ │                │   Ctrl-k     Focus the pane above  (Ctrl-w k)           │ │
+│ │                │   <space>z   Zoom the focused pane, or leave the zoom   │ │
+╰─│                │   <space>o   Open the issue in the browser              │─╯
+╭─│                │   <space>p   Open the parent issue                      │─╮
+│ │                │   <space>ie  Edit fields of the issue (summary,         │ │
+╰─│                │              labels, priority, description)             │─╯
+  │                │   <space>ia  Assign the issue: search people, or       ▼│  
   ╰──────────────────────────────────────────────────────────────────────────╯  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close

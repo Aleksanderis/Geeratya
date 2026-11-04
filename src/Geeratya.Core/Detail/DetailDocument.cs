@@ -1,3 +1,4 @@
+using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Detail;
@@ -6,9 +7,9 @@ namespace Geeratya.Core.Detail;
 /// <param name="Width">The columns the lines were laid out for.</param>
 /// <param name="Lines">The styled lines, each at most <paramref name="Width"/> columns wide.</param>
 /// <param name="Targets">One entry per line: what Enter on that line opens, null for a plain line.</param>
-/// <param name="Sections">The line index of the first content line of each section (panel), ascending.</param>
+/// <param name="Sections">The line index of the first content line of each pane, ascending.</param>
 /// <param name="Stops">
-/// The lines the cursor can rest on, ascending: every line except the shared panel edges.
+/// The lines the cursor can rest on, ascending: every line except the pane edges.
 /// </param>
 public sealed record DetailDocument(
     int Width,
@@ -20,9 +21,13 @@ public sealed record DetailDocument(
     /// <summary>The title of each section, parallel to <see cref="Sections"/>: what the top edge of the frame shows.</summary>
     public IReadOnlyList<IReadOnlyList<StyledSpan>> PaneTitles { get; init; } = [];
 
-    /// <summary>
-    /// The fold id of each section, parallel to <see cref="Sections"/>; the first (the fields) is never folded.
-    /// </summary>
+    /// <summary>The line of the top edge of each pane, parallel to <see cref="Sections"/>.</summary>
+    public IReadOnlyList<int> PaneStarts { get; init; } = [];
+
+    /// <summary>The inner scroll of each pane that shows a scrollbar, parallel to <see cref="Sections"/>; null for a pane that fits.</summary>
+    public IReadOnlyList<PaneScroll?> PaneScrolls { get; init; } = [];
+
+    /// <summary>The pane id of each section (<see cref="PaneIds"/>), parallel to <see cref="Sections"/>.</summary>
     public IReadOnlyList<string> SectionIds { get; init; } = [];
 
     /// <summary>The right-hand chip text of each section, parallel to <see cref="PaneTitles"/>; empty for none (only the header carries one: its status).</summary>
@@ -37,16 +42,14 @@ public sealed record DetailDocument(
         return Blocks.FirstOrDefault(block => line >= block.Start && line < block.End);
     }
 
-    /// <summary>The index of the section that holds <paramref name="line"/>; a shared edge line still belongs to the pane above it.</summary>
+    /// <summary>The index of the pane that holds <paramref name="line"/>, edges included.</summary>
     public int SectionAt(int line)
     {
         var index = 0;
 
-        for (var section = 0; section < Sections.Count; section++)
+        for (var section = 0; section < PaneStarts.Count; section++)
         {
-            var edge = section == 0 ? 0 : Sections[section] - 1;
-
-            if (edge < line)
+            if (PaneStarts[section] <= line)
             {
                 index = section;
             }

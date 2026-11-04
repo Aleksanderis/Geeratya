@@ -1,6 +1,5 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -12,7 +11,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
 
-/// <summary>Long text starts cut short and sections fold to a preview; the state is per issue (#678).</summary>
+/// <summary>Long text starts cut short and expands in place; the state is per issue (#678). Panes do not fold (#702).</summary>
 [Trait("Os", "Independent")]
 public class IssueDetailSectionTests
 {
@@ -33,13 +32,13 @@ public class IssueDetailSectionTests
 
         Assert.Contains("line 1", text);
         Assert.DoesNotContain("line 20", text);
-        Assert.Contains(text.Split('\n'), line => line.Contains("more lines (Enter)"));
+        Assert.Contains(text.Split('\n'), line => line.Contains("more lines   Enter expand"));
     }
 
     [Fact]
     public void GivenAShortDescription_WhenOpening_ThenNothingIsCutAndNoMoreLineShows()
     {
-        var state = Opened(LongText(3), []);
+        var state = Opened(LongText(2), []);
 
         Assert.DoesNotContain("more line", Text(state));
         Assert.DoesNotContain("Show less", Text(state));
@@ -48,15 +47,15 @@ public class IssueDetailSectionTests
     [Fact]
     public void GivenTheMoreLine_WhenPressingEnterTwice_ThenTheDescriptionExpandsAndCutsShortAgain()
     {
-        var state = OnLine(Opened(LongText(20), []), "more lines (Enter)");
+        var state = OnLine(Opened(LongText(20), []), "more lines   Enter expand");
 
         var expanded = Press(state, "Enter").State;
 
         Assert.Contains("line 20", Text(expanded));
-        Assert.Contains("Show less (Enter)", Text(expanded));
+        Assert.Contains("Show less   Enter collapse", Text(expanded));
         Assert.Equal(["description"], Top(expanded).Expanded);
 
-        var again = Press(OnLine(expanded, "Show less (Enter)"), "Enter").State;
+        var again = Press(OnLine(expanded, "Show less   Enter collapse"), "Enter").State;
 
         Assert.DoesNotContain("line 20", Text(again));
         Assert.Empty(Top(again).Expanded);
@@ -65,46 +64,18 @@ public class IssueDetailSectionTests
     [Fact]
     public void GivenShowLess_WhenPressingEnter_ThenTheCursorLandsOnTheMoreLineNotInALaterPane()
     {
-        var expanded = Press(OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines (Enter)"), "Enter").State;
+        var expanded = Press(OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines   Enter expand"), "Enter").State;
 
-        var collapsed = Press(OnLine(expanded, "Show less (Enter)"), "Enter").State;
+        var collapsed = Press(OnLine(expanded, "Show less   Enter collapse"), "Enter").State;
 
-        Assert.Contains("more lines (Enter)", Document(collapsed).Lines[Top(collapsed).Cursor].PlainText);
+        Assert.Contains("more lines   Enter expand", Document(collapsed).Lines[Top(collapsed).Cursor].PlainText);
         Assert.True(Top(collapsed).Cursor < Document(collapsed).Sections[2]);
-    }
-
-    [Fact]
-    public void GivenAFoldedCommentsPane_WhenTheCursorIsOnItsFirstLine_ThenTheCommentKeysStillFindTheComment()
-    {
-        var state = OnLine(Opened(null, [Comment("7", 3), Comment("8", 3)]), "Eve Example ·");
-
-        var folded = Press(state, "z", "a").State;
-        var cursor = Document(folded).Targets[Top(folded).Cursor];
-
-        Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "7"), cursor);
-    }
-
-    [Fact]
-    public void GivenARightClickOnAPaneTitle_WhenResolving_ThenTheSectionDoesNotFold()
-    {
-        var state = Opened(LongText(20), []);
-        var edge = Document(state).Sections[1] - 1;
-        var row = 2 + DetailLayout.HeaderRows + edge - Top(state).Scroll;
-        var context = MouseContext.From(state, 80, 30, 2, _now);
-        var current = state;
-
-        foreach (var command in MouseResolver.Resolve(context, 4, row, MouseGesture.RightClick, _now))
-        {
-            current = _reducer.Reduce(current, command).State;
-        }
-
-        Assert.Empty(Top(current).Folded);
     }
 
     [Fact]
     public void GivenAnExpandedDescription_WhenTheIssueReloads_ThenItStaysExpanded()
     {
-        var state = Press(OnLine(Opened(LongText(20), []), "more lines (Enter)"), "Enter").State;
+        var state = Press(OnLine(Opened(LongText(20), []), "more lines   Enter expand"), "Enter").State;
         var reloaded = Deliver(state, new IssueDetailLoaded(Active(state).Id, Top(state).IssueRequest, Issue(LongText(20)), _now));
 
         Assert.Contains("line 20", Text(reloaded));
@@ -114,7 +85,7 @@ public class IssueDetailSectionTests
     public void GivenALongComment_WhenOpening_ThenItIsCutAndTheCommentKeysStillFindItOnTheMoreLine()
     {
         var state = Opened(null, [Comment("7", 14)]);
-        var onMore = OnLine(state, "more lines (Enter)");
+        var onMore = OnLine(state, "more lines   Enter expand");
 
         var target = Document(onMore).Targets[Top(onMore).Cursor]!;
 
@@ -129,58 +100,89 @@ public class IssueDetailSectionTests
     }
 
     [Fact]
-    public void GivenTheCursorInTheDescription_WhenPressingZa_ThenTheSectionFoldsToAPreviewAndOpensAgain()
+    public void GivenTheDescription_WhenOpening_ThenItShowsThreeLinesAndTheNoteInFourBodyRows()
     {
-        var state = OnLine(Opened(LongText(20), []), "line 2");
+        var document = Document(Opened(LongText(20), []));
+        var start = document.Sections[document.SectionIds.ToList().IndexOf(PaneIds.Description)];
 
-        var folded = Press(state, "z", "a").State;
-
-        Assert.Contains("Description (folded)", Text(folded));
-        Assert.DoesNotContain("line 3", Text(folded));
-        Assert.Contains("more lines hidden", Text(folded));
-        Assert.Equal(["Description"], Top(folded).Folded);
-
-        var open = Press(folded, "z", "a").State;
-
-        Assert.DoesNotContain("(folded)", Text(open));
-        Assert.Contains("line 3", Text(open));
+        Assert.Contains("line 1", document.Lines[start].PlainText);
+        Assert.Contains("more lines   Enter expand", document.Lines[start + 3].PlainText);
+        Assert.StartsWith("╰", document.Lines[start + 4].PlainText);
     }
 
     [Fact]
-    public void GivenAFoldedSection_WhenTheIssueReloads_ThenItStaysFolded()
+    public void GivenACutDescription_WhenOpening_ThenThePaneShowsTheOneToFourChipAndAScrollbar()
     {
-        var state = Press(OnLine(Opened(LongText(20), []), "line 2"), "z", "a").State;
+        var document = Document(Opened(LongText(20), []));
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
 
-        var reloaded = Deliver(state, new IssueDetailLoaded(Active(state).Id, Top(state).IssueRequest, Issue(LongText(20)), _now));
-
-        Assert.Contains("Description (folded)", Text(reloaded));
+        Assert.Equal("1-4 of 39", string.Concat(document.PaneRightTitles[pane].Select(span => span.Text)));
+        Assert.NotNull(document.PaneScrolls[pane]);
     }
 
     [Fact]
-    public void GivenTheCursorInTheFields_WhenPressingZa_ThenNothingFoldsAndTheStatusLineSaysSo()
+    public void GivenADescriptionThatFits_WhenOpening_ThenThePaneHasNoChipAndNoScrollbar()
     {
-        var result = Press(Opened(LongText(20), []), "z", "a");
+        var document = Document(Opened(LongText(2), []));
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
 
-        Assert.Equal("The fields cannot be folded.", result.State.Message);
-        Assert.Empty(Top(result.State).Folded);
+        Assert.Empty(document.PaneRightTitles[pane]);
+        Assert.Null(document.PaneScrolls[pane]);
     }
 
     [Fact]
-    public void GivenAClickOnAPaneTitle_WhenResolving_ThenThatSectionFolds()
+    public void GivenTheDetail_WhenPressingZaOrSectionKeys_ThenNothingFoldsAndTheCursorStays()
     {
         var state = Opened(LongText(20), []);
-        var document = Document(state);
-        var edge = document.Sections[1] - 1;
-        var row = 2 + DetailLayout.HeaderRows + edge - Top(state).Scroll;
-        var context = MouseContext.From(state, 80, 30, 2, _now);
-        var current = state;
 
-        foreach (var command in MouseResolver.Resolve(context, 4, row, MouseGesture.Click, _now))
+        foreach (var keys in new[] { new[] { "z", "a" }, ["]", "]"], ["[", "["] })
         {
-            current = _reducer.Reduce(current, command).State;
+            var result = Press(state, keys).State;
+
+            Assert.Equal(Top(state).Cursor, Top(result).Cursor);
+            Assert.Equal(Text(state), Text(result));
+        }
+    }
+
+    [Fact]
+    public void GivenCtrlJAndCtrlK_WhenPressed_ThenTheCursorMovesToTheNextAndPreviousPane()
+    {
+        var state = Opened(LongText(20), []);
+        var start = Document(state).SectionAt(Top(state).Cursor);
+
+        var next = Press(state, "Ctrl-j").State;
+
+        Assert.Equal(start + 1, Document(next).SectionAt(Top(next).Cursor));
+        Assert.Equal(Document(next).Sections[start + 1], Top(next).Cursor);
+
+        var back = Press(next, "Ctrl-k").State;
+
+        Assert.Equal(start, Document(back).SectionAt(Top(back).Cursor));
+    }
+
+    [Fact]
+    public void GivenTheLastPane_WhenPressingCtrlJ_ThenTheCursorStays()
+    {
+        var state = Opened(LongText(2), [Comment("7", 2)]);
+        var last = Document(state).SectionIds.Count - 1;
+
+        while (Document(state).SectionAt(Top(state).Cursor) < last)
+        {
+            state = Press(state, "Ctrl-j").State;
         }
 
-        Assert.Equal(["Description"], Top(current).Folded);
+        var after = Press(state, "Ctrl-j").State;
+
+        Assert.Equal(Top(state).Cursor, Top(after).Cursor);
+    }
+
+    [Fact]
+    public void GivenPaneZoom_WhenPressedInTheDetail_ThenItSaysZoomIsNotThereYetAndNothingZooms()
+    {
+        var result = Press(Opened(LongText(2), []), "Space", "z");
+
+        Assert.Contains("Zoom is not available", result.State.Message);
+        Assert.Null(Active(result.State).Panes.Zoomed);
     }
 
     private static string LongText(int paragraphs)

@@ -22,7 +22,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
-# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark) and `<` sends Left (the prompt caret).
+# In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark) `<` sends Left (the prompt caret) and `>` sends Ctrl-j (focus the pane below).
 # Add a row per new screen.
 profile_ready="fake: fake@example.com"
 profile_line="$profile_ready on"
@@ -62,25 +62,26 @@ all_scenarios=(
   "settings;120;36;dark;:settings|;Settings"
   "detail;120;36;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
-  "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"
-  "detail-folded;120;36;dark;:jql project = GEN|jjjj|]]za;(folded)"
+  "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
+  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;Reporter  Generated"
+  "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 3"
   "detail-field;120;36;dark;:jql project = GEN|jjjj|jjj;Reporter  Generated"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"
-  # comment-delete: three section jumps (]] each) put the cursor on a comment
-  "comment-delete;120;36;dark;:jql project = GEN|jjjj|]]]]]] md;Jira cannot undo"
+  # comment-delete: three pane jumps (Ctrl-j each) put the cursor on a comment
+  "comment-delete;120;36;dark;:jql project = GEN|jjjj|>>>>>> md;Jira cannot undo"
   "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
-  "comment-recorded-edit;120;36;dark;:jql key = GTM-11||]]]]]]]]]]]] me;formatting"
-  "detail-relations-gtm;120;36;dark;:jql key = GTM-11||]]]];Remote"
-  "detail-relations-gcm;120;36;dark;:jql key = GCM-10||]]]];Remote"
-  "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Epic children"
-  "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Epic children"
+  "comment-recorded-edit;120;36;dark;:jql key = GTM-11||>>>>>>>>>>>> me;formatting"
+  "detail-relations-gtm;120;36;dark;:jql key = GTM-11||>>>>;Remote"
+  "detail-relations-gcm;120;36;dark;:jql key = GCM-10||>>>>;Remote"
+  "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Child issues"
+  "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Child issues"
   "detail-relations-delete-confirm;120;36;dark;:jql key = GTM-9| id;Jira cannot undo"
   "detail-relations-create-type;120;36;dark;:jql key = GTM-11| ic;Choose the issue type"
   "detail-relations-create-subtask;120;36;dark;:jql key = GCM-10| iC|;Create Sub-task of GCM-10"
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
-  "link-unlink-confirm;120;36;dark;:jql key = GTM-11||]]]]jj iu;Jira cannot undo"
+  "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>>jj iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "which-key-columns;160;24;dark;:jql project = GCM| ;+issue"
@@ -228,6 +229,8 @@ capture_scenario() {
       tmux -L "$socket" send-keys -t s M-m
     elif [ "$key" = "<" ]; then
       tmux -L "$socket" send-keys -t s Left
+    elif [ "$key" = ">" ]; then
+      tmux -L "$socket" send-keys -t s C-j
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi

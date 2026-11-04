@@ -154,7 +154,7 @@ public class IssueDetailNavigationTests
     }
 
     [Fact]
-    public void GivenSectionJumps_WhenPressingNextRepeatedly_ThenTheCursorVisitsEverySectionInOrderAndStopsAtTheEnd()
+    public void GivenPaneKeys_WhenPressingCtrlJRepeatedly_ThenTheCursorVisitsEveryPaneInOrderAndStopsAtTheEnd()
     {
         var state = Opened();
         var sections = Document(state).Sections;
@@ -162,7 +162,7 @@ public class IssueDetailNavigationTests
 
         for (var step = 0; step < sections.Count + 2; step++)
         {
-            state = Press(Press(state, "]").State, "]").State;
+            state = Press(state, "Ctrl-j").State;
             visited.Add(Top(state).Cursor);
         }
 
@@ -172,42 +172,65 @@ public class IssueDetailNavigationTests
     }
 
     [Fact]
-    public void GivenSectionJumps_WhenPressingPrevious_ThenItGoesToTheStartOfTheCurrentThenThePreviousSection()
+    public void GivenPaneKeys_WhenPressingCtrlK_ThenItGoesToTheFirstRowOfThePreviousPane()
     {
         var state = Opened();
         var sections = Document(state).Sections;
-        state = Press(state, "]", "]", "]", "]", "]", "]", "]", "]").State;
+        state = Press(state, "Ctrl-j", "Ctrl-j", "Ctrl-j", "Ctrl-j").State;
         state = Press(state, "j").State;
-        var inside = Top(state).Cursor;
 
-        var current = Press(state, "[", "[");
-        var previous = Press(current.State, "[", "[");
+        var previous = Press(state, "Ctrl-k");
 
-        Assert.Equal(sections[4] + 1, inside);
-        Assert.Equal(sections[4], Top(current.State).Cursor);
+        Assert.Equal(sections[4] + 1, Top(state).Cursor);
         Assert.Equal(sections[3], Top(previous.State).Cursor);
     }
 
     [Fact]
-    public void GivenCursorInTheFirstSection_WhenPressingPreviousSection_ThenNothingMoves()
+    public void GivenCursorInTheFirstPane_WhenPressingCtrlK_ThenNothingMoves()
     {
         var state = Opened();
 
-        var result = Press(Press(state, "[").State, "[");
+        var result = Press(state, "Ctrl-k");
+
+        Assert.Equal(Top(state).Cursor, Top(result.State).Cursor);
+    }
+
+    [Theory]
+    [InlineData("Ctrl-h")]
+    [InlineData("Ctrl-l")]
+    public void GivenTheSingleColumn_WhenPressingCtrlHOrCtrlL_ThenNothingMoves(string key)
+    {
+        var state = Press(Opened(), "Ctrl-j", "Ctrl-j").State;
+
+        var result = Press(state, key);
 
         Assert.Equal(Top(state).Cursor, Top(result.State).Cursor);
     }
 
     [Fact]
-    public void GivenSectionJump_WhenTheSectionIsFarDown_ThenTheWindowShowsItsTitleEdge()
+    public void GivenPaneJump_WhenThePaneIsFarDown_ThenTheWindowShowsItsTopEdge()
     {
         var state = Opened();
-        var sections = Document(state).Sections;
+        var document = Document(state);
 
-        var jumped = Press(Press(state, "]").State, "]").State;
+        var jumped = Press(state, "Ctrl-j").State;
 
-        Assert.Equal(sections[1], Top(jumped).Cursor);
-        Assert.Equal(sections[1], Top(jumped).Scroll);
+        Assert.Equal(document.Sections[1], Top(jumped).Cursor);
+        Assert.Equal(document.PaneStarts[1], Top(jumped).Scroll);
+    }
+
+    [Fact]
+    public void GivenSectionChordsAndFoldKey_WhenPressedInTheDetail_ThenNothingMovesOrFolds()
+    {
+        var state = Press(Opened(), "Ctrl-j", "Ctrl-j").State;
+
+        foreach (var keys in new[] { new[] { "]", "]" }, ["[", "["], ["z", "a"] })
+        {
+            var result = Press(state, keys);
+
+            Assert.Equal(Top(state).Cursor, Top(result.State).Cursor);
+            Assert.Equal(Document(state).Lines, Document(result.State).Lines);
+        }
     }
 
     [Fact]
@@ -271,7 +294,7 @@ public class IssueDetailNavigationTests
     }
 
     [Fact]
-    public void GivenTheDocument_WhenBuilt_ThenWrappedRowsKeepOneTargetAndPanelEdgesHaveNone()
+    public void GivenALongSummary_WhenBuilt_ThenARelatedRowIsOneCutLineAndPaneEdgesHaveNoTarget()
     {
         var state = Opened(longSummary: true);
         var document = Document(state);
@@ -281,8 +304,8 @@ public class IssueDetailNavigationTests
             .Where(pair => IsKey(pair.target, "A-18"))
             .ToList();
 
-        Assert.True(lines.Count > 1);
-        Assert.Equal(lines.Count, lines[^1].line - lines[0].line + 1);
+        Assert.Single(lines);
+        Assert.Contains('…', document.Lines[lines[0].line].PlainText);
         Assert.All(
             document.Lines.Select((line, index) => (line, index)).Where(pair => pair.line.PlainText.StartsWith('╭')
                 || pair.line.PlainText.StartsWith('╰')),

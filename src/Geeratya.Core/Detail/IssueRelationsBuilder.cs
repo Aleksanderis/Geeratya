@@ -9,15 +9,16 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// The relation panels of the issue detail (<c>docs/ux-screens.md</c>, "Issue detail"): sub-tasks, epic children,
-/// linked issues, remote links and attachments, in that order. A panel is drawn only when it has entries, is loading
-/// or has failed; a failed one shows its error and leaves the others alone. Attachments and remote links are text:
+/// The relation panes of the issue detail (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"): sub-tasks,
+/// child issues, linked issues, remote links and attachments, in that order. The first three share one table
+/// (<see cref="RelationTable"/>). A pane is drawn only when it has entries, is loading or has failed; a failed one
+/// shows its error and leaves the others alone. Attachments and remote links are text:
 /// name, type and size, or title and URL, never the file.
 /// </summary>
 internal static class IssueRelationsBuilder
 {
     private const string SubtasksTitle = "Sub-tasks";
-    private const string ChildrenTitle = "Epic children";
+    private const string ChildrenTitle = "Child issues";
     private const string LinksTitle = "Linked issues";
     private const string RemoteLinksTitle = "Remote links";
     private const string AttachmentsTitle = "Attachments";
@@ -32,7 +33,7 @@ internal static class IssueRelationsBuilder
 
         if (issue is not null)
         {
-            AddStubs(lines, SubtasksTitle, issue.Subtasks, width, inner);
+            AddSubtasks(lines, detail, issue, width, inner);
         }
 
         AddChildren(lines, detail, width, inner);
@@ -50,45 +51,61 @@ internal static class IssueRelationsBuilder
         }
     }
 
-    private static void AddStubs(
-        DocumentSink lines,
-        string title,
-        IReadOnlyList<IssueStub> stubs,
-        int width,
-        int inner)
+    /// <summary>
+    /// The sub-tasks as a table. Jira lists them without an assignee, so the names come from the children search
+    /// (<c>parent = KEY</c>) that loads beside the issue; a row stays blank there until it arrives.
+    /// </summary>
+    private static void AddSubtasks(DocumentSink lines, DetailState detail, IssueDetail issue, int width, int inner)
     {
+        var stubs = issue.Subtasks;
+
         if (stubs.Count == 0)
         {
             return;
         }
 
-        var content = new PanelContent();
+        var assignees = new Dictionary<string, string?>();
 
-        foreach (var stub in stubs)
+        foreach (var child in detail.Children ?? [])
         {
-            var text = new WrappedText(inner, false);
-
-            AddIssue(text, stub.Key, stub.Summary, stub.Status);
-            content.Finish(text, IssueTarget(stub.Key));
+            assignees.TryAdd(child.Key, child.Assignee?.DisplayName);
         }
 
-        lines.AddPanel(Title(title, stubs.Count), content, width);
+        var rows = stubs
+            .Select(stub => StubRow(stub, assignees.TryGetValue(stub.Key, out var name), name))
+            .ToList();
+        var content = new PanelContent();
+        var done = stubs.Count(stub => stub.Status.CategoryKey == StatusCategoryKeys.Done);
+
+        RelationTable.Add(content, rows, inner);
+        lines.AddPanel(
+            PaneIds.Subtasks,
+            Title(SubtasksTitle, stubs.Count),
+            content,
+            width,
+            [new StyledSpan($"{done} of {stubs.Count} done", TextRole.Muted)]);
     }
 
     private static void AddChildren(DocumentSink lines, DetailState detail, int width, int inner)
     {
+        if (detail.Issue is not { IssueType.HierarchyLevel: >= DetailPaging.ParentLevel })
+        {
+            return;
+        }
+
         var content = new PanelContent();
+        var heading = new StyledSpan(ChildrenTitle, TextRole.Heading);
 
         switch (detail.ChildrenLoad)
         {
             case Loading:
                 content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                lines.AddPanel([new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.Children, [heading], content, width);
 
                 return;
             case Failed failed:
                 content.Add(StyledLine.Of(failed.Message, TextRole.Error));
-                lines.AddPanel([new StyledSpan(ChildrenTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.Children, [heading], content, width);
 
                 return;
         }
@@ -98,14 +115,18 @@ internal static class IssueRelationsBuilder
             return;
         }
 
-        foreach (var child in children)
-        {
-            var text = new WrappedText(inner, false);
+        var rows = children
+            .Select(child => new RelationRow(
+                child.Key,
+                child.Summary,
+                child.Status.Name,
+                StatusRoles.Of(child.Status),
+                IssueTarget(child.Key),
+                child.Assignee?.DisplayName,
+                true))
+            .ToList();
 
-            AddIssue(text, child.Key, child.Summary, child.Status);
-            text.Append($"{Separator}{child.IssueType.Name}", TextRole.Muted);
-            content.Finish(text, IssueTarget(child.Key));
-        }
+        RelationTable.Add(content, rows, inner);
 
         if (detail.ChildrenMore)
         {
@@ -114,7 +135,7 @@ internal static class IssueRelationsBuilder
 
         var count = detail.ChildrenMore ? $"{children.Count}+" : children.Count.ToString();
 
-        lines.AddPanel([new StyledSpan($"{ChildrenTitle} {count}", TextRole.Heading)], content, width);
+        lines.AddPanel(PaneIds.Children, [new StyledSpan($"{ChildrenTitle} {count}", TextRole.Heading)], content, width);
     }
 
     private static void AddLinks(DocumentSink lines, IReadOnlyList<IssueLink> links, int width, int inner)
@@ -125,18 +146,28 @@ internal static class IssueRelationsBuilder
         }
 
         var content = new PanelContent();
+        var rows = links
+            .Select(link => StubRow(link.Issue, false, null) with
+            {
+                Prefix = DirectionText(link),
+                Target = LinkTarget(link),
+            })
+            .ToList();
 
-        foreach (var link in links)
-        {
-            var text = new WrappedText(inner, false);
+        RelationTable.Add(content, rows, inner);
+        lines.AddPanel(PaneIds.Links, Title(LinksTitle, links.Count), content, width);
+    }
 
-            text.Append(DirectionText(link), TextRole.Emphasis);
-            text.Append(" ", TextRole.Body);
-            AddIssue(text, link.Issue.Key, link.Issue.Summary, link.Issue.Status);
-            content.Finish(text, LinkTarget(link));
-        }
-
-        lines.AddPanel(Title(LinksTitle, links.Count), content, width);
+    private static RelationRow StubRow(IssueStub stub, bool assigneeKnown, string? assignee)
+    {
+        return new RelationRow(
+            stub.Key,
+            stub.Summary,
+            stub.Status.Name,
+            StatusRoles.Of(stub.Status),
+            IssueTarget(stub.Key),
+            assignee,
+            assigneeKnown);
     }
 
     private static void AddRemoteLinks(DocumentSink lines, DetailState detail, int width, int inner)
@@ -147,12 +178,12 @@ internal static class IssueRelationsBuilder
         {
             case Loading:
                 content.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-                lines.AddPanel([new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.RemoteLinks, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
 
                 return;
             case Failed failed:
                 content.Add(StyledLine.Of(failed.Message, TextRole.Error));
-                lines.AddPanel([new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
+                lines.AddPanel(PaneIds.RemoteLinks, [new StyledSpan(RemoteLinksTitle, TextRole.Heading)], content, width);
 
                 return;
         }
@@ -167,7 +198,7 @@ internal static class IssueRelationsBuilder
             AddRemoteLink(content, link, inner);
         }
 
-        lines.AddPanel(Title(RemoteLinksTitle, links.Count), content, width);
+        lines.AddPanel(PaneIds.RemoteLinks, Title(RemoteLinksTitle, links.Count), content, width);
     }
 
     private static void AddRemoteLink(PanelContent content, RemoteLink link, int inner)
@@ -222,7 +253,7 @@ internal static class IssueRelationsBuilder
             content.Finish(text, new DetailTarget(DetailTargetKind.Attachment, key));
         }
 
-        lines.AddPanel(Title(AttachmentsTitle, attachments.Count), content, width);
+        lines.AddPanel(PaneIds.Attachments, Title(AttachmentsTitle, attachments.Count), content, width);
     }
 
     /// <summary>The row opens the issue only for a well-formed key; anything else stays plain text.</summary>
@@ -237,21 +268,6 @@ internal static class IssueRelationsBuilder
         var target = IssueTarget(link.Issue.Key);
 
         return target is null ? null : target with { LinkId = link.Id };
-    }
-
-    private static void AddIssue(WrappedText text, string key, string summary, IssueStatus status)
-    {
-        text.Append(key, TextRole.Key);
-
-        if (summary.Length > 0)
-        {
-            text.Append($" {summary}", TextRole.Body);
-        }
-
-        if (status.Name.Length > 0)
-        {
-            text.Append($"{Separator}{status.Name}", StatusRoles.Of(status));
-        }
     }
 
     /// <summary>The link type's wording for this side, or the type name when Jira sent none.</summary>

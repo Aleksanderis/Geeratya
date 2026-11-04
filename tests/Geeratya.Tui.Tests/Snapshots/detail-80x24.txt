@@ -1,8 +1,15 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ GCM-12 · Task ──────────────────────────────────────────────── In Progress ─╮
-│>Fix login redirect after token refresh                                   ... │
-│                                                                              │
+╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
+│>Fix login redirect after token refresh                           In Progr... │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Description ──────────────────────────────────────────────────── 1-4 of 40 ─╮
+│ Heading one                                                                 ▲│
+│                                                                             █│
+│ Heading three                                                               ░│
+│ … 37 more lines   Enter expand                                              ▼│
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Details ────────────────────────────────────────────────────────────────────╮
 │ Status    In Progress ▾                                                      │
 │ Priority  High ▾                                                             │
 │ Assignee  Jane Doe ▾                                                         │
@@ -10,15 +17,8 @@
 │ Labels    auth, bug-bash ▾                                                   │
 │ Parent    GCM-17 Reporting overhaul                                          │
 │ Updated   2 h ago                                                            │
-├─ Description ────────────────────────────────────────────────────────────────┤
-│ Heading one                                                                  │
-│                                                                              │
-│ Heading three                                                                │
-│                                                                              │
-│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
-│ 😄 and unicode: żółć 日本語 🚀                                               │
-│ after break                                                                  │
-│                                                                              │
-│ … 32 more lines (Enter)                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments 3 ─────────────────────────────────────────────────────────────────╮
+│ Jane Doe · 1 d ago                                                           │
+│ Found it: the redirect target is dropped after the refresh.                  │
  NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit

@@ -1,10 +1,10 @@
  1 JQL My open issues   +               
                                         
-╭─ GCM-12 · Task ──────── In Progress ─╮
+╭─ GCM-12 · Task ──────────────────────╮
 │>Fix login redirect after token   ... │
-│ refresh                              │
-│                                      │
-│ Status    In Progress ▾              │
-│ Priority  High ▾                     │
+│ refresh                  In Progress │
 ╰──────────────────────────────────────╯
+╭─ Description ──────────── 1-4 of 42 ─╮
+│ Heading one                         ▲│
+│                                     █│
  NORMAL       ? help  : commands  q quit

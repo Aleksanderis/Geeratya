@@ -52,7 +52,7 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
-    public void GivenFocusOnTheSummary_WhenMovingDown_ThenTheCursorSkipsTheGapAndLandsOnStatus()
+    public void GivenFocusOnTheSummary_WhenMovingDown_ThenTheCursorLeavesTheTitlePaneForTheDescription()
     {
         var state = Opened(Issue());
 
@@ -60,7 +60,7 @@ public class IssueDetailFieldTests
 
         var next = Press(state, "j").State;
 
-        Assert.Equal(DetailFieldIds.Status, Document(next).Targets[Top(next).Cursor]?.Value);
+        Assert.Equal(DetailFieldIds.Description, Document(next).Targets[Top(next).Cursor]?.Value);
     }
 
     [Fact]

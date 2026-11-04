@@ -1,10 +1,8 @@
 using Geeratya.Core.Adf;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Comments.Models;
-using Geeratya.Jira.Issues.Models;
-using Geeratya.Jira.Search.Models;
-using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Detail;
@@ -21,6 +19,8 @@ public static class IssueDocumentBuilder
     private const int LabelWidth = 10;
     private const string EditableMarker = " ▾";
     private const string DescriptionTitle = "Description";
+    private const string DetailsTitle = "Details";
+    private const int StatusGap = 2;
     private const string CommentsTitle = "Comments";
     private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
@@ -47,9 +47,9 @@ public static class IssueDocumentBuilder
     {
         var columns = Math.Max(1, width);
         var inner = Panel.InnerWidth(columns);
-        var sink = new DocumentSink(detail.Folded);
+        var sink = new DocumentSink();
 
-        AddHeader(sink, detail, columns, inner);
+        AddTitle(sink, detail, columns, inner);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)
         {
@@ -57,13 +57,14 @@ public static class IssueDocumentBuilder
 
             error.Add(StyledLine.Of(FailureText(detail.Key, failed), TextRole.Error));
             error.Add(StyledLine.Of(BackText, TextRole.Muted));
-            sink.AddPanel([new StyledSpan(ErrorTitle, TextRole.Error)], error, columns);
+            sink.AddPanel(PaneIds.Error, [new StyledSpan(ErrorTitle, TextRole.Error)], error, columns);
 
             return sink.ToDocument(columns);
         }
 
         AddDescription(sink, detail, columns, inner);
         IssueRelationsBuilder.Add(sink, detail, columns, inner);
+        AddDetails(sink, detail, columns, inner);
         AddComments(sink, detail, columns, inner);
 
         return sink.ToDocument(columns);
@@ -74,35 +75,23 @@ public static class IssueDocumentBuilder
         return failed.Kind is JiraErrorKind.NotFound or JiraErrorKind.Forbidden ? NotFoundText(key) : failed.Message;
     }
 
-    private static void AddHeader(DocumentSink sink, DetailState detail, int width, int inner)
+    /// <summary>
+    /// The title pane: the key and type in the top edge, the summary on the left of one row and the status in its
+    /// category colour on the right. Two rows only when the summary does not fit beside the status.
+    /// </summary>
+    private static void AddTitle(DocumentSink sink, DetailState detail, int width, int inner)
     {
         var header = HeaderFields.Of(detail);
         var content = new PanelContent();
-        var wrapped = new WrappedText(inner, false);
-        var summary = new List<StyledLine>();
+        var rows = SummaryRows(header, inner);
 
-        wrapped.Append(header.Summary, TextRole.Strong);
-        wrapped.Finish(summary);
-
-        if (header.Known && summary.Count > 0)
+        if (header.Known && rows.Count > 0)
         {
-            content.AddBlock(summary, new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Summary));
+            content.AddBlock(rows, new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Summary));
         }
         else
         {
-            content.AddRange(summary);
-        }
-
-        var fields = Fields(header, detail.LoadedAt, detail.EstimateLabel);
-
-        if (fields.Count > 0)
-        {
-            content.AddGap(StyledLine.Empty);
-
-            foreach (var field in fields)
-            {
-                content.AddBlock(FieldRows(field, inner), new DetailTarget(DetailTargetKind.Field, field.Id));
-            }
+            content.AddRange(rows);
         }
 
         var title = new List<StyledSpan> { new(Clean(detail.Key), TextRole.Key) };
@@ -112,11 +101,82 @@ public static class IssueDocumentBuilder
             title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
         }
 
-        IReadOnlyList<StyledSpan>? status = header.Status is { Name.Length: > 0 } current
-            ? [new StyledSpan(Clean(current.Name), StatusRoles.Of(current))]
-            : null;
+        sink.AddPanel(PaneIds.Title, title, content, width);
+    }
 
-        sink.AddPanel(title, content, width, status);
+    private static List<StyledLine> SummaryRows(HeaderFields header, int inner)
+    {
+        var rows = new List<StyledLine>();
+
+        if (header.Status is not { Name.Length: > 0 } current)
+        {
+            return Wrapped(header.Summary, inner);
+        }
+
+        var status = new StyledSpan(RelationTable.Cut(Clean(current.Name), inner), StatusRoles.Of(current));
+        var statusWidth = DisplayWidth.Of(status.Text) + StatusGap;
+        var wrapped = new WrappedText(Math.Max(1, inner - statusWidth), false);
+
+        wrapped.Append(header.Summary, TextRole.Strong);
+        wrapped.Finish(rows);
+
+        if (rows.Count > 1)
+        {
+            rows = Wrapped(header.Summary, inner);
+        }
+
+        if (rows.Count == 0)
+        {
+            rows.Add(StyledLine.Empty);
+        }
+
+        var last = rows[^1];
+        var room = inner - DisplayWidth.Of(last.PlainText) - DisplayWidth.Of(status.Text);
+
+        if (room < StatusGap && last.Spans.Count > 0)
+        {
+            rows.Add(StyledLine.Empty);
+            last = rows[^1];
+            room = inner - DisplayWidth.Of(status.Text);
+        }
+
+        rows[^1] = new StyledLine([.. last.Spans, new StyledSpan(new string(' ', Math.Max(0, room)), TextRole.Body), status]);
+
+        return rows;
+    }
+
+    private static List<StyledLine> Wrapped(string summary, int inner)
+    {
+        var rows = new List<StyledLine>();
+        var wrapped = new WrappedText(inner, false);
+
+        wrapped.Append(summary, TextRole.Strong);
+        wrapped.Finish(rows);
+
+        return rows;
+    }
+
+    /// <summary>
+    /// The Details pane (until the sidebar of #704): the editable fields and the dates, one cursor stop per field.
+    /// Nothing is drawn when the issue has no fields to show.
+    /// </summary>
+    private static void AddDetails(DocumentSink sink, DetailState detail, int width, int inner)
+    {
+        var fields = Fields(HeaderFields.Of(detail), detail.LoadedAt, detail.EstimateLabel);
+
+        if (fields.Count == 0)
+        {
+            return;
+        }
+
+        var content = new PanelContent();
+
+        foreach (var field in fields)
+        {
+            content.AddBlock(FieldRows(field, inner), new DetailTarget(DetailTargetKind.Field, field.Id));
+        }
+
+        sink.AddPanel(PaneIds.Details, [new StyledSpan(DetailsTitle, TextRole.Heading)], content, width);
     }
 
     private static List<Field> Fields(HeaderFields header, DateTimeOffset? reference, string? estimateLabel)
@@ -238,11 +298,23 @@ public static class IssueDocumentBuilder
 
         var panel = new PanelContent();
         var target = detail.Issue is null ? null : new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Description);
-
         var expanded = detail.Expanded.Contains(DetailFieldIds.Description);
+        var cut = target is not null && !expanded && content.Count > LongText.DescriptionRows;
 
-        LongText.Add(panel, content, target, expanded, new LongTextLimit(LongText.DescriptionLines, inner));
-        sink.AddPanel([new StyledSpan(DescriptionTitle, TextRole.Heading)], panel, width);
+        LongText.Add(panel, content, target, expanded, new LongTextLimit(LongText.DescriptionRows, inner, true));
+
+        var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
+
+        if (!cut)
+        {
+            sink.AddPanel(PaneIds.Description, [title], panel, width);
+
+            return;
+        }
+
+        var scroll = new PaneScroll(0, content.Count, LongText.DescriptionRows);
+
+        sink.AddPanel(PaneIds.Description, [title], panel, width, [new StyledSpan(scroll.Chip(), TextRole.Muted)], scroll);
     }
 
     private static void AddComments(DocumentSink sink, DetailState detail, int width, int inner)
@@ -263,7 +335,7 @@ public static class IssueDocumentBuilder
 
         AddCommentsFooter(footer, detail);
         content.AddRange(footer);
-        sink.AddPanel([new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
+        sink.AddPanel(PaneIds.Comments, [new StyledSpan(CommentsHeading(detail), TextRole.Heading)], content, width);
     }
 
     private static string CommentsHeading(DetailState detail)
@@ -352,15 +424,9 @@ public static class IssueDocumentBuilder
         }
     }
 
-    /// <summary>Replaces control characters, which a terminal would act on, with spaces.</summary>
     private static string Clean(string text)
     {
-        if (!text.Any(char.IsControl))
-        {
-            return text;
-        }
-
-        return string.Concat(text.Select(static character => char.IsControl(character) ? ' ' : character));
+        return TextClean.Of(text);
     }
 
     private sealed record Field(string Id, string Label, string Value, TextRole Role, bool Editable = false)
@@ -373,91 +439,6 @@ public static class IssueDocumentBuilder
             {
                 text.Append(EditableMarker, TextRole.Editable);
             }
-        }
-    }
-
-    private sealed record HeaderFields(
-        string TypeName,
-        string Summary,
-        IssueStatus? Status,
-        string? Priority,
-        string? Assignee,
-        string? Reporter,
-        IReadOnlyList<string> Labels,
-        string? Parent,
-        DateTimeOffset? Updated,
-        string? Epic = null,
-        string? Sprint = null,
-        string? Estimate = null,
-        bool Known = true)
-    {
-        private static readonly HeaderFields _empty =
-            new(string.Empty, string.Empty, null, null, null, null, [], null, null, Known: false);
-
-        public static HeaderFields Of(DetailState detail)
-        {
-            if (detail.Issue is { } issue)
-            {
-                return FromIssue(issue);
-            }
-
-            return detail.Row is { } row ? FromRow(row) : _empty;
-        }
-
-        private static HeaderFields FromIssue(IssueDetail issue)
-        {
-            var parent = issue.Parent is { } stub ? $"{stub.Key} {stub.Summary}".TrimEnd() : null;
-            var isEpic = issue.Epic is not null;
-
-            return new HeaderFields(
-                issue.IssueType.Name,
-                issue.Summary,
-                issue.Status,
-                issue.Priority,
-                issue.Assignee?.DisplayName,
-                issue.Reporter?.DisplayName,
-                issue.Labels,
-                isEpic ? null : parent,
-                issue.Updated,
-                isEpic ? parent : null,
-                SprintText(issue.Sprints),
-                issue.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
-        }
-
-        private static HeaderFields FromRow(IssueSummary row)
-        {
-            var parent = row.Parent is { } stub ? $"{stub.Key} {stub.Summary}".TrimEnd() : null;
-
-            return new HeaderFields(
-                row.IssueType.Name,
-                row.Summary,
-                row.Status,
-                row.Priority,
-                row.Assignee?.DisplayName,
-                null,
-                row.Labels,
-                row.Epic is null ? parent : null,
-                row.Updated,
-                row.Epic is null ? null : parent,
-                SprintText(row.Sprints),
-                row.Estimate is { } estimate ? EstimateText.Format(estimate) : null);
-        }
-
-        /// <summary>The current sprint with its state, then the earlier sprints the issue was carried through.</summary>
-        private static string? SprintText(IReadOnlyList<IssueSprint> sprints)
-        {
-            if (IssueSprint.Current(sprints) is not { } current)
-            {
-                return null;
-            }
-
-            var text = $"{current.Name} ({current.State.ToString().ToLowerInvariant()})";
-            var earlier = sprints
-                .Where(sprint => sprint.Id != current.Id && sprint.State == SprintState.Closed)
-                .Select(sprint => sprint.Name)
-                .ToList();
-
-            return earlier.Count == 0 ? text : $"{text}; earlier: {string.Join(", ", earlier)}";
         }
     }
 }

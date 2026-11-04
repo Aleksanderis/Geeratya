@@ -74,7 +74,8 @@ public class HelpPagesTests
 
         Assert.Equal("Issue detail", HelpPages.Names(state, _keymap)[0]);
         Assert.Contains(lines, line => line.Contains("Open the parent issue"));
-        Assert.Contains(lines, line => line.Contains("Next section of the issue"));
+        Assert.Contains(lines, line => line.Contains("Focus the pane below"));
+        Assert.DoesNotContain(lines, line => line.Contains("Next section of the"));
         Assert.DoesNotContain(lines, line => line.Contains("Move left"));
     }
 

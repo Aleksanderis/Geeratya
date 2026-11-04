@@ -28,7 +28,7 @@ public class IssueRelationsBuilderTests
         Assert.DoesNotContain(lines, title => title.StartsWith("Linked issues"));
         Assert.DoesNotContain(lines, title => title.StartsWith("Attachments"));
         Assert.DoesNotContain(lines, title => title.StartsWith("Remote links"));
-        Assert.DoesNotContain(lines, title => title.StartsWith("Epic children"));
+        Assert.DoesNotContain(lines, title => title.StartsWith("Child issues"));
     }
 
     [Fact]
@@ -47,10 +47,11 @@ public class IssueRelationsBuilderTests
                 "A-1 · Epic",
                 "Description",
                 "Sub-tasks 1",
-                "Epic children 1",
+                "Child issues 1",
                 "Linked issues 2",
                 "Remote links 1",
                 "Attachments 1",
+                "Details",
                 "Comments",
             ],
             titles);
@@ -61,8 +62,9 @@ public class IssueRelationsBuilderTests
     {
         var text = Text(Build(Detail(Epic())));
 
-        Assert.Contains("blocks A-30 Launch · To Do", text);
-        Assert.Contains("is blocked by A-9 Legal review · Done", text);
+        Assert.Contains("A-30  blocks Launch", text);
+        Assert.Contains("A-9   is blocked by Legal review", text);
+        Assert.Contains("To Do", text);
     }
 
     [Fact]
@@ -71,7 +73,7 @@ public class IssueRelationsBuilderTests
         var link = new IssueLink("1", "Relates", IssueLinkDirection.Outward, string.Empty, Epic().Links[0].Issue);
         var detail = Detail(Epic() with { Links = [link] });
 
-        Assert.Contains("Relates A-30 Launch", Text(Build(detail)));
+        Assert.Contains("A-30  Relates Launch", Text(Build(detail)));
     }
 
     [Fact]
@@ -79,7 +81,7 @@ public class IssueRelationsBuilderTests
     {
         var document = Build(Detail(Epic()));
 
-        var line = document.Lines.Single(candidate => candidate.PlainText.Contains("A-18 Write the migration"));
+        var line = document.Lines.Single(candidate => candidate.PlainText.Contains("A-18  Write the migration"));
         Assert.Contains(line.Spans, span => span.Role == TextRole.Key && span.Text == "A-18");
         Assert.Contains(line.Spans, span => span.Role == TextRole.StatusToDo && span.Text.Contains("To Do"));
     }
@@ -91,7 +93,7 @@ public class IssueRelationsBuilderTests
 
         var text = Text(Build(detail));
 
-        Assert.Contains("Epic children 1+", text);
+        Assert.Contains("Child issues 1+", text);
         Assert.Contains("Showing the first children only.", text);
     }
 
@@ -101,8 +103,8 @@ public class IssueRelationsBuilderTests
         var loading = Detail(Epic()) with { ChildrenLoad = new Loading(LoadReason.Open) };
         var empty = Detail(Epic()) with { Children = [] };
 
-        Assert.Contains("Loading…", Section(Build(loading), "Epic children"));
-        Assert.DoesNotContain("Epic children", Text(Build(empty)));
+        Assert.Contains("Loading…", Section(Build(loading), "Child issues"));
+        Assert.DoesNotContain("Child issues", Text(Build(empty)));
     }
 
     [Fact]
@@ -115,7 +117,7 @@ public class IssueRelationsBuilderTests
 
         var document = Build(failed);
 
-        Assert.Contains("No permission to search.", Section(document, "Epic children"));
+        Assert.Contains("No permission to search.", Section(document, "Child issues"));
         Assert.Contains("Linked issues 2", Text(document));
         Assert.Contains("Attachments 1", Text(document));
         Assert.Contains(
@@ -242,12 +244,12 @@ public class IssueRelationsBuilderTests
         return [.. document.PaneTitles.Select(static title => string.Concat(title.Select(static span => span.Text)))];
     }
 
-    /// <summary>The lines of the panel with the given title prefix, its shared top edge included.</summary>
+    /// <summary>The lines of the pane with the given title prefix, its edges included.</summary>
     private static string Section(DetailDocument document, string title)
     {
         var index = Panels(document).FindIndex(panel => panel.StartsWith(title));
-        var start = Math.Max(0, document.Sections[index] - 1);
-        var end = index + 1 < document.Sections.Count ? document.Sections[index + 1] - 1 : document.Lines.Count;
+        var start = document.PaneStarts[index];
+        var end = index + 1 < document.Sections.Count ? document.PaneStarts[index + 1] : document.Lines.Count;
 
         return string.Join('\n', document.Lines.Skip(start).Take(end - start).Select(static line => line.PlainText));
     }

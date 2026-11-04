@@ -1,3 +1,5 @@
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Panes;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -5,12 +7,13 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// The keys of the issue detail that act on the cursor row or the shown issue: open the row, open it in the browser,
-/// open the parent, jump between sections. <see cref="EnterBrowserRow"/> and <see cref="OpenInBrowser"/> return null
+/// open the parent, move between panes. <see cref="EnterBrowserRow"/> and <see cref="OpenInBrowser"/> return null
 /// when no issue is open on the active tab, so the caller falls back to the list behaviour of the same key.
 /// </summary>
 internal static class DetailActions
 {
     private const string StackFullText = "Too many issues open: press Esc to go back.";
+    private const string ZoomPendingText = "Zoom is not available in the issue detail yet.";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
@@ -58,25 +61,6 @@ internal static class DetailActions
         return OpenTarget(state, target);
     }
 
-    /// <summary>
-    /// <c>section.toggle</c> in the issue detail: folds the section under the cursor to a preview, or opens it again.
-    /// Null when no issue is open, so the caller falls back to the list behaviour of the key.
-    /// </summary>
-    public static ReduceResult? ToggleSection(AppState state)
-    {
-        if (TopOf(state) is not { } top)
-        {
-            return null;
-        }
-
-        var section = top.Detail.Document is { } document ? document.SectionAt(top.Detail.Cursor) : 0;
-        var next = DetailReducer.ToggleFolded(state, top.Tab, section);
-
-        return next is null
-            ? Say(state, "The fields cannot be folded.")
-            : new ReduceResult(next, _noEffects);
-    }
-
     /// <summary><c>issue.open-parent</c>: pushes the parent of the shown issue.</summary>
     public static ReduceResult OpenParent(AppState state)
     {
@@ -99,34 +83,51 @@ internal static class DetailActions
     }
 
     /// <summary>
-    /// <c>detail.section-next</c> and <c>detail.section-previous</c>: the cursor goes to the start of the next
-    /// section, or of the current one and then the one before it. At either end nothing moves.
+    /// <c>pane.focus-*</c> in the issue detail: the cursor goes to the first row of the neighbouring pane, and the
+    /// pane is shown from its top edge. Null when no issue is open, so the caller falls back to the other pane users.
+    /// <c>pane.zoom</c> says that zoom is not built yet (the zoomed sections are #705).
     /// </summary>
-    public static ReduceResult Section(AppState state, int direction)
+    public static ReduceResult? FocusPane(AppState state, string? action)
     {
-        if (TopOf(state) is not { } top || top.Detail.Document is not { } document)
+        if (!PaneActions.IsPaneAction(action) || TopOf(state) is not { } top)
+        {
+            return null;
+        }
+
+        if (action == ActionIds.PaneZoom)
+        {
+            return Say(state, ZoomPendingText);
+        }
+
+        if (top.Detail.Document is not { } document || document.SectionIds.Count == 0)
         {
             return new ReduceResult(state, _noEffects);
         }
 
-        int? line = null;
-
-        foreach (var start in document.Sections)
+        var direction = action switch
         {
-            if (direction > 0 && start > top.Detail.Cursor)
-            {
-                line = start;
+            ActionIds.PaneFocusLeft => PaneDirection.Left,
+            ActionIds.PaneFocusDown => PaneDirection.Down,
+            ActionIds.PaneFocusUp => PaneDirection.Up,
+            _ => PaneDirection.Right,
+        };
+        var grid = Grid(document);
+        var current = document.SectionIds[document.SectionAt(top.Detail.Cursor)];
+        var panes = PaneReducer.Focus(new PaneState(grid, current), direction);
+        var target = document.SectionIds.ToList().IndexOf(panes.Current ?? current);
 
-                break;
-            }
-
-            if (direction < 0 && start < top.Detail.Cursor)
-            {
-                line = start;
-            }
+        if (target < 0 || document.SectionIds[target] == current)
+        {
+            return new ReduceResult(state, _noEffects);
         }
 
-        return new ReduceResult(line is { } target ? DetailReducer.JumpTo(state, top.Tab, target) : state, _noEffects);
+        return new ReduceResult(DetailReducer.JumpToPane(state, top.Tab, target), _noEffects);
+    }
+
+    /// <summary>The panes of a document as a grid: one column, one row per pane, in document order.</summary>
+    public static PaneGrid Grid(DetailDocument document)
+    {
+        return new PaneGrid([.. document.SectionIds.Select(static (id, row) => new PaneSlot(id, 0, row))]);
     }
 
     private static ReduceResult OpenTarget(AppState state, DetailTarget target)

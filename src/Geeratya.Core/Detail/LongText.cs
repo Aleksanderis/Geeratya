@@ -9,8 +9,8 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 internal static class LongText
 {
-    /// <summary>Description lines shown before the rest is cut.</summary>
-    public const int DescriptionLines = 8;
+    /// <summary>Body rows of the Description pane when it is cut: three text lines and the note.</summary>
+    public const int DescriptionRows = 4;
 
     /// <summary>Lines of one comment (the byline included) shown before the rest is cut.</summary>
     public const int CommentLines = 6;
@@ -36,7 +36,7 @@ internal static class LongText
             return;
         }
 
-        var shown = expanded ? lines.Count : limit.Lines;
+        var shown = expanded ? lines.Count : limit.Lines - (limit.NoteRow ? 1 : 0);
 
         for (var index = 0; index < shown; index++)
         {
@@ -45,22 +45,39 @@ internal static class LongText
 
         if (expanded)
         {
-            AddNote(content, "Show less (Enter)", limit.Width, target with { Collapses = true });
+            AddNote(content, "Show less", "collapse", limit.Width, target with { Collapses = true });
 
             return;
         }
 
-        var hidden = lines.Count - limit.Lines;
-        var text = hidden == 1 ? "… 1 more line (Enter)" : $"… {hidden} more lines (Enter)";
+        var hidden = lines.Count - shown;
+        var text = hidden == 1 ? "… 1 more line" : $"… {hidden} more lines";
 
-        AddNote(content, text, limit.Width, target with { Expands = true });
+        AddNote(content, text, "expand", limit.Width, target with { Expands = true });
     }
 
-    private static void AddNote(PanelContent content, string text, int width, DetailTarget target)
+    /// <summary>A muted note with the key that acts on it in the accent: <c>… 11 more lines   Enter expand</c>.</summary>
+    private static void AddNote(PanelContent content, string text, string action, int width, DetailTarget target)
     {
+        var spans = new List<StyledSpan>
+        {
+            new(text, TextRole.Muted),
+            new("   ", TextRole.Muted),
+            new("Enter", TextRole.Key),
+            new($" {action}", TextRole.Muted),
+        };
+        var line = new StyledLine(spans);
+
+        if (DisplayWidth.Of(line.PlainText) <= width)
+        {
+            content.Add(line, target);
+
+            return;
+        }
+
         var wrapped = new WrappedText(width, false);
 
-        wrapped.Append(text, TextRole.Link);
+        wrapped.Append(line.PlainText, TextRole.Muted);
         content.Finish(wrapped, target);
     }
 }
