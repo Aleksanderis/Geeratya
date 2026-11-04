@@ -26,6 +26,7 @@ internal sealed class CreatePaneLayout
     private const string DescriptionPlaceholder = "Describe it.";
     private const string RequiredText = "required *";
     private const int NotEditableMinimum = 6;
+    private const int StackedNotEditableMinimum = 16;
     private const int StackedMinimum = 11;
     private const int DescriptionShortest = 5;
     private const int DescriptionTallest = 8;
@@ -81,7 +82,7 @@ internal sealed class CreatePaneLayout
         var notEditable = NotEditablePane(width);
         var notHeight = notEditable.Rows.Count + Panel.EdgeRows;
         var rest = height - title.Rows.Count - Panel.EdgeRows;
-        var showNot = rest - notHeight >= NotEditableMinimum;
+        var showNot = rest - notHeight >= (wide ? NotEditableMinimum : StackedNotEditableMinimum);
 
         lines.AddRange(_frames.Build(title, width, title.Rows.Count, 0, 0));
 

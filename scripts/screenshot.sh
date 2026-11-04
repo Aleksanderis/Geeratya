@@ -86,7 +86,10 @@ all_scenarios=(
   "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Child issues"
   "detail-relations-delete-confirm;120;36;dark;:jql key = GTM-9| id;Jira cannot undo"
   "detail-relations-create-type;120;36;dark;:jql key = GTM-11| ic;Choose the issue type"
-  "detail-relations-create-subtask;120;36;dark;:jql key = GCM-10| iC|;Create Sub-task of GCM-10"
+  "detail-relations-create-subtask;120;36;dark;:jql key = GCM-10| iC|;Not editable here"
+  # form-create-panes: the create form as panes in the wide overlay (type picked with Enter), then the narrow variant
+  "form-create-panes;120;36;dark;:jql key = GTM-11| ic|;Not editable here"
+  "form-create-panes-narrow;100;28;dark;:jql key = GTM-11| ic|;Create"
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
   "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>>jj iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"

@@ -145,6 +145,11 @@ internal static class CreateFieldBlocks
     {
         var name = Clean(FormOverlay.LabelOf(field, id));
 
+        if (field.Kind == FormFieldKind.Parent)
+        {
+            return [Block($"[{name}]")];
+        }
+
         if (field.Id != FormFieldIds.Priority)
         {
             return [Block(name)];

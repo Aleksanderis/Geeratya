@@ -139,10 +139,18 @@ public static partial class StatusBar
     public static IReadOnlyList<StatusHint> CreateHints { get; } =
     [
         new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
-        new(InputMode.Normal, ActionIds.PaneFocusDown, "pane", HintScope.Global, ActionIds.PaneFocusUp),
         new(InputMode.Insert, ActionIds.FormMoreFields, "more fields"),
         new(InputMode.Insert, ActionIds.FormSubmit, "create"),
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
+    /// <summary>As <see cref="CreateHints"/> while a field of the create form is being edited (<c>Esc</c> stops).</summary>
+    public static IReadOnlyList<StatusHint> CreateEditingHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormMoreFields, "more fields"),
+        new(InputMode.Insert, ActionIds.FormSubmit, "create"),
+        new(InputMode.Insert, ActionIds.Cancel, "stop editing"),
     ];
 
     /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
@@ -160,7 +168,26 @@ public static partial class StatusBar
             return DropdownHints;
         }
 
-        return CreatePanes.Applies(form) ? CreateHints : FormHints;
+        if (!CreatePanes.Applies(form))
+        {
+            return FormHints;
+        }
+
+        return form.Navigating ? CreateHints : CreateEditingHints;
+    }
+
+    // Ctrl-h/j/k/l when the four pane keys are Ctrl plus a letter, else the keys joined by a slash.
+    private static string PaneKeys(KeymapTable keymap)
+    {
+        string[] actions = [ActionIds.PaneFocusLeft, ActionIds.PaneFocusDown, ActionIds.PaneFocusUp, ActionIds.PaneFocusRight];
+        var keys = actions.Select(action => KeyNotation.Display(keymap.FindKeys(InputMode.Normal, action)) ?? string.Empty).ToList();
+
+        if (keys.All(static key => key.Length == 6 && key.StartsWith("Ctrl-", StringComparison.Ordinal)))
+        {
+            return $"Ctrl-{string.Join('/', keys.Select(static key => key[5]))}";
+        }
+
+        return string.Join('/', keys);
     }
 
     private static HintList HintTexts(AppState state, KeymapTable keymap)
@@ -179,9 +206,16 @@ public static partial class StatusBar
 
         if (FormReducer.IsOpen(state))
         {
-            var hints = FormHintsOf(FormReducer.OpenForm(state)!);
+            var form = FormReducer.OpenForm(state)!;
+            var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
 
-            return new HintList([], TextsOf(hints, state.Mode, HintScope.Global, keymap, level));
+            // The pane keys act in the navigate state only; typing and choosing keep the Insert rows (decision 2026-11-04).
+            if (CreatePanes.Applies(form) && form.Navigating)
+            {
+                texts.Insert(Math.Min(1, texts.Count), new HintChip(PaneKeys(keymap), "pane"));
+            }
+
+            return new HintList([], texts);
         }
 
         if (state.FlashJump is not null)

@@ -1,0 +1,24 @@
+ 1 JQL A x   +                                       : commands   <space>g jump 
+                                                                                
+╭─ Create · A · Task ──────────────────────────────────────────────────────────╮
+│ What needs to be done?_                                           required * │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Description ────────────────────────────────── markdown, Enter adds a line ─╮
+│ Describe it.                                                                 │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Details ────────────────────────────────────────────────────────────────────╮
+│ Parent *  from selection                                                    ▲│
+│  [A-1 Checkout epic] ▾                                                      █│
+│                                                                             █│
+│ Priority                                                                    █│
+│  = Medium ▾                                                                 █│
+│                                                                             ░│
+│ Assignee                                                                    ░│
+│  [--] Unassigned ▾                                                          ░│
+│                                                                             ▼│
+│ Optional 2 · Optional 3 · Optional 4 · Optional 5…   Ctrl-f show more fields │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ INSERT  Create A · Task · Summary                                              
