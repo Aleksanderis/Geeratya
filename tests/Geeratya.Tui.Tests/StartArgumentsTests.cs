@@ -73,7 +73,7 @@ public class StartArgumentsTests
         var options = StartArguments.Parse(["--jql"], _valueFlags, out var error);
 
         Assert.Null(options);
-        Assert.Equal("--jql needs a value", error);
+        Assert.Contains("--jql needs", error);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class StartArgumentsTests
         var exitCode = new ApplicationRunner(new RunnerContext(writer, true, Error: error)).Run(["--board"]);
 
         Assert.Equal(2, exitCode);
-        Assert.Contains("--board needs a value", error.ToString());
+        Assert.Contains("--board needs", error.ToString());
     }
 
     [Fact]

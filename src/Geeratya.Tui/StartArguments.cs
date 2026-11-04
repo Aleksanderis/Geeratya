@@ -50,9 +50,9 @@ public static class StartArguments
                 }
                 else if (KindOf(argument) is { } kind)
                 {
-                    if (value.Length == 0)
+                    if (value.Length == 0 || value.StartsWith('-'))
                     {
-                        error = $"{argument} needs a value";
+                        error = $"{argument} needs a name or query as its value";
 
                         return null;
                     }

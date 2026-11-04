@@ -29,6 +29,12 @@ public static class StartupReducer
             return result;
         }
 
+        if (state.Session.Startup != StartupPhase.Idle)
+        {
+            // A start already began: this is a switch to another profile, and the target was meant for the first.
+            state = state with { PendingStart = null };
+        }
+
         if (!state.Settings.RestoreTabs)
         {
             return OpenPending(new ReduceResult(WithPhase(state, StartupPhase.AwaitingConnection), result.Effects));

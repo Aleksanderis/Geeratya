@@ -48,7 +48,7 @@ public sealed partial class ApplicationRunner
         $"  {StartArguments.BacklogFlag} <name>    Open a board's backlog.",
         $"  {StartArguments.JqlFlag} <query>       Open a JQL query.",
         $"  {StartArguments.FilterFlag} <name>     Open a saved filter.",
-        $"  {ProfileFlag} <name>          Use this saved profile for this run (the saved active one is unchanged).",
+        $"  {ProfileFlag} <name>          Use this saved profile for this run.",
         "",
         "Options:",
         $"  {ShortHelpFlag}, {HelpFlag}        Print this usage and exit.",

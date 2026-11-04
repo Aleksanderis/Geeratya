@@ -7,6 +7,7 @@ using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
+using Geeratya.Jira.Filters.Models;
 
 namespace Geeratya.Core.Tests.Startup;
 
@@ -124,6 +125,50 @@ public class StartTargetTests
         Assert.Null(state.PendingStart);
         Assert.Equal(_work, state.Profiles.Active);
         Assert.Contains("nope", state.Message);
+    }
+
+    [Fact]
+    public void GivenTabsRememberedAndATarget_WhenTheyArrive_ThenNothingIsSavedAtOnce()
+    {
+        var remembered = new RememberedTabs([new RememberedTab("Jql", "project = A", "List", "A")]);
+        var result = _reducer.Reduce(Begin(Target(StartTargetKind.Issue, "GEN-1")), new TabsLoaded(_work, remembered));
+
+        Assert.DoesNotContain(result.Effects, effect => effect is SaveTabsEffect);
+    }
+
+    [Fact]
+    public void GivenATargetPendingWhileTabsLoad_WhenTheProfileSwitches_ThenTheTargetIsDropped()
+    {
+        var started = Begin(Target(StartTargetKind.Jql, "project = A"));
+        var switched = StartupReducer.Begin(new ReduceResult(started with { Session = started.Session with { Startup = StartupPhase.Done } }, []));
+        var result = _reducer.Reduce(switched.State, new TabsLoaded(_work, RememberedTabs.Empty));
+
+        Assert.Empty(result.State.Session.Tabs);
+    }
+
+    [Fact]
+    public void GivenABacklogTarget_WhenTheBoardListArrives_ThenTheBacklogOpens()
+    {
+        var loaded = _reducer.Reduce(Begin(Target(StartTargetKind.Backlog, "GCM")), new TabsLoaded(_work, RememberedTabs.Empty));
+        var boards = new BoardSummary[] { new(4, "GCM board", BoardType.Kanban, "GCM"), new(3, "GTM board", BoardType.Simple, "GTM") };
+        var result = _reducer.Reduce(loaded.State, new BoardsLoaded(boards));
+
+        var tab = Assert.Single(result.State.Session.Tabs);
+        Assert.Equal(ViewSourceKind.Backlog, tab.Definition.Source);
+    }
+
+    [Fact]
+    public void GivenAFilterTarget_WhenTheFilterListArrives_ThenTheFilterOpensAndAMissOnesLeavesANotice()
+    {
+        var filters = new SavedFilter[] { new("10", "My open bugs", "type = Bug", null, false, null) };
+        var hit = _reducer.Reduce(Begin(Target(StartTargetKind.Filter, "My open")), new TabsLoaded(_work, RememberedTabs.Empty));
+        var opened = _reducer.Reduce(hit.State, new FiltersLoaded(filters));
+        var miss = _reducer.Reduce(Begin(Target(StartTargetKind.Filter, "zzz")), new TabsLoaded(_work, RememberedTabs.Empty));
+        var missed = _reducer.Reduce(miss.State, new FiltersLoaded(filters));
+
+        Assert.Equal(ViewSourceKind.SavedFilter, Assert.Single(opened.State.Session.Tabs).Definition.Source);
+        Assert.Empty(missed.State.Session.Tabs);
+        Assert.Contains("zzz", missed.State.Picker!.Notice);
     }
 
     private static AppState Initial()
