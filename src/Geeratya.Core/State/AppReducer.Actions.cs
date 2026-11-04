@@ -11,6 +11,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Links;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
@@ -67,7 +68,11 @@ public sealed partial class AppReducer
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state, at),
+            ActionIds.Cancel when state.Editor is null && PaneActions.LeaveZoom(state) is { } unzoomed
+                => Result(unzoomed with { Message = null }),
             ActionIds.Cancel => state.Editor is null ? Result(ToNormal(Escaped(state))) : CommentEditing.Cancel(state),
+            ActionIds.PaneFocusLeft or ActionIds.PaneFocusDown or ActionIds.PaneFocusUp or ActionIds.PaneFocusRight
+                or ActionIds.PaneZoom => InNormal(state, () => Result(PaneActions.Apply(state, action) ?? state)),
             ActionIds.SelectionVisual => InNormal(state, () => SelectionActions.ToggleVisual(state)),
             ActionIds.SelectionMark => InNormal(state, () => SelectionActions.ToggleMark(state, true)),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),

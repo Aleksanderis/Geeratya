@@ -2,6 +2,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Views;
 
@@ -129,6 +130,7 @@ public static class InputRouting
             && state.Count == 0
             && state.Status is null
             && state.Message is null
+            && !PaneActions.IsZoomed(state)
             && ViewReducer.CanGoBack(state);
     }
 }

@@ -111,9 +111,9 @@ The estimate has no key of its own: `:estimate` opens the form limited to the es
 
 Checks against the M1 keys (the generated conflict test is the proof when rows are added): `v`, `Alt-h/j/k/l` and `Alt-m` are new; `Alt-1` to `Alt-9` are untouched; `<space>i m s k v n x *` are free and none of the planned sequences is a prefix of an M1 leaf or of another binding. `v` keeps vim's Visual meaning. The `Alt-` board keys are Normal mode only.
 
-### Panes and zoom (planned, M7)
+### Panes and zoom (model built in #701, screens in #702)
 
-Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
+The pane model (focus over a grid, zoom, inner scroll, the keys below) is built and a tab without a pane grid ignores the keys; the screens that use it come with #702. Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board cards and forms". The generated `keymap.md` follows the default key file once the pane issue lands.
 
 | Key | Action id | Does | Context |
 |---|---|---|---|
@@ -124,7 +124,7 @@ Layout and behaviour: `ux-screens.md`, "Pane layout for the issue detail, board 
 | `<space>z` | `pane.zoom` | Zoom the focused pane, again to leave (`Esc` also leaves) | Normal, detail |
 | `Down` `Ctrl-j` / `Up` `Ctrl-k` | `picker.next` / `picker.previous` | Choose in a dropdown or suggestion list | Insert, popups |
 
-`Alt-h/j/k/l` stay card move and rank. The detail drops `]]`/`[[` (`detail.section-next`/`detail.section-previous`); the Scrum backlog keeps them. `Ctrl-h` is Backspace in terminals without an enhanced keyboard protocol: `Ctrl-w h` is the fallback there.
+`Alt-h/j/k/l` stay card move and rank. The detail drops `]]`/`[[` (`detail.section-next`/`detail.section-previous`); the Scrum backlog keeps them. `Ctrl-h` is Backspace in terminals without an enhanced keyboard protocol: `Ctrl-w h` is the fallback there (`Ctrl-Backspace` is bound too). **Against the Insert rows** (decision 2026-11-04, #701): the pane rows are Normal mode; a form in its navigate state takes `Ctrl-h/j/k/l` as pane focus when the tab has panes (otherwise `Ctrl-j/k` step the field as before), and a form being edited, a dropdown and the suggestion popup keep `Ctrl-j/k` as `picker.next`/`picker.previous` and `Ctrl-l` as `form.next`; `Ctrl-w` chords work in Normal mode only.
 
 ### Selection and counts
 

@@ -39,6 +39,11 @@ public static class ActionIds
     public const string SectionNext = "detail.section-next";
     public const string SectionPrevious = "detail.section-previous";
     public const string SectionToggle = "section.toggle";
+    public const string PaneFocusLeft = "pane.focus-left";
+    public const string PaneFocusDown = "pane.focus-down";
+    public const string PaneFocusUp = "pane.focus-up";
+    public const string PaneFocusRight = "pane.focus-right";
+    public const string PaneZoom = "pane.zoom";
     public const string TabNext = "tab.next";
     public const string TabPrevious = "tab.previous";
     public const string TabLastActive = "tab.last-active";
