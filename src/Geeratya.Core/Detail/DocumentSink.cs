@@ -31,6 +31,13 @@ internal sealed class DocumentSink
     /// </summary>
     public string? Only { get; set; }
 
+    /// <summary>
+    /// The inner scroll of the zoomed pane: when set and the zoomed pane's content is longer than
+    /// <see cref="PaneWindow.Rows"/>, only that window of it is laid out, with a scrollbar and a position chip (#740).
+    /// Null lays the pane out in full.
+    /// </summary>
+    public PaneWindow? Window { get; set; }
+
     /// <summary>The panels offered to the section strip, in order, with the title text each has.</summary>
     public List<StripSection> Strip { get; } = [];
 
@@ -66,6 +73,13 @@ internal sealed class DocumentSink
 
         var start = Lines.Count;
         var framed = width >= Panel.MinFramedWidth;
+
+        if (Only is not null && Window is { } window && scroll is null && framed && content.Lines.Count > window.Rows)
+        {
+            scroll = new PaneScroll(window.Offset, content.Lines.Count, window.Rows);
+            content = content.Slice(scroll.ClampedOffset, window.Rows);
+            right = [new StyledSpan(scroll.Chip(), TextRole.Muted)];
+        }
 
         _ids.Add(id);
         Panel.Add(Lines, title, content.Lines, width, right);
@@ -160,6 +174,39 @@ internal sealed class PanelContent
         }
 
         Blocks.Add(new LineBlock(start, Lines.Count));
+    }
+
+    /// <summary>
+    /// The <paramref name="count"/> content lines from <paramref name="first"/>, with their targets; a block or a
+    /// skipped line is cut to the window.
+    /// </summary>
+    public PanelContent Slice(int first, int count)
+    {
+        var end = Math.Min(Lines.Count, first + count);
+        var window = new PanelContent();
+
+        for (var line = first; line < end; line++)
+        {
+            window.Add(Lines[line], Targets[line]);
+
+            if (Skipped.Contains(line))
+            {
+                window.Skipped.Add(line - first);
+            }
+        }
+
+        foreach (var block in Blocks)
+        {
+            var start = Math.Max(block.Start, first);
+            var stop = Math.Min(block.End, end);
+
+            if (start < stop)
+            {
+                window.Blocks.Add(new LineBlock(start - first, stop - first));
+            }
+        }
+
+        return window;
     }
 
     /// <summary>Appends a line the cursor skips.</summary>

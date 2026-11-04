@@ -37,6 +37,11 @@ internal static partial class DetailReducer
             return inComments;
         }
 
+        if (MoveInZoomedPane(state, tab, move, viewport) is { } inZoomed)
+        {
+            return inZoomed;
+        }
+
         var target = Target(document, top.Cursor, move, viewport);
 
         return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
@@ -222,6 +227,8 @@ internal static partial class DetailReducer
         var width = columns > 0 ? columns : DetailLayout.DefaultWidth;
         var viewport = DetailLayout.ViewportRows(listRows);
         var row = commentsRow ?? FollowedCommentsRow(detail, width);
+        detail = ZoomWindowKept(detail, width, viewport);
+
         var document = IssueDocumentBuilder.Build(detail, width, viewport);
 
         // The zoomed pane is gone (its data went away): the zoom ends and the full layout shows.

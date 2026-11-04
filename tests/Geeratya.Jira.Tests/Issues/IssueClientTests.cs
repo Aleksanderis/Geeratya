@@ -39,6 +39,33 @@ public sealed class IssueClientTests
         Assert.Equal("https://example.atlassian.net/rest/api/3/attachment/content/10003", attachment.ContentUrl);
     }
 
+    [Theory]
+    [InlineData("GCM-10", "issues/issue-gcm10.json", "2026-12-31")]
+    [InlineData("GTM-11", "issues/issue-gtm11.json", null)]
+    [InlineData("GTM-9", "issues/issue-gtm9.json", null)]
+    public async Task GivenSetNullOrMissingDueDate_WhenGetting_ThenItIsMappedOrNull(
+        string key,
+        string file,
+        string? due)
+    {
+        using var fixture = Serving(key, file);
+
+        var result = await new IssueClient(fixture.Transport).GetIssueAsync(key, CancellationToken.None);
+
+        var expected = due is null ? (DateOnly?)null : new DateOnly(2026, 12, 31);
+        Assert.Equal(expected, result.Value.DueDate);
+    }
+
+    [Fact]
+    public async Task GivenDetailRead_WhenGetting_ThenDueDateIsRequested()
+    {
+        using var fixture = Serving("GTM-11", "issues/issue-gtm11.json");
+
+        await new IssueClient(fixture.Transport).GetIssueAsync("GTM-11", CancellationToken.None);
+
+        Assert.Contains("duedate", Assert.Single(fixture.Handler.Requests).PathAndQuery);
+    }
+
     [Fact]
     public async Task GivenLinksInBothDirections_WhenGetting_ThenDirectionTextFollowsTheSidePresent()
     {

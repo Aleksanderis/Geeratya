@@ -62,6 +62,12 @@ public static class IssueDocumentBuilder
         var inner = Panel.InnerWidth(columns);
         var sink = new DocumentSink { Only = detail.Zoomed };
 
+        // An editor in a zoomed pane sizes itself to the pane; the scroll window of #740 is for read-only text.
+        if (detail.Zoomed is not (null or PaneIds.Comments) && edit is null && viewportRows is { } shown)
+        {
+            sink.Window = new PaneWindow(detail.ZoomOffset, Math.Max(1, shown - Panel.EdgeRows));
+        }
+
         AddTitle(sink, detail, columns, inner, edit);
 
         if (detail.Issue is null && detail.IssueLoad is Failed failed)

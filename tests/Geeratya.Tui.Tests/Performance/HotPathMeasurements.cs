@@ -152,6 +152,7 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
             Board = layout == ViewLayout.Columns ? _configuration : null,
             SelectedKey = rows[0].Key,
             KeyWidth = 7,
+            ViewWidth = Width,
         };
     }
 
