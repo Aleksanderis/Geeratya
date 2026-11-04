@@ -25,8 +25,8 @@ public class CardRowsTests
     {
         var row = Row(["alpha", "beta"], 40);
 
-        var chips = row.Where(span => span.Text.StartsWith('[')).ToList();
-        Assert.Equal(["[alpha]", "[beta]"], chips.Select(span => span.Text));
+        var chips = row.Where(static span => span.Text.StartsWith(' ') && span.Text.Trim().Length > 0).ToList();
+        Assert.Equal([" alpha ", " beta "], chips.Select(span => span.Text));
         Assert.Equal(LabelChips.For("alpha"), chips[0].Role);
         Assert.Equal(LabelChips.For("beta"), chips[1].Role);
         Assert.DoesNotContain(row, span => span.Text.Contains('+'));
@@ -35,10 +35,10 @@ public class CardRowsTests
     [Fact]
     public void GivenMoreLabelsThanFit_WhenBuildingTheRow_ThenTheRestIsCountedAsPlusN()
     {
-        var chips = new List<CardLabelChip> { new("alpha", "[alpha]"), new("beta", "[beta]") };
+        var chips = new List<CardLabelChip> { new("alpha", " alpha "), new("beta", " beta ") };
         var row = CardRows.Labels(new CardLabelRow(chips, 2), 22);
 
-        Assert.Equal("[alpha] [beta] +2", Text(row).TrimEnd());
+        Assert.Equal(" alpha   beta  +2", Text(row).TrimEnd());
         Assert.Equal(TextRole.Muted, row.Single(span => span.Text.Contains('+')).Role);
     }
 
@@ -47,7 +47,7 @@ public class CardRowsTests
     {
         var row = Row(["a-very-long-label-name"], 12);
 
-        Assert.Equal("[a-very-lo…]", Text(row).TrimEnd());
+        Assert.Equal(" a-very-lo… ", Text(row)[..12]);
     }
 
     [Theory]

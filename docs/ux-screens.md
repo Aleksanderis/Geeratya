@@ -170,17 +170,17 @@ One column per board column, in the order of the board configuration. Never assu
 │ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
 │ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
 │ ┃               ┃ │ │               │ │ │               │ │ │              │ │
-│ ┃ [geeratya-s…] ┃ │ │ [geeratya-s…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
-│ ┃ [geeratya-s…] ┃ │ │ [geeratya-s…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ ┃  geeratya-s…  ┃ │ │  geeratya-s…  │ │ │  geeratya-s…  │ │ │  geeratya-…  │ │
+│ ┃  geeratya-s…  ┃ │ │  geeratya-s…  │ │ │  geeratya-s…  │ │ │  geeratya-…  │ │
 │ ┃               ┃ │ │               │ │ │               │ │ │              │ │
 │ ┃ GTM-9  Epic   ┃ │ │ GTM-10  Epic  │ │ │ GTM-21  Task  │ │ │ GTM-13  Sto… │ │
 │ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
 │ │   Welcome     │ │ │   Pick a      │ │ ┌───────────────┐ │ ┌──────────────┐ │
 │ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
 │ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
-│ │   [geeratya…] │ │ │   [geeratya…] │ │ │               │ │ │              │ │
-│ │   [geeratya…] │ │ │   [geeratya…] │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
-│ │               │ │ │               │ │ │ [geeratya-s…] │ │ │ [geeratya-…] │ │
+│ │    geeratya…  │ │ │    geeratya…  │ │ │               │ │ │              │ │
+│ │    geeratya…  │ │ │    geeratya…  │ │ │  geeratya-s…  │ │ │  geeratya-…  │ │
+│ │               │ │ │               │ │ │  geeratya-s…  │ │ │  geeratya-…  │ │
 │ │   GTM-12  S   │ │ │   GTM-15  T   │ │ │               │ │ │              │ │
 │ ├───────────────┤ │ └───────────────┘ │ │ GTM-22  Story │ │ │ GTM-16  Task │ │
 │                   │                   │ └───────────────┘ │ └──────────────┘ │
@@ -363,8 +363,8 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 ```text
 ╭─ IN PROGRESS ────────── 2 / 3 limit ─╮
 │ Seed: Reporting overhaul             │
-│ [geeratya-seed]                      │
-│ [geeratya-seed-GEN-epic-reporting]   │
+│  geeratya-seed                       │
+│  geeratya-seed-GEN-epic-reporting    │
 │ GEN-1  Bug                    = [GR] │
 │                                      │
 │ Generated issue 6                    │

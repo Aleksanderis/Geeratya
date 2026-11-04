@@ -18,7 +18,7 @@ public class CardLabelLayoutTests
         var rows = CardLabelLayout.Rows(["alpha", "beta"], 40);
 
         var row = Assert.Single(rows);
-        Assert.Equal(["[alpha]", "[beta]"], row.Chips.Select(static chip => chip.Text));
+        Assert.Equal([" alpha ", " beta "], row.Chips.Select(static chip => chip.Text));
         Assert.Equal(0, row.Hidden);
     }
 
@@ -28,8 +28,8 @@ public class CardLabelLayoutTests
         var rows = CardLabelLayout.Rows(["alpha", "beta", "gamma", "delta"], 22);
 
         Assert.Equal(2, rows.Count);
-        Assert.Equal(["[alpha]", "[beta]", "[gamma]"], rows[0].Chips.Select(static chip => chip.Text));
-        Assert.Equal(["[delta]"], rows[1].Chips.Select(static chip => chip.Text));
+        Assert.Equal([" alpha ", " beta ", " gamma "], rows[0].Chips.Select(static chip => chip.Text));
+        Assert.Equal([" delta "], rows[1].Chips.Select(static chip => chip.Text));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class CardLabelLayoutTests
     {
         var rows = CardLabelLayout.Rows(["a-very-long-label-name"], 12);
 
-        Assert.Equal("[a-very-lo…]", Assert.Single(Assert.Single(rows).Chips).Text);
+        Assert.Equal(" a-very-lo… ", Assert.Single(Assert.Single(rows).Chips).Text);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class CardLabelLayoutTests
         var rows = CardLabelLayout.Rows(["aaaa", "bbbb", "cccc"], 6);
 
         var row = Assert.Single(rows);
-        Assert.Equal(["[aaaa]"], row.Chips.Select(static chip => chip.Text));
+        Assert.Equal([" aaaa "], row.Chips.Select(static chip => chip.Text));
         Assert.Equal(0, row.Hidden);
     }
 

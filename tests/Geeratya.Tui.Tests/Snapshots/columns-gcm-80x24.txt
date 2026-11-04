@@ -4,17 +4,17 @@
 │ ┏━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌──────────────────────┐ │ ┌─ ↑ GCM-10 Sign u… ─┐ │
 │ ┃ Seed: Onboarding     ┃ │ │ Seed: Reporting      │ │ │ Build the form     │ │
 │ ┃ flow                 ┃ │ │                      │ │ │                    │ │
-│ ┃                      ┃ │ │ [geeratya-seed]      │ │ │ [geeratya-seed]    │ │
-│ ┃ [geeratya-seed]      ┃ │ │ [geeratya-seed-GCM…] │ │ │ [geeratya-seed-G…] │ │
-│ ┃ [geeratya-seed-GCM…] ┃ │ │                      │ │ │                    │ │
+│ ┃                      ┃ │ │  geeratya-seed       │ │ │  geeratya-seed     │ │
+│ ┃  geeratya-seed       ┃ │ │  geeratya-seed-GCM…  │ │ │  geeratya-seed-G…  │ │
+│ ┃  geeratya-seed-GCM…  ┃ │ │                      │ │ │                    │ │
 │ ┃                      ┃ │ │ GCM-9  Epic   = [--] │ │ │ GCM-18  Sub-… [--] │ │
 │ ┃ GCM-8  Epic   = [--] ┃ │ ├──────────────────────┤ │ └────────────────────┘ │
 │ ┣━━━━━━━━━━━━━━━━━━━━━━┫ │ │   Pick a chart       │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
 │ │   Welcome screen     │ │ │   library            │ │ │ Export report as   │ │
 │ │                      │ │ │                      │ │ │ CSV                │ │
-│ │   [geeratya-seed]    │ │ │   [geeratya-seed]    │ │ │                    │ │
-│ │   [geeratya-seed-G…] │ │ │   [geeratya-seed-G…] │ │ │ [geeratya-seed]    │ │
-│ │                      │ │ │                      │ │ │ [geeratya-seed-G…] │ │
+│ │    geeratya-seed     │ │ │    geeratya-seed     │ │ │                    │ │
+│ │    geeratya-seed-G…  │ │ │    geeratya-seed-G…  │ │ │  geeratya-seed     │ │
+│ │                      │ │ │                      │ │ │  geeratya-seed-G…  │ │
 │ │   GCM-11  Story [--] │ │ │   GCM-14  Task  [--] │ │ │                    │ │
 │ ├──────────────────────┤ │ └──────────────────────┘ │ │ GCM-12  Story [--] │ │
 │                          │                          │ └────────────────────┘ │

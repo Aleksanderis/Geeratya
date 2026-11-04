@@ -139,11 +139,11 @@ public static class PaletteTable
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.Chip),
         [PaletteRole.OverlayCount] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
-        [PaletteRole.LabelChip0] = Chip(ThemeColor.Accent),
-        [PaletteRole.LabelChip1] = Chip(ThemeColor.Good),
-        [PaletteRole.LabelChip2] = Chip(ThemeColor.Remote),
-        [PaletteRole.LabelChip3] = Chip(ThemeColor.Warn),
-        [PaletteRole.LabelChip4] = Chip(ThemeColor.Info),
+        [PaletteRole.LabelChip0] = LabelChip(ThemeColor.Accent),
+        [PaletteRole.LabelChip1] = LabelChip(ThemeColor.Good),
+        [PaletteRole.LabelChip2] = LabelChip(ThemeColor.Remote),
+        [PaletteRole.LabelChip3] = LabelChip(ThemeColor.Warn),
+        [PaletteRole.LabelChip4] = LabelChip(ThemeColor.Info),
         [PaletteRole.InitialsChip] = Chip(ThemeColor.Muted),
         [PaletteRole.UnassignedChip] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.ValueBlock] = new(ThemeColor.BaseForeground, ThemeColor.Selection, RoleStyle.None),
@@ -327,6 +327,13 @@ public static class PaletteTable
     private static RoleSpec Chip(ThemeColor fill)
     {
         return new RoleSpec(ThemeColor.BaseBackground, fill, RoleStyle.Bold, RoleGround.Chip);
+    }
+
+    // A label chip has no brackets, so without colour the chip is reversed and underlined (the underline stays visible
+    // on a selected card, which is reversed as a whole); the colour tiers drop both and keep the fill.
+    private static RoleSpec LabelChip(ThemeColor fill)
+    {
+        return Chip(fill) with { Style = RoleStyle.Bold | RoleStyle.Reverse | RoleStyle.Underline };
     }
 
     private static Ansi16Color Foreground16(Theme theme, RoleSpec spec)

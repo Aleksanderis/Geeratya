@@ -38,6 +38,27 @@ public class PaletteTests
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
 
     [Theory]
+    [InlineData(PaletteRole.LabelChip0)]
+    [InlineData(PaletteRole.LabelChip3)]
+    public void GivenNoColour_WhenResolvingALabelChip_ThenItIsReversedAndUnderlinedOnlyThere(PaletteRole role)
+    {
+        var theme = BuiltInThemes.Default;
+        var plain = Palette.Resolve(theme, ColorSupport.None, role).Style;
+        var selected = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Selected).Style;
+
+        Assert.True(plain.HasFlag(RoleStyle.Reverse | RoleStyle.Underline));
+        Assert.NotEqual(selected, plain);
+
+        foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16 })
+        {
+            var style = Palette.Resolve(theme, tier, role).Style;
+
+            Assert.False(style.HasFlag(RoleStyle.Reverse));
+            Assert.False(style.HasFlag(RoleStyle.Underline));
+        }
+    }
+
+    [Theory]
     [MemberData(nameof(ThemesAndTiers))]
     public void GivenBuiltInThemeAndTier_WhenResolvingEveryRole_ThenContrastMeetsTheRequiredRatio(
         string name,
