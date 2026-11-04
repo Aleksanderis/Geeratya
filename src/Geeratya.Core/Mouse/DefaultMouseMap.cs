@@ -154,6 +154,7 @@ public static class DefaultMouseMap
     {
         const string pointing = "motion: the pointer places the cursor and the wheel scrolls";
         const string helpScroll = "scrolls the help page by half a page or to an end; the wheel rows cover the line scroll (the section names are clickable)";
+        const string paneClick = "a click inside a pane focuses it; the click rows come with the pane screens (#702, #703)";
         const string tabClick = "a click on tab N (Tabs row)";
 
         var exclusions = new Dictionary<string, string>
@@ -187,6 +188,11 @@ public static class DefaultMouseMap
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
             [ActionIds.PickerOpenNewTab] = "the sprint picker only: a click on a row opens it like Enter, the key adds the new tab",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
+            [ActionIds.PaneFocusLeft] = paneClick,
+            [ActionIds.PaneFocusDown] = paneClick,
+            [ActionIds.PaneFocusUp] = paneClick,
+            [ActionIds.PaneFocusRight] = paneClick,
+            [ActionIds.PaneZoom] = "the zoom chip of a pane (a click on it) comes with the pane screens (#702); its palette row runs it meanwhile",
             [ActionIds.RowJump] = "its palette row (click the status line, then the row) runs it",
         };
 

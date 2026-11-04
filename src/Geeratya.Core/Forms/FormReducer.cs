@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Panes;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
@@ -120,6 +121,13 @@ public static partial class FormReducer
         KeymapTable keymap)
     {
         var motion = keymap.Resolve(InputMode.Normal, string.Empty, key).Action;
+
+        // Pane focus first (decision 2026-11-04, "pane keys in forms"): with panes on the tab, Ctrl-h/j/k/l move
+        // between panes; without them the keys keep their old meaning below (Ctrl-j/k step the field).
+        if (PaneActions.Apply(state, motion) is { } focused)
+        {
+            return Result(focused);
+        }
 
         if (action == ActionIds.FormFieldNext || motion == ActionIds.NavigateDown || action == ActionIds.PickerNext)
         {

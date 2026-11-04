@@ -9,6 +9,7 @@
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog or    │           │
 │           │               │              issue section                                                   │           │
+│           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
@@ -29,8 +30,7 @@
 │           │               │   J          Scroll help down a line                                         │           │
 │           │               │   K          Scroll help up a line                                           │           │
 │           │               │   D          Scroll help down half a page  (Ctrl-d)                          │           │
-│           │               │   U          Scroll help up half a page  (Ctrl-u)                            │           │
-│           │               │   gg         Scroll help to the top                                         ▼│           │
+│           │               │   U          Scroll help up half a page  (Ctrl-u)                           ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -14,6 +14,7 @@
 ├─ Comments │                │   [[         Previous section of the issue or the Scrum backlog             │───────────┤
 │ Loading…  │                │   za         Expand or collapse sub-tasks of a card, or fold a backlog or   │           │
 ╰───────────│                │              issue section                                                  │───────────╯
+            │                │   <space>z   Zoom the focused pane, or leave the zoom                       │            
             │                │   <space>o   Open the issue in the browser                                  │            
             │                │   <space>p   Open the parent issue                                          │            
             │                │   <space>ie  Edit fields of the issue (summary, labels, priority,           │            
@@ -25,7 +26,6 @@
             │                │   <space>j   Jump to a visible row (type text, press the letter on the row) │            
             │                │   <space>ma  Add a comment to the issue                                     │            
             │                │   <space>me  Edit the comment under the cursor                              │            
-            │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            

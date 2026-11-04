@@ -1,6 +1,7 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Panes;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
@@ -203,6 +204,12 @@ public sealed record TabState(
     /// remembered tab definitions.
     /// </summary>
     public string? Name { get; init; }
+
+    /// <summary>
+    /// The panes of the tab: focus, zoom and inner scrolls (<c>docs/ux-screens.md</c>, "Panes, focus and zoom"). No
+    /// panes until a screen sets a grid, so screens that do not use panes are unaffected.
+    /// </summary>
+    public PaneState Panes { get; init; } = PaneState.None;
 
     /// <summary>The rows held, counting <see cref="PendingRows"/>.</summary>
     public int HeldRows => Rows.Count + (PendingRows?.Count ?? 0);

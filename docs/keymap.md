@@ -34,6 +34,16 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `]]` | Next section of the issue or the Scrum backlog | `detail.section-next` | everyday |
 | `[[` | Previous section of the issue or the Scrum backlog | `detail.section-previous` | everyday |
 | `za` | Expand or collapse sub-tasks of a card, or fold a backlog or issue section | `section.toggle` | everyday |
+| `Ctrl-h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
+| `Ctrl-Backspace` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
+| `Ctrl-w h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | advanced |
+| `Ctrl-j` | Focus the pane below | `pane.focus-down` | advanced |
+| `Ctrl-w j` | Focus the pane below | `pane.focus-down` | advanced |
+| `Ctrl-k` | Focus the pane above | `pane.focus-up` | advanced |
+| `Ctrl-w k` | Focus the pane above | `pane.focus-up` | advanced |
+| `Ctrl-l` | Focus the pane to the right (zoomed: the next section) | `pane.focus-right` | advanced |
+| `Ctrl-w l` | Focus the pane to the right (zoomed: the next section) | `pane.focus-right` | advanced |
+| `<space>z` | Zoom the focused pane, or leave the zoom | `pane.zoom` | everyday |
 | `Tab` | Next tab | `tab.next` | everyday |
 | `gt` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |

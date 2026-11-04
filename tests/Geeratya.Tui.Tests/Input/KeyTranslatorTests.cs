@@ -21,6 +21,13 @@ public class KeyTranslatorTests
     }
 
     [Fact]
+    public void GivenCtrlBackspace_WhenTranslating_ThenItIsDistinctFromBackspaceForThePaneKey()
+    {
+        Assert.Equal("Ctrl-Backspace", KeyTranslator.Translate(new Key(KeyCode.Backspace | KeyCode.CtrlMask)));
+        Assert.Equal("Backspace", KeyTranslator.Translate(new Key(KeyCode.Backspace)));
+    }
+
+    [Fact]
     public void GivenCtrlEnter_WhenTranslating_ThenCtrlJ()
     {
         Assert.Equal("Ctrl-j", KeyTranslator.Translate(new Key(KeyCode.Enter | KeyCode.CtrlMask)));

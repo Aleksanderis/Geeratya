@@ -3,7 +3,6 @@
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │                                                                                                                      │
 │                                                                                                                      │
-│                                                                                                                      │
 │                                           ╭─ <space> ────────────────────────────────────────────────────────────────╮
 │                                           │ Tab                                                                      │
 │                                           │ c         Close the tab                                                  │
@@ -27,6 +26,7 @@
 │                                           │ Other                                                                    │
 │                                           │ j         Jump to a visible row (type text, press the letter on the row) │
 │                                           │ ,         Open or close the settings screen                              │
+│                                           │ z         Zoom the focused pane, or leave the zoom                       │
 │                                           │ More                                                                     │
 │                                           │ m         +comment (2)                                                   │
 │                                           │ i         +issue (6)                                                     │
