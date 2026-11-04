@@ -48,6 +48,26 @@ public class WhichKeyOverlayTests
     }
 
     [Fact]
+    public void GivenAShortWideBody_WhenComposing_ThenRowsFlowIntoColumnsAndNothingIsCut()
+    {
+        var text = string.Join('\n', Build(Opened("Space"), 160, 24));
+
+        Assert.Contains("more", string.Join('\n', WhichKeyOverlay.Rows("Space", _keymap, 5)));
+        Assert.DoesNotContain("more", text);
+
+        foreach (var next in _keymap.NextKeys(InputMode.Normal, "Space").Where(next => next.Action is not null))
+        {
+            Assert.Contains($"{next.Key,-10}{ActionCatalog.FindTitle(next.Action!)![..4]}", text);
+        }
+    }
+
+    [Fact]
+    public void GivenAShortNarrowBody_WhenComposing_ThenColumnsDoNotFitAndAMoreRowEndsTheList()
+    {
+        Assert.Contains("more", string.Join('\n', Build(Opened("Space"), 40, 8)));
+    }
+
+    [Fact]
     public void GivenAPopupTooShortForBlankRows_WhenBuilding_ThenTheBlankRowsAreDropped()
     {
         var full = WhichKeyOverlay.Rows("Space", _keymap);

@@ -75,6 +75,7 @@ all_scenarios=(
   "link-unlink-confirm;120;36;dark;:jql key = GTM-11||]]]]jj iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
+  "which-key-columns;160;24;dark;:jql project = GCM| ;+issue"
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"
   "profile-add;120;36;dark;:profile add|work|https://example.atlassian.net|me@example.com|hidden-token;Add profile"
   "profile-edit;120;36;dark;:profile edit|;Edit profile"

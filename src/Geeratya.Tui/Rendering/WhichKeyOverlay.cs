@@ -7,8 +7,8 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>
 /// The which-key popup: while a multi-key binding is half typed in Normal mode, a box at the bottom right of the body
 /// lists the keys that continue it. Keys and labels come from the keymap and <see cref="ActionCatalog"/>, never from
-/// text of its own. Rows beyond the box height are cut. Pure. Opens 250 ms after the first pending key; switched off by
-/// <c>:set hints.whichKey off</c>.
+/// text of its own. A list taller than the box is split into columns; only when columns do not fit either are rows cut.
+/// Pure. Opens 250 ms after the first pending key; switched off by <c>:set hints.whichKey off</c>.
 /// </summary>
 public static class WhichKeyOverlay
 {
@@ -17,6 +17,7 @@ public static class WhichKeyOverlay
     private const int MinimumBoxHeight = 3;
     private const int KeyColumn = 10;
     private const int ChromeColumns = 4;
+    private const int ColumnGap = 3;
 
     /// <summary>
     /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
@@ -80,9 +81,13 @@ public static class WhichKeyOverlay
         int width,
         int height)
     {
-        var rows = Lines(state.PendingKeys, keymap, height - 2, state.Settings.CommandLevel);
+        var room = height - 2;
+        var everyRow = Lines(state.PendingKeys, keymap, int.MaxValue, state.Settings.CommandLevel);
+        var columns = everyRow.Count > room ? Columns(everyRow, room, width - ChromeColumns) : null;
+        var rows = columns ?? Lines(state.PendingKeys, keymap, room, state.Settings.CommandLevel);
         var wanted = rows.Count == 0 ? 0 : rows.Max(row => TextWidth.Of(row.PlainText)) + ChromeColumns;
-        var boxWidth = Math.Min(width, Math.Min(MaxBoxWidth, wanted));
+        var cap = columns is null ? MaxBoxWidth : width;
+        var boxWidth = Math.Min(width, Math.Min(cap, wanted));
 
         if (rows.Count == 0 || boxWidth < MinimumBoxWidth || height < MinimumBoxHeight)
         {
@@ -102,6 +107,63 @@ public static class WhichKeyOverlay
         for (var index = 0; index < lines.Count; index++)
         {
             result[top + index] = OverlayBox.Over(result[top + index], lines[index], width - boxWidth, width);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Lays <paramref name="rows"/> out side by side when they are taller than <paramref name="room"/> but fit in
+    /// columns within <paramref name="maxContent"/> columns: blank rows go, the rows fill the columns
+    /// top to bottom. The rows themselves when they fit as they are; null when even columns do not fit (the caller cuts
+    /// the list with a <c>… n more</c> row).
+    /// </summary>
+    internal static IReadOnlyList<StyledLine>? Columns(IReadOnlyList<StyledLine> rows, int room, int maxContent)
+    {
+        if (rows.Count <= room)
+        {
+            return rows;
+        }
+
+        var packed = rows.Where(row => row.Spans.Count > 0).ToList();
+
+        if (room < 1 || packed.Count == 0)
+        {
+            return null;
+        }
+
+        var count = (packed.Count + room - 1) / room;
+        var height = (packed.Count + count - 1) / count;
+        var widths = Enumerable.Range(0, count)
+            .Select(column => packed.Skip(column * height).Take(height).Max(row => TextWidth.Of(row.PlainText)))
+            .ToList();
+
+        if (widths.Sum() + (count - 1) * ColumnGap > maxContent)
+        {
+            return null;
+        }
+
+        var result = new List<StyledLine>();
+
+        for (var row = 0; row < height; row++)
+        {
+            var spans = new List<StyledSpan>();
+
+            for (var column = 0; column < count; column++)
+            {
+                var index = column * height + row;
+                var line = index < packed.Count ? packed[index] : StyledLine.Empty;
+                var used = TextWidth.Of(line.PlainText);
+
+                spans.AddRange(line.Spans);
+
+                if (column < count - 1)
+                {
+                    spans.Add(new StyledSpan(new string(' ', widths[column] - used + ColumnGap), TextRole.Body));
+                }
+            }
+
+            result.Add(new StyledLine(spans));
         }
 
         return result;
