@@ -18,7 +18,7 @@
 │ │ GCM-22  Another child                             In Progress  [--] Unassigned │ │  [ON] Ola Nordmann            │ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │                               │ │
 │ ╭─ Linked issues 2 ──────────────────────────────────────────────────────────────╮ │ Labels                        │ │
-│ │ GCM-30  blocks Launch                                                    To Do │ │  [auth] [bug-bash]            │ │
+│ │ GCM-30  blocks Launch                                                    To Do │ │   auth   bug-bash             │ │
 │ │ GCM-9   is blocked by Legal review                                       Done  │ │                               │ │
 │ ╰────────────────────────────────────────────────────────────────────────────────╯ │ Parent                        │ │
 │ ╭─ Remote links 1 ───────────────────────────────────────────────────────────────╮ │  GCM-17 Reporting overhaul    │ │

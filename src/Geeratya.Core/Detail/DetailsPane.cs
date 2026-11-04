@@ -270,7 +270,7 @@ internal static class DetailsPane
 
         foreach (var label in labels)
         {
-            items.Add([new StyledSpan($"[{TextClean.Of(label)}]", LabelChips.For(label))]);
+            items.Add([new StyledSpan($" {TextClean.Of(label)} ", LabelChips.For(label))]);
         }
 
         return items;

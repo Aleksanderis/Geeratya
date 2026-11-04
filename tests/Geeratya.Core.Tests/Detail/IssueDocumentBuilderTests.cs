@@ -236,8 +236,8 @@ public class IssueDocumentBuilderTests
 
         var lines = Texts(IssueDocumentBuilder.Build(detail, 60));
 
-        Assert.Contains(lines, line => line.StartsWith(" [label-number-1] [label-number-2]"));
-        Assert.Contains(lines, line => line.Contains("[label-number-40]"));
+        Assert.Contains(lines, line => line.StartsWith("  label-number-1   label-number-2 "));
+        Assert.Contains(lines, line => line.Contains("label-number-40"));
         Assert.All(IssueDocumentBuilder.Build(detail, 60).Lines, line => Assert.Equal(60, DisplayWidth.Of(line.PlainText)));
     }
 

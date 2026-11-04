@@ -18,7 +18,7 @@
 │ │ Found it: the redirect target is dropped after the refresh.                    │ │  [ON] Ola Nordmann            │ │
 │ │                                                                                │ │                               │ │
 │ │ 日本語の作者                                                           3 h ago │ │ Labels                        │ │
-│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │  [auth] [bug-bash]            │ │
+│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │   auth   bug-bash             │ │
 │ │                                                                                │ │                               │ │
 │ │ Ola Nordmann                                                         5 min ago │ │ Parent                        │ │
 │ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
