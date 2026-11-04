@@ -145,7 +145,7 @@ internal static partial class DetailReducer
         var scroll = new PaneScroll(detail.CommentsOffset, rows.Count, viewport);
         var revealed = ahead ? scroll.Reveal(CommentRows.EndOf(rows, stop)).Reveal(stop) : scroll.Reveal(stop);
         var moved = detail with { CommentsOffset = revealed.ClampedOffset };
-        var rebuilt = IssueDocumentBuilder.Build(moved, document.Width, document.ViewportRows);
+        var rebuilt = IssueDocumentBuilder.Build(moved, document.Width, document.ViewportRows, rows);
         var first = rebuilt.Sections[section];
         var shown = rebuilt.PaneScrolls[section]?.ClampedOffset ?? 0;
         var laidOut = moved with { Document = rebuilt, Cursor = first + stop - shown };

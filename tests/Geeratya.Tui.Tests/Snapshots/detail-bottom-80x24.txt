@@ -16,7 +16,7 @@
 │ 日本語の作者                                                         3 h ago │
 │ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
 │                                                                              │
-│>Ola Nordmann                                                       5 min ... │
+│>Ola Nordmann                                                   ... 5 min ago │
 │ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯

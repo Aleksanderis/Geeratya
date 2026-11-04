@@ -68,6 +68,34 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheCursorOnACommentBar_WhenBuilding_ThenTheMarkerSitsBeforeTheTimeAndTheTimeStaysWhole()
+    {
+        var state = _reducer.Reduce(Loaded(80, 24), new KeyPressed("G")).State;
+        var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
+        var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
+        var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
+
+        Assert.Contains("Ola Nordmann", line);
+        Assert.Contains("... 5 min ago │", line);
+        Assert.Equal(RowMenuMarker.Text, line.Substring(marker.Left, marker.Width));
+    }
+
+    [Fact]
+    public void GivenCommentRowsBuiltForTheKey_WhenBuildingTheDocument_ThenThosePrebuiltRowsAreUsedNotBuiltAgain()
+    {
+        var loaded = Loaded(80, 24);
+        var top = loaded.Session.Tabs.First(tab => tab.Id == loaded.Session.Active).Detail[^1];
+        var width = top.Document!.Width;
+        var rows = DetailZoom.CommentRowsOf(top, width);
+        var marked = rows.Select(row => row with { Line = StyledLine.Of("PREBUILT", TextRole.Body) }).ToList();
+
+        var document = IssueDocumentBuilder.Build(top, width, top.Document.ViewportRows, marked);
+
+        Assert.Contains(document.Lines, line => line.PlainText.Contains("PREBUILT"));
+        Assert.DoesNotContain(IssueDocumentBuilder.Build(top, width, top.Document.ViewportRows).Lines, line => line.PlainText.Contains("PREBUILT"));
+    }
+
+    [Fact]
     public void GivenCursorMoves_WhenBuilding_ThenOnlyTheFocusedFieldRowCarriesTheMarkerAndEdgesAreSkipped()
     {
         var state = OnField(Loaded(80, 24), DetailFieldIds.Status);
