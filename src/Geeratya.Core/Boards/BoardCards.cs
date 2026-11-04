@@ -45,10 +45,9 @@ public static class BoardCards
     }
 
     /// <summary>
-    /// How many cards a column is sure to show at once: cards differ in height (<see cref="BoardCardPlan"/>), so a
-    /// full card is counted at its tallest. The columns usually draw more (<see cref="BoardColumnLayout"/> places
-    /// them by their real height), never fewer, so a cursor inside this window is always drawn. Zero while there is no
-    /// room.
+    /// How many one-line cards a column shows at once (compact), or a lower bound of full cards counted at the
+    /// tallest. Scrolling uses the real heights (<see cref="BoardScroll"/>); this stays for the compact layout and
+    /// as the bound where no width is known. Zero while there is no room.
     /// </summary>
     public static int Visible(int visibleRows, int headerRows)
     {

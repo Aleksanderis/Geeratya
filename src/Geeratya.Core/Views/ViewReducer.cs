@@ -72,7 +72,10 @@ public static partial class ViewReducer
         var sequence = state.Sequence;
         var id = new TabId(++sequence);
         var requestId = ++sequence;
-        var tab = TabState.Opened(id, definition, requestId, ++sequence, state.ViewportRows);
+        var tab = TabState.Opened(id, definition, requestId, ++sequence, state.ViewportRows) with
+        {
+            ViewWidth = state.ViewportColumns,
+        };
         var tabs = Stamp(state.Session.Tabs, state.Session.Active, ++sequence);
 
         effects.Add(new LoadViewPageEffect(id, definition, null, requestId, LoadReason.Open, false));

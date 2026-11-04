@@ -111,6 +111,16 @@ public class ColumnsLayoutKeysTests
     }
 
     [Fact]
+    public void GivenAReportedViewport_WhenOpeningAViewAfterwards_ThenTheNewTabHasTheReportedWidth()
+    {
+        var sized = _reducer.Reduce(Start(), new ViewportChanged(29, 120)).State;
+        var opened = _reducer.Reduce(sized, new ViewOpenRequested(new ViewDefinition(
+            ViewSourceKind.Board, "4", ViewLayout.Columns, "Board"))).State;
+
+        Assert.Equal(120, Tab(opened).ViewWidth);
+    }
+
+    [Fact]
     public void GivenGrowingTerminal_WhenTheWidthChanges_ThenTheTabRemembersTheNewWidth()
     {
         var sized = _reducer.Reduce(Loaded(Issues("1:A-1")), new ViewportChanged(20, 100)).State;

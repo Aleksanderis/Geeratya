@@ -185,7 +185,10 @@ public static partial class ViewReducer
         foreach (var entry in restored)
         {
             var id = new TabId(++sequence);
-            var opened = TabState.Opened(id, entry.Definition, 0, ++sequence, state.ViewportRows);
+            var opened = TabState.Opened(id, entry.Definition, 0, ++sequence, state.ViewportRows) with
+            {
+                ViewWidth = state.ViewportColumns,
+            };
 
             tabs.Add(
                 opened with
