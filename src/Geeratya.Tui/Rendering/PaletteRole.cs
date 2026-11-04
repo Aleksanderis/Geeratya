@@ -57,4 +57,13 @@ public enum PaletteRole
     ChipFocus,
     Range,
     OverlayCount,
+    LabelChip0,
+    LabelChip1,
+    LabelChip2,
+    LabelChip3,
+    LabelChip4,
+    InitialsChip,
+    UnassignedChip,
+    ValueBlock,
+    SelectionBar,
 }
