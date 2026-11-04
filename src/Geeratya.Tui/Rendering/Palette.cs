@@ -162,6 +162,10 @@ public static class Palette
     // the colour tiers already give a role its own background.
     private static RoleStyle ColourStyle(PaletteEntry entry)
     {
-        return entry.NoColorStyle & ~RoleStyle.Reverse;
+        var style = entry.NoColorStyle & ~RoleStyle.Reverse;
+
+        // Reverse plus underline marks a label chip without colour (the underline is the cue on a reversed selected
+        // card); the colour tiers have the fill and drop both.
+        return entry.NoColorStyle.HasFlag(RoleStyle.Reverse | RoleStyle.Underline) ? style & ~RoleStyle.Underline : style;
     }
 }

@@ -37,14 +37,24 @@ public class PaletteTests
 
     public static TheoryData<ColorSupport> ColorTiers => [ColorSupport.TrueColor, ColorSupport.Basic16];
 
-    [Fact]
-    public void GivenNoColour_WhenResolvingLabelChips_ThenTheyAreReversedAndKeepNoReverseInColourTiers()
+    [Theory]
+    [InlineData(PaletteRole.LabelChip0)]
+    [InlineData(PaletteRole.LabelChip3)]
+    public void GivenNoColour_WhenResolvingALabelChip_ThenItIsReversedAndUnderlinedOnlyThere(PaletteRole role)
     {
-        foreach (var role in _labelRoles)
+        var theme = BuiltInThemes.Default;
+        var plain = Palette.Resolve(theme, ColorSupport.None, role).Style;
+        var selected = Palette.Resolve(theme, ColorSupport.None, PaletteRole.Selected).Style;
+
+        Assert.True(plain.HasFlag(RoleStyle.Reverse | RoleStyle.Underline));
+        Assert.NotEqual(selected, plain);
+
+        foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16 })
         {
-            Assert.True(Palette.Resolve(BuiltInThemes.Default, ColorSupport.None, role).Style.HasFlag(RoleStyle.Reverse));
-            Assert.False(Palette.Resolve(BuiltInThemes.Default, ColorSupport.TrueColor, role).Style.HasFlag(RoleStyle.Reverse));
-            Assert.False(Palette.Resolve(BuiltInThemes.Default, ColorSupport.Basic16, role).Style.HasFlag(RoleStyle.Reverse));
+            var style = Palette.Resolve(theme, tier, role).Style;
+
+            Assert.False(style.HasFlag(RoleStyle.Reverse));
+            Assert.False(style.HasFlag(RoleStyle.Underline));
         }
     }
 

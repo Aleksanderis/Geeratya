@@ -3,8 +3,9 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// How the labels of a card are laid out as chips: a filled chip each (the label with one cell of padding on both sides, no brackets: the fill marks it),
-/// wrapping from the first row to a second one, then <c>+N</c> for what does not fit. A chip wider than a row is cut with an ellipsis. Pure.
+/// How the labels of a card are laid out as chips: a filled chip each (the label with one cell of padding on both
+/// sides, no brackets: the fill marks it), wrapping from the first row to a second one, then <c>+N</c> for what does
+/// not fit. A chip wider than a row is cut with an ellipsis. Pure.
 /// </summary>
 public static class CardLabelLayout
 {

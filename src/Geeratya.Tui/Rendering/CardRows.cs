@@ -25,7 +25,7 @@ public static class CardRows
 
 
     /// <summary>
-    /// One row of label chips as spans: <c>[label]</c> each in the stable colour of its text, then <c>+N</c> on the last
+    /// One row of label chips as spans: a padded filled chip each in the stable colour of its text, then <c>+N</c> on the last
     /// row when labels did not fit; padded to <paramref name="width"/>.
     /// </summary>
     public static List<StyledSpan> Labels(CardLabelRow row, int width)

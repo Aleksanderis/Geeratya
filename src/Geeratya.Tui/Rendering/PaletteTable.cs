@@ -329,11 +329,11 @@ public static class PaletteTable
         return new RoleSpec(ThemeColor.BaseBackground, fill, RoleStyle.Bold, RoleGround.Chip);
     }
 
-    // A label chip has no brackets, so without colour the chip is reversed (the cue besides the padding cells); the
-    // colour tiers drop the reverse and keep the fill.
+    // A label chip has no brackets, so without colour the chip is reversed and underlined (the underline stays visible
+    // on a selected card, which is reversed as a whole); the colour tiers drop both and keep the fill.
     private static RoleSpec LabelChip(ThemeColor fill)
     {
-        return Chip(fill) with { Style = RoleStyle.Bold | RoleStyle.Reverse };
+        return Chip(fill) with { Style = RoleStyle.Bold | RoleStyle.Reverse | RoleStyle.Underline };
     }
 
     private static Ansi16Color Foreground16(Theme theme, RoleSpec spec)
