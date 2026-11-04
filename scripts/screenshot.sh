@@ -17,7 +17,7 @@ default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
 # Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s);
-# wait-for is text that must be on screen after the keys before the frame is captured (before them the fake profile line is awaited),
+# wait-for is text that must be on screen after the keys before the frame is captured (before them the "Connected" banner or the board picker is awaited, because the profile line is cut off at 100 columns or fewer),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
@@ -25,8 +25,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
 # caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar).
 # Add a row per new screen.
-profile_ready="fake: fake@example.com"
-profile_line="$profile_ready on"
+profile_ready="Connected|Open a view"
 all_scenarios=(
   "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
@@ -181,12 +180,12 @@ settled_capture() {
   done
 }
 
-# Waits until the pane shows the text (empty text: no wait); fails after the timeout.
+# Waits until the pane shows the text (fixed string, or an extended regular expression with a third argument E; empty text: no wait); fails after the timeout.
 wait_for_text() {
   local socket=$1 text=$2 start
   [ -n "$text" ] || return 0
   start=$(now_ms)
-  while ! tmux -L "$socket" capture-pane -t s -p 2> /dev/null | grep -qF -- "$text"; do
+  while ! tmux -L "$socket" capture-pane -t s -p 2> /dev/null | grep "-q${3:-F}" -- "$text"; do
     if [ $(($(now_ms) - start)) -gt "$timeout_ms" ]; then
       echo "screenshot.sh: '$text' did not appear within ${timeout_ms} ms" >&2
       return 1
@@ -217,7 +216,7 @@ capture_scenario() {
       GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state \
       XDG_CACHE_HOME=$work/cache '$binary'"
   sockets+=("$socket")
-  wait_for_text "$socket" "$profile_ready"
+  wait_for_text "$socket" "$profile_ready" E
   settled_capture "$socket" > /dev/null
   # With no remembered tabs the board picker opens once the connection check succeeds (#542) and would take the
   # scenario's keys as filter text: close it first (it never shows within 3 s only on a site that fails to connect).
