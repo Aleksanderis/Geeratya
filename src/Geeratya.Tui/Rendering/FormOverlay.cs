@@ -251,10 +251,18 @@ public static partial class FormOverlay
             return $"{down}/{up} choose   {next}/{accept} accept   {cancel} close list";
         }
 
+        if (form.Navigating)
+        {
+            var edit = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
+
+            return $"j/k {next}/{previous} field   {edit}/i edit   {submit} save   {cancel} cancel";
+        }
+
         var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
             ? $"   {keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
             : string.Empty;
-        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
+        var leave = form.Navigable ? "stop editing" : "cancel";
+        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} {leave}";
 
         if (form.Target is not CreateFormTarget create)
         {

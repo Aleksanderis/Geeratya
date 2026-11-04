@@ -86,7 +86,7 @@ public static partial class FormReducer
 
         var field = form.Fields[form.Focus];
 
-        if (!FormFieldKinds.IsChoice(field.Kind) || !field.IsEditable || form.IsSaving)
+        if (!FormFieldKinds.IsChoice(field.Kind) || !field.IsEditable || form.IsSaving || form.Navigating)
         {
             return form.Suggest is { Source.Kind: SuggestionKind.Options }
                 ? new ReduceResult(Replace(result.State, tab, form with { Suggest = null }), result.Effects)

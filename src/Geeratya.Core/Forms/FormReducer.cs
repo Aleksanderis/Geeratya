@@ -83,8 +83,15 @@ public static partial class FormReducer
             return Choosing(handled, tab.Id);
         }
 
+        if (form.Navigating)
+        {
+            return Navigating(state, tab, form, key, action, at, keymap);
+        }
+
         var result = action switch
         {
+            ActionIds.Cancel when form.Navigable
+                => Result(Replace(state, tab, form with { Navigating = true, Suggest = null }), tab.Id),
             ActionIds.Cancel => Cancel(state, tab, form),
             ActionIds.FormOpenAfter => Result(CreateFormReducer.ToggleOpenAfter(state, tab, form)),
             ActionIds.FormSubmit => Submit(state, tab, form, at),
@@ -102,13 +109,49 @@ public static partial class FormReducer
         return Choosing(LeavesField(action) ? Unsuggested(result, tab.Id) : result, tab.Id);
     }
 
+    // The navigate state of the edit form (#650): fields are stops, nothing is typed. Enter or i starts editing.
+    private static ReduceResult Navigating(
+        AppState state,
+        TabState tab,
+        FormState form,
+        string key,
+        string? action,
+        DateTimeOffset at,
+        KeymapTable keymap)
+    {
+        var motion = keymap.Resolve(InputMode.Normal, string.Empty, key).Action;
+
+        if (action == ActionIds.FormFieldNext || motion == ActionIds.NavigateDown || action == ActionIds.PickerNext)
+        {
+            return Result(Replace(state, tab, form with { Focus = Step(form, 1) }));
+        }
+
+        if (action == ActionIds.FormFieldPrevious || motion == ActionIds.NavigateUp || action == ActionIds.PickerPrevious)
+        {
+            return Result(Replace(state, tab, form with { Focus = Step(form, -1) }));
+        }
+
+        if (action == ActionIds.FormNext || key == "i")
+        {
+            return Choosing(Result(Replace(state, tab, form with { Navigating = false })), tab.Id);
+        }
+
+        return action switch
+        {
+            ActionIds.Cancel => Cancel(state, tab, form),
+            ActionIds.FormSubmit => Submit(state, tab, form, at),
+            ActionIds.FormOpenBrowser => OpenBrowser(state, form),
+            _ => Result(state),
+        };
+    }
+
     /// <summary>Pasted text goes to the focused field (first line only).</summary>
     public static ReduceResult Paste(AppState state, string text)
     {
         var tab = ActiveTab(state)!;
         var form = tab.Form!;
 
-        return form.IsSaving || form.DiscardPending || text.Length == 0
+        return form.IsSaving || form.DiscardPending || form.Navigating || text.Length == 0
             ? Result(state)
             : Choosing(Edited(Typed(state, tab, form, text), tab.Id), tab.Id);
     }

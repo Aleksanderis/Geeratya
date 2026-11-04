@@ -26,7 +26,8 @@ public static partial class FormReducer
             IsLoading = false,
             TopError = top,
         };
-        var shown = filled with { Focus = Step(filled, 0) };
+        var navigable = target is EditFormTarget && loaded.Fields.Count(field => field.IsEditable) > 1;
+        var shown = filled with { Focus = Step(filled, 0), Navigable = navigable, Navigating = navigable };
 
         if (target.Automatic is { } changes)
         {
@@ -98,6 +99,11 @@ public static partial class FormReducer
         if (!edit.Advance)
         {
             return Result(Replace(state, tab, edited));
+        }
+
+        if (form.Navigable)
+        {
+            return Result(Replace(state, tab, edited with { Navigating = true, Suggest = null }), tab.Id);
         }
 
         var next = NextEditable(edited, form.Focus);

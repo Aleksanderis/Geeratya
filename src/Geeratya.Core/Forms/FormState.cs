@@ -38,6 +38,16 @@ public sealed record FormState(
     /// <summary>The highlighted type of <see cref="TypeChoices"/>.</summary>
     public int TypeCursor { get; init; }
 
+    /// <summary>
+    /// The form has a navigate state besides editing (the edit form with more than one editable field, #650): in it
+    /// <c>j</c>/<c>k</c>/<c>Tab</c> move from field to field and <c>Enter</c>, <c>i</c> or a click starts editing the
+    /// focused one; <c>Esc</c> stops editing. Other forms are always editing.
+    /// </summary>
+    public bool Navigable { get; init; }
+
+    /// <summary>True while a <see cref="Navigable"/> form moves between fields (no field takes text).</summary>
+    public bool Navigating { get; init; }
+
     /// <summary>True while the create form asks for the issue type.</summary>
     public bool IsChoosingType => TypeChoices is not null;
 

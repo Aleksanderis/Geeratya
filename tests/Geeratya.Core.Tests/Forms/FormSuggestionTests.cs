@@ -279,12 +279,13 @@ public class FormSuggestionTests
     }
 
     [Fact]
-    public void GivenOnlyTextTypedInAPersonField_WhenEscIsPressedTwice_ThenTheFormAsksBeforeDiscarding()
+    public void GivenOnlyTextTypedInAPersonField_WhenEscIsPressedThreeTimes_ThenTheFormAsksBeforeDiscarding()
     {
         var typed = Press(Focused("assignee"), "a");
         var dismissed = Press(typed.State, "Esc").State;
 
-        var asked = Press(dismissed, "Esc").State;
+        var navigating = Press(dismissed, "Esc").State;
+        var asked = Press(navigating, "Esc").State;
 
         Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
     }
@@ -449,7 +450,7 @@ public class FormSuggestionTests
         }
 
         var form = loaded.Session.Tabs[0].Form!;
-        var focused = form with { Focus = 1 };
+        var focused = form with { Focus = 1, Navigating = false };
 
         return WithTab(loaded, loaded.Session.Tabs[0] with { Form = focused });
     }
