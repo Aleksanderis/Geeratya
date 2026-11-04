@@ -21,16 +21,16 @@
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog or    │           │
 │           │               │              issue section                                                   │           │
+│           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
+│           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
+│           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
+│           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                                │           │
+│           │               │   Ctrl-l     Focus the pane to the right (zoomed: the next section)          │           │
+│           │               │              (Ctrl-w l)                                                      │           │
+│           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
-│           │               │   ?          Show or hide help                                               │           │
-│           │               │   q          Quit  (Ctrl-c)                                                  │           │
-│           │               │   Esc        Cancel or close                                                 │           │
-│           │               │   :          Open the command palette  (Ctrl-p)                              │           │
-│           │               │   <space>a   Open the actions menu of the selected issue                     │           │
-│           │               │   <space>n   Show the message history                                        │           │
-│           │               │   <space>x   Dismiss the status message                                      │           │
-│           │               │   <space>,   Open or close the settings screen                              ▼│           │
+│           │               │   ?          Show or hide help                                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -14,7 +14,7 @@ public class WhichKeyOverlayTests
     [Fact]
     public void GivenSpacePending_WhenBuilding_ThenEveryNextKeyShowsWithTheCatalogTitle()
     {
-        var text = string.Join('\n', Build(Pending("Space"), 80, 24));
+        var text = string.Join('\n', Build(Pending("Space"), 100, 40));
 
         foreach (var next in _keymap.NextKeys(InputMode.Normal, "Space").Where(next => next.Action is not null))
         {

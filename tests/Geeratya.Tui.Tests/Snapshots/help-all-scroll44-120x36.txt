@@ -29,8 +29,8 @@
 │           │               │   [[         Previous section of the issue or the Scrum backlog              │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog or    │           │
 │           │               │              issue section                                                   │           │
-│           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
-│           │               │ General                                                                     ▼│           │
+│           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
+│           │               │   <space>j   Jump to a visible row (type text, press the letter on the row) ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

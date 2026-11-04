@@ -17,8 +17,8 @@
   │                │              Scrum backlog                              │  
   │                │   za         Expand or collapse sub-tasks of a card,    │  
   │                │              or fold a backlog or issue section         │  
-  │                │   <space>o   Open the issue in the browser              │  
-  │                │   <space>p   Open the parent issue                     ▼│  
+  │                │   <space>z   Zoom the focused pane, or leave the zoom   │  
+  │                │   <space>o   Open the issue in the browser             ▼│  
   ╰──────────────────────────────────────────────────────────────────────────╯  
                                                                                 
  HELP                                   j section  J scroll  / filter  Esc close
