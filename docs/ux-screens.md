@@ -297,7 +297,7 @@ Agreed with the owner in a mockup session on 2026-11-04 (Claude Design canvas, i
 
 ### Panes, focus and zoom
 
-- A detail is a stack of bordered **panes**: title, Description, Sub-tasks, Comments on the left, a Details pane on the right (a sidebar, 33 columns, from 100 columns of width up; below that the Details pane moves under the main panes and the screen is one column). Attachments are a section of the Details pane (up to three rows: name, type, size; more in the zoomed section) and open in the browser with `o` (attachments are never rendered, see CLAUDE.md).
+- A detail is a stack of bordered **panes**: title, Description, Sub-tasks, Comments on the left, a Details pane on the right (a sidebar, 33 columns, from 100 columns of width up; below that the Details pane moves under the main panes and the screen is one column). Attachments are a section of their own, reached through the zoom strip, with a muted `Attachments 1` row at the bottom of the Details pane as the way in (`Enter` zooms to the list: name, type, size; `o` opens in the browser; attachments are never rendered, see CLAUDE.md).
 - One pane has the focus: its frame is accent and its chip is the filled accent chip (`ux-look.md` section 4), every other pane is quiet. A pane's chip is its title (`Comments 50 of 120`), its right-hand dim chip a count or position (`1-4 of 14`, `newest first`).
 - **`Ctrl-h`/`Ctrl-j`/`Ctrl-k`/`Ctrl-l`** focus the pane to the left, below, above, right (Gitunia's `pane.focus-*`; `Ctrl-w h/j/k/l` are the same). They replace `]]` and `[[` in the detail (`detail.section-next` and `detail.section-previous` are removed there; the backlog keeps the chords until it has panes). `Alt-h/j/k/l` stay taken by card move and rank, which is why the pane modifier is Ctrl. Pane keys apply in Normal mode; in text input `Ctrl-h` stays Backspace. A terminal that cannot tell `Ctrl-h` from Backspace keeps `Ctrl-w h` working and the hint chips show the key that works there (check it in Terminal.Gui v2 first, see the pane-key issue).
 - `h`/`j`/`k`/`l` move inside the focused pane: between fields in Details, between comments in Comments, by line in text panes, between rows in Sub-tasks.
@@ -342,7 +342,7 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 - **Title pane**: one row when the summary fits (summary left, status right, the status in its status-category colour); two rows only when it does not.
 - **Description pane**: markdown rendered as today (ADF to text), four body rows when cut, `… N more lines` as the last row, `Enter` expands.
 - **Sub-tasks pane**: one row per sub-task as aligned columns: key (as wide as the longest key in the pane, so `GEN-100051` needs no extra space), 2 spaces, summary (flexible, cut with `…`), 2 spaces, status (as wide as the longest status name, in the status colour, never touching the summary), 2 spaces, assignee as initials chip plus real name (`[GW] Generated Writer`; the name is dropped, then the chip, as the width shrinks). Unassigned is `[--] Unassigned`, muted. `Enter` opens the sub-task like any row. The chip title shows `n of m done`.
-- **Details pane**: for each field the label (accent) above its value in a filled block. Fields: Status, Priority, Assignee, Reporter, Labels, Sprint, Due date and the other fields the screen shows today, then dates (`Created`, `Updated`) and Attachments as muted text rows. The kinds and what is editable come from the edit metadata, never from code (`jira-layer.md`); a field that cannot be edited is plain text without a `▾`.
+- **Details pane**: for each field the label (accent) above its value in a filled block. Fields: Status, Priority, Assignee, Reporter, Labels, Sprint, Due date and the other fields the screen shows today, then a muted row with the dates (`Due none · Updated 5 d ago`) and the `Attachments 1` row. The kinds and what is editable come from the edit metadata, never from code (`jira-layer.md`); a field that cannot be edited is plain text without a `▾`.
 - **Dropdowns in Details**: `Enter` on an editable field opens its popup under the value (the suggestion popup of the field form: ranked rows, `>` on the highlighted one, up to five rows; Priority shows all its values). `Down`/`Up` or `Ctrl-j`/`Ctrl-k` choose (the picker keys of `keymap.md`), `Enter` accepts and writes at once through the existing write path (the same confirmations as today), `Esc` closes the list. **Status** is not a free field: its label says `moves via transition` and `Enter` opens the `Move to` picker and the transition form with its confirmation (workflow side effects, `ux-workflows.md`). Assignee opens the people picker (`Me`, `Unassigned`, suggestions). Labels use the labels popup.
 
 ### Comments
@@ -376,15 +376,16 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 ╭─ Edit GEN-1 · Story ───────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮
 │ Generated issue 1_                                      required * │ │ Status  moves via transition  │
 ╰────────────────────────────────────────────────────────────────────╯ │ ● In Progress ▾               │
-╭─ Description ─────────────────────────────────────────── markdown ─╮ │                               │
+╭─ Description ──────────────────────── markdown, Enter adds a line ─╮ │                               │
 │ ## Summary                                                       ▲ │ │ Priority                      │
 │ This is generated issue 1. It has **formatted** text,            █ │ │ ▲ Medium ▾                    │
 │ - First generated step                                           █ │ │                               │
-│ - Second generated step                                          ░ │ │ Labels                        │
-│                                                                  ░ │ │ [backend] [ui]                │
-│                                                                  ░ │ │                               │
-│                                                                  ░ │ │ Due date  yyyy-MM-dd          │
-│                                                                  ▼ │ │ 2026-12-01                    │
+│ - Second generated step                                          ░ │ │ Assignee                      │
+│                                                                  ░ │ │ [--] Unassigned ▾             │
+│                                                                  ▼ │ │                               │
+╰────────────────────────────────────────────────────────────────────╯ │ Labels                        │
+╭─ Not editable here ────────────────────────────────────────────────╮ │ [backend] [ui]                │
+│ Attachment, Comment, Team, Linked issues.   Ctrl-o: browser        │ │                               │
 ╰────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯
 ```
 
@@ -399,16 +400,20 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 │                                                                    │ │ Assignee                      │
 │                                                                    │ │ [--] Unassigned ▾             │
 │                                                                    │ │                               │
-│                                                                    │ │ Labels                        │
-│                                                                    │ │ none                          │
+╰────────────────────────────────────────────────────────────────────╯ │ Labels                        │
+╭─ Not editable here ────────────────────────────────────────────────╮ │ none                          │
+│ Attachments and comments are added after the issue exists.         │ │                               │
 ╰────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯
 ```
 
-- The edit and the create form use one component of three panes: a title pane holding **Summary** (one row, `required *` at the right), a **Description** pane (markdown, own scrollbar, `Enter` adds a line) and a **Details** pane with the other fields (label above a filled value, as in the detail). Required fields are marked `*` and sort first in Details; with fewer than six fields shown, nothing is folded.
-- **Edit** stays an overlay (`OverlayBox`, up to 104 columns, the dimmed view behind) with these panes inside; the Status row of Details opens the transition picker like in the detail (an edit of the status goes through a transition, never as a field write). Fields the form cannot edit are listed in one muted line (`Not editable here: ...` and `Ctrl-o: browser`), not as a box each. **Create** is a **tab view** (not an overlay): it opens in the active tab, with the type picker first as today, and closes back to the view that opened it; project and parent come from the selection as today (`decisions.md`, 2026-11-02). Optional fields beyond the first five are folded behind `Ctrl-f` (`show more fields`).
-- Below 100 columns the Details pane moves under the Description pane (one column); the form keeps the same order for navigation.
-- **Navigate and edit states** are unchanged (`ux-keymap.md`, "Edit form: navigate and edit states"). In the navigate state `h`/`j`/`k`/`l` move between fields (`j`/`k` within a pane, `h`/`l` to the nearest field of the other pane), `Ctrl-h/j/k/l` move between panes, `Tab`/`Shift-Tab` still go to the next and previous field in reading order, `Enter` or `i` edits. In the edit state typing goes to the field, `Esc` returns to navigate, and dropdowns use `Down`/`Up` or `Ctrl-j`/`Ctrl-k` with `Enter` to accept.
-- Save, validation and error rules (`Ctrl-s`, required fields, errors at the field, `Esc` asks before discarding) are unchanged; only the look and the grouping change.
+Mockup notes: the title pane has the focus in both (accent frame); the first is the edit form, the second the create form. `[--]` is the unassigned chip, `_` the caret.
+
+- **One view, one component**: the edit and the create form are the same **tab view** of three panes: a title pane holding **Summary** (one row, `required *` at the right), a **Description** pane (markdown, own scrollbar, `Enter` adds a line) and a **Details** pane with the other fields (label above a filled value, the look of the detail Details pane), plus a short **Not editable here** pane at the bottom of the left column. It opens in the active tab and closes back to the view that opened it (`Esc` after the discard question when there are changes). The status bar shows the `INSERT` badge and `Create GEN · Story · Summary` or `Edit GEN-1 · Summary`. The one-field pickers (people picker, `Move to`, `:labels`, `:priority`, link, sprint forms) stay small overlays as today.
+- **Edit**: chip `Edit GEN-1 · Story`; Details lists the editable fields the edit metadata offers, `Status` first with `moves via transition` (`Enter` opens the `Move to` picker and the transition form with its confirmation; a status is never a free field write). **Not editable here** is one muted pane (`Attachment, Comment, Team, Linked issues.   Ctrl-o: browser`), not a box per field.
+- **Create**: chip `Create · GEN · Story`; the type picker comes first as today; project and parent come from the selection (`decisions.md`, 2026-11-02); Parent is the first Details field, marked `*`, and required fields come first; the pane `Not editable here` says that attachments and comments are added after the issue exists. Optional fields beyond the first five are folded behind `Ctrl-f` (`Due date · Components · Fix versions   Ctrl-f show more fields`).
+- Below 100 columns the Details pane moves under the Description pane (one column); the navigation order stays the same.
+- **Navigate and edit states** are unchanged (`ux-keymap.md`, "Edit form: navigate and edit states"). In the navigate state `h`/`j`/`k`/`l` move between fields (`j`/`k` within a pane, `h`/`l` to the nearest field of the other pane), `Ctrl-h/j/k/l` move between panes, `Tab`/`Shift-Tab` go to the next and previous field in reading order, `Enter` or `i` edits. In the edit state typing goes to the field, `Esc` returns to navigate, and dropdowns use `Down`/`Up` or `Ctrl-j`/`Ctrl-k` with `Enter` to accept. The footer shows the keys of the state: `Tab next  Ctrl-h/j/k/l pane  Ctrl-s create|save  Esc cancel`.
+- Save, validation and error rules (`Ctrl-s`, required fields, errors at the field, `Esc` asks before discarding) are unchanged; only the look, the grouping and the tab view change.
 
 ### Colours and glyphs
 

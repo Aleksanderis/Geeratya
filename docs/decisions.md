@@ -212,7 +212,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **UI:** Comments are blocks (header bar, body, one empty row) cut after 3 lines (6 zoomed) with `Enter` to expand, so one long comment cannot hide the rest while the list stays one scroll. Why: owner feedback on the mockups.
 
-**UI:** Create is a tab view, not an overlay (overrides "Field form overlay" for create only; the type picker stays first); edit stays an overlay with the same panes. Status in a form or the Details pane is a transition, never a free field write. Why: create needs the room; Jira changes status only through workflow transitions.
+**UI:** The edit and create forms are one tab view of three panes (Summary, Description, Details, plus a Not editable here pane), not overlays (overrides "Field form overlay" for both; the one-field pickers stay overlays; the type picker stays first in create). Status in a form or the Details pane is a transition, never a free field write. Why: owner approved the create mockup and wants edit to look the same; Jira changes status only through workflow transitions.
 
 **UI:** Key hints are accent-coloured bold keys with muted labels everywhere, overlay footers included (overrides the `warn` key role of `ux-look.md`, section 5), and field labels are accent, not teal. Why: owner feedback, Gitunia's look. Unassigned is a `--` chip as wide as initials, never a glyph.
 
