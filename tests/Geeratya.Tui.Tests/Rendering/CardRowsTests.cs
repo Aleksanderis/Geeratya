@@ -1,3 +1,4 @@
+using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Tui.Rendering;
@@ -14,7 +15,7 @@ public class CardRowsTests
     [InlineData(6)]
     public void GivenLabels_WhenBuildingTheRowAtAnyWidth_ThenItIsExactlyAsWideAsAsked(int width)
     {
-        var row = CardRows.Labels(["alpha", "beta", "gamma-long-label", "d"], width);
+        var row = Row(["alpha", "beta", "gamma-long-label", "d"], width);
 
         Assert.Equal(width, Width(row));
     }
@@ -22,7 +23,7 @@ public class CardRowsTests
     [Fact]
     public void GivenLabels_WhenTheyFit_ThenEachIsAChipInItsStableColour()
     {
-        var row = CardRows.Labels(["alpha", "beta"], 40);
+        var row = Row(["alpha", "beta"], 40);
 
         var chips = row.Where(span => span.Text.StartsWith('[')).ToList();
         Assert.Equal(["[alpha]", "[beta]"], chips.Select(span => span.Text));
@@ -34,7 +35,8 @@ public class CardRowsTests
     [Fact]
     public void GivenMoreLabelsThanFit_WhenBuildingTheRow_ThenTheRestIsCountedAsPlusN()
     {
-        var row = CardRows.Labels(["alpha", "beta", "gamma", "delta"], 22);
+        var chips = new List<CardLabelChip> { new("alpha", "[alpha]"), new("beta", "[beta]") };
+        var row = CardRows.Labels(new CardLabelRow(chips, 2), 22);
 
         Assert.Equal("[alpha] [beta] +2", Text(row).TrimEnd());
         Assert.Equal(TextRole.Muted, row.Single(span => span.Text.Contains('+')).Role);
@@ -43,9 +45,25 @@ public class CardRowsTests
     [Fact]
     public void GivenALabelWiderThanTheRow_WhenBuildingTheRow_ThenItIsCutWithAnEllipsis()
     {
-        var row = CardRows.Labels(["a-very-long-label-name"], 12);
+        var row = Row(["a-very-long-label-name"], 12);
 
         Assert.Equal("[a-very-lo…]", Text(row).TrimEnd());
+    }
+
+    [Theory]
+    [InlineData("Highest", "▲", TextRole.PriorityHigh)]
+    [InlineData("Major", "=", TextRole.PriorityMedium)]
+    [InlineData("Medium", "=", TextRole.PriorityMedium)]
+    [InlineData("Minor", "▼", TextRole.PriorityLow)]
+    [InlineData("Trivial", "▼", TextRole.PriorityLow)]
+    public void GivenAPriority_WhenBuildingTheBottomRow_ThenTheGlyphHasItsOwnRole(
+        string priority,
+        string glyph,
+        TextRole role)
+    {
+        var row = CardRows.Bottom(Issue() with { Priority = priority }, false, 32, TextRole.Body);
+
+        Assert.Equal(role, row.Single(span => span.Text == glyph).Role);
     }
 
     [Fact]
@@ -56,7 +74,7 @@ public class CardRowsTests
         var row = CardRows.Bottom(issue, false, 32, TextRole.Body);
 
         Assert.Equal("GEN-1  Task               ▲ [JD]", Text(row));
-        Assert.Equal(TextRole.Warning, row.Single(span => span.Text == "▲").Role);
+        Assert.Equal(TextRole.PriorityHigh, row.Single(span => span.Text == "▲").Role);
         Assert.Equal(TextRole.InitialsChip, row.Single(span => span.Text == "[JD]").Role);
         Assert.Equal(TextRole.TypeTask, row.Single(span => span.Text == "Task").Role);
     }
@@ -135,6 +153,11 @@ public class CardRowsTests
         };
 
         Assert.Equal(width, Width(CardRows.Bottom(issue, false, width, TextRole.Body)));
+    }
+
+    private static List<StyledSpan> Row(string[] labels, int width)
+    {
+        return CardRows.Labels(CardLabelLayout.Rows(labels, width)[0], width);
     }
 
     private static string Text(List<StyledSpan> row)

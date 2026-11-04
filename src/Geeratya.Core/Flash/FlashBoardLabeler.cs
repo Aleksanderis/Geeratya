@@ -50,9 +50,8 @@ public static class FlashBoardLabeler
             var column = window.First + position;
             var cell = window.CellWidth(position);
             var group = columns[column];
-            var end = Math.Min(group.Rows.Count, cursor.Scrolls[column] + visible);
 
-            for (var card = cursor.Scrolls[column]; card < end; card++)
+            foreach (var card in CardsInView(group, cursor.Scrolls[column], cell, tab, compact, visible))
             {
                 var fields = FieldsOf(group, card, cell, compact);
 
@@ -72,6 +71,24 @@ public static class FlashBoardLabeler
         FlashLabeler.AssignLetters(found, blocked);
 
         return found;
+    }
+
+    private static IEnumerable<int> CardsInView(
+        BoardColumnGroup group,
+        int first,
+        int cell,
+        TabState tab,
+        bool compact,
+        int visible)
+    {
+        if (compact)
+        {
+            return Enumerable.Range(first, Math.Max(0, Math.Min(group.Rows.Count, first + visible) - first));
+        }
+
+        var rows = BoardCards.CardRows(tab.VisibleRows, ListLayout.HeaderRows);
+
+        return BoardColumnLayout.Place(group, first, cell, rows).Select(static placed => placed.Card);
     }
 
     private static FlashLabel LabelOf(BoardColumnGroup group, int column, int card, bool compact)
@@ -104,14 +121,9 @@ public static class FlashBoardLabeler
         var room = box - Borders - (nested ? ChildIndent : 0);
         var key = DisplayWidth.Fit(issue.Key, room - KeyLineReserve);
 
-        if (BoardCardPlan.SummaryLines(issue) == 1)
-        {
-            return [key, CardText.Shorten(issue.Summary.Trim(), room - Padding)];
-        }
-
         var lines = CardText.TwoLines(issue.Summary, room - Padding);
 
-        return [key, lines.First, lines.Second];
+        return lines.Second.Length > 0 ? [key, lines.First, lines.Second] : [key, lines.First];
     }
 
     private static int Compare(FlashLabel left, FlashLabel right, BoardCursor cursor)

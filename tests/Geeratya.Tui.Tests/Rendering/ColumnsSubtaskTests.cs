@@ -275,7 +275,7 @@ public class ColumnsSubtaskTests
             Session = state.Session with { Tabs = [.. state.Session.Tabs.Select(each => each.Id == tab.Id ? each with { Rows = rows } : each)] },
         };
 
-        var frame = FrameBuilder.BuildStyled(narrow, 80, 24, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(narrow, 80, 44, _keymap)!;
 
         Assert.Contains(
             frame.Body.SelectMany(line => line.Spans),

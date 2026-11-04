@@ -28,6 +28,9 @@ public class VisualRangeLookTests
         TextRole.TypeBug,
         TextRole.TypeTask,
         TextRole.TypeSubtask,
+        TextRole.PriorityHigh,
+        TextRole.PriorityMedium,
+        TextRole.PriorityLow,
     ];
 
     public static TheoryData<string> Themes => [.. BuiltInThemes.Names];

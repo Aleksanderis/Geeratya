@@ -21,9 +21,6 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
     private const string HiddenRightMark = "›";
     private const string MarkedMark = "*";
     private const string Blank = " ";
-    private const int FirstSummaryLine = 1;
-    private const int LabelRow = 2;
-    private const int BottomRow = 3;
     private const int BlankRow = int.MaxValue;
     private const int Margin = BoardCards.CardMargin;
     private const int ChildIndent = BoardCards.ChildIndent;
@@ -69,12 +66,15 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         var grid = new FrameGrid(width, height, panes, cursor.Column - window.First);
         var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
 
+        var placements = Placements(columns, cursor, window, cardRows, compact);
+
         for (var row = 0; row < cardRows; row++)
         {
-            var card = row < cards * (compact ? 1 : BoardCards.FullRows) ? row : BlankRow;
+            var card = compact && row >= cards ? BlankRow : row;
             var spans = grid.Row(
                 row + BoardCards.TopRows,
-                (start, length) => Cell(columns, cursor, window, panes, start, length, card, compact, marks, expanded, flash));
+                (start, length) => Cell(
+                    columns, cursor, window, panes, placements, start, length, card, compact, marks, expanded, flash));
 
             lines.Add(new StyledLine(spans));
         }
@@ -82,6 +82,27 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         lines.Add(new StyledLine(grid.Row(height - 1, static (_, _) => [])));
 
         return lines;
+    }
+
+    private static List<IReadOnlyList<PlacedCard>> Placements(
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
+        BoardWindow window,
+        int cardRows,
+        bool compact)
+    {
+        var placements = new List<IReadOnlyList<PlacedCard>>();
+
+        for (var position = 0; position < window.Count; position++)
+        {
+            var column = window.First + position;
+
+            placements.Add(compact
+                ? []
+                : BoardColumnLayout.Place(columns[column], cursor.Scrolls[column], window.CellWidth(position), cardRows));
+        }
+
+        return placements;
     }
 
     private static FlashCards? FlashCardsOf(AppState state, TabState tab, int width, int height)
