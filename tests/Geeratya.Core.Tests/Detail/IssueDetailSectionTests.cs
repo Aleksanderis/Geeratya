@@ -181,15 +181,6 @@ public class IssueDetailSectionTests
         Assert.Equal(Top(state).Cursor, Top(after).Cursor);
     }
 
-    [Fact]
-    public void GivenPaneZoom_WhenPressedInTheDetail_ThenItSaysZoomIsNotThereYetAndNothingZooms()
-    {
-        var result = Press(Opened(LongText(2), []), "Space", "z");
-
-        Assert.Contains("Zoom is not available", result.State.Message);
-        Assert.Null(Active(result.State).Panes.Zoomed);
-    }
-
     private static string LongText(int paragraphs)
     {
         return string.Join("\n\n", Enumerable.Range(1, paragraphs).Select(number => $"line {number}"));

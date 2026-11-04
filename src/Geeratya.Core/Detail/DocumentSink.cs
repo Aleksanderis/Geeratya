@@ -10,6 +10,8 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 internal sealed class DocumentSink
 {
+    private const string ZoomedText = " · zoomed";
+
     private readonly List<DetailTarget?> _targets = [];
     private readonly List<string> _ids = [];
     private readonly List<int> _sections = [];
@@ -22,6 +24,15 @@ internal sealed class DocumentSink
     private readonly HashSet<int> _skipped = [];
 
     public List<StyledLine> Lines { get; } = [];
+
+    /// <summary>
+    /// When set, only the panel with this id is laid out (the zoomed section); the others are only recorded in
+    /// <see cref="Strip"/>.
+    /// </summary>
+    public string? Only { get; set; }
+
+    /// <summary>The panels offered to the section strip, in order, with the title text each has.</summary>
+    public List<StripSection> Strip { get; } = [];
 
     /// <summary>Appends a pane; <paramref name="content"/> carries the lines and the target of each.</summary>
     /// <param name="id">The pane id (a <see cref="PaneIds"/> member).</param>
@@ -38,6 +49,21 @@ internal sealed class DocumentSink
         IReadOnlyList<StyledSpan>? right = null,
         PaneScroll? scroll = null)
     {
+        if (id is not (PaneIds.Title or PaneIds.Error))
+        {
+            Strip.Add(new StripSection(id, string.Concat(title.Select(static span => span.Text))));
+        }
+
+        if (Only is not null && id != Only)
+        {
+            return;
+        }
+
+        if (Only is not null)
+        {
+            title = [.. title, new StyledSpan(ZoomedText, TextRole.Muted)];
+        }
+
         var start = Lines.Count;
         var framed = width >= Panel.MinFramedWidth;
 
@@ -97,6 +123,7 @@ internal sealed class DocumentSink
             PaneScrolls = _scrolls,
             SectionIds = _ids,
             Blocks = _blocks,
+            Strip = Only is null ? [] : Strip,
         };
     }
 

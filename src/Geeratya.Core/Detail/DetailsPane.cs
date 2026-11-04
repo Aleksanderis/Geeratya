@@ -46,7 +46,10 @@ internal static class DetailsPane
             return;
         }
 
-        AddMuted(content, MutedRows(header, detail, inner));
+        var muted = MutedRows(header, detail, inner);
+
+        AddMuted(content, muted);
+        AddAttachmentsRow(content, detail, inner, muted.Count == 0);
         sink.AddPanel(PaneIds.Details, [new StyledSpan(Title, TextRole.Heading)], content, width);
     }
 
@@ -86,15 +89,27 @@ internal static class DetailsPane
             rows.Add(Muted($"Updated {RelativeTime.Format(updated, now)}", inner));
         }
 
-        if (detail.Issue is { Attachments.Count: > 0 } issue)
-        {
-            var count = issue.Attachments.Count;
-            var name = TextClean.Of(issue.Attachments[0].FileName);
+        return rows;
+    }
 
-            rows.Add(Muted(count == 1 ? $"Attachments 1 · {name}" : $"Attachments {count} · {name}…", inner));
+    // The way into the zoomed Attachments list: a cursor stop of its own, Enter zooms.
+    private static void AddAttachmentsRow(PanelContent content, DetailState detail, int inner, bool gap)
+    {
+        if (detail.Issue is not { Attachments.Count: > 0 } issue)
+        {
+            return;
         }
 
-        return rows;
+        var count = issue.Attachments.Count;
+        var name = TextClean.Of(issue.Attachments[0].FileName);
+        var row = Muted(count == 1 ? $"Attachments 1 · {name}" : $"Attachments {count} · {name}…", inner);
+
+        if (gap)
+        {
+            content.AddGap(StyledLine.Empty);
+        }
+
+        content.AddBlock([row], new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Attachments));
     }
 
     private static StyledLine Muted(string text, int inner)

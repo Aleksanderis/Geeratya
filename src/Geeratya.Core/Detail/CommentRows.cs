@@ -89,7 +89,7 @@ public static class CommentRows
 
         var content = new PanelContent();
 
-        LongText.Add(content, body, target, expanded, new LongTextLimit(bodyLines, inner));
+        LongText.Add(content, body, target, expanded, new LongTextLimit(bodyLines, inner, false, bodyLines == BodyLines));
 
         for (var line = 0; line < content.Lines.Count; line++)
         {

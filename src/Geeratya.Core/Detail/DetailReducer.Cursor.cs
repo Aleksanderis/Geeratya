@@ -62,12 +62,13 @@ internal static partial class DetailReducer
             return onSide;
         }
 
-        var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
+        var strip = top.Zoomed is null ? 0 : DetailZoom.StripRows;
+        var line = top.Scroll + bodyRow - DetailLayout.HeaderRows - strip;
 
         var shown = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
 
-        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows
-            || bodyRow >= DetailLayout.HeaderRows + shown || line >= document.Lines.Count)
+        if (top.Document is not { } document || bodyRow < DetailLayout.HeaderRows + strip
+            || bodyRow >= DetailLayout.HeaderRows + strip + shown || line >= document.Lines.Count)
         {
             return null;
         }

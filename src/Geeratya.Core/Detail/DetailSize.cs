@@ -25,7 +25,15 @@ public static class DetailSize
     /// <summary>The list rows (<see cref="TabState.VisibleRows"/> terms) that give the overlay its rows.</summary>
     public static int ListRows(AppState state, TabState tab)
     {
-        return ListRows(state.ViewportColumns, state.ViewportBodyHeight, tab.VisibleRows);
+        return ForTab(tab, ListRows(state.ViewportColumns, state.ViewportBodyHeight, tab.VisibleRows));
+    }
+
+    /// <summary>
+    /// <paramref name="rows"/> less the section strip when the top issue of <paramref name="tab"/> shows a zoomed pane.
+    /// </summary>
+    public static int ForTab(TabState tab, int rows)
+    {
+        return tab.Detail is [.., { Zoomed: not null }] ? rows - DetailZoom.StripRows : rows;
     }
 
     /// <summary>The list rows for a viewport; <paramref name="fallback"/> while the body height is unknown.</summary>

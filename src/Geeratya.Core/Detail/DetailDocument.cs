@@ -60,6 +60,15 @@ public sealed record DetailDocument(
     /// <summary>The rows the screen showed when the document was laid out; null when it was laid out in full.</summary>
     public int? ViewportRows { get; init; }
 
+    /// <summary>
+    /// The sections of the zoom strip (every pane but the title, in order); empty unless the document is zoomed, when
+    /// it holds only the zoomed pane (<see cref="SectionIds"/>).
+    /// </summary>
+    public IReadOnlyList<StripSection> Strip { get; init; } = [];
+
+    /// <summary>True when the document is the zoomed view of one pane.</summary>
+    public bool IsZoomed => Strip.Count > 0;
+
     /// <summary>The block that holds <paramref name="line"/>, null when the line stands alone.</summary>
     public LineBlock? BlockAt(int line)
     {
