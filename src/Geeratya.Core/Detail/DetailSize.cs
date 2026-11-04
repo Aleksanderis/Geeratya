@@ -16,13 +16,13 @@ public static class DetailSize
         return Columns(state.ViewportColumns, state.ViewportBodyHeight);
     }
 
-    /// <summary>The layout width for a terminal of <paramref name="columns"/> and a body of <paramref name="bodyHeight"/> rows.</summary>
+    /// <summary>The layout width for <paramref name="columns"/> terminal columns and <paramref name="bodyHeight"/> body rows.</summary>
     public static int Columns(int columns, int bodyHeight)
     {
         return columns <= 0 || bodyHeight < 0 ? columns : DetailOverlayGeometry.Place(columns, bodyHeight).Width;
     }
 
-    /// <summary>The list rows (<see cref="TabState.VisibleRows"/> terms) that give the overlay its document rows.</summary>
+    /// <summary>The list rows (<see cref="TabState.VisibleRows"/> terms) that give the overlay its rows.</summary>
     public static int ListRows(AppState state, TabState tab)
     {
         return ListRows(state.ViewportColumns, state.ViewportBodyHeight, tab.VisibleRows);

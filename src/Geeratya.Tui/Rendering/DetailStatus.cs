@@ -18,23 +18,24 @@ public static class DetailStatus
     private const int Percent = 100;
 
     /// <summary>
-    /// The text for a status bar with <paramref name="room"/> cells to spare: the full breadcrumb when it fits, else
+    /// The text for a status bar with <paramref name="room"/> cells to spare, for an overlay of
+    /// <paramref name="listRows"/> list rows (<see cref="DetailSize"/>): the full breadcrumb when it fits, else
     /// without the name of the view it was reached from (the issue keys, the note and the ruler matter most).
     /// </summary>
-    public static string Text(TabState tab, int room)
+    public static string Text(TabState tab, int room, int listRows)
     {
-        var full = Text(tab, true);
+        var full = Text(tab, true, listRows);
 
-        return TextWidth.Of(full) <= room ? full : Text(tab, false);
+        return TextWidth.Of(full) <= room ? full : Text(tab, false, listRows);
     }
 
-    private static string Text(TabState tab, bool withSource)
+    private static string Text(TabState tab, bool withSource, int listRows)
     {
         var top = tab.Detail[^1];
         var keys = string.Join(Crumb, tab.Detail.Select(static detail => detail.Key));
         var crumb = withSource ? $"{tab.Definition.Title}{Crumb}{keys}" : keys;
         var note = Note(top);
-        var rows = DetailLayout.ViewportRows(tab.VisibleRows);
+        var rows = DetailLayout.ViewportRows(listRows);
         var total = top.Document?.Lines.Count ?? 0;
         var parts = new List<string> { crumb };
 

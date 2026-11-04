@@ -40,9 +40,21 @@ public static class MouseResolver
             hit = hit with { Target = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists };
         }
 
-        if (hit.Target == MouseTarget.Backdrop && context is { DetailOpen: true, OverlayOpen: false, ActiveTab: { } tab })
+        if (hit.Target == MouseTarget.Backdrop
+            && context is { DetailOpen: true, OverlayOpen: false, ActiveTab: { } tab })
         {
-            return gesture == MouseGesture.Click ? [new IssueDetailCloseRequested(tab)] : _none;
+            if (gesture == MouseGesture.Click)
+            {
+                return [new IssueDetailCloseRequested(tab)];
+            }
+
+            // The wheel over the backdrop still scrolls the detail, as it did when the detail filled the body.
+            if (gesture is not (MouseGesture.WheelUp or MouseGesture.WheelDown))
+            {
+                return _none;
+            }
+
+            hit = hit with { Target = MouseTarget.Detail };
         }
 
         if (IsOverlayRow(hit.Target))

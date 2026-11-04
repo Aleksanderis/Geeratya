@@ -21,7 +21,7 @@ public sealed record DetailOverlayGeometry(int Left, int Top, int Width, int Hei
     private const int MarginColumns = 4;
     private const int MarginRows = 2;
 
-    /// <summary>The overlay for a terminal <paramref name="width"/> and a body of <paramref name="bodyHeight"/> rows.</summary>
+    /// <summary>The overlay for <paramref name="width"/> terminal columns and <paramref name="bodyHeight"/> body rows.</summary>
     public static DetailOverlayGeometry Place(int width, int bodyHeight)
     {
         if (width < FillBelow || bodyHeight <= MarginRows)
@@ -35,7 +35,7 @@ public sealed record DetailOverlayGeometry(int Left, int Top, int Width, int Hei
         return new DetailOverlayGeometry((width - boxWidth) / 2, MarginRows / 2, boxWidth, boxHeight, false);
     }
 
-    /// <summary>Whether the body cell (<paramref name="column"/>, <paramref name="row"/>) is inside the overlay.</summary>
+    /// <summary>Whether body cell (<paramref name="column"/>, <paramref name="row"/>) is inside the overlay.</summary>
     public bool Contains(int column, int row)
     {
         return column >= Left && column < Left + Width && row >= Top && row < Top + Height;

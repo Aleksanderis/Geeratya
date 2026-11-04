@@ -6,7 +6,8 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The wide overlay that hosts the issue detail (<c>docs/ux-screens.md</c>, "Where it is drawn"): the view of the tab
-/// stays behind it, muted, and the detail is drawn over it at <see cref="DetailOverlayGeometry"/>. The hosted panes carry
+/// stays behind it, muted, and the detail is drawn over it at <see cref="DetailOverlayGeometry"/>. The hosted panes
+/// carry
 /// the frames, so the overlay has none of its own. Below 100 columns it fills the body and the view is not drawn.
 /// </summary>
 public static class DetailOverlay
@@ -33,7 +34,7 @@ public static class DetailOverlay
         return state with { Session = state.Session with { Tabs = [.. tabs] } };
     }
 
-    /// <summary>Draws the detail of <paramref name="state"/> over <paramref name="body"/> (the view behind it).</summary>
+    /// <summary>Draws the detail of <paramref name="state"/> over <paramref name="body"/>, the view behind it.</summary>
     public static IReadOnlyList<StyledLine> Compose(
         IReadOnlyList<StyledLine> body,
         AppState state,

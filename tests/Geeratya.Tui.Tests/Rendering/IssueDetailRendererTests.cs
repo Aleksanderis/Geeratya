@@ -364,6 +364,53 @@ public class IssueDetailRendererTests
         Assert.Contains("Status    In Progress", string.Join('\n', lines));
     }
 
+    [Fact]
+    public void GivenOpenIssueAt120Columns_WhenBuilding_ThenTheViewShowsMutedAroundTheOverlay()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(120, 36), 120, 36, _keymap)!;
+
+        Assert.Contains("My open issues", frame.Body[0].PlainText);
+        Assert.All(frame.Body[0].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
+        Assert.StartsWith("╭─ GCM-12", frame.Body[1].PlainText[2..]);
+        Assert.All(frame.Body[^1].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
+    }
+
+    [Fact]
+    public void GivenOpenIssueBelow100Columns_WhenBuilding_ThenTheOverlayFillsTheBodyWithNoView()
+    {
+        var frame = FrameBuilder.BuildStyled(Loaded(99, 30), 99, 30, _keymap)!;
+
+        Assert.StartsWith("╭─ GCM-12", frame.Body[0].PlainText);
+        Assert.DoesNotContain(frame.Body, line => line.PlainText.Contains("My open issues"));
+    }
+
+    [Fact]
+    public void GivenOpenIssueAndTheProfileManager_WhenBuilding_ThenTheManagerWinsOverTheDetail()
+    {
+        var state = Loaded(120, 36) with { ProfileList = new ProfileListState(0) };
+
+        var lines = FrameBuilder.Build(state, 120, 36, _keymap);
+
+        Assert.DoesNotContain(lines, line => line.Contains("╭─ GCM-12"));
+        Assert.Contains(lines, line => line.Contains("Profiles"));
+    }
+
+    [Fact]
+    public void GivenOneLineHiddenBelowTheOverlay_WhenReadingTheRuler_ThenItShowsAPercentageNotBot()
+    {
+        var state = Loaded(120, 20);
+        var top = state.Session.Tabs[0].Detail[^1];
+        var rows = DetailLayout.ViewportRows(DetailSize.ListRows(state.ViewportColumns, state.ViewportBodyHeight, 0));
+        var scrolled = top with { Scroll = top.Document!.Lines.Count - rows - 1 };
+        var tab = state.Session.Tabs[0] with { Detail = [scrolled] };
+        var shown = state with { Session = state.Session with { Tabs = [tab] } };
+
+        var lines = FrameBuilder.Build(shown, 120, 20, _keymap);
+
+        Assert.DoesNotContain(" Bot", lines[^1]);
+        Assert.Matches(@" \d+%", lines[^1]);
+    }
+
     // The rows of the detail overlay with the margin and the backdrop around it cut away.
     private static List<string> Overlay(IReadOnlyList<string> frame, int width, int height)
     {

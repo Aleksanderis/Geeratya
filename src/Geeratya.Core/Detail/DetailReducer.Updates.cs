@@ -14,7 +14,12 @@ internal static partial class DetailReducer
         string key,
         Func<DetailState, DetailState> change)
     {
-        return IsKey(detail, key) ? Layout(change(detail), DetailSize.Columns(state), DetailSize.ListRows(state, tab)) : detail;
+        if (!IsKey(detail, key))
+        {
+            return detail;
+        }
+
+        return Layout(change(detail), DetailSize.Columns(state), DetailSize.ListRows(state, tab));
     }
 
     private static bool IsKey(DetailState detail, string key)

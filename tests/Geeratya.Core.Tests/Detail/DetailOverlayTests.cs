@@ -114,6 +114,17 @@ public class DetailOverlayTests
     }
 
     [Fact]
+    public void GivenAnOverlayInTheBody_WhenTheWheelTurnsOverTheBackdrop_ThenTheDetailStillScrolls()
+    {
+        var state = Open(_reducer.Reduce(Start(), new ViewportChanged(30, 120, 33)).State);
+        var context = MouseContext.From(state, 120, 36, Header, _now);
+
+        var wheel = MouseResolver.Resolve(context, 0, Header + 5, MouseGesture.WheelDown, _now);
+
+        Assert.IsType<ActionRequested>(Assert.Single(wheel));
+    }
+
+    [Fact]
     public void GivenANarrowTerminal_WhenClickingAnywhereInTheBody_ThenNothingClosesBecauseTheOverlayFillsIt()
     {
         var state = Open(_reducer.Reduce(Start(), new ViewportChanged(20, 80, 23)).State);

@@ -79,7 +79,7 @@ public static class FrameBuilder
         var context = new BodyContext(keymap, glyphs, clock);
         var helpOpen = HelpOverlay.Applies(state);
         var shownState = helpOpen ? HelpOverlay.Underlying(state) : state;
-        var detailShown = DetailOverlay.Applies(shownState);
+        var detailShown = state.ProfileList is null && DetailOverlay.Applies(shownState);
         var viewState = detailShown ? DetailOverlay.Underlying(shownState) : shownState;
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(viewState))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
