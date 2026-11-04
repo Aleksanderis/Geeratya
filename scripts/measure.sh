@@ -255,13 +255,17 @@ if [ "${SCENARIO:-}" = scrum ]; then
   s_cold_cached=()
   s_rss=()
   backlog_ready='Generated Sprint [0-9]+ · (active|future)'
-  sprint_ready='(Task|Bug|Story) GEN-[0-9]+'
+  sprint_ready='GEN-[0-9]+  (Task|Bug|Story)' # the sprint tab is columns of cards (key, then type)
   for ((run = 1; run <= runs; run++)); do
-    export XDG_CACHE_HOME=$work/cache-s$run XDG_STATE_HOME=$work/state-s$run
-    mkdir -p "$XDG_CACHE_HOME" "$XDG_STATE_HOME"
+    export XDG_CACHE_HOME=$work/cache-s$run
+    mkdir -p "$XDG_CACHE_HOME"
     for pass in fresh cached; do
       tmux -L "$socket" kill-server 2> /dev/null || true
       socket=$socket_base-s$run$pass
+      # The fresh pass saved its open tabs; the cached pass would restore them (no start picker), so it gets its own
+      # state directory and keeps only the cache.
+      export XDG_STATE_HOME=$work/state-s$run$pass
+      mkdir -p "$XDG_STATE_HOME"
       cold_ms=$(start_session "$binary")
       dismiss_picker
       tmux -L "$socket" send-keys -t m ":backlog GEN" Enter
@@ -285,7 +289,7 @@ if [ "${SCENARIO:-}" = scrum ]; then
         s_switch_cached+=("$switch_ms")
         # Back to the backlog tab, then keys in the loaded backlog.
         tmux -L "$socket" send-keys -t m M-1
-        wait_match 'GEN board · [0-9]+ issues' > /dev/null
+        wait_match 'GEN board ─+ [0-9]+ issues ─+╮' > /dev/null
         for ((press = 1; press <= keys; press++)); do
           before=$(frame)
           tmux -L "$socket" send-keys -t m j
