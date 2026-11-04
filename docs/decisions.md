@@ -254,3 +254,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-04 (NU1903 suppression, #719)
 
 **Stack:** `NuGetAuditSuppress` for GHSA-p3jp-9v83-76w9 (Brotli decoder out-of-bounds write, CVE-2026-111497; ILCompiler 10.0.12 is the version bundled by SDK 10.0.401) in `Directory.Build.props` (#719). Why: NU1903 fails the warnings-as-errors build; pinning ILCompiler 10.0.14 does not work (NU1009 under central package management, then a `PrivateSdkAssemblies` error in the AOT publish). Tracked for removal in #747.
+
+## 2026-11-05 (workflow plugin replaces the project work skills)
+
+**Process:** The project-local `work-task`, `work-orchestrator`, `work-readiness` and `retrospective` skills, the `reviewer` agent and `scripts/test-owner-feedback.sh` are removed; the workflow plugin provides them, configured by `.claude/workflow.md`. Project-specific content moved to `.claude/review-checklist.md` (reviewer checks) and `.claude/agent-identity.md` (comment headers, markers, signatures). Same change as in Gitunia.
