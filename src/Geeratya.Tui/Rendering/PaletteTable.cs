@@ -21,7 +21,7 @@ public static class PaletteTable
             ThemeColor.Muted,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
-            RoleGround.OnBar),
+            RoleGround.Bar),
         [PaletteRole.Muted] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Divider] = new(ThemeColor.Border, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Error] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
@@ -75,22 +75,22 @@ public static class PaletteTable
             ThemeColor.Muted,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
-            RoleGround.OnBar),
+            RoleGround.Bar),
         [PaletteRole.BarKey] = new(
             ThemeColor.Accent,
             ThemeColor.BarBackground,
             RoleStyle.Reverse | RoleStyle.Bold,
-            RoleGround.OnBarKey),
+            RoleGround.Bar),
         [PaletteRole.BarButton] = new(
             ThemeColor.Accent,
             ThemeColor.BarBackground,
             RoleStyle.Reverse | RoleStyle.Bold,
-            RoleGround.OnBarKey),
+            RoleGround.Bar),
         [PaletteRole.TabInactive] = new(
             ThemeColor.BaseForeground,
             ThemeColor.BarBackground,
             RoleStyle.Reverse,
-            RoleGround.OnBar),
+            RoleGround.Bar),
         [PaletteRole.BarError] = new(
             ThemeColor.Bad,
             ThemeColor.BarBackground,
@@ -227,7 +227,7 @@ public static class PaletteTable
                 Background16(theme, spec),
                 spec.Style,
                 IsOnPage(spec),
-                spec.Ground is RoleGround.OnBar or RoleGround.OnBarKey);
+                spec.Ground == RoleGround.Bar);
         }
 
         return entries;
@@ -308,16 +308,6 @@ public static class PaletteTable
             return Ansi16Color.White;
         }
 
-        if (spec.Ground == RoleGround.OnBarKey)
-        {
-            return Ansi16Color.BrightYellow;
-        }
-
-        if (spec.Ground == RoleGround.OnBar)
-        {
-            return Ansi16Color.White;
-        }
-
         if (spec.Ground == RoleGround.Range)
         {
             return theme.Variant == ThemeVariant.Light ? Ansi16Color.White : Ansi16Color.Black;
@@ -352,11 +342,6 @@ public static class PaletteTable
         if (spec.Ground == RoleGround.OnBlue)
         {
             return Ansi16Color.Blue;
-        }
-
-        if (spec.Ground is RoleGround.OnBar or RoleGround.OnBarKey)
-        {
-            return variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
         }
 
         if (spec.Ground == RoleGround.Range)

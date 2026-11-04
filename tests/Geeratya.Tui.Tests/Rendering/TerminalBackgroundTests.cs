@@ -55,8 +55,14 @@ public class TerminalBackgroundTests
 
         foreach (var tier in _tiers)
         {
+            // The bar is unfilled at 16 colours (#691), so it keeps the terminal there.
             foreach (var role in new[] { PaletteRole.Selected, PaletteRole.Range, PaletteRole.Status })
             {
+                if (role == PaletteRole.Status && tier == ColorSupport.Basic16)
+                {
+                    continue;
+                }
+
                 Assert.False(Palette.Resolve(theme, tier, role).DefaultBackground, $"{name} {tier} {role}");
             }
         }
@@ -128,5 +134,14 @@ public class TerminalBackgroundTests
 
         Assert.DoesNotContain(plain, line => line.Contains(";49m", StringComparison.Ordinal));
         Assert.Contains(kept, line => line.Contains(";49m", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenTheOptionOn_WhenResolvingTheBarAtSixteenColours_ThenItKeepsTheTerminalBackground()
+    {
+        var kept = BuiltInThemes.Default.WithTerminalBackground(true);
+
+        Assert.True(Palette.Resolve(kept, ColorSupport.Basic16, PaletteRole.Status).DefaultBackground);
+        Assert.False(Palette.Resolve(kept, ColorSupport.TrueColor, PaletteRole.Status).DefaultBackground);
     }
 }

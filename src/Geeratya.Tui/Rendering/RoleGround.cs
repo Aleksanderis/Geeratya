@@ -10,13 +10,10 @@ internal enum RoleGround
     OnBlue,
 
     /// <summary>
-    /// The status bar: white on blue on a dark theme, white on black on a light one (the light table has no bright
-    /// colour that reads on blue, so the hint key could not be told from its label, #684). Keys are <see cref="OnBarKey"/>.
+    /// A role on the status bar: at 16 colours the bar has no fill (the variant's ground, like Gitunia's unfilled bar),
+    /// text is the role's own colour, and the bar is not dimmed behind an overlay.
     /// </summary>
-    OnBar,
-
-    /// <summary>The bar of <see cref="OnBar"/> with a hint key on it: bright yellow, the one colour that reads on both bars.</summary>
-    OnBarKey,
+    Bar,
 
     /// <summary>The brightest text colour of the variant (strong text).</summary>
     Strong,
