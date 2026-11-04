@@ -75,7 +75,11 @@ public class PaletteTests
         var key = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.BarKey);
         var text = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Status);
 
+        var button = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.BarButton);
+
         Assert.Equal(theme.Colors[ThemeColor.Accent], key.Foreground);
+        Assert.Equal(theme.Colors[ThemeColor.Accent], button.Foreground);
+        Assert.True(button.Style.HasFlag(RoleStyle.Bold));
         Assert.Equal(theme.Colors[ThemeColor.Muted], text.Foreground);
         Assert.Equal(theme.Colors[ThemeColor.BarBackground], key.Background);
     }
@@ -100,7 +104,10 @@ public class PaletteTests
         var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
         var expectedBar = theme.Variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.Blue;
 
+        var button = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarButton);
+
         Assert.Equal(Ansi16Color.BrightYellow, key.Foreground16);
+        Assert.Equal(Ansi16Color.BrightYellow, button.Foreground16);
         Assert.Equal(expectedBar, key.Background16);
     }
 

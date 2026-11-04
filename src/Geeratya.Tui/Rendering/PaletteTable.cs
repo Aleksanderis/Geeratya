@@ -251,7 +251,7 @@ public static class PaletteTable
     }
 
     // An inactive tab is a button on the bar: the bar moved halfway towards the selection tint, so it stands apart
-    // from the bar and stays quieter than the selected row (Gitunia's tab button, derived so theme files need no colour).
+    // from the bar and stays quieter than the selected row (derived like Gitunia's tab button, so theme files need no new colour).
     private static Rgb TabButton(Theme theme)
     {
         return Rgb.Blend(theme.Colors[ThemeColor.BarBackground], theme.Colors[ThemeColor.Selection], TabButtonShare);
