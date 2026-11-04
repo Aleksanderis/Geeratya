@@ -79,6 +79,7 @@ Goal: views beyond boards, as new sources and layouts.
 - Creating and removing issue links.
 - Saved views: the owner's own combinations of source and layout (built, #191: `:view`, `<space>vv`, `<space>vw`; per profile, local file).
 - Quick filters and swimlanes of a board (built, #192); JQL history.
+- Kanban Done cutoff like Jira's "Hide done work items after" (built, #674, #681, #698, #699): read from the board view on Jira's GraphQL gateway (experimental), falling back to the setting `board.done-cutoff`; per-tab picker (`<space>vd`, `:donecutoff`), never written to Jira.
 
 ## M7 - Pane-based detail, cards and forms
 
@@ -111,6 +112,7 @@ Each with the recommended default and what changes if it is wrong.
 6. Confirm for a single transition (M2, #151): answered in #159 (`decisions.md`): confirm when the target status category is `done` or the workflow shows a screen with nothing to fill in; a per-workflow setting stays open.
 7. Sprint issue page size (M5, #172): the sprint issue endpoint echoes any `maxResults` (1000 accepted with seven issues; the real cap was not reached because the dev data has too few issues), so the client uses 100 like the board endpoints. If wrong: a sprint with more issues than the cap returns a short page, which offset paging (`startAt` plus the returned count) already survives.
 8. Completing a sprint (M5, #172): the public API cannot move unfinished issues on complete (`moveIssuesTo` is 400), so the app completes the sprint and then moves the open issues with a second call. Default: after the complete, offer "move to backlog" or "move to next sprint" in one confirm that says it is two calls. If wrong: an internal Jira endpoint would be needed, which this app does not use.
+9. Reading the Done cutoff (M6, #681): the value lives in Jira's board view (GraphQL gateway, `completedIssueSearchCutOffInDays`, per user over the published setting), not in the REST API. Default: read it when a Kanban board opens and fall back to `board.done-cutoff` on any failure, so an Atlassian change never breaks a board. If wrong (the field is removed): only the manual setting and the picker remain. Still unchecked on a real board (owner only).
 
 ## Milestone order rationale
 
