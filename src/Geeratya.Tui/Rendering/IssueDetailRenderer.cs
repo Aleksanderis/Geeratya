@@ -59,11 +59,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             right = inView < document.PaneRightTitles.Count ? document.PaneRightTitles[inView] : null;
         }
 
-        while (lines.Count < rows)
-        {
-            lines.Add(StyledLine.Empty);
-        }
-
+        // A document shorter than the pane is not padded: the closing edge sits directly under the last line.
         lines.Insert(0, PaneFrame.OuterEdge(width, height, true, chips, right, inView == focused));
         lines.Add(PaneFrame.OuterEdge(width, height, false, null, null, focused == document.Sections.Count - 1));
 

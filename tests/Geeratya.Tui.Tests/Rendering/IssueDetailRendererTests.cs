@@ -183,6 +183,42 @@ public class IssueDetailRendererTests
         }
     }
 
+    [Theory]
+    [InlineData(100, 60)]
+    [InlineData(160, 90)]
+    public void GivenTallTerminalAndShortIssue_WhenBuilding_ThenTheClosingEdgeSitsDirectlyUnderTheLastLine(
+        int width, int height)
+    {
+        var body = FrameBuilder.Build(LoadedShort(width, height), width, height, _keymap)
+            .Skip(FrameBuilder.HeaderRows).ToList();
+        var closing = body.FindIndex(static line => line.StartsWith('╰'));
+
+        Assert.True(closing > 0);
+        Assert.True(closing < 25, $"closing edge at row {closing}");
+        Assert.EndsWith("╯", body[closing]);
+        Assert.Contains("No comments", body[closing - 1]);
+        Assert.All(body.Take(closing).Skip(1), line => Assert.StartsWith("│", line.Replace("├", "│")));
+    }
+
+    [Fact]
+    public void GivenTallTerminalAndShortIssue_WhenScrolledToTheEnd_ThenTheClosingEdgeStillFollowsTheContent()
+    {
+        var state = _reducer.Reduce(LoadedShort(100, 60), new KeyPressed("G")).State;
+
+        var body = FrameBuilder.Build(state, 100, 60, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.Single(body, static line => line.StartsWith('╰'));
+        Assert.True(body.FindIndex(static line => line.StartsWith('╰')) < 25);
+    }
+
+    [Fact]
+    public void GivenTallTerminalAndLongIssue_WhenBuilding_ThenTheClosingEdgeIsAtThePaneBottom()
+    {
+        var body = FrameBuilder.Build(Loaded(100, 30), 100, 30, _keymap).Skip(FrameBuilder.HeaderRows).ToList();
+
+        Assert.StartsWith("╰", body[^2]);
+    }
+
     [Fact]
     public void GivenScrolledOpenIssue_WhenBuilding_ThenTheTopEdgeNamesThePaneInViewAndTheFrameStaysClosed()
     {
@@ -407,6 +443,20 @@ public class IssueDetailRendererTests
     private static DetailState Active(AppState state)
     {
         return state.Session.Tabs[0].Detail[0];
+    }
+
+    private AppState LoadedShort(int width, int height)
+    {
+        var state = Opened(width, height);
+        var tab = state.Session.Tabs[0];
+        var detail = tab.Detail[0];
+        var page = new OffsetPage<IssueComment>([], 0, DetailPaging.CommentPageSize, 0, true);
+
+        state = _reducer.Reduce(state, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue() with { Description = null }, _now)).State;
+
+        state = _reducer.Reduce(state, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, page, _now)).State;
+
+        return _reducer.Reduce(state, new IssueRemoteLinksLoaded(tab.Id, detail.LinksRequest, [], _now)).State;
     }
 
     private AppState Loaded(int width, int height)

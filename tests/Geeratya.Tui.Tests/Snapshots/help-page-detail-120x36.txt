@@ -10,7 +10,7 @@
 │ Loading…  │                │   Ctrl-u     Page up  (PageUp)                                              │           │
 ├─ Comments │                │   <space>a   Open the actions menu of the selected issue                    │───────────┤
 │ Loading…  │                │   Enter      Open the selected item                                         │           │
-            │                │   ]]         Next section of the issue or the Scrum backlog                 │            
+╰───────────│                │   ]]         Next section of the issue or the Scrum backlog                 │───────────╯
             │                │   [[         Previous section of the issue or the Scrum backlog             │            
             │                │   <space>o   Open the issue in the browser                                  │            
             │                │   <space>p   Open the parent issue                                          │            
@@ -32,5 +32,5 @@
             │                │                                                                             │            
             │                │                                                                             │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+                                                                                                                        
  HELP                                                                           j section  J scroll  / filter  Esc close
