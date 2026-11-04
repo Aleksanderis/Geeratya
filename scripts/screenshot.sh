@@ -58,6 +58,7 @@ all_scenarios=(
   "detail;120;36;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Reporter  Generated"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|]]jj;Generated comment 3"
+  "detail-folded;120;36;dark;:jql project = GEN|jjjj|]]za;(folded)"
   "detail-field;120;36;dark;:jql project = GEN|jjjj|jjj;Reporter  Generated"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"

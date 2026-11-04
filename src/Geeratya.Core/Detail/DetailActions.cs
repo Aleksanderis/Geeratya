@@ -24,6 +24,11 @@ internal static class DetailActions
             return null;
         }
 
+        if (target.Toggles)
+        {
+            return new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target), _noEffects);
+        }
+
         if (target.Kind == DetailTargetKind.Field)
         {
             return DetailFieldActions.Open(state, target.Value);
@@ -51,6 +56,25 @@ internal static class DetailActions
         }
 
         return OpenTarget(state, target);
+    }
+
+    /// <summary>
+    /// <c>section.toggle</c> in the issue detail: folds the section under the cursor to a preview, or opens it again.
+    /// Null when no issue is open, so the caller falls back to the list behaviour of the key.
+    /// </summary>
+    public static ReduceResult? ToggleSection(AppState state)
+    {
+        if (TopOf(state) is not { } top)
+        {
+            return null;
+        }
+
+        var section = top.Detail.Document is { } document ? document.SectionAt(top.Detail.Cursor) : 0;
+        var next = DetailReducer.ToggleFolded(state, top.Tab, section);
+
+        return next is null
+            ? Say(state, "The fields cannot be folded.")
+            : new ReduceResult(next, _noEffects);
     }
 
     /// <summary><c>issue.open-parent</c>: pushes the parent of the shown issue.</summary>

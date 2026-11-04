@@ -34,10 +34,11 @@ internal static partial class DetailReducer
     }
 
     /// <summary>
-    /// A click: puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
+    /// A click (<paramref name="foldEdges"/>: a plain one, which also folds the section whose title edge it hits):
+    /// puts the cursor of the top issue on the document line shown at <paramref name="bodyRow"/> (the
     /// top edge of the frame is row 0), without scrolling. Null for rows outside the document, the bottom edge included.
     /// </summary>
-    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow)
+    public static AppState? PlaceCursor(AppState state, TabState tab, int bodyRow, bool foldEdges = false)
     {
         var top = tab.Detail[^1];
         var line = top.Scroll + bodyRow - DetailLayout.HeaderRows;
@@ -48,6 +49,11 @@ internal static partial class DetailReducer
             || bodyRow >= DetailLayout.HeaderRows + shown || line >= document.Lines.Count)
         {
             return null;
+        }
+
+        if (foldEdges && EdgeSection(document, line) is var edge and > 0)
+        {
+            return ToggleFolded(state, tab, edge);
         }
 
         return ViewReducer.Replace(state, ReplaceTop(tab, top with { Cursor = document.Snap(line) }));

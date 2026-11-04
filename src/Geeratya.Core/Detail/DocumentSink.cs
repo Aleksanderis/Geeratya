@@ -9,13 +9,22 @@ namespace Geeratya.Core.Detail;
 /// </summary>
 internal sealed class DocumentSink
 {
+    private const string FoldedText = " (folded)";
+
     private readonly List<DetailTarget?> _targets = [];
+    private readonly IReadOnlyList<string> _folded;
+    private readonly List<string> _ids = [];
     private readonly List<int> _sections = [];
     private readonly List<int> _edges = [];
     private readonly List<IReadOnlyList<StyledSpan>> _titles = [];
     private readonly List<IReadOnlyList<StyledSpan>> _rightTitles = [];
     private readonly List<LineBlock> _blocks = [];
     private readonly HashSet<int> _skipped = [];
+
+    public DocumentSink(IReadOnlyList<string> folded)
+    {
+        _folded = folded;
+    }
 
     public List<StyledLine> Lines { get; } = [];
 
@@ -24,7 +33,15 @@ internal sealed class DocumentSink
     {
         var start = Lines.Count;
         var isFirst = _sections.Count == 0;
+        var id = Panel.IdOf(title);
 
+        if (!isFirst && _folded.Contains(id))
+        {
+            title = [.. title, new StyledSpan(FoldedText, TextRole.Muted)];
+            content = Preview(content, Panel.InnerWidth(width));
+        }
+
+        _ids.Add(id);
         Panel.Add(Lines, title, content.Lines, width, isFirst);
 
         // The first framed panel has no title line (the frame's top edge carries it); every other panel starts with
@@ -74,8 +91,34 @@ internal sealed class DocumentSink
         {
             PaneTitles = _titles,
             PaneRightTitles = _rightTitles,
+            SectionIds = _ids,
             Blocks = _blocks,
         };
+    }
+
+    /// <summary>A folded section: its first line and how many more lines it hides.</summary>
+    private static PanelContent Preview(PanelContent content, int inner)
+    {
+        var preview = new PanelContent();
+
+        if (content.Lines.Count == 0)
+        {
+            return preview;
+        }
+
+        preview.Add(content.Lines[0], content.Targets[0]);
+
+        if (content.Lines.Count > 1)
+        {
+            var note = new WrappedText(inner, false);
+            var hidden = content.Lines.Count - 1;
+            var text = hidden == 1 ? "… 1 more line hidden (z a)" : $"… {hidden} more lines hidden (z a)";
+
+            note.Append(text, TextRole.Muted);
+            preview.Finish(note);
+        }
+
+        return preview;
     }
 
     private void Pad()

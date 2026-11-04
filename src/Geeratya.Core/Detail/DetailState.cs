@@ -70,6 +70,17 @@ public sealed record DetailState(
     /// <summary>The board's name for the estimate field (for example "Story Points"); null shows "Estimate".</summary>
     public string? EstimateLabel { get; init; }
 
+    /// <summary>
+    /// The sections folded to a preview (<see cref="Panel.IdOf"/>), kept per issue in its tab: a reload of the issue
+    /// keeps them.
+    /// </summary>
+    public IReadOnlyList<string> Folded { get; init; } = [];
+
+    /// <summary>
+    /// The long texts shown in full: <c>description</c> or <c>comment:ID</c>; every other long text starts cut short.
+    /// </summary>
+    public IReadOnlyList<string> Expanded { get; init; } = [];
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

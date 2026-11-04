@@ -1,0 +1,24 @@
+ 1 JQL My open issues x   +                          : commands   <space>g jump 
+                                                                                
+╭─ GCM-12 · Task ──────────────────────────────────────────────── In Progress ─╮
+├─ Description ────────────────────────────────────────────────────────────────┤
+│ Heading one                                                                  │
+│                                                                              │
+│ Heading three                                                                │
+│                                                                              │
+│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
+│ 😄 and unicode: żółć 日本語 🚀                                               │
+│ after break                                                                  │
+│                                                                              │
+│>Colored H_2 underlined 2026-01-01 [READY]                                ... │
+│                                                                              │
+│ - bullet one                                                                 │
+│ - bullet two                                                                 │
+│   - nested                                                                   │
+│                                                                              │
+│ 3. third                                                                     │
+│ 4. fourth                                                                    │
+│                                                                              │
+│ [x] done task                                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  My open issues › GCM-12 · 21%     j/k field  ? help  : commands  q quit

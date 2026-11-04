@@ -47,7 +47,7 @@ public static class IssueDocumentBuilder
     {
         var columns = Math.Max(1, width);
         var inner = Panel.InnerWidth(columns);
-        var sink = new DocumentSink();
+        var sink = new DocumentSink(detail.Folded);
 
         AddHeader(sink, detail, columns, inner);
 
@@ -239,11 +239,9 @@ public static class IssueDocumentBuilder
         var panel = new PanelContent();
         var target = detail.Issue is null ? null : new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Description);
 
-        foreach (var line in content)
-        {
-            panel.Add(line, target);
-        }
+        var expanded = detail.Expanded.Contains(DetailFieldIds.Description);
 
+        LongText.Add(panel, content, target, expanded, new LongTextLimit(LongText.DescriptionLines, inner));
         sink.AddPanel([new StyledSpan(DescriptionTitle, TextRole.Heading)], panel, width);
     }
 
@@ -258,7 +256,7 @@ public static class IssueDocumentBuilder
                 content.Add(StyledLine.Empty);
             }
 
-            AddComment(content, detail.Comments[index], detail.LoadedAt, inner);
+            AddComment(content, detail.Comments[index], detail, inner);
         }
 
         var footer = new List<StyledLine>();
@@ -283,8 +281,9 @@ public static class IssueDocumentBuilder
     }
 
     /// <summary>One comment; every line of it opens the comment, so the edit and delete keys find it.</summary>
-    private static void AddComment(PanelContent content, IssueComment comment, DateTimeOffset? reference, int inner)
+    private static void AddComment(PanelContent content, IssueComment comment, DetailState detail, int inner)
     {
+        var reference = detail.LoadedAt;
         var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
         var byline = new WrappedText(inner, false);
 
@@ -300,19 +299,22 @@ public static class IssueDocumentBuilder
             byline.Append(EditedText, TextRole.Muted);
         }
 
-        content.Finish(byline, target);
+        var lines = new List<StyledLine>();
+
+        byline.Finish(lines);
 
         if (comment.Body.Content.Count == 0)
         {
-            content.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted), target);
-
-            return;
+            lines.Add(StyledLine.Of(EmptyCommentText, TextRole.Muted));
         }
-
-        foreach (var line in AdfRenderer.Render(comment.Body, inner).Lines)
+        else
         {
-            content.Add(line, target);
+            lines.AddRange(AdfRenderer.Render(comment.Body, inner).Lines);
         }
+
+        var expanded = detail.Expanded.Contains(target.ExpandKey);
+
+        LongText.Add(content, lines, target, expanded, new LongTextLimit(LongText.CommentLines, inner));
     }
 
     private static void AddCommentsFooter(List<StyledLine> lines, DetailState detail)

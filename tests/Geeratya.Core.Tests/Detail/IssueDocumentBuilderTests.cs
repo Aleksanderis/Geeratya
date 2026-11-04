@@ -60,7 +60,7 @@ public class IssueDocumentBuilderTests
         var description = AdfTestSupport.FixtureDescription(AdfTestSupport.RichDescription);
         var expected = AdfRenderer.Render(description, 76).Lines.Select(line => line.PlainText).Take(12).ToList();
 
-        var lines = Texts(IssueDocumentBuilder.Build(Loaded(description, []), 80));
+        var lines = Texts(IssueDocumentBuilder.Build(Loaded(description, []) with { Expanded = [DetailFieldIds.Description] }, 80));
 
         var heading = lines.FindIndex(line => line.StartsWith("├─ Description "));
         Assert.True(heading > 0);

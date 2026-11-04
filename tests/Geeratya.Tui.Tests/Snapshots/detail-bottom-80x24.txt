@@ -1,16 +1,16 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ Description ────────────────────────────────────────────────────────────────╮
-│ ----------------------------------------                                     │
+╭─ GCM-12 · Task ──────────────────────────────────────────────── In Progress ─╮
+├─ Description ────────────────────────────────────────────────────────────────┤
+│ Heading one                                                                  │
 │                                                                              │
-│ | H1 | H2 |                                                                  │
-│ |----|----|                                                                  │
-│ | a  | b  |                                                                  │
+│ Heading three                                                                │
 │                                                                              │
-│ v Expand me                                                                  │
-│   hidden                                                                     │
+│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
+│ 😄 and unicode: żółć 日本語 🚀                                               │
+│ after break                                                                  │
 │                                                                              │
-│ https://example.com/card                                                     │
+│ … 32 more lines (Enter)                                                      │
 ├─ Comments 3 ─────────────────────────────────────────────────────────────────┤
 │ Jane Doe · 1 d ago                                                           │
 │ Found it: the redirect target is dropped after the refresh.                  │

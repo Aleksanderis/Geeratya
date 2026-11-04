@@ -19,18 +19,18 @@
 │ after break                                                                                                          │
 │                                                                                                                      │
 │ Colored H_2 underlined 2026-01-01 [READY]                                                                            │
+│ … 31 more lines (Enter)                                                                                              │
+├─ Comments 3 ─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Jane Doe · 1 d ago                                                                                                   │
+│ Found it: the redirect target is dropped after the refresh.                                                          │
 │                                                                                                                      │
-│ - bullet one                                                                                                         │
-│ - bullet two                                                                                                         │
-│   - nested                                                                                                           │
+│ 日本語の作者 · 3 h ago                                                                                               │
+│ 日本語のコメント。これは長い文章で、折り返しが必要になります。                                                       │
 │                                                                                                                      │
-│ 3. third                                                                                                             │
-│ 4. fourth                                                                                                            │
-│                                                                                                                      │
-│ [x] done task                                                                                                        │
-│ [ ] todo task                                                                                                        │
-│                                                                                                                      │
-│ ```csharp                                                                                                            │
-│ var x = 1;                                                                                                           │
+│ Ola Nordmann · 5 min ago                                                                                             │
+│ See also café and 😀 in the second paragraph, which is long enough to wrap.                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Top                  j/k field  Enter edit/open  Esc back  ? help  : commands  q quit
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ NORMAL  My open issues › GCM-12      j/k field  Enter edit/open  Esc back  <space>o browser  ? help  : commands  q quit
