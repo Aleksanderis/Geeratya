@@ -110,14 +110,7 @@ public static class ColumnsNavigation
     /// </summary>
     public static TabState FollowCard(TabState tab, string key)
     {
-        if (tab.Cursor is not { } cursor)
-        {
-            return tab;
-        }
-
-        var columns = ColumnsOf(tab);
-
-        return Follow(tab, columns, BoardMotion.Follow(columns, cursor, key, CardsVisible(tab)));
+        return tab.Cursor is null ? tab : Select(tab, key);
     }
 
     /// <summary>

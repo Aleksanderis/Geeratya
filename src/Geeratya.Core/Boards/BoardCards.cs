@@ -11,6 +11,15 @@ public static class BoardCards
     /// <summary>Rows of a card in full form: top border, key line, two summary lines and bottom border.</summary>
     public const int FullRows = 5;
 
+    /// <summary>Cells of margin on each side of a card in a column; the labeler and the renderer share it.</summary>
+    public const int CardMargin = 1;
+
+    /// <summary>Cells a child card is indented inside the shared frame of its parent.</summary>
+    public const int ChildIndent = 2;
+
+    /// <summary>The narrowest box a card is drawn in; narrower columns show blank cells.</summary>
+    public const int MinimumBoxWidth = 8;
+
     /// <summary>Rows above the cards: the top edge of the frame, which carries the column titles.</summary>
     public const int TopRows = 1;
 

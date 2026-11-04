@@ -55,6 +55,36 @@ public class FlashViewsOverlayTests
     }
 
     [Fact]
+    public void GivenAChildCardInTheSharedFrameOfItsParent_WhenRendering_ThenTheLetterStaysBesideItsTypeName()
+    {
+        var child = Card("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
+        var state = Board("A-", 30, Card("1", "A-1"), child);
+
+        var lines = Frame(state, 120, 30);
+
+        Assert.Matches(new Regex("[a-z]Task A-1"), Joined(lines));
+        Assert.Matches(new Regex("[a-z]Task A-2"), Joined(lines));
+    }
+
+    [Fact]
+    public void GivenAnyBodyWidth_WhenRendering_ThenEveryLabelledCardShowsItsLetterBesideTheKey()
+    {
+        for (var width = 20; width <= 140; width += 3)
+        {
+            var state = Board("A-", 30, Card("1", "A-1"), Card("2", "A-2"), Card("4", "A-3")) with
+            {
+                ViewportColumns = width,
+            };
+            var tab = state.Session.Tabs[0];
+            var labels = FlashBoardLabeler.Compute(tab, "A-", width, 30);
+            var text = Joined(Frame(state, width, 30));
+
+            Assert.NotEmpty(labels);
+            Assert.All(labels, label => Assert.Matches(new Regex($"{label.Letter}[A-Za-z]+ {label.Key}"), text));
+        }
+    }
+
+    [Fact]
     public void GivenNoFlashPrompt_WhenRendering_ThenTheCardsAreDrawnAsBefore()
     {
         var state = Board("A-", 30, Card("1", "A-1")) with { FlashJump = null, Mode = InputMode.Normal };

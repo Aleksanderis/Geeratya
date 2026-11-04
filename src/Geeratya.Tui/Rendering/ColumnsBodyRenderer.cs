@@ -25,11 +25,11 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
     private const string Blank = " ";
     private const int FirstSummaryLine = 2;
     private const int BlankRow = int.MaxValue;
-    private const int Margin = 1;
-    private const int ChildIndent = 2;
+    private const int Margin = BoardCards.CardMargin;
+    private const int ChildIndent = BoardCards.ChildIndent;
 
     private const int SubtaskBarCells = 6;
-    private const int MinimumBoxWidth = 8;
+    private const int MinimumBoxWidth = BoardCards.MinimumBoxWidth;
     private const string ParentMark = "↑";
     private const string Vertical = "│";
     private const char HorizontalChar = '─';

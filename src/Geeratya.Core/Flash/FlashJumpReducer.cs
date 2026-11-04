@@ -14,6 +14,7 @@ namespace Geeratya.Core.Flash;
 public static class FlashJumpReducer
 {
     private const string UnavailableMessage = "Jump to a visible row works in a list, board or backlog view, not inside an issue.";
+    private const string NothingToJumpMessage = "No rows to jump to.";
     private const string NoRowsMessage = "No visible row contains that text.";
     private const string EmptyMessage = "Type some text of a visible row, or press Esc.";
 
@@ -24,7 +25,9 @@ public static class FlashJumpReducer
     {
         if (Target(state) is null)
         {
-            return Plain(state with { Message = UnavailableMessage });
+            var inside = state.Session.Tabs.Any(tab => tab.Id == state.Session.Active && tab.Detail.Count > 0);
+
+            return Plain(state with { Message = inside ? UnavailableMessage : NothingToJumpMessage });
         }
 
         var opened = state with

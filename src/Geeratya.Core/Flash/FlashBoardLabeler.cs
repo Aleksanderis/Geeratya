@@ -13,11 +13,11 @@ namespace Geeratya.Core.Flash;
 /// </summary>
 public static class FlashBoardLabeler
 {
-    private const int Margin = 1;
+    private const int Margin = BoardCards.CardMargin;
     private const int Borders = 2;
     private const int Padding = 2;
-    private const int MinimumBoxWidth = 8;
-    private const int ChildIndent = 2;
+    private const int MinimumBoxWidth = BoardCards.MinimumBoxWidth;
+    private const int ChildIndent = BoardCards.ChildIndent;
     private const int KeyLineReserve = 4;
 
     /// <summary>The cells before the card text in a full card: the margin and the side border.</summary>

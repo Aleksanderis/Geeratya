@@ -1,7 +1,7 @@
-using Geeratya.Core.Text;
 using Geeratya.Core.State;
-using Geeratya.Platform.Terminal;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 

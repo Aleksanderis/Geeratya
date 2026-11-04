@@ -1,7 +1,6 @@
 using Geeratya.Core.Text;
-using Geeratya.Tui.Rendering;
 
-namespace Geeratya.Tui.Tests.Rendering;
+namespace Geeratya.Core.Tests.Text;
 
 [Trait("Os", "Independent")]
 public class CardTextTests
@@ -30,7 +29,7 @@ public class CardTextTests
         var lines = CardText.TwoLines("Fix login redirect after token refresh and then some more words", 20);
 
         Assert.EndsWith("…", lines.Second);
-        Assert.Equal(20, TextWidth.Of(lines.Second));
+        Assert.Equal(20, DisplayWidth.Of(lines.Second));
     }
 
     [Fact]
@@ -39,7 +38,7 @@ public class CardTextTests
         var lines = CardText.TwoLines("Supercalifragilisticexpialidocious", 10);
 
         Assert.Equal("Supercalif", lines.First);
-        Assert.Equal(10, TextWidth.Of(lines.Second));
+        Assert.Equal(10, DisplayWidth.Of(lines.Second));
         Assert.EndsWith("…", lines.Second);
     }
 
@@ -49,7 +48,7 @@ public class CardTextTests
         var lines = CardText.TwoLines("日本語日本語日本語日本語日本語", 9);
 
         Assert.Equal("日本語日", lines.First);
-        Assert.True(TextWidth.Of(lines.Second) <= 9);
+        Assert.True(DisplayWidth.Of(lines.Second) <= 9);
     }
 
     [Theory]

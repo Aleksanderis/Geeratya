@@ -32,7 +32,7 @@ public class FlashJumpTests
         var result = Press(AppState.Initial, "Space", "j");
 
         Assert.Null(result.State.FlashJump);
-        Assert.Contains("list, board or backlog", result.State.Message);
+        Assert.Contains("No rows", result.State.Message);
     }
 
     [Fact]
