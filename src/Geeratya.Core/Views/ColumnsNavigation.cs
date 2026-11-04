@@ -152,6 +152,11 @@ public static class ColumnsNavigation
     /// <summary>The columns the layout draws for the tab's rows.</summary>
     public static IReadOnlyList<BoardColumnGroup> ColumnsOf(TabState tab)
     {
+        return tab.Columns.Get(tab, BuildColumns);
+    }
+
+    private static IReadOnlyList<BoardColumnGroup> BuildColumns(TabState tab)
+    {
         var lane = Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows);
 
         return BoardColumns.Visible(tab.Board, lane, tab.ExpandedSubtasks, tab.Rows, tab.DoneCutoffDays);
