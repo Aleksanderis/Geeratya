@@ -118,16 +118,14 @@ public class PaletteTests
 
     [Theory]
     [MemberData(nameof(ThemeNames))]
-    public void GivenBuiltInThemeAtSixteenColours_WhenDimmingTheBar_ThenItsFillAndKeyStay(string name)
+    public void GivenBuiltInThemeAtSixteenColours_WhenDimmingTheBar_ThenItDimsLikeThePage(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
 
         var key = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey, SpanGround.Dim, true);
+        var page = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Body, SpanGround.Dim, true);
 
-        var undimmed = Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.BarKey);
-
-        Assert.False(key.Style.HasFlag(RoleStyle.Faint));
-        Assert.Equal(undimmed.Foreground16, key.Foreground16);
+        Assert.Equal(page.Style.HasFlag(RoleStyle.Faint), key.Style.HasFlag(RoleStyle.Faint));
     }
 
     [Fact]
