@@ -33,4 +33,4 @@
 │                                                                                    │                               │ │
 │                                                                                    ╰───────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- INSERT  Edit GCM-12                                                      Up/Down choose  Enter pick and save  Esc close
+ INSERT  Edit GCM-12                                                             Up/Down choose  Enter accept  Esc close
