@@ -40,12 +40,12 @@ all_scenarios=(
   "list-sprint;160;36;dark;:board GEN|:layout list|;Sprint"
   "sprint-switcher;120;36;dark;:board GEN| sv;Generated Sprint"
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
-  # sprint-subtasks: the sub-task summary row on the cards (generated sub-task stubs), then one card expanded with z a
-  "sprint-subtasks;120;36;dark;:board GEN| sv|;Sub-tasks 1/3"
+  # sprint-subtasks: the sub-task counter on the cards (generated sub-task stubs), then one card expanded with z a
+  "sprint-subtasks;120;36;dark;:board GEN| sv|;▸1/3"
   # h moves from the Unmapped column (where the cursor starts) to a card with sub-tasks
   "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|hza;Generated sub-task"
   # sprint-points reuses the columns view and waits for a card estimate
-  "sprint-points;120;36;dark;:board GEN| sv|;5p"
+  "sprint-points;120;36;dark;:board GEN| sv|;p [--]"
   "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."
   "sprint-goal;120;36;dark;:board GEN| sv| sg;Sprint goal"
   # done-cutoff*: the recorded Kanban board 4 (the fake serves the recorded gateway chain: Jira says 14 days); the picker

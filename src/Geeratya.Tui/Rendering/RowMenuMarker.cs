@@ -7,7 +7,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line) and
+/// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line, the summary) and
 /// the cursor line of an opened issue (<c>docs/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so it shows in every
 /// colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
 /// <c>&lt;space&gt;a</c> for terminals whose multiplexer swallows the right-click. The cells it covers are reported
@@ -20,6 +20,8 @@ public static class RowMenuMarker
 
     /// <summary>The selected part of the row must be at least this wide, else the row is too narrow and shows none.</summary>
     public const int MinRowWidth = 24;
+
+    private const int KeyLookahead = 2;
 
     /// <summary>
     /// Replaces the last cells of the selected line of <paramref name="body"/> with the marker and returns its cells
@@ -35,7 +37,7 @@ public static class RowMenuMarker
 
         for (var row = 0; row < body.Count; row++)
         {
-            if (Run(body[row], key) is not { } run)
+            if (Run(body[row], NearKey(body, row, key), key is null) is not { } run)
             {
                 continue;
             }
@@ -87,9 +89,31 @@ public static class RowMenuMarker
         return true;
     }
 
+    // The key is on the row or on one of the two rows under it: a board card shows its key on the last of its three
+    // text rows and the marker sits on the first, so it does not cover the priority glyph and the assignee chip.
+    private static bool NearKey(List<StyledLine> body, int row, string? key)
+    {
+        if (key is null)
+        {
+            return true;
+        }
+
+        var last = Math.Min(body.Count - 1, row + KeyLookahead);
+
+        for (var index = row; index <= last; index++)
+        {
+            if (body[index].PlainText.Contains(key, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // The cells of the selected-styled spans of a line, null when it has none or (outside the detail) it does not show
     // the key of the selected issue, which keeps section headers and column titles from taking the marker.
-    private static Cells? Run(StyledLine line, string? key)
+    private static Cells? Run(StyledLine line, bool keyNear, bool noKey)
     {
         var column = 0;
         int? start = null;
@@ -113,9 +137,9 @@ public static class RowMenuMarker
         }
 
         // The cursor line of an opened issue marks only its first cell; the row runs on to the border.
-        end = key is null && start is not null ? Math.Max(end, inner) : end;
+        end = noKey && start is not null ? Math.Max(end, inner) : end;
 
-        if (start is null || (key is not null && !line.PlainText.Contains(key, StringComparison.Ordinal)))
+        if (start is null || !keyNear)
         {
             return null;
         }

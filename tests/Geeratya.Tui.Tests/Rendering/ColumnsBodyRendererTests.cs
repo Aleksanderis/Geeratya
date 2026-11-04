@@ -38,7 +38,7 @@ public class ColumnsBodyRendererTests
         null);
 
     [Fact]
-    public void GivenAMarkedCard_WhenRendering_ThenOnlyThatCardShowsAStarBeforeItsTypeNameInBothCardSizes()
+    public void GivenAMarkedCard_WhenRendering_ThenOnlyThatCardShowsAStarBeforeItsKeyInBothCardSizes()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("1", "A-2")) with { Marks = ["A-2"] };
 
@@ -46,7 +46,7 @@ public class ColumnsBodyRendererTests
         var compact = Render(tab, 120, 8);
 
         Assert.Single(full, line => line.PlainText.Contains('*'));
-        Assert.Contains("*Task", full.Single(line => line.PlainText.Contains('*')).PlainText);
+        Assert.Contains("*A-2", full.Single(line => line.PlainText.Contains('*')).PlainText);
         Assert.Single(compact, line => line.PlainText.Contains("*A-2", StringComparison.Ordinal));
         Assert.DoesNotContain(compact, line => line.PlainText.Contains("*A-1", StringComparison.Ordinal));
     }
@@ -134,10 +134,10 @@ public class ColumnsBodyRendererTests
 
         Assert.Contains("┌", body[2].PlainText);
         Assert.Contains("┏━", body[7].PlainText);
-        Assert.Contains("┃ Task A-2", body[8].PlainText);
+        Assert.Contains("┃ A-2  Task", body[10].PlainText);
         Assert.Contains("┗━", body[11].PlainText);
         var top = body[7].Spans.First(span => span.Text.Contains('┏', StringComparison.Ordinal));
-        var summary = body[9].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
+        var summary = body[8].Spans.First(span => span.Text.Contains("Summary", StringComparison.Ordinal));
         Assert.Equal(TextRole.FrameFocus, top.Role);
         Assert.Equal(SpanGround.Selection, summary.Ground);
         Assert.DoesNotContain(body[2].Spans, span => span.Ground == SpanGround.Selection);
@@ -153,22 +153,40 @@ public class ColumnsBodyRendererTests
         var wide = Render(tab, 120, 30);
         var narrow = Render(tab, 20, 30);
 
-        Assert.Contains("┃ Task ABC-12345", wide[3].PlainText);
-        Assert.DoesNotContain("Task", narrow[3].PlainText);
-        Assert.Contains("T ABC-12345", narrow[3].PlainText);
+        Assert.Contains("┃ ABC-12345  Task", wide[5].PlainText);
+        Assert.DoesNotContain("Task", narrow[5].PlainText);
+        Assert.Contains("ABC-12345  T", narrow[5].PlainText);
     }
 
     [Fact]
-    public void GivenAnAssigneeAndANarrowColumn_WhenRendering_ThenTheInitialsGoBeforeTheTypeName()
+    public void GivenAnAssigneeAndANarrowColumn_WhenRendering_ThenTheInitialsChipGoesBeforeTheTypeWord()
     {
         var tab = Tab(Issue("1", "ABCDEFGH-12345", assignee: "Jane Doe"));
 
-        var body = Render(tab, 120, 30);
+        var body = Render(tab, 200, 30);
         var tight = Render(tab, 20, 30);
 
-        Assert.Contains("Task ABCDEFGH-12345", body[3].PlainText);
-        Assert.Contains("JD", body[3].PlainText);
-        Assert.DoesNotContain("JD", tight[3].PlainText);
+        Assert.Contains("ABCDEFGH-12345  Task", body[5].PlainText);
+        Assert.Contains("[JD]", body[5].PlainText);
+        Assert.DoesNotContain("[JD]", tight[5].PlainText);
+    }
+
+    [Fact]
+    public void GivenALabelledCard_WhenRendering_ThenItShowsOneSummaryLineThenTheChipsThenTheBottomRow()
+    {
+        var issue = Issue("1", "A-1", "A summary that is long enough to need a second line on a narrow card")
+            with { Labels = ["alpha", "beta"], Priority = "High" };
+
+        var body = Render(Tab(issue), 120, 30);
+
+        Assert.Contains("A summary", body[3].PlainText);
+        Assert.DoesNotContain("second line", body[4].PlainText);
+        Assert.Contains("[alpha] [beta]", body[4].PlainText);
+        Assert.Contains("A-1  Task", body[5].PlainText);
+        Assert.Contains("▲ [--]", body[5].PlainText);
+        Assert.Contains(body[4].Spans, span => span.Role == LabelChips.For("alpha") && span.Text == "[alpha]");
+        Assert.Contains(body[5].Spans, span => span.Role == TextRole.UnassignedChip);
+        Assert.All(body.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
     }
 
     [Fact]
@@ -178,19 +196,19 @@ public class ColumnsBodyRendererTests
 
         var body = Render(Tab(issue), 120, 30);
 
-        Assert.Contains("┃ ? A-1", body[3].PlainText);
+        Assert.Contains("┃ A-1  ?", body[5].PlainText);
     }
 
     [Fact]
-    public void GivenAnAssignee_WhenRendering_ThenInitialsSitAtTheColumnsRightEdgeAndUnassignedHasNone()
+    public void GivenAnAssignee_WhenRendering_ThenInitialsSitAtTheColumnsRightEdgeAndUnassignedHasTheSameWidthDashChip()
     {
         var tab = Tab(Issue("1", "A-1", assignee: "Jane Doe"), Issue("1", "A-2"));
 
-        var body = Render(tab, 80, 30);
+        var body = Render(tab, 120, 30);
 
-        Assert.Matches(@"^┃ Task A-1 +JD ┃", body[3].PlainText[2..]);
-        Assert.Matches(@"^│ Task A-2 +  ", body[8].PlainText[2..]);
-        Assert.DoesNotContain("JD", body[8].PlainText);
+        Assert.Matches(@"^┃ A-1  Task +\[JD\] ┃", body[5].PlainText[2..]);
+        Assert.Matches(@"^│ A-2  Task +\[--\] │", body[10].PlainText[2..]);
+        Assert.DoesNotContain("JD", body[10].PlainText);
     }
 
     [Fact]
@@ -201,9 +219,10 @@ public class ColumnsBodyRendererTests
 
         var body = Render(Tab(Issue("1", "A-1", summary)), 120, 30);
 
-        Assert.Contains("Fix the login", body[4].PlainText);
-        Assert.Contains("…", body[5].PlainText);
-        Assert.DoesNotContain("provider", body[5].PlainText);
+        Assert.Contains("Fix the login", body[3].PlainText);
+        Assert.Contains("…", body[4].PlainText);
+        Assert.DoesNotContain("provider", body[4].PlainText);
+        Assert.Contains("A-1  Task", body[5].PlainText);
         Assert.StartsWith("│ ┗", body[6].PlainText);
     }
 
@@ -223,7 +242,7 @@ public class ColumnsBodyRendererTests
         var without = Render(Tab(Issue("1", "A-1")), 140, 30);
 
         Assert.Contains("Unmapped 1", with[1].PlainText);
-        Assert.Contains("A-9", with[3].PlainText);
+        Assert.Contains("A-9", with[5].PlainText);
         Assert.DoesNotContain("Unmapped", without[1].PlainText);
     }
 
@@ -270,8 +289,8 @@ public class ColumnsBodyRendererTests
         Assert.StartsWith("│>T A-1 Summary", compact[2].PlainText);
         Assert.StartsWith("│ T A-2 Summary", compact[3].PlainText);
         Assert.Contains("┏", full[2].PlainText);
-        Assert.Contains("┃ Task A-1", full[3].PlainText);
-        Assert.Contains("Task A-2", full[8].PlainText);
+        Assert.Contains("┃ A-1  Task", full[5].PlainText);
+        Assert.Contains("A-2  Task", full[10].PlainText);
     }
 
     [Fact]
@@ -289,8 +308,8 @@ public class ColumnsBodyRendererTests
 
         // Five cards fit, so the scroll is corrected to 28: two cards of context above the selection (the most the
         // viewport allows while keeping scrolloff below it), A-29 on the first card row.
-        Assert.Contains("A-29", body[3].PlainText);
-        Assert.Contains("Task A-31", body[3 + (2 * 5)].PlainText);
+        Assert.Contains("A-29", body[5].PlainText);
+        Assert.Contains("A-31  Task", body[5 + (2 * 5)].PlainText);
         Assert.Contains("┏", body[2 + (2 * 5)].PlainText);
         Assert.DoesNotContain(body, line => line.PlainText.Contains("A-3 ", StringComparison.Ordinal));
         Assert.Equal(30, body.Count);
@@ -330,7 +349,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 80, 20);
 
         Assert.StartsWith("╭─ Issues 1 ", body[1].PlainText);
-        Assert.Contains("A-1", body[3].PlainText);
+        Assert.Contains("A-1", body[5].PlainText);
     }
 
     [Fact]
@@ -470,7 +489,7 @@ public class ColumnsBodyRendererTests
 
         Assert.Contains(
             body,
-            line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal)
+            line => line.PlainText.Contains("A-1  Task", StringComparison.Ordinal)
                 && line.PlainText.Contains("0.5p", StringComparison.Ordinal));
     }
 
@@ -549,7 +568,7 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.DoesNotContain(body, line => line.Spans.Any(span => span.Text == ">"));
-        Assert.Contains(body, line => line.PlainText.Contains("Task A-1", StringComparison.Ordinal));
+        Assert.Contains(body, line => line.PlainText.Contains("A-1  Task", StringComparison.Ordinal));
         Assert.DoesNotContain(body, line => HasSpan(line, TextRole.Selected, "A-1"));
     }
 
@@ -671,11 +690,11 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        var plain = body[3].Spans.Single(span => span.Role == TextRole.TypeTask);
+        var plain = body[5].Spans.Single(span => span.Role == TextRole.TypeTask);
         Assert.Equal("Task", plain.Text);
         Assert.Equal(SpanGround.Page, plain.Ground);
-        Assert.Contains(body[8].Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Selection);
-        Assert.Equal(120, TextWidth.Of(body[3].PlainText));
+        Assert.Contains(body[10].Spans, span => span.Role == TextRole.TypeTask && span.Ground == SpanGround.Selection);
+        Assert.Equal(120, TextWidth.Of(body[5].PlainText));
     }
 
     [Fact]
@@ -710,7 +729,7 @@ public class ColumnsBodyRendererTests
         Assert.Contains("┫", body[6].PlainText);
         Assert.Contains("│ └", body[11].PlainText);
         Assert.DoesNotContain("↑", string.Concat(body.Select(line => line.PlainText)));
-        Assert.Contains("│ │   Task A-2", body[7].PlainText);
+        Assert.Contains("│ │   A-2  Task", body[9].PlainText);
         Assert.Contains("┃", body[3].PlainText);
     }
 
@@ -723,10 +742,10 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.Contains("│ ┣━", body[6].PlainText);
-        Assert.Contains("│ ┃   Task A-2", body[7].PlainText);
+        Assert.Contains("│ ┃   A-2  Task", body[9].PlainText);
         Assert.Contains("│ ┗━", body[11].PlainText);
         Assert.Contains("┛", body[11].PlainText);
-        Assert.Contains("│ │ Task A-1", body[3].PlainText);
+        Assert.Contains("│ │ A-1  Task", body[5].PlainText);
     }
 
     [Fact]
@@ -751,10 +770,10 @@ public class ColumnsBodyRendererTests
         var body = Render(tab, 120, 30);
 
         Assert.Contains("│ ┣━", body[6].PlainText);
-        Assert.Contains("│ ┃   Task A-2", body[7].PlainText);
+        Assert.Contains("│ ┃   A-2  Task", body[9].PlainText);
         Assert.Contains("│ ┃", body[10].PlainText);
         Assert.Contains("│ ┣━", body[11].PlainText);
-        Assert.Contains("│ │   Task A-3", body[12].PlainText);
+        Assert.Contains("│ │   A-3  Task", body[14].PlainText);
         Assert.Contains("│ └", body[16].PlainText);
         Assert.DoesNotContain("┃", body[3].PlainText);
     }

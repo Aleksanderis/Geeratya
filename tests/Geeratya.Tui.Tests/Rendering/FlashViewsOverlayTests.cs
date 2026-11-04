@@ -30,15 +30,15 @@ public class FlashViewsOverlayTests
         null);
 
     [Fact]
-    public void GivenFullCardsInTwoColumns_WhenRendering_ThenTheLetterTakesTheCellBeforeTheTypeNameOfEachMatch()
+    public void GivenFullCardsInTwoColumns_WhenRendering_ThenTheLetterTakesTheCellBeforeTheKeyOfEachMatch()
     {
         var state = Board("A-", 30, Card("1", "A-1"), Card("2", "A-2"), Card("4", "B-3"));
 
         var lines = Frame(state, 120, 30);
 
-        Assert.Matches(new Regex("[a-z]Task A-1"), Joined(lines));
-        Assert.Matches(new Regex("[a-z]Task A-2"), Joined(lines));
-        Assert.Matches(new Regex(" Task B-3"), Joined(lines));
+        Assert.Matches(new Regex("[a-z]A-1  Task"), Joined(lines));
+        Assert.Matches(new Regex("[a-z]A-2  Task"), Joined(lines));
+        Assert.Matches(new Regex(" B-3  Task"), Joined(lines));
         Assert.All(lines, line => Assert.Equal(120, DisplayWidth.Of(line)));
     }
 
@@ -55,15 +55,15 @@ public class FlashViewsOverlayTests
     }
 
     [Fact]
-    public void GivenAChildCardInTheSharedFrameOfItsParent_WhenRendering_ThenTheLetterStaysBesideItsTypeName()
+    public void GivenAChildCardInTheSharedFrameOfItsParent_WhenRendering_ThenTheLetterStaysBesideItsKey()
     {
         var child = Card("1", "A-2") with { Parent = new IssueParent("A-1", "Parent summary") };
         var state = Board("A-", 30, Card("1", "A-1"), child);
 
         var lines = Frame(state, 120, 30);
 
-        Assert.Matches(new Regex("[a-z]Task A-1"), Joined(lines));
-        Assert.Matches(new Regex("[a-z]Task A-2"), Joined(lines));
+        Assert.Matches(new Regex("[a-z]A-1  Task"), Joined(lines));
+        Assert.Matches(new Regex("[a-z]A-2  Task"), Joined(lines));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class FlashViewsOverlayTests
             var text = Joined(Frame(state, width, 30));
 
             Assert.NotEmpty(labels);
-            Assert.All(labels, label => Assert.Matches(new Regex($"{label.Letter}[A-Za-z]+ {label.Key}"), text));
+            Assert.All(labels, label => Assert.Matches(new Regex($"{label.Letter}{label.Key}  [A-Za-z]"), text));
         }
     }
 
@@ -91,7 +91,7 @@ public class FlashViewsOverlayTests
 
         var lines = Frame(state, 120, 30);
 
-        Assert.DoesNotMatch(new Regex("[a-z]Task A-1"), Joined(lines));
+        Assert.DoesNotMatch(new Regex("[a-z]A-1  Task"), Joined(lines));
     }
 
     [Fact]

@@ -2,19 +2,19 @@
                                                                                 
 ╭─ To Do 5 ─────────┬─ In Progress 4 ───┬─ Backlog 4 ───────┬─ Done (14d) 3 ───╮
 │ ┏━━━━━━━━━━━━━━━┓ │ ┌───────────────┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-10 … ─┐ │
-│ ┃ Epic GTM-9    ┃ │ │ Epic GTM-10   │ │ │ Task GTM-21   │ │ │ Story GTM-13 │ │
-│ ┃ Seed:         ┃ │ │ Seed:         │ │ │ Backlog:      │ │ │ Export       │ │
-│ ┃ Onboarding f… ┃ │ │ Reporting     │ │ │ dark mode     │ │ │ report as C… │ │
+│ ┃ Seed: Onboar… ┃ │ │ Seed: Report… │ │ │ Backlog: dar… │ │ │ Export repo… │ │
+│ ┃ [geeraty…] +1 ┃ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ ┃ GTM-9  Epic   ┃ │ │ GTM-10  Epic  │ │ │ GTM-21  Task  │ │ │ GTM-13  Sto… │ │
 │ ┣━━━━━━━━━━━━━━━┫ │ ├───────────────┤ │ └───────────────┘ │ └──────────────┘ │
-│ │   Sto… GTM-12 │ │ │   Task GTM-15 │ │ ┌───────────────┐ │ ┌──────────────┐ │
-│ │   Welcome     │ │ │   Pick a      │ │ │ Story GTM-22  │ │ │ Task GTM-16  │ │
-│ │   screen      │ │ │   chart libr… │ │ │ Backlog:      │ │ │ Write the    │ │
-│ │               │ │ │               │ │ │ keyboard sho… │ │ │ setup guide  │ │
+│ │   Welcome sc… │ │ │   Pick a cha… │ │ ┌───────────────┐ │ ┌──────────────┐ │
+│ │   [geera…] +1 │ │ │   [geera…] +1 │ │ │ Backlog: key… │ │ │ Write the s… │ │
+│ │   GTM-12  S   │ │ │   GTM-15  T   │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ │               │ │ │               │ │ │ GTM-22  Story │ │ │ GTM-16  Task │ │
 │ ├───────────────┤ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
-│ │   Task GTM-14 │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
-│ │   Review      │ │ │ Story GTM-11  │ │ │ Bug GTM-23    │ │ │ Subt… GTM-19 │ │
-│ │   onboarding… │ │ │ Sign up with  │ │ │ Backlog:      │ │ │ Build the    │ │
-│ │               │ │ │ email         │ │ │ tooltip clip… │ │ │ form         │ │
+│ │   Review onb… │ │ ┌─ ↑ GTM-9 Se… ─┐ │ ┌───────────────┐ │ ┌─ ↑ GTM-11 … ─┐ │
+│ │   [geera…] +1 │ │ │ Sign up with… │ │ │ Backlog: too… │ │ │ Build the f… │ │
+│ │   GTM-14  T   │ │ │ [geeraty…] +1 │ │ │ [geeraty…] +1 │ │ │ [geerat…] +1 │ │
+│ │               │ │ │ GTM-11  Story │ │ │ GTM-23  Bug   │ │ │ GTM-19  Sub… │ │
 │ └───────────────┘ │ └───────────────┘ │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
 │                   │                   │                   │                  │

@@ -98,9 +98,9 @@ public sealed partial class ColumnsBodyRenderer
             Tint(spans, first);
         }
 
-        var firstText = part is GroupPart.None or GroupPart.First ? 1 : 0;
+        var bottom = part is GroupPart.None or GroupPart.First ? BottomRow : BottomRow - 1;
 
-        DrawFlash(spans, first, flash, issue, within == firstText, true);
+        DrawFlash(spans, first, flash, issue, within == bottom, true);
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public sealed partial class ColumnsBodyRenderer
 
     private static bool IsQuietable(TextRole role)
     {
-        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.TypeEpic or TextRole.TypeStory
+        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.Warning or TextRole.TypeEpic or TextRole.TypeStory
             or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask or TextRole.StatusToDo
             or TextRole.StatusInProgress or TextRole.StatusDone;
     }

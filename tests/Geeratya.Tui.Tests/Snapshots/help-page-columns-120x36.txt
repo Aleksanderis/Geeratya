@@ -2,9 +2,9 @@
                                                                                                                         
 ╭─ Issues 1 ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ┏━━━━━━━━━╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮━━━━━━━━━┓ │
-│ ┃ Task A-1│ > Columns     │   j          Move down  (Down)                                               │         ┃ │
-│ ┃ Summary │   Global      │   k          Move up  (Up)                                                   │         ┃ │
-│ ┃         │   All actions │   h          Move left  (Left)                                               │         ┃ │
+│ ┃ Summary │ > Columns     │   j          Move down  (Down)                                               │         ┃ │
+│ ┃         │   Global      │   k          Move up  (Up)                                                   │         ┃ │
+│ ┃ A-1  Tas│   All actions │   h          Move left  (Left)                                               │    [--] ┃ │
 │ ┗━━━━━━━━━│   Commands    │   l          Move right  (Right)                                             │━━━━━━━━━┛ │
 │           │               │   gg         Go to the top  (Home)                                           │           │
 │           │               │   G          Go to the bottom  (End)                                         │           │

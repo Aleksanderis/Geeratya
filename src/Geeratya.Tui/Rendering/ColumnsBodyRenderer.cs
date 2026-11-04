@@ -15,19 +15,19 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public sealed partial class ColumnsBodyRenderer : IBodyRenderer
 {
-    private const int MinTypeName = 4;
     private const string NoCardsText = "no issues";
     private const string NoSprintText = "No active sprint on this board.";
     private const string HiddenLeftMark = "‹";
     private const string HiddenRightMark = "›";
     private const string MarkedMark = "*";
     private const string Blank = " ";
-    private const int FirstSummaryLine = 2;
+    private const int FirstSummaryLine = 1;
+    private const int LabelRow = 2;
+    private const int BottomRow = 3;
     private const int BlankRow = int.MaxValue;
     private const int Margin = BoardCards.CardMargin;
     private const int ChildIndent = BoardCards.ChildIndent;
 
-    private const int SubtaskBarCells = 6;
     private const int MinimumBoxWidth = BoardCards.MinimumBoxWidth;
     private const string ParentMark = "↑";
     private const string Vertical = "│";
