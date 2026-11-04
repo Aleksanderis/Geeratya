@@ -1,0 +1,36 @@
+ 1 JQL My open issues x   +                                                                  : commands   <space>g jump 
+                                                                                                                        
+╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
+│ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │
+│>│ Fix login redirect after token refresh                             In Progress │ │ Status  moves via transition  │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │
+│ ╭─ Description ────────────────────────────────────────────────────── 1-4 of 40 ─╮ │                               │ │
+│ │ Heading one                                                                   ▲│ │ Priority                      │ │
+│ │                                                                               █│ │ ▌▲ High ▾                     │ │
+│ │ Heading three                                                                 ░│ │╭─ Priority ──────────────────╮│ │
+│ │ … 37 more lines   Enter expand                                                ▼│ ││   (none)                    ││ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ ││ > Highest                   ││ │
+│ ╭─ Comments 3 ───────────────────────────────────────────────────────────────────╮ ││   High                      ││ │
+│ │ Jane Doe · 1 d ago                                                             │ ││   Medium                    ││ │
+│ │ Found it: the redirect target is dropped after the refresh.                    │ ││   Low                       ││ │
+│ │                                                                                │ │╰─────────────────────────────╯│ │
+│ │ 日本語の作者 · 3 h ago                                                         │ │ Labels                        │ │
+│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │  [auth] [bug-bash] ▾          │ │
+│ │                                                                                │ │                               │ │
+│ │ Ola Nordmann · 5 min ago                                                       │ │ Parent                        │ │
+│ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────╯ │                               │ │
+│                                                                                    │ Updated 2 h ago               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    │                               │ │
+│                                                                                    ╰───────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ INSERT  Edit GCM-12                                                      Up/Down choose  Enter pick and save  Esc close

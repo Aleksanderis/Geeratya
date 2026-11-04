@@ -39,6 +39,7 @@ public static class FieldBlock
 
     private const string Lead = " ";
     private const int DropdownCells = 2;
+    private const int MinDropdownWidth = 5;
     private const string LabelGap = "  ";
 
     /// <summary>
@@ -49,11 +50,12 @@ public static class FieldBlock
     {
         var columns = Math.Max(1, width);
         var rows = new List<StyledLine> { LabelRow(spec, columns) };
-        var room = Math.Max(1, columns - Lead.Length - (spec.Editable ? DropdownCells : 0));
+        var dropdown = spec.Editable && columns >= MinDropdownWidth;
+        var room = columns - Lead.Length - (dropdown ? DropdownCells : 0);
         var current = new List<StyledSpan>();
         var used = 0;
 
-        foreach (var item in spec.Items)
+        foreach (var item in room < 1 ? [] : spec.Items)
         {
             var fitted = Cut(item, room);
             var size = Width(fitted);
@@ -75,7 +77,7 @@ public static class FieldBlock
             used += size;
         }
 
-        rows.Add(ValueRow(current, columns, spec.Editable));
+        rows.Add(ValueRow(current, columns, dropdown));
 
         return rows;
     }
