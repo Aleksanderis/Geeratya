@@ -13,9 +13,10 @@ internal static partial class DetailReducer
     {
         var top = tab.Detail[^1];
         var changed = top with { Expanded = Toggled(top.Expanded, target.ExpandKey) };
-        var laidOut = Layout(changed, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
+        var columns = DetailSize.Columns(state);
+        var laidOut = Layout(changed, columns, DetailSize.ListRows(state, tab), HeaderRowOf(changed, target, columns));
 
-        if (target.Collapses && laidOut.Document is { } document)
+        if (target.Collapses && target.Kind != DetailTargetKind.Comment && laidOut.Document is { } document)
         {
             // The "Show less" row is gone: the cursor goes to the "more lines" row that replaces it.
             var more = target with { Expands = true, Collapses = false };

@@ -45,6 +45,9 @@ public sealed record DetailDocument(
     /// </summary>
     public IReadOnlyList<LineBlock> Blocks { get; init; } = [];
 
+    /// <summary>The rows the screen showed when the document was laid out; null when it was laid out in full.</summary>
+    public int? ViewportRows { get; init; }
+
     /// <summary>The block that holds <paramref name="line"/>, null when the line stands alone.</summary>
     public LineBlock? BlockAt(int line)
     {

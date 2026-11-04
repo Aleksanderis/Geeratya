@@ -75,6 +75,9 @@ public sealed record DetailState(
     /// </summary>
     public IReadOnlyList<string> Expanded { get; init; } = [];
 
+    /// <summary>The first content row of the Comments pane that is shown (its inner scroll).</summary>
+    public int CommentsOffset { get; init; }
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

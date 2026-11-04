@@ -17,6 +17,9 @@ public static class Panel
     /// <summary>Narrowest width that still gets a frame; below it the content is drawn bare under a title.</summary>
     public const int MinFramedWidth = 12;
 
+    /// <summary>Rows taken by the top and the bottom edge.</summary>
+    public const int EdgeRows = 2;
+
     /// <summary>Top edge columns besides the chips: corner and rule each side.</summary>
     private const int EdgeChrome = 4;
 
