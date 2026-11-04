@@ -54,6 +54,38 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenAForm_WhenBuildingTheFrame_ThenEveryFieldIsALabelledBoxWithItsErrorUnderIt()
+    {
+        var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
+
+        var tops = lines.Count(line => line.Contains("┌─", StringComparison.Ordinal));
+        var bottoms = lines.Count(line => line.Contains("└──", StringComparison.Ordinal));
+        var summary = lines.ToList().FindIndex(line => line.Contains("┌─ Summary *", StringComparison.Ordinal));
+        var error = lines.ToList().FindIndex(line => line.Contains("! Required", StringComparison.Ordinal));
+
+        Assert.True(tops >= 5);
+        Assert.Equal(tops, bottoms);
+        Assert.Equal(summary + 3, error);
+        Assert.Contains(lines, line => line.Contains("┌─ Team  (not editable here)", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAFocusedField_WhenCollectingSpans_ThenItsBoxIsAccentAndTheReadOnlyBoxIsMuted()
+    {
+        var box = FormOverlay.Compose(
+            Enumerable.Repeat(StyledLine.Of(new string(' ', 120)), 36).ToList(),
+            SampleForm(),
+            _keymap,
+            120,
+            36);
+        var focused = box.First(line => line.ToString().Contains("> Labels", StringComparison.Ordinal));
+        var readOnly = box.First(line => line.ToString().Contains("Team  (not", StringComparison.Ordinal));
+
+        Assert.Contains(focused.Spans, span => span.Role == TextRole.OverlayFrame && span.Text.StartsWith("┌─", StringComparison.Ordinal));
+        Assert.Contains(readOnly.Spans, span => span.Role == TextRole.Muted && span.Text.StartsWith("┌─", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenANavigableForm_WhenNavigatingAndWhenEditing_ThenTheLabelAndFooterShowTheState()
     {
         var navigating = SampleForm() with { Navigable = true, Navigating = true };
