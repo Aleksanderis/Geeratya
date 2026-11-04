@@ -12,7 +12,13 @@ internal static partial class DetailReducer
     public static AppState ToggleExpanded(AppState state, TabState tab, DetailTarget target)
     {
         var top = tab.Detail[^1];
-        var changed = top with { Expanded = Toggled(top.Expanded, target.ExpandKey), DescriptionOffset = 0 };
+        var changed = top with { Expanded = Toggled(top.Expanded, target.ExpandKey) };
+
+        if (target.ExpandKey == DetailFieldIds.Description)
+        {
+            changed = changed with { DescriptionOffset = 0 };
+        }
+
         var columns = DetailSize.Columns(state);
         var laidOut = Layout(changed, columns, DetailSize.ListRows(state, tab), HeaderRowOf(changed, target, columns));
 

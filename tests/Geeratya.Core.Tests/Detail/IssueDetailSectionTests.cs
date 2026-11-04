@@ -267,6 +267,23 @@ public class IssueDetailSectionTests
         Assert.Contains("Show less", Text(expanded));
     }
 
+    [Fact]
+    public void GivenAScrolledDescription_WhenExpandingACommentBelow_ThenTheDescriptionKeepsItsScroll()
+    {
+        var state = OnDescriptionRow(Opened(LongText(20), [Comment("7", 8)]), 2);
+        var scrolled = Press(state, "j", "j").State;
+
+        while (Document(scrolled).SectionIds[Document(scrolled).SectionAt(Top(scrolled).Cursor)] != PaneIds.Comments)
+        {
+            scrolled = Press(scrolled, "Ctrl-j").State;
+        }
+
+        var after = Press(scrolled, "Enter").State;
+
+        Assert.Equal(2, Top(after).DescriptionOffset);
+        Assert.Contains("comment:7", Top(after).Expanded);
+    }
+
     private AppState OnDescriptionRow(AppState state, int row)
     {
         var pane = Document(state).SectionIds.ToList().IndexOf(PaneIds.Description);

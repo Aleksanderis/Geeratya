@@ -54,7 +54,7 @@ Every pane is a box and neighbouring boxes share their edge, so the body is one 
 ╭─ GEN-5 · Story ──────────────────────────────────────────────────────────────╮
 │ Generated issue 5                                                      To Do │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ─────────────────────────────────────────────────── 1-4 of 14 ─╮
+╭─ Description ─────────────────────────────────────────────────── 1-3 of 14 ─╮
 │ This is generated issue 5. It has formatted text,                          ▲ │
 │ … 11 more lines   Enter expand                                             ▼ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -349,7 +349,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Screen | Today | Spec section | Issue |
 |---|---|---|---|
 | Board | Done in #524: one rounded frame, shared edges, column chips in the top edge, the title line is in the status bar. Done in #526: the focused column's whole box and chip are accent, others quiet with dim chips, the cursor card has an accent heavy box, other columns draw no cursor mark (the quiet `>` of #644 was removed in #673) | 2, 3, 4 | #524, #526 |
-| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour. Done in #702: each pane has a rounded frame of its own (no shared edges), the status moved into the title row, the Description pane shows its scrollbar and `1-4 of N` chip | 2, 4 | #524, #526, #557 |
+| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour. Done in #702: each pane has a rounded frame of its own (no shared edges), the status moved into the title row, the Description pane shows its scrollbar and `1-3 of N` chip | 2, 4 | #524, #526, #557 |
 | Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Done in #526: the section holding the cursor is the focused pane (accent box, filled chip), others quiet with dim chips | 2, 3, 4 | #524, #526 |
 | Tab row | Done in #527: chips on the bar background, filled accent for the active one, `x`, ` + `, dim jump chip with the keys. Done in #547: middle-click close, hover `x`, the `+N` tab list | 5 | #527, #547 |
 | Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |
