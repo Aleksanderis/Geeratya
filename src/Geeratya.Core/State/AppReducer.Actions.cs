@@ -3,6 +3,7 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Jump;
@@ -98,6 +99,7 @@ public sealed partial class AppReducer
             ActionIds.SprintStart => InNormal(state, () => SprintLifecycle.Start(state, at)),
             ActionIds.SprintComplete => InNormal(state, () => SprintLifecycle.Complete(state, at)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
+            ActionIds.RowJump => InNormal(state, () => FlashJumpReducer.Open(state)),
             ActionIds.FormSubmit when state.Form is not null => ProfileReducer.Save(state),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
@@ -200,6 +202,11 @@ public sealed partial class AppReducer
             return JumpReducer.Accept(state);
         }
 
+        if (state.FlashJump is not null)
+        {
+            return FlashJumpReducer.Accept(state);
+        }
+
         if (state.ContextMenu is { } menu)
         {
             return RunMenuItem(state, menu.Items[Math.Clamp(menu.Selected, 0, menu.Items.Count - 1)], at);
@@ -270,6 +277,11 @@ public sealed partial class AppReducer
         if (state.Jump is not null)
         {
             return JumpReducer.Backspace(state);
+        }
+
+        if (state.FlashJump is not null)
+        {
+            return PromptEditing.Backspace(state);
         }
 
         return state.Picker is null ? ProfileReducer.Backspace(state) : SourceReducer.Backspace(state);

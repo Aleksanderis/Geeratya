@@ -22,12 +22,12 @@
 │           │               │   v          Start or end Visual mode (a range of rows)                      │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
 │           │               │   <space>iC  Create a sub-task of the selected issue                         │           │
+│           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │   <space>sm  Move the selected issues to a sprint                            │           │
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
 │           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
 │           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
 │           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
-│           │               │                                                                              │           │
 │           │               │                                                                              │           │
 │           │               │                                                                              │           │
 │           │               │                                                                              │           │

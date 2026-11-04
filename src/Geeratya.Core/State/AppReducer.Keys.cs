@@ -1,6 +1,7 @@
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Jump;
@@ -88,6 +89,11 @@ public sealed partial class AppReducer
         {
             // The only action that needs the time of the key: the confirm carries the write that will start.
             return InNormal(cleared, () => LinkReducer.Unlink(cleared with { Message = null }, at));
+        }
+
+        if (route.Kind == KeyRouteKind.Text && state.FlashJump is not null && KeyNotation.ToText(key) is { } typed)
+        {
+            return FlashJumpReducer.Type(cleared, typed);
         }
 
         if (route.Kind == KeyRouteKind.Text)
@@ -229,6 +235,11 @@ public sealed partial class AppReducer
         if (state.Jump is not null)
         {
             return JumpReducer.Type(state, text);
+        }
+
+        if (state.FlashJump is not null)
+        {
+            return PromptEditing.Insert(state, text);
         }
 
         return state.Picker is null ? ProfileReducer.Type(state, text) : SourceReducer.Type(state, text);

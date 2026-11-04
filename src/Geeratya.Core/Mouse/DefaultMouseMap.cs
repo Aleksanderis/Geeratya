@@ -186,6 +186,7 @@ public static class DefaultMouseMap
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
             [ActionIds.PickerOpenNewTab] = "the sprint picker only: a click on a row opens it like Enter, the key adds the new tab",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
+            [ActionIds.RowJump] = "its palette row (click the status line, then the row) runs it",
         };
 
         return new ReadOnlyDictionary<string, string>(exclusions);

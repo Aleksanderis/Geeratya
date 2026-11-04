@@ -96,6 +96,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
 | `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
 | `<space>g` | Jump to an issue by key | `issue.jump` | everyday |
+| `<space>j` | Jump to a visible row (type text, press the letter on the row) | `nav.row-jump` | everyday |
 | `<space>n` | Show the message history | `status.history` | everyday |
 | `<space>x` | Dismiss the status message | `status.dismiss` | everyday |
 | `<space>*` | Switch the command level for the session | `view.cycle-command-level` | everyday |

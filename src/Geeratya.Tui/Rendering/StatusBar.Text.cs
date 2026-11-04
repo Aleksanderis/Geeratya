@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
@@ -118,6 +119,7 @@ public static partial class StatusBar
             InputMode.Insert when state.Editor is not null => EditorText(state.Editor),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
             InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
+            InputMode.Insert when state.FlashJump is { } flash => state.Message ?? FlashText(flash, width),
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
@@ -284,6 +286,14 @@ public static partial class StatusBar
         var window = PromptWindow.Of(ProfileFormOverlay.PromptOf(form, form.Field), Math.Max(0, width - used));
 
         return $"{prefix}{window.Before}{window.Caret}{window.After}";
+    }
+
+    private static string FlashText(FlashJumpState flash, int width)
+    {
+        var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {FlashPrompt}");
+        var window = PromptWindow.Of(new PromptText(flash.Text, flash.Back), Math.Max(0, width - used));
+
+        return $"{FlashPrompt}{window.Before}{window.Caret}{window.After}";
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>

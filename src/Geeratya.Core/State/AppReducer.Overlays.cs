@@ -41,6 +41,7 @@ public sealed partial class AppReducer
             Form = null,
             Picker = null,
             Jump = null,
+            FlashJump = null,
             Editor = null,
             ProfileList = toManager ? state.ProfileList : null,
             SettingsScreen = null,

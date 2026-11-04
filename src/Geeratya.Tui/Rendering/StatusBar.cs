@@ -14,6 +14,7 @@ public static partial class StatusBar
     private const string SprintPrompt = "switch sprint";
     private const string MovePrompt = "move to sprint";
     private const string JumpPrompt = "jump to an issue";
+    private const string FlashPrompt = "jump to a row: ";
     private const int MinViewRoom = 8;
     private const int MaxViewReserve = 40;
 

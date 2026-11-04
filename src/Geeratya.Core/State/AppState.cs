@@ -1,4 +1,5 @@
 using Geeratya.Core.Comments;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Keymap;
@@ -71,6 +72,9 @@ public sealed record AppState(
 
     /// <summary>The open jump-to-issue prompt (Insert mode), otherwise null.</summary>
     public JumpState? Jump { get; init; }
+
+    /// <summary>The open flash jump prompt (jump to a visible row; Insert mode), otherwise null.</summary>
+    public FlashJumpState? FlashJump { get; init; }
 
     /// <summary>
     /// The open profile manager, the full-body screen (Insert mode; it stays open under the profile form and the

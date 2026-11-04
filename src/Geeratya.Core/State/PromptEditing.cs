@@ -1,3 +1,4 @@
+using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
@@ -71,6 +72,13 @@ public static class PromptEditing
             }
 
             return state with { Jump = new JumpState(edited.Text, 0, null) { Back = edited.Back } };
+        }
+
+        if (state.FlashJump is { } flash)
+        {
+            var edited = change(new PromptText(flash.Text, flash.Back));
+
+            return state with { FlashJump = new FlashJumpState(edited.Text) { Back = edited.Back } };
         }
 
         if (state.Picker is { } picker)

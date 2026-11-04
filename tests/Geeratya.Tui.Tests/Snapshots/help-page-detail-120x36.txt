@@ -20,9 +20,9 @@
             │                │   <space>im  Assign the issue to me                                         │            
             │                │   <space>is  Change the status of the issue                                 │            
             │                │   <space>iC  Create a sub-task of the selected issue                        │            
+            │                │   <space>j   Jump to a visible row (type text, press the letter on the row) │            
             │                │   <space>ma  Add a comment to the issue                                     │            
             │                │   <space>me  Edit the comment under the cursor                              │            
-            │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            
             │                │                                                                             │            
