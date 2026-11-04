@@ -1,3 +1,4 @@
+using Geeratya.Jira.Comments.Models;
 using Geeratya.Core.Cache;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -105,6 +106,14 @@ internal static partial class DetailReducer
         return ViewReducer.Replace(state, ReplaceTop(tab, laidOut)) with { Sequence = requestId };
     }
 
+    /// <summary>The items of a later page that are not shown yet (a comment added elsewhere shifts the offsets).</summary>
+    private static IEnumerable<IssueComment> NotLoaded(DetailState detail, IEnumerable<IssueComment> items)
+    {
+        var known = detail.Comments.Select(comment => comment.Id).ToHashSet();
+
+        return items.Where(comment => !known.Contains(comment.Id));
+    }
+
     private static DetailState? AppendComments(DetailState detail, IssueCommentsLoaded loaded)
     {
         if (detail.CommentsRequest != loaded.RequestId)
@@ -113,7 +122,7 @@ internal static partial class DetailReducer
         }
 
         var page = loaded.Page;
-        var combined = page.StartAt == 0 ? page.Items : [.. detail.Comments, .. page.Items];
+        var combined = page.StartAt == 0 ? page.Items : [.. detail.Comments, .. NotLoaded(detail, page.Items)];
         var capped = combined.Count >= DetailPaging.MaxComments;
         var kept = capped ? combined.Take(DetailPaging.MaxComments).ToArray() : combined;
 

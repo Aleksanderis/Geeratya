@@ -239,4 +239,4 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-04 (#703, comments newest first)
 
-**Jira layer:** The comment call sends `orderBy=-created` and the detail lists comments newest first; an added comment goes on top, a thread cut at 1000 keeps the newest. Why: the Comments pane spec says `newest first` and a long thread should show the latest at once (readiness default, owner not blocking; supersedes the 2026-11-0x "oldest first" entry, #84).
+**Jira layer:** The comment call sends `orderBy=-created` and the detail lists comments newest first; an added comment goes on top, a thread cut at 1000 keeps the newest. Why: the Comments pane spec says `newest first` and a long thread should show the latest at once (readiness default, owner not blocking; supersedes the 2026-11-02 "oldest first" entry, #84).

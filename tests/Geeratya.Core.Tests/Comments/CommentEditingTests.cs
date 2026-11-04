@@ -219,6 +219,7 @@ public class CommentEditingTests
         var detail = Active(done.State).Detail[0];
         Assert.Equal(["90", "1", "2"], detail.Comments.Select(comment => comment.Id));
         Assert.Equal(6, detail.CommentTotal);
+        Assert.Equal(3, detail.NextComments);
     }
 
     [Fact]

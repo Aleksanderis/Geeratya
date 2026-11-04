@@ -88,7 +88,12 @@ internal static partial class CommentEditing
             var remaining = detail.Comments.Where(comment => comment.Id != delete.CommentId).ToArray();
             var removed = remaining.Length < detail.Comments.Count;
 
-            return detail with { Comments = remaining, CommentTotal = Counted(detail.CommentTotal, removed ? -1 : 0) };
+            return detail with
+            {
+                Comments = remaining,
+                NextComments = Shifted(detail.NextComments, removed ? -1 : 0),
+                CommentTotal = Counted(detail.CommentTotal, removed ? -1 : 0),
+            };
         }
 
         if (stored is null)
@@ -106,7 +111,18 @@ internal static partial class CommentEditing
         }
 
         // Newest first: the added comment is the newest, so it goes on top whatever pages are still unloaded.
-        return detail with { Comments = [stored, .. detail.Comments], CommentTotal = Counted(detail.CommentTotal, 1) };
+        return detail with
+        {
+            Comments = [stored, .. detail.Comments],
+            NextComments = Shifted(detail.NextComments, 1),
+            CommentTotal = Counted(detail.CommentTotal, 1),
+        };
+    }
+
+    /// <summary>The next page offset after the list gained or lost a comment above it (paging is by offset).</summary>
+    private static int? Shifted(int? next, int change)
+    {
+        return next is { } known ? Math.Max(0, known + change) : null;
     }
 
     private static int? Counted(int? total, int change)
