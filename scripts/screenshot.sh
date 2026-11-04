@@ -30,7 +30,7 @@ all_scenarios=(
   "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
   "help-list;120;36;dark;:jql project = GCM|?;Help"
-  "whichkey;120;36;dark;:jql project = GCM| ;Space"
+  "whichkey;120;36;dark;:jql project = GCM| ;<space>"
   "narrow;64;30;dark;;Connected"
   "light;120;36;light;;Connected as"
   "list;120;36;dark;:jql project = GCM|;issues"
@@ -42,7 +42,7 @@ all_scenarios=(
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
   # sprint-subtasks: the sub-task summary row on the cards (generated sub-task stubs), then one card expanded with z a
   "sprint-subtasks;120;36;dark;:board GEN| sv|;Sub-tasks 1/3"
-  "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|jza;Generated sub-task"
+  "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|hza;Generated sub-task"
   # sprint-points reuses the columns view and waits for a card estimate
   "sprint-points;120;36;dark;:board GEN| sv|;5p"
   "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."
@@ -67,7 +67,7 @@ all_scenarios=(
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"
-  "comment-delete;120;36;dark;:jql project = GEN|jjjj|]]]] md;Jira cannot undo"
+  "comment-delete;120;36;dark;:jql project = GEN|jjjj|]]]]]] md;Jira cannot undo"
   "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
   "comment-recorded-edit;120;36;dark;:jql key = GTM-11||]]]]]]]]]]]] me;formatting"
   "detail-relations-gtm;120;36;dark;:jql key = GTM-11||]]]];Remote"

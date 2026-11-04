@@ -87,8 +87,8 @@ public class FlashJumpViewsTests
     [Fact]
     public void GivenATextOnlyInASecondSummaryLine_WhenTyping_ThenTheCardIsLabelledOnlyWhenTheLineShowsIt()
     {
-        var long_ = $"{new string('x', 30)} tail words";
-        var state = Press(Board(Cards($"1:A-1:{long_}")), "Space", "j", "w", "o", "r", "d", "s");
+        var longText = $"{new string('x', 30)} tail words";
+        var state = Press(Board(Cards($"1:A-1:{longText}")), "Space", "j", "w", "o", "r", "d", "s");
         var hidden = Press(Board(Cards($"1:A-1:{new string('x', 200)} words")), "Space", "j", "w", "o", "r", "d", "s");
 
         Assert.Single(FlashJumpReducer.LabelsOf(state, state.FlashJump!));
