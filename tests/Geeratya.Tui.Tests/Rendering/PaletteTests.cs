@@ -50,6 +50,20 @@ public class PaletteTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(ThemesAndTiers))]
+    public void GivenBuiltInThemeAndTier_WhenResolvingHintKeyAndLabel_ThenForegroundsDiffer(
+        string name,
+        ColorSupport tier)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+
+        var key = Palette.Resolve(theme, tier, PaletteRole.BarKey);
+        var label = Palette.Resolve(theme, tier, PaletteRole.BarMuted);
+
+        Assert.NotEqual(label.Foreground, key.Foreground);
+    }
+
     [Fact]
     public void GivenHighContrastTheme_WhenResolvingEveryRoleAtTrueColour_ThenTextReachesSevenToOne()
     {

@@ -297,7 +297,7 @@ public static class PaletteTable
 
         if (spec.Ground == RoleGround.OnBlue)
         {
-            return Ansi16Color.White;
+            return OnBlueForeground(theme, spec);
         }
 
         if (spec.Ground == RoleGround.Range)
@@ -318,6 +318,21 @@ public static class PaletteTable
         }
 
         return light ? LightDefault(spec.Foreground) : DarkDefault(spec.Foreground);
+    }
+
+    // The key of a hint chip must differ from its label on the same blue bar (#676). The light 16-colour table has
+    // no bright colour that reads on blue (bright yellow is dark gold there), so a light theme tells them apart by
+    // a grey label against the white bold key.
+    private static Ansi16Color OnBlueForeground(Theme theme, RoleSpec spec)
+    {
+        var light = theme.Variant == ThemeVariant.Light;
+
+        if (spec.Foreground == ThemeColor.Warn && !light)
+        {
+            return Ansi16Color.BrightYellow;
+        }
+
+        return spec.Foreground == ThemeColor.Muted && light ? Ansi16Color.Gray : Ansi16Color.White;
     }
 
     private static Ansi16Color Background16(Theme theme, RoleSpec spec)
