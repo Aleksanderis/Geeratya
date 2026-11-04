@@ -28,8 +28,8 @@ public class ColumnsSubtaskTests
     private static readonly AppReducer _reducer = new(_keymap);
 
     [Theory]
-    [InlineData("gcm", "GCM-10", "Sub-tasks 1/2")]
-    [InlineData("gtm", "GTM-11", "Sub-tasks 1/2")]
+    [InlineData("gcm", "GCM-10", "1/2")]
+    [InlineData("gtm", "GTM-11", "1/2")]
     public async Task GivenACardWithSubtasks_WhenCollapsed_ThenTheRowShowsDoneOverTotalAndTheFoldMark(
         string kind,
         string parent,
@@ -40,7 +40,7 @@ public class ColumnsSubtaskTests
         var text = string.Join('\n', FrameBuilder.Build(state, Width, Height, _keymap));
 
         Assert.Contains(expected, text, StringComparison.Ordinal);
-        Assert.Contains("▸ Sub-tasks", text, StringComparison.Ordinal);
+        Assert.Contains("▸1/2", text, StringComparison.Ordinal);
         Assert.DoesNotContain("▾", text, StringComparison.Ordinal);
     }
 
@@ -62,7 +62,7 @@ public class ColumnsSubtaskTests
         Assert.Equal(parent, after[before.IndexOf(parent)]);
         Assert.All(Listed(opened), row => Assert.True(row.IsListed));
         Assert.Equal(2, Listed(opened).Count);
-        Assert.Contains("▾ Sub-tasks", string.Join('\n', FrameBuilder.Build(opened, Width, Height, _keymap)));
+        Assert.Contains("▾1/2", string.Join('\n', FrameBuilder.Build(opened, Width, Height, _keymap)));
         Assert.Equal(ColumnCount(state), ColumnCount(opened));
     }
 
@@ -175,7 +175,7 @@ public class ColumnsSubtaskTests
         var lines = FrameBuilder.Build(state, Width, Height, _keymap, null, GlyphSet.Ascii);
 
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
-        Assert.Contains(lines, line => line.Contains("v Sub-tasks", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("v1/2", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -341,6 +341,20 @@ public class ColumnsSubtaskTests
     }
 
     [Fact]
+    public async Task GivenAnUnselectedCard_WhenClickingItsBottomRow_ThenItOnlySelectsAndDoesNotExpand()
+    {
+        var opened = await OpenAsync("gcm", true, "GCM-10");
+        var cell = SubtaskRowCell(opened);
+        var state = Press(opened, "j");
+
+        var result = _reducer.Reduce(state, new PointerPlaced(cell.Column, cell.Row, Width)).State;
+
+        Assert.NotEqual("GCM-10", Active(state).SelectedKey);
+        Assert.Empty(Active(result).ExpandedSubtasks);
+        Assert.Equal("GCM-10", Active(result).SelectedKey);
+    }
+
+    [Fact]
     public async Task GivenACard_WhenClickingOtherRowsOfIt_ThenNothingExpands()
     {
         var state = await OpenAsync("gcm", true, "GCM-10");
@@ -398,9 +412,9 @@ public class ColumnsSubtaskTests
     {
         var lines = FrameBuilder.Build(state, Width, Height, _keymap);
         var top = lines.ToList().FindIndex(line => line.StartsWith('╭'));
-        var line = lines.ToList().FindIndex(each => each.Contains("▸ Sub-tasks", StringComparison.Ordinal));
+        var line = lines.ToList().FindIndex(each => each.Contains("▸1/2", StringComparison.Ordinal));
 
-        return new Cell(lines[line].IndexOf("▸ Sub-tasks", StringComparison.Ordinal), line - top);
+        return new Cell(lines[line].IndexOf("▸1/2", StringComparison.Ordinal), line - top);
     }
 
     private static async Task<AppState> OpenAsync(string kind, bool filtered, string selectKey)

@@ -2,29 +2,29 @@
                                                                                                                         
 ╭─ To Do 5 ───────────────────┬─ In Progress 4 ─────────────┬─ Backlog 4 ─────────────────┬─ Done (14d) 3 ─────────────╮
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ ┌─────────────────────────┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-10 Seed: Repo… ─┐ │
-│ ┃ Epic GTM-9           ...┃ │ │ Epic GTM-10             │ │ │ Task GTM-21             │ │ │ Story GTM-13           │ │
-│ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
-│ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
+│ ┃ Seed: Onboarding flow...┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
+│ ┃ [geeratya-seed] +1      ┃ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1     │ │
+│ ┃ GTM-9  Epic      = [--] ┃ │ │ GTM-10  Epic     = [--] │ │ │ GTM-21  Task     = [--] │ │ │ GTM-13  Story   = [--] │ │
 │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
-│ │   Story GTM-12          │ │ │   Task GTM-15           │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
-│ │   Welcome screen        │ │ │   Pick a chart library  │ │ │ Story GTM-22            │ │ │ Task GTM-16            │ │
-│ │                         │ │ │                         │ │ │ Backlog: keyboard       │ │ │ Write the setup guide  │ │
-│ │                         │ │ │                         │ │ │ shortcuts help          │ │ │                        │ │
+│ │   Welcome screen        │ │ │   Pick a chart library  │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │
+│ │   [geeratya-seed] +1    │ │ │   [geeratya-seed] +1    │ │ │ Backlog: keyboard shor… │ │ │ Write the setup guide  │ │
+│ │   GTM-12  Story  = [--] │ │ │   GTM-15  Task   = [--] │ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1     │ │
+│ │                         │ │ │                         │ │ │ GTM-22  Story    = [--] │ │ │ GTM-16  Task    = [--] │ │
 │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
-│ │   Task GTM-14           │ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-11 Sign up wi… ─┐ │
-│ │   Review onboarding     │ │ │ Story GTM-11            │ │ │ Bug GTM-23              │ │ │ Subtask GTM-19         │ │
-│ │   copy                  │ │ │ Sign up with email      │ │ │ Backlog: tooltip        │ │ │ Build the form         │ │
-│ │                         │ │ │                         │ │ │ clipped                 │ │ │                        │ │
+│ │   Review onboarding co… │ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ ┌─────────────────────────┐ │ ┌─ ↑ GTM-11 Sign up wi… ─┐ │
+│ │   [geeratya-seed] +1    │ │ │ Sign up with email      │ │ │ Backlog: tooltip clipp… │ │ │ Build the form         │ │
+│ │   GTM-14  Task   = [--] │ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1     │ │
+│ │                         │ │ │ GTM-11  Story    = [--] │ │ │ GTM-23  Bug      = [--] │ │ │ GTM-19  Subtask = [--] │ │
 │ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │ └────────────────────────┘ │
 │ ┌─ ↑ GTM-10 Seed: Repor… ─┐ │ ┌─ ↑ GTM-9 Seed: Onboar… ─┐ │ ┌─────────────────────────┐ │                            │
-│ │ Bug GTM-18              │ │ │ Bug GTM-17              │ │ │ Task GTM-24             │ │                            │
-│ │ Wrong date format in    │ │ │ App crashes on empty    │ │ │ Backlog: update         │ │                            │
-│ │ report                  │ │ │ profile                 │ │ │ dependencies            │ │                            │
+│ │ Wrong date format in r… │ │ │ App crashes on empty p… │ │ │ Backlog: update depend… │ │                            │
+│ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1      │ │ │ [geeratya-seed] +1      │ │                            │
+│ │ GTM-18  Bug      = [--] │ │ │ GTM-17  Bug      = [--] │ │ │ GTM-24  Task     = [--] │ │                            │
 │ └─────────────────────────┘ │ └─────────────────────────┘ │ └─────────────────────────┘ │                            │
 │ ┌─ ↑ GTM-11 Sign up wit… ─┐ │                             │                             │                            │
-│ │ Subtask GTM-20          │ │                             │                             │                            │
 │ │ Validate the email      │ │                             │                             │                            │
-│ │                         │ │                             │                             │                            │
+│ │ [geeratya-seed] +1      │ │                             │                             │                            │
+│ │ GTM-20  Subtask  = [--] │ │                             │                             │                            │
 │ └─────────────────────────┘ │                             │                             │                            │
 │                             │                             │                             │                            │
 │                             │                             │                             │                            │

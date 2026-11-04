@@ -1,20 +1,20 @@
  1 Board GCM board x   +                             : commands   <space>g jump 
                                                                                 
 ╭─ To Do 4 ────────────────┬─ In Progress 4 ──────────┬─ Done (14d) 2 ─────────╮
-│ ┌──────────────────────┐ │ │   Task GCM-14        │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
-│ │ Epic GCM-8           │ │ │   Pick a chart       │ │ │ Story GCM-12       │ │
-│ │ Seed: Onboarding     │ │ │   library            │ │ │ Export report as   │ │
-│ │ flow                 │ │ │                      │ │ │ CSV                │ │
+│ ┌──────────────────────┐ │ │   Pick a chart libr… │ │ ┌─ ↑ GCM-9 Seed: R… ─┐ │
+│ │ Seed: Onboarding fl… │ │ │   [geeratya-seed] +1 │ │ │ Export report as … │ │
+│ │ [geeratya-seed] +1   │ │ │   GCM-14  Task  [--] │ │ │ [geeratya-seed] +1 │ │
+│ │ GCM-8  Epic   = [--] │ │ │                      │ │ │ GCM-12  Story [--] │ │
 │ ├──────────────────────┤ │ └──────────────────────┘ │ └────────────────────┘ │
-│ │   Story GCM-11       │ │ ┏━ ↑ GCM-8 Seed: Onb… ━┓ │ ┌────────────────────┐ │
-│ │   Welcome screen     │ │ ┃ Story GCM-10         ┃ │ │ Task GCM-15        │ │
-│ │                      │ │ ┃ Sign up with email   ┃ │ │ Write the setup    │ │
-│ │                      │ │ ┃ ▸ 1/2 ━━━───         ┃ │ │ guide              │ │
+│ │   Welcome screen     │ │ ┏━ ↑ GCM-8 Seed: Onb… ━┓ │ ┌────────────────────┐ │
+│ │   [geeratya-seed] +1 │ │ ┃ Sign up with email   ┃ │ │ Write the setup g… │ │
+│ │   GCM-11  Story [--] │ │ ┃ [geeratya-seed] +1   ┃ │ │ [geeratya-seed] +1 │ │
+│ │                      │ │ ┃ GCM-10  Story   [--] ┃ │ │ GCM-15  Task  [--] │ │
 │ ├──────────────────────┤ │ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │ └────────────────────┘ │
-│ │   Task GCM-13        │ │ ┌─ ↑ GCM-8 Seed: Onb… ─┐ │                        │
-│ │   Review onboarding  │ │ │ Bug GCM-16           │ │                        │
-│ │   copy               │ │ │ App crashes on       │ │                        │
-│ │                      │ │ │ empty profile        │ │                        │
+│ │   Review onboarding… │ │ ┌─ ↑ GCM-8 Seed: Onb… ─┐ │                        │
+│ │   [geeratya-seed] +1 │ │ │ App crashes on empt… │ │                        │
+│ │   GCM-13  Task  [--] │ │ │ [geeratya-seed] +1   │ │                        │
+│ │                      │ │ │ GCM-16  Bug   = [--] │ │                        │
 │ └──────────────────────┘ │ └──────────────────────┘ │                        │
 │                          │                          │                        │
 │                          │                          │                        │

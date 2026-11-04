@@ -2,19 +2,19 @@
                                                                                 
 +- To Do 5 ----------------+- In Progress 4 ----------+- Done (14d) 3 ---------+
 | +----------------------+ | +----------------------+ | +- ^ GCM-10 Sign u. -+ |
-| | Epic GCM-8           | | | Epic GCM-9           | | | Sub-task GCM-18    | |
-| | Seed: Onboarding     | | | Seed: Reporting      | | | Build the form     | |
-| | flow                 | | |                      | | |                    | |
+| | Seed: Onboarding fl. | | | Seed: Reporting      | | | Build the form     | |
+| | [geeratya-seed] +1   | | | [geeratya-seed] +1   | | | [geeratya-seed] +1 | |
+| | GCM-8  Epic   = [--] | | | GCM-9  Epic   = [--] | | | GCM-18  Sub-. [--] | |
 | +----------------------+ | +----------------------+ | +--------------------+ |
-| |   Story GCM-11       | | |   Task GCM-14        | | +- ^ GCM-9 Seed: R. -+ |
-| |   Welcome screen     | | |   Pick a chart       | | | Story GCM-12       | |
-| |                      | | |   library            | | | Export report as   | |
-| |                      | | |                      | | | CSV                | |
+| |   Welcome screen     | | |   Pick a chart libr. | | +- ^ GCM-9 Seed: R. -+ |
+| |   [geeratya-seed] +1 | | |   [geeratya-seed] +1 | | | Export report as . | |
+| |   GCM-11  Story [--] | | |   GCM-14  Task  [--] | | | [geeratya-seed] +1 | |
+| |                      | | |                      | | | GCM-12  Story [--] | |
 | +----------------------+ | +----------------------+ | +--------------------+ |
-| |   Task GCM-13        | | +- ^ GCM-8 Seed: Onb. -+ | +--------------------+ |
-| |   Review onboarding  | | | Story GCM-10         | | | Task GCM-15        | |
-| |   copy               | | | Sign up with email   | | | Write the setup    | |
-| |                      | | |                      | | | guide              | |
+| |   Review onboarding. | | +- ^ GCM-8 Seed: Onb. -+ | +--------------------+ |
+| |   [geeratya-seed] +1 | | | Sign up with email   | | | Write the setup g. | |
+| |   GCM-13  Task  [--] | | | [geeratya-seed] +1   | | | [geeratya-seed] +1 | |
+| |                      | | | GCM-10  Story = [--] | | | GCM-15  Task  [--] | |
 | +----------------------+ | +----------------------+ | +--------------------+ |
 |                          |                          |                        |
 |                          |                          |                        |
