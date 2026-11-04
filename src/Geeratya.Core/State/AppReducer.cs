@@ -3,6 +3,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
+using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
@@ -54,7 +55,26 @@ public sealed partial class AppReducer
             ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, reduced))));
         var settled = StatusMessages.Settle(result.State, TimeOf(command));
 
-        return ReferenceEquals(settled, result.State) ? result : new ReduceResult(settled, result.Effects);
+        return new ReduceResult(settled, WithSettings(result.Effects, settled.Settings));
+    }
+
+    /// <summary>
+    /// Stamps the board's Done cutoff setting on every view load, whichever path made it (open, refresh tick, next
+    /// page, tab switch), so the host needs no settings access.
+    /// </summary>
+    private static IReadOnlyList<Effect> WithSettings(IReadOnlyList<Effect> effects, AppSettings settings)
+    {
+        if (!effects.Any(effect => effect is LoadViewPageEffect load && load.DoneCutoffDays != settings.DoneCutoffDays))
+        {
+            return effects;
+        }
+
+        return
+        [
+            .. effects.Select(effect => effect is LoadViewPageEffect load
+                ? load with { DoneCutoffDays = settings.DoneCutoffDays }
+                : effect),
+        ];
     }
 
     // The time a command carries (a default time means the sender had none), used to stamp and expire the notice.

@@ -487,7 +487,7 @@ Without a board name and exactly one board on the site, `:board` and `:backlog` 
 ## Decisions for the screens (defaults)
 
 - The Backlog column of a company-managed Kanban board (first column, named `Backlog`) is hidden in the columns layout, as in Jira; a team-managed board shows its Backlog column like any other.
-- On a Kanban board the last column is titled `Done (14d)`: Jira's board hides Done issues resolved more than 14 days ago and Geeratya does the same (#674). Older ones are reachable through a JQL view (`resolution is not EMPTY`); there is no setting to turn the cutoff off. A board restored from the cache shows the plain title until the first reply, and a board whose kind probe failed loads without the cutoff.
+- On a Kanban board the last column is titled `Done (14d)`: Jira's board hides Done issues resolved more than N days ago (its view option "Hide done work items after") and Geeratya does the same (#674) with the setting `board.done-cutoff` (days, default 14, `all` turns it off; it cannot be read from Jira, so set it by hand to match the board, #681). With `all` the title stays plain. Older ones are also reachable through a JQL view (`resolution is not EMPTY`). A board restored from the cache shows the plain title until the first reply, and a board whose kind probe failed loads without the cutoff.
 - Attachments open the issue page in the browser (the download URL needs the auth header).
 - The board opens in Columns; backlog, JQL and filters open in List; the layout can be switched per tab (boards only in M1).
 - A loaded issue whose status is in no column gets a trailing `Unmapped` column rather than being hidden (the board endpoint itself never returns such issues, #138).

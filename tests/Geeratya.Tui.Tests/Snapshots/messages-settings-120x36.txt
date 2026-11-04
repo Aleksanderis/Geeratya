@@ -8,9 +8,9 @@
 │ transparent off (default off) - Keep the terminal's own background instead of the theme's page colour; text colours …│
 │ jump.target current (default current) - Where the jump prompt (<space>g) opens an issue: on top of the current tab, …│
 │ startup.restore on (default on) - Reopen the tabs of the last run on start; off starts on the board picker every tim…│
+│ board.done-cutoff 14 (default 14) - Days after which a Kanban board hides resolved issues, or all to show every one.…│
 │ Messages                                                                                                             │
 │ Saved A-1                                                                                                            │
-│                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
