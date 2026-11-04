@@ -87,7 +87,7 @@ public class IssueDetailRendererTests
         var top = loaded.Session.Tabs.First(tab => tab.Id == loaded.Session.Active).Detail[^1];
         var width = top.Document!.Width;
         var rows = DetailZoom.CommentRowsOf(top, width);
-        var marked = rows.Select(row => row with { Line = StyledLine.Of("PREBUILT", TextRole.Body) }).ToList();
+        var marked = rows.Select(row => row with { Line = StyledLine.Of("PREBUILT") }).ToList();
 
         var document = IssueDocumentBuilder.Build(top, width, top.Document.ViewportRows, marked);
 
