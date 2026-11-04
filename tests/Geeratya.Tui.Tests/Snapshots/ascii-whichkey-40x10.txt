@@ -5,6 +5,6 @@
 | t         Open the source picker for |
 | Tab       Previously active tab      |
 | T         Show a list of open tabs   |
-| x         Dismiss the status message |
+| . 15 more                            |
 +--------------------------------------+
 [NORMAL] <space>                        

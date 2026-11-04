@@ -1,6 +1,7 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -23,6 +24,27 @@ public class WhichKeyOverlayTests
         }
 
         Assert.Contains("+issue (", text);
+    }
+
+    [Fact]
+    public void GivenSpace_WhenBuilding_ThenKeysUseTheKeyRoleAndHeadersTheHeadingRole()
+    {
+        var lines = WhichKeyOverlay.Lines("Space", _keymap);
+        var keyed = lines.First(line => line.Spans.Count == 2);
+
+        Assert.Equal(TextRole.Key, keyed.Spans[0].Role);
+        Assert.Equal(TextRole.Body, keyed.Spans[1].Role);
+        Assert.Contains(lines, line => line.Spans is [{ Role: TextRole.Heading }]);
+    }
+
+    [Fact]
+    public void GivenAPopupTooShortForEveryRow_WhenBuilding_ThenHeadersGoAndAMoreRowEndsTheList()
+    {
+        var rows = WhichKeyOverlay.Rows("Space", _keymap, 5);
+
+        Assert.Equal(5, rows.Count);
+        Assert.Matches(@"^… \d+ more$", rows[^1]);
+        Assert.DoesNotContain(rows, row => row is "Other" or "More");
     }
 
     [Fact]
