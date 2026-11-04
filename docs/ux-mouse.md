@@ -64,7 +64,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ProfileTestButton | Click | `profile.test` | O | Profile form: tests the connection with the typed values (nothing is saved), same as `Alt-t` |
 | ProfileSaveButton | Click | `form.submit` | O | Profile form: saves the profile, same as `Ctrl-s` |
 | ProfileCancelButton | Click | `mode.cancel` | O | Profile form: closes it without saving, same as `Esc` |
-| FormField | Click | `form.field-next` | O | Field form (also the create and edit forms and the profile form): focuses the clicked editable field; in the edit form (navigate state, #650) the click also starts editing it, like `Enter`; an open suggestion popup closes without taking its row (`Tab` would take it) |
+| FormField | Click | `form.field-next` | O | Field form (also the create form and the profile form): focuses the clicked editable field; in the create form's navigate state (#650) the click also starts editing it, like `Enter`; an open suggestion popup closes without taking its row (`Tab` would take it) |
 | FormMoreFields | Click | `form.more-fields` | O | The `Ctrl-f show more fields` row at the bottom of the create form's Details pane: shows or folds the optional fields |
 | FormChoice | Click | `form.next` | O | Row of the issue type list or of a field's suggestion popup: takes it, same as `Enter` on it |
 | EditorChoice | Click | `form.next` | O | Row of the comment editor's mention popup: takes it, same as `Enter` on it |

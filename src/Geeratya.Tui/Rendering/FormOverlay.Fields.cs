@@ -27,12 +27,11 @@ public static partial class FormOverlay
         var marker = focused ? "> " : string.Empty;
         var required = field.Required ? " *" : string.Empty;
         var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
-        var state = focused && form.Navigable ? (form.Navigating ? "  [navigate]" : "  [editing]") : string.Empty;
         var labelRole = focused ? TextRole.Strong : field.IsEditable ? TextRole.FieldLabel : TextRole.Muted;
         var width = Math.Max(6, valueWidth + Indent);
-        var lines = new List<StyledLine> { BoxTop(width, $"{marker}{field.Label}{required}{readOnly}{state}", labelRole, frame) };
+        var lines = new List<StyledLine> { BoxTop(width, $"{marker}{field.Label}{required}{readOnly}", labelRole, frame) };
 
-        foreach (var value in ValueLines(field, focused && !form.Navigating, form, valueWidth))
+        foreach (var value in ValueLines(field, focused, form, valueWidth))
         {
             lines.Add(BoxRow(value, width, frame));
         }
@@ -41,7 +40,7 @@ public static partial class FormOverlay
 
         if (field.IsEditable)
         {
-            lines.AddRange(PopupLines(focused && !form.Navigating, form, valueWidth));
+            lines.AddRange(PopupLines(focused, form, valueWidth));
         }
 
         if (field.Error is not null)

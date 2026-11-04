@@ -569,6 +569,14 @@ public class IssueDetailRendererTests
         var summary = FormField.Create(FormFieldIds.Summary, "Summary", FormFieldKind.Text, true, []);
         var labels = FormField.Create(FormFieldIds.Labels, "Labels", FormFieldKind.Text, false, []);
         state = _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [summary, labels])).State;
+
+        // The navigate state belongs to the create form in production; the status echo is shared machinery.
+        var navigating = state.Session.Tabs[0] with
+        {
+            Form = state.Session.Tabs[0].Form! with { Navigable = true, Navigating = true, Suggest = null },
+        };
+
+        state = state with { Session = state.Session with { Tabs = [navigating] } };
         Assert.True(state.Session.Tabs[0].Form!.Navigating);
         var grid = new PaneGrid([new PaneSlot("title", 0, 0)]);
         var open = state.Session.Tabs[0];

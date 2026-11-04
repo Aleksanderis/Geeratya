@@ -274,15 +274,7 @@ public static partial class FormOverlay
             ? $"   {keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
             : string.Empty;
 
-        if (form.Navigating)
-        {
-            var edit = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-
-            return $"j/k {next}/{previous} field   {edit}/i edit   {submit} save{browser}   {cancel} cancel";
-        }
-
-        var leave = form.Navigable ? "stop editing" : "cancel";
-        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} {leave}";
+        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
 
         if (form.Target is not CreateFormTarget create)
         {

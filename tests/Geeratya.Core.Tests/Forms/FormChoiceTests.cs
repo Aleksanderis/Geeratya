@@ -170,8 +170,8 @@ public class FormChoiceTests
 
         var loaded = _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [choice, summary]));
 
-        // The edit form opens in the navigate state; Enter starts editing the first field (#650).
-        return Press(loaded.State, "Enter").State;
+        // A multi-field form in the navigate state; Enter starts editing the first field (#650).
+        return Press(NavigableFormState.Apply(loaded.State), "Enter").State;
     }
 
     private ReduceResult Press(AppState state, string key)

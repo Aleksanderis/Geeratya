@@ -27,9 +27,8 @@ public static partial class FormReducer
             TopError = top,
         };
         var editable = loaded.Fields.Count(field => field.IsEditable);
-        var navigable = (target is EditFormTarget && editable > 1) || (target is CreateFormTarget && editable > 0);
-        var navigating = navigable && target is EditFormTarget;
-        var shown = filled with { Focus = Step(filled, 0), Navigable = navigable, Navigating = navigating };
+        var navigable = target is CreateFormTarget && editable > 0;
+        var shown = filled with { Focus = Step(filled, 0), Navigable = navigable };
 
         if (target.Automatic is { } changes)
         {
