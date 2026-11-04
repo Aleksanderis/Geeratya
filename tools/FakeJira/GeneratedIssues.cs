@@ -194,6 +194,75 @@ public static class GeneratedIssues
         return Encoding.UTF8.GetString(buffer.ToArray());
     }
 
+    /// <summary>
+    /// The reply to <c>parent = GEN-n</c> for a generated issue: its sub-tasks as full search results, which carry the
+    /// assignee that the <c>subtasks</c> stubs lack (every other one is unassigned). Null for another key.
+    /// </summary>
+    public static byte[]? ChildrenPage(int total, string key)
+    {
+        var number = int.TryParse(key.StartsWith("GEN-", StringComparison.Ordinal) ? key[4..] : null, out var parsed)
+            ? parsed
+            : 0;
+
+        if (number < 1 || number > total)
+        {
+            return null;
+        }
+
+        var buffer = new MemoryStream();
+
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartObject();
+            writer.WriteBoolean("isLast", true);
+            writer.WriteStartArray("issues");
+
+            for (var index = 1; index <= SubtaskCount(number); index++)
+            {
+                WriteSubtaskResult(writer, number, index);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        return buffer.ToArray();
+    }
+
+    private static void WriteSubtaskResult(Utf8JsonWriter writer, int number, int index)
+    {
+        var status = _statuses[(number + index) % _statuses.Length];
+
+        writer.WriteStartObject();
+        writer.WriteString("id", (IdBase + number * 10 + index).ToString(CultureInfo.InvariantCulture));
+        writer.WriteString("key", $"GEN-{SubtaskKeyBase + number * 10 + index}");
+        writer.WriteStartObject("fields");
+        writer.WriteString("summary", $"Generated sub-task {index} of {number}");
+        writer.WriteStartObject("issuetype");
+        writer.WriteString("name", "Sub-task");
+        writer.WriteBoolean("subtask", true);
+        writer.WriteEndObject();
+        writer.WriteStartObject("status");
+        writer.WriteString("id", StatusIdOf(status));
+        writer.WriteString("name", status);
+        writer.WriteEndObject();
+
+        if (index % 2 == 1)
+        {
+            writer.WriteStartObject("assignee");
+            writer.WriteString("accountId", "gen-writer");
+            writer.WriteString("displayName", "Generated Writer");
+            writer.WriteEndObject();
+        }
+        else
+        {
+            writer.WriteNull("assignee");
+        }
+
+        writer.WriteEndObject();
+        writer.WriteEndObject();
+    }
+
     private static void WriteSubtaskArray(Utf8JsonWriter writer, string prefix, int number)
     {
         writer.WriteStartArray();

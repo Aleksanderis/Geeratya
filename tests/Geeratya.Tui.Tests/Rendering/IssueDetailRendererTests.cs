@@ -124,6 +124,26 @@ public class IssueDetailRendererTests
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 
+    [Theory]
+    [InlineData(64)]
+    [InlineData(80)]
+    [InlineData(104)]
+    [InlineData(120)]
+    public void GivenAnEpicWithEveryPane_WhenBuildingAtThePlannedWidths_ThenEveryRowKeepsTheWidthInBothGlyphSets(
+        int width)
+    {
+        var state = LoadedEpic(width, 36);
+
+        foreach (var glyphs in new[] { GlyphSet.Unicode, GlyphSet.Ascii })
+        {
+            var lines = FrameBuilder.Build(state, width, 36, _keymap, null, glyphs);
+
+            Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
+            Assert.Contains(lines, line => line.Contains("Sub-tasks 1"));
+            Assert.Contains(lines, line => line.Contains("GCM-18"));
+        }
+    }
+
     [Fact]
     public void GivenFocusOnAWrappedField_WhenRendering_ThenEveryRowOfItIsSelectedAndOnlyTheFirstHasTheMark()
     {

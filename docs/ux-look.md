@@ -111,7 +111,7 @@ A chip is the text of a title, written into a top edge as `─ text ─` (one `�
 | Board | column | `To Do 5` (name, issue count, `/limit` when the column has a WIP limit: `In Progress 4/3`, over the limit in the `warn` role) | none |
 | Board (Scrum) | column | as above; `Done 3 · 12 pts` when the board estimates in points | |
 | Issue detail | header | `GEN-5 · Story` (key bold, type in the issue-type colour) | `In Progress` (status chip in its category colour) |
-| Issue detail | other panes | `Description`, `Comments 50 of 120`, then one pane per relation kind with its count: `Sub-tasks 1`, `Epic children 2`, `Linked issues 2`, `Remote links 1`, `Attachments 2` (there is no merged `Relations` pane) | none |
+| Issue detail | other panes | `Description`, `Comments 50 of 120`, then one pane per relation kind with its count: `Sub-tasks 1`, `Child issues 2`, `Linked issues 2`, `Remote links 1`, `Attachments 2` (there is no merged `Relations` pane) | none |
 | Backlog | sprint (shared edge under the column titles) | `Sprint 2 · active` | `19 Jan - 1 Feb · 11 issues · 41 pts`; the frame's own top edge carries the source and count (kept on purpose, #537: list and backlog share one geometry) |
 | Backlog | backlog | `Backlog` | `8 issues` |
 | List | list | the source (`project = GCM`, filter name) | `40 issues` |
@@ -130,7 +130,7 @@ Chip kinds: the **focused** pane's chip is the filled accent chip (accent backgr
 
 ### Pane navigation (no new keys)
 
-Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the issue detail and the backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `]] pane` (detail and backlog, last of the screen hints) name the chord. The wheel scrolls the document as today.
+Moving between panes uses the keys the views already have, so `ux-keymap.md` does not change: on the board `h`/`l` move to the previous/next column; in the Scrum backlog the chords `] ]` and `[ [` (`detail.section-next`, `detail.section-previous`) jump to the next and previous pane, and in the issue detail `Ctrl-j`/`Ctrl-k` (`pane.focus-down`, `pane.focus-up`, #702) do; `j`/`k` move the cursor and cross pane edges, so the focused pane follows the cursor. A click focuses the pane it lands in by placing the cursor there (the existing column, row and line targets; no pane-focus target of its own, so `ux-mouse.md` is unchanged). The hints `]] pane` (backlog) and `Ctrl-j/Ctrl-k pane` (detail), last of the screen hints, name the keys. The wheel scrolls the document as today.
 
 ## 5. Chrome: tab row, status bar, key hints (#527)
 
@@ -361,7 +361,7 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Screen | Today | Spec section | Issue |
 |---|---|---|---|
 | Board | Done in #524: one rounded frame, shared edges, column chips in the top edge, the title line is in the status bar. Done in #526: the focused column's whole box and chip are accent, others quiet with dim chips, the cursor card has an accent heavy box, other columns draw no cursor mark (the quiet `>` of #644 was removed in #673) | 2, 3, 4 | #524, #526 |
-| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour | 2, 4 | #524, #526, #557 |
+| Detail | Done in #524: one frame with shared edges, the cursor marker sits inside the border, the top edge names the pane in view. Done in #526: the pane holding the cursor is accent (shared edges included) with a filled chip, others quiet with dim chips. Done in #557: the status chip on the right of the header, in its category colour. Done in #702: each pane has a rounded frame of its own (no shared edges), the status moved into the title row, the Description pane shows its scrollbar and `1-4 of N` chip | 2, 4 | #524, #526, #557 |
 | Backlog and list | Done in #524: one frame, sprint headers are shared edges with chips (a collapsed one marked `▸`), the top edge names the source and the count. Done in #526: the section holding the cursor is the focused pane (accent box, filled chip), others quiet with dim chips | 2, 3, 4 | #524, #526 |
 | Tab row | Done in #527: chips on the bar background, filled accent for the active one, `x`, ` + `, dim jump chip with the keys. Done in #547: middle-click close, hover `x`, the `+N` tab list | 5 | #527, #547 |
 | Status bar | Done in #527: mode badge as a filled chip at column 0, message in its severity role on the bar, hint chips (key bold, label muted). The one-line `Confirm  (y/n)` and form texts keep their wording | 5 | #527 |
