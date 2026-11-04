@@ -124,7 +124,14 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
     }
 
     /// <summary>A request to the tenant lookup or the gateway: method, path and body.</summary>
-    public sealed record GatewayRequest(string Method, string Path, string Body);
+    public sealed class GatewayRequest(string method, string path, string body)
+    {
+        public string Method { get; } = method;
+
+        public string Path { get; } = path;
+
+        public string Body { get; } = body;
+    }
 
     private sealed record ScriptedReply(HttpStatusCode Status, string Body, Task? Gate, string? RetryAfter);
 }
