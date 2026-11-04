@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -37,6 +38,11 @@ public static class MouseResolver
         if (hit.Target == MouseTarget.RowMenuButton && gesture != MouseGesture.Click)
         {
             hit = hit with { Target = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists };
+        }
+
+        if (hit.Target == MouseTarget.Backdrop && context is { DetailOpen: true, OverlayOpen: false, ActiveTab: { } tab })
+        {
+            return gesture == MouseGesture.Click ? [new IssueDetailCloseRequested(tab)] : _none;
         }
 
         if (IsOverlayRow(hit.Target))

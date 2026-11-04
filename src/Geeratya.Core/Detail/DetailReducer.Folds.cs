@@ -13,14 +13,14 @@ internal static partial class DetailReducer
     {
         var top = tab.Detail[^1];
         var changed = top with { Expanded = Toggled(top.Expanded, target.ExpandKey) };
-        var laidOut = Layout(changed, state.ViewportColumns, tab.VisibleRows);
+        var laidOut = Layout(changed, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
         if (target.Collapses && laidOut.Document is { } document)
         {
             // The "Show less" row is gone: the cursor goes to the "more lines" row that replaces it.
             var more = target with { Expands = true, Collapses = false };
             var line = document.Targets.ToList().FindIndex(candidate => candidate == more);
-            var viewport = DetailLayout.ViewportRows(tab.VisibleRows);
+            var viewport = DetailLayout.ViewportRows(DetailSize.ListRows(state, tab));
 
             laidOut = line < 0 ? laidOut : WithCursor(laidOut, line, viewport);
         }
@@ -42,7 +42,7 @@ internal static partial class DetailReducer
         }
 
         var changed = top with { Folded = Toggled(top.Folded, document.SectionIds[section]) };
-        var laidOut = Layout(changed, state.ViewportColumns, tab.VisibleRows);
+        var laidOut = Layout(changed, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
         var moved = ViewReducer.Replace(state, ReplaceTop(tab, laidOut));
         var next = ViewReducer.Find(moved.Session.Tabs, tab.Id)!;
 

@@ -18,7 +18,6 @@ public static class FrameBuilder
     private static readonly IReadOnlyList<IBodyRenderer> _defaultRenderers =
     [
         new MessagesBodyRenderer(),
-        new IssueDetailRenderer(),
         new BacklogBodyRenderer(),
         new ListBodyRenderer(),
         new ColumnsBodyRenderer(),
@@ -79,12 +78,20 @@ public static class FrameBuilder
         var bodyHeight = BodyHeight(height);
         var context = new BodyContext(keymap, glyphs, clock);
         var helpOpen = HelpOverlay.Applies(state);
-        var viewState = helpOpen ? HelpOverlay.Underlying(state) : state;
+        var shownState = helpOpen ? HelpOverlay.Underlying(state) : state;
+        var detailShown = DetailOverlay.Applies(shownState);
+        var viewState = detailShown ? DetailOverlay.Underlying(shownState) : shownState;
         var renderer = screens?.Concat(_defaultRenderers).First(candidate => candidate.AppliesTo(viewState))
             ?? _defaultRenderers.First(candidate => candidate.AppliesTo(viewState));
         var regions = new List<OverlayRegion>();
         var body = BodyOf(state, viewState, renderer, context, width, bodyHeight, regions);
         var settingsOpen = state is { SettingsScreen: not null, Mode: InputMode.Normal, ProfileList: null };
+
+        if (detailShown)
+        {
+            body = Fit(DetailOverlay.Compose(body, shownState, context, width, bodyHeight), width, bodyHeight);
+        }
+
         var marker = helpOpen || settingsOpen || WhichKeyOverlay.Applies(state) ? null : RowMenuMarker.Stamp(body, state);
 
         if (helpOpen)

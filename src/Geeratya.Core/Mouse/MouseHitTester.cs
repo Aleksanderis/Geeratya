@@ -59,6 +59,11 @@ public static class MouseHitTester
             return new MouseHit(MouseTarget.RowMenuButton, row - header, column);
         }
 
+        if (context.DetailOpen && context.DetailBox is { Fills: false } box && !box.Contains(column, row - header))
+        {
+            return new MouseHit(MouseTarget.Backdrop, row - header, column);
+        }
+
         var bodyTarget = context.DetailOpen ? MouseTarget.Detail : MouseTarget.Lists;
 
         return new MouseHit(bodyTarget, row - header, column);

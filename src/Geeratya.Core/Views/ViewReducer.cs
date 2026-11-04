@@ -51,6 +51,7 @@ public static partial class ViewReducer
             ViewLoadFailed failed => LoadFailed(state, failed, effects),
             IssueDetailOpenRequested open => DetailReducer.Open(state, open.Tab, open.Key, open.Row, effects),
             IssueDetailBackRequested back => DetailReducer.Back(state, back.Tab),
+            IssueDetailCloseRequested close => DetailReducer.Close(state, close.Tab),
             IssueDetailCached cached => DetailReducer.IssueCached(state, cached),
             IssueDetailLoaded loaded => DetailReducer.IssueLoaded(state, loaded, effects),
             IssueChildrenLoaded loaded => DetailReducer.ChildrenLoaded(state, loaded),
@@ -252,7 +253,13 @@ public static partial class ViewReducer
             return state;
         }
 
-        var tabs = state.Session.Tabs.Select(tab => DetailReducer.Resized(Resized(tab, height), columns)).ToArray();
+        var layoutColumns = DetailSize.Columns(columns, bodyHeight);
+        var tabs = state.Session.Tabs
+            .Select(tab => DetailReducer.Resized(
+                Resized(tab, height),
+                layoutColumns,
+                DetailSize.ListRows(columns, bodyHeight, height)))
+            .ToArray();
 
         var resized = WithSession(state, tabs, state.Session.Active, state.Sequence)
             with { ViewportRows = height, ViewportColumns = columns, ViewportBodyHeight = bodyHeight };
