@@ -4,10 +4,12 @@ namespace Geeratya.Platform.Tests.Scripts;
 
 public sealed class PowerShellScriptSyntaxTests
 {
+    private const string FilesVariable = "GEERATYA_PS_FILES";
+
     private const string ParseCommand =
-        "$failed = 0; foreach ($file in $args) { $errors = $null; " +
+        "$failed = 0; foreach ($file in ($env:GEERATYA_PS_FILES -split \"`n\")) { $errors = $null; " +
         "[System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$null, [ref]$errors) | Out-Null; " +
-        "foreach ($problem in $errors) { Write-Output \"$file : $($problem.Message)\"; $failed++ } }; exit $failed";
+        "foreach ($problem in $errors) { Write-Output \"$file : $($problem.Message)\"; $failed = 1 } }; exit $failed";
 
     [PowerShellAvailableFact]
     public async Task GivenThePowerShellScripts_WhenParsed_ThenThereAreNoSyntaxErrors()
@@ -23,17 +25,14 @@ public sealed class PowerShellScriptSyntaxTests
         start.ArgumentList.Add("-NonInteractive");
         start.ArgumentList.Add("-Command");
         start.ArgumentList.Add(ParseCommand);
-
-        foreach (var script in scripts)
-        {
-            start.ArgumentList.Add(script);
-        }
+        start.Environment[FilesVariable] = string.Join('\n', scripts);
 
         using var process = Process.Start(start)!;
-        var output = await process.StandardOutput.ReadToEndAsync();
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
 
-        Assert.True(process.ExitCode == 0, output);
+        Assert.True(process.ExitCode == 0, $"{await output}{await error}");
     }
 
     private static string FindRepositoryRoot()

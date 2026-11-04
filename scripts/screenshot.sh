@@ -42,6 +42,7 @@ all_scenarios=(
   "sprint-columns;120;36;dark;:board GEN| sv|;Generated issue"
   # sprint-subtasks: the sub-task summary row on the cards (generated sub-task stubs), then one card expanded with z a
   "sprint-subtasks;120;36;dark;:board GEN| sv|;Sub-tasks 1/3"
+  # h moves from the Unmapped column (where the cursor starts) to a card with sub-tasks
   "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|hza;Generated sub-task"
   # sprint-points reuses the columns view and waits for a card estimate
   "sprint-points;120;36;dark;:board GEN| sv|;5p"
@@ -67,6 +68,7 @@ all_scenarios=(
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"
+  # comment-delete: three section jumps (]] each) put the cursor on a comment
   "comment-delete;120;36;dark;:jql project = GEN|jjjj|]]]]]] md;Jira cannot undo"
   "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
   "comment-recorded-edit;120;36;dark;:jql key = GTM-11||]]]]]]]]]]]] me;formatting"
