@@ -140,7 +140,7 @@ public static class DetailDropdown
 
         if (typed || field.Entry.Length > 0)
         {
-            lines.Add(StyledLine.Of(TextWidth.Fit($"{field.Entry}{Caret}", inner), TextRole.Body));
+            lines.Add(StyledLine.Of(TextWidth.Fit($"{field.Entry}{Caret}", inner)));
         }
 
         var skipped = lines.Count;
