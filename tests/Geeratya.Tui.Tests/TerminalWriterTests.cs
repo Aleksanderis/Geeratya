@@ -39,7 +39,7 @@ public sealed class TerminalWriterTests : IDisposable
             await Task.Yield();
         }
 
-        var result = await copying;
+        var result = await copying.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.True(result.Copied);
         Assert.Contains("]52;c;", _console.ToString(), StringComparison.Ordinal);
     }

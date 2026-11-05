@@ -155,8 +155,16 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         Dispatch(new ConnectionCheckRequested());
         Dispatch(new StartupRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
-        application.Run(screen);
-        _uiThread.Detach();
+
+        try
+        {
+            application.Run(screen);
+        }
+        finally
+        {
+            _uiThread.Detach();
+        }
+
         _shutdown.Cancel();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();

@@ -4,7 +4,9 @@ namespace Geeratya.Tui;
 
 /// <summary>
 /// The one way raw terminal output (such as the OSC 52 clipboard sequence) leaves the program besides the frame.
-/// Writes run on the UI thread, the thread that draws frames, so a sequence never lands inside a frame.
+/// Writes run on the UI thread, the thread that runs the main loop and draws frames, so they are ordered against
+/// frame output instead of racing it from an effect thread. Meant for <c>WriteAsync</c>; the other overloads are
+/// per-character round trips.
 /// </summary>
 public sealed class TerminalWriter : TextWriter
 {
