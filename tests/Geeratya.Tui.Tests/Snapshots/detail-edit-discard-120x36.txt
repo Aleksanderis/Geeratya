@@ -1,0 +1,36 @@
+ 1 JQL My open issues x   +                                                                  : commands   <space>g jump 
+                                                                                                                        
+╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
+│  Key    T Summary                                                                     Status         Assignee        │
+│  GCM-12 T Row summary                                                                 In Progress    -               │
+│                                                                                                                      │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────── editing ─╮ ╭─ Details ─────────────────────╮ │ │
+│ │ │ Fix login redirectx                                                        │ │ Status  moves via transition  │ │ │
+│ │ │ y discard   n/Esc keep editing                                             │ │  ● In Progress ▾              │ │ │
+│ │ │ Discard the changes? (y/n)                                                 │ │                               │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │ Priority                      │ │ │
+│ │ ╭─ Description ────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮ │  ▲ High                       │ │ │
+│ │ │ Heading one                                                               ▲│ │                               │ │ │
+│ │ │                                                                           █│ │ Assignee                      │ │ │
+│ │ │ Heading three                                                             ░│ │  [JD] Jane Doe                │ │ │
+│ │ │ … 37 more lines                                                           ▼│ │                               │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │ Reporter                      │ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │  [ON] Ola Nordmann            │ │ │
+│ │ │ Jane Doe                                                           1 d ago │ │                               │ │ │
+│ │ │ Found it: the redirect target is dropped after the refresh.                │ │ Labels                        │ │ │
+│ │ │                                                                            │ │   auth   bug-bash             │ │ │
+│ │ │ 日本語の作者                                                       3 h ago │ │                               │ │ │
+│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │ Parent                        │ │ │
+│ │ │                                                                            │ │  GCM-17 Reporting overhaul    │ │ │
+│ │ │ Ola Nordmann                                                     5 min ago │ │                               │ │ │
+│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │ Due none · Updated 2 h ago    │ │ │
+│ │ │ wrap.                                                                      │ │                               │ │ │
+│ │ │                                                                            │ │                               │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                ╰───────────────────────────────╯ │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ INSERT  Discard the changes? (y/n)                                                              Ctrl-s save  Esc cancel

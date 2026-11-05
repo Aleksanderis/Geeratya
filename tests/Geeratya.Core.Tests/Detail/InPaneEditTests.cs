@@ -163,7 +163,7 @@ public class InPaneEditTests
 
         var text = Plain(Build(state, 100, 30));
 
-        Assert.Contains("Issue 1_", text);
+        Assert.Contains("Issue 1", text);
         Assert.Contains("editing", text);
     }
 
@@ -178,7 +178,7 @@ public class InPaneEditTests
         var document = Build(state, 100, 30);
         var plain = Plain(document);
 
-        Assert.Contains("line 30_", plain);
+        Assert.Contains("line 30", plain);
         Assert.DoesNotContain("line 1 ", plain);
         Assert.Contains(document.PaneScrolls, scroll => scroll is not null);
         Assert.Contains("24-30 of 30", plain);
@@ -194,7 +194,7 @@ public class InPaneEditTests
         var plain = Plain(Build(state, 100, 30));
 
         Assert.Contains("line 12", plain);
-        Assert.Contains("|line 15", plain);
+        Assert.Contains("line 15", plain);
         Assert.Contains("line 18", plain);
         Assert.DoesNotContain("line 19", plain);
         Assert.Contains("12-18 of 30", plain);
@@ -211,8 +211,41 @@ public class InPaneEditTests
         var spans = document.Lines.SelectMany(line => line.Spans).ToList();
 
         Assert.Contains(spans, span => span.Role == TextRole.EditField && span.Text.StartsWith("abc", StringComparison.Ordinal));
-        Assert.Contains(spans, span => span.Role == TextRole.EditCaret && span.Text == "_");
+        Assert.Contains(spans, span => span.Role == TextRole.EditCaret && span.Text == " ");
         Assert.Contains("Ctrl-s save   Esc cancel", Plain(document));
+    }
+
+    [Fact]
+    public void GivenTheDiscardQuestion_WhenBuildingTheDocument_ThenTheHintShowsTheKeysOfTheQuestion()
+    {
+        var state = Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField());
+        var asked = Press(Press(state, "z").State, "Esc").State;
+
+        var plain = Plain(Build(asked, 100, 30));
+
+        Assert.Contains("y discard   n/Esc keep editing", plain);
+        Assert.DoesNotContain("Ctrl-s save", plain);
+    }
+
+    [Fact]
+    public void GivenTheCaretMovingThroughTheText_WhenBuildingTheDocument_ThenTheRowKeepsItsTextAndWidth()
+    {
+        var state = Loaded(
+            Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"),
+            SummaryField());
+        var atEnd = CaretRow(Build(state, 60, 30));
+        var moved = CaretRow(Build(Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField() with { Back = 3 }), 60, 30));
+
+        Assert.Equal(atEnd.Sum(span => DisplayWidth.Of(span.Text)), moved.Sum(span => DisplayWidth.Of(span.Text)));
+        Assert.Equal(string.Concat(atEnd.Select(span => span.Text)).TrimEnd(), string.Concat(moved.Select(span => span.Text)).TrimEnd());
+        Assert.Single(moved, span => span.Role == TextRole.EditCaret);
+        Assert.Equal(1, DisplayWidth.Of(Assert.Single(moved, span => span.Role == TextRole.EditCaret).Text));
+        Assert.NotEqual(" ", Assert.Single(moved, span => span.Role == TextRole.EditCaret).Text);
+    }
+
+    private static IReadOnlyList<StyledSpan> CaretRow(DetailDocument document)
+    {
+        return document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret)).Spans;
     }
 
     [Fact]
@@ -240,7 +273,7 @@ public class InPaneEditTests
         var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
         var start = document.PaneStarts[pane];
         var end = document.PaneStarts[pane + 1];
-        Assert.Contains("line 30_", Plain(document));
+        Assert.Contains("line 30", Plain(document));
         Assert.True(end - start <= 6, $"editor is {end - start} lines");
     }
 

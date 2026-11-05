@@ -6,7 +6,7 @@
 │                                                                                                                      │
 │ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────── editing ─╮ ╭─ Details ─────────────────────╮ │ │
-│ │ │ Fix login redirect_                                                        │ │ Status  moves via transition  │ │ │
+│ │ │ Fix login redirect                                                         │ │ Status  moves via transition  │ │ │
 │ │ │ Ctrl-s save   Esc cancel                                                   │ │  ● In Progress ▾              │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
 │ │ ╭─ Description ────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮ │ Priority                      │ │ │
