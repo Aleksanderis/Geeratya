@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -511,6 +512,47 @@ public class FormOpenerTests
         Assert.Null(failed.State.Session.Tabs[0].Rows[0].Assignee);
         Assert.Contains("changed meanwhile", failed.State.Session.Tabs[0].Form!.TopError);
         Assert.Contains(failed.Effects, effect => effect is LoadIssueDetailEffect);
+    }
+
+    [Fact]
+    public void GivenTheLabelsDropdown_WhenAnAppliedLabelIsTakenOff_ThenItIsOfferedRemovedAndWrittenAtOnce()
+    {
+        var hanging = LabelsDropdown("backend", "urgent");
+
+        var popup = hanging.Session.Tabs[0].Form!.Suggest!;
+        var taken = Press(Press(hanging, "Down").State, "Enter", _start);
+
+        Assert.Equal(["backend", "urgent"], popup.Items.Select(item => item.Id));
+        Assert.Equal("backend (remove)", SuggestionText.Row(popup.Items[0]));
+        Assert.Null(popup.Selected);
+        var request = Assert.IsType<EditRequest>(WrittenBy(taken));
+        Assert.Equal(["urgent"], Assert.Single(request.Changes).Value.Chosen);
+        Assert.Equal(["urgent"], taken.State.Session.Tabs[0].Rows[0].Labels);
+    }
+
+    [Fact]
+    public void GivenTheLabelsDropdown_WhenALabelIsClicked_ThenItIsRemovedLikeTheKeyDoes()
+    {
+        var hanging = LabelsDropdown("backend", "urgent");
+
+        var clicked = _reducer.Reduce(
+            hanging,
+            new OverlayRowClicked(MouseTarget.FormChoice, 1, ActionIds.FormNext, _start));
+
+        Assert.Equal(["backend"], Assert.Single(Assert.IsType<EditRequest>(WrittenBy(clicked)).Changes).Value.Chosen);
+    }
+
+    // The Details pane marks the form as a dropdown right after it opens, before the metadata arrives.
+    private AppState LabelsDropdown(params string[] labels)
+    {
+        var opened = Palette(Tabbed(), "labels").State;
+        var tab = opened.Session.Tabs[0];
+        var hanging = tab with { Form = tab.Form! with { Dropdown = DetailFieldIds.Labels } };
+        var marked = opened with { Session = opened.Session with { Tabs = [hanging] } };
+        var field = FormField.Create(FormFieldIds.Labels, "Labels", FormFieldKind.Labels, false, [])
+            .WithInitial(FormValue.OfChosen(labels));
+
+        return _reducer.Reduce(marked, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [field])).State;
     }
 
     private ReduceResult PickEve()

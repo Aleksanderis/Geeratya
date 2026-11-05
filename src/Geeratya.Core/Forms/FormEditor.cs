@@ -138,6 +138,13 @@ public static class FormEditor
             return field;
         }
 
+        if (field.Kind == FormFieldKind.Labels && suggestion.Detail == LabelQuickRows.AppliedDetail)
+        {
+            var remaining = field.Value.Chosen.Where(label => label != suggestion.Id);
+
+            return field with { Value = FormValue.OfChosen(remaining), Entry = string.Empty, Back = 0, Error = null };
+        }
+
         if (field.Kind == FormFieldKind.Labels)
         {
             return CommitLabel(field with { Entry = suggestion.Id });

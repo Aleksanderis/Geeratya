@@ -187,6 +187,11 @@ public static partial class FormReducer
     // other field, or when neither row applies (already assigned to me and no one to clear).
     private static SuggestionState? QuickPopup(AppState state, FormState form)
     {
+        if (LabelRows(form) is { } labels)
+        {
+            return labels;
+        }
+
         if (form.Target is not AssignFormTarget || form.Focus >= form.Fields.Count
             || form.Fields[form.Focus].Id != FormFieldIds.Assignee)
         {
@@ -212,6 +217,28 @@ public static partial class FormReducer
         }
 
         var source = new SuggestionSource(SuggestionKind.AssignableUsers, form.Target.IssueKey, []);
+
+        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
+    }
+
+    // The labels dropdown of the Details pane lists the labels the issue has while the buffer is empty, so one can be
+    // taken off; null for any other form or when there is none.
+    private static SuggestionState? LabelRows(FormState form)
+    {
+        if (form.Dropdown is null || form.Focus >= form.Fields.Count)
+        {
+            return null;
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (field.Kind != FormFieldKind.Labels || field.Value.Chosen.Count == 0)
+        {
+            return null;
+        }
+
+        var rows = field.Value.Chosen.Select(LabelQuickRows.Applied).ToArray();
+        var source = new SuggestionSource(SuggestionKind.Labels, null, []);
 
         return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
     }
