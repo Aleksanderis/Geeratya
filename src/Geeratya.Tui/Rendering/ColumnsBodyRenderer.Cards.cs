@@ -159,7 +159,7 @@ public sealed partial class ColumnsBodyRenderer
     {
         var nested = group.IsNested(card);
         var more = group.IsNested(card + 1);
-        var line = TextWidth.Pad(CompactLine(issue, selected, marked, nested, more, inner), inner);
+        var line = TextWidth.Pad(CompactLine(issue, marked, nested, more, inner), inner);
         var at = nested ? 2 : 1;
         var ground = selected ? SpanGround.Selection : SpanGround.Page;
 

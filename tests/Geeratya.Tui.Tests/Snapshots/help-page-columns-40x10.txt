@@ -1,7 +1,7 @@
  1 Board Sample   +       <space>g jump 
                                         
 ╭─ Issues 1 ───────────────────────────╮
-│>╭─ Help ───────────────────────────╮ │
+│ ╭─ Help ───────────────────────────╮ │
 │ │   Columns     │   j              │ │
 │ │   Global      │         Move     │ │
 │ │   All actions │         down    ▼│ │

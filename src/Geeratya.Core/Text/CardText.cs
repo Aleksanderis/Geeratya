@@ -10,23 +10,21 @@ public static class CardText
 {
     private const string Ellipsis = "…";
     private const string ParentMark = "↑";
-    private const string SelectedMark = ">";
     private const string MarkedMark = "*";
     private const string Blank = " ";
 
     /// <summary>
-    /// The one-line form of a card in the columns layout: cursor mark, tree branch, type marker, set mark, key, parent
-    /// and summary, cut to <paramref name="width"/>. The first cell is the cursor mark, so a flash label can take it.
+    /// The one-line form of a card in the columns layout: blank first cell (a flash label can take it), tree branch, type marker, set mark, key, parent
+    /// and summary, cut to <paramref name="width"/>. The cursor card is shown by the selection tint, not a mark.
     /// </summary>
-    public static string Compact(IssueSummary issue, bool selected, bool marked, bool nested, bool more, int width)
+    public static string Compact(IssueSummary issue, bool marked, bool nested, bool more, int width)
     {
-        var mark = selected ? SelectedMark : Blank;
         var marker = IssueTypeMarker.For(issue.IssueType);
         var branch = nested ? (more ? "├" : "└") : string.Empty;
         var parent = !nested && issue.Parent is { } owner ? $" {ParentMark}{owner.Key}" : string.Empty;
         var star = marked ? MarkedMark : Blank;
 
-        return Shorten($"{mark}{branch}{marker}{star}{issue.Key}{parent} {issue.Summary}", width);
+        return Shorten($"{Blank}{branch}{marker}{star}{issue.Key}{parent} {issue.Summary}", width);
     }
 
     /// <summary>

@@ -158,7 +158,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
             var selected = card == cursor.Cards[cursor.Column];
             var role = selected ? TextRole.Selected : TextRole.Body;
 
-            lines.Add(StyledLine.Of(CompactLine(group.Rows[card], selected, false, false, false, width), role));
+            lines.Add(StyledLine.Of(CompactLine(group.Rows[card], false, false, false, width), role));
         }
 
         return lines;

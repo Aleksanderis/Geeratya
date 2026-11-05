@@ -173,8 +173,8 @@ public sealed partial class ColumnsBodyRenderer
         return $"{text}{Blank}";
     }
 
-    private static string CompactLine(IssueSummary issue, bool selected, bool marked, bool nested, bool more, int width)
+    private static string CompactLine(IssueSummary issue, bool marked, bool nested, bool more, int width)
     {
-        return CardText.Compact(issue, selected, marked, nested, more, width);
+        return CardText.Compact(issue, marked, nested, more, width);
     }
 }

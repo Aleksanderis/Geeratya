@@ -106,7 +106,7 @@ public static class FlashBoardLabeler
 
         if (compact)
         {
-            var line = CardText.Compact(issue, false, false, nested, group.IsNested(card + 1), cell);
+            var line = CardText.Compact(issue, false, nested, group.IsNested(card + 1), cell);
 
             return line.Length > 1 ? [line[1..]] : [];
         }
