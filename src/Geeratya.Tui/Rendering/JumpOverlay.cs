@@ -149,7 +149,7 @@ public static class JumpOverlay
 
     private static StyledLine RowLine(JumpRow row, bool selected, int width)
     {
-        var marker = selected ? ">" : " ";
+        var marker = " ";
         var origin = row.Origin == JumpOrigin.Recent ? RecentText : string.Empty;
         var detail = row.Title.Length > 0 ? row.Title : origin;
         var prefix = $"{marker} {TextWidth.Pad(row.Key, KeyColumn)}";

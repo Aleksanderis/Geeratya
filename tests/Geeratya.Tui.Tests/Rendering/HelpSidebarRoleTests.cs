@@ -11,15 +11,15 @@ public class HelpSidebarRoleTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
 
     [Fact]
-    public void GivenTheOpenHelp_WhenComposing_ThenTheActiveSidebarEntryIsHeadingAndTheOthersMutedNotSelected()
+    public void GivenTheOpenHelp_WhenComposing_ThenTheActiveSidebarEntryIsTheSelectionRoleWithoutAMarkAndTheOthersMuted()
     {
         var body = Enumerable.Range(0, 24).Select(_ => StyledLine.Empty).ToList();
         var state = AppState.Initial with { Mode = InputMode.Help };
         var lines = HelpOverlay.Compose(body, state, _keymap, 100, 24);
         var spans = lines.SelectMany(line => line.Spans).ToList();
 
-        Assert.Single(spans, span => span.Role == TextRole.Heading && span.Text.StartsWith("> ", StringComparison.Ordinal));
+        Assert.Single(spans, span => span.Role == TextRole.Selected && span.Text.StartsWith("  ", StringComparison.Ordinal));
         Assert.Contains(spans, span => span.Role == TextRole.Muted && span.Text.StartsWith("  ", StringComparison.Ordinal));
-        Assert.DoesNotContain(spans, span => span.Role == TextRole.Selected);
+        Assert.DoesNotContain(spans, span => span.Text.StartsWith("> ", StringComparison.Ordinal));
     }
 }

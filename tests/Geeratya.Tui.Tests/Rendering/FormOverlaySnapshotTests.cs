@@ -40,7 +40,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[backend] [ui]", StringComparison.Ordinal) && line.Contains('_'));
-        Assert.Contains(lines, line => line.Contains("> Labels", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Labels", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class FormOverlaySnapshotTests
             _keymap,
             120,
             36);
-        var focused = box.First(line => line.ToString().Contains("> Labels", StringComparison.Ordinal));
+        var focused = box.First(line => line.ToString().Contains("Labels", StringComparison.Ordinal));
         var readOnly = box.First(line => line.ToString().Contains("Team  (not", StringComparison.Ordinal));
 
         Assert.Contains(focused.Spans, span => span.Role == TextRole.OverlayFrame && span.Text.StartsWith("┌─", StringComparison.Ordinal));
@@ -102,7 +102,6 @@ public class FormOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(WithForm(form), 40, 10, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("> ", StringComparison.Ordinal));
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 
@@ -139,7 +138,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(PickerForm()), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Create issue in A", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("> Task", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains(" Task", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("  Epic", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Enter choose", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Choose the issue type", StringComparison.Ordinal));
@@ -186,8 +185,8 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Change status of A-1", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("> Move to *", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("> In Progress", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Move to *", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("  In Progress", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("  Done", StringComparison.Ordinal));
     }
 
@@ -203,7 +202,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[Backend] oc_", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("> Docs", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Docs", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));
     }

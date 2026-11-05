@@ -4,8 +4,8 @@
 │                                                                              │
 │                                                                              │
 │ ╭─ Settings ───────────────────────────────────────────────────────────────╮ │
-│ │ > Appearance       │ > theme                                    [auto ▾] │ │
-│ │   Hints and keys   │     > ● auto                                        │ │
+│ │   Appearance       │   theme                                    [auto ▾] │ │
+│ │   Hints and keys   │       ● auto                                        │ │
 │ │   Startup          │       ○ dark                                        │ │
 │ │   Board            │       ○ light                                       │ │
 │ │   Profiles         │       ○ nord                                        │ │

@@ -185,7 +185,7 @@ public static class ProfileManagerScreen
     {
         var active = profile.Name == activeName;
         var name = TextWidth.Pad(TextWidth.Fit(profile.Name, NameColumn - 1), NameColumn);
-        var cursor = selected ? ">" : " ";
+        var cursor = " ";
         var dot = active ? mark : " ";
         var marker = $"{cursor}{dot} ";
 

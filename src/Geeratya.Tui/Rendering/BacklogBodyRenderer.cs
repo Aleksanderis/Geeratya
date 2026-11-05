@@ -142,11 +142,8 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
             name = $"{name}{glyphs.Separator}{ActiveWord}";
         }
 
-        var onCursor = IsOnCursor(tab, section);
         var role = TextRole.Strong;
 
-        // The marker says where the cursor is without colour, in the print frame and the ASCII tier.
-        name = onCursor ? $"> {name}" : name;
         var parts = new List<string>();
 
         if (!section.IsBacklog)
@@ -253,7 +250,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
         if (IsOnCursor(tab, section))
         {
-            var selected = $"> {text}";
+            var selected = text;
 
             return StyledLine.Of(TextWidth.Pad(TextWidth.Fit(selected, width), width), TextRole.Selected);
         }

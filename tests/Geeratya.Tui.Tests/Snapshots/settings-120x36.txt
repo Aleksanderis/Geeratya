@@ -11,7 +11,7 @@
 │                                                                                                                      │
 │                                                                                                                      │
 │           ╭─ Settings ───────────────────────────────────────────────────────────────────────────────────╮           │
-│           │ > Appearance       │ > theme                                                        [auto ▾] │           │
+│           │   Appearance       │   theme                                                        [auto ▾] │           │
 │           │   Hints and keys   │   transparent                                                       [ ] │           │
 │           │   Startup          │                                                                         │           │
 │           │   Board            │                                                                         │           │

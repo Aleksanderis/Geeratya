@@ -128,7 +128,7 @@ public static class ProfileFormOverlay
         var focused = field == form.Field;
         var spans = new List<StyledSpan>
         {
-            new(focused ? "> " : "  ", TextRole.Key),
+            new("  ", TextRole.Key),
             new(TextWidth.Pad(LabelOf(field), LabelWidth), TextRole.Muted),
         };
         var room = Math.Max(0, width - 2 - LabelWidth - 1);

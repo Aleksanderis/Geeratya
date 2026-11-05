@@ -219,10 +219,10 @@ public static class SettingsScreen
         }
 
         var active = line == current;
-        var label = $"{(active ? "> " : "  ")}{categories[line]}";
+        var label = $"  {categories[line]}";
         var text = TextWidth.Pad(TextWidth.Fit(label, CategoryWidth), CategoryWidth);
 
-        return StyledLine.Of(text, active ? TextRole.Heading : TextRole.Muted);
+        return StyledLine.Of(text, active ? TextRole.Selected : TextRole.Muted);
     }
 
     private static List<Entry> Entries(
@@ -263,7 +263,7 @@ public static class SettingsScreen
 
     private static StyledLine RowLine(SettingsRow row, bool selected, int room)
     {
-        var cursor = selected ? "> " : "  ";
+        var cursor = "  ";
         var control = Control(row);
         var labelRoom = Math.Max(1, Math.Min(LabelColumn, room - cursor.Length));
         var label = TextWidth.Pad(TextWidth.Fit(row.Label, labelRoom - 1), labelRoom);
@@ -315,7 +315,7 @@ public static class SettingsScreen
 
         for (var index = 0; index < words.Count; index++)
         {
-            var cursor = index == choice ? ">" : " ";
+            var cursor = " ";
             var saved = words[index] == current ? "●" : "○";
             var role = index == choice ? TextRole.Selected : TextRole.Body;
 

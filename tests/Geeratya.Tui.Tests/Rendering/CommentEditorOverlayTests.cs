@@ -226,9 +226,9 @@ public class CommentEditorOverlayTests
         var plain = string.Join('\n', frame.PlainLines());
 
         Assert.Contains("  Olga Other", plain);
-        Assert.Contains("> Oleg Two (inactive)", plain);
+        Assert.Contains("  Oleg Two (inactive)", plain);
         Assert.Contains("Down/Up choose   Tab/Enter accept   Esc close list", plain);
-        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Selected && span.Text.StartsWith("> Oleg")));
+        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Selected && span.Text.StartsWith("  Oleg")));
     }
 
     [Theory]

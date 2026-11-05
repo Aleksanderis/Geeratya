@@ -4,7 +4,7 @@
 │  Key    T Summary                                              Status        │
 │  GCM-12 T Fix login redirect after token refresh               In Progress   │
 │  GCM-14 B Crash when the board has no columns                  To Do         │
-│> GCM-15 S As a user I can filter by label 日本語ラベル         To Do      ...│
+│  GCM-15 S As a user I can filter by label 日本語ラベル         To Do      ...│
 │  GCM-17 E Reporting overhaul with a very long summary that nev In Progress   │
 │  GCM-18 s Write the CSV exporter 😀 é                          Done          │
 │  GCM-21 ? Upgrade the build image                              Backlog       │

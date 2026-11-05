@@ -2,9 +2,9 @@
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help  / tab ────────────────────────────────────────────────────────────╮ │
-│>│   List        │ View                                                     │ │
+│ │   List        │ View                                                     │ │
 │ │   Global      │   <space>A   Open the actions menu of the tab and the    │ │
-│ │ > All actions │              view                                        │ │
+│ │   All actions │              view                                        │ │
 │ │   Commands    │   <space>vv  Open a saved view in a new tab              │ │
 │ │               │ Tabs                                                     │ │
 │ │               │   Tab        Next tab  (gt)                              │ │

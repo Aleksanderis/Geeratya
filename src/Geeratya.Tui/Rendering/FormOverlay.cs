@@ -372,7 +372,7 @@ public static partial class FormOverlay
         for (var index = 0; index < types.Count; index++)
         {
             var highlighted = index == form.TypeCursor;
-            var pointer = highlighted ? ">" : " ";
+            var pointer = " ";
 
             lines.Add(StyledLine.Of($"{pointer} {types[index].Name}", highlighted ? TextRole.Selected : TextRole.Body));
         }

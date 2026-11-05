@@ -24,7 +24,7 @@ public static partial class FormOverlay
         var focused = index == form.Focus && !form.IsSaving;
         var frame = !field.IsEditable ? TextRole.Muted : focused ? TextRole.OverlayFrame
             : field.Error is not null ? TextRole.Error : TextRole.Muted;
-        var marker = focused ? "> " : string.Empty;
+        var marker = string.Empty;
         var required = field.Required ? " *" : string.Empty;
         var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
         var labelRole = focused ? TextRole.Strong : field.IsEditable ? TextRole.FieldLabel : TextRole.Muted;
@@ -213,7 +213,7 @@ public static partial class FormOverlay
         {
             var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
             var highlighted = index == cursor;
-            var pointer = highlighted ? ">" : " ";
+            var pointer = " ";
 
             lines.Add(Indented($"{margin}{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
         }

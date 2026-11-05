@@ -305,7 +305,7 @@ public class ColumnsBodyRendererTests
 
         Assert.StartsWith("╭─‹ To Do 1  Doing 1  Empty 0 ›", body[1].PlainText);
         Assert.Equal(TextRole.ChipFocus, body[1].Spans.Single(span => span.Text == "Doing 1").Role);
-        Assert.StartsWith("│>T A-2 Summary", body[2].PlainText);
+        Assert.StartsWith("│ T A-2 Summary", body[2].PlainText);
         Assert.Equal(40, TextWidth.Of(body[1].PlainText));
     }
 
@@ -317,7 +317,7 @@ public class ColumnsBodyRendererTests
         var compact = Render(tab, 120, 8);
         var full = Render(tab, 120, 20);
 
-        Assert.StartsWith("│>T A-1 Summary", compact[2].PlainText);
+        Assert.StartsWith("│ T A-1 Summary", compact[2].PlainText);
         Assert.StartsWith("│ T A-2 Summary", compact[3].PlainText);
         Assert.Contains("┏", full[2].PlainText);
         Assert.Contains("┃ A-1  Task", full[5].PlainText);
@@ -604,13 +604,14 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
-    public void GivenACompactColumnWithoutFocus_WhenRendering_ThenOnlyTheCursorCardHasTheMark()
+    public void GivenACompactColumnWithoutFocus_WhenRendering_ThenOnlyTheCursorCardIsTintedAndNoMarkIsDrawn()
     {
         var tab = Tab(Issue("1", "A-1"), Issue("2", "A-2")) with { SelectedKey = "A-2" };
 
         var body = Render(tab, 120, 8);
 
-        Assert.Single(body.SelectMany(line => line.Spans), span => span.Text == ">");
+        Assert.DoesNotContain(body.SelectMany(line => line.Spans), span => span.Text == ">");
+        Assert.Contains(body.SelectMany(line => line.Spans), span => span.Ground == SpanGround.Selection);
     }
 
     [Fact]

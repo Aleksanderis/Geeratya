@@ -3,7 +3,7 @@
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │   Global      │   <space>c   Close the tab                                                  ▲│           │
-│           │ > All actions │   <space>T   Show a list of open tabs                                        │           │
+│           │   All actions │   <space>T   Show a list of open tabs                                        │           │
 │           │   Commands    │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
 │           │               │ Navigate                                                                     │           │
 │           │               │   j          Move down  (Down)                                               │           │

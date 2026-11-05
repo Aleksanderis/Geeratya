@@ -2,7 +2,7 @@
                                                                                 
 ╭─ Scrum board ───────────────────────────────────────────────────── 5 issues ─╮
 │  Key   T Summary                                         Status         Pts  │
-├─ > ▸ Sprint 1 · active ────────────────── 2 Nov - 16 Nov · 2 issues · 8 pts ─┤
+├─ ▸ Sprint 1 · active ──────────────────── 2 Nov - 16 Nov · 2 issues · 8 pts ─┤
 ├─ Sprint 2 ───────────────────────────────────── no dates · 2 issues · 3 pts ─┤
 │  GCS-2 S Reporting overhaul with a very long summary tha To Do              3│
 │  GCS-6 S Crash when the board has no columns             To Do               │

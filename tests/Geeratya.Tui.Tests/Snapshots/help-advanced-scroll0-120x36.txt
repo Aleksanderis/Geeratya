@@ -3,7 +3,7 @@
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │   Global      │ Issue                                                                        │           │
-│           │ > All actions │   <space>o   Open the issue in the browser                                   │           │
+│           │   All actions │   <space>o   Open the issue in the browser                                   │           │
 │           │   Commands    │   <space>p   Open the parent issue                                           │           │
 │           │               │   <space>ie  Edit the issue title in place (opens the detail from a list or  │           │
 │           │               │              board)                                                          │           │

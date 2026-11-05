@@ -3,7 +3,7 @@
 ╭─ Geeratya ───────────────────────────────────────────────╮
 ╭─ Settings ───────────────────────────────────────────────╮
 │ Appearance                                               │
-│ > theme                                         [auto ▾] │
+│   theme                                         [auto ▾] │
 │   transparent                                        [ ] │
 │ Hints and keys                                           │
 │   hints.statusBar                               [full ▾] │

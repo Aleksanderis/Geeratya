@@ -1,7 +1,7 @@
  1 Board GCM board   +    <space>g jump 
                                         
 ╭─To Do 5  In Progress 4 ›─────────────╮
-│>E GCM-8 Seed: Onboarding flow        │
+│ E GCM-8 Seed: Onboarding flow        │
 │ ├S GCM-11 Welcome screen             │
 │ └T GCM-13 Review onboarding copy     │
 │ s GCM-19 ↑GCM-10 Validate the email  │

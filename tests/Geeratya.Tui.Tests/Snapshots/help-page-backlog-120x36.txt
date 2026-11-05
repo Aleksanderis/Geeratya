@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ Sample ─────────────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
 │  Key T Sum╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮nee        │
-│> A-1 T Sum│ > Backlog     │   j          Move down  (Down)                                               │           │
+│  A-1 T Sum│   Backlog     │   j          Move down  (Down)                                               │           │
 │           │   Global      │   k          Move up  (Up)                                                   │           │
 │           │   All actions │   gg         Go to the top  (Home)                                           │           │
 │           │   Commands    │   G          Go to the bottom  (End)                                         │           │

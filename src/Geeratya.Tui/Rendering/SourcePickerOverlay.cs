@@ -429,7 +429,7 @@ public static class SourcePickerOverlay
     {
         var kind = KindText(choice.Kind);
         var detail = choice.Detail.Length == 0 ? string.Empty : $" {choice.Detail}";
-        var marker = selected ? ">" : " ";
+        var marker = " ";
         var text = $"{marker} {kind.PadRight(KindColumn)}{choice.Name}{detail}";
 
         if (selected)

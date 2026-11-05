@@ -473,7 +473,7 @@ public class IssueDetailRendererTests
     {
         var frame = FrameBuilder.BuildStyled(PriorityDropdown(120, 36), 120, 36, _keymap)!;
 
-        Assert.Contains(frame.Body, line => line.PlainText.Contains("> Highest"));
+        Assert.Contains(frame.Body, line => line.PlainText.Contains("Highest"));
         var heading = frame.Body.First(line => line.PlainText.Contains("Heading one"));
 
         Assert.DoesNotContain(

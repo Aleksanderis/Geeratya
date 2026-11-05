@@ -136,7 +136,7 @@ public class SettingsScreenTests
         var state = OnHints(Sample());
         var text = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap));
 
-        Assert.Contains("> hints.statusBar", text, StringComparison.Ordinal);
+        Assert.Contains("hints.statusBar", text, StringComparison.Ordinal);
         Assert.Contains("Esc close", text, StringComparison.Ordinal);
         Assert.Contains("Default:", text, StringComparison.Ordinal);
     }

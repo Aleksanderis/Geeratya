@@ -1,7 +1,7 @@
 [Profiles]                                                                      
                                                                                 
 +- Profiles 2 -----------------+- Details -------------------------------------+
-| >* work          me@work.test| Name     work                                 |
+|  * work          me@work.test| Name     work                                 |
 |    dev           me@dev.test | Site     https://work.atlassian.net           |
 |                              | Account  me@work.test                         |
 |                              | Token    looking up...                        |

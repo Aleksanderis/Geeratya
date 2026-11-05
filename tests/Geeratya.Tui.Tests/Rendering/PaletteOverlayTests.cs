@@ -124,7 +124,7 @@ public class PaletteOverlayTests
         var state = Sample(string.Empty) with { PaletteSelected = count - 1 };
 
         var frame = FrameBuilder.BuildStyled(state, 80, 12, _keymap)!;
-        var marked = frame.PlainLines().Where(line => line.Contains("│ > ", StringComparison.Ordinal)).ToList();
+        var marked = frame.Body.Where(line => line.Spans.Any(span => span.Role == TextRole.Selected)).ToList();
 
         Assert.Single(marked);
         Assert.Equal(count - 1, RegionProbe.Rows(frame, MouseTarget.PaletteRow).Max(row => row.Index));
@@ -134,7 +134,7 @@ public class PaletteOverlayTests
     public void GivenARowWithKeys_WhenBuildingTheFrame_ThenTheKeysShowAtTheEnd()
     {
         var lines = FrameBuilder.Build(Sample("Close the tab"), 100, 24, _keymap);
-        var row = lines.Single(line => line.Contains("│ > Close the tab", StringComparison.Ordinal));
+        var row = lines.Single(line => line.Contains("│   Close the tab", StringComparison.Ordinal));
 
         Assert.Contains("<space>c", row, StringComparison.Ordinal);
     }
@@ -189,7 +189,7 @@ public class PaletteOverlayTests
         var spans = frame.Body.SelectMany(line => line.Spans).ToList();
 
         Assert.Contains(spans, span => span.Role == TextRole.Heading && span.Text.Trim() == "Issue");
-        Assert.Contains(spans, span => span.Role == TextRole.Selected && span.Text.Contains("> Jump", StringComparison.Ordinal));
+        Assert.Contains(spans, span => span.Role == TextRole.Selected && span.Text.Contains("  Jump", StringComparison.Ordinal));
         Assert.Contains(spans, span => span.Role == TextRole.OverlayCount && span.Text.Contains('/', StringComparison.Ordinal));
     }
 

@@ -93,7 +93,7 @@ public class FormSuggestionOverlayTests
 
         Assert.Equal(height, lines.Count);
         Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
-        Assert.Contains(lines, line => line.Contains("Jo Smith", StringComparison.Ordinal) && line.Contains('>'));
+        Assert.Contains(lines, line => line.Contains("Jo Smith", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class FormSuggestionOverlayTests
     {
         var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("> 日本チーム", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("日本チーム", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("日本 (new)", StringComparison.Ordinal));
         Assert.All(lines, line => Assert.Equal(80, DisplayWidth.Of(line)));
     }
