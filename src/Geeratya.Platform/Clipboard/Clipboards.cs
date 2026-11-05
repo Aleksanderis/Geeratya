@@ -23,7 +23,9 @@ public static class Clipboards
         ]);
     }
 
-    /// <summary>The clipboard of the running system, with the terminal of this process as the OSC 52 fallback.</summary>
+    /// <summary>
+    /// The clipboard of the running system, with the terminal of this process as the OSC 52 fallback.
+    /// </summary>
     public static IClipboard ForProcess()
     {
         return Create(

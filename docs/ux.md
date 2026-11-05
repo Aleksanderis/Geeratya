@@ -127,7 +127,8 @@ Gitunia's interaction design (`docs/internal/ux.md`, `ux-keymap.md`, `ux-setting
 |---|---|---|
 | Repeat mode (bare step keys after one step) | none; rank steps take counts (`3 Alt-k`) | the only steppers are rank keys; there is nothing to resize or nudge |
 | Pane focus keys (`Ctrl-h/j/k/l`, `Ctrl-w`), pane resize, zoom, drag to resize | `h`/`l` between columns, `] ]` and `[ [` between sections; no resize | panes are content-driven (columns, sections), not a fixed pane set |
-| In-view find (`/`, `n`, `N`) and clipboard copy (`y`, OSC 52) | not included (decision #467) | README Features does not list them; JQL and saved views narrow a list, `<space>g` jumps to a known key |
+| In-view find (`/`, `n`, `N`) | not included (decision #467) | README Features does not list it; JQL and saved views narrow a list, `<space>g` jumps to a known key |
+| Clipboard copy (`y`) | built (#773) | `v` selects lines, `y` copies through the system clipboard program or OSC 52, see `ux-keymap.md`, "Copying text" |
 | Character selection (`Alt-v`) | none | Visual selects issues in a list and whole lines in an opened issue (#773); there is no character or block selection |
 | Per-view key rows and a `view` field in the user file | the same keys in every view; an applies-to tag on the action drives contextual help | one key set to learn |
 | Three command levels | two (`everyday`, `advanced`) | two are enough until the keymap grows |

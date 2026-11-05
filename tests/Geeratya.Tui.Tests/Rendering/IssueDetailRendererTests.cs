@@ -93,7 +93,9 @@ public class IssueDetailRendererTests
         Assert.DoesNotContain(before.Body, line => line.Spans.Any(span => span.Role == TextRole.Range));
         var ranged = frame.Body.Where(line => line.Spans.Any(span => span.Role == TextRole.Range)).ToList();
         Assert.NotEmpty(ranged);
-        Assert.All(ranged, line => Assert.DoesNotContain(line.Spans, span => span.Role == TextRole.Range && span.Text.Contains('│')));
+        Assert.All(
+            ranged,
+            line => Assert.DoesNotContain(line.Spans, span => span.Role == TextRole.Range && span.Text.Contains('│')));
     }
 
     [Fact]

@@ -37,13 +37,20 @@ public class DetailMouseTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
-    public void GivenAnOpenedIssue_WhenListingTheDetailRowsOfTheMouseMap_ThenOnlyTheWheelDoubleClickRightClickAndDragRemain()
+    public void GivenAnOpenedIssue_WhenListingTheDetailMouseRows_ThenOnlyWheelDoubleClickRightClickAndDragRemain()
     {
         var gestures = DefaultMouseMap.Rows.Where(row => row.Target == MouseTarget.Detail)
             .Select(row => row.Gesture).Order().ToList();
 
         Assert.Equal(
-            new[] { MouseGesture.DoubleClick, MouseGesture.RightClick, MouseGesture.WheelUp, MouseGesture.WheelDown, MouseGesture.DragRows }
+            new[]
+                {
+                    MouseGesture.DoubleClick,
+                    MouseGesture.RightClick,
+                    MouseGesture.WheelUp,
+                    MouseGesture.WheelDown,
+                    MouseGesture.DragRows,
+                }
                 .Order(),
             gestures);
     }
@@ -335,7 +342,9 @@ public class DetailMouseTests
     public void GivenTheDescriptionLines_WhenDraggingOverThem_ThenTheTextBetweenIsSelectedAndCopied()
     {
         var state = Opened();
-        var first = FirstLine(state, target => target is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.Description });
+        var first = FirstLine(
+            state,
+            target => target is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.Description });
 
         var result = Drag(state, RowOf(state, first), RowOf(state, first + 2));
 
@@ -357,7 +366,9 @@ public class DetailMouseTests
             _box.Left + SideColumn(),
             Header + _box.Top + 5,
             _now);
-        var result = commands.Aggregate(new ReduceResult(state, []), (acc, command) => _reducer.Reduce(acc.State, command));
+        var result = commands.Aggregate(
+            new ReduceResult(state, []),
+            (reduced, command) => _reducer.Reduce(reduced.State, command));
 
         Assert.Empty(result.Effects);
     }

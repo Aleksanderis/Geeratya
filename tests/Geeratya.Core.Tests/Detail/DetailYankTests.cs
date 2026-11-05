@@ -226,10 +226,13 @@ public class DetailYankTests
         var listed = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
         var shown = Press(listed, "Enter").State;
         var detail = Active(shown).Detail[0];
-        var loaded = _reducer.Reduce(shown, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description), _now)).State;
+        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description), _now);
+        var loaded = _reducer.Reduce(shown, issue).State;
         var commentPage = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Count, true);
 
-        return _reducer.Reduce(loaded, new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now)).State;
+        var delivered = new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now);
+
+        return _reducer.Reduce(loaded, delivered).State;
     }
 
     private static IssueDetail Issue(string? description)

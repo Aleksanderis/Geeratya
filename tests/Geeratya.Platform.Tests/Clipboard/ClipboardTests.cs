@@ -15,7 +15,8 @@ public class ClipboardTests
     public async Task GivenWayland_WhenCopying_ThenWlCopyGetsTheTextOnStandardInput()
     {
         var runner = new RecordingRunner();
-        var clipboard = new ProcessClipboard(OperatingSystemKind.Linux, Environment("WAYLAND_DISPLAY", "wayland-0"), runner);
+        var environment = Environment("WAYLAND_DISPLAY", "wayland-0");
+        var clipboard = new ProcessClipboard(OperatingSystemKind.Linux, environment, runner);
 
         var result = await clipboard.CopyAsync("héllo\nworld", CancellationToken.None);
 
@@ -111,7 +112,9 @@ public class ClipboardTests
         var runner = new RecordingRunner();
         var clipboard = new ProcessClipboard(OperatingSystemKind.Windows, new EnvironmentReader(_ => null), runner);
 
-        var result = await clipboard.CopyAsync(new string('x', ProcessClipboard.WindowsMaxCharacters + 1), CancellationToken.None);
+        var tooLong = new string('x', ProcessClipboard.WindowsMaxCharacters + 1);
+
+        var result = await clipboard.CopyAsync(tooLong, CancellationToken.None);
 
         Assert.False(result.Copied);
         Assert.Empty(runner.Programs);
@@ -126,7 +129,8 @@ public class ClipboardTests
         var result = await clipboard.CopyAsync("héllo", CancellationToken.None);
 
         Assert.True(result.Copied);
-        Assert.Equal($"{_escape}]52;c;{Convert.ToBase64String(Encoding.UTF8.GetBytes("héllo"))}\a", terminal.ToString());
+        var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes("héllo"));
+        Assert.Equal($"{_escape}]52;c;{encoded}\a", terminal.ToString());
     }
 
     [Fact]
@@ -147,7 +151,8 @@ public class ClipboardTests
     {
         using var terminal = new StringWriter();
         var runner = new RecordingRunner("wl-copy");
-        var clipboard = Clipboards.Create(OperatingSystemKind.Linux, Environment("WAYLAND_DISPLAY", "w"), runner, terminal);
+        var environment = Environment("WAYLAND_DISPLAY", "w");
+        var clipboard = Clipboards.Create(OperatingSystemKind.Linux, environment, runner, terminal);
 
         var result = await clipboard.CopyAsync("text", CancellationToken.None);
 

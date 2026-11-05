@@ -12,12 +12,15 @@ namespace Geeratya.Platform.Clipboard;
 /// </summary>
 public sealed class ProcessClipboard : IClipboard
 {
-    /// <summary>Most characters the Windows command line takes (the limit is 32 767; base64 grows the text by a third).</summary>
+    /// <summary>
+    /// Most characters the Windows command line takes (the limit is 32 767; base64 grows the text by a third).
+    /// </summary>
     public const int WindowsMaxCharacters = 8000;
 
     private const string WaylandVariable = "WAYLAND_DISPLAY";
     private const string DisplayVariable = "DISPLAY";
-    private const string NoToolMessage = "no clipboard tool found (install wl-clipboard, xclip or xsel)";
+    private const string NoLinuxToolMessage = "no clipboard tool found (install wl-clipboard, xclip or xsel)";
+    private const string NoToolMessage = "the system clipboard program could not be started";
     private const string TooLargeMessage = "the text is too large for the Windows clipboard command";
 
     private readonly OperatingSystemKind _operatingSystem;
@@ -64,7 +67,7 @@ public sealed class ProcessClipboard : IClipboard
         }
 
         var candidates = CandidatesFor(_operatingSystem, _environment, text);
-        var failure = NoToolMessage;
+        var failure = _operatingSystem == OperatingSystemKind.Linux ? NoLinuxToolMessage : NoToolMessage;
 
         foreach (var command in candidates)
         {
@@ -105,7 +108,8 @@ public sealed class ProcessClipboard : IClipboard
     private static ClipboardCommand WindowsCommand(string text)
     {
         var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
-        var script = $"Set-Clipboard -Value ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}')))";
+        var decoded = $"[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}'))";
+        var script = $"Set-Clipboard -Value ({decoded})";
 
         return new ClipboardCommand("powershell", ["-NoProfile", "-NonInteractive", "-Command", script]);
     }

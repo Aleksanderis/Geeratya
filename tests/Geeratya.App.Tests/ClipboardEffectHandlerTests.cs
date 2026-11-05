@@ -5,6 +5,7 @@ using Geeratya.Platform.Clipboard;
 
 namespace Geeratya.App.Tests;
 
+[Trait("Os", "Independent")]
 public class ClipboardEffectHandlerTests
 {
     [Fact]
@@ -25,7 +26,9 @@ public class ClipboardEffectHandlerTests
         var clipboard = new FakeClipboard(ClipboardResult.Failure("no clipboard tool found"));
         var handler = new ClipboardEffectHandler(clipboard);
 
-        var outcome = await handler.RunAsync(new CopyToClipboardEffect("secret text", "1 line"), CancellationToken.None);
+        var effect = new CopyToClipboardEffect("secret text", "1 line");
+
+        var outcome = await handler.RunAsync(effect, CancellationToken.None);
 
         var finished = Assert.IsType<ClipboardCopied>(outcome);
         Assert.False(finished.Copied);
@@ -35,10 +38,13 @@ public class ClipboardEffectHandlerTests
     [Fact]
     public async Task GivenAClipboardThatThrows_WhenRunning_ThenAFailureIsReportedNotAnException()
     {
-        var clipboard = new FakeClipboard(ClipboardResult.Success("x"), new InvalidOperationException("boom with secret text"));
+        var failure = new InvalidOperationException("boom with secret text");
+        var clipboard = new FakeClipboard(ClipboardResult.Success("x"), failure);
         var handler = new ClipboardEffectHandler(clipboard);
 
-        var outcome = await handler.RunAsync(new CopyToClipboardEffect("secret text", "1 line"), CancellationToken.None);
+        var effect = new CopyToClipboardEffect("secret text", "1 line");
+
+        var outcome = await handler.RunAsync(effect, CancellationToken.None);
 
         var finished = Assert.IsType<ClipboardCopied>(outcome);
         Assert.False(finished.Copied);

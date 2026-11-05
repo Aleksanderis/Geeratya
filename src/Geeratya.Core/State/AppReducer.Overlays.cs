@@ -1,6 +1,6 @@
 using Geeratya.Core.Boards;
-using Geeratya.Core.Detail;
 using Geeratya.Core.CommandPalette;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;

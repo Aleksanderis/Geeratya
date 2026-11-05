@@ -18,11 +18,14 @@ public static class DetailText
     /// <summary>The text of a line without the frame and the padding after it.</summary>
     public static string Of(StyledLine line)
     {
-        return string.Concat(line.Spans.Where(static span => span.Role != TextRole.Border).Select(static span => span.Text))
-            .TrimEnd();
+        var spans = line.Spans.Where(static span => span.Role != TextRole.Border);
+
+        return string.Concat(spans.Select(static span => span.Text)).TrimEnd();
     }
 
-    /// <summary>The pane row of <paramref name="line"/> in the main column of the shown document, null on a frame edge.</summary>
+    /// <summary>
+    /// The pane row of <paramref name="line"/> in the main column of the shown document, null on a frame edge.
+    /// </summary>
     public static YankAnchor? AnchorAt(DetailState detail, int line)
     {
         if (detail.Document is not { } document || line < 0 || line >= document.Lines.Count)
@@ -157,7 +160,12 @@ public static class DetailText
     }
 
     // The cursor's row in the pane of the anchor; a cursor in another pane is held at that pane's edge.
-    private static int CursorRow(DetailState detail, DetailDocument shown, YankAnchor anchor, DetailDocument full, int section)
+    private static int CursorRow(
+        DetailState detail,
+        DetailDocument shown,
+        YankAnchor anchor,
+        DetailDocument full,
+        int section)
     {
         var cursorSection = shown.SectionAt(detail.Cursor);
 

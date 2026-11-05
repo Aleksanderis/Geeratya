@@ -56,7 +56,14 @@ public sealed class EffectRunnerTests : IDisposable
 
         _connections = new SiteConnections(_profiles.Tokens, boardKinds: _profiles.BoardKinds);
         _network = new NetworkRunner(_connections, sink, CancellationToken.None);
-        _runner = new EffectRunner(_profiles, _connections, _network, sink, CancellationToken.None, _launcher, _clipboard);
+        _runner = new EffectRunner(
+            _profiles,
+            _connections,
+            _network,
+            sink,
+            CancellationToken.None,
+            _launcher,
+            _clipboard);
     }
 
     [Fact]

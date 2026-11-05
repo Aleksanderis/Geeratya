@@ -106,8 +106,8 @@ public sealed record DetailState(
     public string? Zoomed { get; init; }
 
     /// <summary>
-    /// Where the line selection of the main column started (<c>v</c>, <see cref="YankAnchor"/>), null without one. A new
-    /// layout of the document (data arrived, a text expanded or cut, a resize) ends it, because its rows moved.
+    /// Where the line selection of the main column started (<c>v</c>, <see cref="YankAnchor"/>), null without one.
+    /// A new layout of the document (data arrived, a text expanded or cut, a resize) ends it, because its rows moved.
     /// </summary>
     public YankAnchor? YankAnchor { get; init; }
 

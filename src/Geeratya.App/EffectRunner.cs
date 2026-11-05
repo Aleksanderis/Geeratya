@@ -49,7 +49,9 @@ public sealed class EffectRunner : IDisposable
     /// <param name="sink">Thread-safe hand-over of a reply to the reducer.</param>
     /// <param name="shutdown">Cancels local work when the application ends.</param>
     /// <param name="browser">The launcher for <see cref="OpenUrlEffect"/>; the platform's own by default.</param>
-    /// <param name="clipboard">The clipboard for <see cref="CopyToClipboardEffect"/>; the platform's own by default.</param>
+    /// <param name="clipboard">
+    /// The clipboard for <see cref="CopyToClipboardEffect"/>; the platform's own by default.
+    /// </param>
     public EffectRunner(
         ProfileServices profiles,
         SiteConnections connections,

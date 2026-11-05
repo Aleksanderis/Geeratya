@@ -80,17 +80,22 @@ internal static class DetailYank
         }
 
         var text = detail.YankAnchor is { } anchor ? DetailText.Selected(detail, anchor) : DetailText.Field(detail);
-        var ended = detail.YankAnchor is null ? state : Replaced(state, opened.Tab, detail with { YankAnchor = null }).State;
+        var cleared = detail with { YankAnchor = null };
+        var ended = detail.YankAnchor is null ? state : Replaced(state, opened.Tab, cleared).State;
 
         if (text.Length == 0)
         {
             return Say(ended, NothingText);
         }
 
-        return new ReduceResult(ended, [new CopyToClipboardEffect(text, Describe(text, detail.YankAnchor is not null))]);
+        var description = Describe(text, detail.YankAnchor is not null);
+
+        return new ReduceResult(ended, [new CopyToClipboardEffect(text, description)]);
     }
 
-    /// <summary>Esc: drops the selection. Null when there is none, so the key goes on to do what it does otherwise.</summary>
+    /// <summary>
+    /// Esc: drops the selection. Null when there is none, so the key goes on to do what it does otherwise.
+    /// </summary>
     public static AppState? Back(AppState state)
     {
         if (state.Mode != Keymap.InputMode.Normal || TopOf(state) is not { Detail.YankAnchor: not null } opened)

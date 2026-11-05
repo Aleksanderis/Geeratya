@@ -68,7 +68,11 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         {
             var index = first + row;
             var line = index < document.Lines.Count
-                ? InRange(RowLine(Pane(document, index, focused), index, cursor, block, document, ascii), index, range, cursor)
+                ? InRange(
+                    RowLine(Pane(document, index, focused), index, cursor, block, document, ascii),
+                    index,
+                    range,
+                    cursor)
                 : StyledLine.Empty;
 
             if (side is not null)

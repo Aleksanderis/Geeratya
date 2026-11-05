@@ -39,7 +39,9 @@ public sealed class ClipboardEffectHandler : ILocalEffectHandler
         }
         catch (Exception exception)
         {
-            return new ClipboardCopied(copy.Description, false, $"the clipboard could not be used ({exception.GetType().Name})");
+            var reason = $"the clipboard could not be used ({exception.GetType().Name})";
+
+            return new ClipboardCopied(copy.Description, false, reason);
         }
     }
 }
