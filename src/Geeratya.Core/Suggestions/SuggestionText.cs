@@ -11,7 +11,7 @@ public static class SuggestionText
     public static string Of(Suggestion suggestion)
     {
         var name = suggestion.Detail is { Length: > 0 } detail && detail != SuggestionRanker.NewValueDetail
-            && detail != AssigneeQuickRows.MeDetail
+            && detail != AssigneeQuickRows.MeDetail && detail != LabelQuickRows.AppliedDetail
             ? $"{detail}  {suggestion.Label}"
             : suggestion.Label;
 
@@ -25,6 +25,7 @@ public static class SuggestionText
         {
             SuggestionRanker.NewValueDetail => $"{suggestion.Label}{NewValue}",
             AssigneeQuickRows.MeDetail => suggestion.Label.Length == 0 ? "Me" : $"Me ({suggestion.Label})",
+            LabelQuickRows.AppliedDetail => $"{suggestion.Label} (remove)",
             _ => Of(suggestion),
         };
     }
