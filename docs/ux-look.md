@@ -168,7 +168,7 @@ Both bars use the **bar background** (`barBackground` role), one step lighter th
 | Initials chip | `InitialsChip`: chip text on the muted colour, bold | black on dark gray | plain | same |
 | `--` chip (unassigned) | `UnassignedChip`: muted text on the page, no fill (the outline is the renderer's brackets) | muted | plain | same |
 | Filled value block | `ValueBlock`: text on the page moved halfway towards the selection tint (quieter than the selection) | no fill (page ground) | plain | same |
-| Edit field (Summary or Description edited in place, #774) | `EditField`: text on the selection tint, filled to the pane width; `EditCaret`: page colour on the warn colour, bold | white on blue; caret black on the warn colour | field reversed (underline too); caret in normal video, bold | the caret keeps `_` / `\|` |
+| Edit field (Summary or Description edited in place, #774) | `EditField`: text on the selection tint, filled to the pane width; `EditCaret`: page colour on the warn colour, bold | white on blue; caret black on the warn colour | field reversed (underline too); caret in normal video, bold | the caret is a reversed cell over the character |
 | Selection accent bar | `SelectionBar`: bold accent on the page, the left-half-block glyph beside the selection tint | bright cyan / blue | bold | bold |
 | Priority, status dot, dropdown glyphs | `Glyphs.PriorityHigh/Medium/Low`: `▲ = ▼`, `StatusDot` `●`, `Dropdown` `▾` | same | same | `^ = v`, `*`, `v` |
 | Confirm frame | `bad` for destructive, `warn` for other | red / yellow | bold | as above |

@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Geeratya.Core.Text;
 
 /// <summary>
@@ -63,19 +65,36 @@ public static class CaretRows
         return Field(new PromptText(row, row.Length - column), width);
     }
 
-    // The window as spans: the mark keeps its character (so the caret shows in plain text too) inside a filled block.
+    // The window as spans: the caret is a styled cell over the character it sits on (a space after the last one),
+    // so moving it never shifts the text.
     private static StyledLine FieldOf(PromptWindow window, int width)
     {
-        var mark = window.Caret;
-        var used = DisplayWidth.Of(window.Before) + DisplayWidth.Of(mark) + DisplayWidth.Of(window.After);
-        var spans = new List<StyledSpan> { new(window.Before, TextRole.EditField) };
+        var before = window.Before;
+        var after = window.After;
+        var cell = " ";
 
-        if (mark.Length > 0)
+        if (window.Caret.Length > 0 && after.Length > 0)
         {
-            spans.Add(new StyledSpan(mark, TextRole.EditCaret));
+            cell = StringInfo.GetNextTextElement(after);
+            after = after[cell.Length..];
         }
 
-        spans.Add(new StyledSpan(window.After, TextRole.EditField));
+        var used = DisplayWidth.Of(before) + DisplayWidth.Of(cell) + DisplayWidth.Of(after);
+
+        if (used > width && after.Length > 0)
+        {
+            after = DisplayText.Cut(after, Math.Max(0, DisplayWidth.Of(after) - (used - width)));
+            used = DisplayWidth.Of(before) + DisplayWidth.Of(cell) + DisplayWidth.Of(after);
+        }
+
+        var spans = new List<StyledSpan> { new(before, TextRole.EditField) };
+
+        if (window.Caret.Length > 0)
+        {
+            spans.Add(new StyledSpan(cell, TextRole.EditCaret));
+        }
+
+        spans.Add(new StyledSpan(after, TextRole.EditField));
 
         if (used < width)
         {

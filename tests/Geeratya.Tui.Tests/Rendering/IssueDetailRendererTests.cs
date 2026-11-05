@@ -503,11 +503,17 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheDiscardQuestion_WhenBuildingTheFrame_ThenTheHintShowsItsKeysAndMatchesTheSnapshot()
+    {
+        AssertSnapshot(Keys(Keys(EditingSummary(120, 36), "x"), "Esc"), 120, 36, "detail-edit-discard-120x36.txt");
+    }
+
+    [Fact]
     public void GivenTheSummaryIsEditedInPlace_WhenBuilding_ThenNoFormBoxCoversTheDetailAndTheHintsOfThePaneShow()
     {
         var frame = FrameBuilder.BuildStyled(EditingSummary(120, 36), 120, 36, _keymap)!;
 
-        Assert.Contains(frame.Body, line => line.PlainText.Contains("Fix login redirect_"));
+        Assert.Contains(frame.Body, line => line.PlainText.Contains("Fix login redirect"));
         Assert.DoesNotContain(frame.Body, line => line.PlainText.Contains("Edit GCM-12"));
         Assert.Contains("Ctrl-s", frame.StatusLine);
         Assert.Contains("INSERT", frame.StatusLine);

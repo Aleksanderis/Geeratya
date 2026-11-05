@@ -19,6 +19,10 @@ public sealed record PaneEdit(string Pane, FormState Form)
     private const string SaveText = " save";
     private const string CancelKey = "Esc";
     private const string CancelText = " cancel";
+    private const string DiscardYesKey = "y";
+    private const string DiscardYesText = " discard";
+    private const string DiscardNoKey = "n/Esc";
+    private const string DiscardNoText = " keep editing";
     private const string Gap = "   ";
     private const string EditingText = "editing";
     private const string SavingText = "Saving…";
@@ -94,11 +98,28 @@ public sealed record PaneEdit(string Pane, FormState Form)
     // The rows under the input: the key hint, then the notices.
     private List<StyledLine> Footer(int inner)
     {
-        var rows = new List<StyledLine> { Hint(inner) };
+        var rows = new List<StyledLine> { Form.DiscardPending ? DiscardHint(inner) : Hint(inner) };
 
         rows.AddRange(Notices(inner));
 
         return rows;
+    }
+
+    // While the discard question is shown the hint lists the keys of the question, not the editor's.
+    private static StyledLine DiscardHint(int inner)
+    {
+        if (DisplayWidth.Of(DiscardYesKey + DiscardYesText + Gap + DiscardNoKey + DiscardNoText) > inner)
+        {
+            return StyledLine.Of(DisplayText.Cut(DiscardYesKey + DiscardYesText, inner), TextRole.Muted);
+        }
+
+        return new StyledLine(
+        [
+            new StyledSpan(DiscardYesKey, TextRole.Key),
+            new StyledSpan(DiscardYesText + Gap, TextRole.Muted),
+            new StyledSpan(DiscardNoKey, TextRole.Key),
+            new StyledSpan(DiscardNoText, TextRole.Muted),
+        ]);
     }
 
     private static StyledLine Hint(int inner)
