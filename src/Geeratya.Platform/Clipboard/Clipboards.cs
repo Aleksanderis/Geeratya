@@ -24,7 +24,8 @@ public static class Clipboards
     }
 
     /// <summary>
-    /// The clipboard of the running system, with the terminal of this process as the OSC 52 fallback.
+    /// The clipboard of the running system, without the OSC 52 fallback: only the Tui may write to the terminal, so
+    /// it builds its own chain with a terminal writer (<see cref="Create"/>).
     /// </summary>
     public static IClipboard ForProcess()
     {
@@ -32,6 +33,6 @@ public static class Clipboards
             ApplicationDirectories.DetectOperatingSystem(),
             EnvironmentReader.ForProcess(),
             new ProcessRunner(),
-            Console.IsOutputRedirected ? null : Console.Out);
+            null);
     }
 }

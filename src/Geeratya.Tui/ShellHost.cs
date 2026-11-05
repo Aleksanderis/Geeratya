@@ -3,6 +3,10 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Platform;
+using Geeratya.Platform.Clipboard;
+using Geeratya.Platform.Directories;
+using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Rendering.Themes;
@@ -11,6 +15,7 @@ using Terminal.Gui.App;
 using Terminal.Gui.Input;
 
 using AppCommand = Geeratya.Core.State.Command;
+using IClipboard = Geeratya.Platform.Clipboard.IClipboard;
 
 namespace Geeratya.Tui;
 
@@ -44,6 +49,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly EffectRunner _effects;
     private readonly TerminalBackgroundDetector? _background;
     private bool? _lightBackground;
+    private readonly ApplicationUiThread _uiThread = new();
     private IApplication? _application;
     private ShellScreen? _screen;
     private AppState _state = AppState.Initial;
@@ -73,7 +79,13 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _reducer = new AppReducer(keymap);
         _shutdownToken = _shutdown.Token;
         _network = new NetworkRunner(_connections, this, _shutdownToken);
-        _effects = new EffectRunner(profiles, _connections, _network, this, _shutdownToken);
+        _effects = new EffectRunner(
+            profiles,
+            _connections,
+            _network,
+            this,
+            _shutdownToken,
+            clipboard: CreateClipboard());
         profiles.Caches.WriteFailed += OnCacheProblem;
         profiles.Caches.ReadProblem += OnCacheProblem;
 
@@ -111,6 +123,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
 
         _state = StatusMessages.KeymapStartup(_state, _keymapLoad);
         _application = application;
+        _uiThread.Attach(application);
         DetectBackground();
         application.Init();
         application.Keyboard.KeyBindings.Clear();
@@ -142,7 +155,16 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         Dispatch(new ConnectionCheckRequested());
         Dispatch(new StartupRequested());
         _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
-        application.Run(screen);
+
+        try
+        {
+            application.Run(screen);
+        }
+        finally
+        {
+            _uiThread.Detach();
+        }
+
         _shutdown.Cancel();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();
@@ -315,5 +337,17 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         {
             _ = _effects.StartConnectionCheckAsync(check);
         }
+    }
+
+    private IClipboard CreateClipboard()
+    {
+        // The OSC 52 fallback writes to the terminal, so it goes through the UI thread, the one that draws frames.
+        TextWriter? terminal = Console.IsOutputRedirected ? null : new TerminalWriter(Console.Out, _uiThread);
+
+        return Clipboards.Create(
+            ApplicationDirectories.DetectOperatingSystem(),
+            EnvironmentReader.ForProcess(),
+            new ProcessRunner(),
+            terminal);
     }
 }
