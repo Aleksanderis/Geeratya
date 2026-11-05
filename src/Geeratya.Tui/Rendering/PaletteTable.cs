@@ -152,12 +152,12 @@ public static class PaletteTable
         [PaletteRole.EditField] = new(
             ThemeColor.BaseForeground,
             ThemeColor.Selection,
-            RoleStyle.Underline,
+            RoleStyle.Reverse | RoleStyle.Underline,
             RoleGround.OnBlue),
         [PaletteRole.EditCaret] = new(
             ThemeColor.BaseBackground,
-            ThemeColor.Accent,
-            RoleStyle.Reverse | RoleStyle.Bold,
+            ThemeColor.Warn,
+            RoleStyle.Bold,
             RoleGround.Chip),
         [PaletteRole.Range] = new(
             ThemeColor.BaseForeground,
