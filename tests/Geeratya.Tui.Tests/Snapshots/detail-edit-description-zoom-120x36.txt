@@ -6,9 +6,8 @@
 │                                                                                                                      │
 │ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │  Description   Comments 3   Details                                                                              │ │
-│ │ ╭─ Description · zoomed ───────────────────────────────────────────────────────────────────────── 38-60 of 60 ─╮ │ │
-│ │ │ Line 38 of the description                                                                                  ▲│ │ │
-│ │ │ Line 39 of the description                                                                                  ░│ │ │
+│ │ ╭─ Description · zoomed ───────────────────────────────────────────────────────────────────────── 39-60 of 60 ─╮ │ │
+│ │ │ Line 39 of the description                                                                                  ▲│ │ │
 │ │ │ Line 40 of the description                                                                                  ░│ │ │
 │ │ │ Line 41 of the description                                                                                  ░│ │ │
 │ │ │ Line 42 of the description                                                                                  ░│ │ │
@@ -21,15 +20,16 @@
 │ │ │ Line 49 of the description                                                                                  ░│ │ │
 │ │ │ Line 50 of the description                                                                                  ░│ │ │
 │ │ │ Line 51 of the description                                                                                  ░│ │ │
-│ │ │ Line 52 of the description                                                                                  █│ │ │
-│ │ │ Line 53 of the description                                                                                  █│ │ │
+│ │ │ Line 52 of the description                                                                                  ░│ │ │
+│ │ │ Line 53 of the description                                                                                  ░│ │ │
 │ │ │ Line 54 of the description                                                                                  █│ │ │
 │ │ │ Line 55 of the description                                                                                  █│ │ │
 │ │ │ Line 56 of the description                                                                                  █│ │ │
 │ │ │ Line 57 of the description                                                                                  █│ │ │
 │ │ │ Line 58 of the description                                                                                  █│ │ │
 │ │ │ Line 59 of the description                                                                                  █│ │ │
-│ │ │ Line 60 of the description_                                                                                 ▼│ │ │
+│ │ │ Line 60 of the description_                                                                                 █│ │ │
+│ │ │ Ctrl-s save   Esc cancel                                                                                    ▼│ │ │
 │ │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │ │
 │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

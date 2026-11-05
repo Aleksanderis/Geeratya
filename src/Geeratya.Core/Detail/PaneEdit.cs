@@ -15,6 +15,11 @@ public sealed record PaneEdit(string Pane, FormState Form)
     /// <summary>Body rows of the Description editor when the pane is not zoomed.</summary>
     public const int EditorRows = 8;
 
+    private const string SaveKey = "Ctrl-s";
+    private const string SaveText = " save";
+    private const string CancelKey = "Esc";
+    private const string CancelText = " cancel";
+    private const string Gap = "   ";
     private const string EditingText = "editing";
     private const string SavingText = "Saving…";
     private const string DiscardText = "Discard the changes? (y/n)";
@@ -51,10 +56,9 @@ public sealed record PaneEdit(string Pane, FormState Form)
     public List<StyledLine> TitleRows(int inner)
     {
         var field = Field;
-        var text = CaretRows.Caretted(new PromptText(field.Value.Text, field.Back), Math.Max(1, inner));
-        var rows = new List<StyledLine> { StyledLine.Of(text, TextRole.Editable) };
+        var rows = new List<StyledLine> { CaretRows.Field(new PromptText(field.Value.Text, field.Back), Math.Max(1, inner)) };
 
-        rows.AddRange(Notices(inner));
+        rows.AddRange(Footer(inner));
 
         return rows;
     }
@@ -70,7 +74,7 @@ public sealed record PaneEdit(string Pane, FormState Form)
         var prompt = new PromptText(field.Value.Text, field.Back);
         var lines = field.Value.Text.Split('\n');
         var caretRow = prompt.Text[..prompt.Caret].Count(static character => character == '\n');
-        var notices = Notices(inner);
+        var notices = Footer(inner);
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);
         var first = Math.Clamp(caretRow - (shown / 2), 0, lines.Length - shown);
@@ -78,15 +82,39 @@ public sealed record PaneEdit(string Pane, FormState Form)
 
         for (var index = first; index < first + shown; index++)
         {
-            var text = CaretRows.ParagraphRow(prompt, lines[index], index, caretRow, Math.Max(1, inner));
-
-            rows.Add(StyledLine.Of(text, TextRole.Editable));
+            rows.Add(CaretRows.FieldRow(prompt, lines[index], index, caretRow, Math.Max(1, inner)));
         }
 
         rows.AddRange(notices);
         scroll = lines.Length > shown ? new PaneScroll(first, lines.Length, shown) : null;
 
         return rows;
+    }
+
+    // The rows under the input: the key hint, then the notices.
+    private List<StyledLine> Footer(int inner)
+    {
+        var rows = new List<StyledLine> { Hint(inner) };
+
+        rows.AddRange(Notices(inner));
+
+        return rows;
+    }
+
+    private static StyledLine Hint(int inner)
+    {
+        if (DisplayWidth.Of(SaveKey + SaveText + Gap + CancelKey + CancelText) > inner)
+        {
+            return StyledLine.Of(DisplayText.Cut(SaveKey + SaveText, inner), TextRole.Muted);
+        }
+
+        return new StyledLine(
+        [
+            new StyledSpan(SaveKey, TextRole.Key),
+            new StyledSpan(SaveText + Gap, TextRole.Muted),
+            new StyledSpan(CancelKey, TextRole.Key),
+            new StyledSpan(CancelText, TextRole.Muted),
+        ]);
     }
 
     private List<StyledLine> Notices(int inner)
