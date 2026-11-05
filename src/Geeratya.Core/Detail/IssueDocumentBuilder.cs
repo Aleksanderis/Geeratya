@@ -253,32 +253,50 @@ public static class IssueDocumentBuilder
         var textRows = LongText.DescriptionRows - 1;
         var scroll = new PaneScroll(detail.DescriptionOffset, content.Count, textRows);
 
-        LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true, First: scroll.ClampedOffset));
+        LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true, First: scroll.ClampedOffset, KeyInFrame: true));
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
         var browser = BrowserNote(detail);
 
+        var toggleHint = ToggleHint(expanded ? "collapse" : "expand");
+
         if (!cut)
         {
-            sink.AddPanel(PaneIds.Description, [title], panel, width, browser);
+            var spans = target is not null && content.Count > LongText.DescriptionRows && detail.Zoomed is null
+                ? toggleHint
+                : null;
+
+            sink.AddPanel(PaneIds.Description, [title], panel, width, Joined(spans, browser));
 
             return;
         }
 
         var chip = new StyledSpan(scroll.Chip(), TextRole.Muted);
 
-        sink.AddPanel(PaneIds.Description, [title], panel, width, ScrollAndBrowser(chip, browser), scroll);
+        sink.AddPanel(
+            PaneIds.Description,
+            [title],
+            panel,
+            width,
+            Joined([chip, new StyledSpan(ChipSeparator, TextRole.Muted), .. toggleHint], browser),
+            scroll);
     }
 
-    private static StyledSpan[] ScrollAndBrowser(StyledSpan chip, StyledSpan[]? browser)
+    // The key that expands or cuts the long Description, shown in the frame instead of a row of the text.
+    private static StyledSpan[] ToggleHint(string action)
     {
-        if (browser is null)
+        return [new StyledSpan("Enter", TextRole.Key), new StyledSpan($" {action}", TextRole.Muted)];
+    }
+
+    private static StyledSpan[]? Joined(StyledSpan[]? first, StyledSpan[]? browser)
+    {
+        if (first is null || browser is null)
         {
-            return [chip];
+            return first ?? browser;
         }
 
-        return [chip, new StyledSpan(ChipSeparator, TextRole.Muted), .. browser];
+        return [.. first, new StyledSpan(ChipSeparator, TextRole.Muted), .. browser];
     }
 
     // The note of a description that cannot be edited here, null when it can.

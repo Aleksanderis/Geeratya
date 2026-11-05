@@ -4,7 +4,7 @@
 │>Fix login redirect after token   ... │
 │ refresh                  In Progress │
 ╰──────────────────────────────────────╯
-╭─ Description ─ 1-3 of 42 · (edit i… ─╮
+╭─ Description ─ 1-3 of 42 · Enter e… ─╮
 │ Heading one                         ▲│
 │                                     █│
  NORMAL       ? help  : commands  q quit

@@ -3,11 +3,11 @@
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
 │>Fix login redirect after token refresh                           In Progr... │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ──────────────────────────────── 1-3 of 40 · (edit in browser) ─╮
+╭─ Description ───────────────── 1-3 of 40 · Enter expand · (edit in browser) ─╮
 │ Heading one                                                                 ▲│
 │                                                                             █│
 │ Heading three                                                               ░│
-│ … 37 more lines   Enter expand                                              ▼│
+│ … 37 more lines                                                             ▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
 │ Jane Doe                                                             1 d ago │

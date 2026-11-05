@@ -10,4 +10,14 @@ namespace Geeratya.Core.Detail;
 /// </param>
 /// <param name="First">The first line shown while the text is cut (its inner scroll); 0 shows it from the top.</param>
 /// <param name="ZoomHint">The "more lines" note also names <c>&lt;space&gt;z zoom</c>.</param>
-internal sealed record LongTextLimit(int Lines, int Width, bool NoteRow = false, bool ZoomHint = false, int First = 0);
+/// <param name="KeyInFrame">
+/// The key hint lives in the pane's frame: every row of the text toggles on Enter, the "more lines" note names no
+/// key and there is no "Show less" row.
+/// </param>
+internal sealed record LongTextLimit(
+    int Lines,
+    int Width,
+    bool NoteRow = false,
+    bool ZoomHint = false,
+    int First = 0,
+    bool KeyInFrame = false);

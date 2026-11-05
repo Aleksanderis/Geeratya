@@ -35,7 +35,7 @@ public class IssueDetailSectionTests
 
         Assert.Contains("line 1", text);
         Assert.DoesNotContain("line 20", text);
-        Assert.Contains(text.Split('\n'), line => line.Contains("more lines   Enter expand"));
+        Assert.Contains(text.Split('\n'), line => line.Contains("more lines"));
     }
 
     [Fact]
@@ -50,36 +50,36 @@ public class IssueDetailSectionTests
     [Fact]
     public void GivenTheMoreLine_WhenPressingEnterTwice_ThenTheDescriptionExpandsAndCutsShortAgain()
     {
-        var state = OnLine(Opened(LongText(20), []), "more lines   Enter expand");
+        var state = OnLine(Opened(LongText(20), []), "more lines");
 
         var expanded = Press(state, "Enter").State;
 
         Assert.Contains("line 20", Text(expanded));
-        Assert.Contains("Show less   Enter collapse", Text(expanded));
+        Assert.DoesNotContain("Show less", Text(expanded));
+        Assert.Contains("Enter collapse", Text(expanded));
         Assert.Equal(["description"], Top(expanded).Expanded);
 
-        var again = Press(OnLine(expanded, "Show less   Enter collapse"), "Enter").State;
+        var again = Press(expanded, "Enter").State;
 
         Assert.DoesNotContain("line 20", Text(again));
         Assert.Empty(Top(again).Expanded);
     }
 
     [Fact]
-    public void GivenShowLess_WhenPressingEnter_ThenTheCursorLandsOnTheMoreLineNotInALaterPane()
+    public void GivenAnExpandedDescription_WhenPressingEnter_ThenTheCursorStaysInTheDescriptionNotInALaterPane()
     {
-        var onMore = OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines   Enter expand");
+        var onMore = OnLine(Opened(LongText(30), [Comment("7", 3)]), "more lines");
         var expanded = Press(onMore, "Enter").State;
 
-        var collapsed = Press(OnLine(expanded, "Show less   Enter collapse"), "Enter").State;
+        var collapsed = Press(expanded, "Enter").State;
 
-        Assert.Contains("more lines   Enter expand", Document(collapsed).Lines[Top(collapsed).Cursor].PlainText);
         Assert.True(Top(collapsed).Cursor < Document(collapsed).Sections[2]);
     }
 
     [Fact]
     public void GivenAnExpandedDescription_WhenTheIssueReloads_ThenItStaysExpanded()
     {
-        var state = Press(OnLine(Opened(LongText(20), []), "more lines   Enter expand"), "Enter").State;
+        var state = Press(OnLine(Opened(LongText(20), []), "more lines"), "Enter").State;
         var reloaded = Deliver(state, new IssueDetailLoaded(Active(state).Id, Top(state).IssueRequest, Issue(LongText(20)), _now));
 
         Assert.Contains("line 20", Text(reloaded));
@@ -112,7 +112,7 @@ public class IssueDetailSectionTests
         var start = document.Sections[document.SectionIds.ToList().IndexOf(PaneIds.Description)];
 
         Assert.Contains("line 1", document.Lines[start].PlainText);
-        Assert.Contains("more lines   Enter expand", document.Lines[start + 3].PlainText);
+        Assert.Contains("more lines", document.Lines[start + 3].PlainText);
         Assert.StartsWith("╰", document.Lines[start + 4].PlainText);
     }
 
@@ -122,7 +122,7 @@ public class IssueDetailSectionTests
         var document = Document(Opened(LongText(20), []));
         var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
 
-        Assert.Equal("1-3 of 39", string.Concat(document.PaneRightTitles[pane].Select(span => span.Text)));
+        Assert.Equal("1-3 of 39 · Enter expand", string.Concat(document.PaneRightTitles[pane].Select(span => span.Text)));
         Assert.NotNull(document.PaneScrolls[pane]);
     }
 
@@ -206,8 +206,8 @@ public class IssueDetailSectionTests
 
         Assert.Equal(1, Top(scrolled).DescriptionOffset);
         Assert.Equal(before, Top(scrolled).Cursor);
-        Assert.Equal("2-4 of 39", ChipOf(scrolled));
-        Assert.Contains("more lines   Enter expand", Document(scrolled).Lines[start + 3].PlainText);
+        Assert.Equal("2-4 of 39 · Enter expand", ChipOf(scrolled));
+        Assert.Contains("more lines", Document(scrolled).Lines[start + 3].PlainText);
         Assert.DoesNotContain("line 1", Document(scrolled).Lines[start].PlainText);
     }
 
@@ -225,7 +225,7 @@ public class IssueDetailSectionTests
         var top = Press(up, "k").State;
 
         Assert.Equal(0, Top(top).DescriptionOffset);
-        Assert.Equal("1-3 of 39", ChipOf(top));
+        Assert.Equal("1-3 of 39 · Enter expand", ChipOf(top));
 
         var left = Press(top, "k").State;
 
@@ -264,7 +264,7 @@ public class IssueDetailSectionTests
         var expanded = Press(OnDescriptionRow(state, 3), "Enter").State;
 
         Assert.Contains("line 1", Text(expanded));
-        Assert.Contains("Show less", Text(expanded));
+        Assert.Contains("Enter collapse", Text(expanded));
     }
 
     [Fact]

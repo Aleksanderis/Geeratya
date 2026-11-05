@@ -353,6 +353,12 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             return FieldLine(drawn, index == block.Start, ascii);
         }
 
+        if (index == cursor && document.SectionIds[document.SectionAt(index)] == PaneIds.Description)
+        {
+            // The Description is one text: the accent frame shows the focus, a mark on one row would mean nothing.
+            return drawn;
+        }
+
         return index == cursor ? CursorLine(Untinted(drawn)) : drawn;
     }
 

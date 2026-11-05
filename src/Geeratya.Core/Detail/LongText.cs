@@ -33,13 +33,19 @@ internal static class LongText
             return;
         }
 
+        var rowTarget = limit.KeyInFrame ? target with { Expands = !expanded, Collapses = expanded } : target;
         var shown = expanded ? lines.Count : limit.Lines - (limit.NoteRow ? 1 : 0);
 
         var first = expanded ? 0 : Math.Clamp(limit.First, 0, lines.Count - shown);
 
         for (var index = first; index < first + shown; index++)
         {
-            content.Add(lines[index], target);
+            content.Add(lines[index], rowTarget);
+        }
+
+        if (expanded && limit.KeyInFrame)
+        {
+            return;
         }
 
         if (expanded)
@@ -52,7 +58,9 @@ internal static class LongText
         var hidden = lines.Count - shown;
         var text = hidden == 1 ? "… 1 more line" : $"… {hidden} more lines";
 
-        AddNote(content, text, "expand", limit.Width, target with { Expands = true }, limit.ZoomHint);
+        var action = limit.KeyInFrame ? null : "expand";
+
+        AddNote(content, text, action, limit.Width, target with { Expands = true }, limit.ZoomHint);
     }
 
     /// <summary>
@@ -61,20 +69,21 @@ internal static class LongText
     private static void AddNote(
         PanelContent content,
         string text,
-        string action,
+        string? action,
         int width,
         DetailTarget target,
         bool zoomHint)
     {
-        var spans = new List<StyledSpan>
-        {
-            new(text, TextRole.Muted),
-            new("   ", TextRole.Muted),
-            new("Enter", TextRole.Key),
-            new($" {action}", TextRole.Muted),
-        };
+        var spans = new List<StyledSpan> { new(text, TextRole.Muted) };
 
-        if (zoomHint)
+        if (action is not null)
+        {
+            spans.Add(new StyledSpan("   ", TextRole.Muted));
+            spans.Add(new StyledSpan("Enter", TextRole.Key));
+            spans.Add(new StyledSpan($" {action}", TextRole.Muted));
+        }
+
+        if (zoomHint && action is not null)
         {
             spans.Add(new StyledSpan("   ", TextRole.Muted));
             spans.Add(new StyledSpan("<space>z", TextRole.Key));

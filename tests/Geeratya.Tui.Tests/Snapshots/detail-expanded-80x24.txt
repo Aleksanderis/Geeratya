@@ -1,10 +1,10 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ Description ──────────────────────────────────────────── (edit in browser) ─╮
+╭─ Description ─────────────────────────── Enter collapse · (edit in browser) ─╮
 │ Heading one                                                                  │
 │                                                                              │
 │ Heading three                                                                │
-│>                                                                         ... │
+│                                                                              │
 │ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
 │ 😄 and unicode: żółć 日本語 🚀                                               │
 │ after break                                                                  │
