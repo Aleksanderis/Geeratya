@@ -218,7 +218,7 @@ public static class CommentEditorOverlay
         foreach (var index in Enumerable.Range(first, shown))
         {
             var highlighted = index == cursor;
-            var pointer = highlighted ? ">" : " ";
+            var pointer = " ";
             var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
 
             lines.Add(StyledLine.Of($"{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));

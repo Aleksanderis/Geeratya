@@ -2,7 +2,7 @@
                                         
 +-+- Jump to an issue ---------------+-+
 | | > gcm_                           |S|
-|>| > GCM-12      Fix the login redi |.|
+| |   GCM-12      Fix the login redi |.|
 | |   GCM-120     日本語の見出しを含 |.|
 | |   GCM-7       A rather long summ |.|
 | |   GCM-4       recent             |.|

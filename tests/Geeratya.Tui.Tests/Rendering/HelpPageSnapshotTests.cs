@@ -3,6 +3,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Tui.Rendering;
@@ -110,7 +111,6 @@ public class HelpPageSnapshotTests
             Assert.Equal(index, regions[index].Index);
         }
 
-        Assert.Contains("> ", frame.Body[regions[0].Top - FrameBuilder.HeaderRows].PlainText);
     }
 
     [Theory]
@@ -133,7 +133,10 @@ public class HelpPageSnapshotTests
             candidate => candidate.Target == MouseTarget.HelpPage && candidate.Index == page);
         var row = frame.Body[region.Top - FrameBuilder.HeaderRows].PlainText;
 
-        Assert.StartsWith("> ", row.Substring(region.Left, region.Width));
+        Assert.StartsWith("  ", row.Substring(region.Left, region.Width));
+        Assert.Contains(
+            frame.Body[region.Top - FrameBuilder.HeaderRows].Spans,
+            span => span.Role == TextRole.Selected);
         Assert.True(region.Left + region.Width <= 40);
     }
 

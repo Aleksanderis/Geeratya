@@ -1,7 +1,7 @@
 [Profiles]                              
                                         
 +- Profiles 2 -------------------------+
-| >* work          me@work.test        |
+|  * work          me@work.test        |
 |    dev           me@dev.test         |
 |                                      |
 |                                      |

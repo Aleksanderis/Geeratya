@@ -5,7 +5,7 @@
 │ ╭─ Switch sprint ──────────────────────────────────────────────────────────╮ │
 │ │ > _                                                                      │ │
 │ │ Active                                                                   │ │
-│ │ >         Sprint 12 日本語 (19 Oct - 2 Nov)                              │ │
+│ │           Sprint 12 日本語 (19 Oct - 2 Nov)                              │ │
 │ │ Future                                                                   │ │
 │ │           Future F1                                                      │ │
 │ │ Closed                                                                   │ │

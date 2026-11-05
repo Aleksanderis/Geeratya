@@ -152,7 +152,7 @@ public class BacklogSnapshotTests
     {
         var body = FrameBuilder.BuildStyled(Sample(true), 100, 24, _keymap)!.Body;
 
-        var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ > ▸ Sprint 1"));
+        var edge = Assert.Single(body, line => line.PlainText.StartsWith("├─ ▸ Sprint 1"));
         Assert.Contains(edge.Spans, span => span.Role == TextRole.ChipFocus && span.Text.Contains("Sprint 1"));
     }
 

@@ -57,7 +57,7 @@ public class ProfileFormOverlaySnapshotTests
 
         Assert.Contains("INSERT  Account email", status, StringComparison.Ordinal);
         Assert.DoesNotContain("_", status, StringComparison.Ordinal);
-        Assert.Contains(lines, line => line.Contains("> Account", StringComparison.Ordinal) && line.Contains('│'));
+        Assert.Contains(lines, line => line.Contains("Account", StringComparison.Ordinal) && line.Contains('│'));
     }
 
     [Theory]

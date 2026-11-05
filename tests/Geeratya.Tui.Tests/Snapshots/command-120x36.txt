@@ -6,7 +6,7 @@
 │                   │ : search_                                                                    │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Issue                                                                        │                   │
-│                   │ > Assign the issue: search people, or unassign                     <space>ia │                   │
+│                   │   Assign the issue: search people, or unassign                     <space>ia │                   │
 │                   │                                                                              │                   │
 │                   │                                                                              │                   │
 │                   │                                                                              │                   │

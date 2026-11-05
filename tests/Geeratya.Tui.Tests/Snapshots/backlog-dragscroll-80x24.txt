@@ -3,7 +3,7 @@
 ╭─ Scrum board ───────────────────────────────────────────────────── 5 issues ─╮
 │  Key   T Summary                                         Status         Pts  │
 │ +GCS-3 S Fix login redirect after token refresh          To Do              5│
-│>+GCS-4 S As a user I can filter by label 日本語ラベル    To Do            ...│
+│ +GCS-4 S As a user I can filter by label 日本語ラベル    To Do            ...│
 ├─ Sprint 2 ───────────────────────────────────── no dates · 2 issues · 3 pts ─┤
 │  GCS-2 S Reporting overhaul with a very long summary tha To Do              3│
 │  GCS-6 S Crash when the board has no columns             To Do               │

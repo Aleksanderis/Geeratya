@@ -2,7 +2,7 @@
                                                                                 
 +- Geeratya -------------------------------------------------------------------+
 | +- Help -------------------------------------------------------------------+ |
-| | > Global      |   :          Open the command palette  (Ctrl-p)         ^| |
+| |   Global      |   :          Open the command palette  (Ctrl-p)         ^| |
 | |   All actions |   <space>A   Open the actions menu of the tab and the    | |
 | |   Commands    |              view                                        | |
 | |               |   Tab        Next tab  (gt)                              | |

@@ -6,7 +6,7 @@
 │ project = A       │ : _                                                                          │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Issue                                                                        │                   │
-│                   │ > Jump to an issue by key                                           <space>g │                   │
+│                   │   Jump to an issue by key                                           <space>g │                   │
 │                   │   Open the issue in the browser                                     <space>o │                   │
 │                   │   Open the parent issue                                             <space>p │                   │
 │                   │   Edit the issue title in place (opens the detail from a list or   <space>ie │                   │

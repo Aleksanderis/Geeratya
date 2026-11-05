@@ -293,7 +293,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         // The first cell is the cursor, the second the set: `*` marked, `+` in the Visual range (never colour alone).
         var setGlyph = SetGlyph(set);
-        var cursor = selected ? ">" : " ";
+        var cursor = " ";
         var inRange = set.HasFlag(SetMark.InRange);
         var markRole = set.HasFlag(SetMark.Marked) ? TextRole.Strong : TextRole.Body;
 

@@ -3,8 +3,8 @@
 ╭─ Geeratya ───────────────────────────────────────────────╮
 ╭─ Settings ───────────────────────────────────────────────╮
 │ Appearance                                               │
-│ > theme                                         [auto ▾] │
-│     > ● auto                                             │
+│   theme                                         [auto ▾] │
+│       ● auto                                             │
 │       ○ dark                                             │
 │       ○ light                                            │
 │       ○ nord                                             │

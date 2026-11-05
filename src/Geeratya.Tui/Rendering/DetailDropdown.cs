@@ -181,7 +181,7 @@ public static class DetailDropdown
         {
             var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), Math.Max(1, inner - 2));
             var highlighted = index == cursor;
-            var pointer = highlighted ? ">" : " ";
+            var pointer = " ";
 
             lines.Add(StyledLine.Of($"{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
             indexes.Add(index);

@@ -2,7 +2,7 @@
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│>│ > List        │   j          Move down  (Down)                           │ │
+│ │   List        │   j          Move down  (Down)                           │ │
 │ │   Global      │   k          Move up  (Up)                               │ │
 │ │   All actions │   gg         Go to the top  (Home)                       │ │
 │ │   Commands    │   G          Go to the bottom  (End)                     │ │

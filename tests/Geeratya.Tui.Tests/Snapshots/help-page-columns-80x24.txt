@@ -2,7 +2,7 @@
                                                                                 
 ╭─ Issues 1 ───────────────────────────────────────────────────────────────────╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│ │ > Columns     │   j          Move down  (Down)                           │ │
+│ │   Columns     │   j          Move down  (Down)                           │ │
 │ │   Global      │   k          Move up  (Up)                               │ │
 │ │   All actions │   h          Move left  (Left)                           │ │
 │ │   Commands    │   l          Move right  (Right)                         │ │

@@ -37,7 +37,7 @@ public class ListBodyRendererTests
         Assert.StartsWith("project = A · 3 issues", lines[0]);
         Assert.Matches(@"^  Key +T Summary +Status +Assignee", lines[1]);
         Assert.Matches(@"^  A-1 +T Summary +To Do +-", lines[2]);
-        Assert.Matches(@"^> A-2 +T Summary +To Do +-", lines[3]);
+        Assert.Matches(@"^  A-2 +T Summary +To Do +-", lines[3]);
         Assert.StartsWith("  A-3", lines[4]);
     }
 
@@ -97,7 +97,7 @@ public class ListBodyRendererTests
         Assert.Matches(@"^ \*A-1 ", lines[2]);
         Assert.Matches(@"^  A-2 ", lines[3]);
         Assert.Matches(@"^ \+A-3 ", lines[4]);
-        Assert.Matches(@"^>\+A-4 ", lines[5]);
+        Assert.Matches(@"^ \+A-4 ", lines[5]);
         Assert.Matches(@"^  A-5 ", lines[6]);
     }
 
@@ -108,7 +108,7 @@ public class ListBodyRendererTests
 
         var lines = Frame(tab, 120);
 
-        Assert.Matches(@"^>\*A-1 ", lines[2]);
+        Assert.Matches(@"^ \*A-1 ", lines[2]);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class ListBodyRendererTests
 
         var lines = Body(busy, 100, 10);
 
-        Assert.Matches(@"^> A-1 +T Summary ", lines[2]);
+        Assert.Matches(@"^  A-1 +T Summary ", lines[2]);
         Assert.Matches(@"^  A-2 +T … Summary ", lines[3]);
         Assert.Matches(@"^  A-3 +T Summary ", lines[4]);
     }
@@ -218,8 +218,8 @@ public class ListBodyRendererTests
         var body = Render(Tab(LoadState.Idle, 3) with { Selected = 2 }, 80, 10);
 
         Assert.StartsWith("│  A-1", body[2].PlainText);
-        Assert.StartsWith("│> A-3", body[4].PlainText);
-        Assert.Contains(body[4].Spans, span => span.Ground == SpanGround.Selection && span.Text == "> ");
+        Assert.StartsWith("│  A-3", body[4].PlainText);
+        Assert.Contains(body[4].Spans, span => span.Ground == SpanGround.Selection && span.Text == "  ");
         Assert.Contains(body[4].Spans, span => span.Ground == SpanGround.Selection && span.Text == "A-3");
         Assert.Equal(TextRole.FrameFocus, body[4].Spans[0].Role);
         Assert.Equal(80, TextWidth.Of(body[4].PlainText));
@@ -309,7 +309,7 @@ public class ListBodyRendererTests
         var longKey = Issue(1) with { Key = "ABCDEFGHIJ-123456" };
         var tab = Tab(LoadState.Idle) with { Rows = [longKey], KeyWidth = longKey.Key.Length };
 
-        Assert.StartsWith("> ABCDEFGHIJ-1 T", Frame(tab, 80)[2]);
+        Assert.StartsWith("  ABCDEFGHIJ-1 T", Frame(tab, 80)[2]);
     }
 
     [Fact]

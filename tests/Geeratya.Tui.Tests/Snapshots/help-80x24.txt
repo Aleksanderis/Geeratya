@@ -2,7 +2,7 @@
                                                                                 
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│ │ > Global      │   ?          Show or hide help                           │ │
+│ │   Global      │   ?          Show or hide help                           │ │
 │ │   All actions │   q          Quit  (Ctrl-c)                              │ │
 │ │   Commands    │   Esc        Cancel or close                             │ │
 │ │               │   :          Open the command palette  (Ctrl-p)          │ │

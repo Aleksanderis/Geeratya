@@ -6,7 +6,7 @@
 │ │ : theme:_                                                                │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ General                                                                  │ │
-│ │ > Theme: catppuccin-mocha                                                │ │
+│ │   Theme: catppuccin-mocha                                                │ │
 │ │   Theme: dracula                                                         │ │
 │ │   Theme: nord                                                            │ │
 │ │                                                                          │ │

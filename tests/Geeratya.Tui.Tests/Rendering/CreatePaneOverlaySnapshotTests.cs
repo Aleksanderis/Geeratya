@@ -165,7 +165,7 @@ public class CreatePaneOverlaySnapshotTests
 
         var frame = FrameBuilder.BuildStyled(Open(form), 120, 36, _keymap)!;
 
-        Assert.Contains(frame.PlainLines(), line => line.Contains("> High", StringComparison.Ordinal));
+        Assert.Contains(frame.PlainLines(), line => line.Contains("High", StringComparison.Ordinal));
         Assert.Contains(frame.Regions, region => region.Target == MouseTarget.FormChoice && region.Index == 1);
     }
 
