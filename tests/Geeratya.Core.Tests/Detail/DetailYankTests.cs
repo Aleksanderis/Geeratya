@@ -164,6 +164,32 @@ public class DetailYankTests
         Assert.Empty(result.Effects);
     }
 
+    [Fact]
+    public void GivenAScrolledCommentsPane_WhenSelectingTheCursorRow_ThenTheCopyIsThatRowNotOneFromTheTop()
+    {
+        IReadOnlyList<IssueComment> comments = [.. Enumerable.Range(1, 12).Select(number => Comment($"c{number}", 1))];
+        var state = Press(Opened(null, comments), "G").State;
+        var shown = Document(state).Lines[Top(state).Cursor];
+
+        var yanked = Press(state, "v", "y");
+
+        var text = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text;
+        Assert.Equal(DetailText.Of(shown), text);
+        Assert.NotEmpty(text);
+    }
+
+    [Fact]
+    public void GivenAZoomedPaneScrolledDown_WhenSelectingTheLastRows_ThenTheCopyHoldsThoseRows()
+    {
+        var state = OnLine(Opened(Paragraphs(40), []), "line 1");
+        var zoomed = Press(state, "Space", "z", "G").State;
+
+        var yanked = Press(zoomed, "v", "k", "k", "y");
+
+        var text = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text;
+        Assert.Equal("line 39\n\nline 40", text);
+    }
+
     private static string Paragraphs(int count)
     {
         return string.Join("\n\n", Enumerable.Range(1, count).Select(number => $"line {number}"));
