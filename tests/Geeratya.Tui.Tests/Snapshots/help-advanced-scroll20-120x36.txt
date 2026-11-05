@@ -10,7 +10,8 @@
 │           │               │   <space>kb  Rank the issue to the bottom of the list or column              │           │
 │           │               │   <space>kk  Pick up the issue, then drop it at the issue under the cursor   │           │
 │           │               │ Selection                                                                    │           │
-│           │               │   v          Start or end Visual mode (a range of rows)                      │           │
+│           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
+│           │               │              issue)                                                          │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
 │           │               │ View                                                                         │           │
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
@@ -29,8 +30,7 @@
 │           │               │   <space>se  Edit the sprint (name, goal, dates)                             │           │
 │           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
 │           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
-│           │               │   <space>sg  Show the full goal of the sprint                                │           │
-│           │               │ Tabs                                                                        ▼│           │
+│           │               │   <space>sg  Show the full goal of the sprint                               ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

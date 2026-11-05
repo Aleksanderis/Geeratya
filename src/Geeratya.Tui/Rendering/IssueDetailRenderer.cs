@@ -62,12 +62,17 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         var ascii = context.Glyphs == GlyphSet.Ascii;
         var sideLines = side is null ? [] : SideColumn(side, onSide ? top.SideCursor : null, rows, ascii);
         var mainWidth = side is null ? width : DetailLayout.MainWidth(width);
+        var range = editing is null ? DetailText.SelectedLines(top) : null;
 
         for (var row = 0; row < shown; row++)
         {
             var index = first + row;
             var line = index < document.Lines.Count
-                ? RowLine(Pane(document, index, focused), index, cursor, block, document, ascii)
+                ? InRange(
+                    RowLine(Pane(document, index, focused), index, cursor, block, document, ascii),
+                    index,
+                    range,
+                    cursor)
                 : StyledLine.Empty;
 
             if (side is not null)
@@ -79,6 +84,22 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// A line of the Visual selection (<c>v</c>) in the range tint between the borders; the cursor line, the moving
+    /// end, keeps the selected tint.
+    /// </summary>
+    private static StyledLine InRange(StyledLine drawn, int index, LineBlock? range, int cursor)
+    {
+        if (range is null || index < range.Start || index >= range.End || index == cursor)
+        {
+            return drawn;
+        }
+
+        var spans = drawn.Spans.Select(static span => IsBorderSpan(span) ? span : span with { Role = TextRole.Range });
+
+        return new StyledLine(spans.ToArray());
     }
 
     private static int IndexOf(IReadOnlyList<string> ids, string id)

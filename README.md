@@ -17,6 +17,7 @@ The Jira web UI is slow and mouse-heavy for the things done many times a day: lo
 - Change status, also by moving a card to another column
 - Create, edit and delete epics, stories, tasks, bugs and sub-tasks, with each project's required fields
 - Add, edit and delete comments
+- Copy text from the issue detail (Description, comments, fields) to the system clipboard: select with `v` or the mouse, yank with `y`
 - Company-managed and team-managed projects alike
 - Profiles: saved sites and accounts, one active at a time, quick switch
 - Tabs over the active site, local cache so views open instantly

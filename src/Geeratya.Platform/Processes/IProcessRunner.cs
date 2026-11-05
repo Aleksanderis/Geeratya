@@ -22,4 +22,14 @@ public interface IProcessRunner
         string program,
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Like the overload without input, with the text written to the program's standard input first (a clipboard
+    /// tool). Throws <see cref="ProgramNotFoundException"/> when the program is not installed.
+    /// </summary>
+    Task<int> RunDetachedAsync(
+        string program,
+        IReadOnlyList<string> arguments,
+        string? standardInput,
+        CancellationToken cancellationToken);
 }

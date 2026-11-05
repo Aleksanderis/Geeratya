@@ -1,5 +1,7 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Selection;
@@ -159,6 +161,7 @@ public sealed partial class AppReducer
             PointerPlaced placed => Followed(state, Pointed(state, placed)),
             DetailWheeled wheeled => Followed(state, DetailWheel(state, wheeled)),
             RowsDragged dragged => Followed(state, RowsDrag(Unpended(state), dragged)),
+            DetailDragged dragged => Followed(state, DetailYank.Dragged(Unpended(state), dragged)),
             RowsDragging dragging => Followed(state, SelectionActions.Dragging(Unpended(state), dragging)),
             RowsDragScrolled scrolled => Followed(state, SelectionActions.DragScrolled(state, scrolled)),
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
@@ -190,6 +193,7 @@ public sealed partial class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            ClipboardCopied copied => ClipboardReducer.Finished(state, copied),
             SettingsReloaded reloaded => SettingsReducer.Reloaded(state, reloaded),
             ThemeApplied applied => SettingsReducer.Applied(state, applied),
             KeymapReloaded reloaded => Result(StatusMessages.Keymap(state, reloaded)),

@@ -281,7 +281,9 @@ internal static partial class DetailReducer
 
         var anchored = detail.Document is { } old && old.Width == width ? Anchored(detail, old, document) : detail.Cursor;
         var side = document.Side is null ? null : SideAnchored(detail, document.Side);
-        var laidOut = Clamp(detail with { Document = document, Cursor = anchored, SideCursor = side }, listRows);
+        var laidOut = Clamp(
+            detail with { Document = document, Cursor = anchored, SideCursor = side, YankAnchor = null },
+            listRows);
 
         return row is { } kept ? PlaceInComments(laidOut, kept, listRows, false) : laidOut;
     }

@@ -17,6 +17,7 @@
 │           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   i          Edit the title or the Description in place                      │           │
+│           │               │   y          Copy the selection or the field under the cursor                │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
@@ -29,8 +30,7 @@
 │           │               │   <space>,   Open or close the settings screen                               │           │
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
-│           │               │ Dialogs                                                                      │           │
-│           │               │   Esc        Close help  (q)                                                ▼│           │
+│           │               │ Dialogs                                                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

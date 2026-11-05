@@ -1,0 +1,268 @@
+using Geeratya.Core.Clipboard;
+using Geeratya.Core.Detail;
+using Geeratya.Core.Keymap;
+using Geeratya.Core.Profiles;
+using Geeratya.Core.State;
+using Geeratya.Core.Views;
+using Geeratya.Jira.Adf;
+using Geeratya.Jira.Comments.Models;
+using Geeratya.Jira.Issues.Models;
+using Geeratya.Jira.Paging;
+using Geeratya.Jira.Search.Models;
+
+namespace Geeratya.Core.Tests.Detail;
+
+/// <summary>Select and copy text in the issue detail (#773): the keys through the real reducer.</summary>
+[Trait("Os", "Independent")]
+public class DetailYankTests
+{
+    private static readonly DateTimeOffset _now = new(2026, 11, 5, 12, 0, 0, TimeSpan.Zero);
+    private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
+    private static readonly IssueStatus _todo = new("1", "To Do", "new");
+    private static readonly IssueTypeSummary _story = new("10", "Story", 0, false);
+    private static readonly IssueAssignee _eve = new("acc-eve", "Eve Example");
+
+    private readonly AppReducer _reducer = new(DefaultKeymap.Load());
+
+    [Fact]
+    public void GivenVisualMode_WhenMovingDownAndPressingY_ThenTheSelectedLinesAreCopiedWithoutTheFrame()
+    {
+        var state = OnLine(Opened(Paragraphs(3), []), "line 1");
+
+        var started = Press(state, "v");
+        var yanked = Press(started.State, "j", "j", "y");
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects));
+        Assert.Equal("line 1\n\nline 2", copy.Text);
+        Assert.Equal("3 lines", copy.Description);
+        Assert.Null(Top(yanked.State).YankAnchor);
+    }
+
+    [Fact]
+    public void GivenVisualMode_WhenMovingUpPastTheAnchor_ThenTheRangeRunsUpwards()
+    {
+        var state = OnLine(Opened(Paragraphs(3), []), "line 2");
+
+        var yanked = Press(state, "v", "k", "k", "y");
+
+        Assert.Equal("line 1\n\nline 2", Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text);
+    }
+
+    [Fact]
+    public void GivenASelectionInTheDescription_WhenMovingToTheBottom_ThenItStopsAtTheEndOfThePane()
+    {
+        var state = OnLine(Opened(Paragraphs(3), [Comment("7", 2)]), "line 1");
+
+        var yanked = Press(state, "v", "G", "y");
+
+        var text = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text;
+        Assert.Equal("line 1\n\nline 2\n\nline 3", text);
+        Assert.DoesNotContain("item", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenNoSelection_WhenPressingYOnACutDescription_ThenTheWholeTextIsCopied()
+    {
+        var state = OnLine(Opened(Paragraphs(20), []), "line 1");
+
+        var yanked = Press(state, "y");
+
+        var text = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text;
+        Assert.StartsWith("line 1\n\nline 2", text, StringComparison.Ordinal);
+        Assert.EndsWith("line 20", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenNoSelection_WhenPressingYOnACutComment_ThenTheWholeCommentBodyIsCopied()
+    {
+        var state = Press(Opened(null, [Comment("7", 14)]), "G").State;
+
+        var yanked = Press(state, "y");
+
+        var text = Assert.IsType<CopyToClipboardEffect>(Assert.Single(yanked.Effects)).Text;
+        Assert.Contains("item 14", text, StringComparison.Ordinal);
+        Assert.Contains("item 1", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenACutDescription_WhenPressingV_ThenItIsShownInFullAndTheSelectionStarts()
+    {
+        var state = OnLine(Opened(Paragraphs(20), []), "line 1");
+
+        var started = Press(state, "v").State;
+
+        Assert.Equal(["description"], Top(started).Expanded);
+        Assert.NotNull(Top(started).YankAnchor);
+        Assert.Contains("line 20", string.Join('\n', Document(started).Lines.Select(line => line.PlainText)));
+    }
+
+    [Fact]
+    public void GivenASelection_WhenPressingEsc_ThenItEndsAndTheIssueStaysOpen()
+    {
+        var state = Press(OnLine(Opened(Paragraphs(3), []), "line 1"), "v").State;
+
+        var escaped = Press(state, "Esc").State;
+
+        Assert.Null(Top(escaped).YankAnchor);
+        Assert.Single(Active(escaped).Detail);
+    }
+
+    [Fact]
+    public void GivenASelection_WhenPressingVAgain_ThenItEndsWithoutCopying()
+    {
+        var state = Press(OnLine(Opened(Paragraphs(3), []), "line 1"), "v");
+
+        var ended = Press(state.State, "v");
+
+        Assert.Null(Top(ended.State).YankAnchor);
+        Assert.Empty(ended.Effects);
+    }
+
+    [Fact]
+    public void GivenASelection_WhenTheIssueReloads_ThenTheSelectionEndsBecauseItsLinesMoved()
+    {
+        var state = Press(OnLine(Opened(Paragraphs(3), []), "line 1"), "v").State;
+
+        var reloaded = _reducer.Reduce(
+            state,
+            new IssueDetailLoaded(Active(state).Id, Top(state).IssueRequest, Issue(Paragraphs(3)), _now)).State;
+
+        Assert.Null(Top(reloaded).YankAnchor);
+    }
+
+    [Fact]
+    public void GivenAFinishedCopy_WhenTheHostReportsIt_ThenTheStatusSaysWhatWasCopiedOrWhyNot()
+    {
+        var state = Opened(Paragraphs(2), []);
+
+        var copied = _reducer.Reduce(state, new ClipboardCopied("2 lines", true, "wl-copy")).State;
+        var failed = _reducer.Reduce(state, new ClipboardCopied("2 lines", false, "no clipboard tool found")).State;
+
+        Assert.Equal("Copied 2 lines (wl-copy)", copied.Message);
+        Assert.Equal("Cannot copy: no clipboard tool found", failed.Message);
+        Assert.Equal(StatusSeverity.Warning, failed.Status!.Severity);
+    }
+
+    [Fact]
+    public void GivenTheDefaultKeymap_WhenLookingUpY_ThenItIsTheYankActionInNormalMode()
+    {
+        var keymap = DefaultKeymap.Load();
+
+        var resolution = keymap.Resolve(InputMode.Normal, string.Empty, "y");
+
+        Assert.Equal(ActionIds.DetailYank, resolution.Action);
+    }
+
+    [Fact]
+    public void GivenAListWithNoIssueOpen_WhenPressingY_ThenNothingIsCopied()
+    {
+        var state = Opened(Paragraphs(2), []);
+        var closed = Press(state, "Esc").State;
+
+        var result = Press(closed, "y");
+
+        Assert.Empty(result.Effects);
+    }
+
+    private static string Paragraphs(int count)
+    {
+        return string.Join("\n\n", Enumerable.Range(1, count).Select(number => $"line {number}"));
+    }
+
+    private static TabState Active(AppState state)
+    {
+        return state.Session.Tabs.Single(tab => tab.Id == state.Session.Active);
+    }
+
+    private static DetailState Top(AppState state)
+    {
+        return Active(state).Detail[^1];
+    }
+
+    private static DetailDocument Document(AppState state)
+    {
+        return Top(state).Document!;
+    }
+
+    private AppState OnLine(AppState state, string text)
+    {
+        var steps = 0;
+
+        while (!Document(state).Lines[Top(state).Cursor].PlainText.Contains(text, StringComparison.Ordinal)
+            && steps++ < Document(state).Lines.Count + 100)
+        {
+            state = Press(state, "j").State;
+        }
+
+        Assert.Contains(text, Document(state).Lines[Top(state).Cursor].PlainText, StringComparison.Ordinal);
+
+        return state;
+    }
+
+    private ReduceResult Press(AppState state, params string[] keys)
+    {
+        var result = new ReduceResult(state, []);
+        var effects = new List<Effect>();
+
+        foreach (var key in keys)
+        {
+            result = _reducer.Reduce(result.State, new KeyPressed(key));
+            effects.AddRange(result.Effects);
+        }
+
+        return new ReduceResult(result.State, effects);
+    }
+
+    private AppState Opened(string? description, IReadOnlyList<IssueComment> comments)
+    {
+        var profiles = ProfileCatalog.Empty.With(_work);
+        var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
+        var sized = _reducer.Reduce(start, new ViewportChanged(30, 80)).State;
+        var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
+        var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));
+        var tab = Active(opened.State);
+        var row = new IssueSummary("1", "A-1", "Issue 1", _todo, _story, null, null, [], null, null, "A");
+        var page = new IssuePage([row], null, null);
+        var listed = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
+        var shown = Press(listed, "Enter").State;
+        var detail = Active(shown).Detail[0];
+        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description), _now);
+        var loaded = _reducer.Reduce(shown, issue).State;
+        var commentPage = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Count, true);
+
+        var delivered = new IssueCommentsLoaded(tab.Id, detail.CommentsRequest, commentPage, _now);
+
+        return _reducer.Reduce(loaded, delivered).State;
+    }
+
+    private static IssueDetail Issue(string? description)
+    {
+        var document = description is null ? null : AdfMarkdownParser.Parse(description);
+
+        return new IssueDetail(
+            "1",
+            "A-1",
+            "Issue 1",
+            _todo,
+            _story,
+            "High",
+            _eve,
+            _eve,
+            [],
+            _now.AddDays(-3),
+            _now.AddHours(-1),
+            "A",
+            document,
+            null,
+            [],
+            [],
+            []);
+    }
+
+    private static IssueComment Comment(string id, int items)
+    {
+        var markdown = string.Join('\n', Enumerable.Range(1, items).Select(number => $"- item {number}"));
+
+        return new IssueComment(id, _eve, AdfMarkdownParser.Parse(markdown), _now.AddHours(-2), _now.AddHours(-2));
+    }
+}
