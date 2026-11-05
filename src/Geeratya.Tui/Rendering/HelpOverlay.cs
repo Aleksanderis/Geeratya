@@ -27,6 +27,8 @@ public static class HelpOverlay
     private const int BottomGap = 1;
     private const int MenuGap = 1;
     private const int ContinuationIndent = 13;
+    private const int RowIndent = 2;
+    private const int KeyColumn = 10;
 
     public static bool Applies(AppState state)
     {
@@ -86,7 +88,7 @@ public static class HelpOverlay
         {
             var index = first + row;
             var menu = MenuRow(names, index, current, menuCells);
-            var text = row < page.Count ? StyledLine.Of(page[row]) : StyledLine.Empty;
+            var text = row < page.Count ? PageRow(page[row]) : StyledLine.Empty;
             var spans = new List<StyledSpan>(menu.Spans)
             {
                 new(new string(' ', MenuGap), TextRole.Body),
@@ -167,6 +169,40 @@ public static class HelpOverlay
         rows.Add(rest);
 
         return rows;
+    }
+
+    /// <summary>
+    /// A page row in the colours of the which-key popup: a group name is a heading, the key column of an action row
+    /// and a <c>:command</c> are key-coloured, the rest is body text.
+    /// </summary>
+    private static StyledLine PageRow(string row)
+    {
+        if (row.Length == 0)
+        {
+            return StyledLine.Empty;
+        }
+
+        if (row[0] != ' ')
+        {
+            return StyledLine.Of(row, TextRole.Heading);
+        }
+
+        var text = row.TrimStart();
+        var indent = row.Length - text.Length;
+
+        if (indent != RowIndent || text[0] == '(' || text.StartsWith("Nothing matches", StringComparison.Ordinal))
+        {
+            return StyledLine.Of(row, indent == RowIndent ? TextRole.Muted : TextRole.Body);
+        }
+
+        var keyEnd = text[0] == ':' ? text.Length : Math.Min(KeyColumn, text.Length);
+
+        return new StyledLine(
+        [
+            new StyledSpan(new string(' ', indent), TextRole.Body),
+            new StyledSpan(text[..keyEnd], TextRole.OverlayKey),
+            new StyledSpan(text[keyEnd..], TextRole.Body),
+        ]);
     }
 
     private static StyledLine MenuEntry(string name, bool active, int cells)
