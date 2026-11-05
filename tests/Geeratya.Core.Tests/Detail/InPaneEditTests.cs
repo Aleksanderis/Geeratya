@@ -3,6 +3,7 @@ using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Adf;
@@ -180,7 +181,7 @@ public class InPaneEditTests
         Assert.Contains("line 30_", plain);
         Assert.DoesNotContain("line 1 ", plain);
         Assert.Contains(document.PaneScrolls, scroll => scroll is not null);
-        Assert.Contains("23-30 of 30", plain);
+        Assert.Contains("24-30 of 30", plain);
     }
 
     [Fact]
@@ -192,11 +193,38 @@ public class InPaneEditTests
 
         var plain = Plain(Build(state, 100, 30));
 
-        Assert.Contains("line 11", plain);
+        Assert.Contains("line 12", plain);
         Assert.Contains("|line 15", plain);
         Assert.Contains("line 18", plain);
         Assert.DoesNotContain("line 19", plain);
-        Assert.Contains("11-18 of 30", plain);
+        Assert.Contains("12-18 of 30", plain);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditState_WhenBuildingTheDocument_ThenItIsAFilledFieldWithABlockCaretAndTheKeyHint()
+    {
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField("abc"));
+
+        var document = Build(state, 100, 30);
+        var spans = document.Lines.SelectMany(line => line.Spans).ToList();
+
+        Assert.Contains(spans, span => span.Role == TextRole.EditField && span.Text.StartsWith("abc", StringComparison.Ordinal));
+        Assert.Contains(spans, span => span.Role == TextRole.EditCaret && span.Text == "_");
+        Assert.Contains("Ctrl-s save   Esc cancel", Plain(document));
+    }
+
+    [Fact]
+    public void GivenTheTitleEditState_WhenBuildingTheDocument_ThenTheRowIsFilledToThePaneWidth()
+    {
+        var state = Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField());
+
+        var document = Build(state, 60, 30);
+        var row = document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret));
+        var fieldColumns = row.Spans.Where(span => span.Role is TextRole.EditField or TextRole.EditCaret).Sum(span => DisplayWidth.Of(span.Text));
+
+        Assert.True(fieldColumns >= 50, $"field is {fieldColumns} columns");
     }
 
     [Fact]

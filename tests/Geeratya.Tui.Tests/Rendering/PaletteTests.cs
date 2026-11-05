@@ -185,6 +185,22 @@ public class PaletteTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenAnyTheme_WhenResolvingTheEditFieldAndCaret_ThenEveryTierSetsThemApartFromThePage(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var page = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body);
+        var field = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.EditField);
+        var caret = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.EditCaret);
+
+        Assert.NotEqual(page.Background, field.Background);
+        Assert.NotEqual(field.Background, caret.Background);
+        Assert.Equal(Ansi16Color.Blue, Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.EditField).Background16);
+        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Reverse));
+        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditField).Style.HasFlag(RoleStyle.Underline));
+    }
+
     [Fact]
     public void GivenDarkAndLightVariants_WhenResolvingBodyAtSixteenColours_ThenTheVariantPicksBlackOrWhiteGround()
     {
