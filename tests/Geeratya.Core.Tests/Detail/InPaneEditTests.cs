@@ -234,18 +234,32 @@ public class InPaneEditTests
             Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"),
             SummaryField());
         var atEnd = CaretRow(Build(state, 60, 30));
-        var moved = CaretRow(Build(Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField() with { Back = 3 }), 60, 30));
+        var inside = Loaded(
+            Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"),
+            SummaryField() with { Back = 3 });
+        var moved = CaretRow(Build(inside, 60, 30));
 
         Assert.Equal(atEnd.Sum(span => DisplayWidth.Of(span.Text)), moved.Sum(span => DisplayWidth.Of(span.Text)));
-        Assert.Equal(string.Concat(atEnd.Select(span => span.Text)).TrimEnd(), string.Concat(moved.Select(span => span.Text)).TrimEnd());
+        Assert.Equal(TextOf(atEnd), TextOf(moved));
         Assert.Single(moved, span => span.Role == TextRole.EditCaret);
         Assert.Equal(1, DisplayWidth.Of(Assert.Single(moved, span => span.Role == TextRole.EditCaret).Text));
         Assert.NotEqual(" ", Assert.Single(moved, span => span.Role == TextRole.EditCaret).Text);
     }
 
-    private static IReadOnlyList<StyledSpan> CaretRow(DetailDocument document)
+    [Fact]
+    public void GivenTheCaretOnAWideCharacter_WhenBuildingTheDocument_ThenTheCellHoldsItAndTheRowKeepsItsWidth()
     {
-        return document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret)).Spans;
+        var field = DescriptionField("ab\u4e2dcd") with { Back = 3 };
+        var state = Loaded(Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"), field);
+
+        var row = CaretRow(Build(state, 60, 30));
+        var plain = CaretRow(Build(Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField("ab\u4e2dcd")), 60, 30));
+
+        Assert.Equal("\u4e2d", Assert.Single(row, span => span.Role == TextRole.EditCaret).Text);
+        Assert.Contains("ab\u4e2dcd", TextOf(row));
+        Assert.Equal(WidthOf(plain), WidthOf(row));
     }
 
     [Fact]
@@ -304,6 +318,21 @@ public class InPaneEditTests
         Assert.False(form.IsSaving);
         Assert.Equal("Issue 1!", form.Fields[0].Value.Text);
         Assert.Contains("No permission", Plain(Build(failed.State, 100, 30)));
+    }
+
+    private static IReadOnlyList<StyledSpan> CaretRow(DetailDocument document)
+    {
+        return document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret)).Spans;
+    }
+
+    private static int WidthOf(IReadOnlyList<StyledSpan> row)
+    {
+        return row.Sum(span => DisplayWidth.Of(span.Text));
+    }
+
+    private static string TextOf(IReadOnlyList<StyledSpan> row)
+    {
+        return string.Concat(row.Select(span => span.Text)).TrimEnd();
     }
 
     private static DetailDocument Build(AppState state, int width, int rows)

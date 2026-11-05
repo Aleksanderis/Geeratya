@@ -503,7 +503,7 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenTheDiscardQuestionIsAsked_WhenBuildingTheFrame_ThenTheHintShowsTheKeysOfTheQuestionAndMatchesTheSnapshot()
+    public void GivenTheDiscardQuestion_WhenBuildingTheFrame_ThenTheHintShowsItsKeysAndMatchesTheSnapshot()
     {
         AssertSnapshot(Keys(Keys(EditingSummary(120, 36), "x"), "Esc"), 120, 36, "detail-edit-discard-120x36.txt");
     }
