@@ -109,11 +109,11 @@ public class IssueDocumentBuilderTests
         var document = IssueDocumentBuilder.Build(Loaded(null, []), 120);
 
         Assert.NotNull(document.Side);
-        Assert.Equal(DetailLayout.SidebarWidth, document.Side.Width);
+        Assert.Equal(DetailLayout.SidebarWidthFor(document.Width), document.Side.Width);
         Assert.DoesNotContain(PaneIds.Details, document.SectionIds);
         Assert.Equal([PaneIds.Details], document.Side.SectionIds);
         Assert.All(document.Lines, line => Assert.Equal(DetailLayout.MainWidth(120), DisplayWidth.Of(line.PlainText)));
-        Assert.All(document.Side.Lines, line => Assert.Equal(DetailLayout.SidebarWidth, DisplayWidth.Of(line.PlainText)));
+        Assert.All(document.Side.Lines, line => Assert.Equal(document.Side.Width, DisplayWidth.Of(line.PlainText)));
     }
 
     [Theory]
@@ -342,7 +342,7 @@ public class IssueDocumentBuilderTests
         var main = DetailLayout.HasSidebar(width) ? DetailLayout.MainWidth(width) : width;
 
         Assert.All(document.Lines, line => Assert.Equal(main, DisplayWidth.Of(line.PlainText)));
-        Assert.All(document.Side?.Lines ?? [], line => Assert.Equal(DetailLayout.SidebarWidth, DisplayWidth.Of(line.PlainText)));
+        Assert.All(document.Side?.Lines ?? [], line => Assert.Equal(document.Side!.Width, DisplayWidth.Of(line.PlainText)));
     }
 
     [Fact]

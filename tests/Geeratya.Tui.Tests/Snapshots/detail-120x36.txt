@@ -4,33 +4,33 @@
 │  Key    T Summary                                                                     Status         Assignee        │
 │> GCM-12 T Row summary                                                                 In Progress    -               │
 │                                                                                                                      │
-│ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │
-│ │>Fix login redirect after token refresh                             In Progress │ │ Status  moves via transitio...│ │
-│ ╰────────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │
-│ ╭─ Description ─────────────────── 1-3 of 40 · Enter expand · (edit in browser) ─╮ │                               │ │
-│ │ Heading one                                                                   ▲│ │ Priority                      │ │
-│ │                                                                               █│ │  ▲ High                       │ │
-│ │ Heading three                                                                 ░│ │                               │ │
-│ │ … 37 more lines                                                               ▼│ │ Assignee                      │ │
-│ ╰────────────────────────────────────────────────────────────────────────────────╯ │  [JD] Jane Doe                │ │
-│ ╭─ Comments 3 ──────────────────────────────────────────────────── newest first ─╮ │                               │ │
-│ │ Jane Doe                                                               1 d ago │ │ Reporter                      │ │
-│ │ Found it: the redirect target is dropped after the refresh.                    │ │  [ON] Ola Nordmann            │ │
-│ │                                                                                │ │                               │ │
-│ │ 日本語の作者                                                           3 h ago │ │ Labels                        │ │
-│ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。                 │ │   auth   bug-bash             │ │
-│ │                                                                                │ │                               │ │
-│ │ Ola Nordmann                                                         5 min ago │ │ Parent                        │ │
-│ │ See also café and 😀 in the second paragraph, which is long enough to wrap.    │ │  GCM-17 Reporting overhaul    │ │
-│ │                                                                                │ │                               │ │
-│ ╰────────────────────────────────────────────────────────────────────────────────╯ │ Due none · Updated 2 h ago    │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    │                               │ │
-│                                                                                    ╰───────────────────────────────╯ │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │ │
+│ │ │ Fix login redirect after token refresh                         In Progress │ │ Status  moves via transitio...│ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │ │
+│ │ ╭─ Description ────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮ │                               │ │ │
+│ │ │ Heading one                                                               ▲│ │ Priority                      │ │ │
+│ │ │                                                                           █│ │  ▲ High                       │ │ │
+│ │ │ Heading three                                                             ░│ │                               │ │ │
+│ │ │ … 37 more lines                                                           ▼│ │ Assignee                      │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  [JD] Jane Doe                │ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │                               │ │ │
+│ │ │ Jane Doe                                                           1 d ago │ │ Reporter                      │ │ │
+│ │ │ Found it: the redirect target is dropped after the refresh.                │ │  [ON] Ola Nordmann            │ │ │
+│ │ │                                                                            │ │                               │ │ │
+│ │ │ 日本語の作者                                                       3 h ago │ │ Labels                        │ │ │
+│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │   auth   bug-bash             │ │ │
+│ │ │                                                                            │ │                               │ │ │
+│ │ │ Ola Nordmann                                                     5 min ago │ │ Parent                        │ │ │
+│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │  GCM-17 Reporting overhaul    │ │ │
+│ │ │ wrap.                                                                      │ │                               │ │ │
+│ │ │                                                                            │ │ Due none · Updated 2 h ago    │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                │                               │ │ │
+│ │                                                                                ╰───────────────────────────────╯ │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  My open issues › GCM-12      j/k field  Enter edit/open  Esc back  <space>o browser  ? help  : commands  q quit

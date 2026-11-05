@@ -17,7 +17,6 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public sealed class IssueDetailRenderer : IBodyRenderer
 {
-    private const string CursorMark = ">";
     private const string StatusDot = "●";
 
     public bool AppliesTo(AppState state)
@@ -303,34 +302,17 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     }
 
     /// <summary>
-    /// Marks the cursor row: the padding cell after the border (the border is always the first span) becomes
-    /// <c>&gt;</c> in
-    /// the selected role; a line without one (frames are dropped on a very narrow screen) is shown selected as a whole.
+    /// Shows the cursor row: everything between the borders in the selected role. There is no <c>&gt;</c> mark in any
+    /// pane, so every pane marks its cursor the same way (the filled sidebar fields use their own bar).
     /// </summary>
     private static StyledLine CursorLine(StyledLine line)
     {
-        if (line.Spans.Count > 0
-            && line.Spans[0] is { Role: TextRole.Border or TextRole.FrameFocus, Text.Length: > 1 } first
-            && IsBorder(first.Text[0]))
-        {
-            // The marker goes into the padding column inside the border, never over it.
-            var marked = new List<StyledSpan>(line.Spans.Count + 2)
-            {
-                new(first.Text[..1], first.Role),
-                new(CursorMark, TextRole.Selected),
-            };
+        return new StyledLine(line.Spans.Select(static span => IsBorderSpan(span) ? span : Selected(span)).ToArray());
+    }
 
-            if (first.Text.Length > 2)
-            {
-                marked.Add(first with { Text = first.Text[2..] });
-            }
-
-            marked.AddRange(line.Spans.Skip(1));
-
-            return new StyledLine(marked);
-        }
-
-        return new StyledLine(line.Spans.Select(static span => span with { Role = TextRole.Selected }).ToArray());
+    private static StyledSpan Selected(StyledSpan span)
+    {
+        return span with { Role = TextRole.Selected };
     }
 
     private static StyledLine RowLine(
@@ -351,12 +333,6 @@ public sealed class IssueDetailRenderer : IBodyRenderer
             }
 
             return FieldLine(drawn, index == block.Start, ascii);
-        }
-
-        if (index == cursor && document.SectionIds[document.SectionAt(index)] == PaneIds.Description)
-        {
-            // The Description is one text: the accent frame shows the focus, a mark on one row would mean nothing.
-            return drawn;
         }
 
         return index == cursor ? CursorLine(Untinted(drawn)) : drawn;

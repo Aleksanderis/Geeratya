@@ -79,7 +79,7 @@ internal static class LongText
         if (action is not null)
         {
             spans.Add(new StyledSpan("   ", TextRole.Muted));
-            spans.Add(new StyledSpan("Enter", TextRole.Key));
+            spans.Add(new StyledSpan("za", TextRole.Key));
             spans.Add(new StyledSpan($" {action}", TextRole.Muted));
         }
 

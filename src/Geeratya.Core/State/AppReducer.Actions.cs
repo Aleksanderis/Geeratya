@@ -152,7 +152,8 @@ public sealed partial class AppReducer
                 () => BacklogActions.Jump(state, -1) ?? BoardViewOptions.StepLane(state, -1) ?? Result(state)),
             ActionIds.SectionToggle => InNormal(
                 state,
-                () => BacklogActions.Toggle(state)
+                () => DetailActions.ToggleText(state)
+                    ?? BacklogActions.Toggle(state)
                     ?? SubtaskActions.Toggle(state)
                     ?? Result(state)),
             ActionIds.DetailEdit => InNormal(state, () => DetailActions.EditText(state)),

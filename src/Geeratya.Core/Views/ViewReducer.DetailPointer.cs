@@ -17,6 +17,16 @@ public static partial class ViewReducer
     }
 
     /// <summary>
+    /// Whether the click at <paramref name="placed"/> is on the note of a cut or expanded text of the opened issue:
+    /// it expands or cuts it like <c>z a</c>.
+    /// </summary>
+    public static bool ClickTogglesDetailRow(AppState state, PointerPlaced placed)
+    {
+        return DetailPointerAt(state, placed.Column, placed.Row) is { Tab: { } tab, Hit: { } hit }
+            && DetailPointer.TogglesOnClick(tab.Detail[^1], hit);
+    }
+
+    /// <summary>
     /// Whether the click at <paramref name="placed"/> is on the zoom strip or on a pane's frame: it only moves the
     /// focus, so no double-click or right-click action follows it.
     /// </summary>

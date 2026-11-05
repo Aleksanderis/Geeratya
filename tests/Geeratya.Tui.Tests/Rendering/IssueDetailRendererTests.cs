@@ -230,7 +230,7 @@ public class IssueDetailRendererTests
 
         var body = lines.Skip(FrameBuilder.HeaderRows).Take(11).ToList();
         Assert.StartsWith("+- GCM-12 - Task ", body[0]);
-        Assert.StartsWith("|>Fix login", body[1]);
+        Assert.StartsWith("| Fix login", body[1]);
         Assert.StartsWith("+--", body[2]);
         Assert.StartsWith("+- Description ", body[3]);
         Assert.Contains("1-3 of", body[3]);
@@ -253,7 +253,7 @@ public class IssueDetailRendererTests
         var overlay = Overlay(lines, 160, 30);
 
         Assert.Contains(overlay, line => line.StartsWith("╭─ GCM-12 · Task "));
-        Assert.Contains(overlay, line => line.StartsWith("│>Row summary"));
+        Assert.Contains(overlay, line => line.StartsWith("│ Row summary"));
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public class IssueDetailRendererTests
         Assert.Contains(" Top", top[^1]);
         Assert.Contains(" Bot", end[^1]);
         Assert.Matches(@" \d+%", half[^1]);
-        Assert.NotEqual(top[FrameBuilder.HeaderRows + 1], end[FrameBuilder.HeaderRows + 1]);
+        Assert.NotEqual(top[FrameBuilder.HeaderRows + 2], end[FrameBuilder.HeaderRows + 2]);
         Assert.Contains("second paragraph", string.Join('\n', Overlay(end, 160, 12)));
     }
 
@@ -405,7 +405,7 @@ public class IssueDetailRendererTests
 
         Assert.Contains("My open issues", frame.Body[0].PlainText);
         Assert.All(frame.Body[0].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
-        Assert.StartsWith("╭─ GCM-12", frame.Body[4].PlainText[2..]);
+        Assert.StartsWith("╭─ GCM-12", frame.Body[5].PlainText[4..]);
         Assert.All(frame.Body[^1].Spans, span => Assert.True(span.Ground.HasFlag(SpanGround.Dim)));
     }
 
@@ -776,7 +776,7 @@ public class IssueDetailRendererTests
         var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
 
         Assert.True(marker.Left + marker.Width < box.Left + box.Width);
-        Assert.EndsWith("...│ │", line.TrimEnd());
+        Assert.EndsWith("...│ │ │", line.TrimEnd());
     }
 
     [Fact]

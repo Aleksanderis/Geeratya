@@ -47,7 +47,7 @@ public static class DetailDropdown
 
         var box = DetailOverlayGeometry.Place(width, height);
         var onSide = document.Side is not null && detail.SideCursor is not null;
-        var wide = onSide ? DetailLayout.SidebarWidth - (2 * SidebarInset) : Math.Min(MaxNarrowWidth, box.Width - 2);
+        var wide = onSide ? DetailLayout.SidebarWidthFor(document.Width) - (2 * SidebarInset) : Math.Min(MaxNarrowWidth, box.Width - 2);
         var left = box.Left + (onSide ? DetailLayout.MainWidth(document.Width) + DetailLayout.SidebarGap : 0)
             + SidebarInset;
         var content = ContentLines(form, wide - Chrome);

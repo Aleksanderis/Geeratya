@@ -40,9 +40,7 @@ public static class CreatePaneOverlay
 
         var drawn = new List<OverlayRegion>();
         var lines = new CreatePaneLayout(form, keymap, ascii, drawn).Build(box.Width, box.Height);
-        var result = OverlayBox.Inactive(body);
-
-        OverlayBox.Cover(regions, box.Top, box.Left, box.Width, box.Height);
+        OverlayBox.Cover(regions, box.CardTop, box.CardLeft, box.CardWidth, box.CardHeight);
 
         regions?.AddRange(drawn.Select(region => region with
         {
@@ -50,17 +48,6 @@ public static class CreatePaneOverlay
             Left = region.Left + box.Left,
         }));
 
-        for (var index = 0; index < box.Height && box.Top + index < result.Count; index++)
-        {
-            var line = index < lines.Count ? lines[index] : StyledLine.Empty;
-
-            result[box.Top + index] = OverlayBox.Over(
-                result[box.Top + index],
-                StyledLines.Fit(line, box.Width),
-                box.Left,
-                width);
-        }
-
-        return result;
+        return DetailCard.Draw(body, lines, box, width);
     }
 }

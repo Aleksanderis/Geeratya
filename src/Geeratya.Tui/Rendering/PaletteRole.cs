@@ -23,6 +23,7 @@ public enum PaletteRole
     Quote,
     Selected,
     Key,
+    OverlayKey,
     StatusToDo,
     StatusInProgress,
     StatusDone,

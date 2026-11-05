@@ -32,7 +32,7 @@ public class WhichKeyOverlayTests
         var lines = WhichKeyOverlay.Lines("Space", _keymap);
         var keyed = lines.First(line => line.Spans.Count == 2);
 
-        Assert.Equal(TextRole.Key, keyed.Spans[0].Role);
+        Assert.Equal(TextRole.OverlayKey, keyed.Spans[0].Role);
         Assert.Equal(TextRole.Body, keyed.Spans[1].Role);
         Assert.Contains(lines, line => line.Spans is [{ Role: TextRole.Heading }]);
     }

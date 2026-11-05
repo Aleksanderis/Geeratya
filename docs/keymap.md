@@ -33,7 +33,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `$` | Go to the last column | `nav.last-column` | everyday |
 | `]]` | Next section of the Scrum backlog, or next swimlane | `detail.section-next` | everyday |
 | `[[` | Previous section of the Scrum backlog, or previous swimlane | `detail.section-previous` | everyday |
-| `za` | Expand or collapse sub-tasks of a card, or fold a backlog section | `section.toggle` | everyday |
+| `za` | Expand or collapse sub-tasks of a card, a cut text or a backlog section | `section.toggle` | everyday |
 | `Ctrl-h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |
 | `Ctrl-Backspace` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |
 | `Ctrl-w h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |

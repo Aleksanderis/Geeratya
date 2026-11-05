@@ -100,7 +100,7 @@ public static class IssueDocumentBuilder
             return sink.ToDocument(total) with { ViewportRows = viewportRows, CommentRowIds = commentIds };
         }
 
-        var side = BuildSide(detail);
+        var side = BuildSide(detail, total);
 
         return sink.ToDocument(total) with
         {
@@ -111,13 +111,14 @@ public static class IssueDocumentBuilder
     }
 
     /// <summary>The Details sidebar: a document of its own, laid out for the sidebar width.</summary>
-    private static DetailDocument BuildSide(DetailState detail)
+    private static DetailDocument BuildSide(DetailState detail, int total)
     {
         var side = new DocumentSink();
+        var sidebarWidth = DetailLayout.SidebarWidthFor(total);
 
-        DetailsPane.Add(side, detail, DetailLayout.SidebarWidth, Panel.InnerWidth(DetailLayout.SidebarWidth));
+        DetailsPane.Add(side, detail, sidebarWidth, Panel.InnerWidth(sidebarWidth));
 
-        return side.ToDocument(DetailLayout.SidebarWidth);
+        return side.ToDocument(sidebarWidth);
     }
 
     private static string FailureText(string key, Failed failed)
@@ -286,7 +287,7 @@ public static class IssueDocumentBuilder
     // The key that expands or cuts the long Description, shown in the frame instead of a row of the text.
     private static StyledSpan[] ToggleHint(string action)
     {
-        return [new StyledSpan("Enter", TextRole.Key), new StyledSpan($" {action}", TextRole.Muted)];
+        return [new StyledSpan("za", TextRole.Key), new StyledSpan($" {action}", TextRole.Muted)];
     }
 
     private static StyledSpan[]? Joined(StyledSpan[]? first, StyledSpan[]? browser)

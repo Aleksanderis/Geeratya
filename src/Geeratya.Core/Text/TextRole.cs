@@ -13,6 +13,10 @@ public enum TextRole
     Quote,
     Selected,
     Key,
+
+    /// <summary>A key listed in an overlay (which-key, help): bold in the warn colour, as in Gitunia.</summary>
+    OverlayKey,
+
     StatusToDo,
     StatusInProgress,
     StatusDone,

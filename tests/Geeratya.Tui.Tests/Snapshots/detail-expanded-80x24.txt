@@ -1,24 +1,24 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ Description ─────────────────────────── Enter collapse · (edit in browser) ─╮
-│ Heading one                                                                  │
+╭─ Description ────────────────── 38-40 of 40 · za expand · (edit in browser) ─╮
+│   hidden                                                                    ▲│
+│                                                                             ░│
+│ https://example.com/card                                                    █│
+│ … 37 more lines                                                          ...▼│
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
+│ Jane Doe                                                             1 d ago │
+│ Found it: the redirect target is dropped after the refresh.                  │
 │                                                                              │
-│ Heading three                                                                │
+│ 日本語の作者                                                         3 h ago │
+│ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
 │                                                                              │
-│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji  │
-│ 😄 and unicode: żółć 日本語 🚀                                               │
-│ after break                                                                  │
+│ Ola Nordmann                                                       5 min ago │
+│ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
 │                                                                              │
-│ Colored H_2 underlined 2026-01-01 [READY]                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Details ────────────────────────────────────────────────────────────────────╮
+│ Status  moves via transition                                                 │
+│  ● In Progress ▾                                                             │
 │                                                                              │
-│ - bullet one                                                                 │
-│ - bullet two                                                                 │
-│   - nested                                                                   │
-│                                                                              │
-│ 3. third                                                                     │
-│ 4. fourth                                                                    │
-│                                                                              │
-│ [x] done task                                                                │
-│ [ ] todo task                                                                │
-│                                                                              │
- NORMAL  My open issues › GCM-12 · 5%      j/k field  ? help  : commands  q quit
+ NORMAL  This description has formatting that cannot be edited here: open it in 

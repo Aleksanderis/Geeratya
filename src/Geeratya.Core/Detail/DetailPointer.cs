@@ -91,28 +91,53 @@ internal static class DetailPointer
     /// </summary>
     public static bool OpensOnClick(DetailState top, DetailPointerHit hit)
     {
-        if (hit.Kind != DetailPointerKind.Row || top.Document is not { } document)
+        if (TargetAt(top, hit) is not { } target)
         {
             return false;
         }
 
-        var shown = hit.OnSide ? document.Side : document;
-
-        if (shown is null || hit.Line < 0 || hit.Line >= shown.Targets.Count
-            || shown.Targets[hit.Line] is not { } target)
-        {
-            return false;
-        }
-
-        if ((target.Toggles && target.Note) || target.Kind == DetailTargetKind.Issue)
+        if (target.Kind == DetailTargetKind.Issue)
         {
             return true;
         }
 
-        var label = shown.BlockAt(hit.Line)?.Start ?? hit.Line;
+        if (target.Toggles && target.Note)
+        {
+            return false;
+        }
+
+        var document = top.Document!;
+        var shown = hit.OnSide ? document.Side : document;
+        var label = shown?.BlockAt(hit.Line)?.Start ?? hit.Line;
 
         return hit.OnSide && target is { Kind: DetailTargetKind.Field } && hit.Line > label
             && DetailsPane.IsEditable(top, target.Value);
+    }
+
+    /// <summary>
+    /// Whether a click on <paramref name="hit"/> is on the note of a cut or expanded text (<c>… N more lines</c>),
+    /// which expands or cuts it like <c>z a</c> does.
+    /// </summary>
+    public static bool TogglesOnClick(DetailState top, DetailPointerHit hit)
+    {
+        return TargetAt(top, hit) is { Toggles: true, Note: true };
+    }
+
+    private static DetailTarget? TargetAt(DetailState top, DetailPointerHit hit)
+    {
+        if (hit.Kind != DetailPointerKind.Row || top.Document is not { } document)
+        {
+            return null;
+        }
+
+        var shown = hit.OnSide ? document.Side : document;
+
+        if (shown is null || hit.Line < 0 || hit.Line >= shown.Targets.Count)
+        {
+            return null;
+        }
+
+        return shown.Targets[hit.Line];
     }
 
     private static DetailPointerHit OnSidebar(DetailState top, DetailDocument side, int rows, int bodyRow)

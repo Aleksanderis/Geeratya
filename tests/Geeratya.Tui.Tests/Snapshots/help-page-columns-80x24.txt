@@ -18,7 +18,7 @@
 │ │               │              swimlane                                    │ │
 │ │               │   [[         Previous section of the Scrum backlog, or   │ │
 │ │               │              previous swimlane                           │ │
-│ │               │   za         Expand or collapse sub-tasks of a card, or ▼│ │
+│ │               │   za         Expand or collapse sub-tasks of a card, a  ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

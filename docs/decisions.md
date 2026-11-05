@@ -258,3 +258,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-05 (workflow plugin replaces the project work skills)
 
 **Process:** The project-local `work-task`, `work-orchestrator`, `work-readiness` and `retrospective` skills, the `reviewer` agent and `scripts/test-owner-feedback.sh` are removed; the workflow plugin provides them, configured by `.claude/workflow.md`. Project-specific content moved to `.claude/review-checklist.md` (reviewer checks) and `.claude/agent-identity.md` (comment headers, markers, signatures). Same change as in Gitunia.
+
+## 2026-11-05
+
+**UI:** In the issue detail `Enter` edits (Description included) and `z a` (`section.toggle`, vim fold) expands or cuts a long Description or comment, the key named in the pane frame; no `>` cursor mark in any detail pane (selection tint instead); which-key keys are warn, group headers accent (Gitunia); the Details sidebar is ~30% of the overlay; the detail and create form sit in a framed card. Why: owner review of the pane UI, Enter was ambiguous between edit and expand. Yank/copy is still out of scope (2026-11 #467).

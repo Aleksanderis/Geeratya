@@ -34,9 +34,9 @@ public class CommentsPaneTests
 
         // The header bar, three lines, the note and the gap.
         Assert.Equal(6, cut.Count);
-        Assert.Contains("… 5 more lines   Enter expand", cut[4].Line.PlainText);
+        Assert.Contains("… 5 more lines   za expand", cut[4].Line.PlainText);
         Assert.Equal(9, zoomed.Count);
-        Assert.Contains("… 2 more lines   Enter expand", zoomed[7].Line.PlainText);
+        Assert.Contains("… 2 more lines   za expand", zoomed[7].Line.PlainText);
         Assert.Equal(TextRole.ValueBlock, cut[0].Line.Spans[0].Role);
         Assert.Equal(70, cut[0].Line.Spans.Sum(span => DisplayWidth.Of(span.Text)));
     }

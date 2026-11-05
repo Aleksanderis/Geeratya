@@ -22,6 +22,7 @@ public sealed partial class AppReducer
 
     // A click on a sub-task row runs the key's handler (mouse table: SubtaskRow).
     private static readonly ActionRequested _subtaskClick = new(ActionIds.SectionToggle, 1, DateTimeOffset.UnixEpoch);
+    private static readonly ActionRequested _toggleClick = new(ActionIds.SectionToggle, 1, DateTimeOffset.UnixEpoch);
     private static readonly ActionRequested _openClick = new(ActionIds.ItemOpen, 1, DateTimeOffset.UnixEpoch);
 
     private static readonly string[] _sourceVerbs =

@@ -4,33 +4,33 @@
 │  Key T Sum╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮nee        │
 │> A-1 T Sum│ > Issue detail │   j          Move down  (Down)                                              │           │
 │           │   Global       │   k          Move up  (Up)                                                  │           │
-│ ╭─ A-1 · T│   All actions  │   gg         Go to the top  (Home)                                          │─────────╮ │
-│ │>Summary │   Commands     │   G          Go to the bottom  (End)                                        │nsition  │ │
-│ ╰─────────│                │   Ctrl-d     Page down  (PageDown)                                          │         │ │
-│ ╭─ Descrip│                │   Ctrl-u     Page up  (PageUp)                                              │         │ │
-│ │ Loading…│                │   <space>a   Open the actions menu of the selected issue                    │         │ │
-│ ╰─────────│                │   Enter      Open the selected item                                         │         │ │
-│ ╭─ Remote │                │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)      │         │ │
-│ │ Loading…│                │              (Ctrl-Backspace, Ctrl-w h)                                     │         │ │
-│ ╰─────────│                │   Ctrl-j     Focus the pane below  (Ctrl-w j)                               │         │ │
-│ ╭─ Comment│                │   Ctrl-k     Focus the pane above  (Ctrl-w k)                               │         │ │
-│ │ Loading…│                │   Ctrl-l     Focus the pane to the right (zoomed: the next section)         │         │ │
-│ ╰─────────│                │              (Ctrl-w l)                                                     │         │ │
-│           │                │   <space>z   Zoom the focused pane, or leave the zoom                       │         │ │
-│           │                │   <space>o   Open the issue in the browser                                  │         │ │
-│           │                │   <space>p   Open the parent issue                                          │         │ │
-│           │                │   i          Edit the title or the Description in place                     │         │ │
-│           │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │         │ │
-│           │                │              or board)                                                      │         │ │
-│           │                │   <space>ia  Assign the issue: search people, or unassign                   │         │ │
-│           │                │   <space>im  Assign the issue to me                                         │         │ │
-│           │                │   <space>is  Change the status of the issue                                 │         │ │
-│           │                │   <space>iC  Create a sub-task of the selected issue                        │         │ │
-│           │                │   <space>j   Jump to a visible row (type text, press the letter on the row) │         │ │
-│           │                │   <space>ma  Add a comment to the issue                                     │         │ │
-│           │                │   <space>me  Edit the comment under the cursor                              │         │ │
-│           │                │                                                                             │         │ │
-│           │                │                                                                             │         │ │
-│           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯─────────╯ │
+│ ╭─────────│   All actions  │   gg         Go to the top  (Home)                                          │─────────╮ │
+│ │ ╭─ A-1 ·│   Commands     │   G          Go to the bottom  (End)                                        │───────╮ │ │
+│ │ │ Summar│                │   Ctrl-d     Page down  (PageDown)                                          │ition  │ │ │
+│ │ ╰───────│                │   Ctrl-u     Page up  (PageUp)                                              │       │ │ │
+│ │ ╭─ Descr│                │   <space>a   Open the actions menu of the selected issue                    │       │ │ │
+│ │ │ Loadin│                │   Enter      Open the selected item                                         │       │ │ │
+│ │ ╰───────│                │   za         Expand or collapse sub-tasks of a card, a cut text or a        │       │ │ │
+│ │ ╭─ Remot│                │              backlog section                                                │       │ │ │
+│ │ │ Loadin│                │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)      │       │ │ │
+│ │ ╰───────│                │              (Ctrl-Backspace, Ctrl-w h)                                     │       │ │ │
+│ │ ╭─ Comme│                │   Ctrl-j     Focus the pane below  (Ctrl-w j)                               │       │ │ │
+│ │ │ Loadin│                │   Ctrl-k     Focus the pane above  (Ctrl-w k)                               │       │ │ │
+│ │ ╰───────│                │   Ctrl-l     Focus the pane to the right (zoomed: the next section)         │       │ │ │
+│ │         │                │              (Ctrl-w l)                                                     │       │ │ │
+│ │         │                │   <space>z   Zoom the focused pane, or leave the zoom                       │       │ │ │
+│ │         │                │   <space>o   Open the issue in the browser                                  │       │ │ │
+│ │         │                │   <space>p   Open the parent issue                                          │       │ │ │
+│ │         │                │   i          Edit the title or the Description in place                     │       │ │ │
+│ │         │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
+│ │         │                │              or board)                                                      │       │ │ │
+│ │         │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
+│ │         │                │   <space>im  Assign the issue to me                                         │       │ │ │
+│ │         │                │   <space>is  Change the status of the issue                                 │       │ │ │
+│ │         │                │   <space>iC  Create a sub-task of the selected issue                        │       │ │ │
+│ │         │                │   <space>j   Jump to a visible row (type text, press the letter on the row) │       │ │ │
+│ │         │                │   <space>ma  Add a comment to the issue                                     │       │ │ │
+│ │         │                │   <space>me  Edit the comment under the cursor                              │───────╯ │ │
+│ ╰─────────╰──────────────────────────────────────────────────────────────────────────────────────────────╯─────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

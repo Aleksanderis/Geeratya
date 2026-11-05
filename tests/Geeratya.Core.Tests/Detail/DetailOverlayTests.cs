@@ -24,11 +24,11 @@ public class DetailOverlayTests
     [Theory]
     [InlineData(64, 24, 0, 0, 64, 24, true)]
     [InlineData(99, 24, 0, 0, 99, 24, true)]
-    [InlineData(100, 24, 2, 4, 96, 19, false)]
-    [InlineData(120, 30, 2, 4, 116, 25, false)]
-    [InlineData(200, 40, 20, 4, 160, 35, false)]
-    [InlineData(120, 9, 2, 1, 116, 7, false)]
-    [InlineData(120, 12, 2, 3, 116, 8, false)]
+    [InlineData(100, 24, 4, 5, 92, 17, false)]
+    [InlineData(120, 30, 4, 5, 112, 23, false)]
+    [InlineData(200, 40, 22, 5, 156, 33, false)]
+    [InlineData(120, 9, 4, 2, 112, 5, false)]
+    [InlineData(120, 12, 4, 2, 112, 8, false)]
     public void GivenATerminal_WhenPlacing_ThenTheOverlayIsCentredCappedAndFillsBelow100(
         int width,
         int bodyHeight,
@@ -87,7 +87,7 @@ public class DetailOverlayTests
         var wide = _reducer.Reduce(Start(), new ViewportChanged(30, 200, 33)).State;
         var opened = Open(wide);
 
-        Assert.Equal(DetailOverlayGeometry.MaxWidth, Active(opened).Detail[^1].Document!.Width);
+        Assert.Equal(DetailOverlayGeometry.MaxWidth - (2 * DetailOverlayGeometry.CardInsetColumns), Active(opened).Detail[^1].Document!.Width);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class DetailOverlayTests
         var wide = _reducer.Reduce(narrow, new ViewportChanged(30, 120, 33)).State;
 
         Assert.Equal(80, Active(narrow).Detail[^1].Document!.Width);
-        Assert.Equal(116, Active(wide).Detail[^1].Document!.Width);
+        Assert.Equal(112, Active(wide).Detail[^1].Document!.Width);
     }
 
     [Fact]

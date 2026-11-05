@@ -16,8 +16,8 @@
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
 │           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, or fold a backlog       │           │
-│           │               │              section                                                         │           │
+│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
+│           │               │              backlog section                                                 │           │
 │           │               │   <space>l   Switch between list and columns                                 │           │
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │

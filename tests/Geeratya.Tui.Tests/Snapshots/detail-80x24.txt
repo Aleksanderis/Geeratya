@@ -1,9 +1,9 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
-│>Fix login redirect after token refresh                           In Progr... │
+│ Fix login redirect after token refresh                           In Progr... │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ───────────────── 1-3 of 40 · Enter expand · (edit in browser) ─╮
+╭─ Description ──────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮
 │ Heading one                                                                 ▲│
 │                                                                             █│
 │ Heading three                                                               ░│

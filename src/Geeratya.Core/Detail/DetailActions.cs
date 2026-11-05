@@ -26,7 +26,7 @@ internal static class DetailActions
             return null;
         }
 
-        if (target.Toggles)
+        if (target.Toggles && target.Kind != DetailTargetKind.Field)
         {
             return new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target), _noEffects);
         }
@@ -42,6 +42,22 @@ internal static class DetailActions
         }
 
         return target.Kind is DetailTargetKind.Issue or DetailTargetKind.Comment ? null : OpenTarget(state, target);
+    }
+
+    /// <summary>
+    /// <c>section.toggle</c> (<c>z a</c>) in an issue detail: expands the cut Description or comment under the cursor,
+    /// or cuts it again. Null outside an issue detail; the key does nothing on a row without such a text.
+    /// </summary>
+    public static ReduceResult? ToggleText(AppState state)
+    {
+        if (TopOf(state) is not { } top)
+        {
+            return null;
+        }
+
+        return DetailReducer.TargetOf(top.Detail) is { Toggles: true } target
+            ? new ReduceResult(DetailReducer.ToggleExpanded(state, top.Tab, target), _noEffects)
+            : new ReduceResult(state, _noEffects);
     }
 
     /// <summary>

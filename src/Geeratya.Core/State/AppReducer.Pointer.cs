@@ -81,6 +81,11 @@ public sealed partial class AppReducer
 
         if (placed.Then is not { } action)
         {
+            if (ViewReducer.ClickTogglesDetailRow(cleared, placed))
+            {
+                return WithPlacement(placement, _toggleClick);
+            }
+
             if (ViewReducer.ClickOpensDetailRow(cleared, placed))
             {
                 return WithPlacement(placement, _openClick);

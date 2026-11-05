@@ -20,5 +20,5 @@
 │ screenshot.png · image/png · 3.3 MiB · 5 h ago                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Comments ───────────────────────────────────────────────────────────────────╮
-│>No comments.                                                             ... │
+│ No comments.                                                             ... │
  NORMAL  My open issues › GCM-12 · 20%     j/k field  ? help  : commands  q quit

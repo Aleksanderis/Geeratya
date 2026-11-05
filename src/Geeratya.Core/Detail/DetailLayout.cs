@@ -19,8 +19,12 @@ public static class DetailLayout
     /// </summary>
     public const int SidebarMinWidth = 100;
 
-    /// <summary>The width of the Details sidebar, frame included.</summary>
+    /// <summary>The narrowest Details sidebar, frame included.</summary>
     public const int SidebarWidth = 33;
+
+    private const int SidebarMaxWidth = 56;
+    private const int SidebarShareTenths = 3;
+    private const int Tenths = 10;
 
     /// <summary>The columns between the main column and the sidebar.</summary>
     public const int SidebarGap = 1;
@@ -29,6 +33,15 @@ public static class DetailLayout
     public static bool HasSidebar(int width)
     {
         return width >= SidebarMinWidth;
+    }
+
+    /// <summary>
+    /// The width of the Details sidebar, frame included, in a detail <paramref name="width"/> columns wide: about three
+    /// tenths of it, at least <see cref="SidebarWidth"/> and at most 56 columns.
+    /// </summary>
+    public static int SidebarWidthFor(int width)
+    {
+        return Math.Clamp(width * SidebarShareTenths / Tenths, SidebarWidth, SidebarMaxWidth);
     }
 
     /// <summary>The width of the column the main panes are laid out for: all of it, or less the sidebar.</summary>
@@ -51,7 +64,7 @@ public static class DetailLayout
     /// </summary>
     public static int MainWidth(int width)
     {
-        return width - SidebarWidth - SidebarGap;
+        return width - SidebarWidthFor(width) - SidebarGap;
     }
 
     /// <summary>

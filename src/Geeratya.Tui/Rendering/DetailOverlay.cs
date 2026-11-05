@@ -6,9 +6,8 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The wide overlay that hosts the issue detail (<c>docs/ux-screens.md</c>, "Where it is drawn"): the view of the tab
-/// stays behind it, muted, and the detail is drawn over it at <see cref="DetailOverlayGeometry"/>. The hosted panes
-/// carry
-/// the frames, so the overlay has none of its own. Below 100 columns it fills the body and the view is not drawn.
+/// stays behind it, muted, and the detail is drawn over it at <see cref="DetailOverlayGeometry"/>. The panes sit
+/// in a card (<see cref="DetailCard"/>). Below 100 columns it fills the body and the view is not drawn.
 /// </summary>
 public static class DetailOverlay
 {
@@ -50,20 +49,6 @@ public static class DetailOverlay
             return lines;
         }
 
-        var result = OverlayBox.Inactive(body);
-
-        // A document shorter than the overlay leaves blank surface below it, so the box stays one rectangle.
-        for (var index = 0; index < box.Height && box.Top + index < result.Count; index++)
-        {
-            var line = index < lines.Count ? lines[index] : StyledLine.Empty;
-
-            result[box.Top + index] = OverlayBox.Over(
-                result[box.Top + index],
-                StyledLines.Fit(line, box.Width),
-                box.Left,
-                width);
-        }
-
-        return result;
+        return DetailCard.Draw(body, lines, box, width);
     }
 }

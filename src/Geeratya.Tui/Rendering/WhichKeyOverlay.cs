@@ -183,7 +183,7 @@ public static class WhichKeyOverlay
 
         return new StyledLine(
         [
-            new StyledSpan(row.Key.PadRight(KeyColumn), TextRole.Key),
+            new StyledSpan(row.Key.PadRight(KeyColumn), TextRole.OverlayKey),
             new StyledSpan(row.Label, TextRole.Body),
         ]);
     }

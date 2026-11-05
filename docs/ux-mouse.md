@@ -156,7 +156,7 @@ The opened issue is drawn in the wide overlay of panes (`docs/ux-screens.md`, "P
 | Outside the dropdown | Click | Closes it, same as `Esc` (the issue stays open); nothing else is clicked |
 | Sub-tasks, Child issues, Linked issues row | Click | Opens that issue in the stack, same as `Enter` |
 | A comment's header bar | Click | Selects the comment (its keys `comment.edit`, `comment.delete` act on it) |
-| A `… N more lines` or `Show less` row (Description or a comment) | Click | Expands or cuts the text, same as `Enter` |
+| A `… N more lines` or `Show less` row (Description or a comment) | Click | Expands or cuts the text, same as `z a` |
 | A section name of the zoom strip | Click | Zooms that section, same as `Ctrl-h`/`Ctrl-l` until it; the gaps between names do nothing |
 | Any row while Summary or Description is edited in place | Click, double-click, right-click, wheel | Ignored: the edit state has no mouse targets of its own and the rest of the detail takes none until `Ctrl-s` or `Esc` (a click on the body outside the overlay does nothing either, no overlay box is reported; the tab bar row acts as under any overlay) |
 

@@ -124,7 +124,7 @@ public class DetailZoomTests
         var state = OpenedWith(Comment("1", 8));
         var text = string.Join('\n', Document(state).Lines.Select(line => line.PlainText));
 
-        Assert.Contains("Enter expand   <space>z zoom", text);
+        Assert.Contains("za expand   <space>z zoom", text);
         Assert.DoesNotContain("item 4", text);
     }
 

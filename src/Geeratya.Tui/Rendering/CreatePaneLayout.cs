@@ -52,7 +52,7 @@ internal sealed class CreatePaneLayout
         var mainWidth = wide ? DetailLayout.MainWidth(width) : width;
         var main = MainColumn(mainWidth, height, wide);
         var column = mainWidth + DetailLayout.SidebarGap;
-        var side = wide ? Details(DetailLayout.SidebarWidth, height, column, 0) : [];
+        var side = wide ? Details(DetailLayout.SidebarWidthFor(width), height, column, 0) : [];
         var lines = new List<StyledLine>(height);
 
         for (var row = 0; row < height; row++)
