@@ -105,6 +105,12 @@ public sealed record DetailState(
     /// </summary>
     public string? Zoomed { get; init; }
 
+    /// <summary>
+    /// Where the line selection of the main column started (<c>v</c>, <see cref="YankAnchor"/>), null without one. A new
+    /// layout of the document (data arrived, a text expanded or cut, a resize) ends it, because its rows moved.
+    /// </summary>
+    public YankAnchor? YankAnchor { get; init; }
+
     /// <summary>An issue with all three parts loading under the given request ids.</summary>
     public static DetailState Opened(
         string key,

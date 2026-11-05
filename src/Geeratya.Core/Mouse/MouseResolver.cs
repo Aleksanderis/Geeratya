@@ -150,6 +150,11 @@ public static class MouseResolver
         DateTimeOffset at = default,
         bool live = false)
     {
+        if (DetailDrag(context, fromColumn, fromRow, toColumn, toRow) is { } detailDrag)
+        {
+            return [detailDrag];
+        }
+
         var gesture = context.ColumnsLayout ? MouseGesture.Drag : MouseGesture.DragRows;
 
         if (context.OverlayOpen || (fromColumn == toColumn && fromRow == toRow)
@@ -209,6 +214,25 @@ public static class MouseResolver
     public static int DragScrollStep(MouseContext context, int fromColumn, int fromRow, int pointerRow)
     {
         return LiveStart(context, fromColumn, fromRow) is null ? 0 : DragAutoScroll.StepFor(context, pointerRow);
+    }
+
+    // A drag from one cell of the opened issue to another: select and copy the text between them (mouse table: Detail).
+    private static DetailDragged? DetailDrag(MouseContext context, int fromColumn, int fromRow, int toColumn, int toRow)
+    {
+        if (context.OverlayOpen || !context.DetailOpen || (fromColumn == toColumn && fromRow == toRow)
+            || DefaultMouseMap.Find(MouseTarget.Detail, MouseGesture.DragRows) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return null;
+        }
+
+        if (MouseHitTester.Locate(context, fromColumn, fromRow) is not { Target: MouseTarget.Detail } start
+            || MouseHitTester.Locate(context, toColumn, toRow) is not { Target: MouseTarget.Detail } end)
+        {
+            return null;
+        }
+
+        return new DetailDragged(fromColumn, start.Row, toColumn, end.Row, context.Width);
     }
 
     // The body row a live range starts on, null when this press cannot start one.

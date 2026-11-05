@@ -70,6 +70,7 @@ public static class ActionIds
     public const string IssueOpenInBrowser = "issue.open-in-browser";
     public const string IssueOpenParent = "issue.open-parent";
     public const string DetailEdit = "detail.edit";
+    public const string DetailYank = "detail.yank";
     public const string IssueTransition = "issue.transition";
     public const string IssueTransitionNext = "issue.transition-next";
     public const string IssueTransitionPrevious = "issue.transition-previous";

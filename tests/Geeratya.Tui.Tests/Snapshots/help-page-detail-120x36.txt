@@ -22,15 +22,15 @@
 │ │         │                │   <space>o   Open the issue in the browser                                  │       │ │ │
 │ │         │                │   <space>p   Open the parent issue                                          │       │ │ │
 │ │         │                │   i          Edit the title or the Description in place                     │       │ │ │
+│ │         │                │   y          Copy the selection or the field under the cursor               │       │ │ │
 │ │         │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
 │ │         │                │              or board)                                                      │       │ │ │
 │ │         │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
 │ │         │                │   <space>im  Assign the issue to me                                         │       │ │ │
 │ │         │                │   <space>is  Change the status of the issue                                 │       │ │ │
-│ │         │                │   <space>iC  Create a sub-task of the selected issue                        │       │ │ │
-│ │         │                │   <space>j   Jump to a visible row (type text, press the letter on the row) │       │ │ │
-│ │         │                │   <space>ma  Add a comment to the issue                                     │       │ │ │
-│ │         │                │   <space>me  Edit the comment under the cursor                              │───────╯ │ │
+│ │         │                │   v          Start or end Visual mode (a range of rows, or of lines in an   │       │ │ │
+│ │         │                │              issue)                                                         │       │ │ │
+│ │         │                │   <space>iC  Create a sub-task of the selected issue                       ▼│───────╯ │ │
 │ ╰─────────╰──────────────────────────────────────────────────────────────────────────────────────────────╯─────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

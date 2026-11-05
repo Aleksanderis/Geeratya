@@ -305,15 +305,15 @@ public class SelectionTests
     }
 
     [Fact]
-    public void GivenAnIssueOpen_WhenPressingV_ThenItIsRefused()
+    public void GivenAnIssueOpen_WhenPressingV_ThenNoRowIsSelectedInTheListUnderIt()
     {
         var state = Loaded(ViewLayout.List, "A-1", "A-2");
         var opened = Press(state, "Enter").State;
 
         var result = Press(opened, "v");
 
-        Assert.Equal("Select rows in the list, not inside an issue", result.State.Message);
         Assert.Null(Tab(result.State).VisualAnchor);
+        Assert.Equal(0, RowSelection.Count(Tab(result.State)));
     }
 
     [Fact]

@@ -80,7 +80,10 @@ public sealed partial class AppReducer
                 or ActionIds.PaneZoom => InNormal(
                     state,
                     () => DetailActions.FocusPane(state, action) ?? Result(PaneActions.Apply(state, action) ?? state)),
-            ActionIds.SelectionVisual => InNormal(state, () => SelectionActions.ToggleVisual(state)),
+            ActionIds.SelectionVisual => InNormal(
+                state,
+                () => DetailYank.ToggleVisual(state) ?? SelectionActions.ToggleVisual(state)),
+            ActionIds.DetailYank => InNormal(state, () => DetailYank.Yank(state) ?? Result(state)),
             ActionIds.SelectionMark => InNormal(state, () => SelectionActions.ToggleMark(state, true)),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
             ActionIds.RankDown => InNormal(state, () => RankActions.Step(state, RankMove.Down, 1, at)),

@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Detail;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
@@ -15,7 +16,7 @@ public sealed partial class AppReducer
     // Esc in the body: a picked-up rank issue goes first, then Visual mode, then the marks.
     private static AppState Escaped(AppState state)
     {
-        return SelectionActions.Back(state) ?? RankActions.DropPickup(state);
+        return DetailYank.Back(state) ?? SelectionActions.Back(state) ?? RankActions.DropPickup(state);
     }
 
     private static AppState ToNormal(AppState state)

@@ -82,6 +82,21 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenALineSelectionInTheDescription_WhenBuilding_ThenTheLinesBetweenAreInTheRangeTintAndTheFrameIsNot()
+    {
+        var state = OnLineWith(Loaded(120, 36), "Heading one");
+        var before = FrameBuilder.BuildStyled(state, 120, 36, _keymap)!;
+        var selecting = Keys(state, "v", "j", "j");
+
+        var frame = FrameBuilder.BuildStyled(selecting, 120, 36, _keymap)!;
+
+        Assert.DoesNotContain(before.Body, line => line.Spans.Any(span => span.Role == TextRole.Range));
+        var ranged = frame.Body.Where(line => line.Spans.Any(span => span.Role == TextRole.Range)).ToList();
+        Assert.NotEmpty(ranged);
+        Assert.All(ranged, line => Assert.DoesNotContain(line.Spans, span => span.Role == TextRole.Range && span.Text.Contains('│')));
+    }
+
+    [Fact]
     public void GivenPrebuiltCommentRows_WhenBuildingTheDocument_ThenThoseRowsAreUsed()
     {
         var loaded = Loaded(80, 24);

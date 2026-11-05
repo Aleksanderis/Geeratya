@@ -52,9 +52,18 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
+    public Task<int> RunDetachedAsync(
+        string program,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
+        return RunDetachedAsync(program, arguments, null, cancellationToken);
+    }
+
     public async Task<int> RunDetachedAsync(
         string program,
         IReadOnlyList<string> arguments,
+        string? standardInput,
         CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo(program)
@@ -74,6 +83,12 @@ public sealed class ProcessRunner : IProcessRunner
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         timeout.CancelAfter(_timeout);
+
+        if (standardInput is not null)
+        {
+            await WriteInputAsync(process, standardInput, timeout.Token);
+        }
+
         process.StandardInput.Close();
 
         try

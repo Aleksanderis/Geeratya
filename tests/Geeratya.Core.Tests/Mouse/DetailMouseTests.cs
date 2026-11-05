@@ -1,3 +1,4 @@
+using Geeratya.Core.Clipboard;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -36,13 +37,13 @@ public class DetailMouseTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
-    public void GivenAnOpenedIssue_WhenListingTheDetailRowsOfTheMouseMap_ThenOnlyTheWheelDoubleClickAndRightClickRemain()
+    public void GivenAnOpenedIssue_WhenListingTheDetailRowsOfTheMouseMap_ThenOnlyTheWheelDoubleClickRightClickAndDragRemain()
     {
         var gestures = DefaultMouseMap.Rows.Where(row => row.Target == MouseTarget.Detail)
             .Select(row => row.Gesture).Order().ToList();
 
         Assert.Equal(
-            new[] { MouseGesture.DoubleClick, MouseGesture.RightClick, MouseGesture.WheelUp, MouseGesture.WheelDown }
+            new[] { MouseGesture.DoubleClick, MouseGesture.RightClick, MouseGesture.WheelUp, MouseGesture.WheelDown, MouseGesture.DragRows }
                 .Order(),
             gestures);
     }
@@ -328,6 +329,73 @@ public class DetailMouseTests
         var commands = MouseResolver.Resolve(context, 0, Header + 5, MouseGesture.Click, _now);
 
         Assert.Empty(commands);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionLines_WhenDraggingOverThem_ThenTheTextBetweenIsSelectedAndCopied()
+    {
+        var state = Opened();
+        var first = FirstLine(state, target => target is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.Description });
+
+        var result = Drag(state, RowOf(state, first), RowOf(state, first + 2));
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("Paragraph 1.\n\nParagraph 2.", copy.Text);
+        Assert.Null(Top(result.State).YankAnchor);
+    }
+
+    [Fact]
+    public void GivenTheSidebar_WhenDraggingFromIt_ThenNothingIsCopied()
+    {
+        var state = Opened();
+        var context = MouseContext.From(state, Width, Height, Header, _now);
+
+        var commands = MouseResolver.ResolveDrag(
+            context,
+            _box.Left + SideColumn(),
+            Header + _box.Top + 3,
+            _box.Left + SideColumn(),
+            Header + _box.Top + 5,
+            _now);
+        var result = commands.Aggregate(new ReduceResult(state, []), (acc, command) => _reducer.Reduce(acc.State, command));
+
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenAnOpenedIssue_WhenDraggingOnTheSameCell_ThenNothingHappens()
+    {
+        var state = Opened();
+        var context = MouseContext.From(state, Width, Height, Header, _now);
+
+        var commands = MouseResolver.ResolveDrag(context, 20, Header + 5, 20, Header + 5, _now);
+
+        Assert.Empty(commands);
+    }
+
+    private ReduceResult Drag(AppState state, int fromRow, int toRow)
+    {
+        var context = MouseContext.From(state, Width, Height, Header, _now);
+        var column = _box.Left + MainColumn;
+        var commands = MouseResolver.ResolveDrag(
+            context,
+            column,
+            Header + _box.Top + fromRow,
+            column + 4,
+            Header + _box.Top + toRow,
+            _now);
+        var result = new ReduceResult(state, []);
+        var effects = new List<Effect>();
+
+        Assert.NotEmpty(commands);
+
+        foreach (var command in commands)
+        {
+            result = _reducer.Reduce(result.State, command);
+            effects.AddRange(result.Effects);
+        }
+
+        return new ReduceResult(result.State, effects);
     }
 
     private ReduceResult Click(AppState state, int row, int column, MouseGesture gesture = MouseGesture.Click)

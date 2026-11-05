@@ -1,4 +1,5 @@
 using Geeratya.Core.Comments;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
@@ -116,7 +117,8 @@ public static class InputRouting
             && state.Editor is null
             && (state.Status is not null || state.Message is not null)
             && tab?.RankPickup is null
-            && !SelectionActions.CanBack(state);
+            && !SelectionActions.CanBack(state)
+            && !DetailYank.CanBack(state);
     }
 
     /// <summary>Esc in Normal mode with nothing typed and no notice to clear pops the issue stack of the active tab.</summary>
@@ -131,6 +133,7 @@ public static class InputRouting
             && state.Status is null
             && state.Message is null
             && !PaneActions.IsZoomed(state)
+            && !DetailYank.CanBack(state)
             && ViewReducer.CanGoBack(state);
     }
 }

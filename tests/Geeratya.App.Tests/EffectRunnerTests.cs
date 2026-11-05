@@ -8,10 +8,12 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Startup;
+using Geeratya.Core.Clipboard;
 using Geeratya.Core.State;
 using Geeratya.Core.Writes;
 using Geeratya.Platform;
 using Geeratya.Platform.Browser;
+using Geeratya.Platform.Clipboard;
 using Geeratya.Platform.Secrets;
 
 namespace Geeratya.App.Tests;
@@ -30,6 +32,7 @@ public sealed class EffectRunnerTests : IDisposable
     private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("geeratya-effects-");
     private readonly List<Command> _posted = [];
     private readonly FakeBrowserLauncher _launcher = new(BrowserLaunchResult.Success);
+    private readonly FakeClipboard _clipboard = new(ClipboardResult.Success("wl-copy"));
     private readonly ProfileServices _profiles;
     private readonly SiteConnections _connections;
     private readonly NetworkRunner _network;
@@ -53,7 +56,7 @@ public sealed class EffectRunnerTests : IDisposable
 
         _connections = new SiteConnections(_profiles.Tokens, boardKinds: _profiles.BoardKinds);
         _network = new NetworkRunner(_connections, sink, CancellationToken.None);
-        _runner = new EffectRunner(_profiles, _connections, _network, sink, CancellationToken.None, _launcher);
+        _runner = new EffectRunner(_profiles, _connections, _network, sink, CancellationToken.None, _launcher, _clipboard);
     }
 
     [Fact]
@@ -91,6 +94,17 @@ public sealed class EffectRunnerTests : IDisposable
 
         Assert.Equal(url, Assert.Single(_launcher.Opened));
         Assert.Equal("ABC-1", Assert.IsType<UrlOpenFinished>(Assert.Single(_posted)).Label);
+    }
+
+    [Fact]
+    public async Task GivenCopyEffect_WhenRunning_ThenTheClipboardGetsTheTextAndTheReplyIsPosted()
+    {
+        _runner.Run(new CopyToClipboardEffect("some text", "1 line"), active: null);
+
+        await WaitForPostAsync();
+
+        Assert.Equal("some text", Assert.Single(_clipboard.Copied));
+        Assert.Equal(new ClipboardCopied("1 line", true, "wl-copy"), Assert.Single(_posted));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using Geeratya.Core.Cache;
+using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
@@ -11,6 +12,7 @@ using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;
+using Geeratya.Platform.Clipboard;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
 
@@ -47,13 +49,15 @@ public sealed class EffectRunner : IDisposable
     /// <param name="sink">Thread-safe hand-over of a reply to the reducer.</param>
     /// <param name="shutdown">Cancels local work when the application ends.</param>
     /// <param name="browser">The launcher for <see cref="OpenUrlEffect"/>; the platform's own by default.</param>
+    /// <param name="clipboard">The clipboard for <see cref="CopyToClipboardEffect"/>; the platform's own by default.</param>
     public EffectRunner(
         ProfileServices profiles,
         SiteConnections connections,
         NetworkRunner network,
         ICommandSink sink,
         CancellationToken shutdown,
-        IBrowserLauncher? browser = null)
+        IBrowserLauncher? browser = null,
+        IClipboard? clipboard = null)
     {
         _profiles = profiles;
         _connections = connections;
@@ -72,7 +76,7 @@ public sealed class EffectRunner : IDisposable
 
         _startup?.SaveFailed += OnTabsSaveFailed;
 
-        AddLocalHandlers(browser);
+        AddLocalHandlers(browser, clipboard);
         AddNetworkRoutes();
         AddCacheRoutes();
     }
@@ -127,7 +131,7 @@ public sealed class EffectRunner : IDisposable
         _startup?.SaveFailed -= OnTabsSaveFailed;
     }
 
-    private void AddLocalHandlers(IBrowserLauncher? browser)
+    private void AddLocalHandlers(IBrowserLauncher? browser, IClipboard? clipboard)
     {
         // The order is the order of the old handler chain; the handlers claim disjoint effects.
         if (_profiles.Settings is { } settings)
@@ -152,6 +156,7 @@ public sealed class EffectRunner : IDisposable
             ?? BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner());
 
         _local.Add(new BrowserEffectHandler(launcher));
+        _local.Add(new ClipboardEffectHandler(clipboard ?? Clipboards.ForProcess()));
     }
 
     private void AddNetworkRoutes()

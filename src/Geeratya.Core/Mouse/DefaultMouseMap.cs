@@ -84,6 +84,7 @@ public static class DefaultMouseMap
         new(MouseTarget.Lists, MouseGesture.CtrlClick, ActionIds.SelectionMark, 0, 'B'),
         new(MouseTarget.SubtaskRow, MouseGesture.Click, ActionIds.SectionToggle, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.DragRows, ActionIds.SelectionVisual, 1, 'B'),
+        new(MouseTarget.Detail, MouseGesture.DragRows, ActionIds.DetailYank, 1, 'B'),
         new(MouseTarget.Lists, MouseGesture.DragToSprint, ActionIds.SprintMoveIssues, 1, 'M'),
         new(MouseTarget.Lists, MouseGesture.DragToBacklog, ActionIds.SprintMoveToBacklog, 1, 'M'),
         ContextMenuRow(ActionIds.ViewLayoutToggle, 'V'),

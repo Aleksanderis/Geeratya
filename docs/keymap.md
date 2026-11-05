@@ -83,7 +83,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-h` | Move the card to the previous column | `issue.transition-previous` | everyday |
 | `Alt-k` | Rank the issue up (a count moves it that many places) | `rank.up` | everyday |
 | `Alt-j` | Rank the issue down (a count moves it that many places) | `rank.down` | everyday |
-| `v` | Start or end Visual mode (a range of rows) | `selection.visual` | everyday |
+| `v` | Start or end Visual mode (a range of rows, or of lines in an issue) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
 | `<space>sv` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
 | `<space>vv` | Open a saved view in a new tab | `view.saved-open` | everyday |
@@ -105,6 +105,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>iu` | Remove the link under the cursor (asks first; Jira cannot undo it) | `issue.unlink` | advanced |
 | `<space>ie` | Edit the issue title in place (opens the detail from a list or board) | `issue.edit` | everyday |
 | `i` | Edit the title or the Description in place | `detail.edit` | everyday |
+| `y` | Copy the selection or the field under the cursor | `detail.yank` | everyday |
 | `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
 | `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
 | `<space>g` | Jump to an issue by key | `issue.jump` | everyday |
