@@ -37,8 +37,8 @@ TXT
 
 case $platform in
   win-*)
-    out_abs=$(cd "$out" && pwd -W 2>/dev/null || cd "$out" && pwd)
-    stage_abs=$(cd "$stage" && pwd -W 2>/dev/null || cd "$stage" && pwd)
+    out_abs=$(cd "$out" && { pwd -W 2>/dev/null || pwd; })
+    stage_abs=$(cd "$stage" && { pwd -W 2>/dev/null || pwd; })
     powershell.exe -NoProfile -Command "Compress-Archive -Path '$stage_abs\\$name' -DestinationPath '$out_abs\\$name.zip'"
     echo "$out/$name.zip"
     ;;
