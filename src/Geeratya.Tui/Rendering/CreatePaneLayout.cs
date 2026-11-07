@@ -198,14 +198,12 @@ internal sealed class CreatePaneLayout
 
             if (editing)
             {
-                spans.Add(new StyledSpan("_", TextRole.Editable));
+                spans.Add(new StyledSpan(" ", TextRole.EditCaret));
             }
         }
         else if (editing)
         {
-            var typed = FormOverlay.Caretted(new PromptText(field.Value.Text, field.Back), room);
-
-            spans.Add(new StyledSpan(typed, TextRole.Editable));
+            spans.AddRange(CaretRows.Spans(new PromptText(field.Value.Text, field.Back), room, TextRole.Editable));
         }
         else
         {
@@ -294,7 +292,7 @@ internal sealed class CreatePaneLayout
             return StyledLine.Of(DisplayText.Cut(DescriptionPlaceholder, inner), TextRole.Muted);
         }
 
-        return StyledLine.Of(FormOverlay.ParagraphRow(prompt, line, row, caretRow, inner), TextRole.Editable);
+        return new StyledLine(CaretRows.ParagraphSpans(prompt, line, row, caretRow, inner, TextRole.Editable));
     }
 
     private CreatePaneSpec NotEditablePane(int width)

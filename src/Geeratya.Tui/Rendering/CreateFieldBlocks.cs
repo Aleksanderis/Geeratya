@@ -67,9 +67,7 @@ internal static class CreateFieldBlocks
         if (editing && field.Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent
             or FormFieldKind.Select or FormFieldKind.MultiSelect)
         {
-            var typed = FormOverlay.Caretted(new PromptText(field.Entry, field.Back), room);
-
-            items.Add([Block(typed)]);
+            items.Add(CaretRows.Spans(new PromptText(field.Entry, field.Back), room, TextRole.ValueBlock));
         }
 
         return items.Count == 0 ? [[new StyledSpan(NoneText, TextRole.Muted)]] : items;
@@ -81,11 +79,11 @@ internal static class CreateFieldBlocks
 
         if (editing)
         {
-            var row = field.Kind == FormFieldKind.Paragraph ? Caretted(field, room) : FormOverlay.Caretted(
-                new PromptText(text, field.Back),
-                room);
+            var row = field.Kind == FormFieldKind.Paragraph
+                ? Caretted(field, room)
+                : CaretRows.Spans(new PromptText(text, field.Back), room, TextRole.ValueBlock);
 
-            return [[Block(row)]];
+            return [row];
         }
 
         if (text.Length == 0)
@@ -98,13 +96,13 @@ internal static class CreateFieldBlocks
         return [[Block(text.Contains('\n') ? $"{head}…" : head)]];
     }
 
-    private static string Caretted(FormField field, int room)
+    private static IReadOnlyList<StyledSpan> Caretted(FormField field, int room)
     {
         var prompt = new PromptText(field.Value.Text, field.Back);
         var rows = prompt.Text.Split('\n');
         var caretRow = prompt.Text[..prompt.Caret].Count(character => character == '\n');
 
-        return FormOverlay.ParagraphRow(prompt, rows[caretRow], caretRow, caretRow, room);
+        return CaretRows.ParagraphSpans(prompt, rows[caretRow], caretRow, caretRow, room, TextRole.ValueBlock);
     }
 
     private static List<IReadOnlyList<StyledSpan>> LabelItems(FormField field)

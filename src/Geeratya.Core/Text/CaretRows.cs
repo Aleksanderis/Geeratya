@@ -9,37 +9,6 @@ namespace Geeratya.Core.Text;
 public static class CaretRows
 {
     /// <summary>
-    /// The text cut around its caret to fit, with the caret mark drawn in it (<c>_</c> at the end, <c>|</c> inside).
-    /// </summary>
-    public static string Caretted(PromptText prompt, int width)
-    {
-        var window = PromptWindow.Of(prompt, width);
-
-        return $"{window.Before}{window.Caret}{window.After}";
-    }
-
-    /// <summary>
-    /// One row of a paragraph: the row with the caret gets the caret mark, the other rows are cut to the width.
-    /// </summary>
-    /// <param name="prompt">The whole text and its caret.</param>
-    /// <param name="row">The text of the row.</param>
-    /// <param name="index">The row number.</param>
-    /// <param name="caretRow">The row number the caret is on, -1 for none.</param>
-    /// <param name="width">The columns of the row.</param>
-    public static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int width)
-    {
-        if (index != caretRow)
-        {
-            return PromptWindow.Of(new PromptText(row, 0), width).Before;
-        }
-
-        var lineStart = prompt.Text[..prompt.Caret].LastIndexOf('\n') + 1;
-        var column = prompt.Caret - lineStart;
-
-        return Caretted(new PromptText(row, row.Length - column), width);
-    }
-
-    /// <summary>
     /// The one row of a single-line input drawn as a text box: the text on the field fill, the caret as a block, the
     /// rest of the <paramref name="width"/> filled, so the row reads as an input and not as text.
     /// </summary>
@@ -65,9 +34,44 @@ public static class CaretRows
         return Field(new PromptText(row, row.Length - column), width);
     }
 
-    // The window as spans: the caret is a styled cell over the character it sits on (a space after the last one),
-    // so moving it never shifts the text.
+    /// <summary>
+    /// The text cut around its caret to fit, as spans in <paramref name="role"/> with the caret as a styled cell over
+    /// the character it sits on (a space after the last one), so moving it never shifts the text. No fill.
+    /// </summary>
+    public static IReadOnlyList<StyledSpan> Spans(PromptText prompt, int width, TextRole role)
+    {
+        return CutOf(PromptWindow.Of(prompt, width), width).ToSpans(role, false, width);
+    }
+
+    /// <summary>
+    /// One row of a paragraph as spans (see <see cref="Spans"/>); the other rows are cut to the width.
+    /// </summary>
+    public static IReadOnlyList<StyledSpan> ParagraphSpans(
+        PromptText prompt,
+        string row,
+        int index,
+        int caretRow,
+        int width,
+        TextRole role)
+    {
+        if (index != caretRow)
+        {
+            return [new StyledSpan(PromptWindow.Of(new PromptText(row, 0), width).Before, role)];
+        }
+
+        var lineStart = prompt.Text[..prompt.Caret].LastIndexOf('\n') + 1;
+        var column = prompt.Caret - lineStart;
+
+        return Spans(new PromptText(row, row.Length - column), width, role);
+    }
+
     private static StyledLine FieldOf(PromptWindow window, int width)
+    {
+        return new StyledLine(CutOf(window, width).ToSpans(TextRole.EditField, true, width));
+    }
+
+    // The window with the caret as a cell over the character it sits on, cut to the width.
+    private static CaretCut CutOf(PromptWindow window, int width)
     {
         var before = window.Before;
         var after = window.After;
@@ -84,23 +88,32 @@ public static class CaretRows
         if (used > width && after.Length > 0)
         {
             after = DisplayText.Cut(after, Math.Max(0, DisplayWidth.Of(after) - (used - width)));
-            used = DisplayWidth.Of(before) + DisplayWidth.Of(cell) + DisplayWidth.Of(after);
         }
 
-        var spans = new List<StyledSpan> { new(before, TextRole.EditField) };
+        return new CaretCut(before, window.Caret.Length > 0 ? cell : null, after);
+    }
 
-        if (window.Caret.Length > 0)
+    private sealed record CaretCut(string Before, string? Cell, string After)
+    {
+        public List<StyledSpan> ToSpans(TextRole role, bool fill, int width)
         {
-            spans.Add(new StyledSpan(cell, TextRole.EditCaret));
+            var spans = new List<StyledSpan> { new(Before, role) };
+
+            if (Cell is not null)
+            {
+                spans.Add(new StyledSpan(Cell, TextRole.EditCaret));
+            }
+
+            spans.Add(new StyledSpan(After, role));
+
+            var used = spans.Sum(static span => DisplayWidth.Of(span.Text));
+
+            if (fill && used < width)
+            {
+                spans.Add(new StyledSpan(new string(' ', width - used), role));
+            }
+
+            return spans;
         }
-
-        spans.Add(new StyledSpan(after, TextRole.EditField));
-
-        if (used < width)
-        {
-            spans.Add(new StyledSpan(new string(' ', width - used), TextRole.EditField));
-        }
-
-        return new StyledLine(spans);
     }
 }

@@ -194,7 +194,7 @@ public class CreatePaneOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(Open(form with { Fields = fields, Focus = 1 }), 120, 36, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("line 40_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("line 40 ", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("line 1 ", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains('█'));
         Assert.Contains(lines, line => line.Contains(" of 40", StringComparison.Ordinal));
