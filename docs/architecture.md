@@ -4,7 +4,7 @@ Solution layout, layering, composition, threading and cross-platform rules. Code
 
 ## Projects
 
-`Geeratya.slnx` holds five source projects and one test project per source project. Shared settings live in `Directory.Build.props` (net10.0, nullable, warnings as errors, `EnforceCodeStyleInBuild`, trim and AOT analyzers), versions in `Directory.Packages.props` (central package management), the SDK pin in `global.json`, formatting in `.editorconfig`. The product version is `Version` in `Directory.Build.props`; `ApplicationInfo.Version` reads it from the assembly.
+`Geeratya.slnx` holds five source projects and one test project per source project. Shared settings live in `Directory.Build.props` (net10.0, nullable, warnings as errors, `EnforceCodeStyleInBuild`, trim and AOT analyzers), versions in `Directory.Packages.props` (central package management), the SDK pin in `global.json`, formatting in `.editorconfig`. The product version comes from the release tag: a release build passes `-p:Version=<tag without the v>` (for example `dotnet publish src/Geeratya.Tui -c Release -p:Version=1.2.3 -o <dir>`; the release workflow, #205, does this); without it `Version` is `0.0.0-dev`, the dev marker. `ApplicationInfo.Version` reads it from the assembly (never from the repo state at runtime); it shows in `--version`, the last line of `--help` and the `User-Agent` of Jira requests (`Geeratya/<version>`, no host or account data; Jira cannot reference Core, so it reads the same assembly attribute itself).
 
 | Project | Role | References |
 |---|---|---|
@@ -342,7 +342,7 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 ## Native AOT
 
-`Geeratya.Tui` sets `PublishAot`. All projects have the trim and AOT analyzers on and warnings as errors, so any `IL*` warning fails the build. Run the publish after adding a dependency or touching anything reflection-adjacent: `dotnet publish src/Geeratya.Tui -c Release -o <dir>`, then `<dir>/geeratya --version`. Reading assembly attributes (`ApplicationInfo`) is the one metadata use and is AOT-safe.
+`Geeratya.Tui` sets `PublishAot`. All projects have the trim and AOT analyzers on and warnings as errors, so any `IL*` warning fails the build. Run the publish after adding a dependency or touching anything reflection-adjacent: `dotnet publish src/Geeratya.Tui -c Release -o <dir>`, then `<dir>/geeratya --version` (add `-p:Version=1.2.3` to check the stamped form). Reading assembly attributes (`ApplicationInfo`) is the one metadata use and is AOT-safe.
 
 ## Terminal.Gui
 

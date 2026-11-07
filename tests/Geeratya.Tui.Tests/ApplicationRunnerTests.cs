@@ -29,6 +29,7 @@ public class ApplicationRunnerTests
         Assert.Equal(0, exitCode);
         Assert.Contains("--print-frame", writer.ToString());
         Assert.Contains("--version", writer.ToString());
+        Assert.EndsWith($"geeratya {ApplicationInfo.Version}{Environment.NewLine}", writer.ToString(), StringComparison.Ordinal);
         Assert.DoesNotContain("interactive terminal", writer.ToString());
     }
 

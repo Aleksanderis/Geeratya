@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Geeratya.Jira.Transport;
 
 /// <summary>Tunables of a transport. Delay and jitter are injectable so tests never wait.</summary>
@@ -34,7 +36,8 @@ public sealed record JiraTransportOptions
     public static JiraTransportOptions ForLiveTests(Func<string, string?> environmentLookup) =>
         new() { AllowedHosts = JiraHostAllowList.Parse(environmentLookup(JiraHostAllowList.EnvironmentVariable)) };
 
-    public string UserAgent { get; init; } = "Geeratya/0.1";
+    /// <summary>Product and build version only, never a host or an account.</summary>
+    public string UserAgent { get; init; } = $"Geeratya/{BuildVersion()}";
 
     public TimeProvider Clock { get; init; } = TimeProvider.System;
 
@@ -42,4 +45,15 @@ public sealed record JiraTransportOptions
 
     /// <summary>Returns a value in [0, 1).</summary>
     public Func<double> Jitter { get; init; } = Random.Shared.NextDouble;
+
+    private static string BuildVersion()
+    {
+        var version = typeof(JiraTransportOptions).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0-dev";
+
+        // A User-Agent product token has no spaces; drop any build metadata after '+'.
+        var plus = version.IndexOf('+', StringComparison.Ordinal);
+
+        return plus < 0 ? version : version[..plus];
+    }
 }
