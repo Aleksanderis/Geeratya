@@ -173,8 +173,8 @@ public sealed class SuggestionHandler
             SuggestionKind.Versions when source.ProjectKey is { } project
                 => services.Suggestions.SearchVersionsAsync(project, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
-            _ when source.IssueKey is null && source.ProjectKey is { } project
-                => SearchProjectIssuesAsync(services, project, effect.Query, token),
+            _ when source.ProjectKey is { } project
+                => SearchProjectIssuesAsync(services, project, source.IssueKey, effect.Query, token),
             _ => SearchOtherIssuesAsync(services, source.IssueKey, effect.Query, token),
         };
     }
@@ -200,11 +200,12 @@ public sealed class SuggestionHandler
         return JiraResults.Success(others);
     }
 
-    // The parent of a new issue must belong to its project: the picker's history section is not narrowed by the
+    // The parent of a new or edited issue must belong to its project (an edited issue is never its own parent): the picker's history section is not narrowed by the
     // JQL, so rows of other projects are dropped here (a row's detail is its issue key).
     private static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchProjectIssuesAsync(
         JiraServices services,
         string projectKey,
+        string? ownKey,
         string query,
         CancellationToken token)
     {
@@ -217,7 +218,10 @@ public sealed class SuggestionHandler
 
         var prefix = projectKey + "-";
         IReadOnlyList<Suggestion> inProject =
-            [.. result.Value.Where(row => row.Detail?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true)];
+            [
+                .. result.Value.Where(row => row.Detail?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true
+                    && !string.Equals(row.Detail, ownKey, StringComparison.OrdinalIgnoreCase)),
+            ];
 
         return JiraResults.Success(inProject);
     }

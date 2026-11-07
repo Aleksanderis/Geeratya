@@ -264,7 +264,16 @@ public static class FormOpener
 
         private static Subject OfRow(TabState tab, IssueSummary row)
         {
-            return new Subject(tab, row.Key, row.Summary, row.Labels, row.Priority, row.Assignee, row.Parent?.Key, false, null);
+            return new Subject(
+                tab,
+                row.Key,
+                row.Summary,
+                row.Labels,
+                row.Priority,
+                row.Assignee,
+                row.Parent?.Key,
+                false,
+                null);
         }
     }
 }

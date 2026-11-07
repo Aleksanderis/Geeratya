@@ -95,7 +95,8 @@ public sealed class FormHandlerTests
         string metadataFixture,
         string current)
     {
-        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture)));
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture)));
         var known = new Dictionary<string, FormValue> { [FormFieldIds.Parent] = FormValue.OfChosen([current]) };
         var target = new EditFormTarget("A-1", known, true, null, FormFieldIds.Parent);
 
@@ -117,7 +118,11 @@ public sealed class FormHandlerTests
             .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}""")
             .Reply(HttpStatusCode.NoContent, string.Empty)
             .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
-        var set = new FieldChange("parent", FormFieldKind.Parent, FormValue.OfChosen(["A-9"]), FormValue.OfChosen(["A-5"]));
+        var set = new FieldChange(
+            "parent",
+            FormFieldKind.Parent,
+            FormValue.OfChosen(["A-9"]),
+            FormValue.OfChosen(["A-5"]));
         var clear = new FieldChange("parent", FormFieldKind.Parent, FormValue.Empty, FormValue.OfChosen(["A-9"]));
 
         await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [set])));
@@ -130,7 +135,8 @@ public sealed class FormHandlerTests
     [Fact]
     public async Task GivenAParentJiraRefuses_WhenExecuted_ThenTheFailureNamesTheParentField()
     {
-        const string body = """{"errorMessages":[],"errors":{"parent":"Given parent work item does not belong to appropriate hierarchy."}}""";
+        const string body =
+            """{"errorMessages":[],"errors":{"parent":"Given parent work item does not belong to appropriate hierarchy."}}""";
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.BadRequest, body));
         var change = new FieldChange("parent", FormFieldKind.Parent, FormValue.OfChosen(["A-9"]));
 

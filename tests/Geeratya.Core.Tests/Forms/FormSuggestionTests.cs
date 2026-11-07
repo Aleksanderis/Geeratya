@@ -301,6 +301,45 @@ public class FormSuggestionTests
     }
 
     [Fact]
+    public void GivenAnEditFormParentField_WhenTyping_ThenTheSearchIsScopedToTheProjectOfTheIssue()
+    {
+        var typed = Press(Focused("parent", FormFieldKind.Parent), "A");
+
+        var effect = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
+        Assert.Equal("A", effect.Source.ProjectKey);
+        Assert.Equal("A-1", effect.Source.IssueKey);
+    }
+
+    [Fact]
+    public void GivenACurrentParent_WhenAnotherIssueIsAccepted_ThenItIsTheValueAndBackspaceClearsIt()
+    {
+        var typed = Press(WithParent(Focused("parent", FormFieldKind.Parent), "A-5"), "A");
+        var request = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects)).RequestId;
+        var offered = Reply(typed.State, request, new Suggestion("A-9", "A-9 Other epic", "A-9", false));
+        var chosen = Press(offered.State, "Enter").State;
+
+        Assert.Equal(["A-9"], Parent(chosen).Value.Chosen);
+
+        var cleared = Press(chosen, "Backspace").State;
+
+        Assert.Empty(Parent(cleared).Value.Chosen);
+        Assert.Equal(["A-5"], Parent(cleared).Initial.Chosen);
+    }
+
+    private static FormField Parent(AppState state)
+    {
+        return state.Session.Tabs[0].Form!.Fields.Single(field => field.Id == "parent");
+    }
+
+    private static AppState WithParent(AppState state, string key)
+    {
+        var tab = state.Session.Tabs[0];
+        var fields = tab.Form!.Fields.Select(field => field.Id == "parent" ? field.WithInitial(FormValue.OfChosen([key])) : field);
+
+        return WithTab(state, tab with { Form = tab.Form with { Fields = [.. fields] } });
+    }
+
+    [Fact]
     public void GivenAnotherUserField_WhenTyping_ThenPeopleWhoCanSeeTheIssueAreSearched()
     {
         var typed = Press(Focused("customfield_1"), "a");

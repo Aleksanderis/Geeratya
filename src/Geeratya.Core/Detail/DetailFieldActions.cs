@@ -7,9 +7,9 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// Enter on a field of the issue detail: opens the field for edit through the write path that already exists for it
-/// (transition picker, people picker, edit form limited to the field, estimate form, sprint picker; the parent or epic
-/// row opens the parent chooser, the parent issue itself is `issue.open-parent`). Fields Jira
-/// does not let this screen change say so in the status line. Pure.
+/// (transition picker, people picker, edit form limited to the field, estimate form, sprint picker). The parent or
+/// epic row opens the parent chooser; the parent issue itself is <c>issue.open-parent</c>. Fields Jira does not let
+/// this screen change say so in the status line. Pure.
 /// </summary>
 internal static class DetailFieldActions
 {
