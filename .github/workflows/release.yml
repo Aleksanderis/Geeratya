@@ -1,4 +1,4 @@
-# Dispatch only (CI minutes are scarce, docs/decisions.md 2026-11-01); macOS
+# Dispatch only (CI minutes are scarce, docs/internal/decisions.md 2026-11-01); macOS
 # bills 10x minutes, so it is built only here, never in ci.yml.
 #   Dry run (no release; archives are workflow artifacts):
 #     gh workflow run release.yml --ref main -f tag=v0.0.1-dryrun
@@ -202,7 +202,7 @@ jobs:
           path: dist/*
 
       # AUR, winget and Homebrew files for this release (#206). Generated only:
-      # submitting them needs the owner's accounts (docs/architecture.md, Releases).
+      # submitting them needs the owner's accounts (docs/internal/architecture.md, Releases).
       - uses: actions/checkout@v4
         with:
           path: src

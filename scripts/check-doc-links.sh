@@ -38,7 +38,7 @@ while IFS= read -r hit; do
       echo x >> "$flag"
     fi
   done
-done < <(git grep -nIE 'docs/[A-Za-z0-9_./-]+\.(md|json)' -- . ':!docs/internal/history' ':!.github')
+done < <(git grep -nIE 'docs/[A-Za-z0-9_./-]+\.(md|json)' -- . ':!docs/internal/history')
 
 if [ -s "$flag" ]; then
   exit 1

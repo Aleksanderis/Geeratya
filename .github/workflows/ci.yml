@@ -1,5 +1,5 @@
 # Dispatch only: no push or pull_request triggers (CI minutes are scarce,
-# see docs/decisions.md, 2026-11-01). Run: gh workflow run ci.yml --ref main
+# see docs/internal/decisions.md, 2026-11-01). Run: gh workflow run ci.yml --ref main
 # One platform only (saves minutes on a rerun): add -f os=windows or -f os=ubuntu
 name: ci
 
