@@ -92,13 +92,16 @@ public sealed class SiteCacheTests : IDisposable
         Assert.Equal(ViewPaging.PageSize, cache.Get(_key)!.Rows.Count);
     }
 
-    [Fact]
-    public void GivenOldSchemaFile_WhenReading_ThenItIsIgnoredAndDeleted()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void GivenOldSchemaFile_WhenReading_ThenItIsIgnoredAndDeleted(int schema)
     {
         var folder = Path.Combine(_root, "p");
         var path = Path.Combine(folder, SiteCache.ViewFileName(_key));
         Directory.CreateDirectory(folder);
-        File.WriteAllText(path, """{"schema":0,"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
+        File.WriteAllText(path, $$"""{"schema":{{schema}},"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
         using var cache = new SiteCache(folder);
 
         Assert.Null(cache.Get(_key));
@@ -509,32 +512,6 @@ public sealed class SiteCacheTests : IDisposable
         Assert.Equal("Story Points", read.EstimationFieldName);
         Assert.False(read.EstimationRead);
         Assert.False(read.HasNoEstimation);
-    }
-
-    [Fact]
-    public void GivenSchemaTwoFile_WhenReading_ThenItIsIgnoredAndDeleted()
-    {
-        var folder = Path.Combine(_root, "p");
-        var path = Path.Combine(folder, SiteCache.ViewFileName(_key));
-        Directory.CreateDirectory(folder);
-        File.WriteAllText(path, """{"schema":2,"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
-        using var cache = new SiteCache(folder);
-
-        Assert.Null(cache.Get(_key));
-        Assert.False(File.Exists(path));
-    }
-
-    [Fact]
-    public void GivenSchemaOneFile_WhenReading_ThenItIsIgnoredAndDeleted()
-    {
-        var folder = Path.Combine(_root, "p");
-        var path = Path.Combine(folder, SiteCache.ViewFileName(_key));
-        Directory.CreateDirectory(folder);
-        File.WriteAllText(path, """{"schema":1,"source":"Jql","sourceValue":"x","savedAt":"2026-01-01T00:00:00Z","rows":[]}""");
-        using var cache = new SiteCache(folder);
-
-        Assert.Null(cache.Get(_key));
-        Assert.False(File.Exists(path));
     }
 
     private static IssueSummary Issue(int number, bool full = false)

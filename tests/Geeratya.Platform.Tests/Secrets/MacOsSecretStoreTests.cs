@@ -47,21 +47,12 @@ public class MacOsSecretStoreTests
         Assert.Empty(runner.Arguments);
     }
 
-    [Fact]
-    public async Task GivenZeroExitButNothingStored_WhenSetting_ThenThrowsWithoutToken()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task GivenZeroExitButNothingStoredOrFailingExit_WhenSetting_ThenThrowsWithoutToken(int exitCode)
     {
-        var store = new MacOsSecretStore(new FakeProcessRunner(new ProcessResult(0, string.Empty)));
-
-        var exception = await Assert.ThrowsAsync<SecretStoreException>(
-            () => store.SetAsync("key", "the-token", CancellationToken.None));
-
-        Assert.DoesNotContain("the-token", exception.Message);
-    }
-
-    [Fact]
-    public async Task GivenFailingExit_WhenSetting_ThenThrowsWithoutToken()
-    {
-        var store = new MacOsSecretStore(new FakeProcessRunner(new ProcessResult(1, string.Empty)));
+        var store = new MacOsSecretStore(new FakeProcessRunner(new ProcessResult(exitCode, string.Empty)));
 
         var exception = await Assert.ThrowsAsync<SecretStoreException>(
             () => store.SetAsync("key", "the-token", CancellationToken.None));
