@@ -169,7 +169,7 @@ public static partial class StatusBar
     ];
 
     /// <summary>The hint shown while a form asks whether to discard its changes (the "keep editing" chip is added in <see cref="DiscardTexts"/>).</summary>
-    public static IReadOnlyList<StatusHint> DiscardHints { get; } =
+    private static IReadOnlyList<StatusHint> DiscardHints { get; } =
     [
         new(InputMode.Confirm, ActionIds.ConfirmYes, "discard"),
     ];
