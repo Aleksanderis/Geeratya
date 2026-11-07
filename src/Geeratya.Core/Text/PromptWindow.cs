@@ -4,12 +4,15 @@ namespace Geeratya.Core.Text;
 
 /// <summary>
 /// A prompt cut to a width around its caret: the text before the caret, the caret mark (<c>_</c> after the last
-/// character, <c>|</c> between two characters) and the text after it. Wide characters are never split.
+/// character, <c>|</c> between two characters) and the text after it. Wide characters are never split. A cut side
+/// starts (before) or ends (after) with an ellipsis. The mark is for single-line surfaces that draw it as text (status
+/// bar, filters); the form box and the editors draw the caret as a styled cell instead, see <see cref="CaretRows"/>.
 /// </summary>
 /// <param name="Before">The visible text before the caret.</param>
 /// <param name="Caret">The caret mark.</param>
 /// <param name="After">The visible text after the caret.</param>
-public sealed record PromptWindow(string Before, string Caret, string After)
+/// <param name="TailCut">Whether <paramref name="After"/> ends with an ellipsis standing for hidden text.</param>
+public sealed record PromptWindow(string Before, string Caret, string After, bool TailCut = false)
 {
     public const string EndMark = "_";
     public const string InsideMark = "|";
@@ -60,7 +63,7 @@ public sealed record PromptWindow(string Before, string Caret, string After)
         var head = cutLeft ? Ellipsis : string.Empty;
         var tail = cutRight ? Ellipsis : string.Empty;
 
-        return new PromptWindow($"{head}{string.Concat(shownBefore)}", mark, $"{string.Concat(shownAfter)}{tail}");
+        return new PromptWindow($"{head}{string.Concat(shownBefore)}", mark, $"{string.Concat(shownAfter)}{tail}", cutRight);
     }
 
     private static List<string> Clusters(string text)
