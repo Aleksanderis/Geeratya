@@ -25,7 +25,10 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     private const string ViewIssueSearch = "user/viewissue/search";
     private const string LabelPath = ApiPath + "/label";
     private const string PickerPath = ApiPath + "/issue/picker";
-    private const string SearchPath = ApiPath + "/search/jql";
+    /// <summary>How long the issue-type lookup of an issue list may take before the rows come without a type.</summary>
+    public static readonly TimeSpan TypeSearchLimit = TimeSpan.FromSeconds(2);
+
+    private const string SearchPath =ApiPath + "/search/jql";
     private const string ProjectPath = ApiPath + "/project";
     private const string ComponentsSegment = "components";
     private const string VersionsSegment = "versions";
@@ -206,12 +209,25 @@ public sealed partial class SuggestionClient(JiraTransport transport)
 
         var jql = $"key in ({string.Join(",", keys)})";
         var url = $"{SearchPath}?jql={Uri.EscapeDataString(jql)}&fields=issuetype&maxResults={keys.Count}";
-        var result = await transport.SendAsync(
-            JiraRequest.Get(url),
-            SuggestionJsonContext.Default.TypeSearch,
-            cancellationToken);
 
-        return result.IsSuccess ? SuggestionMapper.WithTypes(rows, result.Value) : rows;
+        // A slow type search must not hold the list back: past the limit the rows come without a type.
+        using var bounded = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        bounded.CancelAfter(TypeSearchLimit);
+
+        try
+        {
+            var result = await transport.SendAsync(
+                JiraRequest.Get(url),
+                SuggestionJsonContext.Default.TypeSearch,
+                bounded.Token);
+
+            return result.IsSuccess ? SuggestionMapper.WithTypes(rows, result.Value) : rows;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return rows;
+        }
     }
 
     /// <summary>Components of a project whose name contains <paramref name="query"/>.</summary>

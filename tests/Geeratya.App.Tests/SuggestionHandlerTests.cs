@@ -230,6 +230,7 @@ public sealed class SuggestionHandlerTests
         await task;
 
         Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(2, fixture.Http.Requests.Count);
         Assert.EndsWith("/rest/api/3/issue/picker", fixture.Http.Requests.First().AbsolutePath);
     }
 

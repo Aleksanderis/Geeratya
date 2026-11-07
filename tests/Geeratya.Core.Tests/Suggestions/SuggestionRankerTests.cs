@@ -107,6 +107,14 @@ public class SuggestionRankerTests
     }
 
     [Fact]
+    public void GivenInactiveIssueWithType_WhenReadingTheRow_ThenTypeAndMarkShow()
+    {
+        var issue = new Suggestion("GCM-12", "Fix login", "GCM-12", true, "Bug");
+
+        Assert.Equal("GCM-12  [Bug]  Fix login (inactive)", SuggestionText.Row(issue));
+    }
+
+    [Fact]
     public void GivenIssueWithoutType_WhenReadingTheRow_ThenKeyAndSummaryOnly()
     {
         Assert.Equal("GCM-12  Fix login", SuggestionText.Row(new Suggestion("GCM-12", "Fix login", "GCM-12", false)));

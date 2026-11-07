@@ -195,6 +195,17 @@ public sealed class SuggestionClientTests
         Assert.Equal(
             $"{PickerPath}?query=fix&currentJQL=project%20%3D%20GCM%20AND%20status%20%3D%20%22To%20Do%22",
             fixture.Handler.Requests.First().PathAndQuery);
+        Assert.StartsWith(SearchPath, fixture.Handler.Requests.Last().PathAndQuery);
+    }
+
+    [Fact]
+    public async Task GivenPickerWithNoRows_WhenSearchingIssues_ThenNoTypeSearchIsSent()
+    {
+        using var fixture = Serving(PickerPath, "suggestions/issue-picker-empty.json");
+
+        await new SuggestionClient(fixture.Transport).SearchIssuesAsync("zzz", null, CancellationToken.None);
+
+        Assert.Single(fixture.Handler.Requests);
     }
 
     [Fact]
