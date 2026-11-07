@@ -8,5 +8,6 @@ public class ApplicationInfoTests
     {
         Assert.False(string.IsNullOrWhiteSpace(ApplicationInfo.Version));
         Assert.NotEqual("0.0.0", ApplicationInfo.Version);
+        Assert.DoesNotContain("+", ApplicationInfo.Version, StringComparison.Ordinal);
     }
 }

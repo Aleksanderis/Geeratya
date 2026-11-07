@@ -63,7 +63,9 @@ public sealed partial class ApplicationRunner
         "          write ANSI colours (none: attributes only); --light needs theme auto or no theme",
         $"      [{SourceFlag} board:<name>|jql:<query>|issue:<KEY>] [{LayoutFlag} list|columns] [{ProfileFlag} <name>]",
         "          draw a real screen from a profile (a fake Jira); its site must be in GEERATYA_LIVE_HOSTS;",
-        $"          {ProfileFlag} and {LayoutFlag} need {SourceFlag}");
+        $"          {ProfileFlag} and {LayoutFlag} need {SourceFlag}",
+        "",
+        $"{ApplicationInfo.Name} {ApplicationInfo.Version}");
 
     private readonly TextWriter _output;
     private readonly TextWriter _error;
