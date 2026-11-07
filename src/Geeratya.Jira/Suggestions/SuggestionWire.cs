@@ -19,7 +19,7 @@ internal static class SuggestionWire
 
     internal sealed record TypeFields(TypeName? Issuetype);
 
-    internal sealed record TypeName(string? Name);
+    internal sealed record TypeName(string? Name, int? HierarchyLevel);
 
     internal sealed record Named(string? Id, string? Name, bool? Archived);
 }

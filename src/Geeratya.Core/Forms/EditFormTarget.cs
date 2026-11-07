@@ -15,6 +15,7 @@ namespace Geeratya.Core.Forms;
 /// number field of the issue that the site or a board uses as its estimate, which the metadata handler picks (the id
 /// is per site), and the write patches the row's estimate. <paramref name="EstimateFieldId"/> is the estimation field
 /// of the board the tab shows: when set, the handler offers that field or none.
+/// <paramref name="ParentLevel"/> is the hierarchy level a parent of this issue must have (<see cref="ParentLevels"/>), when the issue type is known.
 /// </summary>
 public sealed record EditFormTarget(
     string Key,
@@ -24,7 +25,8 @@ public sealed record EditFormTarget(
     string? OnlyId = null,
     IReadOnlyCollection<string>? ReadOnlyIds = null,
     bool EstimateOnly = false,
-    string? EstimateFieldId = null) : FormTarget
+    string? EstimateFieldId = null,
+    int? ParentLevel = null) : FormTarget
 {
     public override string Title => $"Edit {Key}";
 

@@ -41,17 +41,17 @@ internal static class SuggestionMapper
     /// <summary>The rows with the issue type of each issue the search answered; rows it did not name stay as they are.</summary>
     public static IReadOnlyList<Suggestion> WithTypes(IReadOnlyList<Suggestion> rows, SuggestionWire.TypeSearch? search)
     {
-        var types = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var types = new Dictionary<string, (string Name, int? Level)>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var issue in search?.Issues ?? [])
         {
             if (issue?.Key is { Length: > 0 } key && issue.Fields?.Issuetype?.Name is { Length: > 0 } name)
             {
-                types[key] = name;
+                types[key] = (name, issue.Fields.Issuetype.HierarchyLevel);
             }
         }
 
-        return [.. rows.Select(row => types.TryGetValue(row.Id, out var type) ? row with { Kind = type } : row)];
+        return [.. rows.Select(row => types.TryGetValue(row.Id, out var type) ? row with { Kind = type.Name, HierarchyLevel = type.Level } : row)];
     }
 
     public static IReadOnlyList<Suggestion> MapNamed(List<SuggestionWire.Named?>? items)

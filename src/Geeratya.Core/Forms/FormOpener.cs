@@ -176,7 +176,7 @@ public static class FormOpener
 
         AddDescription(subject, known, lossy);
 
-        var target = new EditFormTarget(subject.Key, known, true, null, onlyId, lossy);
+        var target = new EditFormTarget(subject.Key, known, true, null, onlyId, lossy, ParentLevel: subject.ParentLevel);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
     }
@@ -220,6 +220,7 @@ public static class FormOpener
         string? PriorityName,
         IssueAssignee? Assignee,
         string? ParentKey,
+        int? ParentLevel,
         bool DescriptionKnown,
         AdfDocument? Description)
     {
@@ -255,6 +256,7 @@ public static class FormOpener
                     issue.Priority,
                     issue.Assignee,
                     issue.Parent?.Key,
+                    ParentLevels.Accepted(issue.IssueType.HierarchyLevel, issue.IssueType.IsSubtask),
                     true,
                     issue.Description);
             }
@@ -272,6 +274,7 @@ public static class FormOpener
                 row.Priority,
                 row.Assignee,
                 row.Parent?.Key,
+                ParentLevels.Accepted(row.IssueType.HierarchyLevel, row.IssueType.IsSubtask),
                 false,
                 null);
         }

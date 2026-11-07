@@ -290,7 +290,8 @@ public static partial class FormReducer
                 SuggestionKind.Issues,
                 key,
                 [],
-                form.Target is EditFormTarget ? JumpKey.ProjectOf(key) : null),
+                form.Target is EditFormTarget ? JumpKey.ProjectOf(key) : null,
+                (form.Target as EditFormTarget)?.ParentLevel),
             _ => null,
         };
     }
@@ -310,7 +311,12 @@ public static partial class FormReducer
             FormFieldKind.User when field.Id == FormFieldIds.Assignee
                 => new SuggestionSource(SuggestionKind.AssignableUsers, null, [], create.ProjectKey),
             FormFieldKind.User => new SuggestionSource(SuggestionKind.ProjectUsers, null, [], create.ProjectKey),
-            FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, null, [], create.ProjectKey),
+            FormFieldKind.Parent => new SuggestionSource(
+                SuggestionKind.Issues,
+                null,
+                [],
+                create.ProjectKey,
+                create.IssueType is { } type ? ParentLevels.Accepted(type.HierarchyLevel, type.IsSubtask) : null),
             _ => null,
         };
     }
