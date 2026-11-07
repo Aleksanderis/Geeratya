@@ -509,6 +509,18 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
+    public void GivenTheDiscardQuestion_WhenBuilding_ThenTheStatusBarShowsTheKeysOfTheQuestionNotSave()
+    {
+        var asked = Keys(Keys(EditingSummary(120, 36), "x"), "Esc");
+
+        var frame = FrameBuilder.BuildStyled(asked, 120, 36, _keymap)!;
+
+        Assert.Contains("discard", frame.StatusLine);
+        Assert.Contains("keep editing", frame.StatusLine);
+        Assert.DoesNotContain("Ctrl-s", frame.StatusLine);
+    }
+
+    [Fact]
     public void GivenTheSummaryIsEditedInPlace_WhenBuilding_ThenNoFormBoxCoversTheDetailAndTheHintsOfThePaneShow()
     {
         var frame = FrameBuilder.BuildStyled(EditingSummary(120, 36), 120, 36, _keymap)!;

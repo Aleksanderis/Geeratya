@@ -168,6 +168,24 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hint shown while a form asks whether to discard its changes (the "keep editing" chip is added in <see cref="DiscardTexts"/>).</summary>
+    public static IReadOnlyList<StatusHint> DiscardHints { get; } =
+    [
+        new(InputMode.Confirm, ActionIds.ConfirmYes, "discard"),
+    ];
+
+    private static List<HintChip> DiscardTexts(KeymapTable keymap, CommandLevel level)
+    {
+        var texts = TextsOf(DiscardHints, InputMode.Confirm, HintScope.Global, keymap, level);
+        var no = KeyNotation.Display(keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo));
+        var escape = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.Cancel));
+
+        // Esc keeps editing as well (the form reducer treats it like the no answer).
+        texts.Add(new HintChip(string.Join('/', new[] { no, escape }.Where(static key => key is not null)), "keep editing"));
+
+        return texts;
+    }
+
     private const string MoreFieldsLabel = "more fields";
     private const string CtrlPrefix = "Ctrl-";
 
@@ -231,6 +249,12 @@ public static partial class StatusBar
         if (FormReducer.IsOpen(state))
         {
             var form = FormReducer.OpenForm(state)!;
+
+            if (form.DiscardPending)
+            {
+                return new HintList([], DiscardTexts(keymap, level));
+            }
+
             var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
 
             // The pane keys act in the navigate state only; typing and choosing keep the Insert rows.
