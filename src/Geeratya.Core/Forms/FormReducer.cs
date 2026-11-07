@@ -9,7 +9,7 @@ using Geeratya.Jira.Writes.Models;
 namespace Geeratya.Core.Forms;
 
 /// <summary>
-/// The form part of the reducer (<c>docs/architecture.md</c>, "Where form state lives"): opens a form on a tab, fills
+/// The form part of the reducer (<c>docs/internal/architecture.md</c>, "Where form state lives"): opens a form on a tab, fills
 /// it from the metadata reply, edits the focused field, checks the form locally on submit and hands the changed
 /// fields to the write pipeline. The form is open while the mode is Insert and the active tab holds one. Pure.
 /// </summary>

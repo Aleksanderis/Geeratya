@@ -57,7 +57,7 @@ public static class ConfirmOverlay
 
     /// <summary>
     /// The frame colour: a notice is plain accent, a destructive request the bad colour, any other question the warn
-    /// colour (<c>docs/ux-look.md</c>, "Confirm").
+    /// colour (<c>docs/internal/ux-look.md</c>, "Confirm").
     /// </summary>
     public static OverlayKind KindOf(ConfirmRequest request)
     {

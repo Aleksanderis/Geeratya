@@ -133,7 +133,7 @@ public static class JqlBuilder
 
     /// <summary>
     /// True when the JQL has a search restriction before any <c>ORDER BY</c>. Jira answers 400 for empty or
-    /// order-only JQL (<c>docs/jira-layer.md</c>, "JQL search"). Quoted text is skipped, so an <c>order by</c>
+    /// order-only JQL (<c>docs/internal/jira-layer.md</c>, "JQL search"). Quoted text is skipped, so an <c>order by</c>
     /// inside a string does not count.
     /// </summary>
     public static bool IsBounded(string? jql)

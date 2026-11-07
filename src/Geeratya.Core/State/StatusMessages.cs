@@ -6,7 +6,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.State;
 
 /// <summary>
-/// The one channel for notices (<c>docs/ux.md</c>, "Status bar"). Reducers keep posting through
+/// The one channel for notices (<c>docs/internal/ux.md</c>, "Status bar"). Reducers keep posting through
 /// <see cref="AppState.Message"/> (and <see cref="AppState.MessageSeverity"/> for a warning or error); the app reducer
 /// then settles the result here: a new text becomes <see cref="AppState.Status"/> and enters the history, the same
 /// text while it shows is ignored, a reducer that clears <see cref="AppState.Message"/> (a key press used to) changes

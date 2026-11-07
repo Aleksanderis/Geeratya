@@ -62,7 +62,7 @@ public class MouseMapTests
     [Fact]
     public void GivenExclusions_WhenReadingTheDocument_ThenEveryExcludedActionIsNamed()
     {
-        var text = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "docs", "ux-mouse.md"));
+        var text = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "docs", "internal", "ux-mouse.md"));
 
         var named = DefaultMouseMap.Exclusions.Keys
             .Where(key => !key.StartsWith("tab.go-to.", StringComparison.Ordinal));
@@ -100,7 +100,7 @@ public class MouseMapTests
 
     private static List<string> ReadTableRows()
     {
-        var path = Path.Combine(FindRepositoryRoot(), "docs", "ux-mouse.md");
+        var path = Path.Combine(FindRepositoryRoot(), "docs", "internal", "ux-mouse.md");
         var rows = new List<string>();
         var inTable = false;
 

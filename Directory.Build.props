@@ -4,7 +4,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.1.0</Version>
+    <!-- #204: a release passes -p:Version=<tag without v>; anything else is a dev build. -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -14,7 +15,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <!-- #719: advisory on the SDK-bundled ILCompiler 10.0.12; pinning a newer one breaks AOT publish. See docs/decisions.md; remove in #747. -->
+    <!-- #719: advisory on the SDK-bundled ILCompiler 10.0.12; pinning a newer one breaks AOT publish. See docs/internal/decisions.md; remove in #747. -->
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-p3jp-9v83-76w9" />
   </ItemGroup>
   <PropertyGroup Condition="'$(IsTestProject)' != 'true'">

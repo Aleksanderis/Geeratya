@@ -11,7 +11,7 @@ namespace Geeratya.Jira.Adf;
 /// deterministic: adjacent text with the same marks is joined, marks are written in a fixed order, empty text is
 /// skipped and the <c>localId</c> that task lists need are numbered in document order, so equal documents give equal
 /// JSON (the round-trip check compares that). Every node of the model can be written, but media ids cannot be
-/// invented: Jira rejects media it does not know (<c>docs/jira-layer.md</c>).
+/// invented: Jira rejects media it does not know (<c>docs/internal/jira-layer.md</c>).
 /// </summary>
 public static partial class AdfJsonWriter
 {

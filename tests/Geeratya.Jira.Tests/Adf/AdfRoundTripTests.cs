@@ -361,7 +361,7 @@ public sealed class AdfRoundTripTests
     [Fact]
     public void GivenParserOutputOfRandomText_WhenWrittenAndParsedAgain_ThenItIsTheSameDocument()
     {
-        // The seed fixes the sequence; the known limits in docs/jira-layer.md (a leading or trailing break, runs of
+        // The seed fixes the sequence; the known limits in docs/internal/jira-layer.md (a leading or trailing break, runs of
         // three delimiter characters) are not hit by it, and a failure here is a new kind of difference.
         var random = new Random(161);
         var failures = new List<string>();

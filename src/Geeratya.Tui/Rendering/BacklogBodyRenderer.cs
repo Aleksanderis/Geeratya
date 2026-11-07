@@ -12,7 +12,7 @@ using Geeratya.Jira.Sprints.Models;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The body of a Scrum backlog tab (<c>docs/ux-screens.md</c>, "Scrum backlog"): one list with a header per sprint
+/// The body of a Scrum backlog tab (<c>docs/internal/ux-screens.md</c>, "Scrum backlog"): one list with a header per sprint
 /// section and the backlog, then the issue rows of each, so the cursor crosses sections like any other row. Only the
 /// lines in the viewport are built. A collapsed section shows its header alone, which carries the cursor.
 /// </summary>

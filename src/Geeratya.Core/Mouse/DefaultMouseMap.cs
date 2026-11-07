@@ -4,7 +4,7 @@ using Geeratya.Core.Keymap;
 namespace Geeratya.Core.Mouse;
 
 /// <summary>
-/// The mouse table (<c>docs/ux-mouse.md</c>): a gesture on an area becomes the action id a key would produce. A test
+/// The mouse table (<c>docs/internal/ux-mouse.md</c>): a gesture on an area becomes the action id a key would produce. A test
 /// compares this list with the table in the document and checks that every action a key can run has a path here or
 /// an entry in <see cref="Exclusions"/>.
 /// </summary>

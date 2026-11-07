@@ -82,7 +82,7 @@ public sealed record AdfMediaGroup(IReadOnlyList<AdfNode> Children) : AdfContain
 
 /// <summary>
 /// A block media reference. The id is a media-service id that does not match the attachment id, so it cannot be
-/// resolved to an attachment (<c>docs/jira-layer.md</c>).
+/// resolved to an attachment (<c>docs/internal/jira-layer.md</c>).
 /// </summary>
 public record AdfMedia(
     string? Id,

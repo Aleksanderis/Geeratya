@@ -8,7 +8,7 @@ using Geeratya.Platform.Terminal;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The label row and the bottom row of a board card as spans (<c>docs/ux-screens.md</c>, "Board card"). Pure: the same
+/// The label row and the bottom row of a board card as spans (<c>docs/internal/ux-screens.md</c>, "Board card"). Pure: the same
 /// issue and width always give the same cells, every row exactly as wide as asked.
 /// </summary>
 public static class CardRows

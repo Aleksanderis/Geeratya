@@ -4,7 +4,7 @@ namespace Geeratya.Jira.Search.Models;
 
 /// <summary>
 /// A sprint as the <c>Sprint</c> field of an issue lists it. The field is a label: sprint membership comes from the
-/// sprint endpoint (<c>docs/jira-layer.md</c>, "Sprint field").
+/// sprint endpoint (<c>docs/internal/jira-layer.md</c>, "Sprint field").
 /// </summary>
 public sealed record IssueSprint(long Id, string Name, SprintState State)
 {

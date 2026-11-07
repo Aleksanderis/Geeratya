@@ -9,7 +9,7 @@ namespace Geeratya.Core.State;
 /// <summary>
 /// Everything that belongs to the active profile's site: the open tabs and the link state. It is replaced by
 /// <see cref="Empty"/> whenever the active profile changes, so nothing of one site is shown for another. The data
-/// cache is not part of it (<c>docs/architecture.md</c>, "Cache and refresh").
+/// cache is not part of it (<c>docs/internal/architecture.md</c>, "Cache and refresh").
 /// </summary>
 /// <param name="ProfileName">The profile this session belongs to, or null when no profile is active.</param>
 /// <param name="SiteUrl">The site of that profile, or null.</param>
@@ -29,7 +29,7 @@ public sealed record SiteSession(
 {
     /// <summary>
     /// The writes that were sent and not yet settled, from every tab. Site level on purpose: exclusion must see all
-    /// tabs, and a tab closed after its write was sent must not forget it (<c>docs/architecture.md</c>, "Running
+    /// tabs, and a tab closed after its write was sent must not forget it (<c>docs/internal/architecture.md</c>, "Running
     /// operations"). Dropped with the session on a profile change.
     /// </summary>
     public IReadOnlyList<Operation> Operations { get; init; } = [];

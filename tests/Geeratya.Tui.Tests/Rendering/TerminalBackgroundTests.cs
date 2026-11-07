@@ -8,7 +8,7 @@ using Terminal.Gui.Drawing;
 namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
-/// The terminal's own background under the page (<c>transparent</c> setting, <c>docs/ux-look.md</c>, section 6): the
+/// The terminal's own background under the page (<c>transparent</c> setting, <c>docs/internal/ux-look.md</c>, section 6): the
 /// page roles take the default background, fills and the overlay box stay painted, text colours do not change.
 /// </summary>
 [Trait("Os", "Independent")]

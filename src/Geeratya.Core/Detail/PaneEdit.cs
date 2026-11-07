@@ -5,7 +5,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// A pane of the detail in its edit state (<c>docs/ux-screens.md</c>, "Editing in place"): the field the open form
+/// A pane of the detail in its edit state (<c>docs/internal/ux-screens.md</c>, "Editing in place"): the field the open form
 /// edits in place, drawn with its caret instead of the pane's normal content. Pure.
 /// </summary>
 /// <param name="Pane">The pane (<see cref="PaneIds.Title"/> or <see cref="PaneIds.Description"/>).</param>

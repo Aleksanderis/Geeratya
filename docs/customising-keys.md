@@ -1,6 +1,6 @@
 # Customising keys
 
-Geeratya reads an optional `keymap.json` that changes the default keys. The defaults and the design rules stay as they are; your file only adds, replaces or removes rows. The full list of what is bound is the generated [key reference](keymap.md); the rules the defaults follow are in [ux-keymap.md](ux-keymap.md).
+Geeratya reads an optional `keymap.json` that changes the default keys. The defaults and the design rules stay as they are; your file only adds, replaces or removes rows. The full list of what is bound is the generated [key reference](keymap.md); the rules the defaults follow are in [ux-keymap.md](internal/ux-keymap.md).
 
 ## Where the file lives
 
@@ -53,7 +53,7 @@ To see what was applied, open help (`?`) and press `Tab` to the `Custom` page. I
 
 A file that is not valid JSON (or has an unknown `mode`) is ignored as a whole and the defaults stay. Geeratya never crashes on this file.
 
-Keep the vim rule in mind ([ux-keymap.md](ux-keymap.md), "Key rule"): the defaults leave bare letters alone for vim's sake, but your file may bind whatever you like. The terminal decides which `Ctrl-` and `Alt-` combinations arrive at all (`Ctrl-i` is `Tab`, `Ctrl-m` is `Enter`, and a terminal without "Option as Meta" sends no `Alt-` keys).
+Keep the vim rule in mind ([ux-keymap.md](internal/ux-keymap.md), "Key rule"): the defaults leave bare letters alone for vim's sake, but your file may bind whatever you like. The terminal decides which `Ctrl-` and `Alt-` combinations arrive at all (`Ctrl-i` is `Tab`, `Ctrl-m` is `Enter`, and a terminal without "Option as Meta" sends no `Alt-` keys).
 
 A row with no `mode` (or no `keys` or `action`) is reported and skipped; it never falls back to Normal mode.
 

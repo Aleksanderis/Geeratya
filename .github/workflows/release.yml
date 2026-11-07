@@ -1,0 +1,223 @@
+# Dispatch only (CI minutes are scarce, docs/decisions.md 2026-11-01); macOS
+# bills 10x minutes, so it is built only here, never in ci.yml.
+#   Dry run (no release; archives are workflow artifacts):
+#     gh workflow run release.yml --ref main -f tag=v0.0.1-dryrun
+#   Draft release (the tag must already exist; dispatch on the tag):
+#     gh workflow run release.yml --ref v1.2.3 -f tag=v1.2.3 -f dry_run=false
+# The version is the tag without the leading v, passed as -p:Version (#204).
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, for example v1.2.3 (version = tag without the v)
+        type: string
+        required: true
+      dry_run:
+        description: Build and pack only, create no release
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  guard:
+    name: ci guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: write
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.sha }}
+      REF_NAME: ${{ github.ref_name }}
+      GIT_REF: ${{ github.ref }}
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - name: Validate the tag
+        id: v
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "tag '$TAG' must look like v1.2.3 or v1.2.3-rc.1" >&2
+            exit 1
+          fi
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Real release must run on its tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [ "$GIT_REF" != "refs/tags/$TAG" ]; then
+            echo "a real release runs on its tag: gh workflow run release.yml --ref $TAG -f tag=$TAG -f dry_run=false" >&2
+            exit 1
+          fi
+
+      # A real release needs a green full CI run for the commit; start one when
+      # there is none (Gitunia #921). A dry run skips it.
+      - name: Ensure a green CI run for this commit
+        if: ${{ !inputs.dry_run }}
+        run: |
+          # Only a full run (ubuntu and windows jobs, all green) counts; ci.yml
+          # also accepts single-platform runs (-f os=...).
+          for id in $(gh run list -R "$REPO" --workflow ci.yml --commit "$SHA" --status success --json databaseId --jq '.[].databaseId'); do
+            jobs=$(gh run view "$id" -R "$REPO" --json jobs --jq '[.jobs[] | select(.conclusion == "success") | .name] | sort | join(",")')
+            if [ "$jobs" = "ubuntu-latest,windows-latest" ]; then
+              echo "CI already green on both platforms for $SHA (run $id)"
+              exit 0
+            fi
+          done
+          echo "No full green CI run for $SHA, dispatching one"
+          before=$(gh run list -R "$REPO" --workflow ci.yml --limit 50 --json databaseId --jq '.[].databaseId')
+          gh workflow run ci.yml -R "$REPO" --ref "$REF_NAME" -f os=all
+          id=""
+          for _ in $(seq 1 30); do
+            sleep 10
+            for c in $(gh run list -R "$REPO" --workflow ci.yml --event workflow_dispatch --commit "$SHA" --limit 50 --json databaseId --jq '.[].databaseId'); do
+              if ! grep -qx "$c" <<<"$before"; then id=$c; break; fi
+            done
+            [ -n "$id" ] && break
+          done
+          [ -n "$id" ] || { echo "CI run did not start" >&2; exit 1; }
+          gh run watch "$id" -R "$REPO" --exit-status
+
+  build:
+    name: build ${{ matrix.platform }}
+    needs: guard
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { os: ubuntu-latest, platform: linux-x64 }
+          - { os: windows-latest, platform: win-x64 }
+          - { os: macos-latest, platform: osx-arm64 }
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.guard.outputs.version }}
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: AOT publish
+        run: dotnet publish src/Geeratya.Tui -c Release -p:Version="$VERSION" -o out
+
+      - name: Smoke run (prints the stamped version)
+        run: |
+          bin=./out/geeratya
+          [ "$RUNNER_OS" = "Windows" ] && bin=./out/geeratya.exe
+          "$bin" --version | tee version.txt
+          grep -F "$VERSION" version.txt
+
+      - name: Pack
+        run: scripts/package-release.sh out "$VERSION" "$PLATFORM" dist
+
+      # The acceptance is that the archive itself starts: unpack and run it.
+      - name: Smoke run (from the archive)
+        run: |
+          mkdir unpacked
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            powershell.exe -NoProfile -Command "Expand-Archive -Path dist/geeratya-$env:VERSION-$env:PLATFORM.zip -DestinationPath unpacked"
+            unpacked/geeratya-"$VERSION"-"$PLATFORM"/geeratya.exe --version | grep -F "$VERSION"
+          else
+            tar -xzf dist/geeratya-"$VERSION"-"$PLATFORM".tar.gz -C unpacked
+            unpacked/geeratya-"$VERSION"-"$PLATFORM"/geeratya --version | grep -F "$VERSION"
+          fi
+
+      # .deb and .rpm are made from the linux archive (#206) and installed in a
+      # clean container each, which is the acceptance for these two packages.
+      - name: Build .deb and .rpm
+        if: matrix.platform == 'linux-x64'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm
+          scripts/package-linux.sh dist/geeratya-"$VERSION"-linux-x64.tar.gz "$VERSION" dist
+
+      - name: Install the packages in clean containers
+        if: matrix.platform == 'linux-x64'
+        run: |
+          deb=$(ls dist/*.deb); rpm=$(ls dist/*.rpm)
+          docker run --rm -v "$PWD/dist:/pkg:ro" debian:stable-slim sh -c \
+            "dpkg -i /pkg/$(basename "$deb") && geeratya --version | grep -F '$VERSION' && dpkg -r geeratya"
+          docker run --rm -v "$PWD/dist:/pkg:ro" fedora:latest sh -c \
+            "rpm -i /pkg/$(basename "$rpm") && geeratya --version | grep -F '$VERSION' && rpm -e geeratya"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: checksums and draft release
+    needs: [guard, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: archive-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum geeratya[-_]* > SHA256SUMS
+          cat SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: dist/*
+
+      # AUR, winget and Homebrew files for this release (#206). Generated only:
+      # submitting them needs the owner's accounts (docs/architecture.md, Releases).
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Generate package manifests
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: src/scripts/gen-manifests.sh "$VERSION" dist/SHA256SUMS manifests
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-manifests
+          path: manifests
+
+      # --verify-tag fails when the tag does not exist; this never creates one.
+      - name: Draft release
+        if: ${{ !inputs.dry_run }}
+        run: gh release create "$TAG" dist/* -R "$REPO" --draft --verify-tag --title "Geeratya $TAG" --generate-notes

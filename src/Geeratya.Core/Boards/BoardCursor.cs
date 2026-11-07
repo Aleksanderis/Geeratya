@@ -2,7 +2,7 @@ namespace Geeratya.Core.Boards;
 
 /// <summary>
 /// Where the selection is on a board in the columns layout: the selected column, and for every column the selected
-/// card and the first visible card, so each column remembers its own place (<c>docs/ux-screens.md</c>, "Columns
+/// card and the first visible card, so each column remembers its own place (<c>docs/internal/ux-screens.md</c>, "Columns
 /// layout"). Indexes count cards of the column, never rows of the tab.
 /// </summary>
 /// <param name="Column">The selected column.</param>

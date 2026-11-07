@@ -8,7 +8,7 @@ using Geeratya.Jira.Create.Models;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The field form box (<c>docs/ux-screens.md</c>, "Field form overlay"): one block per field (label, value or
+/// The field form box (<c>docs/internal/ux-screens.md</c>, "Field form overlay"): one block per field (label, value or
 /// options, error) in a centred box over the body, the focused field marked with <c>&gt;</c>, a key footer. Pure.
 /// The focused block scrolls into view; a field the form cannot edit is listed read-only with the browser link.
 /// </summary>

@@ -1,5 +1,7 @@
 # Jira layer
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Findings about how Jira Cloud behaves, from the survey on the dev site (2026-11-01). Every statement names the fixture it rests on; fixtures live under `tests/Geeratya.Jira.Tests/Fixtures/` (paths below are relative to it) and are recorded with `scripts/record-fixture.sh` and scrubbed by `scripts/scrub-fixture.py`.
 
 Part 1 of the survey covers identity, projects, search, filters and errors; part 2 (#14, section "Survey part 2") covers boards, backlog, ranking, hierarchy, create/edit metadata, transitions, ADF and links. The layer contract, paging models, cache keys and refresh rules are below (M1 design, #64); the sections of each client are written with its issue.
@@ -27,7 +29,7 @@ Dev site facts that shape the fixtures: two sandbox projects, `GCM` (company-man
 
 - A client is a small class over one `JiraTransport` (`JiraSearchClient`, `BoardClient`, filter, issue and comment clients, one folder and one `JsonSerializerContext` each). It owns no state, no cache and no cancellation policy: the caller passes a `CancellationToken` and, for refresh, builds the request with `AsBackground()`. It never references Core or the UI.
 - Every method returns `JiraResult<T>` with typed models; mappers never throw on missing or unknown fields. Models are the ones core state holds (`IssueSummary`, `BoardConfiguration`, issue detail): Core does not wrap them in duplicate DTOs. The only copy is the disk cache's own DTOs (see "Cache keys").
-- The clients know nothing of tabs, views or request ids; those belong to the state layer (`docs/architecture.md`, "Views and tabs", "Loading").
+- The clients know nothing of tabs, views or request ids; those belong to the state layer (`docs/internal/architecture.md`, "Views and tabs", "Loading").
 
 ## Paging models
 
@@ -39,15 +41,15 @@ Both paging styles hide behind one cursor so the state layer pages the same way 
 | `IssuePage` | `Items` (`IReadOnlyList<IssueSummary>`), `Next` (`PageCursor?`, null on the last page), `Total` (int?, null for search; set from `total` for the agile API) | `/search/jql`, board issues, backlog |
 | `OffsetPage<T>` | `Items`, `StartAt`, `Total`, computed `IsLast` | boards list, filters, projects, comments |
 
-Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(startAt + count)` unless `startAt + count >= total` (an empty page also ends the walk, guarding against a `total` that shrinks). Search has no total; its last page has no token. The cursor of a search page is only valid with the same `jql`, `fields` and `maxResults`, so the client takes the whole query again with the cursor; it expires, and a 400 on a request that carried a token means "page expired", handled by the state layer by restarting at the first page (`docs/architecture.md`, "Loading"). Default page size 100 for both styles (the search cap is probed in #66, the agile caps in #69).
+Rules: the agile API has no `isLast`, so the client sets `Next` to `Offset(startAt + count)` unless `startAt + count >= total` (an empty page also ends the walk, guarding against a `total` that shrinks). Search has no total; its last page has no token. The cursor of a search page is only valid with the same `jql`, `fields` and `maxResults`, so the client takes the whole query again with the cursor; it expires, and a 400 on a request that carried a token means "page expired", handled by the state layer by restarting at the first page (`docs/internal/architecture.md`, "Loading"). Default page size 100 for both styles (the search cap is probed in #66, the agile caps in #69).
 
 ## Cache keys
 
-The disk and memory cache (`docs/architecture.md`, "Cache and refresh") keys what a client returned, never raw HTTP:
+The disk and memory cache (`docs/internal/architecture.md`, "Cache and refresh") keys what a client returned, never raw HTTP:
 
 - Views: `(ViewSourceKind, SourceValue)` inside the profile's folder. Source value is the JQL text, the filter id or the board id. The profile (site plus account) is the folder, so the same JQL on two sites never collides. A board key caches the board's configuration with its first page.
 - Issue details: the issue key inside the profile's folder. An entry is removed when the issue load answers 404 or 403 (the issue is gone or hidden).
-- Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile; `InvalidateCacheEffect` runs `SiteCache.RemoveIssue` per key and `SiteCache.RemoveViews`, #154; `docs/architecture.md`, "Write pipeline").
+- Not cached: comments, remote links, filter lists and board lists (cheap and rarely the first thing seen), anything from `/myself`, anything with credentials. Writes (M2) invalidate the issue detail entry and the first-page entries of every view that could contain the issue (simple rule: drop all view entries of the profile; `InvalidateCacheEffect` runs `SiteCache.RemoveIssue` per key and `SiteCache.RemoveViews`, #154; `docs/internal/architecture.md`, "Write pipeline").
 - Custom field ids are per site, which is one more reason the cache folder is per profile. Cached rows carry only the fields the mapper reads; a change to that field list bumps the cache schema version.
 
 ## Writes (`src/Geeratya.Jira/Writes`, #155)
@@ -74,7 +76,7 @@ Shared base of every write client. A write is built with `JiraRequest.Write` and
 
 ## Refresh rules (Jira side)
 
-The schedule is in `docs/architecture.md`, "Cache and refresh"; what the Jira layer guarantees for it:
+The schedule is in `docs/internal/architecture.md`, "Cache and refresh"; what the Jira layer guarantees for it:
 
 - Automatic refresh uses `AsBackground()` on the same transport: at most `cap - ReservedForUser` slots, throttled earlier than user work when the budget is low, so a refresh never delays a key press. Manual refresh, open, next page and retry are user requests.
 - Refresh traffic is bounded: one tab at a time, one load in flight per tab, pages walked sequentially. A list tab costs one search call per refresh (one a minute at the default interval); a board or backlog tab costs one call per page of its issues (100 per call, so a 1 000-issue board is 10 background calls a minute, a full 10 000-row board 100, the worst case).
@@ -95,7 +97,7 @@ Map once, in the pure message table in Core (`LoadErrorText`, #77; the reducer b
 
 ### Writes (M2 design, #151)
 
-State-layer rules are in `docs/architecture.md`, "Write pipeline"; what the Jira layer owes it:
+State-layer rules are in `docs/internal/architecture.md`, "Write pipeline"; what the Jira layer owes it:
 
 - Write clients return `JiraResult<T>` with the mapped `JiraError`; `JiraError` gains `FieldErrors` (the `errors` object of a 400, empty otherwise), so a form can show a message at its field. The body shapes in "Errors" apply; 401 has no JSON.
 - Never retried: every write is `JiraRequest.Write` (no retry on 429, 5xx, network or timeout), because a create or an added comment is not idempotent and a retry the user did not choose may repeat a side effect. The reads that verify a write (re-reading the issue, `key in (...)`) retry as usual.
@@ -150,7 +152,7 @@ Fixtures: `search/search-page1.json`, `search-page2.json`, `search-page3-last.js
 - Errors: a bad JQL is `BadRequest` with Jira's message; a 400 while continuing with a cursor is `PageExpired` ("The page expired, reload the results." followed by Jira's own message, so a wrong JQL stays visible); 401, 403, 404/410, 429 (retried by the transport, then `RateLimited`) and 5xx map as in Errors below. 410 is `NotFound`.
 - Issue detail: `IssueClient.GetIssueAsync(key, ct)` (`src/Geeratya.Jira/Issues/`, own JSON context) reads `GET /rest/api/3/issue/{key}?fields=` with `IssueFields.Detail` (the list-row fields plus reporter, created, description, subtasks, issuelinks, attachment). A string that is not an issue key (`IssueUrls.IsValidKey`) is answered as NotFound without a request. `IssueDetail` holds the `IssueSummary` fields plus reporter, `Created`, `Description` (`AdfDocument`, null when the field is null or the document has no content), `Parent` and `Subtasks` as `IssueStub` (key, summary, status, type), `IssueLink` and `IssueAttachment`. A link has no direction field: `outwardIssue` present means the opened issue reads the type's `outward` text ("blocks"), `inwardIssue` present means the `inward` text ("is blocked by"); an entry with neither is dropped. Attachments are metadata only (`ContentUrl` is kept, never fetched). Fixtures per kind, recorded on 2026-11-02 with the detail field list: `issues/issue-gtm11.json` (team-managed story with parent, two sub-tasks, a link each way, an attachment), `issue-gtm20.json` (sub-task), `issue-gtm9.json` (epic, no parent), `issue-gcm10.json` (company-managed story with the same relations), `issue-gcm6.json` (sub-task, null description), `issue-gcm2.json` (null description, no relations), `issue-gcm24.json` (media description, image attachment). `FakeJiraRouter` serves them by key; other keys answer the recorded 404. Fixtures for "issue-gtm5-*" in the survey are partial and stay as survey records.
 - `IssueUrls.Browse(connection, key)` is the only builder of `https://<site>/browse/KEY` (scheme and host of the site URL only, so a scoped-token gateway URL `api.atlassian.com/ex/jira/<cloudId>` would need its own site URL; null for an invalid key such as `GCM-1/../x`, `GCM-1?x` or a trailing newline). No API call.
-- Mapping cost: 10 000 issues of the `GCM` fixture (18 MB, one 5000-style page) take about 80 ms median, 120 ms p95 on a JIT Release build over the fake handler, including reading the body as a string and deserializing (see `docs/performance.md`).
+- Mapping cost: 10 000 issues of the `GCM` fixture (18 MB, one 5000-style page) take about 80 ms median, 120 ms p95 on a JIT Release build over the fake handler, including reading the body as a string and deserializing (see `docs/internal/performance.md`).
 
 ## Saved filters
 
@@ -312,7 +314,7 @@ Fixtures: `adf/issue-gtm5-rich-description.json` (description and two comments),
 
 ## Scrum survey (#172)
 
-Recorded on the dev site on 2026-11-02 (read calls, then writes on throwaway sprints and issues). Fixtures are under `tests/Geeratya.Jira.Tests/Fixtures/scrum/` (`ScrumSurveyFixtureTests` keeps them scrubbed and reads the boards through `BoardClient`). Seed data: see `docs/testing.md`, "Seeded dev-site data". Sprint ids: `GCS` board 6 has 2 (`GCS Sprint 1`, empty future), 6 (closed), 7 (active), 8 (future); `GTS` board 5 has 1 (empty future), 9, 10, 11. Writes used four issues (label `geeratya-test-s172`) and four sprints, all on boards 5 and 6; the sprints and the two `GTS` issues were deleted. `GCS-22` and `GCS-23` could not be deleted (403, #19) and were moved to `Done`; they remain.
+Recorded on the dev site on 2026-11-02 (read calls, then writes on throwaway sprints and issues). Fixtures are under `tests/Geeratya.Jira.Tests/Fixtures/scrum/` (`ScrumSurveyFixtureTests` keeps them scrubbed and reads the boards through `BoardClient`). Seed data: see `docs/internal/testing.md`, "Seeded dev-site data". Sprint ids: `GCS` board 6 has 2 (`GCS Sprint 1`, empty future), 6 (closed), 7 (active), 8 (future); `GTS` board 5 has 1 (empty future), 9, 10, 11. Writes used four issues (label `geeratya-test-s172`) and four sprints, all on boards 5 and 6; the sprints and the two `GTS` issues were deleted. `GCS-22` and `GCS-23` could not be deleted (403, #19) and were moved to `Done`; they remain.
 
 ### Sprints
 
@@ -365,6 +367,6 @@ Statements marked "observed" were seen during the survey but not kept as a fixtu
 - Fixtures were recorded without keeping the request; the requests are given in prose above. Keys are sorted by the scrubber, so property order is not Jira's.
 - `search/search-fields-navigable.json` is large on purpose (it is the only fixture showing the full field set of one issue, including the per-site `customfield_*` ids); trim it if a test needs less.
 - Issues created for the survey carried the label `geeratya-test-survey3`; the three in `GTM` were deleted, the four in `GCM` could not be (403) and remain until the owner removes them or grants the permission (#19). Part 2 added `GCM-5..7` (label `geeratya-test-survey4`) to that list; `GTM-4..8` were deleted.
-- Part 2 recording notes: the script also allows rank/backlog writes and issue links when every key is in `GCM`/`GTM`, and `RECORD_XSRF=1` for attachment uploads. The scrubber also anonymises ADF `mention` nodes. Empty-body answers (204, link 201) have no body fixture; `Fixtures/writes/*.meta.txt` holds the status line of the ones recorded for #156 (`docs/testing.md`, "Write fixtures"), and `writes/synthetic-*` is the one synthetic pair (transition with a required field, #31).
+- Part 2 recording notes: the script also allows rank/backlog writes and issue links when every key is in `GCM`/`GTM`, and `RECORD_XSRF=1` for attachment uploads. The scrubber also anonymises ADF `mention` nodes. Empty-body answers (204, link 201) have no body fixture; `Fixtures/writes/*.meta.txt` holds the status line of the ones recorded for #156 (`docs/internal/testing.md`, "Write fixtures"), and `writes/synthetic-*` is the one synthetic pair (transition with a required field, #31).
 - `Fixtures/scrum/` (#172): recorded with `RECORD_RAW` reads and scrubbed afterwards with `scripts/scrub-fixture.py`; `ScrumSurveyFixtureTests` checks hosts and account data; the other scrubbing rules come from the script. `GTS-35` is real data, not scrub damage (see the Sprint field section). The survey writes (sprints on boards 5 and 6, issues labelled `geeratya-test-s172`) are listed in the survey section.
 - Part 2 fixtures not named in the text are intermediate reads kept for comparison (`*-before`, `*-after*`, `*-final`, `boards/gtm-board-*`, `hierarchy/agile-board-*`, `links/issue-gtm6-links.json`, `transitions/transitions-gtm-5-after.json`).

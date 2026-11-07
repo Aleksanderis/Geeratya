@@ -8,7 +8,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// A field form hanging under the Details field it was opened from (<c>docs/ux-screens.md</c>, "Dropdowns in
+/// A field form hanging under the Details field it was opened from (<c>docs/internal/ux-screens.md</c>, "Dropdowns in
 /// Details"): the suggestion popup of the field form, up to five rows, the highlighted one marked with <c>&gt;</c>,
 /// drawn under the value block (above it when there is no room below). The view behind is not dimmed: the detail is the
 /// context of the choice. Keys and writes are the form's own. Pure.

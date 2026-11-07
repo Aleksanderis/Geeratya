@@ -6,7 +6,7 @@ using Geeratya.Jira.Comments.Models;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// The content rows of the Comments pane (<c>docs/ux-screens.md</c>, "Comments"): per comment a header bar (author
+/// The content rows of the Comments pane (<c>docs/internal/ux-screens.md</c>, "Comments"): per comment a header bar (author
 /// left, time and <c>edited</c> right), the body cut after <see cref="BodyLines"/> lines with a note row, and one
 /// empty row; then the footer (load more, loading, error). Pure. The cursor rests on the header bar of a cut comment
 /// and on every body line of an expanded one.

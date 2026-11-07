@@ -8,7 +8,7 @@ namespace Geeratya.Core.Cache;
 /// <summary>
 /// The cache of one profile: the first page of every opened view (most recent 32 in memory) and the detail of
 /// every opened issue (most recent 200 in memory), both on disk below the cache folder. Host-owned and not
-/// part of the app state (<c>docs/architecture.md</c>, "Cache and refresh").
+/// part of the app state (<c>docs/internal/architecture.md</c>, "Cache and refresh").
 /// Reads and writes are meant for background threads; <see cref="Put"/> only records the page and schedules the
 /// write, which runs debounced on a timer thread. A disposed cache ignores everything and never touches the disk
 /// again, so a pending write cannot recreate a folder that was deleted. A cache is never a reason to fail a read:
@@ -234,7 +234,7 @@ public sealed partial class SiteCache : IDisposable
     /// <summary>
     /// Forgets every cached first page of a view: at once in memory, and the files are deleted with the next flush.
     /// A write may have changed any issue, and the app cannot tell which cached pages hold it
-    /// (<c>docs/jira-layer.md</c>, "Cache keys"). A later <see cref="Put"/> caches again.
+    /// (<c>docs/internal/jira-layer.md</c>, "Cache keys"). A later <see cref="Put"/> caches again.
     /// </summary>
     public void RemoveViews()
     {

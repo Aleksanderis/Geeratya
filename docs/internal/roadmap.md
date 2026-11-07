@@ -1,13 +1,15 @@
 # Roadmap
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Milestone goals and open questions. Work is tracked as GitHub issues per milestone; this file holds goals and "Done when", not status. Features and exclusions are in the README.
 
 ## M0 - Foundation
 
 Goal: everything the feature milestones build on, and real knowledge of how Jira behaves.
 
-- Solution skeleton with Native AOT publish, layering and platform abstraction (`docs/architecture.md`).
-- Jira survey on the dev site: recorded, scrubbed responses for boards, backlog, ranking, issue hierarchy in both project kinds, create and edit metadata, ADF, search paging and errors; findings in `docs/jira-layer.md`.
+- Solution skeleton with Native AOT publish, layering and platform abstraction (`docs/internal/architecture.md`).
+- Jira survey on the dev site: recorded, scrubbed responses for boards, backlog, ranking, issue hierarchy in both project kinds, create and edit metadata, ADF, search paging and errors; findings in `docs/internal/jira-layer.md`.
 - Jira transport: connection, auth, typed errors, timeouts, rate limits, live-host guard, in-process fake.
 - Profiles and credential store (OS secret store, env var fallback).
 - App shell: Terminal.Gui v2 startup, keymap and generated reference, palette, help.
@@ -56,7 +58,7 @@ Goal: every command is findable and the keys are the user's.
 - Status messages with severity, expiry and a history, so a late write result is not wiped by the next key (#369).
 - User key configuration file (the defaults are already data in `keymap.default.json`), a guide, and one settings registry whose writer keeps the user's comments (#373).
 
-These follow Gitunia's proven design (`docs/decisions.md`, 2026-11-03). The Confirm dialog (#370) is in M3 with the mouse paths.
+These follow Gitunia's proven design (`docs/internal/decisions.md`, 2026-11-03). The Confirm dialog (#370) is in M3 with the mouse paths.
 
 ## M5 - Scrum and sprints
 
@@ -104,10 +106,10 @@ Goal: someone else can install it and trust it.
 
 Each with the recommended default and what changes if it is wrong.
 
-1. ADF editing in M2: edit as Markdown-like text and convert to ADF (default), or a structured editor. If wrong: round-tripping loses formatting on rich descriptions, so the app would warn before saving a description it cannot round-trip. Taken in #161: the writer and `AdfRoundTrip.RoundTrips` exist (`docs/jira-layer.md`, ADF); the create and comment issues show the warning.
+1. ADF editing in M2: edit as Markdown-like text and convert to ADF (default), or a structured editor. If wrong: round-tripping loses formatting on rich descriptions, so the app would warn before saving a description it cannot round-trip. Taken in #161: the writer and `AdfRoundTrip.RoundTrips` exist (`docs/internal/jira-layer.md`, ADF); the create and comment issues show the warning.
 2. Scrum reports (burndown, velocity, sprint report) in M5: not included (default; charts do not fit the terminal and the sprint header carries the numbers that matter). If wrong: a text-only sprint report layout follows as its own issue.
 3. Restore last session's tabs on start (M1 design, #64): answered yes in #542 (owner request): the tab definitions (not rows) are kept per profile in `tabs.json` and reopened after the first frame; a first start opens the board picker. `startup.restore` turns it off.
-4. Telling Scrum from Kanban on team-managed projects (both say `simple`): default is to probe `GET /board/{id}/sprint` once per board and remember the answer per profile. If wrong (the probe is slow or Jira changes the answer): read the project's feature flags instead. Taken in #319: the answer is stored per profile in `board-kinds.json` (`docs/architecture.md`, profile storage).
+4. Telling Scrum from Kanban on team-managed projects (both say `simple`): default is to probe `GET /board/{id}/sprint` once per board and remember the answer per profile. If wrong (the probe is slow or Jira changes the answer): read the project's feature flags instead. Taken in #319: the answer is stored per profile in `board-kinds.json` (`docs/internal/architecture.md`, profile storage).
 5. Scrum backlog size (M5, #151): the 10 000-row cap per tab stays. If real backlogs exceed it, the backlog is loaded per sprint section on demand outside `TabState` (a host-owned store), not by raising the cap. If wrong: M5 adds that store first.
 6. Confirm for a single transition (M2, #151): answered in #159 (`decisions.md`): confirm when the target status category is `done` or the workflow shows a screen with nothing to fill in; a per-workflow setting stays open.
 7. Sprint issue page size (M5, #172): the sprint issue endpoint echoes any `maxResults` (1000 accepted with seven issues; the real cap was not reached because the dev data has too few issues), so the client uses 100 like the board endpoints. If wrong: a sprint with more issues than the cap returns a short page, which offset paging (`startAt` plus the returned count) already survives.

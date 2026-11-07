@@ -123,7 +123,7 @@ public static partial class WriteReducer
 
     /// <summary>
     /// Jira deleted the issues: their rows and open details go from every tab, the caches are dropped, and the
-    /// origin tab reloads (membership changed; the server is the truth, <c>docs/architecture.md</c>).
+    /// origin tab reloads (membership changed; the server is the truth, <c>docs/internal/architecture.md</c>).
     /// </summary>
     private static ReduceResult CompleteRemoval(AppState state, Operation operation)
     {

@@ -6,7 +6,7 @@ using Geeratya.Tui.Rendering.Themes;
 namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
-/// Focus and selection in every colour tier (<c>docs/ux-look.md</c>, sections 4 and 6): never colour alone, and the
+/// Focus and selection in every colour tier (<c>docs/internal/ux-look.md</c>, sections 4 and 6): never colour alone, and the
 /// new roles keep their contrast in every built-in theme.
 /// </summary>
 [Trait("Os", "Independent")]

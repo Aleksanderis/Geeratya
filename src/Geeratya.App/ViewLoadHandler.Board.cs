@@ -219,7 +219,7 @@ public sealed partial class ViewLoadHandler
 
         if (effect.Definition.Source == ViewSourceKind.Board && kind == BoardKind.Kanban)
         {
-            // Jira's board hides Done issues moved to Done long ago; the agile endpoint does not (docs/jira-layer.md).
+            // Jira's board hides Done issues moved to Done long ago; the agile endpoint does not (docs/internal/jira-layer.md).
             var cutoff = await ResolveCutoffAsync(services, effect, id, token);
 
             if (cutoff.Days > 0)

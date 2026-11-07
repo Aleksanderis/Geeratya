@@ -4,7 +4,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Views;
 
 /// <summary>
-/// The tab bar line (<c>docs/ux-look.md</c>, section 5). Pure layout: one padded chip per tab (<c> 1 Board GCM </c>,
+/// The tab bar line (<c>docs/internal/ux-look.md</c>, section 5). Pure layout: one padded chip per tab (<c> 1 Board GCM </c>,
 /// the active one filled, drawn on the bar background), titles cut to 24 cells and shrunk towards 8 when the line is too
 /// short; when even that does not fit a window of tabs around the active one is shown with <c>‹n</c> and <c>+n ›</c>
 /// chips for the hidden ends, and under <see cref="CompactBelow"/> columns only the active chip and <c>+</c> remain.

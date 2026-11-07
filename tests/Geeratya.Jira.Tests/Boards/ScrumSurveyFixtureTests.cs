@@ -7,7 +7,7 @@ using Geeratya.Jira.Tests.Fakes;
 namespace Geeratya.Jira.Tests.Boards;
 
 /// <summary>
-/// Guards the Scrum survey (#172, <c>docs/jira-layer.md</c>, "Scrum survey"): the recorded fixtures under
+/// Guards the Scrum survey (#172, <c>docs/internal/jira-layer.md</c>, "Scrum survey"): the recorded fixtures under
 /// <c>Fixtures/scrum</c> must stay scrubbed, and the existing board client must read the two Scrum boards.
 /// </summary>
 public sealed partial class ScrumSurveyFixtureTests

@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Views;
 
 /// <summary>
-/// The refresh timings (<c>docs/architecture.md</c>, "Cache and refresh"). Pure: every method takes the time it
+/// The refresh timings (<c>docs/internal/architecture.md</c>, "Cache and refresh"). Pure: every method takes the time it
 /// works from, the reducer never reads a clock.
 /// </summary>
 public static class RefreshSchedule

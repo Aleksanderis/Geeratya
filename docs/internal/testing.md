@@ -1,6 +1,8 @@
 # Testing
 
-Strategy and layers. The procedure for writing, recording and running tests is the `testing` skill; budgets and measured numbers are in `docs/performance.md`.
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
+Strategy and layers. The procedure for writing, recording and running tests is the `testing` skill; budgets and measured numbers are in `docs/internal/performance.md`.
 
 ## Layers
 
@@ -18,7 +20,7 @@ To regenerate snapshots after adding key rows or palette commands, run `GEERATYA
 
 ## Fixtures
 
-Real responses recorded from the dev site, scrubbed and stored under `tests/Geeratya.Jira.Tests/Fixtures/<area>/<name>.json`. What each one shows, and how Jira behaves, is the survey in `docs/jira-layer.md`. Recording (`scripts/record-fixture.sh`) refuses hosts outside `GEERATYA_LIVE_HOSTS`; scrubbing (`scripts/scrub-fixture.py`) rewrites host, account ids, emails and display names. Never hand-write a response shape you have not recorded. Generated datasets (below) are the one exception, and only for size: their shape is the recorded search shape reduced to the fields the app asks for.
+Real responses recorded from the dev site, scrubbed and stored under `tests/Geeratya.Jira.Tests/Fixtures/<area>/<name>.json`. What each one shows, and how Jira behaves, is the survey in `docs/internal/jira-layer.md`. Recording (`scripts/record-fixture.sh`) refuses hosts outside `GEERATYA_LIVE_HOSTS`; scrubbing (`scripts/scrub-fixture.py`) rewrites host, account ids, emails and display names. Never hand-write a response shape you have not recorded. Generated datasets (below) are the one exception, and only for size: their shape is the recorded search shape reduced to the fields the app asks for.
 
 ## Fake Jira
 
@@ -94,11 +96,11 @@ Bash only, on purpose: `record-fixture.sh`, `seed-dev-site.sh` and `scrub-fixtur
 
 - Input: the binary, the base URL of a running FakeJira (written as the site of one active `fake` profile into the private `geeratya/profiles.json`; `GEERATYA_TOKEN=fake` is the token, so the binary talks to the fake and must be a loopback address), the number of sessions (default 20; `KEYS` presses per session, default 5; `TIMEOUT_MS`, default 5000).
 - Output: median and p95 in milliseconds for the tmux floor (a trivial command), cold start to first frame and key to frame. Exit 2 for bad arguments, 1 when a frame never appears.
-- Needs tmux and GNU `date`: Linux first (macOS needs GNU coreutils). Windows: `scripts/measure.ps1 <binary> <fake url> [runs]` (PowerShell 7 and psmux, `winget install marlocarlo.psmux`; options `-Keys` and `-TimeoutMs`, the `KEYS`/`TIMEOUT_MS` variables are ignored; exit 3 for a missing psmux) runs only the default scenario (tmux floor, cold start, `?` key to frame); it was verified on Windows 11 with psmux 3.4 (#632: psmux starts the pane command through pwsh, reads an empty config through `-f`, and the script sets `GEERATYA_USE_XDG=1` so the private `XDG_*` directories are honoured on Windows, see `docs/decisions.md`; measured against the fake: floor 50-500 ms depending on how fast pwsh starts, cold start ~60 ms, key to frame ~30-80 ms, only comparable with its own earlier runs). The `SCENARIO` runs, `screenshot.sh`, the smoke scripts and `idle-cpu.sh` (reads `/proc`) have no Windows variant. `inspect.ps1` (PowerShell 7) takes the same arguments as `inspect.sh` (`--changed` or `-Changed`, globs).
+- Needs tmux and GNU `date`: Linux first (macOS needs GNU coreutils). Windows: `scripts/measure.ps1 <binary> <fake url> [runs]` (PowerShell 7 and psmux, `winget install marlocarlo.psmux`; options `-Keys` and `-TimeoutMs`, the `KEYS`/`TIMEOUT_MS` variables are ignored; exit 3 for a missing psmux) runs only the default scenario (tmux floor, cold start, `?` key to frame); it was verified on Windows 11 with psmux 3.4 (#632: psmux starts the pane command through pwsh, reads an empty config through `-f`, and the script sets `GEERATYA_USE_XDG=1` so the private `XDG_*` directories are honoured on Windows, see `docs/internal/decisions.md`; measured against the fake: floor 50-500 ms depending on how fast pwsh starts, cold start ~60 ms, key to frame ~30-80 ms, only comparable with its own earlier runs). The `SCENARIO` runs, `screenshot.sh`, the smoke scripts and `idle-cpu.sh` (reads `/proc`) have no Windows variant. `inspect.ps1` (PowerShell 7) takes the same arguments as `inspect.sh` (`--changed` or `-Changed`, globs).
 - Every scenario that types a command first waits for the start picker ("Open a view") and closes it with Escape, because the picker would take the typed text as its filter (#759). It waits for the frame to appear or change; it never sleeps a fixed time (bounded exceptions in the scenarios: 0.5 s before Enter on a fresh list, 2 s for the debounced cache write before the first session is killed, 1 s before the RSS read, and 0.2 s before Enter in the sprint switcher of `SCENARIO=scrum`, and up to 2 s of settling after paging in `SCENARIO=list`).
 - `SCENARIO=list` (open a list, `j` and `k` key to frame, 10 000 rows paged in with `G`, RSS; `ROWS`, `JQL`), `SCENARIO=detail` (only the first Enter to issue detail of a session, no settling sleep), `SCENARIO=scrum` (Scrum backlog and sprint switch with and without cache, `j` and `za` keys, RSS; needs a fake with `--issues 5000`; `SPRINT` is the text typed in the switcher) and `SCENARIO=views` (issue detail, second start from the disk cache, 10 tabs, `Tab` key, RSS) time a loaded view instead of the empty shell. `list` needs a fake started with `--issues 10000` (and `--fixtures`, see above); `detail` and `views` only need a JQL that returns `GEN-1` (`--issues 200` is enough) and print their own table; the `?` figures are not printed for `detail`, `scrum` and `views`. A wait that times out prints the last frame lines to stderr.
 - `tests/Geeratya.Tui.Tests/Performance/HotPathMeasurements.cs` times the in-process paths (list and board keys at 10 000 rows, column regrouping) when `GEERATYA_BENCH=1`; it is skipped otherwise.
-- Numbers go in `docs/performance.md` with environment, dataset and latency; an optimisation PR quotes before and after.
+- Numbers go in `docs/internal/performance.md` with environment, dataset and latency; an optimisation PR quotes before and after.
 
 For screenshots and manual tmux runs use the same pattern (`testing` skill, "Driving the real binary").
 
@@ -110,7 +112,7 @@ For screenshots and manual tmux runs use the same pattern (`testing` skill, "Dri
 
 ## Print frame against the fake
 
-`geeratya --print-frame --size WxH --colors truecolor|16|none --source board:<name>|jql:<query>|issue:<KEY> [--layout list|columns] [--profile <name>]` draws a real screen without a terminal (`docs/ux.md`, "Print frame"): start `fakejira` (see above), seed a profile whose site is its address into a private `XDG_CONFIG_HOME`, and run it with `GEERATYA_LIVE_HOSTS=127.0.0.1`. It is the cheap way to look at colours and layouts; the tmux pipeline below is for keys and the live shell. A site outside `GEERATYA_LIVE_HOSTS` is refused before any request. Tests: `PrintFrameTests` (ANSI snapshots per tier `ansi-<tier>-60x12.txt`, the refusal, a board through the in-process Jira fake).
+`geeratya --print-frame --size WxH --colors truecolor|16|none --source board:<name>|jql:<query>|issue:<KEY> [--layout list|columns] [--profile <name>]` draws a real screen without a terminal (`docs/internal/ux.md`, "Print frame"): start `fakejira` (see above), seed a profile whose site is its address into a private `XDG_CONFIG_HOME`, and run it with `GEERATYA_LIVE_HOSTS=127.0.0.1`. It is the cheap way to look at colours and layouts; the tmux pipeline below is for keys and the live shell. A site outside `GEERATYA_LIVE_HOSTS` is refused before any request. Tests: `PrintFrameTests` (ANSI snapshots per tier `ansi-<tier>-60x12.txt`, the refusal, a board through the in-process Jira fake).
 
 ## Screenshot pipeline
 

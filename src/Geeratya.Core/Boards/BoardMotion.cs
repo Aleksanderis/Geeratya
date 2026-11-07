@@ -4,7 +4,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// Selection and scroll on a board in the columns layout (<c>docs/ux-screens.md</c>, "Columns layout"). Pure: the
+/// Selection and scroll on a board in the columns layout (<c>docs/internal/ux-screens.md</c>, "Columns layout"). Pure: the
 /// columns, the cursor and the number of cards a column shows are facts passed in; every result is clamped and an
 /// empty board or column never throws.
 /// </summary>

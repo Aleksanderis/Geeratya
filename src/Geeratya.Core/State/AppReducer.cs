@@ -15,7 +15,7 @@ namespace Geeratya.Core.State;
 
 /// <summary>
 /// <c>(State, Command) -> (State, Effects)</c>. Holds only the keymap; no clock, no I/O, no terminal.
-/// Esc and q follow <c>docs/ux.md</c>: Esc backs out one level, q quits only from Normal mode.
+/// Esc and q follow <c>docs/internal/ux.md</c>: Esc backs out one level, q quits only from Normal mode.
 /// </summary>
 public sealed partial class AppReducer
 {

@@ -3,7 +3,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// A row of key hint chips on the bar (<c>docs/ux-look.md</c>, section 5): the key bold in the key role, the label
+/// A row of key hint chips on the bar (<c>docs/internal/ux-look.md</c>, section 5): the key bold in the key role, the label
 /// muted, two spaces between chips. The caller decides which chips fit; this only measures and draws them.
 /// </summary>
 public static class HintBar

@@ -3,7 +3,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The two states of a title chip (<c>docs/ux-look.md</c>, section 3): the chip of the focused pane is one filled
+/// The two states of a title chip (<c>docs/internal/ux-look.md</c>, section 3): the chip of the focused pane is one filled
 /// accent chip with a single foreground; every other chip is dim, keeping only the colours that carry meaning (issue type,
 /// status, a warning).
 /// </summary>

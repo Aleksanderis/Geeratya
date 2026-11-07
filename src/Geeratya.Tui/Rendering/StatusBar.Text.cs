@@ -59,7 +59,7 @@ public static partial class StatusBar
             return "MESSAGES";
         }
 
-        // Visual mode is a state of the tab over Normal mode (docs/ux.md, "Modes").
+        // Visual mode is a state of the tab over Normal mode (docs/internal/ux.md, "Modes").
         var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0, VisualAnchor: not null };
 
         return visual ? "VISUAL" : Badge(state.Mode);

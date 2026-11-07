@@ -31,11 +31,14 @@ Not included: Scrum reports and charts (burndown, velocity), Jira Service Manage
 
 ## Status
 
-In planning. See `docs/roadmap.md`.
+In planning. See `docs/internal/roadmap.md`.
 
 ## Docs
 
-- Design documents are in `docs/`
+- [User guide](docs/user-guide.md): install, connect, keys and everyday tasks
+- [Key reference](docs/keymap.md), [customising keys](docs/customising-keys.md) and [settings](docs/settings.md)
+- [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md)
+- Design documents are in `docs/internal/` (internal notes for maintainers)
 - Project conventions are in [CLAUDE.md](CLAUDE.md)
 
 ## License

@@ -6,7 +6,7 @@ namespace Geeratya.Core.Writes;
 
 /// <summary>
 /// The status line for a write that Jira definitely did not apply, from one pure table keyed by the error kind
-/// (<c>docs/architecture.md</c>, "Write errors as typed results"). Says what was not done and why; the lost-reply
+/// (<c>docs/internal/architecture.md</c>, "Write errors as typed results"). Says what was not done and why; the lost-reply
 /// kinds never come here, they are verified first.
 /// </summary>
 public static class WriteFailureText

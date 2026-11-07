@@ -4,7 +4,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Boards;
 
 /// <summary>
-/// The rows of a full card (<c>docs/ux-screens.md</c>, "Board card"): the summary on one or two lines, a blank row,
+/// The rows of a full card (<c>docs/internal/ux-screens.md</c>, "Board card"): the summary on one or two lines, a blank row,
 /// the label chips on one or two rows followed by a blank row (none without labels), and the key row, inside a top
 /// and a bottom border. So the height follows the content, from five to nine rows; a member of a shared frame has no
 /// own top border (a child) and a divider instead of a bottom border. The renderer, the hit test and the flash

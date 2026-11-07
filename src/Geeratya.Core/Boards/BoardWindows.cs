@@ -1,6 +1,6 @@
 namespace Geeratya.Core.Boards;
 
-/// <summary>Chooses the columns that fit (<c>docs/ux-screens.md</c>, "Columns layout"). Pure.</summary>
+/// <summary>Chooses the columns that fit (<c>docs/internal/ux-screens.md</c>, "Columns layout"). Pure.</summary>
 public static class BoardWindows
 {
     /// <summary>The narrowest a column gets; fewer columns are drawn rather than narrower ones.</summary>
