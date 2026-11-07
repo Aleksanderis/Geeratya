@@ -15,7 +15,7 @@ Open an issue first and wait for a reply that the change fits. Unsolicited large
 - Branch from `main` as `feature/<issue>-<slug>` or `fix/<issue>-<slug>`, one issue per PR, reference it (`Closes #<n>`).
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`).
 - `dotnet build` and `dotnet test` must pass. Warnings are errors, and formatting is enforced by `.editorconfig` during the build.
-- Add tests for behaviour you change or add. Tests run offline against a fake Jira (recorded, scrubbed JSON fixtures); see [docs/testing.md](docs/testing.md).
+- Add tests for behaviour you change or add. Tests run offline against a fake Jira (recorded, scrubbed JSON fixtures); see [docs/internal/testing.md](docs/internal/testing.md).
 - Keep Linux, Windows and macOS working and the binary Native AOT compatible (no reflection or runtime codegen). Run the AOT publish after adding a dependency.
 - Keep the PR focused and say what changed and why. The maintainer merges.
 
@@ -30,7 +30,7 @@ publish/geeratya
 
 The .NET SDK version is pinned in `global.json`. The AOT publish needs a C compiler (see the [user guide](docs/user-guide.md#install)). Optional quality inspections: `scripts/inspect.sh --changed` (Windows: `scripts/inspect.ps1`).
 
-To try the app without a Jira site, run the fake server in `tools/FakeJira` with a profile that points at its loopback address and `GEERATYA_TOKEN=fake`; `scripts/screenshot.sh` shows the setup (see "Fake Jira" in [docs/testing.md](docs/testing.md)).
+To try the app without a Jira site, run the fake server in `tools/FakeJira` with a profile that points at its loopback address and `GEERATYA_TOKEN=fake`; `scripts/screenshot.sh` shows the setup (see "Fake Jira" in [docs/internal/testing.md](docs/internal/testing.md)).
 
 ## Code overview
 
@@ -39,7 +39,7 @@ To try the app without a Jira site, run the fake server in `tools/FakeJira` with
 - `src/Geeratya.App`: effects that connect Core to Jira and the platform, without a terminal.
 - `src/Geeratya.Platform`: the only place for OS-specific code (paths, secret stores, clipboard).
 - `src/Geeratya.Tui`: Terminal.Gui rendering and the app entry point.
-- Details: [architecture](docs/architecture.md), [testing](docs/testing.md), [Jira layer](docs/jira-layer.md). The design notes are for maintainers and are not required reading.
+- Details: [architecture](docs/internal/architecture.md), [testing](docs/internal/testing.md), [Jira layer](docs/internal/jira-layer.md). The design notes are for maintainers and are not required reading.
 
 ## Live tests and credentials
 

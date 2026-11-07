@@ -30,7 +30,7 @@ internal enum DetailPointerKind
 internal sealed record DetailPointerHit(DetailPointerKind Kind, bool OnSide, int Line, string? Section = null);
 
 /// <summary>
-/// Hit test of the issue detail overlay (<c>docs/ux-mouse.md</c>, "Detail targets"): which strip chip, pane row or
+/// Hit test of the issue detail overlay (<c>docs/internal/ux-mouse.md</c>, "Detail targets"): which strip chip, pane row or
 /// pane frame lies under a cell of the overlay, using the same measures the renderer draws with. Pure.
 /// </summary>
 internal static class DetailPointer

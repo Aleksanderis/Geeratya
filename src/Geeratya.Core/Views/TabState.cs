@@ -72,7 +72,7 @@ public sealed record TabState(
 
     /// <summary>
     /// The refresh key was pressed while a write ran: the refresh starts when the last operation ends
-    /// (<c>docs/architecture.md</c>, "Write pipeline").
+    /// (<c>docs/internal/architecture.md</c>, "Write pipeline").
     /// </summary>
     public bool RefreshQueued { get; init; }
 
@@ -99,7 +99,7 @@ public sealed record TabState(
 
     /// <summary>
     /// The issue keys marked with <c>selection.mark</c>, scattered rows allowed. Keys, not indexes, so the marks
-    /// survive scrolling and a refresh that moves rows (<c>docs/ux-keymap.md</c>, "Selection and counts").
+    /// survive scrolling and a refresh that moves rows (<c>docs/internal/ux-keymap.md</c>, "Selection and counts").
     /// </summary>
     public IReadOnlyList<string> Marks { get; init; } = [];
 
@@ -215,7 +215,7 @@ public sealed record TabState(
     public string? Name { get; init; }
 
     /// <summary>
-    /// The panes of the tab: focus, zoom and inner scrolls (<c>docs/ux-screens.md</c>, "Panes, focus and zoom"). No
+    /// The panes of the tab: focus, zoom and inner scrolls (<c>docs/internal/ux-screens.md</c>, "Panes, focus and zoom"). No
     /// panes until a screen sets a grid, so screens that do not use panes are unaffected.
     /// </summary>
     public PaneState Panes { get; init; } = PaneState.None;

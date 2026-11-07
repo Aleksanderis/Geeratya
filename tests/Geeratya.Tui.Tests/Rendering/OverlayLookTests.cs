@@ -8,7 +8,7 @@ using Geeratya.Tui.Rendering;
 namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
-/// The floating overlay look (<c>docs/ux-look.md</c>, section 7): every overlay is one <see cref="OverlayBox"/> over a
+/// The floating overlay look (<c>docs/internal/ux-look.md</c>, section 7): every overlay is one <see cref="OverlayBox"/> over a
 /// still-visible, dimmed view, with the rounded accent frame and the title chip, at the three snapshot sizes and in the
 /// ASCII glyph set.
 /// </summary>

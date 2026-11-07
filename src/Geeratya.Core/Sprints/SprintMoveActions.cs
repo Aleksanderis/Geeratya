@@ -13,7 +13,7 @@ using Geeratya.Jira.Sprints.Models;
 namespace Geeratya.Core.Sprints;
 
 /// <summary>
-/// The sprint moves (<c>docs/ux-keymap.md</c>): the issue under the cursor, the marked issues or the Visual range (or
+/// The sprint moves (<c>docs/internal/ux-keymap.md</c>): the issue under the cursor, the marked issues or the Visual range (or
 /// the open issue) go to a sprint chosen in the picker, or to the backlog. The set is the same one every write uses
 /// (<see cref="RowSelection.Targets"/>), so a move never widens or narrows silently. Pure: the question for more than
 /// one issue and the rest of the write belong to <see cref="WriteReducer"/>.

@@ -4,7 +4,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The card the issue detail and the create form sit in when they float over the view (<c>docs/ux-screens.md</c>,
+/// The card the issue detail and the create form sit in when they float over the view (<c>docs/internal/ux-screens.md</c>,
 /// "Where it is drawn"): a rounded frame with one column of padding, so the panes never touch the view behind. Pure.
 /// </summary>
 public static class DetailCard

@@ -5,7 +5,7 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The note lines of a body that has no rows to show: loading, empty, failed and not-found. One look for all of
-/// them (<c>docs/ux-look.md</c>, "Content is padded by one column inside each pane"): a padding column, left
+/// them (<c>docs/internal/ux-look.md</c>, "Content is padded by one column inside each pane"): a padding column, left
 /// aligned at the top of the pane; muted for the plain notes, the loading and error roles for the network states.
 /// </summary>
 public static class StateBody

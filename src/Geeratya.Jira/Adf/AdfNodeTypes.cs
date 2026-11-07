@@ -1,6 +1,6 @@
 namespace Geeratya.Jira.Adf;
 
-/// <summary>ADF node type names as Jira spells them (<c>docs/jira-layer.md</c>, "ADF in real data").</summary>
+/// <summary>ADF node type names as Jira spells them (<c>docs/internal/jira-layer.md</c>, "ADF in real data").</summary>
 public static class AdfNodeTypes
 {
     public const string Doc = "doc";

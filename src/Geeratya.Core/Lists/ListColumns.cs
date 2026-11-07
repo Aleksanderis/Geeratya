@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Lists;
 
 /// <summary>
-/// Column widths of the list layout for a terminal width (<c>docs/ux-screens.md</c>, "List layout"). A width of zero
+/// Column widths of the list layout for a terminal width (<c>docs/internal/ux-screens.md</c>, "List layout"). A width of zero
 /// means the column is dropped. Layout is data: the renderer only places text by these numbers.
 /// </summary>
 /// <param name="Key">Width of the key column.</param>

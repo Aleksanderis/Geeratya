@@ -5,7 +5,7 @@ namespace Geeratya.Jira.Sprints;
 
 /// <summary>
 /// Tells what a failed sprint write means. Jira answers 400 with plain English sentences (the start date and the
-/// state transitions were recorded on the dev site, "Scrum survey (#172)" in docs/jira-layer.md), so this looks for
+/// state transitions were recorded on the dev site, "Scrum survey (#172)" in docs/internal/jira-layer.md), so this looks for
 /// the stable parts of them; an unknown text is <see cref="SprintWriteProblem.Other"/> and the caller shows
 /// <see cref="WriteError.Message"/>. The client's own checks use the two message constants below. There is no error
 /// for "another sprint is active": Jira allows parallel active sprints on both project kinds.

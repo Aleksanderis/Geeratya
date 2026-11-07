@@ -6,7 +6,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>
-/// The rank keys (<c>docs/ux-keymap.md</c>, "Planned bindings"): turn the selection into a <see cref="RankRequest"/>
+/// The rank keys (<c>docs/internal/ux-keymap.md</c>, "Planned bindings"): turn the selection into a <see cref="RankRequest"/>
 /// for the active tab, or say why not. Rank is relative to a neighbour that the view shows: one place up or down is
 /// the next card of the list or of the board column, to the top or bottom is its first or last card, and the
 /// pick-up key takes the place of the card it is dropped on. Pure: the time comes from the command.

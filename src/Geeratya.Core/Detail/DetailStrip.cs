@@ -13,7 +13,7 @@ public sealed record StripChip(string Id, string Text, int Start)
 }
 
 /// <summary>
-/// The layout of the section strip of a zoomed pane (<c>docs/ux-screens.md</c>, "Panes, focus and zoom"), shared by
+/// The layout of the section strip of a zoomed pane (<c>docs/internal/ux-screens.md</c>, "Panes, focus and zoom"), shared by
 /// the renderer, which draws it, and the mouse, which hit-tests it. A strip wider than the overlay drops sections from
 /// the left until the current one is in view. Pure.
 /// </summary>

@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// Where the wide overlay of the issue detail and the create form sits in the body (<c>docs/ux-screens.md</c>, "Where
+/// Where the wide overlay of the issue detail and the create form sits in the body (<c>docs/internal/ux-screens.md</c>, "Where
 /// it is drawn"): a card, the terminal width minus four columns, centred, at most 160 columns wide, the body height
 /// minus a top margin of four rows (so the column titles and first card rows of the view show above it) and one row
 /// below; the panes sit inside the card's frame and padding. Below 100 columns it fills the body, with no card, no

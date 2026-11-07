@@ -35,7 +35,7 @@ public static partial class StatusBar
     }
 
     /// <summary>
-    /// The status line as styled spans (<c>docs/ux-look.md</c>, section 5): the mode badge as a filled chip at column
+    /// The status line as styled spans (<c>docs/internal/ux-look.md</c>, section 5): the mode badge as a filled chip at column
     /// 0, the text (a message in its severity role), then the hint chips right-aligned, the key bold and the label
     /// muted. Its plain text is <see cref="Render"/>; it is exactly <paramref name="width"/> columns wide.
     /// </summary>

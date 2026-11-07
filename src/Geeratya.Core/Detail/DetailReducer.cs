@@ -118,7 +118,7 @@ internal static partial class DetailReducer
 
     /// <summary>
     /// The issue arrived. An issue of a type with children (hierarchy level 1 or above) starts loading them now,
-    /// one level only: a grandchild is not returned by <c>parent = KEY</c> (<c>docs/jira-layer.md</c>, "Hierarchy").
+    /// one level only: a grandchild is not returned by <c>parent = KEY</c> (<c>docs/internal/jira-layer.md</c>, "Hierarchy").
     /// An issue with sub-tasks loads them the same way, because Jira lists a sub-task without its assignee.
     /// </summary>
     public static AppState IssueLoaded(AppState state, IssueDetailLoaded loaded, List<Effect> effects)

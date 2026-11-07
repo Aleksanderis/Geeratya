@@ -11,7 +11,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
 /// The chrome around the body (tab row, status bar with badge and hint chips) in every glyph set and colour tier
-/// (<c>docs/ux-look.md</c>, sections 5 and 6). To refresh the snapshots after an intended change, run with
+/// (<c>docs/internal/ux-look.md</c>, sections 5 and 6). To refresh the snapshots after an intended change, run with
 /// <c>GEERATYA_UPDATE_SNAPSHOTS=1</c> and review the diff.
 /// </summary>
 public class ChromeSnapshotTests

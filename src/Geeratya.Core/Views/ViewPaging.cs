@@ -1,6 +1,6 @@
 namespace Geeratya.Core.Views;
 
-/// <summary>Paging and memory bounds of the views (<c>docs/architecture.md</c>, "Views and tabs").</summary>
+/// <summary>Paging and memory bounds of the views (<c>docs/internal/architecture.md</c>, "Views and tabs").</summary>
 public static class ViewPaging
 {
     /// <summary>Issues requested per page.</summary>

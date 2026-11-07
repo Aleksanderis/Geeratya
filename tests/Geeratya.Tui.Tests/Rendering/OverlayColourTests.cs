@@ -6,7 +6,7 @@ using Geeratya.Tui.Rendering.Themes;
 namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
-/// The overlay surface, the dimmed view and the overlay roles in every colour tier (<c>docs/ux-look.md</c>, section 6).
+/// The overlay surface, the dimmed view and the overlay roles in every colour tier (<c>docs/internal/ux-look.md</c>, section 6).
 /// </summary>
 [Trait("Os", "Independent")]
 public class OverlayColourTests

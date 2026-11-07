@@ -1,11 +1,11 @@
 ---
 name: performance
-description: Performance and memory checklist for Geeratya hot paths (JSON mapping of search results, ADF rendering, list rendering, request scheduling, caches, startup). Use when you write or review code that maps Jira responses, renders rich text or long lists, schedules requests, caches data, or runs at startup, or when a change touches the numbers in docs/performance.md.
+description: Performance and memory checklist for Geeratya hot paths (JSON mapping of search results, ADF rendering, list rendering, request scheduling, caches, startup). Use when you write or review code that maps Jira responses, renders rich text or long lists, schedules requests, caches data, or runs at startup, or when a change touches the numbers in docs/internal/performance.md.
 ---
 
 # Performance and memory
 
-Targets and verified numbers are in `docs/performance.md`; read it first, do not repeat it here. Budgets: cold start to first frame under 100 ms (from local cache or an empty state, never waiting on the network), a key press never waits on a request, scrolling a 10k-issue result list without dropped frames, background tabs cheap, memory bounded however long the session runs.
+Targets and verified numbers are in `docs/internal/performance.md`; read it first, do not repeat it here. Budgets: cold start to first frame under 100 ms (from local cache or an empty state, never waiting on the network), a key press never waits on a request, scrolling a 10k-issue result list without dropped frames, background tabs cheap, memory bounded however long the session runs.
 
 ## Measure before optimising
 
@@ -41,14 +41,14 @@ Targets and verified numbers are in `docs/performance.md`; read it first, do not
 
 ## Rendering
 
-- Frame diffing and the single flush are specified in `docs/architecture.md`; add no per-cell allocations and no work for unchanged rows.
+- Frame diffing and the single flush are specified in `docs/internal/architecture.md`; add no per-cell allocations and no work for unchanged rows.
 - Invalidate narrowly (the changed pane or row) on selection or data changes, not the whole screen.
 
 ## AOT and startup
 
 - No reflection, runtime codegen or `dynamic`; source generators only.
 - Startup path: nothing that is not needed for the first frame (no network before the first frame, no field-list fetch, no regex construction, no large static initialisers). Load profiles and cached views, draw, then start requests.
-- After adding a dependency or touching anything reflection-adjacent, run the AOT publish (command in CLAUDE.md) and re-measure cold start against `docs/performance.md`.
+- After adding a dependency or touching anything reflection-adjacent, run the AOT publish (command in CLAUDE.md) and re-measure cold start against `docs/internal/performance.md`.
 
 ## Reporting
 

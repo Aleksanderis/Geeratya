@@ -11,7 +11,7 @@ using Geeratya.Jira.Comments.Models;
 namespace Geeratya.Core.Comments;
 
 /// <summary>
-/// The comment part of the reducer (<c>docs/ux-screens.md</c>, "Issue detail"): opens the editor for a new comment or
+/// The comment part of the reducer (<c>docs/internal/ux-screens.md</c>, "Issue detail"): opens the editor for a new comment or
 /// for the comment under the cursor, edits its text, asks before throwing text away or deleting a comment, starts the
 /// write, and applies the settled write to the editor and to the comment list. Pure. Adding and editing wait for the
 /// reply (no optimistic text): the editor shows <c>Saving…</c> and stays open on an error with the text intact.

@@ -4,7 +4,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.Selection;
 
 /// <summary>
-/// The set of rows a write acts on (<c>docs/ux-keymap.md</c>, "Selection and counts"): the marked rows, else the
+/// The set of rows a write acts on (<c>docs/internal/ux-keymap.md</c>, "Selection and counts"): the marked rows, else the
 /// Visual range, else the row under the cursor. Marks and the range are kept as issue keys on the tab, so they
 /// survive scrolling and a refresh that moves rows. Pure.
 /// </summary>

@@ -9,7 +9,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The body of the active tab in the columns layout (<c>docs/ux-screens.md</c>, "Columns layout"): the title with
+/// The body of the active tab in the columns layout (<c>docs/internal/ux-screens.md</c>, "Columns layout"): the title with
 /// the count, one header per board column and then only the cards in the viewport of each drawn column. Columns that
 /// do not fit are left out around the selected one. Only the visible cards are drawn, never all the loaded ones.
 /// </summary>

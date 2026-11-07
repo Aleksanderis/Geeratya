@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Mouse;
 
 /// <summary>
-/// The screen areas a gesture is resolved against; the mouse table in <c>docs/ux-mouse.md</c> is keyed by these.
+/// The screen areas a gesture is resolved against; the mouse table in <c>docs/internal/ux-mouse.md</c> is keyed by these.
 /// </summary>
 public enum MouseTarget
 {

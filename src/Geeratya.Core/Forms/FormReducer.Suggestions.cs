@@ -8,7 +8,7 @@ using Geeratya.Jira.Suggestions.Models;
 namespace Geeratya.Core.Forms;
 
 /// <summary>
-/// The suggestion popup of the form (<c>docs/ux-workflows.md</c>, "Suggestions"): it opens by itself when text is
+/// The suggestion popup of the form (<c>docs/internal/ux-workflows.md</c>, "Suggestions"): it opens by itself when text is
 /// typed into a labels, user or parent field, follows the typing buffer, and closes on Esc, on accepting a row, or
 /// when the focus leaves the field.
 /// </summary>

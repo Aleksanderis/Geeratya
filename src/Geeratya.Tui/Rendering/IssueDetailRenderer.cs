@@ -9,7 +9,7 @@ using Geeratya.Platform.Terminal;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The body of the active tab while an issue is open on its stack (<c>docs/ux-screens.md</c>, "Pane layout for the
+/// The body of the active tab while an issue is open on its stack (<c>docs/internal/ux-screens.md</c>, "Pane layout for the
 /// issue detail"): a window of the laid-out document, a stack of panes that each carry their own frame (the breadcrumb
 /// and the ruler are in the status bar, <see cref="DetailStatus"/>). The reducer lays the document out for the reported
 /// width, so drawing only slices it; a document for another width (a size the host has not reported yet) is
@@ -213,7 +213,7 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     }
 
     /// <summary>
-    /// The line as drawn for the pane focus (<c>docs/ux-look.md</c>, section 4): the border cells of the focused pane's
+    /// The line as drawn for the pane focus (<c>docs/internal/ux-look.md</c>, section 4): the border cells of the focused pane's
     /// box in the focus role, its title chip filled, every other chip dim; the scrollbar of a cut pane in the right
     /// padding column.
     /// </summary>

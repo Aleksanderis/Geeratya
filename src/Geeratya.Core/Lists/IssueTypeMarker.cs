@@ -2,7 +2,7 @@ using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Lists;
 
-/// <summary>The one-cell type marker of a list row (<c>docs/ux-screens.md</c>, "List layout").</summary>
+/// <summary>The one-cell type marker of a list row (<c>docs/internal/ux-screens.md</c>, "List layout").</summary>
 public static class IssueTypeMarker
 {
     public const char Epic = 'E';

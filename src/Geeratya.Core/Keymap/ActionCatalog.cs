@@ -277,7 +277,7 @@ public static class ActionCatalog
     ];
 
     /// <summary>
-    /// The palette group of an action (<c>docs/ux.md</c>, "Command palette"), from the id's prefix so a new action
+    /// The palette group of an action (<c>docs/internal/ux.md</c>, "Command palette"), from the id's prefix so a new action
     /// of a known family needs no entry; null for an action in no group (a test fails when a bound action has none).
     /// </summary>
     public static string? GroupOf(string id)
@@ -314,7 +314,7 @@ public static class ActionCatalog
     }
 
     /// <summary>
-    /// The layouts an action applies to (<c>docs/ux.md</c>, "Help"): the tag the help overlay sorts its layout pages
+    /// The layouts an action applies to (<c>docs/internal/ux.md</c>, "Help"): the tag the help overlay sorts its layout pages
     /// by. An action not named in the table applies everywhere (<see cref="ActionScope.Global"/>); a test checks
     /// that the table names only catalog actions.
     /// </summary>

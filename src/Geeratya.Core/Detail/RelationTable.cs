@@ -4,7 +4,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// The table of an issue relation pane (sub-tasks, child issues, linked issues; <c>docs/ux-screens.md</c>, "Sub-tasks
+/// The table of an issue relation pane (sub-tasks, child issues, linked issues; <c>docs/internal/ux-screens.md</c>, "Sub-tasks
 /// pane"): one row per issue as aligned columns, key, summary, status and assignee. The key column is as wide as the
 /// longest key, the status column as wide as the longest status name, the summary takes what is left and is cut with
 /// an ellipsis, and as the width shrinks the assignee loses its name, then its chip, then the status goes. Pure.

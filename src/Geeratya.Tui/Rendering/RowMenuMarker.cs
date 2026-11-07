@@ -9,7 +9,7 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The <c>...</c> marker in the last cells of the selected list row, backlog row, board card (its first text line,
-/// the summary) and the cursor line of an opened issue (<c>docs/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so
+/// the summary) and the cursor line of an opened issue (<c>docs/internal/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so
 /// it shows in every colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
 /// <c>&lt;space&gt;a</c> for terminals whose multiplexer swallows the right-click. The cells it covers are reported
 /// back so the hit test uses what was drawn.

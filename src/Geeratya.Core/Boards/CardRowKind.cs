@@ -1,6 +1,6 @@
 namespace Geeratya.Core.Boards;
 
-/// <summary>What one row of a board card shows (<c>docs/ux-screens.md</c>, "Board card").</summary>
+/// <summary>What one row of a board card shows (<c>docs/internal/ux-screens.md</c>, "Board card").</summary>
 public enum CardRowKind
 {
     /// <summary>The top border, which carries the parent label of a card whose parent is elsewhere.</summary>

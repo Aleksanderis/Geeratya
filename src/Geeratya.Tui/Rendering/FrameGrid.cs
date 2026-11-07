@@ -24,7 +24,7 @@ public readonly record struct EdgeChip(int Column, IReadOnlyList<StyledSpan> Spa
 }
 
 /// <summary>
-/// The one frame of a screen body (<c>docs/ux-look.md</c>, section 2): panes that tile the body share their edges, each
+/// The one frame of a screen body (<c>docs/internal/ux-look.md</c>, section 2): panes that tile the body share their edges, each
 /// shared edge is drawn once with the junction glyph where it meets another line, and only the four outer corners are
 /// rounded. Pure geometry plus a row composer, so the UI and <c>--print-frame</c> draw the same cells; the ASCII tier is
 /// the frame builder's glyph swap afterwards.

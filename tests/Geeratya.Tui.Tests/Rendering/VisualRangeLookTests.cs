@@ -6,7 +6,7 @@ using Geeratya.Tui.Rendering.Themes;
 namespace Geeratya.Tui.Tests.Rendering;
 
 /// <summary>
-/// The Visual range look in every colour tier (<c>docs/ux-look.md</c>, section 4): stronger than the selected row,
+/// The Visual range look in every colour tier (<c>docs/internal/ux-look.md</c>, section 4): stronger than the selected row,
 /// the cursor row underlined, rows keeping their status and type colours over the tint.
 /// </summary>
 [Trait("Os", "Independent")]

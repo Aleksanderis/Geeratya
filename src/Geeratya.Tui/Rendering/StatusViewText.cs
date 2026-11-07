@@ -17,7 +17,7 @@ internal static class StatusViewText
 
     /// <summary>
     /// What the screen no longer draws as a title line of its own: the source and its count on a board, the
-    /// breadcrumb and the ruler in the issue detail (<c>docs/ux-look.md</c>, sections 2 and 5).
+    /// breadcrumb and the ruler in the issue detail (<c>docs/internal/ux-look.md</c>, sections 2 and 5).
     /// </summary>
     internal static string Of(AppState state, DateTimeOffset now, int room, bool withGoal)
     {

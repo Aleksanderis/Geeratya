@@ -7,7 +7,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The create form drawn as panes in the wide overlay of the issue detail (<c>docs/ux-screens.md</c>, "Create form"):
+/// The create form drawn as panes in the wide overlay of the issue detail (<c>docs/internal/ux-screens.md</c>, "Create form"):
 /// a title pane with Summary, a Description pane, a Details pane (a sidebar from an overlay width of 100 columns, else
 /// under the others) and a short "Not editable here" pane. The view behind is muted like behind the detail. Below 100
 /// columns the overlay fills the body and is one column. The type picker and the loading state stay the small box of

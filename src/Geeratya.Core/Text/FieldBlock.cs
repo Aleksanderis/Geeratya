@@ -1,8 +1,8 @@
 namespace Geeratya.Core.Text;
 
 /// <summary>
-/// What a filled field block shows: a label above a value on a tinted block (<c>docs/ux-screens.md</c>, "Details
-/// pane"; <c>docs/ux-look.md</c>, section 6).
+/// What a filled field block shows: a label above a value on a tinted block (<c>docs/internal/ux-screens.md</c>, "Details
+/// pane"; <c>docs/internal/ux-look.md</c>, section 6).
 /// </summary>
 /// <param name="Label">The field name, drawn in the label role.</param>
 /// <param name="Items">

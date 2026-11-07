@@ -24,7 +24,7 @@ public sealed record TextPasted(string Text) : Command;
 public sealed record ActionRequested(string Action, int Count = 1, DateTimeOffset At = default) : Command;
 
 /// <summary>
-/// A click that places the cursor: the pointer does what motions do for a key (<c>docs/ux-mouse.md</c>). On a list it
+/// A click that places the cursor: the pointer does what motions do for a key (<c>docs/internal/ux-mouse.md</c>). On a list it
 /// selects the row, on columns the card or the column header, in an opened issue the line.
 /// </summary>
 /// <param name="Column">The screen column of the click.</param>
@@ -47,7 +47,7 @@ public sealed record DetailWheeled(int Column, int Row, ActionRequested Action) 
 
 /// <summary>
 /// The pointer moved over the tab bar (or off it): the chip under it, null when none. The chip shows its close
-/// <c>x</c> while hovered (<c>docs/ux-look.md</c>, section 5); it changes nothing else and has no action id.
+/// <c>x</c> while hovered (<c>docs/internal/ux-look.md</c>, section 5); it changes nothing else and has no action id.
 /// </summary>
 public sealed record TabHovered(TabId? Tab) : Command;
 

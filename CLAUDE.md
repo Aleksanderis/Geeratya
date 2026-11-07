@@ -2,13 +2,13 @@
 
 Keyboard-first terminal client for Jira Cloud (Kanban board, backlog, issues, JQL, vim-style keys). See README.md for goal and features.
 
-Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, decisions). Work is tracked as GitHub issues grouped by milestone (goals in `docs/roadmap.md`).
+Reader docs (user guide, key reference, settings, customising keys) are in `docs/`; design docs for maintainers and agents are in `docs/internal/` (architecture, jira-layer, ux, testing, roadmap, decisions, performance). Work is tracked as GitHub issues grouped by milestone (goals in `docs/internal/roadmap.md`).
 
 ## Stack
 
-- C# on .NET 10 (LTS), `net10.0`, SDK pinned in `global.json`. Code in `src/`, tests in `tests/` (layout in `docs/architecture.md`). Published as a single Native AOT binary; it must start in well under 100 ms (first frame before any network reply).
+- C# on .NET 10 (LTS), `net10.0`, SDK pinned in `global.json`. Code in `src/`, tests in `tests/` (layout in `docs/internal/architecture.md`). Published as a single Native AOT binary; it must start in well under 100 ms (first frame before any network reply).
 - Jira access: Jira Cloud REST API v3 over `HttpClient`, JSON via `System.Text.Json` source generation. No third-party Jira SDK without a logged decision.
-- UI: Terminal.Gui v2 (see `docs/architecture.md` for settings and pitfalls). Tests: xUnit against a fake Jira (recorded JSON fixtures and an in-process HTTP handler); live tests only against the dev site (`testing` skill).
+- UI: Terminal.Gui v2 (see `docs/internal/architecture.md` for settings and pitfalls). Tests: xUnit against a fake Jira (recorded JSON fixtures and an in-process HTTP handler); live tests only against the dev site (`testing` skill).
 
 ## Rules
 
@@ -18,16 +18,16 @@ Design docs are in `docs/` (architecture, jira-layer, ux, testing, roadmap, deci
 - Attachments, images and other files are never rendered in the terminal: they show as name, type and size with a link that opens in the browser.
 - Never touch a production Jira from development or tests. Automated and agent-run live calls go only to the hosts in `GEERATYA_LIVE_HOSTS` (the owner's free dev site); anything else is refused. Agents never use the owner's company site, not even read-only.
 - Credentials: API tokens are secrets. Never log, print, commit, snapshot or put them in fixtures, screenshots, issue or PR text. Read them from the OS secret store or an env var; recorded fixtures are scrubbed (`testing` skill, "Fixtures").
-- Cross-platform (Linux, Windows, macOS; macOS lowest priority, Linux is built and tested first). No platform-specific APIs outside the platform abstraction; anything platform-specific gets a branch for every supported OS or an explicit "unsupported" path. Paths via `Path` APIs, no hardcoded separators, `/dev/null` or `/tmp`. Details: `docs/architecture.md`.
+- Cross-platform (Linux, Windows, macOS; macOS lowest priority, Linux is built and tested first). No platform-specific APIs outside the platform abstraction; anything platform-specific gets a branch for every supported OS or an explicit "unsupported" path. Paths via `Path` APIs, no hardcoded separators, `/dev/null` or `/tmp`. Details: `docs/internal/architecture.md`.
 - Keep to the Features and "Not included" lists in README.md. Don't add features beyond them without asking.
 - Native AOT from day one: no reflection or runtime codegen, every dependency AOT/trimming-compatible; run the AOT publish after adding one (rules in `.claude/rules/csharp-style.md`).
-- The Jira layer returns typed results and never touches the UI. The state layer is pure (`(State, Command) -> State` plus effects) and runs without a terminal. Only the rendering layer touches the console. Layering details: `docs/architecture.md`.
+- The Jira layer returns typed results and never touches the UI. The state layer is pure (`(State, Command) -> State` plus effects) and runs without a terminal. Only the rendering layer touches the console. Layering details: `docs/internal/architecture.md`.
 - Never block the UI thread on the network. Every Jira call is async, cancellable, has a timeout and honours rate limits (`429` with `Retry-After`).
 - Be conservative with writes. Read paths never write. Destructive or hard-to-undo actions (delete an issue or comment, bulk edits, transitions that fire workflow side effects, changing an assignee or sprint for many issues) are confirmed in the UI and say what will change; Jira has no undo, so say so too.
 - Structure rules (in `csharp-style.md`): dependencies are objects, not callbacks (at most five constructor parameters); no `.cs` file over about 500 lines in `src/`; decisions in Core reducers, effects in `Geeratya.App`, views in `Geeratya.Tui`.
 - Code style, naming, folders, static vs instance and AOT rules: `.claude/rules/csharp-style.md`, loaded when you touch `.cs` files. Jira layer rules: `.claude/rules/jira-layer.md`. UI, keys and colour rules: `.claude/rules/ui-changes.md`. Read them before writing code there.
 - Scripts (bash and PowerShell) live in `scripts/`; `tools/` holds small C# helper programs (for example the fake Jira server).
-- Gitunia (`../Gitunia`, the owner's Git TUI, same stack) is the reference for TUI decisions and patterns: vim-style navigation, keymaps, modes, layout, Terminal.Gui pitfalls, agent routines. Read it (read-only, even in autonomous runs; never edit it) before designing a key, mode or screen, and reuse its ideas where they fit. Don't copy code from other projects verbatim (Gitunia included, it is a separate codebase: rewrite the code). Note the source in `docs/decisions.md` only if it shaped a non-obvious decision.
+- Gitunia (`../Gitunia`, the owner's Git TUI, same stack) is the reference for TUI decisions and patterns: vim-style navigation, keymaps, modes, layout, Terminal.Gui pitfalls, agent routines. Read it (read-only, even in autonomous runs; never edit it) before designing a key, mode or screen, and reuse its ideas where they fit. Don't copy code from other projects verbatim (Gitunia included, it is a separate codebase: rewrite the code). Note the source in `docs/internal/decisions.md` only if it shaped a non-obvious decision.
 
 ## Git conventions
 
@@ -46,13 +46,13 @@ Read the doc before working in its area; don't rely on memory of it. Docs that d
 
 | Working on | Read |
 |---|---|
-| Solution layout, layering, rendering, cross-platform | `docs/architecture.md` |
-| Performance targets and measured numbers | `docs/performance.md` (and the `performance` skill) |
-| REST calls, auth, pagination, JQL, ADF, caching, refresh | `docs/jira-layer.md` |
-| Screens, modes, tabs, key bindings, workflows, mouse | `docs/ux.md` (index; links the parts) |
-| Any test, fixtures, fake Jira, live dev-site tests | `docs/testing.md` and the `testing` skill |
-| Milestone goals and open questions | `docs/roadmap.md` |
-| Anything you are about to ask the owner | `docs/decisions.md` first |
+| Solution layout, layering, rendering, cross-platform | `docs/internal/architecture.md` |
+| Performance targets and measured numbers | `docs/internal/performance.md` (and the `performance` skill) |
+| REST calls, auth, pagination, JQL, ADF, caching, refresh | `docs/internal/jira-layer.md` |
+| Screens, modes, tabs, key bindings, workflows, mouse | `docs/internal/ux.md` (index; links the parts) |
+| Any test, fixtures, fake Jira, live dev-site tests | `docs/internal/testing.md` and the `testing` skill |
+| Milestone goals and open questions | `docs/internal/roadmap.md` |
+| Anything you are about to ask the owner | `docs/internal/decisions.md` first |
 | Why a feature is in or out | `README.md` |
 
 ## Build, test and lint

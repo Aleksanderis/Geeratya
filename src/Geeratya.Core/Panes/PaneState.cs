@@ -2,7 +2,7 @@ namespace Geeratya.Core.Panes;
 
 /// <summary>
 /// The panes of one tab: the grid, which pane has the focus, which is zoomed and the inner scroll of the panes.
-/// Scoped to the tab, kept while it is open and dropped with it (<c>docs/ux-screens.md</c>, "Panes, focus and zoom").
+/// Scoped to the tab, kept while it is open and dropped with it (<c>docs/internal/ux-screens.md</c>, "Panes, focus and zoom").
 /// The default has no panes, so a screen that does not use panes is not affected.
 /// </summary>
 /// <param name="Grid">The panes the screen shows now; empty when it has none.</param>

@@ -6,7 +6,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.Help;
 
 /// <summary>
-/// The pages of the help overlay (<c>docs/ux.md</c>, "Help"), generated from the keymap and the action catalog and
+/// The pages of the help overlay (<c>docs/internal/ux.md</c>, "Help"), generated from the keymap and the action catalog and
 /// never written by hand: the keys of the active layout, Global, every action, the palette commands and, when a
 /// <c>keymap.json</c> changed something, Custom. Pure.
 /// </summary>

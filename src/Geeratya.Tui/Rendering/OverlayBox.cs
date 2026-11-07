@@ -4,7 +4,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// How serious the action an overlay asks about is; it picks the frame colour (<c>docs/ux-look.md</c>, section 7).
+/// How serious the action an overlay asks about is; it picks the frame colour (<c>docs/internal/ux-look.md</c>, section 7).
 /// </summary>
 public enum OverlayKind
 {

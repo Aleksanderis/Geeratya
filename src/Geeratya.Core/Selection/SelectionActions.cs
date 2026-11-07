@@ -7,7 +7,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.Selection;
 
 /// <summary>
-/// Visual mode and marks (<c>docs/ux-keymap.md</c>, "Selection and counts"): the keys that build the set, the Esc
+/// Visual mode and marks (<c>docs/internal/ux-keymap.md</c>, "Selection and counts"): the keys that build the set, the Esc
 /// that clears it and the gate that makes every single-issue write refuse while a set is active. Visual mode is a
 /// state of the tab (<see cref="TabState.VisualAnchor"/>) over Normal mode, so every Normal motion extends the range.
 /// Pure.
