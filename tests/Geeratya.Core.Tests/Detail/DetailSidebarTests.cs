@@ -378,7 +378,11 @@ public class DetailSidebarTests
         var shown = Press(Listed(columns, bodyHeight), "Enter").State;
         var detail = Active(shown).Detail[0];
 
-        var loaded = new IssueDetailLoaded(Active(shown).Id, detail.IssueRequest, Issue() with { Estimate = estimate }, _now);
+        var loaded = new IssueDetailLoaded(
+            Active(shown).Id,
+            detail.IssueRequest,
+            Issue() with { Estimate = estimate },
+            _now);
 
         return _reducer.Reduce(shown, loaded).State;
     }
