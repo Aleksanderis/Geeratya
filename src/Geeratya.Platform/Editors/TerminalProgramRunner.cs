@@ -30,12 +30,24 @@ public sealed class TerminalProgramRunner : ITerminalProgramRunner
         }
         catch (OperationCanceledException)
         {
-            process.Kill(entireProcessTree: true);
+            KillQuietly(process);
 
             throw;
         }
 
         return process.ExitCode;
+    }
+
+    private static void KillQuietly(Process process)
+    {
+        try
+        {
+            process.Kill(entireProcessTree: true);
+        }
+        catch (InvalidOperationException)
+        {
+            // It ended on its own just before.
+        }
     }
 
     private static Process Start(ProcessStartInfo startInfo)

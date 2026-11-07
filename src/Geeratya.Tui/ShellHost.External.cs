@@ -11,9 +11,8 @@ public sealed partial class ShellHost
 {
     private readonly IExternalEditor _editor = ExternalEditors.ForProcess();
     private readonly Lock _invokeLock = new();
-    private readonly Queue<Action> _queuedWork = new();
+    private readonly PausableWorkGate _held = new();
     private EditExternallyEffect? _pendingEdit;
-    private bool _suspended;
 
     /// <summary>Runs the screen until the user quits; each outside edit stops the loop and starts it again.</summary>
     private void RunLoop(Window screen)
@@ -27,31 +26,33 @@ public sealed partial class ShellHost
         }
     }
 
-    /// <summary>Thread-safe: runs the work on the UI thread, or queues it while an outside editor owns the terminal.</summary>
+    /// <summary>Thread-safe: runs the work on the UI thread, or holds it while an outside editor owns the terminal.</summary>
     private void InvokeOnUi(Action work)
     {
         lock (_invokeLock)
         {
-            if (_suspended)
+            if (!_held.TryHold(work))
             {
-                _queuedWork.Enqueue(work);
-
-                return;
+                _application!.Invoke(work);
             }
         }
+    }
 
-        _application!.Invoke(work);
+    /// <summary>On the UI thread: pauses background work first, so nothing reaches the application that is stopping.</summary>
+    private void AskForExternalEdit(EditExternallyEffect edit)
+    {
+        lock (_invokeLock)
+        {
+            _held.Pause();
+        }
+
+        _pendingEdit = edit;
+        _application!.Invoke(_application.RequestStop);
     }
 
     private void RunExternalEditor(EditExternallyEffect edit)
     {
         _pendingEdit = null;
-
-        lock (_invokeLock)
-        {
-            _suspended = true;
-        }
-
         _uiThread.Detach();
         _application!.Dispose();
 
@@ -81,26 +82,18 @@ public sealed partial class ShellHost
         }
     }
 
+    // Replays under the lock, so work posted meanwhile queues behind the older work. Ticks were dropped while the
+    // editor ran; one fresh tick lets the reducer decide about refreshes.
     private void Resume()
     {
-        List<Action> work;
-
         lock (_invokeLock)
         {
-            _suspended = false;
-            work = [.. _queuedWork];
-            _queuedWork.Clear();
+            foreach (var work in _held.Release())
+            {
+                _application!.Invoke(work);
+            }
         }
 
-        foreach (var item in work)
-        {
-            _application!.Invoke(item);
-        }
-    }
-
-    private void AskForExternalEdit(EditExternallyEffect edit)
-    {
-        _pendingEdit = edit;
-        _application!.Invoke(_application.RequestStop);
+        PostTick(null);
     }
 }

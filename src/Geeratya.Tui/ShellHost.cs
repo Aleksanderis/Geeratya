@@ -209,7 +209,8 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     /// <summary>Thread-safe entry for background work: runs the reducer on the UI thread.</summary>
     public void Post(AppCommand command)
     {
-        if (_shutdownToken.IsCancellationRequested)
+        // Ticks are not held while an outside editor runs: they would pile up, stale, for a long editing session.
+        if (_shutdownToken.IsCancellationRequested || (command is Tick && _held.IsPaused))
         {
             return;
         }
@@ -266,6 +267,14 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
 
     private void OnKeyDown(object? sender, Key key)
     {
+        // Keys typed after the outside editor was asked for belong to nobody: the loop is stopping.
+        if (_pendingEdit is not null)
+        {
+            key.Handled = true;
+
+            return;
+        }
+
         var spelled = KeyTranslator.Translate(key);
 
         if (spelled is null)
