@@ -170,6 +170,8 @@ public static class FormOpener
             known[FormFieldIds.Priority] = FormValue.OfText(priority);
         }
 
+        known[FormFieldIds.Parent] = subject.ParentKey is { } parent ? FormValue.OfChosen([parent]) : FormValue.Empty;
+
         var lossy = new List<string>();
 
         AddDescription(subject, known, lossy);
@@ -217,6 +219,7 @@ public static class FormOpener
         IReadOnlyList<string> Labels,
         string? PriorityName,
         IssueAssignee? Assignee,
+        string? ParentKey,
         bool DescriptionKnown,
         AdfDocument? Description)
     {
@@ -251,6 +254,7 @@ public static class FormOpener
                     issue.Labels,
                     issue.Priority,
                     issue.Assignee,
+                    issue.Parent?.Key,
                     true,
                     issue.Description);
             }
@@ -260,7 +264,7 @@ public static class FormOpener
 
         private static Subject OfRow(TabState tab, IssueSummary row)
         {
-            return new Subject(tab, row.Key, row.Summary, row.Labels, row.Priority, row.Assignee, false, null);
+            return new Subject(tab, row.Key, row.Summary, row.Labels, row.Priority, row.Assignee, row.Parent?.Key, false, null);
         }
     }
 }

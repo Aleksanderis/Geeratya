@@ -61,9 +61,16 @@ internal static class DetailsPane
         {
             DetailFieldIds.Status or DetailFieldIds.Sprint or DetailFieldIds.Estimate => true,
             DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Labels
-                => detail.EditableFields?.Contains(fieldId) == true,
+                or DetailFieldIds.Parent or DetailFieldIds.Epic
+                => detail.EditableFields?.Contains(EditId(fieldId)) == true,
             _ => false,
         };
+    }
+
+    /// <summary>The edit metadata id of a Details row: the Epic row edits the <c>parent</c> field.</summary>
+    public static string EditId(string fieldId)
+    {
+        return fieldId == DetailFieldIds.Epic ? DetailFieldIds.Parent : fieldId;
     }
 
     private static void AddMuted(PanelContent content, List<StyledLine> rows)
@@ -166,6 +173,7 @@ internal static class DetailsPane
 
         AddText(fields, detail, DetailFieldIds.Parent, "Parent", header.Parent);
         AddText(fields, detail, DetailFieldIds.Epic, "Epic", header.Epic);
+        AddEmptyParent(fields, detail, header);
         AddText(fields, detail, DetailFieldIds.Sprint, "Sprint", header.Sprint);
 
         var estimate = string.IsNullOrWhiteSpace(detail.EstimateLabel)
@@ -184,6 +192,23 @@ internal static class DetailsPane
         IReadOnlyList<IReadOnlyList<StyledSpan>> items)
     {
         return new Field(id, new FieldBlockSpec(label, items, IsEditable(detail, id)));
+    }
+
+    // An issue without a parent still gets the row when its type may take one, so a parent can be set: Epic for an
+    // ordinary issue, Parent for a sub-task or an epic.
+    private static void AddEmptyParent(List<Field> fields, DetailState detail, HeaderFields header)
+    {
+        if (header.Parent is not null || header.Epic is not null || detail.Issue is not { } issue
+            || detail.EditableFields?.Contains(DetailFieldIds.Parent) != true)
+        {
+            return;
+        }
+
+        var plain = issue.IssueType is { HierarchyLevel: 0, IsSubtask: false };
+        var id = plain ? DetailFieldIds.Epic : DetailFieldIds.Parent;
+        var none = new StyledSpan("None", TextRole.Muted);
+
+        fields.Add(new Field(id, FieldBlockSpec.OfValue(plain ? "Epic" : "Parent", [none], true)));
     }
 
     private static void AddText(List<Field> fields, DetailState detail, string id, string label, string? value)

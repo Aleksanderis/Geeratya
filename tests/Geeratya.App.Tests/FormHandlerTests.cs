@@ -88,6 +88,58 @@ public sealed class FormHandlerTests
         Assert.Equal("labels", Assert.Single(failed.Error.FieldErrors).FieldId);
     }
 
+    [Theory]
+    [InlineData("metadata/editmeta-gcm-1.json", "GCM-5")]
+    [InlineData("metadata/editmeta-gtm-11.json", "GTM-3")]
+    public async Task GivenParentOnlyOnEitherProjectKind_WhenTheFormLoads_ThenTheParentFieldStartsWithTheCurrentParent(
+        string metadataFixture,
+        string current)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture)));
+        var known = new Dictionary<string, FormValue> { [FormFieldIds.Parent] = FormValue.OfChosen([current]) };
+        var target = new EditFormTarget("A-1", known, true, null, FormFieldIds.Parent);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, target));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var field = Assert.Single(loaded.Fields);
+        Assert.Equal(FormFieldKind.Parent, field.Kind);
+        Assert.True(field.IsEditable);
+        Assert.Equal([current], field.Value.Chosen);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Fact]
+    public async Task GivenAParentChangedAndCleared_WhenExecuted_ThenOnePutSetsTheKeyAndTheOtherSendsNull()
+    {
+        using var fixture = await ConnectedAsync(h => h
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}""")
+            .Reply(HttpStatusCode.NoContent, string.Empty)
+            .Reply(HttpStatusCode.OK, """{"issues":[],"isLast":true}"""));
+        var set = new FieldChange("parent", FormFieldKind.Parent, FormValue.OfChosen(["A-9"]), FormValue.OfChosen(["A-5"]));
+        var clear = new FieldChange("parent", FormFieldKind.Parent, FormValue.Empty, FormValue.OfChosen(["A-9"]));
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [set])));
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(6, new EditRequest("A-1", [clear])));
+
+        Assert.Contains("\"parent\":{\"key\":\"A-9\"}", fixture.Http.Bodies.ElementAt(0).Replace(" ", string.Empty));
+        Assert.Contains("\"parent\":null", fixture.Http.Bodies.ElementAt(2).Replace(" ", string.Empty));
+    }
+
+    [Fact]
+    public async Task GivenAParentJiraRefuses_WhenExecuted_ThenTheFailureNamesTheParentField()
+    {
+        const string body = """{"errorMessages":[],"errors":{"parent":"Given parent work item does not belong to appropriate hierarchy."}}""";
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.BadRequest, body));
+        var change = new FieldChange("parent", FormFieldKind.Parent, FormValue.OfChosen(["A-9"]));
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [change])));
+
+        var failed = Assert.IsType<WriteFailed>(Assert.Single(fixture.Posted));
+        Assert.Equal("parent", Assert.Single(failed.Error.FieldErrors).FieldId);
+    }
+
     [Fact]
     public async Task GivenANumberThatDoesNotRead_WhenExecuted_ThenNothingIsSentAndItFailsDefinitely()
     {
