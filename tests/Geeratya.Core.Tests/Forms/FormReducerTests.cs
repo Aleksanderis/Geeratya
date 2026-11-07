@@ -192,6 +192,65 @@ public class FormReducerTests
     }
 
     [Fact]
+    public void GivenADropdownWhoseWriteJiraRefuses_WhenItUnlocks_ThenTheRefusalIsAtTheFieldAndEscClosesIt()
+    {
+        var dropdown = DropdownSaving();
+        var error = new WriteError(
+            WriteErrorKind.Validation,
+            400,
+            "Could not edit A-1",
+            [],
+            ["Issues with this Issue Type must be created in the same project as the parent."]);
+
+        var failed = _reducer.Reduce(dropdown, new WriteFailed(dropdown.Session.Operations[0].Id, _start, error));
+        var closed = Press(failed.State, "Esc");
+
+        var form = failed.State.Session.Tabs[0].Form!;
+        Assert.False(form.IsSaving);
+        Assert.StartsWith("Issues with this Issue Type must be created", form.Fields[0].Error);
+        Assert.EndsWith("(A-1 → Labels mine)", form.Fields[0].Error);
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, closed.State.Mode);
+    }
+
+    [Fact]
+    public void GivenASavingDropdown_WhenTheWriteSucceeds_ThenItClosesBackToNormalMode()
+    {
+        var dropdown = DropdownSaving();
+
+        var done = _reducer.Reduce(dropdown, new WriteSucceeded(dropdown.Session.Operations[0].Id, _start, []));
+
+        Assert.Null(done.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, done.State.Mode);
+    }
+
+    [Fact]
+    public void GivenASavingDropdown_WhenEscIsPressed_ThenItClosesAndTheSaveContinues()
+    {
+        var dropdown = DropdownSaving();
+
+        var closed = Press(dropdown, "Esc");
+
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, closed.State.Mode);
+        Assert.Single(closed.State.Session.Operations);
+    }
+
+    [Fact]
+    public void GivenAFormWhoseReplyWasLost_WhenEscIsPressed_ThenTheFormClosesAndTheCheckContinues()
+    {
+        var saving = Press(Type(Loaded([]), "mine"), "Ctrl-s", _start).State;
+        var error = new WriteError(WriteErrorKind.Timeout, null, "slow", [], []);
+        var unknown = _reducer.Reduce(saving, new WriteOutcomeUnknown(saving.Session.Operations[0].Id, _start, error));
+
+        var closed = Press(unknown.State, "Esc");
+
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, closed.State.Mode);
+        Assert.Single(closed.State.Session.Operations);
+    }
+
+    [Fact]
     public void GivenALostReply_WhenTheWriteIsStillBeingChecked_ThenTheFormStaysLocked()
     {
         var saving = Press(Type(Loaded([]), "x"), "Ctrl-s", _start).State;
@@ -445,6 +504,17 @@ public class FormReducerTests
     private static FormField TextField(string id)
     {
         return FormField.Create(id, id, FormFieldKind.Text, false, []);
+    }
+
+    private AppState DropdownSaving()
+    {
+        var saving = Press(Type(Loaded([]), "mine"), "Ctrl-s", _start).State;
+        var tab = saving.Session.Tabs[0];
+
+        return saving with
+        {
+            Session = saving.Session with { Tabs = [tab with { Form = tab.Form! with { Dropdown = "parent" } }] },
+        };
     }
 
     private AppState Type(AppState state, string text)

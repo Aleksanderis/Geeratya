@@ -362,6 +362,18 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAParentKey_WhenAnIssueIsEdited_ThenItIsAcceptedAndReadBack()
+    {
+        Start(0);
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GCM-10", """{"fields":{"parent":{"key":"GCM-6"}}}""");
+        var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-10"));
+
+        Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);
+        Assert.Equal("GCM-6", issue.GetProperty("fields").GetProperty("parent").GetProperty("key").GetString());
+    }
+
+    [Fact]
     public async Task GivenAnUnknownProjectOrType_WhenCreateMetadataIsRead_ThenItIsNotFound()
     {
         Start(0);

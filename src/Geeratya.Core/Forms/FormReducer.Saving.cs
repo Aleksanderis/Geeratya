@@ -79,7 +79,9 @@ public static partial class FormReducer
 
     private static ReduceResult Cancel(AppState state, TabState tab, FormState form)
     {
-        if (form.IsDirty)
+        // A dropdown holds one choice that writes as soon as it is taken (and its prompt is never drawn): Esc just
+        // closes it, after a refusal or with a typed filter nothing was accepted for.
+        if (form.IsDirty && form.Dropdown is null)
         {
             return Result(Replace(state, tab, form with { DiscardPending = true }));
         }
@@ -201,6 +203,13 @@ public static partial class FormReducer
     {
         var form = tab.Form!;
         var fields = form.Fields.Select(field => field with { Error = FieldErrorOf(error, field) }).ToArray();
+
+        if (form.Dropdown is not null && error is not null && IndexOfError(fields) < 0 && form.Focus < fields.Length)
+        {
+            // A dropdown has no top line: the refusal goes under the field, with what was tried.
+            fields[form.Focus] = fields[form.Focus] with { Error = Refusal(form, fields[form.Focus], error) };
+        }
+
         var focus = IndexOfError(fields);
         var mapped = fields.Count(field => field.Error is not null);
         var allMapped = error is not null && mapped == error.FieldErrors.Count && error.Messages.Count == 0;
@@ -215,6 +224,17 @@ public static partial class FormReducer
         };
 
         return ViewReducer.Replace(state, tab with { Form = unlocked });
+    }
+
+    // "<Jira's sentence> (GTS-32 → Epic GTS-5)": the reason comes first so a long tried value cannot push it out of
+    // the box; the tried value is left out when the field holds none.
+    private static string Refusal(FormState form, FormField field, WriteError error)
+    {
+        var tried = string.Join(", ", field.Value.Chosen);
+        var what = tried.Length == 0 ? field.Label : $"{field.Label} {tried}";
+        var reason = error.Messages.Count > 0 ? string.Join(' ', error.Messages) : error.Message;
+
+        return form.Target.IssueKey is { } key ? $"{reason} ({key} → {what})" : $"{reason} ({what})";
     }
 
     private static string? FieldErrorOf(WriteError? error, FormField field)
