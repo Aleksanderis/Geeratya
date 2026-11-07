@@ -7,4 +7,5 @@ namespace Geeratya.Jira.Suggestions.Models;
 /// <param name="Label">Display name, label text, issue summary, or component or version name.</param>
 /// <param name="Detail">A second column: the issue key for issues; null otherwise.</param>
 /// <param name="IsInactive">A deactivated user or an archived version: still listed, marked by the UI.</param>
-public sealed record Suggestion(string Id, string Label, string? Detail, bool IsInactive);
+/// <param name="Kind">The issue type name for issues (Epic, Story, Sub-task, ...); null when Jira did not say.</param>
+public sealed record Suggestion(string Id, string Label, string? Detail, bool IsInactive, string? Kind = null);

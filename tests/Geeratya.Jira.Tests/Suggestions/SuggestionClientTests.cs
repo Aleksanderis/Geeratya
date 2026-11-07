@@ -11,6 +11,7 @@ public sealed class SuggestionClientTests
     private const string Assignable = "/rest/api/3/user/assignable/search";
     private const string LabelPath = "/rest/api/3/label";
     private const string PickerPath = "/rest/api/3/issue/picker";
+    private const string SearchPath = "/rest/api/3/search/jql";
 
     [Fact]
     public async Task GivenAssignableUsers_WhenSearching_ThenInactiveAndOddEntriesAreHandled()
@@ -182,6 +183,7 @@ public sealed class SuggestionClientTests
     public async Task GivenPickerReply_WhenSearchingIssues_ThenKeysAreDeduplicatedAndSummariesPlain()
     {
         using var fixture = Serving(PickerPath, "suggestions/issue-picker.json");
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.Ok("{\"issues\":[]}"));
 
         var result = await new SuggestionClient(fixture.Transport)
             .SearchIssuesAsync("fix", "project = GCM AND status = \"To Do\"", CancellationToken.None);
@@ -192,7 +194,42 @@ public sealed class SuggestionClientTests
             issue => Assert.Equal(("GCM-7", "Fix & <logout>"), (issue.Id, issue.Label)));
         Assert.Equal(
             $"{PickerPath}?query=fix&currentJQL=project%20%3D%20GCM%20AND%20status%20%3D%20%22To%20Do%22",
-            Assert.Single(fixture.Handler.Requests).PathAndQuery);
+            fixture.Handler.Requests.First().PathAndQuery);
+    }
+
+    [Fact]
+    public async Task GivenPickerRows_WhenSearchingIssues_ThenEachRowCarriesItsIssueTypeFromOneKeySearch()
+    {
+        using var fixture = Serving(PickerPath, "suggestions/issue-picker.json");
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            SearchPath,
+            FakeResponse.Ok(FixtureFiles.Read("suggestions/issue-types.json")));
+
+        var result = await new SuggestionClient(fixture.Transport)
+            .SearchIssuesAsync("fix", null, CancellationToken.None);
+
+        Assert.Equal(["Story", "Release blocker 日本"], result.Value.Select(issue => issue.Kind));
+
+        var search = fixture.Handler.Requests.Last().PathAndQuery;
+
+        Assert.Equal(2, fixture.Handler.Requests.Count);
+        Assert.Contains("fields=issuetype", search);
+        Assert.Contains(Uri.EscapeDataString("key in (GCM-6,GCM-7)"), search);
+    }
+
+    [Fact]
+    public async Task GivenTypeSearchFails_WhenSearchingIssues_ThenRowsStillComeWithoutType()
+    {
+        using var fixture = Serving(PickerPath, "suggestions/issue-picker.json");
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.WithStatus(HttpStatusCode.Forbidden));
+
+        var result = await new SuggestionClient(fixture.Transport)
+            .SearchIssuesAsync("fix", null, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value.Count);
+        Assert.All(result.Value, issue => Assert.Null(issue.Kind));
     }
 
     [Fact]

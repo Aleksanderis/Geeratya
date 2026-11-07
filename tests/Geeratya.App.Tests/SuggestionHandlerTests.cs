@@ -230,7 +230,21 @@ public sealed class SuggestionHandlerTests
         await task;
 
         Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
-        Assert.EndsWith("/rest/api/3/issue/picker", Assert.Single(fixture.Http.Requests).AbsolutePath);
+        Assert.EndsWith("/rest/api/3/issue/picker", fixture.Http.Requests.First().AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GivenAParentQuery_WhenTheTypeSearchAnswers_ThenEveryOfferedIssueCarriesItsType()
+    {
+        var picker = RecordedFixtures.Read("suggestions/issue-picker.json");
+        var types = RecordedFixtures.Read("suggestions/issue-types.json");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, picker).Reply(HttpStatusCode.OK, types));
+        var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 4, source, "login", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["Story", "Release blocker 日本"], loaded.Items.Select(item => item.Kind));
     }
 
     [Fact]
@@ -302,7 +316,7 @@ public sealed class SuggestionHandlerTests
 
         await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 6, source, "login", TimeSpan.FromMilliseconds(250)));
 
-        var request = Assert.Single(fixture.Http.Requests);
+        var request = fixture.Http.Requests.First();
         Assert.Contains("currentJQL=" + Uri.EscapeDataString(JqlBuilder.Project("GCM")), request.Query);
     }
 
@@ -333,7 +347,7 @@ public sealed class SuggestionHandlerTests
 
         var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
         Assert.Equal(["GCM-6"], loaded.Items.Select(item => item.Id));
-        Assert.Contains(Uri.EscapeDataString(JqlBuilder.Project("GCM")), fixture.Http.Requests.Single().Query);
+        Assert.Contains(Uri.EscapeDataString(JqlBuilder.Project("GCM")), fixture.Http.Requests.First().Query);
     }
 
     private static async Task RunAsync(Fixture fixture, SearchSuggestionsEffect effect)

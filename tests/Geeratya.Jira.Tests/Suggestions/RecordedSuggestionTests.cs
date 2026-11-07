@@ -85,6 +85,7 @@ public sealed class RecordedSuggestionTests
         string file)
     {
         using var fixture = Serving(PickerPath, file);
+        fixture.Handler.Serve(HttpMethod.Get, "/rest/api/3/search/jql", FakeResponse.Ok("{\"issues\":[]}"));
 
         var result = await new SuggestionClient(fixture.Transport)
             .SearchIssuesAsync($"{project}-1", null, CancellationToken.None);

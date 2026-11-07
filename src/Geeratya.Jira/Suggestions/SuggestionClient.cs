@@ -25,6 +25,7 @@ public sealed partial class SuggestionClient(JiraTransport transport)
     private const string ViewIssueSearch = "user/viewissue/search";
     private const string LabelPath = ApiPath + "/label";
     private const string PickerPath = ApiPath + "/issue/picker";
+    private const string SearchPath = ApiPath + "/search/jql";
     private const string ProjectPath = ApiPath + "/project";
     private const string ComponentsSegment = "components";
     private const string VersionsSegment = "versions";
@@ -185,7 +186,32 @@ public sealed partial class SuggestionClient(JiraTransport transport)
             return JiraResults.Failure<IReadOnlyList<Suggestion>>(result.Error);
         }
 
-        return JiraResults.Success(Take(SuggestionMapper.MapPicker(result.Value)));
+        var rows = Take(SuggestionMapper.MapPicker(result.Value));
+
+        return JiraResults.Success(await WithTypesAsync(rows, cancellationToken));
+    }
+
+    // The picker names no issue type, so one more read (a key-list search asking for issuetype only) adds it. A
+    // failed read leaves the rows as they are: the list still works, it just shows no type.
+    private async Task<IReadOnlyList<Suggestion>> WithTypesAsync(
+        IReadOnlyList<Suggestion> rows,
+        CancellationToken cancellationToken)
+    {
+        var keys = rows.Select(row => row.Id).Where(key => IssueKeyPattern().IsMatch(key)).ToList();
+
+        if (keys.Count == 0)
+        {
+            return rows;
+        }
+
+        var jql = $"key in ({string.Join(",", keys)})";
+        var url = $"{SearchPath}?jql={Uri.EscapeDataString(jql)}&fields=issuetype&maxResults={keys.Count}";
+        var result = await transport.SendAsync(
+            JiraRequest.Get(url),
+            SuggestionJsonContext.Default.TypeSearch,
+            cancellationToken);
+
+        return result.IsSuccess ? SuggestionMapper.WithTypes(rows, result.Value) : rows;
     }
 
     /// <summary>Components of a project whose name contains <paramref name="query"/>.</summary>
@@ -210,6 +236,9 @@ public sealed partial class SuggestionClient(JiraTransport transport)
         SuggestionFilter.Filter(
             field.AllowedValues.Select(value => new Suggestion(value.Id, value.Label, null, false)),
             query);
+
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9_]*-[0-9]+\z", RegexOptions.CultureInvariant)]
+    private static partial Regex IssueKeyPattern();
 
     [GeneratedRegex(@"^[A-Z][A-Z0-9_]*\z", RegexOptions.CultureInvariant)]
     private static partial Regex ProjectKeyPattern();
