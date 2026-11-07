@@ -149,6 +149,23 @@ jobs:
             unpacked/geeratya-"$VERSION"-"$PLATFORM"/geeratya --version | grep -F "$VERSION"
           fi
 
+      # .deb and .rpm are made from the linux archive (#206) and installed in a
+      # clean container each, which is the acceptance for these two packages.
+      - name: Build .deb and .rpm
+        if: matrix.platform == 'linux-x64'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm
+          scripts/package-linux.sh dist/geeratya-"$VERSION"-linux-x64.tar.gz "$VERSION" dist
+
+      - name: Install the packages in clean containers
+        if: matrix.platform == 'linux-x64'
+        run: |
+          deb=$(ls dist/*.deb); rpm=$(ls dist/*.rpm)
+          docker run --rm -v "$PWD/dist:/pkg:ro" debian:stable-slim sh -c \
+            "dpkg -i /pkg/$(basename "$deb") && geeratya --version | grep -F '$VERSION' && dpkg -r geeratya"
+          docker run --rm -v "$PWD/dist:/pkg:ro" fedora:latest sh -c \
+            "rpm -i /pkg/$(basename "$rpm") && geeratya --version | grep -F '$VERSION' && rpm -e geeratya"
+
       - uses: actions/upload-artifact@v4
         with:
           name: archive-${{ matrix.platform }}
@@ -176,13 +193,29 @@ jobs:
       - name: Checksums
         working-directory: dist
         run: |
-          sha256sum geeratya-* > SHA256SUMS
+          sha256sum geeratya[-_]* > SHA256SUMS
           cat SHA256SUMS
 
       - uses: actions/upload-artifact@v4
         with:
           name: release-files
           path: dist/*
+
+      # AUR, winget and Homebrew files for this release (#206). Generated only:
+      # submitting them needs the owner's accounts (docs/architecture.md, Releases).
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Generate package manifests
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: src/scripts/gen-manifests.sh "$VERSION" dist/SHA256SUMS manifests
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-manifests
+          path: manifests
 
       # --verify-tag fails when the tag does not exist; this never creates one.
       - name: Draft release
