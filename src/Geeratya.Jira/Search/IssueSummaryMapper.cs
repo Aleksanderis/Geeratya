@@ -17,6 +17,9 @@ internal static class IssueSummaryMapper
     /// <summary>Jira's own category key for a status without a category.</summary>
     public const string UndefinedCategoryKey = "undefined";
 
+    private static readonly IReadOnlyList<IssueSprint> _noSprints = [];
+    private static readonly IReadOnlyList<IssueSubtask> _noSubtasks = [];
+
     private const string IdProperty = "id";
     private const string KeyProperty = "key";
     private const string StatusCategoryProperty = "statusCategory";
@@ -73,7 +76,7 @@ internal static class IssueSummaryMapper
         {
             Sprints = MapSprints(fields?.Extra, extras?.SprintFieldId),
             Estimate = MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
-            Subtasks = extras is { IncludeSubtasks: true } ? MapSubtasks(fields?.Extra, pool) : [],
+            Subtasks = extras is { IncludeSubtasks: true } ? MapSubtasks(fields?.Extra, pool) : _noSubtasks,
         };
     }
 
@@ -86,7 +89,7 @@ internal static class IssueSummaryMapper
         if (fieldId is null || extra is null || !extra.TryGetValue(fieldId, out var field)
             || field.ValueKind != JsonValueKind.Array)
         {
-            return [];
+            return _noSprints;
         }
 
         var result = new List<IssueSprint>();
@@ -102,7 +105,7 @@ internal static class IssueSummaryMapper
             }
         }
 
-        return result.Count == 0 ? [] : result;
+        return result.Count == 0 ? _noSprints : result;
     }
 
     /// <summary>

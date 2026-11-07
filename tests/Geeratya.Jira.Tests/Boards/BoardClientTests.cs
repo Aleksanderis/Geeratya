@@ -157,7 +157,8 @@ public sealed class BoardClientTests
     {
         const string json = """
             {"startAt":0,"maxResults":50,"total":1,"issues":[{"id":"1","key":"A-1","fields":{"summary":"p",
-            "subtasks":[{"key":"A-2","fields":{"summary":"s","status":{"id":"5","name":"Done"}}}]}}]}
+            "subtasks":[{"key":"A-2","fields":{"summary":"s","status":{"id":"5","name":"Done"}}}]}},
+            {"id":"2","key":"A-3","fields":{"summary":"q"}}]}
             """;
         using var fixture = new TransportFixture();
         fixture.Handler.Serve(HttpMethod.Get, GcmIssuesPath, FakeResponse.Ok(json));
@@ -168,7 +169,10 @@ public sealed class BoardClientTests
             null,
             CancellationToken.None);
 
-        Assert.Empty(result.Value.Items.Single().Subtasks);
+        var rows = result.Value.Items;
+        Assert.All(rows, row => Assert.Empty(row.Subtasks));
+        Assert.Same(rows[0].Subtasks, rows[1].Subtasks);
+        Assert.Same(rows[0].Sprints, rows[1].Sprints);
     }
 
     [Fact]
