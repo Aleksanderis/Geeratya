@@ -1,5 +1,7 @@
 # Key design
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Rules for the keymap. The reference of what is bound is generated from `src/Geeratya.Core/Keymap/keymap.default.json` into [keymap.md](keymap.md) by `scripts/gen-keymap-doc.sh`; a test fails when it is stale or the file has conflicts.
 
 ## File format

@@ -1,5 +1,7 @@
 # Roadmap
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Milestone goals and open questions. Work is tracked as GitHub issues per milestone; this file holds goals and "Done when", not status. Features and exclusions are in the README.
 
 ## M0 - Foundation

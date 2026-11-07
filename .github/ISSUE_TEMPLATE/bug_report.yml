@@ -1,0 +1,67 @@
+name: Bug report
+description: Something does not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove secrets before you paste anything: never post an API token, and replace your site name, emails, account names and private issue text with placeholders.
+  - type: input
+    id: version
+    attributes:
+      label: Geeratya version
+      description: Output of `geeratya --version`.
+      placeholder: geeratya 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and terminal
+      description: For example Linux (Arch) with kitty, Windows 11 with Windows Terminal.
+    validations:
+      required: true
+  - type: dropdown
+    id: project-kind
+    attributes:
+      label: Jira project kind
+      options:
+        - Company-managed
+        - Team-managed
+        - Both or not project specific
+        - Not sure
+    validations:
+      required: false
+  - type: dropdown
+    id: board-kind
+    attributes:
+      label: Board kind
+      options:
+        - Kanban
+        - Scrum
+        - Not board related
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Keys pressed and the view you were in, as short as you can.
+      placeholder: |
+        1. Open a board with ...
+        2. Press ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead. Pasted terminal text (scrubbed as above) or a screenshot helps.
+    validations:
+      required: true

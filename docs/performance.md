@@ -1,5 +1,7 @@
 # Performance
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Budgets and measured numbers. The checklist for writing fast code is the `performance` skill; the harness is `scripts/measure.sh` (see `docs/testing.md`, "Measurement harness"). Measure the Native AOT binary against `tools/FakeJira`, never `dotnet run` and never the dev site.
 
 ## Budgets

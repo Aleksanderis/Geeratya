@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: README and scope
+    url: https://github.com/Aleksanderis/Geeratya/blob/main/README.md
+    about: What Geeratya is for and what it includes.
+  - name: User guide
+    url: https://github.com/Aleksanderis/Geeratya/blob/main/docs/user-guide.md
+    about: Keys, screens and workflows; check here before reporting a bug.
+  - name: Security problem
+    url: https://github.com/Aleksanderis/Geeratya/security/advisories/new
+    about: Report a vulnerability privately; do not open a public issue.

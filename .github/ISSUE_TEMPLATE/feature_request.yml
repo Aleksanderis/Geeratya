@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read the [Features list in the README](https://github.com/Aleksanderis/Geeratya/blob/main/README.md#features) first.
+        Items listed as not included (Scrum reports, Jira Service Management, Data Center, rendering images, Jira administration, plugins) are asked about first: describe the need here and wait for an answer before sending code.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The workflow or problem, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: Keys, screens or Jira actions you have in mind.
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What you do today instead.
+    validations:
+      required: false

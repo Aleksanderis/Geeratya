@@ -1,5 +1,7 @@
 # UX: workflows
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 The flows of Milestone 1 (read your board), step by step. Screens and their states are in [ux-screens.md](ux-screens.md), keys in [keymap.md](keymap.md). Keys are spelled as in `ux-keymap.md`. All flows are read-only; writes arrive with M2. Every network step is asynchronous: the frame is drawn first and the result fills in later.
 
 ## 0. Start, connection check, first view
