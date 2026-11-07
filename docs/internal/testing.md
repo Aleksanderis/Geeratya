@@ -1,5 +1,7 @@
 # Testing
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Strategy and layers. The procedure for writing, recording and running tests is the `testing` skill; budgets and measured numbers are in `docs/internal/performance.md`.
 
 ## Layers

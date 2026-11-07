@@ -272,7 +272,7 @@ public sealed partial class FakeScrumStore
             _issues[key] = issue;
             keys.Add(key);
 
-            // An open sprint the issue lists but the sprint endpoint does not (GTS-35, see jira-layer.md) is backlog.
+            // An open sprint the issue lists but the sprint endpoint does not (GTS-35, see docs/internal/jira-layer.md) is backlog.
             foreach (var sprint in issue[FieldsName]![SprintFieldName]?.AsArray() ?? [])
             {
                 var id = IdOf(sprint);
