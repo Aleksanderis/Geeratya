@@ -134,6 +134,19 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
+    public void GivenTheCursorOnTheEstimate_WhenTheEditMetadataAddsTheEmptyEpicRow_ThenTheCursorStaysOnTheEstimate()
+    {
+        var opened = OnTarget(Opened(Issue() with { Estimate = 3 }), DetailFieldIds.Estimate);
+        var before = Top(opened).Cursor;
+
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["parent"])).State;
+
+        var top = Top(loaded);
+        Assert.NotEqual(before, top.Cursor);
+        Assert.Equal(DetailFieldIds.Estimate, top.Document!.Targets[top.Cursor]!.Value);
+    }
+
+    [Fact]
     public void GivenAnIssueWithoutAParentAndEditableParent_WhenBuilding_ThenAnEmptyEpicRowCanBeOpened()
     {
         var opened = Opened(Issue());

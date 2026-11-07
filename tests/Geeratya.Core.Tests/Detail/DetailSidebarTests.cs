@@ -227,6 +227,18 @@ public class DetailSidebarTests
     }
 
     [Fact]
+    public void GivenTheCursorOnTheEstimate_WhenTheEditMetadataAddsTheEmptyEpicRow_ThenTheCursorStaysOnTheEstimate()
+    {
+        var state = OnSideField(Opened(120, estimate: 3), DetailFieldIds.Estimate);
+        var before = Top(state).SideCursor;
+
+        var loaded = Editable(state, "parent");
+
+        Assert.NotEqual(before, Top(loaded).SideCursor);
+        Assert.Equal(DetailFieldIds.Estimate, SideTarget(loaded));
+    }
+
+    [Fact]
     public void GivenEditMetadataArrives_WhenTheIssueIsOpen_ThenTheFieldsAreMarkedEditableWithoutMovingTheCursor()
     {
         var state = Press(Opened(120), "Ctrl-l").State;
@@ -361,12 +373,12 @@ public class DetailSidebarTests
         return _reducer.Reduce(state, new KeyPressed(key));
     }
 
-    private AppState Opened(int columns, int bodyHeight = -1)
+    private AppState Opened(int columns, int bodyHeight = -1, double? estimate = null)
     {
         var shown = Press(Listed(columns, bodyHeight), "Enter").State;
         var detail = Active(shown).Detail[0];
 
-        var loaded = new IssueDetailLoaded(Active(shown).Id, detail.IssueRequest, Issue(), _now);
+        var loaded = new IssueDetailLoaded(Active(shown).Id, detail.IssueRequest, Issue() with { Estimate = estimate }, _now);
 
         return _reducer.Reduce(shown, loaded).State;
     }
