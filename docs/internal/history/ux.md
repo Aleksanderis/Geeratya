@@ -1,6 +1,6 @@
 # UX history
 
-Per-issue "implemented by" notes and the render gap table moved word for word out of the area docs under `docs/internal`. Not required reading; the area docs describe current behaviour.
+Per-issue "implemented by" notes and the render gap table moved word for word out of `ux-look.md`. Not required reading; the area docs describe current behaviour.
 
 ## Overlay box (ux-look.md, section 7)
 
@@ -29,3 +29,9 @@ From real captures of the debug binary against the fake Jira at 80x24 (scenarios
 | Profiles | Done in #535: two-pane full-body manager with details pane and the `Profiles` chip; the form and the remove question draw over it | 7 (profile manager) | #528 (form and keys), #535 (two-pane screen) |
 | Start and messages | Done in #537: the start screen and the messages screen sit in the frame (chips `Geeratya` and `Messages`/`Settings`); the pane chips of the detail lost their parentheses (`Comments 50 of 120`, `Attachments 2`) | 2, 3 | #537 |
 | Loading, empty and error bodies | Done in #579: one `StateBody` helper; every note starts one column inside the frame, left aligned at the top (loading in the `Loading` role, errors in the `Error` role followed by `<retry key> to retry` from the keymap, empty notes muted); the board column's `no issues` already had the padding column | 2, 3 | #579 |
+
+## Intro and selected row notes (ux-look.md, intro and section 3)
+
+Implemented by #524 (frame), #525 (focus and chips), #526 (overlays), #527 (tab row, hints, status bar, palette) and #528 (profile manager); each section below says which.
+
+Implemented by #526 (`TextRole.Border`, `FrameFocus`, `ChipFocus`; chips restyled by `ChipStyle`; `FrameGrid` takes the focused pane).
