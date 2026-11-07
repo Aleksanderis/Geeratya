@@ -8,6 +8,6 @@ public class ApplicationInfoTests
     {
         Assert.False(string.IsNullOrWhiteSpace(ApplicationInfo.Version));
         Assert.NotEqual("0.0.0", ApplicationInfo.Version);
-        Assert.DoesNotContain("+", ApplicationInfo.Version, StringComparison.Ordinal);
+        Assert.Matches(@"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$", ApplicationInfo.Version);
     }
 }

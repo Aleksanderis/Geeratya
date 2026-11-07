@@ -27,7 +27,9 @@ public sealed class JiraTransportTests
         Assert.Equal(MyselfPath, request.PathAndQuery);
         Assert.Equal(TransportFixture.Host, request.Host);
         Assert.Equal("application/json", request.Accept);
-        Assert.Contains("Geeratya", request.UserAgent);
+        Assert.Matches(@"^Geeratya/\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$", request.UserAgent);
+        Assert.NotEqual("Geeratya/0.1", request.UserAgent);
+        Assert.DoesNotContain(TransportFixture.Host, request.UserAgent, StringComparison.Ordinal);
     }
 
     [Theory]
