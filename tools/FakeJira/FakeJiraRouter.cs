@@ -530,6 +530,11 @@ public sealed partial class FakeJiraRouter
             return recorded;
         }
 
+        if (KeyListIssuesOf(jql) is { } keyList)
+        {
+            return keyList;
+        }
+
         if (_options.GeneratedIssues > 0)
         {
             if (jql is not null && ParentJql().Match(jql) is { Success: true } parent
@@ -675,6 +680,54 @@ public sealed partial class FakeJiraRouter
 
         return new FakeReply(200, Encoding.UTF8.GetBytes($"{{\"isLast\":true,\"issues\":[{issue}]}}"));
     }
+
+    /// <summary>
+    /// A key-list search (<c>key in (A, B)</c>, the suggestion client's issue type lookup) answers the issues found
+    /// among the recorded board pages, each reduced to its key and <c>issuetype</c> (a one-key list of a routed issue is answered by <see cref="RecordedIssueOf"/> with the full issue); unknown
+    /// keys are left out, as Jira does for keys it cannot show. Null for any other JQL.
+    /// </summary>
+    private FakeReply? KeyListIssuesOf(string? jql)
+    {
+        if (jql is null || KeyListJql().Match(jql) is not { Success: true } match)
+        {
+            return null;
+        }
+
+        var wanted = match.Groups[1].Value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var found = new JsonArray();
+
+        foreach (var key in wanted)
+        {
+            if (TypeOfKey(key.Trim('"')) is { } issue)
+            {
+                found.Add((JsonNode)issue);
+            }
+        }
+
+        var page = new JsonObject { ["isLast"] = true, ["issues"] = found };
+
+        return new FakeReply(200, Encoding.UTF8.GetBytes(page.ToJsonString()));
+    }
+
+    private JsonObject? TypeOfKey(string key)
+    {
+        foreach (var pagePath in _boardIssuePages)
+        {
+            foreach (var issue in JsonNode.Parse(ReadFixture(pagePath))!["issues"]!.AsArray())
+            {
+                if (string.Equals(issue?["key"]?.GetValue<string>(), key, StringComparison.OrdinalIgnoreCase)
+                    && issue?["fields"]?["issuetype"] is { } type)
+                {
+                    return new JsonObject { ["key"] = key.ToUpperInvariant(), ["fields"] = new JsonObject { ["issuetype"] = type.DeepClone() } };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    [GeneratedRegex(@"^\s*(?:issue)?key\s+in\s*\(([^)]+)\)\s*$", RegexOptions.IgnoreCase)]
+    private static partial Regex KeyListJql();
 
     [GeneratedRegex(@"^/rest/api/3/issue/createmeta/([A-Z][A-Z0-9_]*)/issuetypes(?:/(\d+))?$")]
     private static partial Regex CreateMetaPath();
