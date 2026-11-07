@@ -30,7 +30,7 @@ publish/geeratya
 
 The .NET SDK version is pinned in `global.json`. The AOT publish needs a C compiler (see the [user guide](docs/user-guide.md#install)). Optional quality inspections: `scripts/inspect.sh --changed` (Windows: `scripts/inspect.ps1`).
 
-To try the app without a Jira site, run the fake server in `tools/FakeJira` (see "Fake Jira" in [docs/testing.md](docs/testing.md)).
+To try the app without a Jira site, run the fake server in `tools/FakeJira` with a profile that points at its loopback address and `GEERATYA_TOKEN=fake`; `scripts/screenshot.sh` shows the setup (see "Fake Jira" in [docs/testing.md](docs/testing.md)).
 
 ## Code overview
 

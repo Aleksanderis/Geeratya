@@ -19,9 +19,9 @@ Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for ex
 
 ## Start and connect
 
-1. Create an API token at <https://id.atlassian.com/manage-profile/security/api-tokens> (a token without scopes is fine). The token is a secret: never paste it into an issue, a screenshot or a shared terminal log.
-2. Run `geeratya`. Add a profile with `:profile add` (or `Ctrl-a` in the profile manager): the site (`your-site.atlassian.net`), your account email and the token. `Alt-t` tests the connection before saving. The token goes to the system secret store; `profiles.json` holds only site and email.
-3. Open a board: `:board` (a name picks it), or `geeratya --board <name>`. A first start shows the board picker.
+1. Create an API token at <https://id.atlassian.com/manage-profile/security/api-tokens> (a plain token without scopes; scoped tokens are not supported yet). The token is a secret: never paste it into an issue, a screenshot or a shared terminal log.
+2. Run `geeratya`. Add a profile with `:profile add` (or `Ctrl-a` in the profile manager): a name, the site (`your-site.atlassian.net`), your account email and the token. `Alt-t` tests the connection before saving. The token goes to the system secret store; `profiles.json` holds only site and email.
+3. Open a board: `:board` (a name picks it), or `geeratya --board <name>`. After the connection check, a first start shows the board picker.
 
 Start from the command line (opens as a tab on top of the restored ones): `geeratya GEN-123`, `--board <name>`, `--backlog <name>`, `--jql <query>`, `--filter <name>`, and `--profile <name>` to use another saved profile for the run. `geeratya --help` lists everything, `--version` prints the version.
 
@@ -31,7 +31,7 @@ Lost? `?` shows the keys of the current screen, `:` opens the command palette, `
 
 - A tab row on top (one tab per view of the active site), the view in the middle, a status bar with hints below.
 - A view is a source (board, backlog, JQL, saved filter) shown as columns or a list. `Enter` opens an issue; the detail shows description, comments, sub-tasks, links and attachments (attachments are listed with a link that opens in the browser, never drawn).
-- `Tab` or `Ctrl-w h/j/k/l` moves between panes, `<space>z` zooms one.
+- `Ctrl-w h/j/k/l` (or `Ctrl-h/j/k/l`) moves between panes, `<space>z` zooms one. `Tab` and `Shift-Tab` switch tabs.
 
 | Key | Does |
 |---|---|
