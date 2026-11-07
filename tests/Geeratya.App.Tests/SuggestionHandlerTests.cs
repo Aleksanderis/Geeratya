@@ -351,6 +351,83 @@ public sealed class SuggestionHandlerTests
         Assert.Contains(Uri.EscapeDataString(JqlBuilder.Project("GCM")), fixture.Http.Requests.First().Query);
     }
 
+    private const string PickerOfThree = "{\"sections\":[{\"id\":\"cs\",\"label\":\"Current Search\",\"issues\":["
+        + "{\"id\":1,\"key\":\"GCM-1\",\"summaryText\":\"An epic\"},{\"id\":2,\"key\":\"GCM-2\",\"summaryText\":\"A story\"},"
+        + "{\"id\":3,\"key\":\"GCM-3\",\"summaryText\":\"A sub-task\"}]}]}";
+
+    // Company-managed: the types are site-wide and carry no scope. Team-managed: the same levels, scoped to the project.
+    private const string CompanyManagedTypes = "{\"issues\":["
+        + "{\"key\":\"GCM-1\",\"fields\":{\"issuetype\":{\"name\":\"Epic\",\"hierarchyLevel\":1,\"subtask\":false}}},"
+        + "{\"key\":\"GCM-2\",\"fields\":{\"issuetype\":{\"name\":\"Story\",\"hierarchyLevel\":0,\"subtask\":false}}},"
+        + "{\"key\":\"GCM-3\",\"fields\":{\"issuetype\":{\"name\":\"Sub-task\",\"hierarchyLevel\":-1,\"subtask\":true}}}]}";
+
+    private const string TeamManagedTypes = "{\"issues\":["
+        + "{\"key\":\"GCM-1\",\"fields\":{\"issuetype\":{\"name\":\"Epic\",\"hierarchyLevel\":1,\"subtask\":false,\"scope\":{\"type\":\"PROJECT\",\"project\":{\"id\":\"10001\"}}}}},"
+        + "{\"key\":\"GCM-2\",\"fields\":{\"issuetype\":{\"name\":\"Task\",\"hierarchyLevel\":0,\"subtask\":false,\"scope\":{\"type\":\"PROJECT\",\"project\":{\"id\":\"10001\"}}}}},"
+        + "{\"key\":\"GCM-3\",\"fields\":{\"issuetype\":{\"name\":\"Subtask\",\"hierarchyLevel\":-1,\"subtask\":true,\"scope\":{\"type\":\"PROJECT\",\"project\":{\"id\":\"10001\"}}}}}]}";
+
+    [Theory]
+    [InlineData(CompanyManagedTypes, 1, "GCM-1")]
+    [InlineData(CompanyManagedTypes, 0, "GCM-2")]
+    [InlineData(TeamManagedTypes, 1, "GCM-1")]
+    [InlineData(TeamManagedTypes, 0, "GCM-2")]
+    public async Task GivenAnAcceptedParentLevel_WhenTheParentIsLookedUp_ThenOnlyIssuesOfThatLevelAreOffered(
+        string types,
+        int level,
+        string expected)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PickerOfThree).Reply(HttpStatusCode.OK, types));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-9", [], "GCM", level);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 8, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal([expected], loaded.Items.Select(item => item.Id));
+    }
+
+    [Theory]
+    [InlineData(1, "issuetype = \"Epic\"")]
+    [InlineData(0, "issuetype in standardIssueTypes()")]
+    public async Task GivenAnAcceptedParentLevel_WhenTheParentIsLookedUp_ThenThePickerSearchIsNarrowedByType(
+        int level,
+        string expected)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PickerOfThree));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-9", [], "GCM", level);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 8, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var query = Uri.UnescapeDataString(fixture.Http.Requests.First().Query);
+        Assert.Contains(expected, query);
+        Assert.Contains("project = \"GCM\"", query);
+    }
+
+    [Fact]
+    public async Task GivenAnAcceptedParentLevel_WhenTheTypeSearchFails_ThenTheRowsStayForJiraToJudge()
+    {
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PickerOfThree).Reply(HttpStatusCode.InternalServerError, "{}"));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-9", [], "GCM", 1);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 8, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["GCM-1", "GCM-2", "GCM-3"], loaded.Items.Select(item => item.Id));
+    }
+
+    [Fact]
+    public async Task GivenNoParentLevel_WhenTheParentIsLookedUp_ThenNothingIsNarrowedByType()
+    {
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, PickerOfThree).Reply(HttpStatusCode.OK, CompanyManagedTypes));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-9", [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 8, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(3, loaded.Items.Count);
+    }
+
     private static async Task RunAsync(Fixture fixture, SearchSuggestionsEffect effect)
     {
         var task = fixture.Handler.StartAsync(effect);

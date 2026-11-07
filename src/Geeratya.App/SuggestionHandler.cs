@@ -174,7 +174,7 @@ public sealed class SuggestionHandler
                 => services.Suggestions.SearchVersionsAsync(project, effect.Query, token),
             SuggestionKind.IssueUsers => services.Suggestions.SearchMentionableUsersAsync(key, effect.Query, token),
             _ when source.ProjectKey is { } project
-                => SearchProjectIssuesAsync(services, project, source.IssueKey, effect.Query, token),
+                => SearchProjectIssuesAsync(services, project, source, effect.Query, token),
             _ => SearchOtherIssuesAsync(services, source.IssueKey, effect.Query, token),
         };
     }
@@ -200,16 +200,20 @@ public sealed class SuggestionHandler
         return JiraResults.Success(others);
     }
 
-    // The parent of a new or edited issue must belong to its project (an edited issue is never its own parent): the picker's history section is not narrowed by the
-    // JQL, so rows of other projects are dropped here (a row's detail is its issue key).
+    // The parent of a new or edited issue must belong to its project (an edited issue is never its own parent) and be
+    // of the level the issue type accepts: the picker's history section is not narrowed by the JQL, so rows of other
+    // projects are dropped here (a row's detail is its issue key).
     private static async Task<JiraResult<IReadOnlyList<Suggestion>>> SearchProjectIssuesAsync(
         JiraServices services,
         string projectKey,
-        string? ownKey,
+        SuggestionSource source,
         string query,
         CancellationToken token)
     {
-        var result = await services.Suggestions.SearchIssuesAsync(query, JqlBuilder.Project(projectKey), token);
+        var result = await services.Suggestions.SearchIssuesAsync(
+            query,
+            JqlBuilder.ParentScope(projectKey, source.ParentLevel),
+            token);
 
         if (!result.IsSuccess)
         {
@@ -220,9 +224,17 @@ public sealed class SuggestionHandler
         IReadOnlyList<Suggestion> inProject =
             [
                 .. result.Value.Where(row => row.Detail?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true
-                    && !string.Equals(row.Detail, ownKey, StringComparison.OrdinalIgnoreCase)),
+                    && !string.Equals(row.Detail, source.IssueKey, StringComparison.OrdinalIgnoreCase)
+                    && AcceptedAsParent(row, source.ParentLevel)),
             ];
 
         return JiraResults.Success(inProject);
+    }
+
+    // Jira refuses a parent of the wrong hierarchy level, so only rows of the accepted level are offered. A row whose
+    // type Jira did not name (the type read failed or was too slow) stays: the write is still checked by Jira.
+    private static bool AcceptedAsParent(Suggestion row, int? parentLevel)
+    {
+        return parentLevel is not { } level || row.HierarchyLevel is not { } actual || actual == level;
     }
 }

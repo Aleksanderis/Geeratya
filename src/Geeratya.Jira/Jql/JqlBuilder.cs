@@ -14,6 +14,8 @@ public static class JqlBuilder
     public const string CreatedField = "created";
     public const string UpdatedField = "updated";
     public const string EpicIssueType = "Epic";
+    private const int EpicHierarchyLevel = 1;
+    private const int StandardHierarchyLevel = 0;
 
     /// <summary>Jira's status category keys, as <c>statusCategory</c> accepts them. Keys are language independent; the names ("To Do") are localized per site, so the builder never uses them.</summary>
     public const string StatusCategoryToDo = StatusCategoryKeys.New;
@@ -75,6 +77,22 @@ public static class JqlBuilder
     /// <summary>Issues the current account reported in the last <paramref name="minutes"/> minutes (at least one).</summary>
     public static string OwnIssuesSince(int minutes) =>
         $"reporter = currentUser() AND created >= -{Math.Max(1, minutes).ToString(CultureInfo.InvariantCulture)}m";
+
+    /// <summary>
+    /// The scope of a parent search for a hierarchy level: epics for level 1, standard issue types for level 0 (the
+    /// parent of a sub-task); other levels are not narrowed here. Applied before Jira caps the list.
+    /// </summary>
+    public static string ParentScope(string projectKey, int? level)
+    {
+        var project = Project(projectKey);
+
+        return level switch
+        {
+            EpicHierarchyLevel => $"{project}{AndOperator}{IssueTypeEpic()}",
+            StandardHierarchyLevel => $"{project}{AndOperator}issuetype in standardIssueTypes()",
+            _ => project,
+        };
+    }
 
     public static string IssueTypeEpic() => IssueType(EpicIssueType);
 

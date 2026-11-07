@@ -120,6 +120,25 @@ public class IssueDetailFieldTests
         Assert.Equal(DetailFieldIds.Parent, Active(result.State).Form?.Dropdown);
     }
 
+    [Theory]
+    [InlineData(0, false, 1)]
+    [InlineData(1, false, 2)]
+    [InlineData(-1, true, 0)]
+    public void GivenAnIssueOfAType_WhenOpeningTheParentChooser_ThenOnlyTheLevelAboveIsAccepted(
+        int level,
+        bool isSubtask,
+        int expected)
+    {
+        var type = new IssueTypeSummary("9", "Some type", level, isSubtask);
+        var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
+        var state = OnTarget(Opened(Issue() with { IssueType = type, Parent = parent }), DetailFieldIds.Parent);
+
+        var result = Press(state, "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Equal(expected, Assert.IsType<EditFormTarget>(effect.Target).ParentLevel);
+    }
+
     [Fact]
     public void GivenFocusOnTheEpicOfAnIssue_WhenPressingEnter_ThenTheParentFieldOpens()
     {

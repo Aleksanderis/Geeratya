@@ -5,6 +5,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -311,6 +312,19 @@ public class FormSuggestionTests
     }
 
     [Fact]
+    public void GivenAnEditFormWithAParentLevel_WhenTyping_ThenTheSourceCarriesTheLevel()
+    {
+        var state = Focused("parent", FormFieldKind.Parent);
+        var tab = state.Session.Tabs[0];
+        var target = Assert.IsType<EditFormTarget>(tab.Form!.Target) with { ParentLevel = 1 };
+        var leveled = WithTab(state, tab with { Form = tab.Form with { Target = target } });
+
+        var typed = Press(leveled, "A");
+
+        Assert.Equal(1, Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects)).Source.ParentLevel);
+    }
+
+    [Fact]
     public void GivenACurrentParent_WhenAnotherIssueIsAccepted_ThenItIsTheValueAndBackspaceClearsIt()
     {
         var typed = Press(WithParent(Focused("parent", FormFieldKind.Parent), "A-5"), "A");
@@ -371,6 +385,23 @@ public class FormSuggestionTests
         Assert.Equal("GCM", effect.Source.ProjectKey);
         Assert.Null(effect.Source.IssueKey);
         Assert.NotNull(Popup(result.State));
+    }
+
+    [Theory]
+    [InlineData(0, false, 1)]
+    [InlineData(-1, true, 0)]
+    public void GivenACreateFormOfAType_WhenTypingInTheParentField_ThenTheSourceCarriesTheAcceptedLevel(
+        int level,
+        bool isSubtask,
+        int expected)
+    {
+        var state = AsCreateForm(Focused(FormFieldIds.Parent, FormFieldKind.Parent));
+        var tab = state.Session.Tabs[0];
+        var type = new CreateIssueType("9", "Some type", string.Empty, level, isSubtask);
+        var target = new CreateFormTarget("GCM", null, isSubtask, type);
+        var typed = Press(WithTab(state, tab with { Form = tab.Form! with { Target = target } }), "j");
+
+        Assert.Equal(expected, Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects)).Source.ParentLevel);
     }
 
     [Fact]
