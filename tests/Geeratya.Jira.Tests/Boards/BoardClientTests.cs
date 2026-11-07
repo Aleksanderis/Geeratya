@@ -153,6 +153,25 @@ public sealed class BoardClientTests
     }
 
     [Fact]
+    public async Task GivenSubtaskStubsInTheReplyButNoSubtaskExtra_WhenMapping_ThenRowsHoldNoSubtasks()
+    {
+        const string json = """
+            {"startAt":0,"maxResults":50,"total":1,"issues":[{"id":"1","key":"A-1","fields":{"summary":"p",
+            "subtasks":[{"key":"A-2","fields":{"summary":"s","status":{"id":"5","name":"Done"}}}]}}]}
+            """;
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, GcmIssuesPath, FakeResponse.Ok(json));
+
+        var result = await new BoardClient(fixture.Transport).GetIssuesAsync(
+            4,
+            new BoardIssueQuery(),
+            null,
+            CancellationToken.None);
+
+        Assert.Empty(result.Value.Items.Single().Subtasks);
+    }
+
+    [Fact]
     public async Task GivenOddSubtaskJson_WhenMapping_ThenBadEntriesAreSkippedAndMissingPartsAreNeutral()
     {
         const string json = """
