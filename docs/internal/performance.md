@@ -14,6 +14,7 @@ Budgets and measured numbers. The checklist for writing fast code is the `perfor
 | Background tabs | Cheap: no polling faster than the refresh rule, no rendering |
 | Memory | Bounded however long the session runs; every cache has a size bound and an owner that drops it |
 | Opening a cached view | Cached rows drawn without waiting for the network; the cache read is off the UI thread and after the first frame (met: 82 ms median to first rows from the cache against 162 without, see "M1 measurements (#91)") |
+| Idle CPU | Under 2 % of one core with refresh running (met: 0.31 %, see "Release measurements (#211)") |
 | Refresh tick | An idle `Tick` returns the same state (no redraw unless time-dependent text is visible) and costs a comparison; only the active tab refreshes |
 
 Bounds from the M1 design (`docs/internal/architecture.md`, "Views and tabs", "Cache and refresh"): 10 000 rows per tab, 50 000 across tabs, 32 cached views and 200 cached issue details in memory, 20 MB of cache per profile on disk. The first measurements of these are in "M1 measurements (#91)" below.
@@ -242,14 +243,14 @@ Native AOT `geeratya` from `dotnet publish src/Geeratya.Tui -c Release` at `main
 |---|---|---|---|
 | Cold start to first frame (15 sessions) | 43 ms median, p95 60 (39 / 51 with a cache present, scrum scenario) | under 100 ms | met |
 | Key press to frame (default scenario, `?` toggle) | 37 ms median, p95 52; `j` in a loaded list 35 (41); `Tab` with 10 tabs 36 (63) | no wait on a request | met |
-| Open a 10 000-issue board list (first page, 5 sessions) | 199 ms median (p95 214), includes the fake's 50 ms | no target | recorded |
+| Open a 10 000-issue list (first page, 5 sessions) | 199 ms median (p95 214), includes the fake's 50 ms | no target | recorded |
 | Scroll at the end of the full 10 000 list | `j`/`k` 36 ms median (p95 40) | no dropped frames | met |
 | Issue detail from the list | Enter to description 165 ms (p95 167) | no target | recorded |
 | Cached view, `:jql` to header | 83 ms (p95 85) against 198 without the cache | cache drawn without the network | met |
 | Scrum backlog (5 sessions) | `:backlog` to rows 280 ms without cache (p95 287), 78 with; sprint switch 230 / 81; `j` 35; `za` 36 | no target | recorded |
-| Idle CPU, list loaded, no keys, 20 s window (3 runs) | 5, 2 and 4 ticks per 20 s: 0.1 to 0.25 % of one core (start screen: 3 ticks); about 9 600 context switches per 20 s; with refresh running (`WINDOW=130`, two 60 s refreshes inside): 40 ticks per 130 s, 0.31 % of one core | under 2 % of a core | met |
+| Idle CPU, Kanban board GCM loaded from the 10 000-issue fake (first page), no keys, 20 s window (3 runs) | 5, 2 and 4 ticks per 20 s: 0.1 to 0.25 % of one core (start screen: 3 ticks); about 9 600 context switches per 20 s; with refresh running (one run, `WINDOW=130`, two 60 s refresh periods inside, the fake's request count was not checked): 40 ticks per 130 s, 0.31 % of one core | under 2 % of a core | met |
 | Memory (RSS) | 69 MB with the 10 000-row list loaded (p95 71); 50 MB with 10 tabs; 55 MB with a backlog and a sprint tab | bounded | met |
 | Binary size | 19.98 MB (19.1 MiB) `geeratya`, plus 51.8 MB `geeratya.dbg` (debug symbols, not shipped in the binary) | no budget | recorded |
 | `dotnet test` wall time (offline) | 38 s including the incremental build; slowest assembly `Geeratya.Tui.Tests` 19 s; 6 582 tests passed, 15 skipped | no budget | recorded |
 
-Limits: the 20 s idle windows hold no refresh tick (period 60 s); the 130 s run does, and its cost is the difference (about 0.1 % of a core). The `dotnet test` figure was taken as one run with a warm build. Gitunia's 2.8 % idle CPU found late (the issue's reference) does not show here: the figures above are the CPU of our process only (the terminal emulator side is #744, owner check still open). RSS is 19 MB higher with 10 000 rows than the M1 row (50 MB), the cause was not investigated; it is still bounded by the 10 000-row cap per tab.
+Limits: the 20 s idle windows hold no refresh tick (period 60 s); the 130 s run does, and a refresh of a board reloads its pages, so the figure depends on source and size; the difference to the 20 s runs (about 0.1 % of a core) compares runs under different load and is indicative only. The `dotnet test` figure was taken as one run with a warm build. Gitunia's 2.8 % idle CPU found late (the issue's reference) does not show here: the figures above are the CPU of our process only (the terminal emulator side is #744, owner check still open). RSS is 19 MB higher with 10 000 rows than the M1 row (50 MB), the cause was not investigated; it is still bounded by the 10 000-row cap per tab. Registered as #813.
