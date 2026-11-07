@@ -231,6 +231,23 @@ public sealed class FakeJiraServerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAKeyListSearch_WhenAskedForIssueTypes_ThenKnownKeysComeBackWithTheirTypeAndUnknownOnesDoNot()
+    {
+        var baseUrl = StartServer(0, 0, 0);
+        var jql = Uri.EscapeDataString("key in (GCM-17,GCM-16,NOPE-1)");
+
+        var body = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?jql={jql}&fields=issuetype");
+        using var document = JsonDocument.Parse(body);
+        var issues = document.RootElement.GetProperty("issues").EnumerateArray().ToList();
+
+        Assert.Equal(["GCM-17", "GCM-16"], issues.Select(issue => issue.GetProperty("key").GetString()));
+        Assert.All(
+            issues,
+            issue => Assert.False(string.IsNullOrEmpty(
+                issue.GetProperty("fields").GetProperty("issuetype").GetProperty("name").GetString())));
+    }
+
+    [Fact]
     public async Task GivenRecordedFixtures_WhenPagingByToken_ThenThreePagesAreServedInOrder()
     {
         var baseUrl = StartServer(0, 0, 0);

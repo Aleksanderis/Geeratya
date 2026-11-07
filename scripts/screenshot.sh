@@ -89,6 +89,8 @@ all_scenarios=(
   "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Child issues"
   # detail-epic-edit: Enter on the Epic row of a story opens the parent chooser under it (#784)
   "detail-epic-edit;120;36;dark;:jql key = GCM-10||]jjjjj|;Type to search"
+  # detail-epic-suggest: the same chooser with GCM typed, the rows show the issue type of each suggestion (#793, #794)
+  "detail-epic-suggest;120;36;dark;:jql key = GCM-10||]jjjjj|GCM-1;[Bug]"
   "detail-relations-delete-confirm;120;36;dark;:jql key = GTM-9| id;Jira cannot undo"
   "detail-relations-create-type;120;36;dark;:jql key = GTM-11| ic;Choose the issue type"
   "detail-relations-create-subtask;120;36;dark;:jql key = GCM-10| iC|;Not editable here"
