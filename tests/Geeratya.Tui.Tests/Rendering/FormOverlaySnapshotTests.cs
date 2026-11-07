@@ -39,8 +39,19 @@ public class FormOverlaySnapshotTests
     {
         var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("[backend] [ui]", StringComparison.Ordinal) && line.Contains('_'));
+        Assert.Contains(lines, line => line.Contains("[backend] [ui]", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Labels", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenTheLabelsFieldInFocus_WhenBuildingTheStyledFrame_ThenTheTypedBufferEndsInOneCaretCell()
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(), 120, 36, _keymap);
+        var row = frame!.Body.Single(static line => line.Spans.Any(static span => span.Role == TextRole.EditCaret));
+        var spans = row.Spans.Where(static span => span.Role == TextRole.EditCaret).ToArray();
+
+        Assert.Equal(" ", Assert.Single(spans).Text);
+        Assert.Contains("[backend] [ui]", string.Concat(row.Spans.Select(static span => span.Text)));
     }
 
     [Fact]
@@ -116,7 +127,7 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(form), 40, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("[team-label-12]", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("typing-now_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("typing-now ", StringComparison.Ordinal));
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 
@@ -129,7 +140,7 @@ public class FormOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(WithForm(form), 40, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains('…') && line.Contains("THE-END ", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -201,7 +212,7 @@ public class FormOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("[Backend] oc_", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("[Backend] oc ", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Docs", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));

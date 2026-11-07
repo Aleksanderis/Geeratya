@@ -6,7 +6,7 @@
 │                                                                                                                      │
 │ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │ ╭─ Create · A · Task ────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │ │
-│ │ │ What needs to be done?_                                         required * │ │ Parent *  from selection      │ │ │
+│ │ │ What needs to be done?                                          required * │ │ Parent *  from selection      │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  [A-1 Checkout epic] ▾        │ │ │
 │ │ ╭─ Description ──────────────────────────────── markdown, Enter adds a line ─╮ │                               │ │ │
 │ │ │ Describe it.                                                               │ │ Priority                      │ │ │

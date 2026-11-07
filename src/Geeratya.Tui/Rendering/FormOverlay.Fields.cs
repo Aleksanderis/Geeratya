@@ -100,15 +100,10 @@ public static partial class FormOverlay
     {
         if (focused)
         {
-            return Cell(Caretted(new PromptText(field.Value.Text, field.Back), valueWidth), TextRole.Editable);
+            return new StyledLine(CaretRows.Spans(new PromptText(field.Value.Text, field.Back), valueWidth, TextRole.Editable));
         }
 
         return Cell(field.Value.Text.Length == 0 ? EmptyText : field.Value.Text, TextRole.Editable);
-    }
-
-    internal static string Caretted(PromptText prompt, int width)
-    {
-        return CaretRows.Caretted(prompt, width);
     }
 
     private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
@@ -130,15 +125,11 @@ public static partial class FormOverlay
 
         for (var index = first; index < first + shown; index++)
         {
-            lines.Add(Cell(ParagraphRow(prompt, rows[index], index, caretRow, valueWidth), TextRole.Editable));
+            lines.Add(new StyledLine(
+                CaretRows.ParagraphSpans(prompt, rows[index], index, caretRow, valueWidth, TextRole.Editable)));
         }
 
         return lines;
-    }
-
-    internal static string ParagraphRow(PromptText prompt, string row, int index, int caretRow, int valueWidth)
-    {
-        return CaretRows.ParagraphRow(prompt, row, index, caretRow, valueWidth);
     }
 
     private static StyledLine ChosenLine(FormField field)
@@ -152,10 +143,14 @@ public static partial class FormOverlay
     private static List<StyledLine> LabelLines(FormField field, bool focused, int valueWidth)
     {
         var tokens = field.Value.Chosen.Select(label => $"[{LabelOf(field, label)}]").ToList();
+        var typed = focused
+            ? CaretRows.Spans(new PromptText(field.Entry, field.Back), valueWidth, TextRole.Editable)
+            : [];
+        var typedText = string.Concat(typed.Select(static span => span.Text));
 
         if (focused)
         {
-            tokens.Add(Caretted(new PromptText(field.Entry, field.Back), valueWidth));
+            tokens.Add(typedText);
         }
 
         if (tokens.Count == 0)
@@ -181,7 +176,17 @@ public static partial class FormOverlay
 
         rows.Add(current);
 
-        return [.. rows.Select(row => Cell(row, TextRole.Editable))];
+        var lines = rows.Select(row => Cell(row, TextRole.Editable)).ToList();
+
+        if (focused)
+        {
+            var last = rows[^1];
+            var head = last[..^typedText.Length];
+
+            lines[^1] = new StyledLine([new StyledSpan(head, TextRole.Editable), .. typed]);
+        }
+
+        return lines;
     }
 
     private static List<StyledLine> PickedLines(FormField field, bool focused, int valueWidth)
