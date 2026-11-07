@@ -77,7 +77,8 @@ public static class CaretRows
         var after = window.After;
         var cell = " ";
 
-        if (window.Caret.Length > 0 && after.Length > 0)
+        // An ellipsis for hidden text is no character to sit on: the cell is a blank and the ellipsis stays after it.
+        if (window.Caret.Length > 0 && after.Length > 0 && !(window.TailCut && after == "…"))
         {
             cell = StringInfo.GetNextTextElement(after);
             after = after[cell.Length..];
