@@ -344,6 +344,8 @@ Linux is built and tested first, then Windows, macOS last. Rules:
 
 `Geeratya.Tui` sets `PublishAot`. All projects have the trim and AOT analyzers on and warnings as errors, so any `IL*` warning fails the build. Run the publish after adding a dependency or touching anything reflection-adjacent: `dotnet publish src/Geeratya.Tui -c Release -o <dir>`, then `<dir>/geeratya --version` (add `-p:Version=1.2.3` to check the stamped form). Reading assembly attributes (`ApplicationInfo`) is the one metadata use and is AOT-safe.
 
+Releases: `.github/workflows/release.yml` (#205) is dispatch-only. Inputs: `tag` (`v1.2.3`, validated) and `dry_run` (default true: archives only, no release). A guard checks for a green `ci.yml` run on the commit and dispatches one when missing (real releases only); then it builds Native AOT on `ubuntu-latest` (linux-x64), `windows-latest` (win-x64) and `macos-latest` (osx-arm64; macOS bills 10x minutes, so it is built only here, never in `ci.yml`) with `-p:Version=<tag without v>`, checks that `--version` prints that version, packs with `scripts/package-release.sh` (`.tar.gz`, `.zip` on Windows; binary, LICENSE, short README.txt), writes `SHA256SUMS` and, unless dry run, creates a draft GitHub release (`--verify-tag`: the workflow never creates a tag). Dry run: `gh workflow run release.yml --ref main -f tag=v0.0.1-dryrun`. Not yet covered: Linux arm64, macOS x64, macOS signing, `.deb`/`.rpm`, AUR, winget, Homebrew (M8 packaging issues).
+
 ## Terminal.Gui
 
 `Geeratya.Tui` references Terminal.Gui 2.5.0 (stable v2, pinned in `Directory.Packages.props`). The native AOT publish has no `IL*` warnings with it and no suppressions are needed.
