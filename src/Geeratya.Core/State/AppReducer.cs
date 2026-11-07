@@ -193,6 +193,7 @@ public sealed partial class AppReducer
             ConnectionCheckFailed failed => ProfileReducer.ConnectionCheckFailed(state, failed),
             OpenUrlRequested request => BrowserReducer.Request(state, request),
             UrlOpenFinished finished => BrowserReducer.Finished(state, finished),
+            ExternalEditFinished finished => Result(CommentEditing.ExternalFinished(state, finished)),
             ClipboardCopied copied => ClipboardReducer.Finished(state, copied),
             SettingsReloaded reloaded => SettingsReducer.Reloaded(state, reloaded),
             ThemeApplied applied => SettingsReducer.Applied(state, applied),

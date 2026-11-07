@@ -126,6 +126,7 @@ public static class ActionIds
     public const string EditorDeleteWordBefore = "editor.delete-word-before";
     public const string EditorDeleteWordAfter = "editor.delete-word-after";
     public const string EditorDeleteToStart = "editor.delete-to-start";
+    public const string EditorExternal = "editor.external";
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";

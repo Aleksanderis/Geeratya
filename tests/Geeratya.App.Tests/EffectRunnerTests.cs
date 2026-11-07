@@ -5,6 +5,7 @@ using Geeratya.Core.BoardKinds;
 using Geeratya.Core.Cache;
 using Geeratya.Core.History;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Comments;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Startup;
@@ -27,6 +28,7 @@ public sealed class EffectRunnerTests : IDisposable
         typeof(ReloadKeymapEffect),
         typeof(ApplyThemeEffect),
         typeof(CheckConnectionEffect),
+        typeof(EditExternallyEffect),
     ];
 
     private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("geeratya-effects-");

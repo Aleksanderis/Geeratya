@@ -188,6 +188,7 @@
     { "mode": "insert", "keys": "Alt-d", "action": "editor.delete-word-after" },
     { "mode": "insert", "keys": "Ctrl-Delete", "action": "editor.delete-word-after" },
     { "mode": "insert", "keys": "Ctrl-u", "action": "editor.delete-to-start" },
+    { "mode": "insert", "keys": "Alt-e", "action": "editor.external" },
     { "mode": "command", "keys": "Alt-Left", "action": "editor.word-left" },
     { "mode": "command", "keys": "Alt-Right", "action": "editor.word-right" },
     { "mode": "command", "keys": "Alt-b", "action": "editor.word-left" },

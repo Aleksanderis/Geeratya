@@ -88,7 +88,7 @@ public sealed partial class ShellHost
 
         if (failure is not null && !_shutdownToken.IsCancellationRequested)
         {
-            _application!.Invoke(() => Dispatch(failure));
+            InvokeOnUi(() => Dispatch(failure));
         }
 
         // After the connection exists, off the first-frame path: the first issue detail finds the field ids ready.

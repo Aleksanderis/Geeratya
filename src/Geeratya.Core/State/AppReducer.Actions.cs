@@ -129,6 +129,7 @@ public sealed partial class AppReducer
             ActionIds.EditorDeleteWordAfter => Result(CommentEditing.DeleteWordAfter(state)),
             ActionIds.EditorDeleteToStart => Result(CommentEditing.DeleteToStart(state)),
             ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
+            ActionIds.EditorExternal when state.Form is null => CommentEditing.External(state),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
             ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state, at)),

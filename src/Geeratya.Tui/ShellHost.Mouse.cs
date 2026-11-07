@@ -121,7 +121,7 @@ public sealed partial class ShellHost
     {
         if (!_shutdownToken.IsCancellationRequested)
         {
-            _application!.Invoke(() => StepDragScroll(rows));
+            InvokeOnUi(() => StepDragScroll(rows));
         }
     }
 
@@ -169,6 +169,9 @@ public sealed partial class ShellHost
     {
         e.Handled = true;
 
-        Dispatch(new TextPasted(e.Text));
+        if (_pendingEdit is null)
+        {
+            Dispatch(new TextPasted(e.Text));
+        }
     }
 }
