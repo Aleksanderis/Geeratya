@@ -44,6 +44,17 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenTheLabelsFieldInFocus_WhenBuildingTheStyledFrame_ThenTheTypedBufferEndsInOneCaretCell()
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(), 120, 36, _keymap);
+        var row = frame!.Body.Single(static line => line.Spans.Any(static span => span.Role == TextRole.EditCaret));
+        var spans = row.Spans.Where(static span => span.Role == TextRole.EditCaret).ToArray();
+
+        Assert.Equal(" ", Assert.Single(spans).Text);
+        Assert.Contains("[backend] [ui]", string.Concat(row.Spans.Select(static span => span.Text)));
+    }
+
+    [Fact]
     public void GivenARequiredFieldWithAnError_WhenBuildingTheFrame_ThenTheErrorShowsUnderTheField()
     {
         var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);

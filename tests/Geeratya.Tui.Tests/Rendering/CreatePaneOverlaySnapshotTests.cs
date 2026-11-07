@@ -184,6 +184,22 @@ public class CreatePaneOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenTheSummaryWithTheCaretInside_WhenBuildingTheStyledFrame_ThenOneCaretCellCoversACharacter()
+    {
+        var form = Form();
+        var fields = form.Fields.ToArray();
+
+        fields[0] = fields[0].WithInitial(FormValue.OfText("Fix the login redirect")) with { Back = 8 };
+
+        var frame = FrameBuilder.BuildStyled(Open(form with { Fields = fields, Focus = 0 }), 120, 36, _keymap);
+        var cells = frame!.Body.SelectMany(static line => line.Spans).Where(static span => span.Role == TextRole.EditCaret);
+
+        Assert.Equal("r", Assert.Single(cells).Text);
+        Assert.Contains(frame.Body.Select(static line => string.Concat(line.Spans.Select(static span => span.Text))),
+            line => line.Contains("Fix the login redirect", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenALongDescription_WhenEditingItsEnd_ThenThePaneScrollsToTheCaretAndShowsAScrollbar()
     {
         var text = string.Join('\n', Enumerable.Range(1, 40).Select(number => $"line {number}"));
