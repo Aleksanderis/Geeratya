@@ -9,7 +9,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The comment editor box (<c>docs/ux-screens.md</c>, "Comment editor"): a centred box over the issue with the text
+/// The comment editor box (<c>docs/internal/ux-screens.md</c>, "Comment editor"): a centred box over the issue with the text
 /// in rows, the cursor drawn as a selected cell, a line for what the user should know (formatting warning, error,
 /// saving) and a key footer. Pure. The box shrinks to the text and scrolls so that the cursor row stays visible.
 /// </summary>

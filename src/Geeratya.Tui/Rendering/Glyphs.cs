@@ -2,7 +2,7 @@ using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>The characters the app draws itself, in the Unicode and the ASCII form (<c>docs/ux-screens.md</c>, "List layout").</summary>
+/// <summary>The characters the app draws itself, in the Unicode and the ASCII form (<c>docs/internal/ux-screens.md</c>, "List layout").</summary>
 public sealed class Glyphs
 {
     private static readonly Glyphs _unicode = new(" · ", "…", "○", "◐", "●", "▲", "=", "▼", "●", "▾");

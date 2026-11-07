@@ -3,7 +3,7 @@ namespace Geeratya.Core.Boards;
 /// <summary>
 /// The cutoff Jira's own Kanban board applies to its last (Done) column: Done issues whose status category changed
 /// longer ago than N days drop off the board (Jira's "Hide done work items after"). The board load reads N from Jira
-/// (the gateway, see <c>docs/jira-layer.md</c>), falling back to the <c>board.done-cutoff</c> setting, and adds it as
+/// (the gateway, see <c>docs/internal/jira-layer.md</c>), falling back to the <c>board.done-cutoff</c> setting, and adds it as
 /// JQL because the agile API ignores it. A tab's quick choice (<c>view.done-cutoff</c>) overrides both.
 /// </summary>
 public static class DoneCutoff

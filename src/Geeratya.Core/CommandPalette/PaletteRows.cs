@@ -7,7 +7,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.CommandPalette;
 
 /// <summary>
-/// The lines of the command palette (<c>docs/ux.md</c>, "Command palette"): every action that is not modal-only,
+/// The lines of the command palette (<c>docs/internal/ux.md</c>, "Command palette"): every action that is not modal-only,
 /// under group subheaders, filtered and ranked by the text typed after <c>:</c>. At the everyday command level the
 /// unfiltered list leaves the advanced actions out (at the everyday level) and the theme rows out (at every level)
 /// and ends with a note for each. When the text starts with a

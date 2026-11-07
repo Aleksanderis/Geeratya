@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// Measures of the zoomed pane of the issue detail (<c>docs/ux-screens.md</c>, "Panes, focus and zoom"): the section
+/// Measures of the zoomed pane of the issue detail (<c>docs/internal/ux-screens.md</c>, "Panes, focus and zoom"): the section
 /// strip takes the first row of the overlay, the zoomed pane the rest, and a comment is cut after 6 lines instead of 3.
 /// </summary>
 public static class DetailZoom

@@ -4,7 +4,7 @@ namespace Geeratya.Core.Boards;
 
 /// <summary>
 /// Fixed measures of a card in the columns layout that the reducer and the renderer must agree on
-/// (<c>docs/ux-screens.md</c>, "Columns layout").
+/// (<c>docs/internal/ux-screens.md</c>, "Columns layout").
 /// </summary>
 public static class BoardCards
 {

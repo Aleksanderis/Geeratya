@@ -4,11 +4,11 @@ Facts and policy for the workflow plugin's skills. `CLAUDE.md` and `.claude/rule
 
 ## Docs
 
-- roadmap: `docs/roadmap.md` (milestone goals, "Open questions")
-- decisions: `docs/decisions.md`
-- testing: `docs/testing.md`
+- roadmap: `docs/internal/roadmap.md` (milestone goals, "Open questions")
+- decisions: `docs/internal/decisions.md`
+- testing: `docs/internal/testing.md`
 - routing: CLAUDE.md "Which doc to read" table; read the rows for the area an issue touches
-- retrospectives: `docs/retrospectives.md`
+- retrospectives: `docs/internal/retrospectives.md`
 
 ## Commands
 
@@ -39,7 +39,7 @@ Run from the repo root.
 
 ## Hot paths
 
-JSON mapping of search results, ADF rendering, list/board rendering, request scheduling, caches, startup (well under 100 ms). Budgets and measured numbers: `docs/performance.md`.
+JSON mapping of search results, ADF rendering, list/board rendering, request scheduling, caches, startup (well under 100 ms). Budgets and measured numbers: `docs/internal/performance.md`.
 
 ## Agent run-time rules
 

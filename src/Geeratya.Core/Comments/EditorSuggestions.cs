@@ -10,7 +10,7 @@ using Geeratya.Jira.Suggestions.Models;
 namespace Geeratya.Core.Comments;
 
 /// <summary>
-/// The suggestion popup of the comment editor (<c>docs/ux-screens.md</c>, "Comment editor"): typing <c>@name</c> or
+/// The suggestion popup of the comment editor (<c>docs/internal/ux-screens.md</c>, "Comment editor"): typing <c>@name</c> or
 /// <c>#KEY</c> opens it, it follows the typing, Down/Up (Ctrl-n/Ctrl-p) move, Tab or Enter put the row in as one
 /// token (a mention, or a link to the issue; the trigger text is replaced), Esc closes only the popup. Pure; the
 /// lookup is the shared <see cref="SearchSuggestionsEffect"/>.

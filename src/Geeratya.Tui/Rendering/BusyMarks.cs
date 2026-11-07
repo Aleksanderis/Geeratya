@@ -6,7 +6,7 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// Marks the issues that a running write is changing: the summary starts with the ellipsis glyph until Jira has
-/// answered (<c>docs/ux-workflows.md</c>, "Write something"). Only the shown text is changed, never the state.
+/// answered (<c>docs/internal/ux-workflows.md</c>, "Write something"). Only the shown text is changed, never the state.
 /// </summary>
 public static class BusyMarks
 {

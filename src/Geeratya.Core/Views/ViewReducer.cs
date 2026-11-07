@@ -11,7 +11,7 @@ namespace Geeratya.Core.Views;
 /// <summary>
 /// The tab and view part of the reducer. Pure: ids are drawn from <see cref="AppState.Sequence"/>, time arrives in
 /// the commands. A reply is applied only while its tab exists and its request id is the tab's current one; anything
-/// else returns the state unchanged (<c>docs/architecture.md</c>, "Views and tabs").
+/// else returns the state unchanged (<c>docs/internal/architecture.md</c>, "Views and tabs").
 /// </summary>
 public static partial class ViewReducer
 {

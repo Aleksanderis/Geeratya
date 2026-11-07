@@ -8,7 +8,7 @@ using Geeratya.Jira.Transport;
 namespace Geeratya.Core.Startup;
 
 /// <summary>
-/// What the session shows first (<c>docs/ux-workflows.md</c>, workflow 0): the tabs of the last run, read from the
+/// What the session shows first (<c>docs/internal/ux-workflows.md</c>, workflow 0): the tabs of the last run, read from the
 /// profile's file after the first frame, or, when none are remembered, the board picker (the board itself when the
 /// site has one). Also the saving of the tabs as they change. Pure; the host reads and writes the file.
 /// </summary>

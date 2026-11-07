@@ -27,7 +27,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 - On a terminal with 16 colours or none, the help row of the theme row starts with a note (`16 colours here: themes are approximated.` / `No colour here: themes change nothing.`); the tier is detected at start and carried in `SettingsInfo.Tier`. The note takes the place of the `Values:` part of the help row; the open list shows the values. Full colour shows no note; there is no 256-colour tier (the platform layer knows none, 16 and 24-bit only).
 - The theme list previews: moving over a theme draws it without saving; `Enter` applies and saves it, `Esc` (or leaving the screen another way) draws the saved theme again.
 - Differences from Gitunia, on purpose: no number or path-list controls (the registry has none); a first click on a row already acts (it flips or opens the list) instead of only selecting it, because the whole row is the control; no `/` filter (not in the Features list).
-- Mouse: click a category or a row (a row acts like `Enter`), right-click a row to reset it, click a word of an open list to take it, wheel over the rows to move ([ux-mouse.md](ux-mouse.md)).
+- Mouse: click a category or a row (a row acts like `Enter`), right-click a row to reset it, click a word of an open list to take it, wheel over the rows to move ([ux-mouse.md](internal/ux-mouse.md)).
 
 ## Command level
 

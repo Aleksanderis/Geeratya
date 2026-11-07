@@ -1,6 +1,6 @@
 # Key reference
 
-Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-keymap-doc.sh`; do not edit by hand. The Id column is the action id to use in `keymap.json` (`docs/customising-keys.md`). Design rules are in `docs/ux-keymap.md`. Level: everyday actions show in help, the palette, which-key and the hints by default; advanced ones show when the command level is advanced (`<space>*` or `:set commandlevel`). A level hides, it never disables: every key works at either level.
+Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-keymap-doc.sh`; do not edit by hand. The Id column is the action id to use in `keymap.json` (`docs/customising-keys.md`). Design rules are in `docs/internal/ux-keymap.md`. Level: everyday actions show in help, the palette, which-key and the hints by default; advanced ones show when the command level is advanced (`<space>*` or `:set commandlevel`). A level hides, it never disables: every key works at either level.
 
 ## Normal mode
 

@@ -7,7 +7,7 @@ paths:
 
 # Jira layer rules
 
-The contract, models, endpoints and refresh design are in `docs/jira-layer.md`; read the section you work in. The rules:
+The contract, models, endpoints and refresh design are in `docs/internal/jira-layer.md`; read the section you work in. The rules:
 
 - Every call is connection-scoped: a `JiraTransport` is created per `JiraConnection` (site base URL, account) with its token, and clients take only that transport; a tab holds the transport of its site. No static "current site", no base URL in a static field.
 - One transport sends every request (`JiraTransport` over one `HttpClient` per connection). It owns auth headers, `Accept`/`Content-Type`, the user agent, timeouts, retries and rate limiting. No `HttpClient` or `HttpRequestMessage` outside it. The site URL must be https (http only for loopback, for the fake Jira), and the transport never follows redirects (a 3xx is an error), so the credential cannot be sent to another host.
@@ -16,7 +16,7 @@ The contract, models, endpoints and refresh design are in `docs/jira-layer.md`; 
 - Rate limits: honour `Retry-After` on 429 and 503, back off with jitter, retry only idempotent requests (GET, and POST search) automatically, never a write (the one exception: a 429 that names a `Retry-After`, because Jira did not process it). Cap concurrent requests per site. Background refresh yields to user-initiated requests.
 - Ask only for what is shown: always send `fields=` (and `expand=` only when needed), never fetch `*all`. Batch instead of N+1 (JQL search with `key in (...)`, bulk fetch, one changelog page per issue only when opened).
 - Boards use the agile API (`/rest/agile/1.0/`, offset paged by `startAt`/`total`, no `isLast`: compute it). Never call `/sprint` on a Kanban board (400); the backlog is whatever `/backlog` returns for the board kind, not a column.
-- Search with the enhanced JQL search (`/rest/api/3/search/jql`, `nextPageToken` paging); confirm the endpoint and limits in `docs/jira-layer.md` before adding another. Paginate lazily as the user scrolls; never load a whole project eagerly.
+- Search with the enhanced JQL search (`/rest/api/3/search/jql`, `nextPageToken` paging); confirm the endpoint and limits in `docs/internal/jira-layer.md` before adding another. Paginate lazily as the user scrolls; never load a whole project eagerly.
 - JQL from user input is passed as typed; JQL the app builds quotes and escapes every value through one JQL builder, never string concatenation.
 - Custom field ids (`customfield_NNNNN`) differ per site: never hardcode one. Resolve them per connection from the field list (by schema type or name) and cache the mapping with the connection.
 - Everything a project or site can configure is read from Jira, never listed in code: issue types and their hierarchy level, fields and their schema, required fields, allowed values, transitions, statuses, priorities, resolutions, link types, board columns, estimation field, sprint and epic fields. The dev projects are samples, not the model: code reads create/edit/transition metadata (`createmeta`, `editmeta`, `transitions?expand=transitions.fields`) and follows it. A field type the app cannot edit is shown read-only with a browser link, never dropped or crashed on; an issue type or status it has never seen renders by name. Tests include a synthetic fixture with a custom issue type, a renamed status and an unknown field type.

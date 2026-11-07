@@ -5,7 +5,7 @@ using Geeratya.Jira.Adf;
 namespace Geeratya.Core.Comments;
 
 /// <summary>
-/// Finds the suggestion trigger before the cursor (<c>docs/ux-screens.md</c>, "Comment editor"): <c>@</c> then a name
+/// Finds the suggestion trigger before the cursor (<c>docs/internal/ux-screens.md</c>, "Comment editor"): <c>@</c> then a name
 /// opens people, <c>#</c> then a project key (<c>#GCM</c>, then <c>#GCM-12</c>) opens issues. The character must start
 /// a word, so an e-mail address or a heading marker never triggers. Pure.
 /// </summary>

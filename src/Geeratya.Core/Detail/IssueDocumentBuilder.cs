@@ -8,7 +8,7 @@ using Geeratya.Jira.Transport;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// Lays an opened issue out as styled lines for a width: header, description, comments (<c>docs/ux-screens.md</c>,
+/// Lays an opened issue out as styled lines for a width: header, description, comments (<c>docs/internal/ux-screens.md</c>,
 /// "Issue detail"). Pure: the same state and width give the same lines, and relative times are taken against
 /// <see cref="DetailState.LoadedAt"/> rather than a clock. Only the screen's window of the lines is drawn, so the
 /// result is built once per change of data or width, not per frame.

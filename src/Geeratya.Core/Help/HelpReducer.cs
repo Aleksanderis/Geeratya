@@ -5,7 +5,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Help;
 
 /// <summary>
-/// The state changes of the help overlay's pages and filter (<c>docs/ux.md</c>, "Help"): switching pages, typing the
+/// The state changes of the help overlay's pages and filter (<c>docs/internal/ux.md</c>, "Help"): switching pages, typing the
 /// filter and the two-step <c>Esc</c> (the first clears the filter, the next closes help). Pure.
 /// </summary>
 public static class HelpReducer

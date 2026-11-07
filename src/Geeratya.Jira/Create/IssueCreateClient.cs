@@ -13,7 +13,7 @@ namespace Geeratya.Jira.Create;
 /// metadata calls are reads; <see cref="CreateIssueAsync"/> is the one write and is only called from a confirmed
 /// command. Metadata is fetched when the create form opens and never cached: it changes with the project's
 /// configuration. After a create (or an unknown outcome) the caller invalidates the cache as the Writes section of
-/// <c>docs/jira-layer.md</c> says.
+/// <c>docs/internal/jira-layer.md</c> says.
 /// </summary>
 public sealed partial class IssueCreateClient(JiraTransport transport)
 {

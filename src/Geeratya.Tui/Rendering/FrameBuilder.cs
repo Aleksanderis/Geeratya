@@ -267,7 +267,7 @@ public static class FrameBuilder
         return segment is null ? null : segment with { Text = Glyphs.ToAscii(segment.Text) };
     }
 
-    // The ASCII tier brackets chips (docs/ux-look.md, section 10): the padding cells of a chip become the brackets, so
+    // The ASCII tier brackets chips (docs/internal/ux-look.md, section 10): the padding cells of a chip become the brackets, so
     // the chip keeps its width and its mouse cells.
     private static StyledLine Asciified(StyledLine line)
     {

@@ -9,7 +9,7 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// One opened issue on a tab's stack. Its three parts load in parallel and each has its own request id: a reply
-/// is applied only while its id is the part's current one (<c>docs/architecture.md</c>, "Views and tabs").
+/// is applied only while its id is the part's current one (<c>docs/internal/architecture.md</c>, "Views and tabs").
 /// </summary>
 /// <param name="Key">The issue key.</param>
 /// <param name="Row">

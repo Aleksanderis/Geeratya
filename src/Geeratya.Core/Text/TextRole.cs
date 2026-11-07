@@ -109,7 +109,7 @@ public enum TextRole
     /// <summary>The title chip of a destructive confirm.</summary>
     OverlayChipBad,
 
-    /// <summary>The quiet border of a pane that has no focus (<c>docs/ux-look.md</c>, section 4).</summary>
+    /// <summary>The quiet border of a pane that has no focus (<c>docs/internal/ux-look.md</c>, section 4).</summary>
     Border,
 
     /// <summary>The whole box of the focused pane: accent, bold.</summary>

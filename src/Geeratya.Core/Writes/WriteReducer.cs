@@ -11,7 +11,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>
-/// The write part of the reducer (<c>docs/architecture.md</c>, "Write pipeline"): starts operations, refuses a write on
+/// The write part of the reducer (<c>docs/internal/architecture.md</c>, "Write pipeline"): starts operations, refuses a write on
 /// an issue that is being written, patches the rows optimistically in every tab, and settles the operation from the
 /// reply (success, definite failure with rollback, lost reply with verification). Pure: no clock, no I/O.
 /// </summary>

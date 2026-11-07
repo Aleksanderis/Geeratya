@@ -26,7 +26,7 @@ public static class FormOpener
 
     /// <summary>
     /// <c>issue.edit</c> and <c>:edit</c>: the title pane of the issue in its edit state. From a list or board the
-    /// detail overlay opens on the selected issue first (<c>docs/ux-screens.md</c>, "Editing in place").
+    /// detail overlay opens on the selected issue first (<c>docs/internal/ux-screens.md</c>, "Editing in place").
     /// </summary>
     public static ReduceResult Edit(AppState state)
     {

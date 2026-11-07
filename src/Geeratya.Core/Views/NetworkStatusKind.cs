@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Views;
 
 /// <summary>
-/// What the network says about a tab (<c>docs/architecture.md</c>, "Network states"). One kind per tab, the first
+/// What the network says about a tab (<c>docs/internal/architecture.md</c>, "Network states"). One kind per tab, the first
 /// that applies in the order of <c>TabStatus.Of</c>.
 /// </summary>
 public enum NetworkStatusKind

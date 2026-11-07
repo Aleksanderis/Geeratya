@@ -9,7 +9,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// The relation panes of the issue detail (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"): sub-tasks,
+/// The relation panes of the issue detail (<c>docs/internal/ux-screens.md</c>, "Pane layout for the issue detail"): sub-tasks,
 /// child issues, linked issues, remote links and attachments, in that order. The first three share one table
 /// (<see cref="RelationTable"/>). A pane is drawn only when it has entries, is loading or has failed; a failed one
 /// shows its error and leaves the others alone. Attachments and remote links are text:

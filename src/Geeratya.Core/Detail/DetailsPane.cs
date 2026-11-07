@@ -6,7 +6,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Detail;
 
 /// <summary>
-/// The Details pane of the issue detail (<c>docs/ux-screens.md</c>, "Pane layout for the issue detail"): for each
+/// The Details pane of the issue detail (<c>docs/internal/ux-screens.md</c>, "Pane layout for the issue detail"): for each
 /// field its label above a filled value block (<see cref="FieldBlock"/>), then muted rows for the dates and the
 /// attachments. One cursor stop per field. A field shows the dropdown mark only when the edit metadata of the issue
 /// allows it (<see cref="DetailState.EditableFields"/>); status is always marked, it moves by transition. Pure.

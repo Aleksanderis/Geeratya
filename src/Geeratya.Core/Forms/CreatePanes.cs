@@ -5,7 +5,7 @@ using Geeratya.Core.Panes;
 namespace Geeratya.Core.Forms;
 
 /// <summary>
-/// The pane layout of the create form (<c>docs/ux-screens.md</c>, "Create form"): which pane holds which field, which
+/// The pane layout of the create form (<c>docs/internal/ux-screens.md</c>, "Create form"): which pane holds which field, which
 /// optional fields are folded behind <c>Ctrl-f</c>, and where the navigate-state keys go. The title pane holds
 /// Summary, the Description pane the description, the Details pane every other editable field (a sidebar from an
 /// overlay width of 100 columns, else under the others), and a field the form cannot edit belongs to no pane (the

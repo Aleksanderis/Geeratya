@@ -7,7 +7,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The jump prompt box (<c>docs/ux-screens.md</c>, "Jump to an issue"): a centred box over the body with the key
+/// The jump prompt box (<c>docs/internal/ux-screens.md</c>, "Jump to an issue"): a centred box over the body with the key
 /// prompt, the completions (typed key, keys of the tab, recent keys) and a key footer. Pure.
 /// </summary>
 public static class JumpOverlay

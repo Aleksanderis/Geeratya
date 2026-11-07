@@ -12,7 +12,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The body of the active tab in the list layout (<c>docs/ux-screens.md</c>, "List layout"): a header with the
+/// The body of the active tab in the list layout (<c>docs/internal/ux-screens.md</c>, "List layout"): a header with the
 /// title and count, the column titles, then only the rows in the viewport, so the work follows the screen and not
 /// the loaded rows. Rows are key, type marker, summary, status and assignee; narrow terminals drop columns.
 /// </summary>

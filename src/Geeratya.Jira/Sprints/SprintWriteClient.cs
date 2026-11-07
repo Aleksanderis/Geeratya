@@ -15,7 +15,7 @@ namespace Geeratya.Jira.Sprints;
 /// first, #186). Jira allows several active sprints at once, so there is no
 /// "another sprint is active" error. Completing does not move unfinished issues: <c>moveIssuesTo</c> is rejected with
 /// 400, so they stay in the closed sprint and show up in the backlog; moving them is a second call (open question 8
-/// in docs/roadmap.md). Only call these on a Scrum board's sprints (a Kanban board has none).
+/// in docs/internal/roadmap.md). Only call these on a Scrum board's sprints (a Kanban board has none).
 /// </summary>
 public sealed class SprintWriteClient(JiraTransport transport)
 {

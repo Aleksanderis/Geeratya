@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Geeratya.Tui.Tests.Performance;
 
 /// <summary>
-/// Opt-in timing of the in-process hot paths of docs/performance.md. Skipped unless GEERATYA_BENCH=1, so
+/// Opt-in timing of the in-process hot paths of docs/internal/performance.md. Skipped unless GEERATYA_BENCH=1, so
 /// <c>dotnet test</c> stays fast and deterministic. Run: <c>GEERATYA_BENCH=1 dotnet test -c Release
 /// tests/Geeratya.Tui.Tests --filter HotPathMeasurements --logger "console;verbosity=detailed"</c>. JIT numbers,
 /// not Native AOT; with-parent rows sit in the same column as their parent. They exclude the terminal draw and tmux.

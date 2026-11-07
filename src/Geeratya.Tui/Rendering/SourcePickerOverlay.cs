@@ -10,7 +10,7 @@ using Geeratya.Jira.Sprints.Models;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The source picker box (<c>docs/ux-screens.md</c>, "Source picker overlay"): a centred box over the body with the
+/// The source picker box (<c>docs/internal/ux-screens.md</c>, "Source picker overlay"): a centred box over the body with the
 /// filter prompt, the rows in groups (Boards, Filters, Query) and a key footer. Pure. The box rows replace the whole
 /// body row they sit on, so nothing of the screen behind shows through at their sides.
 /// </summary>

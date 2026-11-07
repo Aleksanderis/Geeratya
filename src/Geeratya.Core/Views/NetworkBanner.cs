@@ -7,7 +7,7 @@ namespace Geeratya.Core.Views;
 /// <summary>
 /// The words of the network states: the one-line banner under the tab bar and the word in the status line. Pure: the
 /// time arrives as a parameter. Every state has a text marker, so the no-colour tier never relies on colour
-/// (<c>docs/ux-screens.md</c>, "Connection check and network states").
+/// (<c>docs/internal/ux-screens.md</c>, "Connection check and network states").
 /// </summary>
 public static class NetworkBanner
 {

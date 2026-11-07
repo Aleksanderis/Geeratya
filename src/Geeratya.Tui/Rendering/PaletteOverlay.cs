@@ -8,7 +8,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The command palette (<c>docs/ux.md</c>, "Command palette"): a box over the body listing every action under group
+/// The command palette (<c>docs/internal/ux.md</c>, "Command palette"): a box over the body listing every action under group
 /// subheaders with its keys, the highlighted row marked; the typed text is on the status line. A blank line precedes
 /// each subheader but the first, and is dropped when the list does not fit. Pure.
 /// </summary>

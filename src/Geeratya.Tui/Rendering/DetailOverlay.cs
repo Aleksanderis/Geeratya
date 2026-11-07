@@ -5,7 +5,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The wide overlay that hosts the issue detail (<c>docs/ux-screens.md</c>, "Where it is drawn"): the view of the tab
+/// The wide overlay that hosts the issue detail (<c>docs/internal/ux-screens.md</c>, "Where it is drawn"): the view of the tab
 /// stays behind it, muted, and the detail is drawn over it at <see cref="DetailOverlayGeometry"/>. The panes sit
 /// in a card (<see cref="DetailCard"/>). Below 100 columns it fills the body and the view is not drawn.
 /// </summary>

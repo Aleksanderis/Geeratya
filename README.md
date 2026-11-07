@@ -31,7 +31,7 @@ Not included: Scrum reports and charts (burndown, velocity), Jira Service Manage
 
 ## Status
 
-In planning. See `docs/roadmap.md`.
+In planning. See `docs/internal/roadmap.md`.
 
 ## Docs
 

@@ -47,7 +47,7 @@ public enum KeyRouteKind
 public sealed record KeyRoute(KeyRouteKind Kind, KeyResolution? Resolution = null, ReduceResult? Popup = null);
 
 /// <summary>
-/// The one ordered list of who is asked first when a key arrives (<c>docs/architecture.md</c>, "Input routing").
+/// The one ordered list of who is asked first when a key arrives (<c>docs/internal/architecture.md</c>, "Input routing").
 /// Overlays and editors come before global actions and the body, so an overlay swallows every key. Mouse gestures
 /// and palette entries do not choose a layer: they end in an action request that runs the same handler a key
 /// binding does (<c>Cancel</c> is the one that goes back through the Esc key path).

@@ -1,7 +1,7 @@
 namespace Geeratya.Core.Lists;
 
 /// <summary>
-/// Selection and scroll of a list (<c>docs/ux-screens.md</c>, "List layout"). Pure: the row count and the viewport
+/// Selection and scroll of a list (<c>docs/internal/ux-screens.md</c>, "List layout"). Pure: the row count and the viewport
 /// height are facts passed in, every result is clamped, and an empty list or a zero viewport never throws.
 /// </summary>
 public static class ListMotion

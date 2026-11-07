@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace Geeratya.Tui.Rendering.Themes;
 
 /// <summary>
-/// Reads a theme file (<c>docs/ux.md</c>, "Themes"): pure text in, theme or reasons out. A missing colour, a malformed
+/// Reads a theme file (<c>docs/internal/ux.md</c>, "Themes"): pure text in, theme or reasons out. A missing colour, a malformed
 /// colour, an unknown variant or version or a bad <c>ansi</c> entry refuses the whole file, one reason per problem;
 /// unknown keys are ignored. Contrast is not checked here: only the built-in themes are held to it, by tests.
 /// </summary>
