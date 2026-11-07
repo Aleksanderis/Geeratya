@@ -1,5 +1,7 @@
 # Jira layer
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Findings about how Jira Cloud behaves, from the survey on the dev site (2026-11-01). Every statement names the fixture it rests on; fixtures live under `tests/Geeratya.Jira.Tests/Fixtures/` (paths below are relative to it) and are recorded with `scripts/record-fixture.sh` and scrubbed by `scripts/scrub-fixture.py`.
 
 Part 1 of the survey covers identity, projects, search, filters and errors; part 2 (#14, section "Survey part 2") covers boards, backlog, ranking, hierarchy, create/edit metadata, transitions, ADF and links. The layer contract, paging models, cache keys and refresh rules are below (M1 design, #64); the sections of each client are written with its issue.

@@ -1,5 +1,7 @@
 # UX: mouse
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Part of the UX spec; start at [ux.md](ux.md). Model: the mouse note of the owner's other terminal client (a table of gesture to action id), rewritten for Geeratya.
 
 ## Principle

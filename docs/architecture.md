@@ -1,5 +1,7 @@
 # Architecture
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Solution layout, layering, composition, threading and cross-platform rules. Code style is in `.claude/rules/csharp-style.md`; the Jira contract is in `docs/jira-layer.md`.
 
 ## Projects

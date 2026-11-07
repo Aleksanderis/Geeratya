@@ -1,5 +1,7 @@
 # UX: M1 screens
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 The screens of Milestone 1 (read your board), drawn at 120x36 and 40x10. The behaviour that crosses screens (opening views, following links, tabs, going offline) is in [ux-workflows.md](ux-workflows.md); keys are in [keymap.md](keymap.md) and follow the rules in [ux-keymap.md](ux-keymap.md). The sketches are plain-text frames like `--print-frame` prints; colour roles are named in the text, never in the sketch. Rows below the last drawn row are blank. **The sketches below predate the shared frame (#524, [ux-look.md](ux-look.md) section 2):** bodies are drawn as one rounded frame with title chips in the top edge, the title and count of a list or backlog is the left chip of that edge (the right chip carries the count, options and loading note), the board's title line and the detail's breadcrumb and ruler are in the status bar. The text of each section says what changed; the sketches themselves are refreshed from the snapshots in a later pass. `>` marks the selected row and is never the only cue: the selected row is also reversed (bold in the no-colour tier).
 
 Every screen shares the shell frame:

@@ -1,5 +1,7 @@
 # UX: look (frame, chips, focus, overlays, chrome)
 
+*Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
+
 Part of the interface specification; start at [ux.md](ux.md). This is the visual contract for the rendering layer: what a screen looks like, in every colour tier. Behaviour (keys, modes, workflows) stays in the other parts; colours by role and the theme files stay in [ux.md](ux.md), "Colour tiers". Implemented by #524 (frame), #525 (focus and chips), #526 (overlays), #527 (tab row, hints, status bar, palette) and #528 (profile manager); each section below says which. The reference is Gitunia's `docs/internal/ux-look.md` (read-only; the code is rewritten, not copied). Mockups are 80 columns wide and are excerpts: rows are elided where the content repeats (a full screen at 24 rows has a 22-row frame between the tab row and the status bar), accent colour and fills cannot be drawn so each mockup says in its caption or surrounding text what is accent, and the selected row is drawn in the selection role (mockups in this file may still show an older `>`; since #772 there is no such mark) (in the colour tiers the selection is a tint and the marker is drawn in every tier as a second cue). Overlay mockups show the box on a few rows of the muted view, without bars. They show the glyph tier with rounded corners and were checked against the real render of the fake Jira (gap list at the end).
 
 ## 1. Principles
