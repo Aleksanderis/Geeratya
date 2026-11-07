@@ -26,7 +26,15 @@ public static class SuggestionText
             SuggestionRanker.NewValueDetail => $"{suggestion.Label}{NewValue}",
             AssigneeQuickRows.MeDetail => suggestion.Label.Length == 0 ? "Me" : $"Me ({suggestion.Label})",
             LabelQuickRows.AppliedDetail => $"{suggestion.Label} (remove)",
-            _ => Of(suggestion),
+            _ => suggestion.Kind is { Length: > 0 } kind ? OfIssue(suggestion, kind) : Of(suggestion),
         };
+    }
+
+    // An issue row names its type in words, not colour: KEY  [Story]  summary.
+    private static string OfIssue(Suggestion suggestion, string kind)
+    {
+        var name = $"{suggestion.Detail}  [{kind}]  {suggestion.Label}";
+
+        return suggestion.IsInactive ? $"{name}{Inactive}" : name;
     }
 }

@@ -13,5 +13,13 @@ internal static class SuggestionWire
 
     internal sealed record PickerIssue(string? Key, string? Summary, string? SummaryText);
 
+    internal sealed record TypeSearch(List<TypeIssue?>? Issues);
+
+    internal sealed record TypeIssue(string? Key, TypeFields? Fields);
+
+    internal sealed record TypeFields(TypeName? Issuetype);
+
+    internal sealed record TypeName(string? Name);
+
     internal sealed record Named(string? Id, string? Name, bool? Archived);
 }

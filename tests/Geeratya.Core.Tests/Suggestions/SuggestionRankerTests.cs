@@ -94,6 +94,32 @@ public class SuggestionRankerTests
         Assert.Equal("Old Timer (inactive)", SuggestionText.Of(user));
     }
 
+    [Theory]
+    [InlineData("Epic")]
+    [InlineData("Sub-task")]
+    [InlineData("Release blocker")]
+    public void GivenIssueWithType_WhenReadingTheRow_ThenTheTypeIsNamedBetweenKeyAndSummary(string kind)
+    {
+        var issue = new Suggestion("GCM-12", "Fix login", "GCM-12", false, kind);
+
+        Assert.Equal($"GCM-12  [{kind}]  Fix login", SuggestionText.Row(issue));
+        Assert.Equal("GCM-12  Fix login", SuggestionText.Of(issue));
+    }
+
+    [Fact]
+    public void GivenInactiveIssueWithType_WhenReadingTheRow_ThenTypeAndMarkShow()
+    {
+        var issue = new Suggestion("GCM-12", "Fix login", "GCM-12", true, "Bug");
+
+        Assert.Equal("GCM-12  [Bug]  Fix login (inactive)", SuggestionText.Row(issue));
+    }
+
+    [Fact]
+    public void GivenIssueWithoutType_WhenReadingTheRow_ThenKeyAndSummaryOnly()
+    {
+        Assert.Equal("GCM-12  Fix login", SuggestionText.Row(new Suggestion("GCM-12", "Fix login", "GCM-12", false)));
+    }
+
     private static Suggestion Label(string text)
     {
         return new Suggestion(text, text, null, false);
