@@ -79,7 +79,8 @@ public static partial class FormReducer
 
     private static ReduceResult Cancel(AppState state, TabState tab, FormState form)
     {
-        // A dropdown holds one choice that writes as soon as it is taken: after a refusal Esc just closes it.
+        // A dropdown holds one choice that writes as soon as it is taken (and its prompt is never drawn): Esc just
+        // closes it, after a refusal or with a typed filter nothing was accepted for.
         if (form.IsDirty && form.Dropdown is null)
         {
             return Result(Replace(state, tab, form with { DiscardPending = true }));
@@ -225,14 +226,15 @@ public static partial class FormReducer
         return ViewReducer.Replace(state, tab with { Form = unlocked });
     }
 
-    // "GTS-32 -> Epic GTS-5: <Jira's sentence>"; the tried value is left out when the field holds none.
+    // "<Jira's sentence> (GTS-32 → Epic GTS-5)": the reason comes first so a long tried value cannot push it out of
+    // the box; the tried value is left out when the field holds none.
     private static string Refusal(FormState form, FormField field, WriteError error)
     {
         var tried = string.Join(", ", field.Value.Chosen);
         var what = tried.Length == 0 ? field.Label : $"{field.Label} {tried}";
         var reason = error.Messages.Count > 0 ? string.Join(' ', error.Messages) : error.Message;
 
-        return form.Target.IssueKey is { } key ? $"{key} → {what}: {reason}" : $"{what}: {reason}";
+        return form.Target.IssueKey is { } key ? $"{reason} ({key} → {what})" : $"{reason} ({what})";
     }
 
     private static string? FieldErrorOf(WriteError? error, FormField field)
