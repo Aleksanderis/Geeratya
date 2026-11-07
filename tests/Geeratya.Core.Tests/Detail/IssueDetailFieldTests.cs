@@ -106,14 +106,59 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
-    public void GivenFocusOnTheParent_WhenPressingEnter_ThenTheParentIssueOpens()
+    public void GivenFocusOnTheParent_WhenPressingEnter_ThenTheParentFieldOpensAsADropdownWithTheCurrentParent()
     {
         var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
         var state = OnTarget(Opened(Issue() with { Parent = parent }), DetailFieldIds.Parent);
 
         var result = Press(state, "Enter");
 
-        Assert.Equal("A-0", Assert.Single(result.Effects.OfType<LoadIssueDetailEffect>()).Key);
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Equal(FormFieldIds.Parent, target.OnlyId);
+        Assert.Equal(["A-0"], target.Known[FormFieldIds.Parent].Chosen);
+        Assert.Equal(DetailFieldIds.Parent, Active(result.State).Form?.Dropdown);
+    }
+
+    [Fact]
+    public void GivenFocusOnTheEpicOfAnIssue_WhenPressingEnter_ThenTheParentFieldOpens()
+    {
+        var epic = new IssueStub("A-0", "Onboarding", _todo, new IssueTypeSummary("11", "Epic", 1, false));
+        var state = OnTarget(Opened(Issue() with { Parent = epic }), DetailFieldIds.Epic);
+
+        var result = Press(state, "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Equal(FormFieldIds.Parent, Assert.IsType<EditFormTarget>(effect.Target).OnlyId);
+        Assert.Equal(DetailFieldIds.Epic, Active(result.State).Form?.Dropdown);
+    }
+
+    [Fact]
+    public void GivenAnIssueWithoutAParentAndEditableParent_WhenBuilding_ThenAnEmptyEpicRowCanBeOpened()
+    {
+        var opened = Opened(Issue());
+        var state = OnTarget(
+            _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["parent"])).State,
+            DetailFieldIds.Epic);
+
+        var result = Press(state, "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Empty(target.Known[FormFieldIds.Parent].Chosen);
+    }
+
+    [Fact]
+    public void GivenEditableFieldsWithoutParent_WhenPressingEnterOnTheParent_ThenItIsRefused()
+    {
+        var parent = new IssueStub("A-0", "Onboarding", _todo, _story);
+        var opened = Opened(Issue() with { Parent = parent });
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["summary"])).State;
+
+        var result = Press(OnTarget(loaded, DetailFieldIds.Parent), "Enter");
+
+        Assert.Equal("Parent cannot be edited on this issue.", result.State.Message);
+        Assert.Empty(result.Effects);
     }
 
     [Fact]

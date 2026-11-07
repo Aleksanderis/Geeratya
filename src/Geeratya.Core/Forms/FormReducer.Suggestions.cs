@@ -1,3 +1,4 @@
+using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -284,7 +285,12 @@ public static partial class FormReducer
         return field.Kind switch
         {
             FormFieldKind.User => new SuggestionSource(UserKind(field), key, []),
-            FormFieldKind.Parent => new SuggestionSource(SuggestionKind.Issues, key, []),
+            // The parent of an edited issue is searched in its project; a link target may be in any project.
+            FormFieldKind.Parent => new SuggestionSource(
+                SuggestionKind.Issues,
+                key,
+                [],
+                form.Target is EditFormTarget ? JumpKey.ProjectOf(key) : null),
             _ => null,
         };
     }

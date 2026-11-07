@@ -7,8 +7,9 @@ namespace Geeratya.Core.Detail;
 
 /// <summary>
 /// Enter on a field of the issue detail: opens the field for edit through the write path that already exists for it
-/// (transition picker, people picker, edit form limited to the field, estimate form, sprint picker). Fields Jira
-/// does not let this screen change say so in the status line. Pure.
+/// (transition picker, people picker, edit form limited to the field, estimate form, sprint picker). The parent or
+/// epic row opens the parent chooser; the parent issue itself is <c>issue.open-parent</c>. Fields Jira does not let
+/// this screen change say so in the status line. Pure.
 /// </summary>
 internal static class DetailFieldActions
 {
@@ -27,7 +28,8 @@ internal static class DetailFieldActions
             DetailFieldIds.Assignee => Dropdown(FormOpener.Assign(state), fieldId),
             DetailFieldIds.Estimate => FormOpener.Estimate(state),
             DetailFieldIds.Sprint => SprintMoveActions.OpenPicker(state),
-            DetailFieldIds.Parent or DetailFieldIds.Epic => DetailActions.OpenParent(state),
+            DetailFieldIds.Parent or DetailFieldIds.Epic
+                => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId),
             DetailFieldIds.Priority or DetailFieldIds.Labels
                 => Dropdown(FormOpener.EditField(state, fieldId), fieldId),
             DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditInPane(state, fieldId),
@@ -38,10 +40,13 @@ internal static class DetailFieldActions
     // The edit metadata is known and does not list the field: nothing opens. Unknown metadata lets the form decide.
     private static bool Refused(AppState state, string fieldId)
     {
-        if (fieldId is not (DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Labels))
+        if (fieldId is not (DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Labels
+            or DetailFieldIds.Parent or DetailFieldIds.Epic))
         {
             return false;
         }
+
+        fieldId = DetailsPane.EditId(fieldId);
 
         var tab = ActiveTab(state);
 

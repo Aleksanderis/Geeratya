@@ -320,6 +320,22 @@ public sealed class SuggestionHandlerTests
         Assert.Equal(["GCM-6"], loaded.Items.Select(item => item.Id));
     }
 
+    [Fact]
+    public async Task GivenAnEditFormParentQuery_WhenThePickerReturnsOtherProjects_ThenOnlyOtherIssuesOfTheProjectAreOffered()
+    {
+        const string mixed = "{\"sections\":[{\"id\":\"cs\",\"label\":\"Current Search\",\"issues\":["
+            + "{\"id\":1,\"key\":\"GCM-6\",\"summaryText\":\"In\"},{\"id\":3,\"key\":\"GCM-7\",\"summaryText\":\"Self\"}]},"
+            + "{\"id\":\"hs\",\"label\":\"History Search\",\"issues\":[{\"id\":2,\"key\":\"OTHER-2\",\"summaryText\":\"Out\"}]}]}";
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, mixed));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-7", [], "GCM");
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 7, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var loaded = Assert.IsType<SuggestionsLoaded>(Assert.Single(fixture.Posted));
+        Assert.Equal(["GCM-6"], loaded.Items.Select(item => item.Id));
+        Assert.Contains(Uri.EscapeDataString(JqlBuilder.Project("GCM")), fixture.Http.Requests.Single().Query);
+    }
+
     private static async Task RunAsync(Fixture fixture, SearchSuggestionsEffect effect)
     {
         var task = fixture.Handler.StartAsync(effect);
