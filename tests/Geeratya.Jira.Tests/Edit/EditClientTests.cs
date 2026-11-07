@@ -451,23 +451,14 @@ public sealed class EditClientTests
         Assert.NotEqual(AssigneeChange.Unassign, AssigneeChange.Automatic);
     }
 
-    [Fact]
-    public async Task GivenBlankAccountId_WhenAssigning_ThenValidationWithoutARequest()
+    [Theory]
+    [InlineData(" ")]
+    [InlineData("-1")]
+    public async Task GivenBlankOrAutomaticAccountId_WhenAssigning_ThenValidationWithoutARequest(string accountId)
     {
         using var fixture = new TransportFixture();
 
-        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User(" "), Cancel());
-
-        Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
-        Assert.Empty(fixture.Handler.Requests);
-    }
-
-    [Fact]
-    public async Task GivenAutomaticIdAsAccount_WhenAssigning_ThenValidationWithoutARequest()
-    {
-        using var fixture = new TransportFixture();
-
-        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User("-1"), Cancel());
+        var result = await new EditClient(fixture.Transport).AssignAsync("GCM-1", AssigneeChange.User(accountId), Cancel());
 
         Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);
