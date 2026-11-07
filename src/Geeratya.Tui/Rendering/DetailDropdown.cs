@@ -19,6 +19,7 @@ public static class DetailDropdown
     private const int SidebarInset = 1;
     private const int MaxNarrowWidth = 40;
     private const int Chrome = 4;
+    private const int ErrorRows = 6;
     private const string LoadingText = "Loading…";
     private const string SavingText = "Saving…";
     private const string ReadOnlyText = "Not editable here";
@@ -156,8 +157,12 @@ public static class DetailDropdown
 
         if (field.Error is { } error)
         {
-            lines.Add(StyledLine.Of(TextWidth.Fit(error, inner), TextRole.Error));
-            indexes.Add(-1);
+            // A refusal is Jira's own sentence: it wraps instead of being cut, so the reason stays readable.
+            foreach (var part in ConfirmDialog.Wrap(error, Math.Max(1, inner)).Take(ErrorRows))
+            {
+                lines.Add(StyledLine.Of(part, TextRole.Error));
+                indexes.Add(-1);
+            }
         }
 
         return new Content(lines, skipped, indexes);

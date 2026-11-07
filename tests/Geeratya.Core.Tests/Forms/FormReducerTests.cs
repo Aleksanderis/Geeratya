@@ -192,6 +192,47 @@ public class FormReducerTests
     }
 
     [Fact]
+    public void GivenADropdownWhoseWriteJiraRefuses_WhenItUnlocks_ThenTheRefusalIsAtTheFieldAndEscClosesIt()
+    {
+        var saving = Press(Type(Loaded([]), "mine"), "Ctrl-s", _start).State;
+        var tab = saving.Session.Tabs[0];
+        var dropdown = saving with
+        {
+            Session = saving.Session with { Tabs = [tab with { Form = tab.Form! with { Dropdown = "parent" } }] },
+        };
+        var error = new WriteError(
+            WriteErrorKind.Validation,
+            400,
+            "Could not edit A-1",
+            [],
+            ["Issues with this Issue Type must be created in the same project as the parent."]);
+
+        var failed = _reducer.Reduce(dropdown, new WriteFailed(dropdown.Session.Operations[0].Id, _start, error));
+        var closed = Press(failed.State, "Esc");
+
+        var form = failed.State.Session.Tabs[0].Form!;
+        Assert.False(form.IsSaving);
+        Assert.StartsWith("A-1 → ", form.Fields[0].Error);
+        Assert.Contains("must be created in the same project as the parent.", form.Fields[0].Error);
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, closed.State.Mode);
+    }
+
+    [Fact]
+    public void GivenAFormWhoseReplyWasLost_WhenEscIsPressed_ThenTheFormClosesAndTheCheckContinues()
+    {
+        var saving = Press(Type(Loaded([]), "mine"), "Ctrl-s", _start).State;
+        var error = new WriteError(WriteErrorKind.Timeout, null, "slow", [], []);
+        var unknown = _reducer.Reduce(saving, new WriteOutcomeUnknown(saving.Session.Operations[0].Id, _start, error));
+
+        var closed = Press(unknown.State, "Esc");
+
+        Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Equal(InputMode.Normal, closed.State.Mode);
+        Assert.Single(closed.State.Session.Operations);
+    }
+
+    [Fact]
     public void GivenALostReply_WhenTheWriteIsStillBeingChecked_ThenTheFormStaysLocked()
     {
         var saving = Press(Type(Loaded([]), "x"), "Ctrl-s", _start).State;

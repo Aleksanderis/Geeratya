@@ -70,7 +70,7 @@ public sealed partial class FakeJiraWriteStore
     private const string PriorityName = "priority";
 
     private static readonly string[] _editableFields =
-        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName];
+        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName, ParentName];
 
     // The priorities of both recorded edit metadata, by id.
     private static readonly Dictionary<string, string> _priorityNames = new()

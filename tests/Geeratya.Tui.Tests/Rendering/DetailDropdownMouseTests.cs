@@ -86,6 +86,24 @@ public class DetailDropdownMouseTests
         Assert.Equal(PaneIds.Title, state.Session.Tabs[0].Form!.Pane);
     }
 
+    [Fact]
+    public void GivenARefusedDropdownWrite_WhenDrawn_ThenTheRefusalIsWrappedUnderTheFieldNotCut()
+    {
+        var state = PriorityDropdown();
+        var tab = state.Session.Tabs[0];
+        var field = tab.Form!.Fields[0] with { Error = "GCM-12 → Priority High: must be created in the same project" };
+        var refused = state with
+        {
+            Session = state.Session with { Tabs = [tab with { Form = tab.Form with { Fields = [field] } }] },
+        };
+
+        var frame = FrameBuilder.BuildStyled(refused, Width, Height, _keymap)!;
+
+        var text = string.Join(' ', frame.Body.Select(line => string.Concat(line.Spans.Select(span => span.Text))));
+        Assert.Contains("same", text, StringComparison.Ordinal);
+        Assert.Contains("project", text, StringComparison.Ordinal);
+    }
+
     private AppState TitleEditing()
     {
         var opened = _reducer.Reduce(Loaded(), new KeyPressed("Enter"));
