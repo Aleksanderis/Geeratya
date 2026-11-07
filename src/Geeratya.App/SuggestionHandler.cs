@@ -210,7 +210,10 @@ public sealed class SuggestionHandler
         string query,
         CancellationToken token)
     {
-        var result = await services.Suggestions.SearchIssuesAsync(query, JqlBuilder.Project(projectKey), token);
+        var result = await services.Suggestions.SearchIssuesAsync(
+            query,
+            JqlBuilder.ParentScope(projectKey, source.ParentLevel),
+            token);
 
         if (!result.IsSuccess)
         {

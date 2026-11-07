@@ -176,7 +176,14 @@ public static class FormOpener
 
         AddDescription(subject, known, lossy);
 
-        var target = new EditFormTarget(subject.Key, known, true, null, onlyId, lossy, ParentLevel: subject.ParentLevel);
+        var target = new EditFormTarget(
+            subject.Key,
+            known,
+            true,
+            null,
+            onlyId,
+            lossy,
+            ParentLevel: subject.ParentLevel);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
     }

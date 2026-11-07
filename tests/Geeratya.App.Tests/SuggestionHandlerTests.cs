@@ -385,6 +385,23 @@ public sealed class SuggestionHandlerTests
         Assert.Equal([expected], loaded.Items.Select(item => item.Id));
     }
 
+    [Theory]
+    [InlineData(1, "issuetype = \"Epic\"")]
+    [InlineData(0, "issuetype in standardIssueTypes()")]
+    public async Task GivenAnAcceptedParentLevel_WhenTheParentIsLookedUp_ThenThePickerSearchIsNarrowedByType(
+        int level,
+        string expected)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, PickerOfThree));
+        var source = new SuggestionSource(SuggestionKind.Issues, "GCM-9", [], "GCM", level);
+
+        await RunAsync(fixture, new SearchSuggestionsEffect(_tab, 8, source, "i", TimeSpan.FromMilliseconds(250)));
+
+        var query = Uri.UnescapeDataString(fixture.Http.Requests.First().Query);
+        Assert.Contains(expected, query);
+        Assert.Contains("project = \"GCM\"", query);
+    }
+
     [Fact]
     public async Task GivenAnAcceptedParentLevel_WhenTheTypeSearchFails_ThenTheRowsStayForJiraToJudge()
     {

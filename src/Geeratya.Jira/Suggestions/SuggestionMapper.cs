@@ -51,7 +51,17 @@ internal static class SuggestionMapper
             }
         }
 
-        return [.. rows.Select(row => types.TryGetValue(row.Id, out var type) ? row with { Kind = type.Name, HierarchyLevel = type.Level } : row)];
+        return [.. rows.Select(row => WithType(row, types))];
+    }
+
+    private static Suggestion WithType(Suggestion row, Dictionary<string, (string Name, int? Level)> types)
+    {
+        if (!types.TryGetValue(row.Id, out var type))
+        {
+            return row;
+        }
+
+        return row with { Kind = type.Name, HierarchyLevel = type.Level };
     }
 
     public static IReadOnlyList<Suggestion> MapNamed(List<SuggestionWire.Named?>? items)
