@@ -33,6 +33,7 @@ size=$(( ($(stat -c %s "$src/geeratya") + 1023) / 1024 ))
 cat > "$work/deb-ctl/control" <<CTL
 Package: geeratya
 Version: $pkgver
+Depends: libc6, libssl3 | libssl3t64, zlib1g
 Section: utils
 Priority: optional
 Architecture: amd64
@@ -62,6 +63,7 @@ License: MIT
 URL: $url
 BuildArch: x86_64
 AutoReqProv: no
+Requires: openssl-libs, zlib
 
 %description
 Kanban board, backlog, issues and JQL in the terminal, with vim-style keys.

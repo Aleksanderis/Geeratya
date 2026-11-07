@@ -2,7 +2,6 @@
 class Geeratya < Formula
   desc "Keyboard-first terminal client for Jira Cloud"
   homepage "https://github.com/Aleksanderis/Geeratya"
-  version "@VERSION@"
   license "MIT"
 
   on_macos do
@@ -13,6 +12,7 @@ class Geeratya < Formula
   end
 
   on_linux do
+    depends_on "openssl@3"
     on_intel do
       url "https://github.com/Aleksanderis/Geeratya/releases/download/v@VERSION@/geeratya-@VERSION@-linux-x64.tar.gz"
       sha256 "@SHA_LINUX@"

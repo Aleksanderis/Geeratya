@@ -13,7 +13,7 @@ version=$1
 sums=$2
 out=$3
 root=$(cd "$(dirname "$0")/.." && pwd)
-maintainer=${AUR_MAINTAINER:-Aleksandras T. <noreply@users.noreply.github.com>}
+maintainer=${AUR_MAINTAINER:-Aleksandras T. <noreply@users.noreply.github.com>}  # set AUR_MAINTAINER to a real contact at submission (no & or | in it)
 
 sha() {
   local v
