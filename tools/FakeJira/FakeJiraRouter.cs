@@ -683,7 +683,7 @@ public sealed partial class FakeJiraRouter
 
     /// <summary>
     /// A key-list search (<c>key in (A, B)</c>, the suggestion client's issue type lookup) answers the issues found
-    /// among the recorded detail fixtures and board pages, each reduced to its key and <c>issuetype</c>; unknown
+    /// among the recorded board pages, each reduced to its key and <c>issuetype</c> (a one-key list of a routed issue is answered by <see cref="RecordedIssueOf"/> with the full issue); unknown
     /// keys are left out, as Jira does for keys it cannot show. Null for any other JQL.
     /// </summary>
     private FakeReply? KeyListIssuesOf(string? jql)
