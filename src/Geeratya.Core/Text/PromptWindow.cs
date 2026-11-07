@@ -63,7 +63,10 @@ public sealed record PromptWindow(string Before, string Caret, string After, boo
         var head = cutLeft ? Ellipsis : string.Empty;
         var tail = cutRight ? Ellipsis : string.Empty;
 
-        return new PromptWindow($"{head}{string.Concat(shownBefore)}", mark, $"{string.Concat(shownAfter)}{tail}", cutRight);
+        var shownText = $"{head}{string.Concat(shownBefore)}";
+        var restText = $"{string.Concat(shownAfter)}{tail}";
+
+        return new PromptWindow(shownText, mark, restText, cutRight);
     }
 
     private static List<string> Clusters(string text)
