@@ -14,6 +14,7 @@ Budgets and measured numbers. The checklist for writing fast code is the `perfor
 | Background tabs | Cheap: no polling faster than the refresh rule, no rendering |
 | Memory | Bounded however long the session runs; every cache has a size bound and an owner that drops it |
 | Opening a cached view | Cached rows drawn without waiting for the network; the cache read is off the UI thread and after the first frame (met: 82 ms median to first rows from the cache against 162 without, see "M1 measurements (#91)") |
+| Idle CPU | Under 2 % of one core with refresh running (met: 0.31 %, see "Release measurements (#211)") |
 | Refresh tick | An idle `Tick` returns the same state (no redraw unless time-dependent text is visible) and costs a comparison; only the active tab refreshes |
 
 Bounds from the M1 design (`docs/internal/architecture.md`, "Views and tabs", "Cache and refresh"): 10 000 rows per tab, 50 000 across tabs, 32 cached views and 200 cached issue details in memory, 20 MB of cache per profile on disk. The first measurements of these are in "M1 measurements (#91)" below.
@@ -233,3 +234,23 @@ Mouse mode: Terminal.Gui enables `?1003h` (any-event) itself; its ANSI driver wr
 A Kanban board no longer loads Done issues whose status category changed more than N days ago (Jira's own "Hide done work items after", else the setting `board.done-cutoff`, default 14, #681; `statusCategory != Done OR statusCategoryChangedDate >= -14d OR (statusCategoryChangedDate is EMPTY AND updated >= -14d)` on the board call). Effect by construction: pages requested = ceil(matching issues / 100), so a board with 2 000 old Done issues and 60 current ones drops from 21 requests (and 2 060 rows against the 10 000 rows per tab cap) to 1 request and 60 rows. Not measured against a live board: the dev site's Done issues are few, and the fake Jira serves recorded pages regardless of `jql`.
 
 Reading Jira's value costs extra requests (#681): the first board load of a connection adds the cloud id (once per connection), the board's view id (once per board) and the cutoff, 3 sequential requests through the transport (about 3 round trips), capped at 3 s by `DoneCutoffReader.LookupTimeout` so a slow or failing gateway delays a load by at most that and then falls back to the setting; the cutoff is reused for 5 minutes (a failure for 1 minute), so refreshes within that cost nothing and later ones one request. Not measured on the live gateway (round-trip time depends on the site); the numbers are the request counts the tests assert.
+
+## Release measurements (#211)
+
+Native AOT `geeratya` from `dotnet publish src/Geeratya.Tui -c Release` at `main` `3bc866cf`, fake Jira (`tools/FakeJira --issues 10000 --latency-ms 50`, recorded fixtures), 120x40 tmux, Linux, 14 cores. Load average during the measurements: 6.8 to 4.5 for the start and list scenarios, 4.4 for views and scrum, 3.8 to 1.9 for the idle runs (a desktop session with Ghostty and Hyprland was running; no other agent). The tmux floor was 13 ms median (p95 18), included in every figure.
+
+| Budget | Measured | Target | Result |
+|---|---|---|---|
+| Cold start to first frame (15 sessions) | 43 ms median, p95 60 (39 / 51 with a cache present, scrum scenario) | under 100 ms | met |
+| Key press to frame (default scenario, `?` toggle) | 37 ms median, p95 52; `j` in a loaded list 35 (41); `Tab` with 10 tabs 36 (63) | no wait on a request | met |
+| Open a 10 000-issue list (first page, 5 sessions) | 199 ms median (p95 214), includes the fake's 50 ms | no target | recorded |
+| Scroll at the end of the full 10 000 list | `j`/`k` 36 ms median (p95 40) | no dropped frames | met |
+| Issue detail from the list | Enter to description 165 ms (p95 167) | no target | recorded |
+| Cached view, `:jql` to header | 83 ms (p95 85) against 198 without the cache | cache drawn without the network | met |
+| Scrum backlog (5 sessions) | `:backlog` to rows 280 ms without cache (p95 287), 78 with; sprint switch 230 / 81; `j` 35; `za` 36 | no target | recorded |
+| Idle CPU, Kanban board GCM loaded from the 10 000-issue fake (first page), no keys, 20 s window (3 runs) | 5, 2 and 4 ticks per 20 s: 0.1 to 0.25 % of one core (start screen: 3 ticks); about 9 600 context switches per 20 s; with refresh running (one run, `WINDOW=130`, two 60 s refresh periods inside, the fake's request count was not checked): 40 ticks per 130 s, 0.31 % of one core | under 2 % of a core | met |
+| Memory (RSS) | 69 MB with the 10 000-row list loaded (p95 71); 50 MB with 10 tabs; 55 MB with a backlog and a sprint tab | bounded | met |
+| Binary size | 19.98 MB (19.1 MiB) `geeratya`, plus 51.8 MB `geeratya.dbg` (debug symbols, not shipped in the binary) | no budget | recorded |
+| `dotnet test` wall time (offline) | 38 s including the incremental build; slowest assembly `Geeratya.Tui.Tests` 19 s; 6 582 tests passed, 15 skipped | no budget | recorded |
+
+Limits: the 20 s idle windows hold no refresh tick (period 60 s); the 130 s run does, and a refresh of a board reloads its pages, so the figure depends on source and size; the difference to the 20 s runs (about 0.1 % of a core) compares runs under different load and is indicative only. The `dotnet test` figure was taken as one run with a warm build. Gitunia's 2.8 % idle CPU found late (the issue's reference) does not show here: the figures above are the CPU of our process only (the terminal emulator side is #744, owner check still open). RSS is 19 MB higher with 10 000 rows than the M1 row (50 MB), the cause was not investigated; it is still bounded by the 10 000-row cap per tab. Registered as #813.

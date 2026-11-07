@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Idle CPU of the real binary: usage idle-cpu.sh <binary> <fake url> [start|list]. Linux only (/proc).
 # Starts it in a private tmux and private XDG dirs, waits for the start screen (or, in list mode, opens the first board with Down, Enter and waits for issue keys), then prints the
-# CPU ticks (1/100 s) and voluntary context switches summed over all threads in a 20 s window.
-bin=$1; url=$2; mode=${3:-start}
+# CPU ticks (1/100 s) and voluntary context switches summed over all threads in a window (WINDOW seconds, default 20).
+bin=$1; url=$2; mode=${3:-start}; window=${WINDOW:-20}
 w=$(mktemp -d); export XDG_CONFIG_HOME=$w/c XDG_STATE_HOME=$w/s XDG_CACHE_HOME=$w/k GEERATYA_TOKEN=fake
 mkdir -p $w/c/geeratya $w/s $w/k
 printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"f@example.com"}]}\n' "$url" > $w/c/geeratya/profiles.json
@@ -18,6 +18,6 @@ if [ $mode = list ]; then
 fi
 pid=$(pgrep -n -f "^$bin")
 snap() { for t in /proc/$pid/task/*; do echo "$(basename $t) $(awk '{print $14+$15}' $t/stat) $(awk '/^voluntary/{print $2}' $t/status) $(cat $t/comm | tr ' ' _)"; done; }
-snap > $w/a; sleep 20; snap > $w/b
-join $w/a $w/b | awk '{c+=$5-$2; v+=$6-$3} END{printf "cpu_ticks=%d context_switches=%d (20 s)\n",c,v}'
+snap > $w/a; sleep $window; snap > $w/b
+join $w/a $w/b | awk -v w=$window '{c+=$5-$2; v+=$6-$3} END{printf "cpu_ticks=%d context_switches=%d (%d s)\n",c,v,w}'
 $tm kill-server; rm -rf $w
