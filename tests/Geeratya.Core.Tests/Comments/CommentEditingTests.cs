@@ -662,6 +662,120 @@ public class CommentEditingTests
     }
 
     [Fact]
+    public void GivenTheEditorWithText_WhenPressingAltE_ThenTheTextGoesToTheOutsideEditorAndTheEditorStaysOpen()
+    {
+        var state = Typed("héllo 世界");
+
+        var result = Press(state, "Alt-e");
+
+        var ask = Assert.IsType<EditExternallyEffect>(Assert.Single(result.Effects));
+        Assert.Equal("héllo 世界", ask.Text);
+        Assert.Equal("A-1", ask.Key);
+        Assert.Null(ask.CommentId);
+        Assert.Equal(state.Editor!.Buffer, result.State.Editor!.Buffer);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+    }
+
+    [Fact]
+    public void GivenASaveInFlight_WhenPressingAltE_ThenNothingStartsAndTheStatusLineSaysWhy()
+    {
+        var saving = Press(Typed("Hello"), "Ctrl-s").State;
+
+        var result = Press(saving, "Alt-e");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("save to finish", result.State.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenNoEditor_WhenPressingAltE_ThenNothingHappens()
+    {
+        var result = Press(OpenIssue(), "Alt-e");
+
+        Assert.Empty(result.Effects);
+        Assert.Null(result.State.Editor);
+    }
+
+    [Fact]
+    public void GivenEditedText_WhenTheOutsideEditorFinishes_ThenTheBufferHoldsItWithWideCharactersAndNewlines()
+    {
+        var state = Typed("old");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+        var text = string.Concat("世界 👍", (char)13, (char)10, "two", (char)10, (char)10, "end", (char)10);
+
+        var done = _reducer.Reduce(
+            state,
+            new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, text, null)).State;
+
+        var buffer = done.Editor!.Buffer;
+        Assert.Equal("世界 👍\ntwo\n\nend", buffer.Text);
+        Assert.Equal(buffer.Text.Length, buffer.Cursor);
+        Assert.True(done.Editor.IsChanged);
+        Assert.Equal(InputMode.Insert, done.Mode);
+    }
+
+    [Fact]
+    public void GivenAFailedOutsideEditor_WhenItFinishes_ThenTheTextIsKeptAndTheEditorShowsTheReason()
+    {
+        var state = Typed("keep");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+
+        var done = _reducer.Reduce(
+            state,
+            new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, null, "boom")).State;
+
+        Assert.Equal("keep", done.Editor!.Buffer.Text);
+        Assert.Contains("boom", done.Editor.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenACancelledOutsideEditor_WhenItFinishesWithoutText_ThenTheStateIsUnchanged()
+    {
+        var state = Typed("keep");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+
+        var done = _reducer.Reduce(state, new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, null, null));
+
+        Assert.Same(state, done.State);
+    }
+
+    [Fact]
+    public void GivenTheEditorWasClosed_WhenTheOutsideEditorFinishes_ThenTheReplyIsDropped()
+    {
+        var state = Typed("keep");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+        var closed = state with { Editor = null, Mode = InputMode.Normal };
+
+        var done = _reducer.Reduce(closed, new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, "x", null));
+
+        Assert.Null(done.State.Editor);
+    }
+
+    [Fact]
+    public void GivenAnotherCommentIsEdited_WhenTheOutsideEditorFinishes_ThenTheReplyIsDropped()
+    {
+        var state = Typed("keep");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+
+        var done = _reducer.Reduce(state, new ExternalEditFinished(asked.Tab, asked.Key, "other", "x", null)).State;
+
+        Assert.Equal("keep", done.Editor!.Buffer.Text);
+    }
+
+    [Fact]
+    public void GivenTextBeyondTheLimit_WhenTheOutsideEditorFinishes_ThenTheTextIsKeptWithAnError()
+    {
+        var state = Typed("keep");
+        var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
+        var huge = new string('x', 30001);
+
+        var done = _reducer.Reduce(state, new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, huge, null));
+
+        Assert.Equal("keep", done.State.Editor!.Buffer.Text);
+        Assert.NotNull(done.State.Editor.Error);
+    }
+
+    [Fact]
     public void GivenTwoComments_WhenLayingOutTheIssue_ThenEveryLineOfACommentOpensItAndTheGapBetweenOpensNothing()
     {
         var document = Active(OpenIssue()).Detail[0].Document!;

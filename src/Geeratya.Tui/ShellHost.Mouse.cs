@@ -121,7 +121,7 @@ public sealed partial class ShellHost
     {
         if (!_shutdownToken.IsCancellationRequested)
         {
-            _application!.Invoke(() => StepDragScroll(rows));
+            InvokeOnUi(() => StepDragScroll(rows));
         }
     }
 

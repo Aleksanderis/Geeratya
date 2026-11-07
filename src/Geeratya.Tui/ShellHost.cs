@@ -1,4 +1,5 @@
 using Geeratya.App;
+using Geeratya.Core.Comments;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
@@ -112,8 +113,6 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
 
     public int Run(StartOptions? start = null)
     {
-        using var application = Application.Create();
-
         _state = LoadProfiles();
 
         if (start is not null)
@@ -122,9 +121,49 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         }
 
         _state = StatusMessages.KeymapStartup(_state, _keymapLoad);
+        DetectBackground();
+
+        try
+        {
+            OpenApplication();
+
+            using var screen = new ShellScreen(
+                _keymap,
+                _colors,
+                _application!.Screen.Size,
+                StartTheme(),
+                _glyphs);
+
+            _screen = screen;
+            screen.BodyRowsChanged += OnBodyRowsChanged;
+            screen.Render(_state, TimeProvider.System.GetUtcNow());
+            Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns, screen.BodyHeight));
+            Dispatch(new ConnectionCheckRequested());
+            Dispatch(new StartupRequested());
+            _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
+
+            RunLoop(screen);
+        }
+        finally
+        {
+            _uiThread.Detach();
+            _application?.Dispose();
+        }
+
+        _shutdown.Cancel();
+        _profiles.Caches.FlushAll();
+        _effects.FlushTabs();
+
+        return 0;
+    }
+
+    /// <summary>Creates, initialises and wires a Terminal.Gui application; also used again after an outside editor.</summary>
+    private void OpenApplication()
+    {
+        var application = Application.Create();
+
         _application = application;
         _uiThread.Attach(application);
-        DetectBackground();
         application.Init();
         application.Keyboard.KeyBindings.Clear();
 
@@ -143,33 +182,6 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         application.Paste += OnPaste;
         application.Mouse.MouseEvent += OnMouse;
         application.Iteration += OnIteration;
-
-        var startTheme = StartTheme();
-
-        using var screen = new ShellScreen(_keymap, _colors, application.Screen.Size, startTheme, _glyphs);
-
-        _screen = screen;
-        screen.BodyRowsChanged += OnBodyRowsChanged;
-        screen.Render(_state, TimeProvider.System.GetUtcNow());
-        Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns, screen.BodyHeight));
-        Dispatch(new ConnectionCheckRequested());
-        Dispatch(new StartupRequested());
-        _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
-
-        try
-        {
-            application.Run(screen);
-        }
-        finally
-        {
-            _uiThread.Detach();
-        }
-
-        _shutdown.Cancel();
-        _profiles.Caches.FlushAll();
-        _effects.FlushTabs();
-
-        return 0;
     }
 
     /// <summary>Stops the application, after waiting up to five seconds for running writes to settle.</summary>
@@ -202,7 +214,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             return;
         }
 
-        _application!.Invoke(() => Dispatch(command));
+        InvokeOnUi(() => Dispatch(command));
     }
 
     private void OnBodyRowsChanged(int rows)
@@ -295,6 +307,10 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             if (effect is QuitEffect)
             {
                 _ = QuitAsync();
+            }
+            else if (effect is EditExternallyEffect edit)
+            {
+                AskForExternalEdit(edit);
             }
             else if (effect is ReloadKeymapEffect)
             {

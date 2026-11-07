@@ -229,6 +229,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-d` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
 | `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
 | `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
+| `Alt-e` | Edit the comment in the outside editor ($VISUAL or $EDITOR) | `editor.external` | everyday |
 
 ## Palette commands
 
