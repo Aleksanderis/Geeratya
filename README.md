@@ -56,7 +56,7 @@ More on the [website](https://geeratya.github.io/).
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
 ```
-# macOS and Linux, Homebrew
+# macOS (Apple silicon) and Linux (x64), Homebrew
 brew install aleksanderis/tap/geeratya
 
 # Windows
