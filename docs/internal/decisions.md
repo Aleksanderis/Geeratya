@@ -280,3 +280,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (Homebrew tap, #821)
 
 **Process:** No macOS signing or notarisation (owner decision, #207 closed): Homebrew (`Aleksanderis/homebrew-tap`) is the macOS route, archives need the `xattr` line. The tap update is its own workflow `homebrew.yml` (on release published, off unless the variable `HOMEBREW_TAP_UPDATE` is `true`), not a step in `release.yml`, so it runs after the draft is published and the archive URLs are public; same shape as the winget workflow of the owner's other project. Why: a formula pointing at draft-release assets would be broken until publication.
+
+## 2026-11-08 (shared Homebrew tap, #823)
+
+**Process:** The tap is `Aleksanderis/homebrew-tap`, shared with the owner's other apps (install: `brew install aleksanderis/tap/geeratya`), replacing `Geeratya/homebrew-tap` from #821. The generator and `homebrew.yml` write only `Formula/geeratya.rb` (no tap README, no `git add -A`), so other apps' formulae are never touched. The token scope covers the whole tap (GitHub cannot scope by path).
