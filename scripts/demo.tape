@@ -1,16 +1,18 @@
-# README demo (VHS): the Scrum board, an issue, the backlog, a JQL search and a status change on the invented
-# Wayfinder project of tools/FakeJira (--demo). Paced between quick and slow: about 1 to 1.5 s on a small result,
-# 3 to 4 s on the zoomed issue sections, about 50 s in all. Recorded at a large terminal so the whole board and
-# detail pane fit. Still screenshots are taken at the key moments.
+# README demo (VHS): the Scrum board, keyboard navigation across it, an issue, the backlog, a JQL search and a status
+# change on the invented Wayfinder project of tools/FakeJira (--demo). Short pauses: about 1 s on a result, 200 ms
+# per navigation key, about 25 s in all. Recorded at 1100x640 pixels with font 15 (about 125 columns) so the whole
+# board fits and the text stays legible when the page shows the GIF about 1000 px wide. A caption line (an
+# ffmpeg overlay added by scripts/demo.sh, from the CAPTIONS list there) names the keys. Still screenshots are taken at
+# the key moments.
 # Run it through scripts/demo.sh, which sets DEMO_BIN, the fake Jira profile and the shots/ folder.
 Output demo.webm
 Set Shell "bash"
-Set FontSize 14
-Set Width 1920
-Set Height 1040
-Set Padding 8
+Set FontSize 15
+Set Width 1100
+Set Height 640
+Set Padding 6
 Set Framerate 20
-Set TypingSpeed 70ms
+Set TypingSpeed 50ms
 Set Theme "Catppuccin Mocha"
 
 Hide
@@ -21,72 +23,75 @@ Escape
 Sleep 500ms
 Show
 
-# Scene 1: the Scrum board of the active sprint (the app opens the project's only board), in the board's own columns.
+# Scene 1: the Scrum board of the active sprint, then h/j/k/l across its columns and cards at a steady cadence.
 Wait+Screen /In Review/
-Sleep 2500ms
-Screenshot shots/board.png
-Sleep 500ms
-Type "l"
 Sleep 1s
+Screenshot shots/board.png
+Type@200ms "jjjj"
+Sleep 400ms
+Type@200ms "llll"
+Sleep 400ms
+Type@200ms "jj"
+Sleep 400ms
+Type@200ms "hhh"
+Sleep 400ms
+Type@200ms "kkk"
+Sleep 600ms
+Type@200ms "l"
+Sleep 500ms
 
-# Scene 2: an issue. Zoomed, one section at a time: the description with its acceptance criteria, then the comments
-# with a stack trace.
+# Scene 2: open the issue. Zoomed, one section at a time: the description, then the comments with a stack trace.
 Enter
 Wait+Screen /Comments 3/
-Sleep 2s
+Sleep 600ms
 Type "j"
-Sleep 500ms
+Sleep 300ms
 Type " z"
-Sleep 3500ms
+Sleep 1200ms
 Screenshot shots/issue-detail.png
-Sleep 500ms
 Ctrl+L
-Sleep 2s
-Type@500ms "jj"
+Sleep 300ms
+Ctrl+L
 Sleep 500ms
+Type@300ms "jj"
+Sleep 300ms
 Type "za"
-Sleep 4s
+Sleep 1200ms
 Screenshot shots/issue-comments.png
-Sleep 500ms
 Type " z"
-Sleep 1s
+Sleep 300ms
 Escape
-Sleep 1s
+Sleep 500ms
 
 # Scene 3: the backlog with the sprints as sections.
 Type ":backlog"
-Sleep 500ms
+Sleep 300ms
 Enter
 Wait+Screen /Sprint 16/
-Sleep 3s
+Sleep 1s
 Screenshot shots/backlog.png
-Sleep 500ms
-Type "]]"
-Sleep 1500ms
-Type "]]"
-Sleep 2s
+Type@250ms "]]]]"
+Sleep 800ms
 
 # Scene 4: a JQL search in a new tab.
-Type ":jql assignee = currentUser() AND statusCategory != Done ORDER BY priority DESC"
-Sleep 800ms
+Type@30ms ":jql assignee = currentUser() AND statusCategory != Done ORDER BY priority DESC"
+Sleep 300ms
 Enter
 Wait+Screen /WAY-15/
-Sleep 3s
+Sleep 1s
 Screenshot shots/jql-search.png
-Sleep 500ms
 
 # Scene 5: change the status of the first result: pick the status, see the result.
 Type " is"
 Wait+Screen /Change status of WAY-15/
-Sleep 1s
+Sleep 400ms
 Type "In Review"
-Sleep 1s
-Screenshot shots/status-picker.png
 Sleep 500ms
+Screenshot shots/status-picker.png
 Enter
 Wait+Screen /Moved WAY-15 to In Review/
-Sleep 1500ms
+Sleep 600ms
 Type " r"
-Sleep 2s
+Sleep 1s
 Screenshot shots/status-changed.png
-Sleep 2s
+Sleep 700ms
