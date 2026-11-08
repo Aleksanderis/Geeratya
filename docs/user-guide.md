@@ -4,16 +4,17 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 
 ## Install
 
-Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"), so for now build from source (once releases exist, macOS installs with Homebrew, see below):
+Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): these routes work once the first release is out.
 
-- Prerequisites: the .NET SDK version from `global.json` and the Native AOT prerequisites.
-  - Linux (Debian/Ubuntu): `clang` and `zlib1g-dev`. Arch: `sudo pacman -S --needed clang zlib dotnet-sdk`.
-  - Windows: "Desktop development with C++".
-  - macOS: Xcode command line tools.
-- Build: `dotnet publish src/Geeratya.Tui -c Release -o publish`
-- Run: `publish/geeratya`, or copy the binary to a folder on your `PATH`.
+```sh
+# macOS (Apple silicon) and Linux (x64), Homebrew
+brew install aleksanderis/tap/geeratya
 
-Releases will add archives for Linux, Windows and macOS and system packages; this section will then list them. macOS is the least tested system.
+# Windows (after the winget review)
+winget install Aleksanderis.Geeratya
+```
+
+Other ways, all from the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page: the .deb and .rpm packages and the .tar.gz archive (Linux), the .zip (Windows) and the macOS archive. Unpack an archive and copy the `geeratya` binary to a folder on your `PATH`. macOS is the least tested system; a browser-downloaded macOS archive needs one extra step (quarantine flag), see [macOS (Homebrew)](#macos-homebrew) below. To build from source, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
 
