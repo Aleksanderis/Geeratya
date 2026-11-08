@@ -86,10 +86,64 @@ public sealed class FakeJiraDemoTests : IDisposable
         Assert.Contains("NullPointerException", oldest, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task GivenJqlOperators_WhenSearched_ThenInIsEmptyAndTextMatchOnPlainTextOnly()
+    {
+        var unassigned = await Search("project = WAY AND assignee is EMPTY AND sprint = 16");
+        var listed = await Search("key in (WAY-12, WAY-15) ORDER BY key DESC");
+        var text = await Search("text ~ \"stack trace\"");
+        var nodeName = await Search("description ~ paragraph");
+        var future = await Search("sprint in futureSprints()");
+
+        Assert.Equal(["WAY-26", "WAY-27", "WAY-28"], unassigned);
+        Assert.Equal(["WAY-15", "WAY-12"], listed);
+        Assert.Equal(["WAY-16"], text);
+        Assert.Empty(nodeName);
+        Assert.Equal(["WAY-26", "WAY-27", "WAY-28"], future);
+    }
+
+    [Fact]
+    public async Task GivenEditAndSprintMoveAndRank_WhenPosted_ThenLaterReadsShowThem()
+    {
+        await Send(HttpMethod.Put, $"{Api}/issue/WAY-30", """{"fields":{"summary":"Offline search ignores accents","priority":{"name":"High"}}}""");
+        await Send(HttpMethod.Post, $"{Agile}/sprint/16/issue", """{"issues":["WAY-30"]}""");
+        await Send(HttpMethod.Put, $"{Agile}/issue/rank", """{"issues":["WAY-36"],"rankBeforeIssue":"WAY-29"}""");
+
+        var issue = await Json($"{Api}/issue/WAY-30");
+        var future = await Json($"{Agile}/sprint/16/issue");
+        var backlog = await Json($"{Agile}/board/20/backlog");
+
+        Assert.Equal("Offline search ignores accents", issue.GetProperty("fields").GetProperty("summary").GetString());
+        Assert.Equal("High", issue.GetProperty("fields").GetProperty("priority").GetProperty("name").GetString());
+        Assert.Equal(4, future.GetProperty("total").GetInt32());
+        Assert.Equal("WAY-36", backlog.GetProperty("issues")[0].GetProperty("key").GetString());
+    }
+
+    [Fact]
+    public async Task GivenEmptyBodiesAndClosedSprint_WhenPosted_ThenBadRequestInsteadOfServerError()
+    {
+        var transition = await Send(HttpMethod.Post, $"{Api}/issue/WAY-14/transitions", string.Empty);
+        var closed = await Send(HttpMethod.Post, $"{Agile}/sprint/14/issue", """{"issues":["WAY-14"]}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, transition);
+        Assert.Equal(HttpStatusCode.BadRequest, closed);
+    }
+
     public void Dispose()
     {
         _client.Dispose();
         _server.Dispose();
+    }
+
+    private async Task<HttpStatusCode> Send(HttpMethod method, string path, string body)
+    {
+        using var request = new HttpRequestMessage(method, $"{_baseUrl}{path}")
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json"),
+        };
+        using var response = await _client.SendAsync(request);
+
+        return response.StatusCode;
     }
 
     private async Task<List<string>> Search(string jql)

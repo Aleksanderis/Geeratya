@@ -45,8 +45,13 @@ public static class DemoJson
 
     public static JsonObject Status(string status)
     {
-        var done = status == "Done";
         var category = DemoJql.CategoryKey(status);
+        var (categoryId, categoryName, colorName) = category switch
+        {
+            "done" => (3, "Done", "green"),
+            "new" => (2, "To Do", "blue-gray"),
+            _ => (4, "In Progress", "yellow"),
+        };
 
         return new JsonObject
         {
@@ -55,10 +60,10 @@ public static class DemoJson
             ["description"] = string.Empty,
             ["statusCategory"] = new JsonObject
             {
-                ["id"] = done ? 3 : category == "new" ? 2 : 4,
+                ["id"] = categoryId,
                 ["key"] = category,
-                ["name"] = done ? "Done" : category == "new" ? "To Do" : "In Progress",
-                ["colorName"] = done ? "green" : category == "new" ? "blue-gray" : "yellow",
+                ["name"] = categoryName,
+                ["colorName"] = colorName,
             },
         };
     }

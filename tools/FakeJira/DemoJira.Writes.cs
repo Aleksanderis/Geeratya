@@ -6,6 +6,11 @@ public sealed partial class DemoJira
 {
     private static readonly string[] _priorityNames = ["Highest", "High", "Medium", "Low", "Lowest"];
 
+    private static JsonObject Parse(string body)
+    {
+        return string.IsNullOrWhiteSpace(body) ? [] : JsonNode.Parse(body)?.AsObject() ?? [];
+    }
+
     private static FakeReply NoContent() => new(204, []);
 
     private static FakeReply BadRequest(string message)
@@ -39,7 +44,7 @@ public sealed partial class DemoJira
 
     private static FakeReply Transition(DemoIssue issue, string body)
     {
-        var id = JsonNode.Parse(body)?["transition"]?["id"]?.ToString();
+        var id = Parse(body)["transition"]?["id"]?.ToString();
         var index = int.TryParse(id, out var number) ? (number / 10) - 1 : -1;
 
         if (index < 0 || index >= _statuses.Length)
@@ -55,7 +60,7 @@ public sealed partial class DemoJira
 
     private static FakeReply Edit(DemoIssue issue, string body)
     {
-        var request = JsonNode.Parse(body)?.AsObject() ?? [];
+        var request = Parse(body);
 
         if (request["fields"] is JsonObject fields)
         {
@@ -122,7 +127,7 @@ public sealed partial class DemoJira
 
     private static FakeReply Assign(DemoIssue issue, string body)
     {
-        var account = JsonNode.Parse(body)?["accountId"]?.ToString();
+        var account = Parse(body)["accountId"]?.ToString();
         var index = Array.FindIndex(DemoDataset.People, person => person.AccountId == account);
 
         if (account is not null && index < 0)
@@ -138,7 +143,7 @@ public sealed partial class DemoJira
 
     private static FakeReply AddComment(DemoIssue issue, string body)
     {
-        var text = AdfText(JsonNode.Parse(body)?["body"]);
+        var text = DemoAdf.PlainText(Parse(body)["body"]);
         issue.Comments.Add(new DemoComment(0, 0, text));
         issue.Updated = DateTimeOffset.UtcNow;
         var created = DemoJson.Comment(issue.Comments[^1], CommentId(issue, issue.Comments.Count - 1));
@@ -146,22 +151,9 @@ public sealed partial class DemoJira
         return Json(created, 201);
     }
 
-    private static string AdfText(JsonNode? node)
-    {
-        if (node is null)
-        {
-            return string.Empty;
-        }
-
-        var text = node["text"]?.ToString() ?? string.Empty;
-        var children = node["content"] as JsonArray ?? [];
-
-        return $"{text}{string.Join(string.Empty, children.Select(AdfText))}";
-    }
-
     private FakeReply MoveToSprint(int sprint, string body)
     {
-        var keys = (JsonNode.Parse(body)?["issues"] as JsonArray ?? []).Select(key => key!.ToString()).ToList();
+        var keys = (Parse(body)["issues"] as JsonArray ?? []).Select(key => key!.ToString()).ToList();
         var issues = keys.Select(key => _ranked.Find(issue => issue.Key == key)).ToList();
 
         if (issues.Count == 0 || issues.Any(issue => issue is null))
@@ -184,7 +176,7 @@ public sealed partial class DemoJira
 
     private FakeReply Rank(string body)
     {
-        var request = JsonNode.Parse(body)?.AsObject() ?? [];
+        var request = Parse(body);
         var keys = (request["issues"] as JsonArray ?? []).Select(key => key!.ToString()).ToList();
         var moving = _ranked.Where(issue => keys.Contains(issue.Key)).ToList();
         var before = request["rankBeforeIssue"]?.ToString();

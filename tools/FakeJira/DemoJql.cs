@@ -69,6 +69,16 @@ public static partial class DemoJql
         return Clause().Match(single) is { Success: true } match && Evaluate(match, issue);
     }
 
+    private static int Nesting(char character)
+    {
+        return character switch { '(' => 1, ')' => -1, _ => 0 };
+    }
+
+    private static string CategoryName(string status)
+    {
+        return CategoryKey(status) switch { "done" => "Done", "new" => "To Do", _ => "In Progress" };
+    }
+
     private static bool Balanced(string text)
     {
         var depth = 0;
@@ -83,7 +93,7 @@ public static partial class DemoJql
                 continue;
             }
 
-            depth += text[index] == '(' ? 1 : text[index] == ')' ? -1 : 0;
+            depth += Nesting(text[index]);
 
             if (depth == 0 && index < text.Length - 1)
             {
@@ -111,7 +121,7 @@ public static partial class DemoJql
                 continue;
             }
 
-            depth += text[index] == '(' ? 1 : text[index] == ')' ? -1 : 0;
+            depth += Nesting(text[index]);
 
             if (depth == 0 && string.Compare(text, index, separator, 0, separator.Length, StringComparison.OrdinalIgnoreCase) == 0)
             {
@@ -129,14 +139,14 @@ public static partial class DemoJql
     private static bool Evaluate(Match match, DemoIssue issue)
     {
         var field = match.Groups[1].Value.Trim().ToLowerInvariant().Replace(" ", string.Empty);
-        var op = Regex.Replace(match.Groups[2].Value.ToLowerInvariant(), @"\s+", " ");
+        var operation = Regex.Replace(match.Groups[2].Value.ToLowerInvariant(), @"\s+", " ");
         var wanted = Values(match.Groups[3].Value);
 
-        if (op is "~" or "!~")
+        if (operation is "~" or "!~")
         {
             var found = Contains(field, issue, wanted);
 
-            return op == "~" ? found : !found;
+            return operation == "~" ? found : !found;
         }
 
         if (Actual(field, issue) is not { } actual)
@@ -148,7 +158,7 @@ public static partial class DemoJql
         var emptyWanted = wanted.All(value => value.Equals("empty", StringComparison.OrdinalIgnoreCase)
             || value.Equals("null", StringComparison.OrdinalIgnoreCase));
 
-        return op switch
+        return operation switch
         {
             "=" or "in" => emptyWanted ? actual.Count == 0 : hit,
             "!=" or "not in" => emptyWanted ? actual.Count > 0 : !hit,
@@ -170,14 +180,18 @@ public static partial class DemoJql
 
     private static bool Contains(string field, DemoIssue issue, List<string> wanted)
     {
+        var description = DemoAdf.PlainText(issue.Description);
+        var comments = string.Join(' ', issue.Comments.Select(comment => comment.Text));
         var haystack = field switch
         {
             "summary" => issue.Summary,
-            "text" or "description" => $"{issue.Summary} {issue.Description.ToJsonString()} {string.Join(' ', issue.Comments.Select(comment => comment.Text))}",
-            _ => string.Empty,
+            "description" => description,
+            "text" => $"{issue.Summary} {description} {comments}",
+            _ => null,
         };
 
-        return wanted.All(
+        // As for the other clauses, a field the evaluator does not know matches everything.
+        return haystack is null || wanted.All(
             value => value.Replace("*", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .All(word => haystack.Contains(word, StringComparison.OrdinalIgnoreCase)));
     }
@@ -187,10 +201,10 @@ public static partial class DemoJql
         return field switch
         {
             "project" => [DemoDataset.ProjectKey, "Wayfinder"],
-            "assignee" => issue.Assignee < 0 ? [] : [DemoDataset.People[issue.Assignee].AccountId, DemoDataset.People[issue.Assignee].Name],
+            "assignee" => PersonValues(issue.Assignee),
             "reporter" => [DemoDataset.People[issue.Reporter].AccountId, DemoDataset.People[issue.Reporter].Name],
             "status" => [issue.Status],
-            "statuscategory" => [issue.Status == "Done" ? "Done" : issue.Status == "To Do" ? "To Do" : "In Progress", CategoryKey(issue.Status)],
+            "statuscategory" => [CategoryName(issue.Status), CategoryKey(issue.Status)],
             "resolution" => issue.Status == "Done" ? ["Done"] : ["Unresolved"],
             "priority" => [issue.Priority],
             "type" or "issuetype" => [issue.Type],
@@ -200,6 +214,11 @@ public static partial class DemoJql
             "sprint" => SprintValues(issue),
             _ => null,
         };
+    }
+
+    private static List<string> PersonValues(int person)
+    {
+        return person < 0 ? [] : [DemoDataset.People[person].AccountId, DemoDataset.People[person].Name];
     }
 
     private static List<string> SprintValues(DemoIssue issue)
@@ -245,7 +264,7 @@ public static partial class DemoJql
 
             if (!quoted)
             {
-                depth += character == '(' ? 1 : character == ')' ? -1 : 0;
+                depth += Nesting(character);
             }
 
             if (character == ',' && !quoted && depth == 0)
@@ -273,9 +292,10 @@ public static partial class DemoJql
             var words = key.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var descending = words.Length > 1 && words[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
             var name = words[0].Trim('"').ToLowerInvariant();
-            Func<DemoIssue, string> sortKey = issue => SortKey(name, issue, ranked);
+            var ordered = result.ToList();
+            var keys = ordered.ToDictionary(issue => issue, issue => SortKey(name, issue, ranked));
 
-            result = descending ? result.OrderByDescending(sortKey) : result.OrderBy(sortKey);
+            result = descending ? ordered.OrderByDescending(issue => keys[issue]) : ordered.OrderBy(issue => keys[issue]);
         }
 
         return [.. result];

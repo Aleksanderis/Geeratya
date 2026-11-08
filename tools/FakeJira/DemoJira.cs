@@ -36,7 +36,7 @@ public sealed partial class DemoJira
         {
             if (path.StartsWith(Agile, StringComparison.Ordinal))
             {
-                return Agile1(method, path[Agile.Length..], query, body);
+                return HandleAgile(method, path[Agile.Length..], query, body);
             }
 
             if (!path.StartsWith(Api, StringComparison.Ordinal))
@@ -44,7 +44,7 @@ public sealed partial class DemoJira
                 return null;
             }
 
-            return Api3(method, path[Api.Length..], query, body);
+            return HandleApi(method, path[Api.Length..], query, body);
         }
     }
 
@@ -59,7 +59,7 @@ public sealed partial class DemoJira
             && int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var value) ? value : fallback;
     }
 
-    private FakeReply? Api3(string method, string path, IReadOnlyDictionary<string, string> query, string body)
+    private FakeReply? HandleApi(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
         switch (method, path)
         {
@@ -111,7 +111,7 @@ public sealed partial class DemoJira
         };
     }
 
-    private FakeReply? Agile1(string method, string path, IReadOnlyDictionary<string, string> query, string body)
+    private FakeReply? HandleAgile(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
         var parts = path.Split('/');
 
@@ -166,7 +166,7 @@ public sealed partial class DemoJira
     private FakeReply Search(IReadOnlyDictionary<string, string> parameters)
     {
         var matches = DemoJql.Run(parameters.GetValueOrDefault("jql"), _ranked);
-        var size = Math.Min(IntOf(parameters, "maxResults", DefaultPage), 1000);
+        var size = Math.Clamp(IntOf(parameters, "maxResults", DefaultPage), 1, 1000);
         var start = IntOf(parameters, "nextPageToken", 0);
         var issues = new JsonArray();
 

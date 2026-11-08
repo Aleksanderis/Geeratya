@@ -58,6 +58,20 @@ public static partial class DemoAdf
         return new JsonObject { ["version"] = 1, ["type"] = "doc", ["content"] = content };
     }
 
+    /// <summary>The text of an ADF node and everything below it, without the node names.</summary>
+    public static string PlainText(JsonNode? node)
+    {
+        if (node is null)
+        {
+            return string.Empty;
+        }
+
+        var text = node["text"]?.ToString() ?? string.Empty;
+        var children = node["content"] as JsonArray ?? [];
+
+        return $"{text}{string.Join(' ', children.Select(PlainText))}";
+    }
+
     private static JsonObject Block(List<string> lines)
     {
         if (lines[0].StartsWith("## ", StringComparison.Ordinal))
@@ -110,6 +124,16 @@ public static partial class DemoAdf
         };
     }
 
+    private static string Unmarked(string part, bool bold, bool code)
+    {
+        if (bold)
+        {
+            return part[2..^2];
+        }
+
+        return code ? part[1..^1] : part;
+    }
+
     private static JsonArray Inline(string text)
     {
         var result = new JsonArray();
@@ -118,7 +142,7 @@ public static partial class DemoAdf
         {
             var bold = part.StartsWith("**", StringComparison.Ordinal);
             var code = !bold && part.StartsWith('`');
-            var node = new JsonObject { ["type"] = "text", ["text"] = bold ? part[2..^2] : code ? part[1..^1] : part };
+            var node = new JsonObject { ["type"] = "text", ["text"] = Unmarked(part, bold, code) };
 
             if (bold || code)
             {
