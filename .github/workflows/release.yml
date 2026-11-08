@@ -153,12 +153,12 @@ jobs:
             unpacked/geeratya-"$VERSION"-"$PLATFORM"/geeratya --version | grep -F "$VERSION"
           fi
 
-      # .deb and .rpm are made from the linux archive (#206) and installed in a
-      # clean container each, which is the acceptance for these two packages.
-      - name: Build .deb and .rpm
+      # .deb, .rpm and Arch .pkg.tar.zst are made from the linux archive (#206, #861) and
+      # installed in a clean container each, which is the acceptance for these packages.
+      - name: Build .deb, .rpm and Arch package
         if: startsWith(matrix.platform, 'linux-')
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq rpm
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm zstd
           scripts/package-linux.sh dist/geeratya-"$VERSION"-"$PLATFORM".tar.gz "$VERSION" dist
 
       - name: Install the packages in clean containers
@@ -169,6 +169,27 @@ jobs:
             "dpkg -i /pkg/$(basename "$deb") && geeratya --version | grep -F '$VERSION' && dpkg -r geeratya"
           docker run --rm -v "$PWD/dist:/pkg:ro" fedora:latest sh -c \
             "rpm -i --nosignature /pkg/$(basename "$rpm") && geeratya --version | grep -F '$VERSION' && rpm -e geeratya"
+
+      # There is no official arm64 Arch image (Arch Linux ARM is a third-party port), so the
+      # aarch64 package is checked on the native arm64 runner: metadata and payload, then run
+      # the packaged binary. x86_64 gets the real `pacman -U` in the official archlinux image.
+      - name: Install the Arch package (x86_64, archlinux container)
+        if: matrix.platform == 'linux-x64'
+        run: |
+          pkg=$(basename "$(ls dist/*.pkg.tar.zst)")
+          docker run --rm -v "$PWD/dist:/pkg:ro" archlinux:latest sh -c \
+            "pacman -U --noconfirm /pkg/$pkg && geeratya --version | grep -F '$VERSION' && pacman -Qi geeratya && pacman -R --noconfirm geeratya"
+
+      - name: Check the Arch package (aarch64, native runner)
+        if: matrix.platform == 'linux-arm64'
+        run: |
+          pkg=$(ls dist/*.pkg.tar.zst)
+          mkdir archpkg
+          zstd -dc "$pkg" | tar -xf - -C archpkg
+          grep -qx 'arch = aarch64' archpkg/.PKGINFO
+          grep -qx "pkgver = ${VERSION//-/_}-1" archpkg/.PKGINFO
+          file archpkg/usr/bin/geeratya | grep -qi aarch64
+          archpkg/usr/bin/geeratya --version | grep -F "$VERSION"
 
       - uses: actions/upload-artifact@v4
         with:

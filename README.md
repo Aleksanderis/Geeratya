@@ -63,7 +63,7 @@ brew install aleksanderis/tap/geeratya
 winget install Aleksanderis.Geeratya
 ```
 
-Other ways: the .zip (Windows), .deb, .rpm and .tar.gz (Linux) and the macOS archive on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet: these routes work once the first release is out (winget after its review). To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Other ways: the .zip (Windows), .deb, .rpm, Arch .pkg.tar.zst and .tar.gz (Linux) and the macOS archive on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet: these routes work once the first release is out (winget after its review). To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 
