@@ -87,6 +87,28 @@ public sealed class FakeJiraDemoTests : IDisposable
     }
 
     [Fact]
+    public void GivenBareFence_WhenDocumentBuilt_ThenCodeBlockHasNoLanguage()
+    {
+        var document = DemoAdf.Document("```\nplain\n```");
+
+        var block = document["content"]![0]!;
+
+        Assert.Equal("codeBlock", block["type"]!.GetValue<string>());
+        Assert.Null(block["attrs"]);
+        Assert.Equal("plain", block["content"]![0]!["text"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void GivenFenceWithLanguage_WhenDocumentBuilt_ThenCodeBlockCarriesTheLanguage()
+    {
+        var document = DemoAdf.Document("```kotlin\nval x = 1\n```");
+
+        var block = document["content"]![0]!;
+
+        Assert.Equal("kotlin", block["attrs"]!["language"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task GivenJqlOperators_WhenSearched_ThenInIsEmptyAndTextMatchOnPlainTextOnly()
     {
         var unassigned = await Search("project = WAY AND assignee is EMPTY AND sprint = 16");
