@@ -17,6 +17,14 @@ Releases will add archives for Linux, Windows and macOS and system packages; thi
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
 
+### Windows (winget)
+
+Not available yet: the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted:
+
+```powershell
+winget install Aleksanderis.Geeratya
+```
+
 ### macOS (Homebrew)
 
 ```sh

@@ -1,0 +1,57 @@
+# Opens the winget-pkgs PR for a release (#843). OFF by default: the jobs run only when the repository variable
+# WINGET_SUBMIT is "true" (Settings > Variables). They run when the owner publishes a release (the draft made by
+# release.yml does not trigger it), so the zip URL in the manifest is public by then. Pre-releases never submit.
+# The first submission of Aleksanderis.Geeratya is a manual PR by the owner; this job needs the package to exist
+# already. Needs the repository secret WINGET_TOKEN: a classic PAT with public_repo scope (wingetcreate pushes a branch
+# to the owner's fork of microsoft/winget-pkgs and opens the PR; owner creates it, docs/internal/architecture.md, Releases).
+name: winget
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  manifests:
+    if: ${{ vars.WINGET_SUBMIT == 'true' && !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate the manifests from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG#v}"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dl
+          scripts/gen-manifests.sh "$version" dl/SHA256SUMS out
+          echo "$version" > out/winget/version.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: winget-manifests
+          path: out/winget
+
+  submit:
+    needs: manifests
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: winget-manifests
+          path: winget
+
+      - name: Submit to winget-pkgs
+        shell: pwsh
+        env:
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if (-not $env:WINGET_CREATE_GITHUB_TOKEN) { throw "Repo secret WINGET_TOKEN is not set" }
+          $version = (Get-Content winget/version.txt -Raw).Trim()
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe submit "winget/manifests/a/Aleksanderis/Geeratya/$version"
