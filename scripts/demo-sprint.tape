@@ -25,6 +25,7 @@ Sleep 1500ms
 Type " sv"
 Sleep 800ms
 Enter
+Wait+Screen /Unmapped/
 Sleep 2s
 Type "hjj"
 Sleep 1s
@@ -33,6 +34,7 @@ Sleep 1s
 
 # An issue: open it, look around, back to the board.
 Enter
+Wait+Screen /Description/
 Sleep 3s
 Escape
 Sleep 800ms

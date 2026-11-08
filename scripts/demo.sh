@@ -15,10 +15,6 @@ case "$(uname -s)" in
   Linux*) ;;
   *) echo "demo.sh is supported on Linux only" >&2; exit 3 ;;
 esac
-for tool in vhs ttyd ffmpeg dotnet; do
-  command -v "$tool" > /dev/null 2>&1 || { echo "missing tool '$tool' (vhs needs ttyd and ffmpeg)" >&2; exit 3; }
-done
-
 script_dir=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$script_dir/.." && pwd)
 binary="" out_dir=""
@@ -30,10 +26,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 if [ -z "$binary" ] || [ -z "$out_dir" ]; then
-  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 fi
 [ -x "$binary" ] || { echo "binary '$binary' not found or not executable" >&2; exit 2; }
+for tool in vhs ttyd ffmpeg dotnet; do
+  command -v "$tool" > /dev/null 2>&1 || { echo "missing tool '$tool' (vhs needs ttyd and ffmpeg)" >&2; exit 3; }
+done
 
 work=$(mktemp -d)
 fake_pid=""

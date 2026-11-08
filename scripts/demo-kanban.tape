@@ -21,6 +21,7 @@ Show
 # The Kanban board with the board's own columns.
 Type ":board GCM"
 Enter
+Wait+Screen /Done \(14d\)/
 Sleep 2s
 Type "l"
 Sleep 700ms
@@ -30,16 +31,20 @@ Sleep 1s
 
 # An issue: open it, back to the board.
 Enter
+Wait+Screen /GCM-10 · Story/
 Sleep 3s
 Escape
 Sleep 800ms
 
 # A status change: the status picker, filter, confirm.
 Type " is"
+Wait+Screen /Change status of GCM-10/
 Sleep 1s
 Type "Done"
 Sleep 800ms
 Enter
+Wait+Screen /Move GCM-10 to Done/
 Sleep 1500ms
 Type "y"
+Wait+Screen /Moved GCM-10 to Done/
 Sleep 3s
