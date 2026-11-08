@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Records the README demo: the real binary against tools/FakeJira in --demo mode (an invented dataset, Wayfinder, a
 # trip planning app; never a real site), scripted by scripts/demo.tape (VHS + ttyd, fixed terminal size and theme,
-# slow pacing). Linux only. No media is committed to this repository.
+# short pauses). Linux only. No media is committed to this repository.
 # Usage: scripts/demo.sh --binary <geeratya> --out <dir>
 #   --binary  the AOT binary (dotnet publish src/Geeratya.Tui -c Release -o <outdir>)
 #   --out     output directory (outside the repository): demo.gif, demo.webm and screenshots/*.png (stills of the
@@ -70,11 +70,11 @@ CAPTIONS=(
   "1.0 2.1 j  next card" "2.1 3.3 l  next column" "3.3 4.1 j  next card" "4.1 5.3 h  previous column"
   "5.3 6.5 k  previous card" "6.5 7.1 l  next column" "7.1 8.1 Enter  open the issue" "8.1 9.3 j  a section,  space z  zoom"
   "9.3 12.4 Ctrl-l  next section" "12.4 13.3 Esc  back to the board" "13.3 14.1 :backlog" "14.1 17.0 ]]  next sprint"
-  "17.0 21.2 :jql  search in a new tab" "21.2 22.7 space i s  change status" "22.7 24.0 Enter  apply" "24.0 30.0 space r  refresh"
+  "17.0 21.2 :jql  search in a new tab" "21.2 22.7 space i s  change status" "22.7 24.0 Enter  apply" "24.0 25.0 space r  refresh"
 )
 font=$(fc-match -f '%{file}' monospace 2> /dev/null || true)
 filter="pad=iw:ih+44:0:0:color=0x11111b"
-if [ -n "$font" ] && [ -f "$font" ]; then
+if [ -n "$font" ] && [ -f "$font" ] && ffmpeg -filters 2> /dev/null | grep -q drawtext; then
   n=0
   for c in "${CAPTIONS[@]}"; do
     read -r t0 t1 text <<< "$c"
@@ -83,6 +83,8 @@ if [ -n "$font" ] && [ -f "$font" ]; then
     filter+=",drawtext=fontfile=$font:textfile=$work/cap$n.txt:fontcolor=0xcdd6f4:fontsize=26:x=16:y=h-38:enable='between(t,$t0,$t1)'"
   done
 fi
+duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$work/demo.webm")
+awk -v d="$duration" 'BEGIN { if (d < 23 || d > 27) print "warning: recording is " d " s, the CAPTIONS times were tuned for about 25 s" > "/dev/stderr" }'
 # The video is re-encoded for the web; the GIF (for the README) gets a palette of its own.
 ffmpeg -v error -y -i "$work/demo.webm" -vf "$filter" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
 ffmpeg -v error -y -i "$out_dir/demo.webm" \

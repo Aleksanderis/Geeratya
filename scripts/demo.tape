@@ -1,6 +1,6 @@
 # README demo (VHS): the Scrum board, keyboard navigation across it, an issue, the backlog, a JQL search and a status
-# change on the invented Wayfinder project of tools/FakeJira (--demo). Short pauses: about 0.7 s on a result, 200 ms
-# per navigation key, about 30 s in all. Recorded at 1100x640 pixels with font 15 (about 125 columns) so the whole
+# change on the invented Wayfinder project of tools/FakeJira (--demo). Short pauses: about 1 s on a result, 200 ms
+# per navigation key, about 25 s in all. Recorded at 1100x640 pixels with font 15 (about 125 columns) so the whole
 # board fits and the text stays legible when the page shows the GIF about 1000 px wide. A caption line (an
 # ffmpeg overlay added by scripts/demo.sh, from the CAPTIONS list there) names the keys. Still screenshots are taken at
 # the key moments.
