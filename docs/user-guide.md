@@ -4,35 +4,35 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 
 ## Install
 
-Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): these routes work once the first release is out.
+Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): every route below works once the first release is out.
+
+One line, installs the latest release (re-run it to update):
 
 ```sh
-# macOS (Apple silicon) and Linux (x64, arm64), Homebrew
-brew install aleksanderis/tap/geeratya
-
-# Windows (after the winget review)
-winget install Aleksanderis.Geeratya
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64, glibc) and macOS (Apple silicon)
+irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex           # Windows PowerShell
 ```
 
-Other ways, all from the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page: the .deb, .rpm and Arch/Omarchy packages and the .tar.gz archive (Linux; Arch: `sudo pacman -U geeratya-<version>-1-x86_64.pkg.tar.zst`, `aarch64` on arm64), the .zip (Windows) and the macOS archive. Unpack an archive and copy the `geeratya` binary to a folder on your `PATH`. macOS is the least tested system; a browser-downloaded macOS archive needs one extra step (quarantine flag), see [macOS (Homebrew)](#macos-homebrew) below. To build from source, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+The shell script checks the download against the release's `SHA256SUMS` and puts `geeratya` in `~/.local/bin` (no root or sudo; `GEERATYA_INSTALL_DIR` changes the folder). It needs glibc, so not Alpine. On macOS it prints the Gatekeeper hint (see [macOS (Gatekeeper)](#macos-gatekeeper)). For a native package use the `.deb`, `.rpm` or Arch package below. The Windows script installs to `%LOCALAPPDATA%\Geeratya` and adds it to your user `PATH`, no admin rights. `GEERATYA_VERSION` pins a version: `curl ... | GEERATYA_VERSION=0.1.0 sh`, or in PowerShell `$env:GEERATYA_VERSION = '0.1.0'; irm ... | iex`.
+
+### Other ways
+
+All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page unless noted.
+
+- Debian / Ubuntu: `sudo apt install ./geeratya_<version>_amd64.deb` (`_arm64.deb` on arm64).
+- Fedora / RHEL: `sudo dnf install ./geeratya-<version>-1.x86_64.rpm` (`.aarch64.rpm` on arm64).
+- Arch / Omarchy: `sudo pacman -U geeratya-<version>-1-x86_64.pkg.tar.zst` (`aarch64` on arm64). The AUR package `geeratya-bin` is planned, not registered yet.
+- Windows, winget: `winget install Aleksanderis.Geeratya`. Not available until the package is accepted by winget after the first release; until then use the archive.
+- Homebrew (macOS and Linux): `brew install aleksanderis/tap/geeratya`, once the first release is published.
+- Windows and Linux archives (x64 and arm64): the `.zip` or `.tar.gz`; unpack it and put `geeratya` (`geeratya.exe`) in a folder on your `PATH`.
+- macOS archive (Apple silicon): `tar xzf geeratya-<version>-osx-arm64.tar.gz`, then put `geeratya` on your `PATH`. macOS should work but is the least tested system, and the binary is unsigned (see [macOS (Gatekeeper)](#macos-gatekeeper)).
+- From source: see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
 
-### Windows (winget)
+### macOS (Gatekeeper)
 
-Not available yet: `winget install` does not work until the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` or `win-arm64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted, this will work:
-
-```powershell
-winget install Aleksanderis.Geeratya
-```
-
-### macOS (Homebrew)
-
-```sh
-brew install aleksanderis/tap/geeratya
-```
-
-The tap `Aleksanderis/homebrew-tap` serves the Apple silicon (arm64) build. The macOS binary is **not notarised** and not signed with an Apple developer identity (at most the linker's ad-hoc signature). Homebrew downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and refuses to run it; clear the flag once after unpacking:
+The macOS binary is **not notarised** and not signed with an Apple developer identity (at most the linker's ad-hoc signature). Homebrew (the tap `Aleksanderis/homebrew-tap` serves the Apple silicon build) downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and Gatekeeper asks you to allow it or refuses to run it; clear the flag once after unpacking:
 
 ```sh
 xattr -d com.apple.quarantine geeratya
