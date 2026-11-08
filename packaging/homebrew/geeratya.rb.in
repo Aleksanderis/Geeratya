@@ -18,6 +18,10 @@ class Geeratya < Formula
       url "https://github.com/Aleksanderis/Geeratya/releases/download/v@VERSION@/geeratya-@VERSION@-linux-x64.tar.gz"
       sha256 "@SHA_LINUX@"
     end
+    on_arm do
+      url "https://github.com/Aleksanderis/Geeratya/releases/download/v@VERSION@/geeratya-@VERSION@-linux-arm64.tar.gz"
+      sha256 "@SHA_LINUX_ARM@"
+    end
   end
 
   def install

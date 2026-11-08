@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build .deb and .rpm from the linux-x64 release archive (one binary in /usr/bin).
-# Usage: scripts/package-linux.sh <archive.tar.gz> <version> <out-dir>
+# Build .deb and .rpm from a linux release archive (linux-x64 or linux-arm64, taken from its name) (one binary in /usr/bin).
+# Usage: scripts/package-linux.sh <geeratya-VERSION-linux-x64|linux-arm64.tar.gz> <version> <out-dir>
 # Needs tar, ar and rpmbuild (Debian/Ubuntu: apt install rpm). The .deb is assembled
 # with ar and tar, so dpkg-deb is not needed. A pre-release version (1.2.3-rc.1)
 # becomes 1.2.3~rc.1 in both formats so it sorts before 1.2.3.
@@ -15,6 +15,11 @@ version=$2
 mkdir -p "$3"
 out=$(cd "$3" && pwd)
 pkgver=${version//-/\~}
+case $(basename "$archive") in
+  *-linux-x64.tar.gz) deb_arch=amd64; rpm_arch=x86_64 ;;
+  *-linux-arm64.tar.gz) deb_arch=arm64; rpm_arch=aarch64 ;;
+  *) echo "archive name must end in -linux-x64.tar.gz or -linux-arm64.tar.gz: $archive" >&2; exit 2 ;;
+esac
 url=https://github.com/Aleksanderis/Geeratya
 summary="Keyboard-first terminal client for Jira Cloud"
 
@@ -36,7 +41,7 @@ Version: $pkgver
 Depends: libc6, libssl3 | libssl3t64, zlib1g
 Section: utils
 Priority: optional
-Architecture: amd64
+Architecture: $deb_arch
 Installed-Size: $size
 Maintainer: Aleksandras T. <noreply@users.noreply.github.com>
 Homepage: $url
@@ -46,7 +51,7 @@ CTL
 printf '2.0\n' > "$work/debian-binary"
 tar --owner=0 --group=0 --numeric-owner -C "$work/deb-ctl" -czf "$work/control.tar.gz" ./control
 tar --owner=0 --group=0 --numeric-owner -C "$root" -czf "$work/data.tar.gz" ./usr
-deb="$out/geeratya_${pkgver}_amd64.deb"
+deb="$out/geeratya_${pkgver}_${deb_arch}.deb"
 rm -f "$deb"
 (cd "$work" && ar rc "$deb" debian-binary control.tar.gz data.tar.gz)
 echo "$deb"
@@ -61,7 +66,7 @@ Release: 1
 Summary: $summary
 License: MIT
 URL: $url
-BuildArch: x86_64
+BuildArch: $rpm_arch
 AutoReqProv: no
 Requires: openssl-libs, zlib
 

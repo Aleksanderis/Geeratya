@@ -284,3 +284,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (shared Homebrew tap, #823)
 
 **Process:** The tap is `Aleksanderis/homebrew-tap`, shared with the owner's other apps (install: `brew install aleksanderis/tap/geeratya`), replacing `Geeratya/homebrew-tap` from #821. The generator and `homebrew.yml` write only `Formula/geeratya.rb` (no tap README, no `git add -A`), so other apps' formulae are never touched. The token scope covers the whole tap (GitHub cannot scope by path).
+
+## 2026-11-08 (arm64 release builds, #859)
+
+**Process:** linux-arm64 and win-arm64 build on native arm64 runners (`ubuntu-24.04-arm`, `windows-11-arm`, free for public repositories), not cross-compiled: Native AOT needs the target's native toolchain and linker, and Gitunia does the same (#1247). The linux arm64 job also builds the arm64 `.deb`/`.rpm` and installs them in native arm64 containers. macOS stays Apple silicon only (osx-x64 is out). Asset names stay `geeratya-<version>-<rid>.tar.gz|.zip`, rid in linux-x64, linux-arm64, win-x64, win-arm64, osx-arm64.

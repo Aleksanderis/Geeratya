@@ -27,13 +27,15 @@ sha() {
 render() {
   sed -e "s|@VERSION@|$version|g" -e "s|@PKGVER@|${version//-/_}|g" \
       -e "s|@MAINTAINER@|$maintainer|g" -e "s|@SHA_LINUX@|$linux|g" \
-      -e "s|@SHA_WIN@|$win|g" -e "s|@SHA_OSX@|$osx|g" "$1" > "$2"
+      -e "s|@SHA_LINUX_ARM@|$linux_arm|g" -e "s|@SHA_WIN_ARM@|$win_arm|g" -e "s|@SHA_WIN@|$win|g" -e "s|@SHA_OSX@|$osx|g" "$1" > "$2"
   echo "$2"
 }
 
 mkdir -p "$out/aur" "$out/winget" "$out/homebrew" "$out/homebrew-tap/Formula"
 linux=$(sha linux-x64.tar.gz)
+linux_arm=$(sha linux-arm64.tar.gz)
 win=$(sha win-x64.zip)
+win_arm=$(sha win-arm64.zip)
 osx=$(sha osx-arm64.tar.gz)
 render "$root/packaging/aur/PKGBUILD.in" "$out/aur/PKGBUILD"
 # winget-pkgs layout: the three manifests of one version under manifests/a/<Publisher>/<Name>/<version>/ (also the

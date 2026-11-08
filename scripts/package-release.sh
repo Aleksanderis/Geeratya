@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pack a published Native AOT build into a release archive.
 # Usage: scripts/package-release.sh <publish-dir> <version> <platform> <out-dir>
-#   platform: linux-x64 | win-x64 | osx-arm64 (a "win-*" label makes a zip, others a tar.gz)
+#   platform: linux-x64 | linux-arm64 | win-x64 | win-arm64 | osx-arm64 (a "win-*" label makes a zip, others a tar.gz)
 # Runs in Git Bash on Windows runners too (the zip is made through PowerShell there).
 set -euo pipefail
 
