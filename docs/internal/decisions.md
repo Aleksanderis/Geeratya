@@ -288,3 +288,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (arm64 release builds, #859)
 
 **Process:** linux-arm64 and win-arm64 build on native arm64 runners (`ubuntu-24.04-arm`, `windows-11-arm`, free for public repositories), not cross-compiled: Native AOT needs the target's native toolchain and linker, and Gitunia does the same (#1247). The linux arm64 job also builds the arm64 `.deb`/`.rpm` and installs them in native arm64 containers. macOS stays Apple silicon only (osx-x64 is out). Asset names stay `geeratya-<version>-<rid>.tar.gz|.zip`, rid in linux-x64, linux-arm64, win-x64, win-arm64, osx-arm64.
+
+## 2026-11-08 (Arch package, #861)
+
+**Process:** The Arch/Omarchy `.pkg.tar.zst` is built by `scripts/package-linux.sh` itself (tar + zstd + `.PKGINFO`, no nfpm or makepkg, like the `.deb`) from the linux archive, so no extra tool is fetched in the release job. Install check: real `pacman -U` in `archlinux:latest` for x86_64; aarch64 has no official Arch image (Arch Linux ARM is third-party, not trusted in a release job), so the native arm64 runner unpacks the package, checks `.PKGINFO` and runs the packaged binary. The package is covered by `SHA256SUMS`; the AUR PKGBUILD already builds from the same archives for both arches and is unchanged. Gitunia (nfpm, no install check) was read for scope only.

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Build .deb and .rpm from a linux release archive (linux-x64 or linux-arm64, taken from its name; one binary in /usr/bin).
+# Build .deb, .rpm and Arch .pkg.tar.zst from a linux release archive (linux-x64 or linux-arm64, taken from its name; one binary in /usr/bin).
 # Usage: scripts/package-linux.sh <geeratya-VERSION-linux-x64|linux-arm64.tar.gz> <version> <out-dir>
-# Needs tar, ar and rpmbuild (Debian/Ubuntu: apt install rpm). The .deb is assembled
-# with ar and tar, so dpkg-deb is not needed. A pre-release version (1.2.3-rc.1)
-# becomes 1.2.3~rc.1 in both formats so it sorts before 1.2.3.
+# Needs tar, ar, zstd and rpmbuild (Debian/Ubuntu: apt install rpm zstd). The .deb is assembled
+# with ar and tar, so dpkg-deb is not needed; the Arch package is a zstd tarball with a
+# .PKGINFO (makepkg is not needed). A pre-release version (1.2.3-rc.1) becomes 1.2.3~rc.1 in
+# .deb and .rpm and 1.2.3_rc.1 in the Arch package (same pkgver as the AUR PKGBUILD).
 set -euo pipefail
 
 if [ "$#" -ne 3 ]; then
@@ -16,8 +17,8 @@ mkdir -p "$3"
 out=$(cd "$3" && pwd)
 pkgver=${version//-/\~}
 case $(basename "$archive") in
-  *-linux-x64.tar.gz) deb_arch=amd64; rpm_arch=x86_64 ;;
-  *-linux-arm64.tar.gz) deb_arch=arm64; rpm_arch=aarch64 ;;
+  *-linux-x64.tar.gz) deb_arch=amd64; rpm_arch=x86_64; arch_arch=x86_64 ;;
+  *-linux-arm64.tar.gz) deb_arch=arm64; rpm_arch=aarch64; arch_arch=aarch64 ;;
   *) echo "archive name must end in -linux-x64.tar.gz or -linux-arm64.tar.gz: $archive" >&2; exit 2 ;;
 esac
 url=https://github.com/Aleksanderis/Geeratya
@@ -86,3 +87,27 @@ SPEC
 rpmbuild -bb --define "_topdir $top" --define "_build_id_links none" \
   --define "debug_package %{nil}" --define "__strip /bin/true" "$top/SPECS/geeratya.spec" >/dev/null
 for f in "$top"/RPMS/*/*.rpm; do cp "$f" "$out/"; echo "$out/$(basename "$f")"; done
+
+# --- Arch .pkg.tar.zst ---
+root="$work/arch-root"
+mkdir -p "$root/usr/bin" "$root/usr/share/licenses/geeratya"
+install -m 0755 "$src/geeratya" "$root/usr/bin/geeratya"
+install -m 0644 "$src/LICENSE" "$root/usr/share/licenses/geeratya/LICENSE"
+cat > "$root/.PKGINFO" <<INFO
+pkgname = geeratya
+pkgbase = geeratya
+pkgver = ${version//-/_}-1
+pkgdesc = $summary
+url = $url
+builddate = ${SOURCE_DATE_EPOCH:-$(date +%s)}
+packager = Aleksandras T. <noreply@users.noreply.github.com>
+size = $(stat -c %s "$src/geeratya")
+arch = $arch_arch
+license = MIT
+depend = openssl
+depend = zlib
+INFO
+pkg="$out/geeratya-${version//-/_}-1-$arch_arch.pkg.tar.zst"
+rm -f "$pkg"
+tar --owner=0 --group=0 --numeric-owner -C "$root" -cf - .PKGINFO usr | zstd -q -19 -o "$pkg"
+echo "$pkg"
