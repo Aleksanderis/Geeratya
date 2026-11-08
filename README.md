@@ -42,6 +42,7 @@ In planning. See `docs/internal/roadmap.md`.
 - [User guide](docs/user-guide.md): install, connect, keys and everyday tasks
 - [Key reference](docs/keymap.md), [customising keys](docs/customising-keys.md) and [settings](docs/settings.md)
 - [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md)
+- Website: <https://geeratya.github.io/> (once published)
 - Design documents are in `docs/internal/` (internal notes for maintainers)
 - Project conventions are in [CLAUDE.md](CLAUDE.md)
 

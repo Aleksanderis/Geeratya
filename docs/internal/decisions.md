@@ -272,3 +272,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (README demo hosting, #209)
 
 **Process:** The README demo (`demo.gif`, `demo.webm`) is recorded by `scripts/demo.sh` and hosted on the project's GitHub Pages site (`geeratya.github.io`, `media/`), not in this repository and not in the screenshots repository (owner decision). The README links `https://geeratya.github.io/media/demo.gif`; copying the files there is the owner's step. Why: no binary media in the repo (see `testing.md`, "README demo").
+
+## 2026-11-08 (landing page, #695)
+
+**Process:** The landing page is a separate static repository `Geeratya/geeratya.github.io` (owner decision), not a `docs/` page of this repository; supersedes the issue's "Pages workflow behind a switch" and "no binary media in the repository" (the demo files live there). Agents build and commit it locally; the owner pushes it, enables Pages and makes it public. Details: `landing-page.md`. Why: the owner's other project does the same, and the README demo already points at `geeratya.github.io/media`.
