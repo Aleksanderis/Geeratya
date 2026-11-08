@@ -27,7 +27,8 @@ sha() {
 render() {
   sed -e "s|@VERSION@|$version|g" -e "s|@PKGVER@|${version//-/_}|g" \
       -e "s|@MAINTAINER@|$maintainer|g" -e "s|@SHA_LINUX@|$linux|g" \
-      -e "s|@SHA_LINUX_ARM@|$linux_arm|g" -e "s|@SHA_WIN_ARM@|$win_arm|g" -e "s|@SHA_WIN@|$win|g" -e "s|@SHA_OSX@|$osx|g" "$1" > "$2"
+      -e "s|@SHA_LINUX_ARM@|$linux_arm|g" \
+      -e "s|@SHA_WIN_ARM@|$win_arm|g" -e "s|@SHA_WIN@|$win|g" -e "s|@SHA_OSX@|$osx|g" "$1" > "$2"
   echo "$2"
 }
 

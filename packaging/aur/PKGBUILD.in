@@ -17,7 +17,7 @@ sha256sums_aarch64=('@SHA_LINUX_ARM@')
 
 package() {
   local dir=geeratya-@VERSION@-linux-x64
-  [ "$CARCH" = aarch64 ] && dir=geeratya-@VERSION@-linux-arm64
+  if [ "$CARCH" = aarch64 ]; then dir=geeratya-@VERSION@-linux-arm64; fi
   install -Dm755 "$dir/geeratya" "$pkgdir/usr/bin/geeratya"
   install -Dm644 "$dir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

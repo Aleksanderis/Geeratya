@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build .deb and .rpm from a linux release archive (linux-x64 or linux-arm64, taken from its name) (one binary in /usr/bin).
+# Build .deb and .rpm from a linux release archive (linux-x64 or linux-arm64, taken from its name; one binary in /usr/bin).
 # Usage: scripts/package-linux.sh <geeratya-VERSION-linux-x64|linux-arm64.tar.gz> <version> <out-dir>
 # Needs tar, ar and rpmbuild (Debian/Ubuntu: apt install rpm). The .deb is assembled
 # with ar and tar, so dpkg-deb is not needed. A pre-release version (1.2.3-rc.1)
