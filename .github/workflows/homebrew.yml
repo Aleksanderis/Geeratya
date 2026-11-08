@@ -3,7 +3,7 @@
 # the owner publishes a release (the draft made by release.yml does not trigger it), so the archive URLs in the
 # formula are public by then. Needs the repository secret HOMEBREW_TAP_TOKEN: a fine-grained token with
 # "Contents: read and write" on Geeratya/homebrew-tap only (owner creates it, docs/internal/architecture.md, Releases).
-# The tap repository must already exist; the first formula is pushed by the owner by hand.
+# Pre-releases never update the tap. The tap repository must already exist; the first formula is pushed by the owner by hand.
 name: homebrew
 
 on:
@@ -12,6 +12,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: homebrew-tap
+  cancel-in-progress: false
 
 jobs:
   update-tap:
@@ -43,7 +47,7 @@ jobs:
           cp manifests/homebrew-tap/Formula/geeratya.rb tap/Formula/geeratya.rb
           cp manifests/homebrew-tap/README.md tap/README.md
           cd tap
-          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "tap already up to date"; exit 0; fi
+          if [ -z "$(git status --porcelain)" ]; then echo "tap already up to date"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A

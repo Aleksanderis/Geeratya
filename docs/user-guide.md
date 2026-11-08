@@ -15,19 +15,19 @@ Needs a Jira Cloud site, an Atlassian account on it and an API token (below). An
 
 Releases will add archives for Linux, Windows and macOS and system packages; this section will then list them. macOS is the least tested system.
 
+Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
+
 ### macOS (Homebrew)
 
 ```sh
 brew install geeratya/tap/geeratya
 ```
 
-The tap `Geeratya/homebrew-tap` serves the Apple silicon (arm64) build. The macOS binary is ad-hoc signed and **not notarised** (no Apple developer signing). Homebrew downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and refuses to run it; clear the flag once after unpacking:
+The tap `Geeratya/homebrew-tap` serves the Apple silicon (arm64) build. The macOS binary is **not notarised** and not signed with an Apple developer identity (at most the linker's ad-hoc signature). Homebrew downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and refuses to run it; clear the flag once after unpacking:
 
 ```sh
 xattr -d com.apple.quarantine geeratya
 ```
-
-Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
 
 ## Start and connect
 

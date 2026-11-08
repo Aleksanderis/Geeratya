@@ -3,6 +3,7 @@ class Geeratya < Formula
   desc "Keyboard-first terminal client for Jira Cloud"
   homepage "https://github.com/Aleksanderis/Geeratya"
   license "MIT"
+  version "@VERSION@"
 
   on_macos do
     on_arm do

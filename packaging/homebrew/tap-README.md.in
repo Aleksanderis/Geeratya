@@ -8,6 +8,6 @@ Geeratya is a keyboard-first terminal client for Jira Cloud.
 brew install geeratya/tap/geeratya
 ```
 
-The formula installs the release archive for macOS on Apple silicon (arm64) and for Linux on x64. The macOS binary is ad-hoc signed and not notarised; installing through Homebrew does not set the quarantine flag, so Gatekeeper does not block it.
+The formula installs the release archive for macOS on Apple silicon (arm64) and for Linux on x64. The macOS binary is not notarised (at most ad-hoc signed by the linker); installing through Homebrew does not set the quarantine flag, so Gatekeeper does not block it.
 
 Source, docs and issues: https://github.com/Aleksanderis/Geeratya
