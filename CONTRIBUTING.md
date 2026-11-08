@@ -28,7 +28,13 @@ dotnet publish src/Geeratya.Tui -c Release -o publish   # Native AOT; fails on a
 publish/geeratya
 ```
 
-The .NET SDK version is pinned in `global.json`. The AOT publish needs a C compiler (see the [user guide](docs/user-guide.md#install)). Optional quality inspections: `scripts/inspect.sh --changed` (Windows: `scripts/inspect.ps1`).
+The .NET SDK version is pinned in `global.json`. The AOT publish needs the Native AOT prerequisites:
+
+- Linux (Debian/Ubuntu): `clang` and `zlib1g-dev`. Arch: `sudo pacman -S --needed clang zlib dotnet-sdk`.
+- Windows: "Desktop development with C++".
+- macOS: Xcode command line tools.
+
+ Optional quality inspections: `scripts/inspect.sh --changed` (Windows: `scripts/inspect.ps1`).
 
 To try the app without a Jira site, run the fake server in `tools/FakeJira` with a profile that points at its loopback address and `GEERATYA_TOKEN=fake`; `scripts/screenshot.sh` shows the setup (see "Fake Jira" in [docs/internal/testing.md](docs/internal/testing.md)).
 
