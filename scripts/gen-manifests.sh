@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generate the AUR PKGBUILD, winget manifest and Homebrew formula for a release from
 # packaging/**/*.in and the release's SHA256SUMS. <out-dir>/homebrew-tap/ is the ready
-# layout of the Homebrew tap repository (Formula/geeratya.rb and README.md). Nothing is published: the output
+# layout of the Homebrew tap repository (only Formula/geeratya.rb; the tap is shared, so no other files). Nothing is published: the output
 # is for the owner (or a later automation) to submit. Never edit the output by hand.
 # Usage: scripts/gen-manifests.sh <version> <SHA256SUMS> <out-dir>
 set -euo pipefail
@@ -38,6 +38,5 @@ osx=$(sha osx-arm64.tar.gz)
 render "$root/packaging/aur/PKGBUILD.in" "$out/aur/PKGBUILD"
 render "$root/packaging/winget/Aleksanderis.Geeratya.yaml.in" "$out/winget/Aleksanderis.Geeratya.yaml"
 render "$root/packaging/homebrew/geeratya.rb.in" "$out/homebrew/geeratya.rb"
-# The tap repository (Geeratya/homebrew-tap) holds exactly this tree.
+# The tap repository (Aleksanderis/homebrew-tap) receives only Formula/geeratya.rb from this tree.
 render "$root/packaging/homebrew/geeratya.rb.in" "$out/homebrew-tap/Formula/geeratya.rb"
-render "$root/packaging/homebrew/tap-README.md.in" "$out/homebrew-tap/README.md"

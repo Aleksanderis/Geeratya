@@ -17,9 +17,8 @@ grep -q "sha256 \"$o\"" "$f" || fail "macOS hash"
 grep -q 'download/v1.2.3/geeratya-1.2.3-linux-x64.tar.gz"$' "$f" || fail "linux url"
 grep -q "sha256 \"$l\"" "$f" || fail "linux hash"
 grep -q 'geeratya --version' "$f" || fail "test block"
-grep -q 'v1.2.3' "$tmp/out/homebrew-tap/README.md" || fail "tap README version"
-grep -q 'brew install geeratya/tap/geeratya' "$tmp/out/homebrew-tap/README.md" || fail "tap README install line"
 if grep -rq '@[A-Z0-9]*@' "$tmp/out"; then fail "placeholder left"; fi
+[ "$(cd "$tmp/out/homebrew-tap" && find . -type f)" = "./Formula/geeratya.rb" ] || fail "tap tree has extra files"
 if command -v ruby >/dev/null; then ruby -c "$f" >/dev/null || fail "ruby syntax"; else echo "ruby not found: syntax not checked"; fi
 
 printf '%s  geeratya-1.2.3-linux-x64.tar.gz\n' "$l" > "$tmp/short"
