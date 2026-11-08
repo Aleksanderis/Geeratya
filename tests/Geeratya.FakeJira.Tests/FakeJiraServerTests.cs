@@ -40,6 +40,7 @@ public sealed class FakeJiraServerTests : IDisposable
     [InlineData("/rest/api/3/user/assignable/search?issueKey=GCM-2&query=test", "accountId")]
     [InlineData("/rest/api/3/user/viewissue/search?issueKey=GCM-2&query=a", "accountId")]
     [InlineData("/rest/api/3/issue/picker?query=a", "sections")]
+    [InlineData("/rest/api/3/issue/picker?query=GCM&currentJQL=project%20%3D%20GCM%20AND%20issuetype%20%3D%20Epic", "Seed: Onboarding flow")]
     public async Task GivenBoardAndFilterRoutes_WhenRequested_ThenRecordedFixtureIsServed(string path, string expected)
     {
         var baseUrl = StartServer(0, 0, 0);

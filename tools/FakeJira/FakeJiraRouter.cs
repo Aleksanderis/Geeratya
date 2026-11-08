@@ -25,6 +25,10 @@ public sealed partial class FakeJiraRouter
     private const string MaxResultsName = "maxResults";
     private const string PageTokenName = "nextPageToken";
     private const string JqlName = "jql";
+    private const string PickerPath = "/rest/api/3/issue/picker";
+    private const string PickerScopeName = "currentJQL";
+    private const string PickerEpicsFixture = "suggestions/recorded-issue-picker-epics.json";
+    private const string EpicName = "Epic";
     private const string GeneratedIssuePrefix = "/rest/api/3/issue/GEN-";
     private const string RemoteLinkPart = "remotelink";
     private const string IssuePrefix = "/rest/api/3/issue/";
@@ -193,6 +197,11 @@ public sealed partial class FakeJiraRouter
             return generated;
         }
 
+        if (method == Get && path == PickerPath && IsEpicScope(query))
+        {
+            return new FakeReply(200, ReadFixture(PickerEpicsFixture));
+        }
+
         if (method == Get && _routes.TryGetValue(path, out var fixture))
         {
             var reply = new FakeReply(200, ReadFixture(fixture));
@@ -216,6 +225,16 @@ public sealed partial class FakeJiraRouter
         }
 
         return new FakeReply(404, ReadFixture(NotFoundFixture));
+    }
+
+    /// <summary>
+    /// True when the issue picker is scoped to epics (the parent chooser of a story): the fake answers the recorded
+    /// epics, because it does not run the JQL of <c>currentJQL</c>.
+    /// </summary>
+    private static bool IsEpicScope(IReadOnlyDictionary<string, string> query)
+    {
+        return query.TryGetValue(PickerScopeName, out var scope)
+            && scope.Contains(EpicName, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>The Scrum lists whose order is the rank: a sprint's issues and the board lists.</summary>
@@ -400,7 +419,7 @@ public sealed partial class FakeJiraRouter
             return new FakeReply(200, ReadFixture(fixtureName));
         }
 
-        if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || _writes.Knows(key)))
+        if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || IsListedIssue(key) || _writes.Knows(key)))
         {
             return _writes.Transitions(key);
         }
