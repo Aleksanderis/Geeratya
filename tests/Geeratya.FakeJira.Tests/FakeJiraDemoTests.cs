@@ -137,10 +137,9 @@ public sealed class FakeJiraDemoTests : IDisposable
 
     private async Task<HttpStatusCode> Send(HttpMethod method, string path, string body)
     {
-        using var request = new HttpRequestMessage(method, $"{_baseUrl}{path}")
-        {
-            Content = new StringContent(body, Encoding.UTF8, "application/json"),
-        };
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(method, $"{_baseUrl}{path}");
+        request.Content = content;
         using var response = await _client.SendAsync(request);
 
         return response.StatusCode;
