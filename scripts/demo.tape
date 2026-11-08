@@ -1,15 +1,15 @@
 # README demo (VHS): the Scrum board, an issue, the backlog, a JQL search and a status change on the invented
-# Wayfinder project of tools/FakeJira (--demo). Paced for reading: every action is followed by a pause, every result
-# stays on screen long enough to read, typing is slow. Still screenshots are taken at the key moments.
+# Wayfinder project of tools/FakeJira (--demo). Paced between quick and slow: about 1 to 1.5 s on a small result, 3 to 4 s on the zoomed
+# issue sections, about 50 s in all; recorded at a large terminal so the whole board and detail pane fit. Still screenshots are taken at the key moments.
 # Run it through scripts/demo.sh, which sets DEMO_BIN, the fake Jira profile and the shots/ folder.
 Output demo.webm
 Set Shell "bash"
-Set FontSize 16
-Set Width 1400
-Set Height 760
+Set FontSize 14
+Set Width 1920
+Set Height 1040
 Set Padding 8
 Set Framerate 20
-Set TypingSpeed 110ms
+Set TypingSpeed 70ms
 Set Theme "Catppuccin Mocha"
 
 Hide
@@ -22,70 +22,70 @@ Show
 
 # Scene 1: the Scrum board of the active sprint (the app opens the project's only board), in the board's own columns.
 Wait+Screen /In Review/
-Sleep 5s
+Sleep 2500ms
 Screenshot shots/board.png
-Sleep 1500ms
+Sleep 500ms
 Type "l"
-Sleep 2s
+Sleep 1s
 
 # Scene 2: an issue. Zoomed, one section at a time: the description with its acceptance criteria, then the comments
 # with a stack trace.
 Enter
 Wait+Screen /Comments 3/
-Sleep 4s
+Sleep 2s
 Type "j"
-Sleep 1s
+Sleep 500ms
 Type " z"
-Sleep 7s
+Sleep 3500ms
 Screenshot shots/issue-detail.png
-Sleep 1500ms
+Sleep 500ms
 Ctrl+L
-Sleep 4s
-Type@800ms "jj"
-Sleep 1s
+Sleep 2s
+Type@500ms "jj"
+Sleep 500ms
 Type "za"
-Sleep 9s
+Sleep 4s
 Screenshot shots/issue-comments.png
-Sleep 1500ms
+Sleep 500ms
 Type " z"
-Sleep 2s
+Sleep 1s
 Escape
-Sleep 2s
+Sleep 1s
 
 # Scene 3: the backlog with the sprints as sections.
 Type ":backlog"
-Sleep 1s
+Sleep 500ms
 Enter
 Wait+Screen /Sprint 16/
-Sleep 6s
+Sleep 3s
 Screenshot shots/backlog.png
+Sleep 500ms
+Type "]]"
 Sleep 1500ms
 Type "]]"
-Sleep 3s
-Type "]]"
-Sleep 4s
+Sleep 2s
 
 # Scene 4: a JQL search in a new tab.
 Type ":jql assignee = currentUser() AND statusCategory != Done ORDER BY priority DESC"
-Sleep 1500ms
+Sleep 800ms
 Enter
 Wait+Screen /WAY-15/
-Sleep 5s
+Sleep 3s
 Screenshot shots/jql-search.png
-Sleep 1500ms
+Sleep 500ms
 
 # Scene 5: change the status of the first result: pick the status, see the result.
 Type " is"
 Wait+Screen /Change status of WAY-15/
-Sleep 2s
+Sleep 1s
 Type "In Review"
-Sleep 2s
+Sleep 1s
 Screenshot shots/status-picker.png
-Sleep 1500ms
+Sleep 500ms
 Enter
 Wait+Screen /Moved WAY-15 to In Review/
-Sleep 3s
+Sleep 1500ms
 Type " r"
-Sleep 4s
+Sleep 2s
 Screenshot shots/status-changed.png
-Sleep 3s
+Sleep 2s
