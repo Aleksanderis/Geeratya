@@ -29,6 +29,4 @@ The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner 
 3. Make the repository public (a private repository serves Pages only on paid plans). Do this when the main repository goes public (#212), so the README image and the page both load.
 4. Optional: a custom domain (costs money, not done by agents), Search Console verification (add the meta tag to `index.html`).
 
-5. Remove "(once published)" from the "Website" line of `README.md` here.
-
 Checks after publishing (the links to this repository resolve only once it is public, #212): `https://geeratya.github.io/`, `.../media/demo.gif`, `.../media/demo.webm`, `.../robots.txt`, `.../sitemap.xml` answer 200, and the repository links on the page open.
