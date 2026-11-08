@@ -165,7 +165,7 @@ jobs:
           docker run --rm -v "$PWD/dist:/pkg:ro" debian:stable-slim sh -c \
             "dpkg -i /pkg/$(basename "$deb") && geeratya --version | grep -F '$VERSION' && dpkg -r geeratya"
           docker run --rm -v "$PWD/dist:/pkg:ro" fedora:latest sh -c \
-            "rpm -i /pkg/$(basename "$rpm") && geeratya --version | grep -F '$VERSION' && rpm -e geeratya"
+            "rpm -i --nosignature /pkg/$(basename "$rpm") && geeratya --version | grep -F '$VERSION' && rpm -e geeratya"
 
       - uses: actions/upload-artifact@v4
         with:
