@@ -1,6 +1,7 @@
 # README demo (VHS): the Scrum board, an issue, the backlog, a JQL search and a status change on the invented
-# Wayfinder project of tools/FakeJira (--demo). Paced between quick and slow: about 1 to 1.5 s on a small result, 3 to 4 s on the zoomed
-# issue sections, about 50 s in all; recorded at a large terminal so the whole board and detail pane fit. Still screenshots are taken at the key moments.
+# Wayfinder project of tools/FakeJira (--demo). Paced between quick and slow: about 1 to 1.5 s on a small result,
+# 3 to 4 s on the zoomed issue sections, about 50 s in all. Recorded at a large terminal so the whole board and
+# detail pane fit. Still screenshots are taken at the key moments.
 # Run it through scripts/demo.sh, which sets DEMO_BIN, the fake Jira profile and the shots/ folder.
 Output demo.webm
 Set Shell "bash"
