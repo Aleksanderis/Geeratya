@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate the AUR PKGBUILD, winget manifest and Homebrew formula for a release from
+# Generate the AUR PKGBUILD, winget manifests (multi-file) and Homebrew formula for a release from
 # packaging/**/*.in and the release's SHA256SUMS. <out-dir>/homebrew-tap/ is the ready
 # layout of the Homebrew tap repository (only Formula/geeratya.rb; the tap is shared, so no other files). Nothing is published: the output
 # is for the owner (or a later automation) to submit. Never edit the output by hand.
@@ -36,7 +36,13 @@ linux=$(sha linux-x64.tar.gz)
 win=$(sha win-x64.zip)
 osx=$(sha osx-arm64.tar.gz)
 render "$root/packaging/aur/PKGBUILD.in" "$out/aur/PKGBUILD"
-render "$root/packaging/winget/Aleksanderis.Geeratya.yaml.in" "$out/winget/Aleksanderis.Geeratya.yaml"
+# winget-pkgs layout: the three manifests of one version under manifests/a/<Publisher>/<Name>/<version>/ (also the
+# directory `wingetcreate submit` takes). The leading "a" is the lower-cased first letter of the identifier.
+wdir="$out/winget/manifests/a/Aleksanderis/Geeratya/$version"
+mkdir -p "$wdir"
+for part in "" .installer .locale.en-US; do
+  render "$root/packaging/winget/Aleksanderis.Geeratya$part.yaml.in" "$wdir/Aleksanderis.Geeratya$part.yaml"
+done
 render "$root/packaging/homebrew/geeratya.rb.in" "$out/homebrew/geeratya.rb"
 # The tap repository (Aleksanderis/homebrew-tap) receives only Formula/geeratya.rb from this tree.
 render "$root/packaging/homebrew/geeratya.rb.in" "$out/homebrew-tap/Formula/geeratya.rb"
