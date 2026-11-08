@@ -6,7 +6,7 @@ A keyboard-first terminal client for Jira Cloud: your Kanban board, backlog and 
 
 ![Geeratya demo: a sprint board, an issue, a Kanban board and a status change](https://geeratya.github.io/media/demo.gif)
 
-The [website](https://geeratya.github.io/) is the place for the demo, with a [video version](https://geeratya.github.io/media/demo.webm) too. It was recorded from the real UI against a fake Jira with `scripts/demo.sh`.
+Video version: [demo.webm](https://geeratya.github.io/media/demo.webm). The demo is also on the [website](https://geeratya.github.io/). It was recorded from the real UI against a fake Jira with `scripts/demo.sh`.
 
 ## Why
 
@@ -38,9 +38,13 @@ Not included: Scrum reports and charts (burndown, velocity), Jira Service Manage
 ## Screenshots
 
 ![Kanban board with the board's own columns](https://geeratya.github.io/media/board.webp)
+
 ![Issue detail with description, fields and sub-tasks](https://geeratya.github.io/media/issue-detail.webp)
+
 ![Backlog and sprints](https://geeratya.github.io/media/backlog.webp)
+
 ![JQL search as an issue list](https://geeratya.github.io/media/jql-search.webp)
+
 ![An issue after its status was changed](https://geeratya.github.io/media/status-changed.webp)
 
 More on the [website](https://geeratya.github.io/).
@@ -57,7 +61,7 @@ No release is published yet, so until the first one, build from source; the brew
 
 ## Status
 
-Feature work is done up to the release milestone ("M8 - Release and going public"); the first release is not out yet. See `docs/internal/roadmap.md`.
+The first release is not out yet. See `docs/internal/roadmap.md`.
 
 ## Docs
 
@@ -75,5 +79,7 @@ If Geeratya saves you time, you can [buy me a coffee](https://buymeacoffee.com/a
 ## License
 
 MIT License ([LICENSE](LICENSE)).
+
+## Disclaimer
 
 Geeratya is an independent project and is not affiliated with or endorsed by Atlassian. Jira is a trademark of Atlassian.
