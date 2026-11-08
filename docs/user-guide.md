@@ -19,7 +19,7 @@ Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for ex
 
 ### Windows (winget)
 
-Not available yet: the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted:
+Not available yet: `winget install` does not work until the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted, this will work:
 
 ```powershell
 winget install Aleksanderis.Geeratya

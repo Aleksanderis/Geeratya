@@ -37,7 +37,10 @@ grep -q '^- Architecture: x64$' "$i" || fail "architecture"
 grep -q 'InstallerUrl: https://github.com/Aleksanderis/Geeratya/releases/download/v1.2.3/geeratya-1.2.3-win-x64.zip$' "$i" || fail "installer url"
 grep -q "InstallerSha256: $w\$" "$i" || fail "installer hash"
 grep -q '^ManifestType: defaultLocale$' "$wd/Aleksanderis.Geeratya.locale.en-US.yaml" || fail "locale manifest type"
-grep -q '^PackageLocale: en-US$' "$wd/Aleksanderis.Geeratya.locale.en-US.yaml" || fail "package locale"
+l10n="$wd/Aleksanderis.Geeratya.locale.en-US.yaml"
+grep -q '^PackageLocale: en-US$' "$l10n" || fail "package locale"
+for k in Publisher License ShortDescription; do grep -q "^$k: ." "$l10n" || fail "locale key $k"; done
+grep -q '^PackageName: Geeratya$' "$l10n" || fail "locale PackageName"
 if command -v yamllint >/dev/null; then yamllint -d relaxed "$wd" || fail "yamllint"; else echo "yamllint not found: yaml not linted"; fi
 if grep -rq '@[A-Z0-9]*@' "$tmp/out"; then fail "placeholder left"; fi
 [ "$(cd "$tmp/out/homebrew-tap" && find . -type f)" = "./Formula/geeratya.rb" ] || fail "tap tree has extra files"
