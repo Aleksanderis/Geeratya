@@ -9,11 +9,11 @@ Needs a Jira Cloud site, an Atlassian account on it and an API token (below). An
 One line, installs the latest release (re-run it to update):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64)
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64, glibc) and macOS (Apple silicon)
 irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex           # Windows PowerShell
 ```
 
-The Linux script uses the native package on Arch / Omarchy, Debian / Ubuntu and Fedora (needs root or sudo), otherwise puts `geeratya` in `~/.local/bin`. The Windows script installs to `%LOCALAPPDATA%\Geeratya` and adds it to your user `PATH`, no admin rights. `GEERATYA_VERSION` pins a version: `curl ... | GEERATYA_VERSION=0.1.0 sh`.
+The shell script checks the download against the release's `SHA256SUMS` and puts `geeratya` in `~/.local/bin` (no root or sudo; `GEERATYA_INSTALL_DIR` changes the folder). It needs glibc, so not Alpine. On macOS it prints the Gatekeeper hint (see [macOS (Gatekeeper)](#macos-gatekeeper)). For a native package use the `.deb`, `.rpm` or Arch package below. The Windows script installs to `%LOCALAPPDATA%\Geeratya` and adds it to your user `PATH`, no admin rights. `GEERATYA_VERSION` pins a version: `curl ... | GEERATYA_VERSION=0.1.0 sh`, or in PowerShell `$env:GEERATYA_VERSION = '0.1.0'; irm ... | iex`.
 
 ### Other ways
 
@@ -25,7 +25,7 @@ All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/release
 - Windows, winget: `winget install Aleksanderis.Geeratya`. Not available until the package is accepted by winget after the first release; until then use the archive.
 - Homebrew (macOS and Linux): `brew install aleksanderis/tap/geeratya`, once the first release is published.
 - Windows and Linux archives (x64 and arm64): the `.zip` or `.tar.gz`; unpack it and put `geeratya` (`geeratya.exe`) in a folder on your `PATH`.
-- macOS archive (Apple silicon): `tar xzf geeratya-<version>-osx-arm64.tar.gz`, then put `geeratya` on your `PATH`. macOS should work but is the least tested system, and the binary is unsigned (see below).
+- macOS archive (Apple silicon): `tar xzf geeratya-<version>-osx-arm64.tar.gz`, then put `geeratya` on your `PATH`. macOS should work but is the least tested system, and the binary is unsigned (see [macOS (Gatekeeper)](#macos-gatekeeper)).
 - From source: see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).

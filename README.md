@@ -55,14 +55,14 @@ More on the [website](https://geeratya.github.io/).
 
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
-One line, installs the latest release (re-run it to update; set `GEERATYA_VERSION` to pin a version):
+One line, installs the latest release (re-run it to update; set `GEERATYA_VERSION` to pin a version, see the [user guide](docs/user-guide.md#install)):
 
 ```
-curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64)
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64, glibc) and macOS (Apple silicon)
 irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex           # Windows PowerShell
 ```
 
-Other ways to install: Linux `.deb`/`.rpm`, Arch/Omarchy `.pkg.tar.zst` (x64 and arm64, once the first release is published; AUR `geeratya-bin` is planned), Windows `winget install Aleksanderis.Geeratya` (once the first release is in winget), Homebrew `brew install aleksanderis/tap/geeratya` (macOS and Linux, once the first release is published), a Windows or Linux archive (x64 and arm64), or a macOS archive (Apple silicon; should work but is not fully tested yet, and unsigned, so Gatekeeper asks you to allow it, see the [user guide](docs/user-guide.md#install)). No release is published yet, so every route works once the first release is out. To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Other ways to install: Linux `.deb`/`.rpm`, Arch/Omarchy `.pkg.tar.zst` (x64 and arm64, once the first release is published; AUR `geeratya-bin` is planned), Windows `winget install Aleksanderis.Geeratya` (once the first release is in winget), Homebrew `brew install aleksanderis/tap/geeratya` (macOS and Linux, once the first release is published), a Windows or Linux archive (x64 and arm64), or a macOS archive (Apple silicon; should work but is not fully tested yet, and unsigned, so Gatekeeper asks you to allow it, see the [user guide](docs/user-guide.md#macos-gatekeeper)). No release is published yet, so every route works once the first release is out. To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 
