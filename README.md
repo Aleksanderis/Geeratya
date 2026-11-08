@@ -1,16 +1,18 @@
-# Geeratya
+<h1 align="center">Geeratya</h1>
 
-A keyboard-first terminal client for Jira Cloud: your Kanban board, backlog and issues in the terminal, with vim-style keys. The mouse is optional but fully functional.
+<p align="center">
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+<img src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-informational" alt="Platforms: Linux, Windows, macOS">
+<img src="https://img.shields.io/badge/.NET-10%20Native%20AOT-512BD4?logo=dotnet" alt=".NET 10 Native AOT">
+</p>
 
-[Website](https://geeratya.github.io/) | [User guide](docs/user-guide.md) | [Releases](https://github.com/Aleksanderis/Geeratya/releases) | [Contributing](CONTRIBUTING.md) | [Security](SECURITY.md) | [Buy me a coffee](https://buymeacoffee.com/aleksanderis)
+A keyboard-first terminal client for Jira Cloud: board, backlog and issues in a terminal, driven by vim-style keys. The mouse is optional but fully functional.
 
-![Geeratya demo: a sprint board, an issue, a Kanban board and a status change](https://geeratya.github.io/media/demo.gif)
-
-Video version: [demo.webm](https://geeratya.github.io/media/demo.webm). The demo is also on the [website](https://geeratya.github.io/). It was recorded from the real UI against a fake Jira with `scripts/demo.sh`.
+[![Geeratya demo: a sprint board, an issue, a Kanban board and a status change](https://geeratya.github.io/media/demo.gif)](https://geeratya.github.io/)
 
 ## Why
 
-The Jira web UI is slow and mouse-heavy for the things done many times a day: look at the board, move a card, open an issue, write a comment, create a sub-task. Geeratya does those from the keyboard in a terminal, fast.
+The Jira web UI is slow and mouse-heavy for what you do many times a day: check the board, move a card, open an issue, comment, add a sub-task. Geeratya does all of that from the keyboard, in a terminal, quickly.
 
 ## Features
 
@@ -51,34 +53,39 @@ More on the [website](https://geeratya.github.io/).
 
 ## Install
 
-Needs a Jira Cloud site, an Atlassian account on it and an API token. Details and the connect steps are in the [user guide](docs/user-guide.md).
+Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
-- Homebrew (macOS, Apple silicon): `brew install aleksanderis/tap/geeratya`. The macOS binary is not notarised; see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run a downloaded archive.
-- Release archives for Linux, Windows and macOS: [Releases](https://github.com/Aleksanderis/Geeratya/releases).
-- Build from source: `dotnet publish src/Geeratya.Tui -c Release -o publish`, then run `publish/geeratya`. Prerequisites are in the user guide.
+```
+brew install aleksanderis/tap/geeratya                                      # macOS (Apple silicon)
+dotnet publish src/Geeratya.Tui -c Release -o publish && publish/geeratya   # from source
+```
 
-No release is published yet, so until the first one, build from source; the brew and archive routes work once it is out.
+Other ways: release archives for Linux, Windows and macOS on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet, so for now build from source; the brew and archive routes work once the first release is out (see `docs/internal/roadmap.md`).
 
-## Status
+## Quick start
 
-The first release is not out yet. See `docs/internal/roadmap.md`.
+```
+geeratya                    # restore the last session, or pick a board
+geeratya GEN-123            # open one issue in a tab
+geeratya --board <name>     # also --backlog, --jql, --filter, --profile
+```
+
+`?` shows the keys of the current screen, `:` opens the command palette, `q` quits. The full list is in the [key reference](docs/keymap.md).
 
 ## Docs
 
-- [User guide](docs/user-guide.md): install, connect, keys and everyday tasks
-- [Key reference](docs/keymap.md), [customising keys](docs/customising-keys.md) and [settings](docs/settings.md)
-- [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md)
+- [User guide](docs/user-guide.md), [key reference](docs/keymap.md), [customising keys](docs/customising-keys.md) and [settings](docs/settings.md)
 - Website: <https://geeratya.github.io/>
-- Design documents are in `docs/internal/` (internal notes for maintainers)
+- Design documents are in `docs/internal/` (maintainer notes)
 - Project conventions are in [CLAUDE.md](CLAUDE.md)
+
+## Contributing, security, license
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Licensed under the MIT License ([LICENSE](LICENSE)).
 
 ## Support
 
 If Geeratya saves you time, you can [buy me a coffee](https://buymeacoffee.com/aleksanderis).
-
-## License
-
-MIT License ([LICENSE](LICENSE)).
 
 ## Disclaimer
 
