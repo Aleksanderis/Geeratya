@@ -4,6 +4,7 @@
 # SHA256SUMS or entry, missing asset, unsupported architecture and system (#860).
 # Run: scripts/test-install.sh   (not part of `dotnet test`)
 set -euo pipefail
+unset GEERATYA_VERSION GEERATYA_FORCE GEERATYA_INSTALL_DIR GEERATYA_RELEASES_URL GEERATYA_OS GEERATYA_ARCH
 root="$(cd "$(dirname "$0")/.." && pwd)"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }

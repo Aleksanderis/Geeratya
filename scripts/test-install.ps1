@@ -1,8 +1,9 @@
 # Tests scripts/install.ps1 against a fake GitHub releases API on disk (local paths, no network, no real GitHub, user PATH
 # and install folder in a temp dir): install, skip when current, update, pinned version, checksum mismatch, missing
-# SHA256SUMS or entry, missing asset, unsupported architecture (#860). Needs Windows PowerShell or pwsh. The fake
+# SHA256SUMS or entry, missing asset, unsupported architecture (#860). Needs Windows PowerShell or pwsh (paths are built with Join-Path, so pwsh on Linux works too). The fake
 # geeratya.exe is a text file and cannot answer --version, so an update is the same as a first install here.
 $ErrorActionPreference = 'Stop'
+foreach ($name in 'GEERATYA_VERSION', 'GEERATYA_FORCE', 'GEERATYA_NO_PATH', 'GEERATYA_ARCH', 'GEERATYA_INSTALL_DIR', 'GEERATYA_RELEASES_URL') { Remove-Item "Env:$name" -ErrorAction SilentlyContinue }
 $root = Split-Path -Parent $PSScriptRoot
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ("geeratya-install-test-" + [Guid]::NewGuid().ToString('N'))
 [void](New-Item -ItemType Directory -Path $tmp)
@@ -15,16 +16,16 @@ function New-Release([string]$Version, [string]$Api, [string]$Architecture) {
     $name = "geeratya-$Version-win-$Architecture"
     $stage = Join-Path $tmp "stage-$name"
     [void](New-Item -ItemType Directory -Force -Path (Join-Path $stage $name))
-    Set-Content -LiteralPath (Join-Path $stage "$name\geeratya.exe") -Value "fake exe $Version"
+    Set-Content -LiteralPath (Join-Path (Join-Path $stage $name) 'geeratya.exe') -Value "fake exe $Version"
     $zip = Join-Path $assets "$name.zip"
     Compress-Archive -Path (Join-Path $stage $name) -DestinationPath $zip
     $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
     $sums = Join-Path $assets 'SHA256SUMS'
     Set-Content -LiteralPath $sums -Value "$hash  $name.zip"
     @{ tag_name = "v$Version"; assets = @(@{ browser_download_url = $zip }, @{ browser_download_url = $sums }) } |
-        ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Api "tags\v$Version")
+        ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path (Join-Path $Api 'tags') "v$Version")
 }
-function Set-Latest([string]$Version, [string]$Api) { Copy-Item -LiteralPath (Join-Path $Api "tags\v$Version") -Destination (Join-Path $Api 'latest') -Force }
+function Set-Latest([string]$Version, [string]$Api) { Copy-Item -LiteralPath (Join-Path (Join-Path $Api 'tags') "v$Version") -Destination (Join-Path $Api 'latest') -Force }
 
 function Invoke-Install([string]$Api, [string]$Architecture, [string]$Version = '') {
     $env:GEERATYA_RELEASES_URL = $Api
@@ -32,7 +33,7 @@ function Invoke-Install([string]$Api, [string]$Architecture, [string]$Version = 
     $env:GEERATYA_NO_PATH = '1'
     $env:GEERATYA_ARCH = $Architecture
     if ($Version) { $env:GEERATYA_VERSION = $Version } else { Remove-Item Env:GEERATYA_VERSION -ErrorAction SilentlyContinue }
-    & (Join-Path $root 'scripts\install.ps1') 6>&1 | Out-String
+    & (Join-Path (Join-Path $root 'scripts') 'install.ps1') 6>&1 | Out-String
 }
 function Expect-Failure([scriptblock]$Action, [string]$Pattern, [string]$What) {
     $failed = $false
@@ -41,7 +42,7 @@ function Expect-Failure([scriptblock]$Action, [string]$Pattern, [string]$What) {
 }
 
 try {
-    $exe = Join-Path $tmp 'bin\geeratya.exe'
+    $exe = Join-Path (Join-Path $tmp 'bin') 'geeratya.exe'
     $api = Join-Path $tmp 'api'
     New-Release '1.2.3' $api 'x64'
     New-Release '1.2.3' $api 'arm64'
@@ -68,7 +69,7 @@ try {
     Remove-Item -LiteralPath $exe
     Expect-Failure { Invoke-Install $api 'arm64' } '*has no win-arm64 zip*' 'missing arm64 asset accepted'
 
-    $sums = Join-Path $api 'assets-1.2.3\SHA256SUMS'
+    $sums = Join-Path (Join-Path $api 'assets-1.2.3') 'SHA256SUMS'
     $good = Get-Content -LiteralPath $sums
     Set-Latest '1.2.3' $api
     Set-Content -LiteralPath $sums -Value (('0' * 64) + '  geeratya-1.2.3-win-x64.zip')
@@ -78,7 +79,7 @@ try {
     Expect-Failure { Invoke-Install $api 'x64' } '*no entry for geeratya-1.2.3-win-x64.zip*' 'missing checksum entry accepted'
     Set-Content -LiteralPath $sums -Value $good
 
-    $json = Get-Content -LiteralPath (Join-Path $api 'tags\v1.2.3') -Raw | ConvertFrom-Json
+    $json = Get-Content -LiteralPath (Join-Path (Join-Path $api 'tags') 'v1.2.3') -Raw | ConvertFrom-Json
     @{ tag_name = $json.tag_name; assets = @($json.assets | Where-Object { $_.browser_download_url -notlike '*SHA256SUMS' }) } |
         ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $api 'latest')
     Expect-Failure { Invoke-Install $api 'x64' } '*no SHA256SUMS*' 'release without SHA256SUMS accepted'

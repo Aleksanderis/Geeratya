@@ -6,6 +6,8 @@
 # Linux (x64, arm64) and macOS (Apple silicon): downloads the release archive geeratya-<version>-<rid>.tar.gz, checks it
 # against the release's SHA256SUMS and puts the binary into ~/.local/bin (no root, no sudo). Running it again updates; it
 # does nothing when the installed version is already the wanted one. No telemetry: the only requests go to GitHub.
+# Pin a version in the one-liner (the variable belongs to sh, not to curl):
+#   curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | GEERATYA_VERSION=1.2.3 sh
 # Windows: use scripts/install.ps1. Uninstall: delete the binary (the script prints the path).
 # macOS: the binary is not signed or notarised. Downloads by curl carry no quarantine flag, but if you fetched the archive
 # in a browser, run: xattr -d com.apple.quarantine <path to geeratya>
@@ -77,7 +79,9 @@ main() {
   fi
 
   work="$(mktemp -d)"
-  trap 'rm -rf "$work"' EXIT INT TERM HUP
+  trap 'rm -rf "$work"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM HUP
   json="$work/release.json"
   download "$release_url" "$json" "(no such release, or a GitHub rate limit: try again later)"
   tag="$(grep -o '"tag_name": *"[^"]*"' "$json" | head -n 1 | cut -d '"' -f 4)"
@@ -120,7 +124,7 @@ main() {
   # A temporary name and a rename replace a running binary safely.
   cp "$binary" "$target/geeratya.new"
   chmod 755 "$target/geeratya.new"
-  mv -f "$target/geeratya.new" "$installed_binary"
+  mv -f "$target/geeratya.new" "$installed_binary" || { rm -f "$target/geeratya.new"; fail "could not replace $installed_binary"; }
   say "Installed $installed_binary"
   case ":$PATH:" in
     *":$target:"*) ;;
