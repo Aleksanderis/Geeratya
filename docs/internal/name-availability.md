@@ -1,20 +1,20 @@
 # Name availability: "Geeratya"
 
-Research for issue #208, done 2026-11-08 from public pages and unauthenticated registry APIs only (no accounts, nothing paid). Nothing was renamed or registered.
+Research for issue #208, done 2026-11-08 (checks between 08:20 and 08:23 UTC; availability is a snapshot) from public pages and unauthenticated registry APIs only (no accounts, nothing paid). Nothing was renamed or registered.
 
 ## Recommendation
 
-**Keep "Geeratya".** No blocker was found: the name is unused on every registry checked, no trademark or product under it turned up, and it does not contain "Jira", so Atlassian's naming rules do not constrain it. Only the descriptive wording ("for Jira") needs care (see Atlassian below).
+**Keep "Geeratya".** No blocker was found: the name is unused on every package registry checked, no trademark or product under it turned up, and it does not contain "Jira", so Atlassian's naming rules do not constrain it. Only the descriptive wording ("for Jira") needs care (see Atlassian below).
 
-Before going public, claim what is cheap and still free: the GitHub name `geeratya` (user or organisation) for later transfer or Pages, the crates.io and npm names if ever wanted, and a domain. Availability can change any day; this is a snapshot.
+The GitHub organisation `Geeratya` exists (see below) and belongs to the owner's account. Before going public, claim what is cheap and still free: the crates.io and npm names if ever wanted, and a domain. Availability can change any day; this is a snapshot.
 
 ## Findings
 
 | Where | Check | Result |
 |---|---|---|
 | GitHub repositories | `search/repositories?q=geeratya` | 0 results (also 0 for name, description and README) |
-| GitHub user or organisation `geeratya` | `users/geeratya`, `orgs/geeratya`, user search | 404, 0 results: free |
-| GitHub Pages `geeratya.github.io` | HTTP request | 404: nothing is served. It is free only while no user or organisation `geeratya` exists, so creating that account claims it. Alternatively `<owner>.github.io/Geeratya` works without a new account |
+| GitHub user or organisation `geeratya` | `users/geeratya`, `orgs/geeratya`, user search | 404 and 0 results at 08:20 UTC. At 08:22:03 UTC the organisation `Geeratya` was created (no description, no public repos); the owner's login is a member of it (`gh api user/orgs`), so it is taken by the owner's side, not by a third party. I did not create it and cannot say which session did |
+| GitHub Pages `geeratya.github.io` | HTTP request | 404: nothing is served. With the organisation `Geeratya` in place, a repository named `geeratya.github.io` in it would serve this address |
 | crates.io | `api/v1/crates/geeratya` | 404: free |
 | npm | registry `geeratya` | 404: free |
 | PyPI | `pypi/geeratya/json` | 404: free |
@@ -26,7 +26,7 @@ Before going public, claim what is cheap and still free: the GitHub name `geerat
 | General web search | "Geeratya", with "trademark", "brand", "software", "Jira terminal client" | No page, product, company or mark. Only near-miss strings (Geertruida, Geeraart, GEARYTE, GEEBS) |
 | Trademark databases | WIPO Global Brand Database, USPTO, EUIPO | These need a browser (script-rendered search forms and blocked automated requests: Justia returned 403), so a real register search was **not** completed. Public aggregator pages found nothing. Treat "no conflict" as probable, not proven |
 
-The name is a coined word with no dictionary meaning in the search results, which is good for distinctiveness and for search ranking. The closest-looking names are unrelated (Dutch given names, other software with "Gee" or "Gea" prefixes), and the spelling and the "-ya" ending differ enough to avoid a likelihood of confusion in classes 9 and 42 (software).
+The name is a coined word with no dictionary meaning in the search results, which is good for distinctiveness and for search ranking. The closest-looking names are unrelated (Dutch given names, other software with "Gee" or "Gea" prefixes). No similar mark turned up in the aggregator pages that could be read; whether one exists in the official registers is open (see the last row of the table and the open items).
 
 ## Atlassian guidance
 
@@ -45,7 +45,7 @@ None needed. If the owner still wants a fallback, candidates should be checked w
 
 ## Open items for the owner
 
-- Optional: claim the GitHub user or organisation `geeratya` before the project goes public (needed for `geeratya.github.io`).
+- Confirm that the GitHub organisation `Geeratya` (created 2026-11-08 08:22 UTC, owner's login is a member) is yours; if it is not, the name is taken on GitHub and the recommendation needs a second look.
 - Optional: register a domain after a registrar search.
 - Optional: a real register search at WIPO, USPTO and EUIPO in a browser (a few minutes, free) if a trademark filing is ever planned.
 - Add the non-affiliation line to the README and the site when the release docs are written.
