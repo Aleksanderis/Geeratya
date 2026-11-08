@@ -2,6 +2,10 @@
 
 A keyboard-first terminal client for Jira Cloud: your Kanban board, backlog and issues in the terminal, with vim-style keys. The mouse is optional but fully functional.
 
+![Geeratya demo: a sprint board, an issue, a Kanban board and a status change](https://geeratya.github.io/media/demo.gif)
+
+([Video version](https://geeratya.github.io/media/demo.webm); recorded from the real UI against a fake Jira with `scripts/demo.sh`.)
+
 ## Why
 
 The Jira web UI is slow and mouse-heavy for the things done many times a day: look at the board, move a card, open an issue, write a comment, create a sub-task. Geeratya does those from the keyboard in a terminal, fast.
