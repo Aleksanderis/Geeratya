@@ -142,8 +142,8 @@ jobs:
         run: |
           mkdir unpacked
           if [ "$RUNNER_OS" = "Windows" ]; then
-            # Single quotes: bash must not expand $env (it left ":VERSION"); PowerShell does.
-            powershell.exe -NoProfile -Command 'Expand-Archive -Path dist/geeratya-$env:VERSION-$env:PLATFORM.zip -DestinationPath unpacked'
+            # Single quotes keep bash from expanding `$env:`; PowerShell expands it.
+            powershell.exe -NoProfile -Command 'Expand-Archive -Path "dist/geeratya-$env:VERSION-$env:PLATFORM.zip" -DestinationPath unpacked'
             unpacked/geeratya-"$VERSION"-"$PLATFORM"/geeratya.exe --version | grep -F "$VERSION"
           else
             tar -xzf dist/geeratya-"$VERSION"-"$PLATFORM".tar.gz -C unpacked
