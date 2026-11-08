@@ -56,14 +56,14 @@ More on the [website](https://geeratya.github.io/).
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
 ```
-# macOS (Apple silicon), Homebrew
+# macOS and Linux, Homebrew
 brew install aleksanderis/tap/geeratya
 
-# any platform, from source
-dotnet publish src/Geeratya.Tui -c Release -o publish && publish/geeratya
+# Windows
+winget install Aleksanderis.Geeratya
 ```
 
-Other ways: release archives for Linux, Windows and macOS on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet, so for now build from source; the brew and archive routes work once the first release is out (see `docs/internal/roadmap.md`).
+Other ways: the .zip (Windows), .deb, .rpm and .tar.gz (Linux) and the macOS archive on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet: these routes work once the first release is out (winget after its review). To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 
