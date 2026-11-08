@@ -5,12 +5,18 @@ PackageIdentifier: Aleksanderis.Geeratya
 PackageVersion: @VERSION@
 InstallerType: zip
 NestedInstallerType: portable
-NestedInstallerFiles:
-- RelativeFilePath: geeratya-@VERSION@-win-x64\geeratya.exe
-  PortableCommandAlias: geeratya
 Installers:
 - Architecture: x64
+  NestedInstallerFiles:
+  - RelativeFilePath: geeratya-@VERSION@-win-x64\geeratya.exe
+    PortableCommandAlias: geeratya
   InstallerUrl: https://github.com/Aleksanderis/Geeratya/releases/download/v@VERSION@/geeratya-@VERSION@-win-x64.zip
   InstallerSha256: @SHA_WIN@
+- Architecture: arm64
+  NestedInstallerFiles:
+  - RelativeFilePath: geeratya-@VERSION@-win-arm64\geeratya.exe
+    PortableCommandAlias: geeratya
+  InstallerUrl: https://github.com/Aleksanderis/Geeratya/releases/download/v@VERSION@/geeratya-@VERSION@-win-arm64.zip
+  InstallerSha256: @SHA_WIN_ARM@
 ManifestType: installer
 ManifestVersion: 1.10.0

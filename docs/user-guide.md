@@ -7,7 +7,7 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): these routes work once the first release is out.
 
 ```sh
-# macOS (Apple silicon) and Linux (x64), Homebrew
+# macOS (Apple silicon) and Linux (x64, arm64), Homebrew
 brew install aleksanderis/tap/geeratya
 
 # Windows (after the winget review)
@@ -20,7 +20,7 @@ Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for ex
 
 ### Windows (winget)
 
-Not available yet: `winget install` does not work until the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted, this will work:
+Not available yet: `winget install` does not work until the package is submitted to winget after the first release and this section is filled in once it is accepted. Until then use the `win-x64` or `win-arm64` zip from the Releases page (unpack it and put `geeratya.exe` on your `PATH`). Once accepted, this will work:
 
 ```powershell
 winget install Aleksanderis.Geeratya
