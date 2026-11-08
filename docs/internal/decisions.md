@@ -276,3 +276,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (landing page, #695)
 
 **Process:** The landing page is a separate static repository `Geeratya/geeratya.github.io` (owner decision), not a `docs/` page of this repository; supersedes the issue's "Pages workflow behind a switch" and "no binary media in the repository" (the demo files live there). Agents build and commit it locally; the owner pushes it, enables Pages and makes it public. Details: `landing-page.md`. Why: the owner's other project does the same, and the README demo already points at `geeratya.github.io/media`.
+
+## 2026-11-08 (Homebrew tap, #821)
+
+**Process:** No macOS signing or notarisation (owner decision, #207 closed): Homebrew (`Geeratya/homebrew-tap`) is the macOS route, archives need the `xattr` line. The tap update is its own workflow `homebrew.yml` (on release published, off unless the variable `HOMEBREW_TAP_UPDATE` is `true`), not a step in `release.yml`, so it runs after the draft is published and the archive URLs are public; same shape as the winget workflow of the owner's other project. Why: a formula pointing at draft-release assets would be broken until publication.

@@ -4,7 +4,7 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 
 ## Install
 
-Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"), so for now build from source:
+Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"), so for now build from source (once releases exist, macOS installs with Homebrew, see below):
 
 - Prerequisites: the .NET SDK version from `global.json` and the Native AOT prerequisites.
   - Linux (Debian/Ubuntu): `clang` and `zlib1g-dev`. Arch: `sudo pacman -S --needed clang zlib dotnet-sdk`.
@@ -16,6 +16,18 @@ Needs a Jira Cloud site, an Atlassian account on it and an API token (below). An
 Releases will add archives for Linux, Windows and macOS and system packages; this section will then list them. macOS is the least tested system.
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
+
+### macOS (Homebrew)
+
+```sh
+brew install geeratya/tap/geeratya
+```
+
+The tap `Geeratya/homebrew-tap` serves the Apple silicon (arm64) build. The macOS binary is **not notarised** and not signed with an Apple developer identity (at most the linker's ad-hoc signature). Homebrew downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and refuses to run it; clear the flag once after unpacking:
+
+```sh
+xattr -d com.apple.quarantine geeratya
+```
 
 ## Start and connect
 
