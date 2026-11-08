@@ -19,7 +19,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s);
 # wait-for is text that must be on screen after the keys before the frame is captured (before them the "Connected" banner or the board picker is awaited, because the profile line is cut off at 100 columns or fewer),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
-# Scenarios named detail-relations-* and comment-recorded-* run against a second fake on the recorded fixtures (no --issues), because only
+# Scenarios named detail-relations-*, comment-recorded-* and detail-epic-* run against a second fake on the recorded fixtures (no --issues), because only
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
@@ -60,16 +60,16 @@ all_scenarios=(
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
   "profile-list;120;36;dark;:profile|;Details"
   "settings;120;36;dark;:settings|;Settings"
-  "detail;120;36;dark;:jql project = GEN|jjjj|;moves via transition"
+  "detail;120;36;dark;:jql project = GEN|jjjj|;moves via"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Description"
   "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
-  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via transition"
+  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
   "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;newest first"
   # detail-zoom: Ctrl-j to the Description pane, <space>z zooms it; detail-comments-zoom: the same on the Comments pane
   "detail-zoom;120;36;dark;:jql project = GEN|jjjj|> z;zoomed"
   "detail-comments-zoom;120;36;dark;:jql project = GEN|jjjj|>>>> z;Comments"
-  "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transition"
+  "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via"
   # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
   "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"
   # detail-edit-summary: <space>ie on a list row opens the detail with the title pane in the edit state;
@@ -82,15 +82,16 @@ all_scenarios=(
   # comment-delete: three pane jumps (Ctrl-j each) put the cursor on a comment
   "comment-delete;120;36;dark;:jql project = GEN|jjjj|>>>>>> md;Jira cannot undo"
   "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
-  "comment-recorded-edit;120;36;dark;:jql key = GTM-11||>>>>>>>>>>>> me;formatting"
+  "comment-recorded-edit;120;36;dark;:jql key = GTM-11||>>>>>>>>>>>> me;Editing a comment"
   "detail-relations-gtm;120;36;dark;:jql key = GTM-11||>>>>;Remote"
   "detail-relations-gcm;120;36;dark;:jql key = GCM-10||>>>>;Remote"
   "detail-relations-gtm-epic;120;36;dark;:jql key = GTM-9||;Child issues"
   "detail-relations-gcm-epic;120;36;dark;:jql key = GCM-8||;Child issues"
   # detail-epic-edit: Enter on the Epic row of a story opens the parent chooser under it (#784)
   "detail-epic-edit;120;36;dark;:jql key = GCM-10||]jjjjj|;Type to search"
-  # detail-epic-suggest: the same chooser with GCM typed, the rows show the issue type of each suggestion (#793, #794)
-  "detail-epic-suggest;120;36;dark;:jql key = GCM-10||]jjjjj|GCM-1;[Bug]"
+  # detail-epic-suggest: the same chooser with GCM- typed, the rows show the issue type of each suggestion (#793, #794);
+  # the fake answers the recorded epics for the epic-scoped picker search, the only parents a story accepts (#795)
+  "detail-epic-suggest;120;36;dark;:jql key = GCM-10||]jjjjj|GCM-;[Epic]"
   "detail-relations-delete-confirm;120;36;dark;:jql key = GTM-9| id;Jira cannot undo"
   "detail-relations-create-type;120;36;dark;:jql key = GTM-11| ic;Choose the issue type"
   "detail-relations-create-subtask;120;36;dark;:jql key = GCM-10| iC|;Not editable here"
@@ -98,7 +99,7 @@ all_scenarios=(
   "form-create-panes;120;36;dark;:jql key = GTM-11| ic|;Not editable here"
   "form-create-panes-narrow;100;28;dark;:jql key = GTM-11| ic|;Create"
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
-  "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>>jj iu;Jira cannot undo"
+  "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>j iu;Jira cannot undo"
   "picker;120;36;dark; t;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "which-key-columns;160;24;dark;:jql project = GCM| ;+issue"
@@ -116,8 +117,8 @@ all_scenarios=(
   "status-confirm;120;36;dark;:board GCM|j isDon|;Move GCM-"
   "status-moved;120;36;dark;:board GCM|j isIn P|;Moved GCM-"
   "board;120;36;dark;:board GCM|;In Progress 4"
-  "board-lanes;120;36;dark;:board GCM| vs;Lane 1/1"
-  "board-filter;120;36;dark;:board GCM| vf;Filter: Recently Updated"
+  "board-lanes;120;36;dark;:board GCM| vs;1 lane ("
+  "board-filter;120;36;dark;:board GCM| vf;Quick filter: Recently Updated"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "backlog;120;36;dark;:backlog GCM|;GCM"
@@ -144,7 +145,7 @@ all_scenarios=(
   "transparent-board;120;36;light;:board GCM|:set transparent on|;transparent on."
   "transparent-palette;120;36;light;:board GCM|:set transparent on|:;Command"
   "theme-list;120;36;dark;:theme|;Themes:"
-  "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;[2 JQL"
+  "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;2 JQL assignee"
   "tab-list;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key| T;Open tabs"
 )
 
@@ -196,6 +197,8 @@ wait_for_text() {
   while ! tmux -L "$socket" capture-pane -t s -p 2> /dev/null | grep "-q${3:-F}" -- "$text"; do
     if [ $(($(now_ms) - start)) -gt "$timeout_ms" ]; then
       echo "screenshot.sh: '$text' did not appear within ${timeout_ms} ms" >&2
+      echo "--- screen at the timeout ---" >&2
+      tmux -L "$socket" capture-pane -t s -p >&2 2> /dev/null || true
       return 1
     fi
     sleep 0.15
@@ -301,7 +304,7 @@ render() {
 
   # The recorded dataset is scrubbed fixtures; only the relations scenarios use it.
   # Started only when a selected scenario needs it.
-  if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* || $wanted == *comment-recorded-* ]]; then
+  if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* || $wanted == *comment-recorded-* || $wanted == *detail-epic-* ]]; then
     dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
     recorded_pid=$!
     for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
@@ -322,7 +325,7 @@ render() {
   for spec in "${all_scenarios[@]}"; do
     name=${spec%%;*}
     if [ -n "$wanted" ] && [[ ",$wanted," != *",$name,"* ]]; then continue; fi
-    if [[ $name == detail-relations-* || $name == comment-recorded-* ]]; then
+    if [[ $name == detail-relations-* || $name == comment-recorded-* || $name == detail-epic-* ]]; then
       seed_fake_profile "$work/config" "$recorded_url"
     elif [[ $name == sprint-no-active ]]; then
       seed_fake_profile "$work/config" "$noactive_url"

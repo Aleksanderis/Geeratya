@@ -713,7 +713,7 @@ public sealed partial class FakeJiraWriteStore
             return stored;
         }
 
-        if (!_isRecordedIssue(key))
+        if (!_isRecordedIssue(key) && !_isListedIssue(key))
         {
             return null;
         }

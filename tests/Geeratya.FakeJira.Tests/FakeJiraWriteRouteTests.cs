@@ -160,6 +160,21 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
         Assert.Equal(name, issue.GetProperty("fields").GetProperty("status").GetProperty("name").GetString());
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(40)]
+    public async Task GivenBoardCardWithoutRecordedIssue_WhenTransitionPosted_ThenItIsAccepted(int generatedIssues)
+    {
+        Start(generatedIssues);
+        var path = "/rest/api/3/issue/GCM-13/transitions";
+        var list = Parse(await _client.GetStringAsync($"{_baseUrl}{path}"));
+        var id = list.GetProperty("transitions")[0].GetProperty("id").GetString();
+
+        var done = await Send(HttpMethod.Post, path, $"{{\"transition\":{{\"id\":\"{id}\"}}}}");
+
+        Assert.Equal(HttpStatusCode.NoContent, done.StatusCode);
+    }
+
     [Fact]
     public async Task GivenAssign_WhenPutThenCleared_ThenTheIssueReadsWithTheAssigneeThenWithout()
     {

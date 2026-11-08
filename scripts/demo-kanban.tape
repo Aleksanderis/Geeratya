@@ -1,5 +1,6 @@
 # README demo, part 2 (VHS): a Kanban board, an issue and a status change, on the recorded dataset of tools/FakeJira
-# (only it answers transitions). Run it through scripts/demo.sh, which sets DEMO_BIN and the fake Jira profile.
+# (the generated fake answers transitions too since #818).
+# Run it through scripts/demo.sh, which sets DEMO_BIN and the fake Jira profile.
 Output part2.webm
 Set Shell "bash"
 Set FontSize 16
