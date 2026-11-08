@@ -67,7 +67,7 @@ fake_pid=""
 # The video is re-encoded for the web; the GIF (for the README) gets a palette of its own.
 ffmpeg -v error -y -i "$work/demo.webm" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
 ffmpeg -v error -y -i "$out_dir/demo.webm" \
-  -vf "fps=10,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
+  -vf "fps=10,scale=1100:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
   "$out_dir/demo.gif"
 rm -rf "$out_dir/screenshots"
 cp -r "$work/shots" "$out_dir/screenshots"

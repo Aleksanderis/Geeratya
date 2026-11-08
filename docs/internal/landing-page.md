@@ -6,7 +6,7 @@ The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner 
 
 | Path | What |
 |---|---|
-| `index.html` | One page: what Geeratya is, the demo, Features and "Not included" (a copy of the README lists), install, quick start, docs links, licence, the non-affiliation line |
+| `index.html` | One page: what Geeratya is, the demo, Features (a copy of the README list), a Buy me a coffee link, install, quick start, docs links, licence, the non-affiliation line |
 | `assets/` | `logo.svg` (an original mark, no Jira or Atlassian imagery; keep it unchanged), `favicon.ico`, `favicon-32/180/192/512.png`, `social-preview.png` (1200x630) |
 | `media/` | `demo.gif` and `demo.webm`, the files `scripts/demo.sh` records (`testing.md`, "README demo"); the README links `https://geeratya.github.io/media/demo.gif`. Also the feature screenshots as `.webp` (board, backlog, jql-search, issue-detail, issue-comments, status-picker, status-changed), shown in the page's tour with alt text and lazy loading |
 | `robots.txt`, `sitemap.xml` | Crawler files with the `github.io` address |
@@ -14,7 +14,9 @@ The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner 
 
 ## Keeping it in step
 
-- Features and "Not included" in `index.html` copy the lists in `README.md`; change both in the same round.
+- Features in `index.html` copy the list in `README.md`; change both in the same round. "Not included" is not shown on the page (owner, #832); it stays in the README.
+- Palette: the default is the logo green (`:root` block). A second, restrained palette derived from the logo (slate blue-grey on ink, the logo's ink `#1e1e2e` kept) sits in the same stylesheet as `:root[data-palette="slate"]`; switch with one edit, `<html lang="en" data-palette="slate">`, and back by removing the attribute. The logo is never changed.
+- Support: the footer and the README link to <https://buymeacoffee.com/aleksanderis> (same account as Gitunia), and `.github/FUNDING.yml` sets `buy_me_a_coffee`.
 - The Install section says "build from source" until the first release (M8). When release archives and packages exist, replace it with the per-system lines of `docs/user-guide.md`.
 - Wording rules (`name-availability.md`): "for Jira Cloud" as a description, never "Jira" in the name or domain, no Atlassian or Jira logos, and the footer line "Geeratya is an independent project and is not affiliated with or endorsed by Atlassian. Jira is a trademark of Atlassian."
 - After a visible change to the shown screens, record the demo again and replace the two files and the screenshots in `media/` (convert PNG to WebP, about 80 quality).

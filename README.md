@@ -46,6 +46,10 @@ In planning. See `docs/internal/roadmap.md`.
 - Design documents are in `docs/internal/` (internal notes for maintainers)
 - Project conventions are in [CLAUDE.md](CLAUDE.md)
 
+## Support
+
+If Geeratya saves you time, you can [buy me a coffee](https://buymeacoffee.com/aleksanderis).
+
 ## License
 
 MIT License ([LICENSE](LICENSE)).
