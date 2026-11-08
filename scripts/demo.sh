@@ -64,8 +64,27 @@ kill "$fake_pid" 2> /dev/null || true
 wait "$fake_pid" 2> /dev/null || true
 fake_pid=""
 
+# A caption bar under the terminal names the pressed keys (VHS has no key overlay): "start end text" in seconds of
+# the recording, matched to the tape's pacing (a changed tape needs new times; the bar is skipped without a font).
+CAPTIONS=(
+  "1.0 2.1 j  next card" "2.1 3.3 l  next column" "3.3 4.1 j  next card" "4.1 5.3 h  previous column"
+  "5.3 6.5 k  previous card" "6.5 7.1 l  next column" "7.1 8.1 Enter  open the issue" "8.1 9.3 j  a section,  space z  zoom"
+  "9.3 12.4 Ctrl-l  next section" "12.4 13.3 Esc  back to the board" "13.3 14.1 :backlog" "14.1 17.0 ]]  next sprint"
+  "17.0 21.2 :jql  search in a new tab" "21.2 22.7 space i s  change status" "22.7 24.0 Enter  apply" "24.0 30.0 space r  refresh"
+)
+font=$(fc-match -f '%{file}' monospace 2> /dev/null || true)
+filter="pad=iw:ih+44:0:0:color=0x11111b"
+if [ -n "$font" ] && [ -f "$font" ]; then
+  n=0
+  for c in "${CAPTIONS[@]}"; do
+    read -r t0 t1 text <<< "$c"
+    n=$((n + 1))
+    printf '%s' "$text" > "$work/cap$n.txt"
+    filter+=",drawtext=fontfile=$font:textfile=$work/cap$n.txt:fontcolor=0xcdd6f4:fontsize=26:x=16:y=h-38:enable='between(t,$t0,$t1)'"
+  done
+fi
 # The video is re-encoded for the web; the GIF (for the README) gets a palette of its own.
-ffmpeg -v error -y -i "$work/demo.webm" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
+ffmpeg -v error -y -i "$work/demo.webm" -vf "$filter" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
 ffmpeg -v error -y -i "$out_dir/demo.webm" \
   -vf "fps=10,scale=1100:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
   "$out_dir/demo.gif"
