@@ -6,7 +6,8 @@
 #   --binary  the AOT binary (dotnet publish src/Geeratya.Tui -c Release -o <outdir>)
 #   --out     output directory (outside the repository): demo.gif and demo.webm
 # Two parts, joined: the generated dataset (sprint board, issue) and the recorded one (Kanban board, status change;
-# the recorded fake also answers transitions since #818, but the tapes stay as recorded). The files are hosted on the project's GitHub Pages site: copy them to the media/
+# the generated fake answers transitions too since #818, but the tapes stay as recorded).
+# The files are hosted on the project's GitHub Pages site: copy them to the media/
 # folder of the geeratya.github.io repository (docs/internal/testing.md, "README demo").
 # Needs vhs, ttyd, ffmpeg, dotnet. Nothing here runs in CI. Exit codes: 2 bad arguments, 3 missing tool.
 set -euo pipefail

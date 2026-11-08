@@ -60,16 +60,16 @@ all_scenarios=(
   "palette-run;120;36;dark;:jql project = GCM|:hide help|;Help"
   "profile-list;120;36;dark;:profile|;Details"
   "settings;120;36;dark;:settings|;Settings"
-  "detail;120;36;dark;:jql project = GEN|jjjj|;moves via transitio"
+  "detail;120;36;dark;:jql project = GEN|jjjj|;moves via"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Description"
   "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
-  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via transitio"
+  "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
   "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;newest first"
   # detail-zoom: Ctrl-j to the Description pane, <space>z zooms it; detail-comments-zoom: the same on the Comments pane
   "detail-zoom;120;36;dark;:jql project = GEN|jjjj|> z;zoomed"
   "detail-comments-zoom;120;36;dark;:jql project = GEN|jjjj|>>>> z;Comments"
-  "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via transitio"
+  "detail-field;120;36;dark;:jql project = GEN|jjjj|]jj;moves via"
   # detail-dropdown: the Details sidebar has the focus (Ctrl-l), j moves to Priority, Enter opens its dropdown
   "detail-dropdown;120;36;dark;:jql project = GEN|jjjj|]j|;Highest"
   # detail-edit-summary: <space>ie on a list row opens the detail with the title pane in the edit state;
