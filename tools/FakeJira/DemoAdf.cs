@@ -6,7 +6,8 @@ namespace Geeratya.FakeJira;
 /// <summary>
 /// Turns a small text markup into an ADF document, so the demo dataset can be written as readable text: blocks are
 /// separated by blank lines; "## " starts a heading, lines with "- " a bullet list, lines with "1. " a numbered list,
-/// a block between ``` lines is a code block, anything else a paragraph. Inline: **bold** and `code`.
+/// a block between ``` lines is a code block (text after the opening fence is its language, none by default),
+/// anything else a paragraph. Inline: **bold** and `code`.
 /// </summary>
 public static partial class DemoAdf
 {
@@ -31,6 +32,7 @@ public static partial class DemoAdf
             if (lines[index].StartsWith("```", StringComparison.Ordinal))
             {
                 var code = new List<string>();
+                var language = lines[index][3..].Trim();
                 index++;
 
                 while (index < lines.Length && !lines[index].StartsWith("```", StringComparison.Ordinal))
@@ -39,7 +41,7 @@ public static partial class DemoAdf
                 }
 
                 index++;
-                content.Add((JsonNode)CodeBlock(string.Join('\n', code)));
+                content.Add((JsonNode)CodeBlock(string.Join('\n', code), language));
 
                 continue;
             }
@@ -114,14 +116,20 @@ public static partial class DemoAdf
         return new JsonObject { ["type"] = type, ["content"] = entries };
     }
 
-    private static JsonObject CodeBlock(string code)
+    private static JsonObject CodeBlock(string code, string language)
     {
-        return new JsonObject
+        var block = new JsonObject
         {
             ["type"] = "codeBlock",
-            ["attrs"] = new JsonObject { ["language"] = "text" },
             ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = code }),
         };
+
+        if (language.Length > 0)
+        {
+            block["attrs"] = new JsonObject { ["language"] = language };
+        }
+
+        return block;
     }
 
     private static string Unmarked(string part, bool bold, bool code)
