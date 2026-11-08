@@ -133,12 +133,14 @@ public sealed partial class FakeJiraRouter
     private readonly Lock _cacheLock = new();
     private readonly FakeJiraWriteStore _writes;
     private readonly FakeScrumStore _scrum;
+    private readonly DemoJira? _demo;
     private HashSet<string>? _listedKeys;
 
     public FakeJiraRouter(FakeJiraOptions options)
     {
         _options = options;
         _writes = new FakeJiraWriteStore(ReadFixture, IsRecordedIssue, IsListedIssue);
+        _demo = options.Demo ? new DemoJira() : null;
         _scrum = new FakeScrumStore(ReadFixture, options.GeneratedIssues, options.NoActiveSprint);
     }
 
@@ -147,6 +149,11 @@ public sealed partial class FakeJiraRouter
 
     public FakeReply Route(string method, string path, IReadOnlyDictionary<string, string> query, string body)
     {
+        if (_demo?.TryRoute(method, path, query, body) is { } demo)
+        {
+            return demo;
+        }
+
         if (path == SearchPath && (method == Get || method == Post))
         {
             return Search(method, query, body);

@@ -8,6 +8,7 @@ public static class FakeJiraOptionsParser
     public const string RateLimitFlag = "--rate-limit-every";
     public const string DropWriteFlag = "--drop-write-every";
     public const string NoActiveSprintFlag = "--no-active-sprint";
+    public const string DemoFlag = "--demo";
     public const string PortFlag = "--port";
     public const string FixturesFlag = "--fixtures";
 
@@ -24,14 +25,16 @@ public static class FakeJiraOptionsParser
         var rateLimitEvery = 0;
         var dropWriteEvery = 0;
         var noActiveSprint = false;
+        var demo = false;
 
         for (var index = 0; index < arguments.Length; index += 2)
         {
             var flag = arguments[index];
 
-            if (flag == NoActiveSprintFlag)
+            if (flag is NoActiveSprintFlag or DemoFlag)
             {
-                noActiveSprint = true;
+                noActiveSprint |= flag == NoActiveSprintFlag;
+                demo |= flag == DemoFlag;
                 index--;
 
                 continue;
@@ -96,7 +99,7 @@ public static class FakeJiraOptionsParser
             return null;
         }
 
-        return new FakeJiraOptions(fixtures, port, issues, latency, rateLimitEvery, dropWriteEvery, noActiveSprint);
+        return new FakeJiraOptions(fixtures, port, issues, latency, rateLimitEvery, dropWriteEvery, noActiveSprint, demo);
     }
 
     private static string? FindFixtures(string start)
