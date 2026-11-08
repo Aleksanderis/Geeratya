@@ -55,15 +55,14 @@ More on the [website](https://geeratya.github.io/).
 
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
-```
-# macOS (Apple silicon) and Linux (x64), Homebrew
-brew install aleksanderis/tap/geeratya
+One line, installs the latest release (re-run it to update; set `GEERATYA_VERSION` to pin a version):
 
-# Windows
-winget install Aleksanderis.Geeratya
+```
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64)
+irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex           # Windows PowerShell
 ```
 
-Other ways: the .zip (Windows), .deb, .rpm, Arch .pkg.tar.zst and .tar.gz (Linux) and the macOS archive on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet: these routes work once the first release is out (winget after its review). To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Other ways to install: Linux `.deb`/`.rpm`, Arch/Omarchy `.pkg.tar.zst` (x64 and arm64, once the first release is published; AUR `geeratya-bin` is planned), Windows `winget install Aleksanderis.Geeratya` (once the first release is in winget), Homebrew `brew install aleksanderis/tap/geeratya` (macOS and Linux, once the first release is published), a Windows or Linux archive (x64 and arm64), or a macOS archive (Apple silicon; should work but is not fully tested yet, and unsigned, so Gatekeeper asks you to allow it, see the [user guide](docs/user-guide.md#install)). No release is published yet, so every route works once the first release is out. To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 
