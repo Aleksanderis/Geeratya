@@ -98,7 +98,7 @@ Can run before the M8 release check; it changes no Jira calls.
 
 Goal: someone else can install it and trust it.
 
-- Packaging: archives for Linux, Windows and macOS, `.deb` and `.rpm`, AUR, winget, Homebrew; version stamped from the tag (`--version`); macOS signing.
+- Packaging: archives for Linux, Windows and macOS, `.deb` and `.rpm`, AUR, winget, Homebrew; version stamped from the tag (`--version`); no macOS signing (Homebrew tap instead, #821).
 - Name availability check, README demo recording (hosted outside the repo), landing page, contributor docs, issue templates.
 - Idle CPU, startup and memory measurements on a real board and a release check on the first tag.
 

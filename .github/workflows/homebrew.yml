@@ -1,0 +1,51 @@
+# Updates Formula/geeratya.rb in the Homebrew tap Geeratya/homebrew-tap for a release (#821). OFF by default:
+# the job runs only when the repository variable HOMEBREW_TAP_UPDATE is "true" (Settings > Variables). It runs when
+# the owner publishes a release (the draft made by release.yml does not trigger it), so the archive URLs in the
+# formula are public by then. Needs the repository secret HOMEBREW_TAP_TOKEN: a fine-grained token with
+# "Contents: read and write" on Geeratya/homebrew-tap only (owner creates it, docs/internal/architecture.md, Releases).
+# The tap repository must already exist; the first formula is pushed by the owner by hand.
+name: homebrew
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  update-tap:
+    if: ${{ vars.HOMEBREW_TAP_UPDATE == 'true' && !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Generate the formula from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG#v}"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dl
+          src/scripts/gen-manifests.sh "$version" dl/SHA256SUMS manifests
+
+      - name: Push to the tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          [ -n "$TAP_TOKEN" ] || { echo "Repo secret HOMEBREW_TAP_TOKEN is not set" >&2; exit 1; }
+          git clone --quiet "https://x-access-token:${TAP_TOKEN}@github.com/Geeratya/homebrew-tap.git" tap
+          mkdir -p tap/Formula
+          cp manifests/homebrew-tap/Formula/geeratya.rb tap/Formula/geeratya.rb
+          cp manifests/homebrew-tap/README.md tap/README.md
+          cd tap
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "tap already up to date"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit --quiet -m "geeratya ${TAG#v}"
+          git push --quiet origin HEAD
