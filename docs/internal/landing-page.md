@@ -6,7 +6,7 @@ The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner 
 
 | Path | What |
 |---|---|
-| `index.html` | One page: what Geeratya is, the demo, Features (a copy of the README list), a Buy me a coffee link, install, quick start, docs links, licence, the non-affiliation line |
+| `index.html` | One page: what Geeratya is, the demo, Features (a copy of the README list), a Buy me a coffee button (own inline SVG, themed; the README uses the shields.io badge like Gitunia), install, quick start, docs links, licence, the non-affiliation line |
 | `assets/` | `logo.svg` (an original mark, no Jira or Atlassian imagery; keep it unchanged), `favicon.ico`, `favicon-32/180/192/512.png`, `social-preview.png` (1200x630) |
 | `media/` | `demo.gif` (under 4 MB, so GitHub's image proxy serves it) and `demo.webm`, the files `scripts/demo.sh` records (`testing.md`, "README demo"); the README links `https://geeratya.github.io/media/demo.gif`. Also the feature screenshots as `.webp` (board, backlog, jql-search, issue-detail, issue-comments, status-picker, status-changed), shown in the page's tour with alt text and lazy loading |
 | `robots.txt`, `sitemap.xml` | Crawler files with the `github.io` address |

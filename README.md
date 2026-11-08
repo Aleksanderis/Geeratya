@@ -88,7 +88,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Licensed 
 
 ## Support
 
-If Geeratya saves you time, you can [buy me a coffee](https://buymeacoffee.com/aleksanderis).
+If Geeratya saves you time, you can buy me a coffee:
+
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/aleksanderis)
 
 ## Disclaimer
 
