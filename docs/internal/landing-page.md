@@ -1,6 +1,6 @@
 # Landing page
 
-The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner decision, #695), served by GitHub Pages at <https://geeratya.github.io/>. Nothing of it lives in this repository, so there is no Pages workflow here. Static files, no build step. Its look is its own (#825): a left rail, monospace headings with a serif body, a palette taken from the unchanged logo (green on deep ink; paper with dark green in the light theme), terminal-window frames, and the GitHub mark (Octicons, MIT) inline for repository links. It deliberately does not resemble the Gitunia page.
+The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner decision, #695), served by GitHub Pages at <https://geeratya.github.io/>. Nothing of it lives in this repository, so there is no Pages workflow here. Static files, no build step. Its look is its own (#825): a left rail, monospace headings with a serif body, a palette taken from the unchanged logo (green on deep ink; paper with dark green in the light theme), terminal-window frames, and the GitHub mark (Octicons `mark-github`, unaltered, only on links to the repository, under GitHub's logo usage guidelines; the icon set's MIT licence does not cover the mark) inline. It deliberately does not resemble the Gitunia page.
 
 ## Contents of the landing repository
 
