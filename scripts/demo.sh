@@ -85,10 +85,10 @@ if [ -n "$font" ] && [ -f "$font" ] && ffmpeg -filters 2> /dev/null | grep -q dr
 fi
 duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$work/demo.webm")
 awk -v d="$duration" 'BEGIN { if (d < 23 || d > 27) print "warning: recording is " d " s, the CAPTIONS times were tuned for about 25 s" > "/dev/stderr" }'
-# The video is re-encoded for the web; the GIF (for the README) gets a palette of its own.
+# The video is re-encoded for the web; the GIF (for the README) is small on purpose (960 px, 48 colours, under 4 MB: GitHub's image proxy refuses big images).
 ffmpeg -v error -y -i "$work/demo.webm" -vf "$filter" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
 ffmpeg -v error -y -i "$out_dir/demo.webm" \
-  -vf "fps=10,scale=1100:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
+  -vf "fps=10,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=48:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" \
   "$out_dir/demo.gif"
 rm -rf "$out_dir/screenshots"
 cp -r "$work/shots" "$out_dir/screenshots"
