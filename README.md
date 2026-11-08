@@ -10,6 +10,8 @@ A keyboard-first terminal client for Jira Cloud: board, backlog and issues in a 
 
 [![Geeratya demo: a sprint board, an issue, a Kanban board and a status change](https://geeratya.github.io/media/demo.gif)](https://geeratya.github.io/)
 
+Video version: [demo.webm](https://geeratya.github.io/media/demo.webm).
+
 ## Why
 
 The Jira web UI is slow and mouse-heavy for what you do many times a day: check the board, move a card, open an issue, comment, add a sub-task. Geeratya does all of that from the keyboard, in a terminal, quickly.
@@ -56,8 +58,11 @@ More on the [website](https://geeratya.github.io/).
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
 ```
-brew install aleksanderis/tap/geeratya                                      # macOS (Apple silicon)
-dotnet publish src/Geeratya.Tui -c Release -o publish && publish/geeratya   # from source
+# macOS (Apple silicon), Homebrew
+brew install aleksanderis/tap/geeratya
+
+# any platform, from source
+dotnet publish src/Geeratya.Tui -c Release -o publish && publish/geeratya
 ```
 
 Other ways: release archives for Linux, Windows and macOS on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page. The macOS binary is not notarised, see the [user guide](docs/user-guide.md#macos-homebrew) if macOS refuses to run it. No release is published yet, so for now build from source; the brew and archive routes work once the first release is out (see `docs/internal/roadmap.md`).
