@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │ Selection                                                                   ▲│           │
-│           │   All actions │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
-│           │   Commands    │              issue)                                                          │           │
+│           │   Global      │ Rank                                                                        ▲│           │
+│           │   All actions │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │   Commands    │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
+│           │               │ Selection                                                                    │           │
+│           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
+│           │               │              issue)                                                          │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
 │           │               │ View                                                                         │           │
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
@@ -27,10 +30,7 @@
 │           │               │   Tab        Next tab  (gt)                                                  │           │
 │           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
 │           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
-│           │               │   Alt-1      Go to tab 1                                                     │           │
-│           │               │   Alt-2      Go to tab 2                                                     │           │
-│           │               │   Alt-3      Go to tab 3                                                     │           │
-│           │               │   Alt-4      Go to tab 4                                                    ▼│           │
+│           │               │   Alt-1      Go to tab 1                                                    ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

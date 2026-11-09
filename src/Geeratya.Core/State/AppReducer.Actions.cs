@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Boards;
+using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Flash;
@@ -83,7 +84,12 @@ public sealed partial class AppReducer
             ActionIds.SelectionVisual => InNormal(
                 state,
                 () => DetailYank.ToggleVisual(state) ?? SelectionActions.ToggleVisual(state)),
-            ActionIds.DetailYank => InNormal(state, () => DetailYank.Yank(state) ?? Result(state)),
+            ActionIds.DetailYank => InNormal(
+                state,
+                () => DetailYank.Yank(state) ?? IssueYank.Copy(state, IssueYankForm.Key)),
+            ActionIds.IssueYankKey => InNormal(state, () => IssueYank.Copy(state, IssueYankForm.Key)),
+            ActionIds.IssueYankLink => InNormal(state, () => IssueYank.Copy(state, IssueYankForm.Link)),
+            ActionIds.IssueYankSummary => InNormal(state, () => IssueYank.Copy(state, IssueYankForm.Summary)),
             ActionIds.SelectionMark => InNormal(state, () => SelectionActions.ToggleMark(state, true)),
             ActionIds.RankUp => InNormal(state, () => RankActions.Step(state, RankMove.Up, 1, at)),
             ActionIds.RankDown => InNormal(state, () => RankActions.Step(state, RankMove.Down, 1, at)),

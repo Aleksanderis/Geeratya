@@ -293,6 +293,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **Process:** The Arch/Omarchy `.pkg.tar.zst` is built by `scripts/package-linux.sh` itself (tar + zstd + `.PKGINFO`, no nfpm or makepkg, like the `.deb`) from the linux archive, so no extra tool is fetched in the release job. Install check: real `pacman -U` in `archlinux:latest` for x86_64; aarch64 has no official Arch image (Arch Linux ARM is third-party, not trusted in a release job), so the native arm64 runner unpacks the package, checks `.PKGINFO` and runs the packaged binary. The package is covered by `SHA256SUMS`; the AUR PKGBUILD already builds from the same archives for both arches and is unchanged. Gitunia (nfpm, no install check) was read for scope only.
 
+## 2026-11-09 (copy issues, #876)
+
+**UI:** Issues are copied with `<space>y y` (key), `<space>y u` (link) and `<space>y s` (`KEY Summary`), also from the right-click menu; a bare `y` outside an opened issue copies the key. The target is the focused issue (row or card, the shown issue, or the related issue or Parent/Epic field under the detail cursor). Extends #773: same `CopyToClipboardEffect` and `IClipboard`. Why: leader chords keep vim's `yy`/`Y` free (vim-clash rule); three forms cover what is pasted into chat, commits and notes.
+
 ## 2026-11-09 (swimlane strip, #874)
 
 **UI:** Swimlanes show every lane together as a one-row strip above the frame (`▾ Name n` for the lane whose columns are drawn, `▸ Name n` for the others; click a chip to show it), instead of only a `Lane n/N` text in the status line (supersedes "one lane at a time" of #192; the owner's Jira screenshot shows lane headers over the columns). Why: all lanes visible with their counts, at a fixed cost of one row, so the card-pitch viewport maths stay valid (`LaneStrip.BoardRows`). Several lanes with columns open at once and folding lanes are follow-ups; they need a per-lane cursor and scroll. Details: `ux-screens.md`, "Columns layout".

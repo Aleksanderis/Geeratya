@@ -2,10 +2,9 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Enter      Open the selected item                                         ▲│           │
-│           │   All actions │   0          Go to the first column                                          │           │
-│           │   Commands    │   $          Go to the last column                                           │           │
-│           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
+│           │   Global      │   0          Go to the first column                                         ▲│           │
+│           │   All actions │   $          Go to the last column                                           │           │
+│           │   Commands    │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
 │           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
 │           │               │              backlog section                                                 │           │
@@ -17,7 +16,8 @@
 │           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   i          Edit the title or the Description in place                      │           │
-│           │               │   y          Copy the selection or the field under the cursor                │           │
+│           │               │   y          Copy the selection or field under the cursor (in a list: the    │           │
+│           │               │              issue key)                                                      │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │

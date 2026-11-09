@@ -12,13 +12,13 @@
 │ │               │   Enter      Open the selected item                      │ │
 │ │               │   <space>l   Switch between list and columns             │ │
 │ │               │   <space>o   Open the issue in the browser               │ │
+│ │               │   y          Copy the selection or field under the       │ │
+│ │               │              cursor (in a list: the issue key)           │ │
+│ │               │   <space>yy  Copy the key of the issue under the cursor  │ │
+│ │               │   <space>yu  Copy the issue link                         │ │
+│ │               │   <space>ys  Copy the issue key and summary              │ │
 │ │               │   <space>ie  Edit the issue title in place (opens the    │ │
-│ │               │              detail from a list or board)                │ │
-│ │               │   <space>ia  Assign the issue: search people, or         │ │
-│ │               │              unassign                                    │ │
-│ │               │   <space>im  Assign the issue to me                      │ │
-│ │               │   <space>is  Change the status of the issue              │ │
-│ │               │   Alt-k      Rank the issue up (a count moves it that   ▼│ │
+│ │               │              detail from a list or board)               ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

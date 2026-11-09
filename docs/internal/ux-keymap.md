@@ -50,7 +50,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `Alt-1` to `Alt-9` | none | go to tab 1 to 9 |
 | `Ctrl-^` `<space><Tab>` | `Ctrl-^` alternate file | the previously active tab (the other tab with the newest activation; a closed tab is forgotten; with none the status line says `No previous tab.`). Normal mode only: in Insert mode a tab switch would leave a form open under another tab. Mouse: a click on any tab already reaches it, so no extra gesture |
 | `v` | Visual mode | Visual mode over rows (list and backlog layouts; built, #393); in an opened issue over the lines of a pane (built, #773) |
-| `y` | yank (needs a motion or a Visual selection) | copy to the system clipboard: the Visual selection of an opened issue, else the whole field or comment under the cursor (built, #773; `y y` is not bound, a bare `y` acts as it) |
+| `y` | yank (needs a motion or a Visual selection) | copy to the system clipboard: the Visual selection of an opened issue, else the whole field or comment under the cursor (built, #773; `y y` is not bound, a bare `y` acts as it; in a list, board or backlog it copies the key of the selected issue, #876) |
 | `Alt-h` `Alt-j` `Alt-k` `Alt-l` (planned, M2) | none | move the selected card or row (status or rank) |
 
 ## Layout for writes and Scrum (planned, M2 to M5)
@@ -78,7 +78,10 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>ic` | `issue.create` | Create an issue (type picker, then the form) | E | `+` in the view header | M2 #162 (bound) |
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
 | `<space>ie` | `issue.edit` | Edit the title in place: opens the issue detail (from a list or board) with the title pane in the edit state (`ux-screens.md`, "Editing in place"); `:priority` and `:labels` open the one-field form | E | click the field in the detail | M2 #164, M7 #709 |
-| `y` | `detail.yank` | In the issue detail, copy the Visual selection (started with `v`) to the system clipboard, or with none the whole Description, comment or field under the cursor; elsewhere it does nothing | E | drag over the lines (`Drag rows`) | M7 #773 |
+| `y` | `detail.yank` | In the issue detail, copy the Visual selection (started with `v`) to the system clipboard, or with none the whole Description, comment or field under the cursor; in a list, board or backlog it copies the key of the selected issue (#876) | E | drag over the lines (`Drag rows`) | M7 #773 |
+| `<space>y y` | `issue.yank-key` | Copy the key of the focused issue: the selected row or card, the shown issue, or the sub-task, linked issue, parent or epic under the detail cursor | E | right-click menu | M9 #876 |
+| `<space>y u` | `issue.yank-link` | Copy the link (`https://site/browse/KEY`) of the focused issue, same target rules | E | right-click menu | M9 #876 |
+| `<space>y s` | `issue.yank-summary` | Copy `KEY Summary` of the focused issue (the key alone when the summary is not known, as for a linked issue not loaded yet) | E | right-click menu | M9 #876 |
 | `i` | `detail.edit` | In the issue detail, edit the title or Description pane under the cursor in place (like `Enter` on it); elsewhere it does nothing | E | double click on the pane (`item.open`) | M7 #709 |
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
@@ -160,6 +163,8 @@ A bare-letter shortcut for any write, an undo key (Jira has none), bulk delete, 
 - **Quit and cancel (#390).** `Ctrl-c` quits from Confirm and cancels running read loads at once, but still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` quits in Normal only and does nothing in Confirm, so a stray key never answers a destructive question.
 
 ## Copying text
+
+Copying an issue (#876): `<space>y y` copies the key, `<space>y u` the link, `<space>y s` `KEY Summary`; a bare `y` in a list, board or backlog copies the key (in an opened issue it copies text, as below). The target is the focused issue: the selected row or card; in an opened issue the sub-task, linked issue, Parent or Epic field under the cursor, else the shown issue. With a Visual range of several rows or marks set the copy refuses (it takes one issue; `Copy takes one issue: ...`), like the single-issue writes. The chords are leader keys, so vim's `yy` and `Y` stay free for text. Gitunia has no issue copy; its `Y` (copy rows) is the closest relative.
 
 Decided in #773 (owner request; `decisions.md`, 2026-11-05). In an opened issue `v` starts a line selection on the cursor line (the row it is on, inside one pane), `j`, `k`, `Ctrl-d`, `Ctrl-u`, `g g`, `G` and the arrows extend it (the lines are drawn in the range tint, the cursor line stays the selected tint), `y` copies the lines to the system clipboard and ends the selection, `v` or `Esc` ends it without copying (`Esc` drops it before it pops the issue). A selection stays inside the pane it started in: a cursor in another pane stops at that pane's edge. Pressing `v` on a cut Description or comment shows all of it first. `y` with no selection copies the whole field or comment under the cursor, also the part cut off on screen (the Description and comments as the plain text of the rendered lines, a Details field as `label value`). Selected lines are copied as shown (the pane's wrapping), without the frame; the lines of one wrapped field join with a space. The Details sidebar takes no selection (`y` copies its field). Any data reload, resize or `z a` ends a selection, because its lines moved. The status line then says `Copied N lines (wl-copy)` or why not (`Cannot copy: ...`).
 
