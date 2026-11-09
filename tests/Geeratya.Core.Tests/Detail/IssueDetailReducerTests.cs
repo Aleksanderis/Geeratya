@@ -457,7 +457,6 @@ public class IssueDetailReducerTests
         var state = LoadedLongIssue(commentCount: 20, rows: 10);
         var document = Active(state).Detail[0].Document!;
         var lines = document.Lines.Count;
-        var viewport = DetailLayout.ViewportRows(10);
 
         var down = Press(state, "j").State;
         var page = Press(down, "Ctrl-d").State;
@@ -469,7 +468,8 @@ public class IssueDetailReducerTests
         Assert.Equal(document.Stops[0], Active(state).Detail[0].Cursor);
         Assert.Equal(document.Stops[1], Active(down).Detail[0].Cursor);
         Assert.Equal(0, Active(down).Detail[0].Scroll);
-        Assert.InRange(Active(page).Detail[0].Cursor, document.Stops[1] + (viewport / 2), lines);
+        Assert.InRange(Active(page).Detail[0].Cursor, document.Stops[1], lines);
+        Assert.Equal(document.SectionAt(document.Stops[1]), document.SectionAt(Active(page).Detail[0].Cursor));
         Assert.Contains(Active(bottom).Detail[0].Cursor, Active(bottom).Detail[0].Document!.Stops);
 
         // Under the comments (the narrow layout) the Details pane follows, so j goes on into it.
@@ -479,6 +479,31 @@ public class IssueDetailReducerTests
         Assert.Equal(document.Stops[0], Active(top).Detail[0].Cursor);
         Assert.Equal(0, Active(top).Detail[0].Scroll);
         Assert.Equal(document.Stops[0], Active(above).Detail[0].Cursor);
+    }
+
+    [Fact]
+    public void GivenLongIssue_WhenPagingDownAndUp_ThenTheCursorNeverLeavesItsPane()
+    {
+        var state = Press(LoadedLongIssue(commentCount: 20, rows: 10), "G").State;
+        var comments = Active(state).Detail[0].Document!.SectionIds.ToList().IndexOf(PaneIds.Comments);
+
+        for (var step = 0; step < 40; step++)
+        {
+            state = Press(state, "Ctrl-d").State;
+
+            var document = Active(state).Detail[0].Document!;
+
+            Assert.Equal(comments, document.SectionAt(Active(state).Detail[0].Cursor));
+        }
+
+        for (var step = 0; step < 40; step++)
+        {
+            state = Press(state, "Ctrl-u").State;
+
+            var document = Active(state).Detail[0].Document!;
+
+            Assert.Equal(comments, document.SectionAt(Active(state).Detail[0].Cursor));
+        }
     }
 
     [Fact]

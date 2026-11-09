@@ -32,7 +32,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 |---|---|---|
 | `h j k l` | motions | navigation |
 | `g g`, `G` | top, bottom | top, bottom |
-| `Ctrl-d`, `Ctrl-u` | half page down, up | page down, up |
+| `Ctrl-d`, `Ctrl-u` | half page down, up | page down, up (in an opened issue inside the current pane only, #870) |
 | `:` | command line | command palette |
 | `q` | record a macro | quit (Normal mode only; there are no macros) |
 | `?` | search backwards | help (search arrives with `/` and `n`/`N` in a later issue) |

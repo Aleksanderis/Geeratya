@@ -255,6 +255,47 @@ public class IssueDetailSectionTests
     }
 
     [Fact]
+    public void GivenACutDescription_WhenPressingCtrlDAndCtrlU_ThenTheTextScrollsAndTheCursorStaysInThePane()
+    {
+        var state = OnDescriptionRow(Opened(LongText(20), []), 0);
+        var pane = Document(state).SectionIds.ToList().IndexOf(PaneIds.Description);
+
+        var down = Press(state, "Ctrl-d").State;
+        var downMore = Press(Press(down, "Ctrl-d").State, "Ctrl-d").State;
+        var up = Press(downMore, "Ctrl-u").State;
+
+        Assert.Equal(1, Top(down).DescriptionOffset);
+        Assert.Equal(3, Top(downMore).DescriptionOffset);
+        Assert.Equal(2, Top(up).DescriptionOffset);
+        Assert.Equal(pane, Document(up).SectionAt(Top(up).Cursor));
+        Assert.Equal(pane, Document(downMore).SectionAt(Top(downMore).Cursor));
+    }
+
+    [Fact]
+    public void GivenADescriptionScrolledToItsEnd_WhenPressingCtrlD_ThenTheCursorStaysInThePane()
+    {
+        var state = OnDescriptionRow(Opened(LongText(20), [Comment("7", 8)]), 0);
+
+        for (var index = 0; index < 60; index++)
+        {
+            state = Press(state, "Ctrl-d").State;
+        }
+
+        var pane = Document(state).SectionIds.ToList().IndexOf(PaneIds.Description);
+
+        Assert.Equal(pane, Document(state).SectionAt(Top(state).Cursor));
+        Assert.Equal(Document(state).PaneScrolls[pane]!.MaxOffset, Top(state).DescriptionOffset);
+
+        for (var index = 0; index < 60; index++)
+        {
+            state = Press(state, "Ctrl-u").State;
+        }
+
+        Assert.Equal(0, Top(state).DescriptionOffset);
+        Assert.Equal(pane, Document(state).SectionAt(Top(state).Cursor));
+    }
+
+    [Fact]
     public void GivenAScrolledDescription_WhenPressingEnterOnTheNote_ThenItExpandsInPlace()
     {
         var state = OnDescriptionRow(Opened(LongText(5), []), 2);
