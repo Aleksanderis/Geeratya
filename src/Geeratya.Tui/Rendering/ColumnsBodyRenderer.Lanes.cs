@@ -13,7 +13,7 @@ public sealed partial class ColumnsBodyRenderer
     /// </summary>
     private static StyledLine LaneStripLine(TabState tab, int width)
     {
-        var layout = LaneStrip.Layout(tab.Swimlane, tab.Lane, tab.Rows, width);
+        var layout = LaneStrip.Layout(ColumnsNavigation.LanesOf(tab), tab.Lane, width);
         var spans = new List<StyledSpan>();
         var column = 0;
 

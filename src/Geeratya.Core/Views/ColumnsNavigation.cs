@@ -196,7 +196,13 @@ public static class ColumnsNavigation
             return null;
         }
 
-        return LaneStrip.Layout(tab.Swimlane, tab.Lane, tab.Rows, width).KeyAt(column);
+        return LaneStrip.Layout(LanesOf(tab), tab.Lane, width).KeyAt(column);
+    }
+
+    /// <summary>The lanes of the tab's grouping, kept per row list (empty without a grouping).</summary>
+    public static IReadOnlyList<SwimlaneLane> LanesOf(TabState tab)
+    {
+        return tab.Columns.GetLanes(tab);
     }
 
     private static BoardHit? HitAt(

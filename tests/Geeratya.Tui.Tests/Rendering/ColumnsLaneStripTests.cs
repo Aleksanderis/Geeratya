@@ -1,5 +1,7 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -65,7 +67,7 @@ public class ColumnsLaneStripTests
     public void GivenAStrip_WhenClickingAnotherLane_ThenItShowsThatLaneWithoutOpeningAnything()
     {
         var state = Active(Grouped("u1"));
-        var layout = LaneStrip.Layout(SwimlaneKind.Assignee, "u1", Rows(), Width);
+        var layout = LaneStrip.Layout(Swimlanes.Lanes(SwimlaneKind.Assignee, Rows()), "u1", Width);
         var other = layout.Chips.Single(chip => chip.Key == "u2");
 
         var result = _reducer.Reduce(state, new PointerPlaced(other.Start + 1, 0, Width)).State;
@@ -96,7 +98,7 @@ public class ColumnsLaneStripTests
             .Select(index => Issue($"B-{index}", "1", $"u{index}", $"Person number {index}"))
             .ToArray();
 
-        var layout = LaneStrip.Layout(SwimlaneKind.Assignee, "u11", rows, 40);
+        var layout = LaneStrip.Layout(Swimlanes.Lanes(SwimlaneKind.Assignee, rows), "u11", 40);
 
         Assert.True(layout.MoreLeft);
         Assert.False(layout.MoreRight);
@@ -112,12 +114,66 @@ public class ColumnsLaneStripTests
             .Select(index => Issue($"B-{index}", "1", $"u{index}", $"Person number {index}"))
             .ToArray();
 
-        var layout = LaneStrip.Layout(SwimlaneKind.Assignee, "u0", rows, 40);
+        var layout = LaneStrip.Layout(Swimlanes.Lanes(SwimlaneKind.Assignee, rows), "u0", 40);
 
         Assert.False(layout.MoreLeft);
         Assert.True(layout.MoreRight);
         Assert.True(layout.Chips[0].Current);
         Assert.All(layout.Chips, chip => Assert.InRange(chip.End, 1, 39));
+    }
+
+    [Fact]
+    public void GivenAnActionOnAChip_WhenClicked_ThenOnlyTheLaneChangesAndNothingOpens()
+    {
+        var state = Active(Grouped("u1"));
+        var chip = LaneColumn(state.Session.Tabs.Single(), "u2");
+
+        var result = _reducer.Reduce(state, new PointerPlaced(chip, 0, Width, new ActionRequested(ActionIds.ItemOpen)));
+        var tab = result.State.Session.Tabs.Single();
+
+        Assert.Equal("u2", tab.Lane);
+        Assert.Empty(tab.Detail);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenATallColumnUnderAStrip_WhenMovingDownPastTheViewport_ThenTheSelectedCardIsDrawn()
+    {
+        var tab = Tall();
+
+        for (var press = 0; press < 11; press++)
+        {
+            tab = ColumnsNavigation.Move(tab, ListMove.Down);
+        }
+
+        var body = string.Join('\n', Render(tab).Select(line => line.PlainText));
+
+        Assert.Equal("T-11", tab.SelectedKey);
+        Assert.Contains("T-11", body, StringComparison.Ordinal);
+        Assert.Equal(Height, Render(tab).Count);
+    }
+
+    [Fact]
+    public void GivenAStrip_WhenLabellingForFlash_ThenTheLabelsAreExactlyTheCardsDrawn()
+    {
+        var tab = Tall();
+        var body = string.Join('\n', Render(tab).Select(line => line.PlainText));
+
+        var labels = FlashBoardLabeler.Compute(tab, "Summary", Width, Height);
+
+        Assert.NotEmpty(labels);
+        Assert.All(labels, label => Assert.Contains(label.Key!, body, StringComparison.Ordinal));
+        var drawn = Enumerable.Range(0, 12).Count(index => body.Contains($"T-{index} ", StringComparison.Ordinal));
+
+        Assert.Equal(drawn, labels.Count);
+    }
+
+    private static TabState Tall()
+    {
+        var rows = Enumerable.Range(0, 12).Select(index => Issue($"T-{index}", "1", "u1", "Al")).ToArray();
+        var grouped = Grouped("u1");
+
+        return ColumnsNavigation.Resync(grouped with { Rows = rows, SelectedKey = "T-0" });
     }
 
     [Theory]
@@ -138,7 +194,7 @@ public class ColumnsLaneStripTests
 
     private static int LaneColumn(TabState tab, string key)
     {
-        return LaneStrip.Layout(tab.Swimlane, tab.Lane, tab.Rows, Width).Chips.Single(chip => chip.Key == key).Start;
+        return LaneStrip.Layout(ColumnsNavigation.LanesOf(tab), tab.Lane, Width).Chips.Single(chip => chip.Key == key).Start;
     }
 
     private static AppState Active(TabState tab)

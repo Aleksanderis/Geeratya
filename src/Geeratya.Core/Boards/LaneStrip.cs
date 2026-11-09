@@ -1,6 +1,5 @@
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
-using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Boards;
 
@@ -20,11 +19,14 @@ public static class LaneStrip
     private const int MaxNameWidth = 24;
     private const int Gap = 2;
     private const int MoreMarkWidth = 2;
+    private const int MinimumWidth = 8;
 
-    /// <summary>Whether the tab draws the strip: the columns layout with a grouping.</summary>
+    /// <summary>Whether the tab draws the strip: the columns layout with a grouping and rows to group.</summary>
     public static bool IsShown(TabState tab)
     {
-        return tab.Swimlane != SwimlaneKind.None && tab.Definition.Layout == ViewLayout.Columns;
+        return tab.Swimlane != SwimlaneKind.None
+            && tab.Definition.Layout == ViewLayout.Columns
+            && tab.Rows.Count > 0;
     }
 
     /// <summary>The list rows left for the board: the tab's visible rows less the strip.</summary>
@@ -40,44 +42,36 @@ public static class LaneStrip
     }
 
     /// <summary>
-    /// The chips for <paramref name="rows"/> in <paramref name="width"/> cells, scrolled so the current lane shows
-    /// whole (cut with <c>…</c> only when it alone is wider than the row).
+    /// The chips for <paramref name="lanes"/> in <paramref name="width"/> cells, scrolled so the current lane shows
+    /// whole (cut with <c>…</c> only when it alone is wider than the row). Linear in the lanes.
     /// </summary>
-    public static LaneStripLayout Layout(
-        SwimlaneKind kind,
-        string? laneKey,
-        IReadOnlyList<IssueSummary> rows,
-        int width)
+    public static LaneStripLayout Layout(IReadOnlyList<SwimlaneLane> lanes, string? laneKey, int width)
     {
-        var lanes = Swimlanes.Lanes(kind, rows);
-
-        if (Swimlanes.Current(lanes, laneKey) is not { } current || width <= 0)
+        if (Swimlanes.Current(lanes, laneKey) is not { } current || width < MinimumWidth)
         {
             return new LaneStripLayout([], false, false);
         }
 
         var index = lanes.ToList().IndexOf(current);
-        var first = 0;
+        var used = DisplayWidth.Of(Text(current, true));
+        var first = index;
 
-        while (first < index && !Fits(lanes, first, index, width))
+        // Take earlier lanes while they still fit next to the current one (room for the more-mark on the left).
+        while (first > 0)
         {
-            first++;
+            var more = first - 1 > 0 ? MoreMarkWidth : 0;
+            var next = used + Gap + DisplayWidth.Of(Text(lanes[first - 1], false));
+
+            if (next + more > width - 1)
+            {
+                break;
+            }
+
+            used = next;
+            first--;
         }
 
         return Place(lanes, current, first, width);
-    }
-
-    private static bool Fits(IReadOnlyList<SwimlaneLane> lanes, int first, int index, int width)
-    {
-        var end = first > 0 ? MoreMarkWidth : 0;
-
-        for (var lane = first; lane <= index; lane++)
-        {
-            end += DisplayWidth.Of(Text(lanes[lane], lane == index));
-            end += lane == index ? 0 : Gap;
-        }
-
-        return end <= width - 1;
     }
 
     private static LaneStripLayout Place(IReadOnlyList<SwimlaneLane> lanes, SwimlaneLane current, int first, int width)
