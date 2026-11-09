@@ -143,6 +143,29 @@ public class LaneRegionsTests
     }
 
     [Fact]
+    public void GivenALaneLeft_WhenACardIsInsertedAboveBeforeComingBack_ThenTheCardItHeldIsSelectedByKey()
+    {
+        var tab = ColumnsNavigation.Move(Stacked(37), ListMove.Down);
+        var away = ColumnsNavigation.SwitchLane(tab, "u2");
+
+        Assert.Equal("A-2", tab.SelectedKey);
+
+        var reordered = away with { Rows = [Issue("A-0", "1", "u1", "Al"), .. away.Rows] };
+        var back = ColumnsNavigation.SwitchLane(reordered, "u1");
+
+        Assert.Equal("A-2", back.SelectedKey);
+    }
+
+    [Fact]
+    public void GivenAFlashJumpWhereTheCurrentLaneAlsoHasTheCard_WhenSelecting_ThenTheLaneDoesNotChange()
+    {
+        var tab = ColumnsNavigation.Select(Stacked(37), "A-3");
+
+        Assert.Equal("u1", tab.Lane);
+        Assert.Equal("A-3", tab.SelectedKey);
+    }
+
+    [Fact]
     public void GivenAColumnOtherThanTheFirst_WhenSwitchingLane_ThenTheColumnStaysSoEveryLaneShowsTheSameWindow()
     {
         var tab = ColumnsNavigation.MoveColumn(Stacked(37), BoardColumnMove.Right);

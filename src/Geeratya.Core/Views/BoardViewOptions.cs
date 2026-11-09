@@ -167,6 +167,7 @@ public static class BoardViewOptions
                 Lane = null,
                 StackLanes = tab.StackLanes && kind != SwimlaneKind.None,
                 LaneCursors = TabState.EmptyLaneCursors,
+                LaneKeys = TabState.EmptyLaneKeys,
             });
         var lanes = Swimlanes.Lanes(kind, grouped.Rows);
         var noun = lanes.Count == 1 ? "lane" : "lanes";

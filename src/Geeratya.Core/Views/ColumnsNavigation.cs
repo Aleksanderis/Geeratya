@@ -59,7 +59,7 @@ public static partial class ColumnsNavigation
         }
 
         var columns = ColumnsOfLane(tab, region.Key);
-        var cursor = CursorOfLane(tab, region, columns, tab.ViewWidth);
+        var cursor = CursorOfLane(tab, region, columns, width);
         var hit = BoardHits.At(columns, cursor, region.BoardRows, width, column, row - region.BoardTop, tab.Next is not null);
 
         return hit is { Card: not null };

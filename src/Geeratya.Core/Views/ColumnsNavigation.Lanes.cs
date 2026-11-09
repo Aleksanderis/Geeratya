@@ -65,17 +65,31 @@ public static partial class ColumnsNavigation
         }
 
         var saved = new Dictionary<string, BoardCursor>(tab.LaneCursors);
+        var keys = new Dictionary<string, string>(tab.LaneKeys);
 
         if (tab.Cursor is not null)
         {
             saved[current] = tab.Cursor;
         }
 
-        var next = tab with { Lane = laneKey, LaneCursors = saved, Cursor = null, Marks = [], VisualAnchor = null };
+        if (SelectedIssue(tab) is { } selected)
+        {
+            keys[current] = selected.Key;
+        }
+
+        var next = tab with
+        {
+            Lane = laneKey,
+            LaneCursors = saved,
+            LaneKeys = keys,
+            Cursor = null,
+            Marks = [],
+            VisualAnchor = null,
+        };
         var columns = ColumnsOf(next);
         var seed = saved.GetValueOrDefault(laneKey) ?? _noCursor;
         var column = tab.Cursor?.Column ?? 0;
-        var cursor = BoardMotion.Resolve(columns, seed with { Column = column }, null, ViewOf(next));
+        var cursor = BoardMotion.Resolve(columns, seed with { Column = column }, keys.GetValueOrDefault(laneKey), ViewOf(next));
 
         return Follow(next, columns, cursor);
     }
@@ -89,7 +103,7 @@ public static partial class ColumnsNavigation
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        return Follow(tab with { LaneCursors = TabState.EmptyLaneCursors }, columns, cursor);
+        return Follow(tab with { LaneCursors = TabState.EmptyLaneCursors, LaneKeys = TabState.EmptyLaneKeys }, columns, cursor);
     }
 
     /// <summary>
@@ -101,6 +115,13 @@ public static partial class ColumnsNavigation
         if (!LaneRegions.IsStacked(tab))
         {
             return null;
+        }
+
+        var current = CurrentLaneKey(tab);
+
+        if (ColumnsOfLane(tab, current).Any(column => HasKey(column.Rows, key)))
+        {
+            return current;
         }
 
         foreach (var region in LaneRegions.Regions(tab))

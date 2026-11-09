@@ -137,6 +137,31 @@ public class ColumnsStackedLanesTests
         Assert.Equal(8, labels.Count);
     }
 
+    [Fact]
+    public void GivenAFlashJump_WhenRenderingStackedLanes_ThenEveryLaneShowsItsLettersOverItsOwnCards()
+    {
+        var tab = Stacked();
+        var plain = Render(tab);
+        var state = Active(tab) with { FlashJump = new FlashJumpState("Summary") };
+        var flashed = new ColumnsBodyRenderer().Render(state, new BodyContext(_keymap), Width, Height);
+        var labels = FlashBoardLabeler.Compute(tab, "Summary", Width, Height);
+
+        Assert.Equal(8, labels.Count);
+
+        foreach (var region in LaneRegions.Regions(tab))
+        {
+            var changed = Enumerable.Range(region.BoardTop, region.BoardBodyRows)
+                .Count(row => flashed[row].PlainText != plain[row].PlainText);
+
+            Assert.True(changed > 0, $"lane {region.Key} shows no flash letters");
+        }
+
+        var letters = string.Concat(labels.Select(label => label.Letter));
+        var text = string.Concat(flashed.Select(line => line.PlainText));
+
+        Assert.All(letters, letter => Assert.True(text.Contains(letter, StringComparison.Ordinal)));
+    }
+
     [Theory]
     [InlineData(20, 5)]
     [InlineData(10, 3)]

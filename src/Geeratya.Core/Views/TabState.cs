@@ -58,6 +58,9 @@ public sealed record TabState(
     DateTimeOffset? NextRefreshAt = null,
     BoardCursor? Cursor = null)
 {
+    /// <summary>No saved lane selections.</summary>
+    public static readonly IReadOnlyDictionary<string, string> EmptyLaneKeys = new Dictionary<string, string>();
+
     /// <summary>No saved lane cursors.</summary>
     public static readonly IReadOnlyDictionary<string, BoardCursor> EmptyLaneCursors = new Dictionary<string, BoardCursor>();
 
@@ -207,6 +210,13 @@ public sealed record TabState(
     /// keeps its own column scroll and selected cards. The current lane's cursor is <see cref="Cursor"/>.
     /// </summary>
     public IReadOnlyDictionary<string, BoardCursor> LaneCursors { get; init; } = EmptyLaneCursors;
+
+    /// <summary>
+    /// The key of the card selected in each lane that is not the current one, kept with <see cref="LaneCursors"/>: the
+    /// cursor holds card indexes, so after a refresh moved the cards the key finds the card again when the lane is
+    /// entered.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> LaneKeys { get; init; } = EmptyLaneKeys;
 
     /// <summary>The columns last built for this tab (a cache, see <see cref="ColumnsMemo"/>).</summary>
     public ColumnsMemo Columns { get; init; } = new();

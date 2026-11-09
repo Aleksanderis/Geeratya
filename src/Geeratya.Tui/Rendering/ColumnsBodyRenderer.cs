@@ -43,28 +43,30 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
 
         if (!LaneStrip.IsShown(tab) || height <= LaneStrip.Rows)
         {
-            return RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, width, height);
+            return RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, FlashCardsOf(state, tab, width, height), width, height);
         }
 
         if (LaneRegions.StripHidden(tab))
         {
             var stacked = new List<StyledLine>(height);
 
-            AddStackedLanes(stacked, state, tab, context, width, height);
+            AddStackedLanes(stacked, state, tab, context, FlashCardsOf(state, tab, width, height), width, height);
 
             return stacked;
         }
 
+        var flash = FlashCardsOf(state, tab, width, height);
         var lines = new List<StyledLine>(height) { LaneStripLine(tab, width) };
 
         if (!LaneRegions.IsStacked(tab))
         {
-            lines.AddRange(RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, width, height - LaneStrip.Rows));
+            lines.AddRange(
+                RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, flash, width, height - LaneStrip.Rows));
 
             return lines;
         }
 
-        AddStackedLanes(lines, state, tab, context, width, height);
+        AddStackedLanes(lines, state, tab, context, flash, width, height);
 
         return lines;
     }
@@ -74,6 +76,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         TabState tab,
         LaneRegion region,
         BodyContext context,
+        FlashCards? flash,
         int width,
         int height)
     {
@@ -103,7 +106,6 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
         var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
-        var flash = FlashCardsOf(state, tab, width, height);
         var grid = new FrameGrid(width, height, panes, focused ? cursor.Column - window.First : -1);
         var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes, focused) };
         var drawn = Unselected(cursor, focused);

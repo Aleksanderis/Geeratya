@@ -54,6 +54,7 @@ public sealed partial class ColumnsBodyRenderer
         AppState state,
         TabState tab,
         BodyContext context,
+        FlashCards? flash,
         int width,
         int height)
     {
@@ -72,7 +73,7 @@ public sealed partial class ColumnsBodyRenderer
             var lane = lanes.First(candidate => candidate.Key == region.Key);
 
             lines.Add(LaneHeaderLine(lane, region.Key == current, width));
-            lines.AddRange(RenderBoard(state, tab, region, context, width, room - LaneRegions.HeaderRows));
+            lines.AddRange(RenderBoard(state, tab, region, context, flash, width, room - LaneRegions.HeaderRows));
         }
 
         while (lines.Count < height)
