@@ -107,6 +107,12 @@ public sealed class FakeJiraHandler : HttpMessageHandler
             throw new HttpRequestException(HttpRequestError.ConnectionError, "Simulated connection failure.");
         }
 
+        if (response.Unresponsive)
+        {
+            // Deliberately not given the token: the caller's own deadline is the only way out.
+            await new TaskCompletionSource().Task;
+        }
+
         if (response.Hang)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);

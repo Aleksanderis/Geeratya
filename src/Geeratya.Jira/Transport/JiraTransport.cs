@@ -135,6 +135,15 @@ public sealed class JiraTransport : IDisposable
             // Redirects could carry the credential to another host; a 3xx is reported as an unexpected status.
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.All,
+
+            // A pooled connection that died while the app sat idle must not be reused: connections are retired
+            // early, and (HTTP/2) pings detect a dead one instead of waiting for the request timeout.
+            PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            ConnectTimeout = TimeSpan.FromSeconds(10),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
+            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
         };
 
     private static void RequireSecureSite(Uri siteUrl)
@@ -219,9 +228,13 @@ public sealed class JiraTransport : IDisposable
         try
         {
             using var message = CreateMessage(request);
-            using var response = await _client.SendAsync(message, timeout.Token);
+
+            // WaitAsync is the hard deadline: a connection that went dead while the app sat idle (a laptop asleep, a
+            // NAT that dropped the flow) can leave a socket call that never honours the token, and the request would
+            // then wait for ever. The abandoned call ends with the handler or the connection; nothing waits for it.
+            using var response = await _client.SendAsync(message, timeout.Token).WaitAsync(timeout.Token);
             RecordRateLimit(response);
-            var body = await response.Content.ReadAsStringAsync(timeout.Token);
+            var body = await response.Content.ReadAsStringAsync(timeout.Token).WaitAsync(timeout.Token);
 
             return response.IsSuccessStatusCode
                 ? ParseBody(body, resultInfo, request.AllowsEmptyBody)
