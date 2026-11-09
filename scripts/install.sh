@@ -30,10 +30,12 @@ say() { printf '%s\n' "$*"; }
 fail() { printf 'geeratya install: %s\n' "$*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# Downloads $1 to the file $2 (curl or wget). $3 is an optional hint added to the failure.
+# Downloads $1 to the file $2 (curl or wget). $3 is an optional hint added to the failure. GitHub now and then answers
+# 502/503/504 (#872): curl retries those (and 408/429) up to four times with doubling waits, wget retries failed tries.
 download() {
-  if have curl; then curl -fsSL -o "$2" "$1" || fail "download failed: $1 ${3:-}"
-  elif have wget; then wget -q -O "$2" "$1" || fail "download failed: $1 ${3:-}"
+  hint="a temporary problem on GitHub's side? run the command again in a minute. ${3:-}"
+  if have curl; then curl -fsSL --retry 4 -o "$2" "$1" || fail "download failed: $1 ($hint)"
+  elif have wget; then wget -q --tries=4 --waitretry=8 -O "$2" "$1" || fail "download failed: $1 ($hint)"
   else fail "need curl or wget"; fi
 }
 

@@ -6,14 +6,39 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 
 Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): every route below works once the first release is out.
 
-One line, installs the latest release (re-run it to update):
+One command installs the latest release; run it again to update.
+
+#### Linux and macOS
+
+In a shell (x64 or arm64 with glibc, so not Alpine; macOS on Apple silicon):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh      # Linux (x64, arm64, glibc) and macOS (Apple silicon)
-irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex           # Windows PowerShell
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | sh
 ```
 
-The shell script checks the download against the release's `SHA256SUMS` and puts `geeratya` in `~/.local/bin` (no root or sudo; `GEERATYA_INSTALL_DIR` changes the folder). It needs glibc, so not Alpine. On macOS it prints the Gatekeeper hint (see [macOS (Gatekeeper)](#macos-gatekeeper)). For a native package use the `.deb`, `.rpm` or Arch package below. The Windows script installs to `%LOCALAPPDATA%\Geeratya` and adds it to your user `PATH`, no admin rights. `GEERATYA_VERSION` pins a version: `curl ... | GEERATYA_VERSION=0.1.0 sh`, or in PowerShell `$env:GEERATYA_VERSION = '0.1.0'; irm ... | iex`.
+The script checks the download against the release's `SHA256SUMS` and puts `geeratya` in `~/.local/bin` (no root or sudo; `GEERATYA_INSTALL_DIR` changes the folder). Failed downloads are retried. On macOS it prints the Gatekeeper hint (see [macOS (Gatekeeper)](#macos-gatekeeper)). To pin a version, set the variable on the `sh` side of the pipe:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh \
+  | GEERATYA_VERSION=0.1.0 sh
+```
+
+For a native package use the `.deb`, `.rpm` or Arch package below.
+
+#### Windows
+
+In PowerShell (Windows PowerShell 5.1 or pwsh, x64 or arm64):
+
+```powershell
+irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
+```
+
+The script checks the download against the release's `SHA256SUMS`, installs to `%LOCALAPPDATA%\Geeratya` and adds it to your user `PATH`, no admin rights. A download that fails with a server error (for example `504 Gateway Time-out`) is retried up to four times with growing waits; if it still fails, run the command again in a minute. To pin a version:
+
+```powershell
+$env:GEERATYA_VERSION = '0.1.0'
+irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
+```
 
 ### Other ways
 

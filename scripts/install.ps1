@@ -18,18 +18,42 @@
 #   GEERATYA_RELEASES_URL  release API base (default: the GitHub API's releases of the repository; "latest" and
 #                          "tags/v<version>" are appended; a local folder path works, for tests)
 #   GEERATYA_ARCH          x64 | arm64 (default: detected; for tests)
+#   GEERATYA_RETRY_DELAY   seconds before the first download retry, doubled each time (default 2)
 #
 # Everything is in functions and one call on the last line, so a cut-off download runs nothing.
 function Get-GeeratyaFile([string]$Source, [string]$Destination) {
     # A URL is downloaded; anything else is a local path (tests).
-    if ($Source -match '^https?://') {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-        $previous = $ProgressPreference
-        $ProgressPreference = 'SilentlyContinue'
-        try { Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Destination } finally { $ProgressPreference = $previous }
-    } else {
+    if ($Source -notmatch '^https?://') {
         Copy-Item -LiteralPath $Source -Destination $Destination
+        return
     }
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    # GitHub's servers now and then answer 502/503/504 (#872): try up to four times, waiting 2, 4 and 8 seconds.
+    # Other 4xx answers (not 408 or 429) will not get better, so they fail at once.
+    $attempts = 4
+    $delay = if ($env:GEERATYA_RETRY_DELAY) { [int]$env:GEERATYA_RETRY_DELAY } else { 2 }
+    $previous = $ProgressPreference
+    $ProgressPreference = 'SilentlyContinue'
+    try {
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Destination
+                return
+            } catch {
+                $status = $null
+                if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
+                $transient = (-not $status) -or $status -ge 500 -or $status -eq 408 -or $status -eq 429
+                $reason = if ($status) { "HTTP $status" } else { $_.Exception.Message }
+                if (-not $transient -or $attempt -ge $attempts) {
+                    $tries = if ($attempt -gt 1) { " after $attempt attempts" } else { '' }
+                    throw "download failed$tries ($reason): $Source. This is usually a temporary problem on GitHub's side: run the command again in a minute."
+                }
+                $wait = $delay * [math]::Pow(2, $attempt - 1)
+                Write-Host "Download failed ($reason), retrying in $wait s (attempt $($attempt + 1) of $attempts)..."
+                if ($wait -gt 0) { Start-Sleep -Seconds $wait }
+            }
+        }
+    } finally { $ProgressPreference = $previous }
 }
 
 # Adds a folder to the user PATH without changing how the existing value is stored: read it unexpanded (it may hold
@@ -83,7 +107,7 @@ function Invoke-GeeratyaInstall {
     [void](New-Item -ItemType Directory -Path $work)
     try {
         $jsonPath = Join-Path $work 'release.json'
-        try { Get-GeeratyaFile $releaseUrl $jsonPath } catch { throw "download failed: $releaseUrl (no such release, or a GitHub rate limit: try again later)" }
+        try { Get-GeeratyaFile $releaseUrl $jsonPath } catch { throw "$($_.Exception.Message) (a missing release or a GitHub rate limit also end up here)" }
         $release = Get-Content -LiteralPath $jsonPath -Raw | ConvertFrom-Json
         if (-not $release.tag_name) { throw "could not read the release from $releaseUrl" }
         $tag = [string]$release.tag_name
