@@ -29,7 +29,7 @@ Run from the repo root.
 - `needs-review` issues: `merge` (merge as usual once the reviewer has no blockers; the owner reviews afterwards)
 - `spike` issues: never merged by an agent; they stay on unmerged `spike/` branches and close with findings
 - autonomy: `autonomous` (the owner must never be the bottleneck; decide from the docs, log it, report afterwards)
-- push policy: never push to a remote without the owner's confirmation; ad-hoc changes are committed locally ("committed locally, not pushed"). The autonomous PR flow (agents pushing `feature/`/`fix/` branches, opening and merging PRs, `scripts/screenshot.sh publish`/`clean`) is exempt.
+- push policy: never push to a remote without the owner's confirmation; ad-hoc changes are committed locally ("committed locally, not pushed"). The landing repository `../Geeratya-landing` is always pushed by agents straight to its `main` (owner, 2026-11-09). The autonomous PR flow (agents pushing `feature/`/`fix/` branches, opening and merging PRs, `scripts/screenshot.sh publish`/`clean`) is exempt.
 - CI: `manual` (never runs automatically, local build and tests are the gate); dispatch once before closing a milestone: `gh workflow run ci.yml --ref main`, about 4-6 minutes
 - labels: `needs-owner` (only the owner can settle it), `owner` (owner wrote or commented), `windows-vm` (needs a Windows VM; the orchestrator never picks it), `tracking` (milestone tracking issue, never work), `spike`, `needs-review`
 - every issue has a milestone (`gh issue create -m "<milestone>"`)

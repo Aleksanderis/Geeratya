@@ -316,3 +316,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (swimlanes by labels, #892)
 
 **UI:** `<space>vs` gains a fourth grouping, labels: a card with several labels is in the lane of each of them (counted in each), a card without a label is in `No label` (last). Why: Jira's own "Labels" swimlane does the same and the issue asks for multi-membership; the first label only would hide a card from the lanes the owner filters by. The lane is a view over the same issue, so nothing is copied: the cursor and writes act on the card of the current lane, lane cursors are per lane (`ux-screens.md`, "Columns layout"). Labels are already part of the board fields, so no extra request.
+
+## 2026-11-09 (landing page is always pushed)
+
+**Process:** Agents commit and push the landing repository (`../Geeratya-landing`) to its `main` after each change, no owner push step; supersedes "the owner pushes it" in the 2026-11-08 entry (#695). Why: a local-only landing commit left the page stale (#901). Other repositories keep the push rule.

@@ -22,9 +22,9 @@ The landing page is a separate repository, `Geeratya/geeratya.github.io` (owner 
 - After a visible change to the shown screens, record the demo again and replace the two files and the screenshots in `media/` (convert PNG to WebP, about 80 quality).
 - Captions in the tour restate README Features only; do not claim more than the list says.
 
-## Publishing (owner steps)
+## Publishing
 
-1. Push the landing repository (its first commit is local until then).
+1. Agents push the landing repository themselves after each change (owner, 2026-11-09); the first push is done.
 2. In its settings: Pages, deploy from branch `main`, folder `/ (root)`.
 3. Make the repository public (a private repository serves Pages only on paid plans). Do this when the main repository goes public (#212), so the README image and the page both load.
 4. Optional: a custom domain (costs money, not done by agents), Search Console verification (add the meta tag to `index.html`).
