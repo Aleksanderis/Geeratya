@@ -43,6 +43,19 @@ public class CommentsPaneTests
     }
 
     [Fact]
+    public void GivenAReplyLoadedLast_WhenMovingWithJ_ThenTheCursorVisitsParentReplyThenTheNextComment()
+    {
+        var reply = Comment("r", 1) with { ParentId = "1" };
+        var state = ToComments(Opened([Comment("1", 1), Comment("2", 1), reply]));
+
+        var first = TargetOf(state).Value;
+        var second = TargetOf(Press(state, "j").State).Value;
+        var third = TargetOf(Press(state, "j", "j").State).Value;
+
+        Assert.Equal(["1", "r", "2"], [first, second, third]);
+    }
+
+    [Fact]
     public void GivenAShortComment_WhenBuildingRows_ThenNothingIsCutAndOnlyTheBarIsAStop()
     {
         var rows = CommentRows.Build(DetailOf([Comment("1", 2), Comment("2", 1)]), 70);

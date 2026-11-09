@@ -68,6 +68,7 @@ all_scenarios=(
   "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via"
   "detail-section;120;36;dark;:jql project = GEN|jjjj|>>>>jj;Generated comment 119"
   "detail-comments;120;36;dark;:jql project = GEN|jjjj|>>>>j;oldest first"
+  "detail-comments-thread;120;36;dark;:jql project = GEN||>>>>j;oldest first"
   "detail-comments-newest;120;36;dark;:jql project = GEN|jjjj|>>>> mo;newest first"
   # detail-zoom: Ctrl-j to the Description pane, <space>z zooms it; detail-comments-zoom: the same on the Comments pane
   "detail-zoom;120;36;dark;:jql project = GEN|jjjj|> z;zoomed"

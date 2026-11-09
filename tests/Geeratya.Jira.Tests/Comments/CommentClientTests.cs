@@ -59,6 +59,29 @@ public sealed class CommentClientTests
     }
 
     [Fact]
+    public async Task GivenRepliedComment_WhenGetting_ThenParentIdIsMappedAndTopLevelCommentsHaveNone()
+    {
+        using var fixture = Serving("/rest/api/3/issue/GCM-9/comment", "comments/comments-gcm9-thread.json");
+
+        var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-9", 0, CancellationToken.None);
+
+        var items = result.Value.Items;
+        Assert.Equal(["10024", "10025", "10026"], items.Select(comment => comment.Id));
+        Assert.Equal([null, "10024", null], items.Select(comment => comment.ParentId));
+        Assert.Contains(items[0].Body.Content.SelectMany(Flatten), node => node is AdfMention);
+    }
+
+    [Fact]
+    public async Task GivenCommentsWithoutParentId_WhenGetting_ThenNoCommentHasAParent()
+    {
+        using var fixture = Serving(GcmPath, "comments/comments-gcm6.json");
+
+        var result = await new CommentClient(fixture.Transport).GetCommentsAsync("GCM-6", 0, CancellationToken.None);
+
+        Assert.All(result.Value.Items, comment => Assert.Null(comment.ParentId));
+    }
+
+    [Fact]
     public async Task GivenInactiveAuthorAndEmptyBody_WhenGetting_ThenNameIsKeptAndBodyIsEmpty()
     {
         using var fixture = Serving(GcmPath, "comments/comments-gcm6.json");

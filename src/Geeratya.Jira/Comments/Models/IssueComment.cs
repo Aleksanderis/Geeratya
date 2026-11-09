@@ -9,9 +9,14 @@ namespace Geeratya.Jira.Comments.Models;
 /// <param name="Body">The body as parsed ADF; empty when Jira sent none or it could not be read.</param>
 /// <param name="Created">When it was written; null when unreadable.</param>
 /// <param name="Updated">When it was last edited; null when unreadable.</param>
+/// <param name="ParentId">
+/// The id of the comment this one replies to (Jira's <c>parentId</c>); null for a top-level comment or when Jira
+/// sent none.
+/// </param>
 public sealed record IssueComment(
     string Id,
     IssueAssignee? Author,
     AdfDocument Body,
     DateTimeOffset? Created,
-    DateTimeOffset? Updated);
+    DateTimeOffset? Updated,
+    string? ParentId = null);

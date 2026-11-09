@@ -80,7 +80,7 @@ public static class GeneratedIssues
 
     /// <summary>
     /// A page of the comments of generated issue <paramref name="number"/>: every fifth issue has 120 comments (to
-    /// page through), the others three. With <paramref name="newestFirst"/> the list is reversed.
+    /// page through), the others three, the second of them a reply to the first. With <paramref name="newestFirst"/> the list is reversed.
     /// </summary>
     public static byte[] Comments(int number, int startAt, int pageSize, bool newestFirst = false)
     {
@@ -93,12 +93,21 @@ public static class GeneratedIssues
             var index = newestFirst ? total - 1 - position : position;
 
             comments.Add(
-                $$$"""{"id":"{{{index + 1}}}","author":{"accountId":"gen-{{{index % 3}}}","displayName":"Generated Writer {{{index % 3}}}"},"body":{{{CommentBody(index, number, total)}}},"created":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000","updated":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000"}""");
+                $$$"""{"id":"{{{index + 1}}}","author":{"accountId":"gen-{{{index % 3}}}","displayName":"Generated Writer {{{index % 3}}}"},"body":{{{CommentBody(index, number, total)}}},"created":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000","updated":"2026-10-3{{{index % 2}}}T0{{{index % 10}}}:00:00.000+0000"{{{ParentOf(index, total)}}}}""");
         }
 
         var json = $$$"""{"startAt":{{{Math.Max(0, startAt)}}},"maxResults":{{{pageSize}}},"total":{{{total}}},"comments":[{{{string.Join(',', comments)}}}]}""";
 
         return Encoding.UTF8.GetBytes(json);
+    }
+
+    /// <summary>
+    /// The <c>parentId</c> member of generated comment <paramref name="index"/> (a number, as Jira sends it): on the
+    /// short threads the second comment is a reply to the first (#897); empty otherwise.
+    /// </summary>
+    private static string ParentOf(int index, int total)
+    {
+        return total == ShortThreadComments && index == 1 ? ",\"parentId\":1" : string.Empty;
     }
 
     /// <summary>

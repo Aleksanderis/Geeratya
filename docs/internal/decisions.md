@@ -295,7 +295,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-09 (#875, comment order)
 
-**UI:** Comments are oldest first by default and `<space>mo` reverses them, saved as the `comments.order` setting (supersedes the 2026-11-04 "newest first" entry, #703). The request follows the order (`orderBy=created` or `-created`), so paging stays by offset; an issue keeps the order it was opened with, a flip only changes the shown issue and the default for later ones. Why: owner request. Threads: Jira Cloud REST v3 has no reply field on comments, so none are drawn (follow-up registered).
+**UI:** Comments are oldest first by default and `<space>mo` reverses them, saved as the `comments.order` setting (supersedes the 2026-11-04 "newest first" entry, #703). The request follows the order (`orderBy=created` or `-created`), so paging stays by offset; an issue keeps the order it was opened with, a flip only changes the shown issue and the default for later ones. Why: owner request. Threads: [Superseded 2026-11-09, #897: the claim "no reply field" was wrong, see the entry below.]
 
 ## 2026-11-09 (copy issues, #876)
 
@@ -320,3 +320,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (landing page is always pushed)
 
 **Process:** Agents commit and push the landing repository (`../Geeratya-landing`) to its `main` after each change, no owner push step; supersedes "the owner pushes it" in the 2026-11-08 entry (#695). Why: a local-only landing commit left the page stale (#901). Other repositories keep the push rule.
+
+## 2026-11-09 (#897, threaded comments)
+
+**Jira layer and UI:** A reply carries `"parentId": <parent comment id>` (a JSON number, while `id` is a string) in the REST v3 comment list; top-level comments have none (seen on the dev site, GCM-9). `IssueComment.ParentId` maps it (string, null when absent). The Comments pane lays comments out as threads (`CommentThreads`, Core): parents keep the loaded order (`comments.order`), replies follow their parent oldest first, a `│ ` guide (a `Border` span, so yank leaves it out) marks each level, and a reply whose parent is not loaded shows flat in place. Supersedes the #875 claim "no reply field" (the recorded fixtures just held no reply). Writing a reply (`parentId` on create) is not part of this and is registered as a follow-up.

@@ -27,6 +27,9 @@ public static class CommentRows
     private const string TooManyNewestText = "Showing the newest comments only.";
     private const string TooManyOldestText = "Showing the oldest comments only (<space>mo shows the newest).";
     private const int BarGap = 2;
+    private const string Guide = "│ ";
+    private const int IndentWidth = 2;
+    private const int MinThreadedWidth = 10;
 
     private static readonly TimeSpan _editedAfter = TimeSpan.FromMinutes(1);
 
@@ -34,9 +37,11 @@ public static class CommentRows
     {
         var rows = new List<CommentRow>();
 
-        for (var index = 0; index < detail.Comments.Count; index++)
+        var threads = CommentThreads.Arrange(detail.Comments);
+
+        for (var index = 0; index < threads.Count; index++)
         {
-            AddComment(rows, detail.Comments[index], index, detail, inner, bodyLines);
+            AddComment(rows, threads[index], index, detail, inner, bodyLines);
         }
 
         AddFooter(rows, detail);
@@ -74,19 +79,22 @@ public static class CommentRows
 
     private static void AddComment(
         List<CommentRow> rows,
-        IssueComment comment,
+        ThreadedComment threaded,
         int index,
         DetailState detail,
-        int inner,
+        int outer,
         int bodyLines)
     {
+        var comment = threaded.Comment;
+        var indent = Math.Min(threaded.Depth * IndentWidth, Math.Max(0, outer - MinThreadedWidth));
+        var inner = outer - indent;
         var expanded = detail.Expanded.Contains($"comment:{comment.Id}");
         var body = BodyOf(comment, inner);
         var cuttable = body.Count > bodyLines;
         var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
         var header = target with { Expands = cuttable && !expanded, Collapses = cuttable && expanded };
 
-        rows.Add(new CommentRow(Bar(comment, detail, inner), header, true, index));
+        rows.Add(new CommentRow(Indented(Bar(comment, detail, inner), indent), header, true, index));
 
         var content = new PanelContent();
 
@@ -96,10 +104,26 @@ public static class CommentRows
 
         for (var line = 0; line < content.Lines.Count; line++)
         {
-            rows.Add(new CommentRow(content.Lines[line], content.Targets[line], expanded, index));
+            rows.Add(new CommentRow(Indented(content.Lines[line], indent), content.Targets[line], expanded, index));
         }
 
         rows.Add(new CommentRow(StyledLine.Empty, null, false, index));
+    }
+
+    /// <summary>
+    /// A reply's row with the thread guide in front (<c>│ </c> per level, a <see cref="TextRole.Border"/> span, so a
+    /// yank leaves it out). A row with no content keeps no guide, so it stays a plain gap.
+    /// </summary>
+    private static StyledLine Indented(StyledLine line, int indent)
+    {
+        if (indent == 0)
+        {
+            return line;
+        }
+
+        var guide = string.Concat(Enumerable.Repeat(Guide, indent / IndentWidth));
+
+        return new StyledLine([new StyledSpan(guide, TextRole.Border), .. line.Spans]);
     }
 
     private static List<StyledLine> BodyOf(IssueComment comment, int inner)

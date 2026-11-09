@@ -204,6 +204,19 @@ public sealed class FakeJiraServerTests : IDisposable
             recorded.RootElement.GetProperty("comments").EnumerateArray().Select(Id));
     }
 
+    [Fact]
+    public async Task GivenAShortGeneratedThread_WhenReadingComments_ThenTheSecondIsAReplyToTheFirst()
+    {
+        var baseUrl = StartServer(10, 0, 0);
+
+        using var comments = JsonDocument.Parse(await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-1/comment"));
+
+        var items = comments.RootElement.GetProperty("comments").EnumerateArray().ToArray();
+        Assert.False(items[0].TryGetProperty("parentId", out _));
+        Assert.Equal(1, items[1].GetProperty("parentId").GetInt32());
+        Assert.False(items[2].TryGetProperty("parentId", out _));
+    }
+
     private static string? Id(JsonElement comment) => comment.GetProperty("id").GetString();
 
     [Theory]

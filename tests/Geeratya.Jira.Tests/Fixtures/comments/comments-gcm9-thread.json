@@ -1,0 +1,121 @@
+{
+  "self": "https://example.atlassian.net/rest/api/3/issue/10020/comment",
+  "maxResults": 50,
+  "total": 3,
+  "startAt": 0,
+  "comments": [
+    {
+      "self": "https://example.atlassian.net/rest/api/3/issue/10020/comment/10024",
+      "id": "10024",
+      "author": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Can we ship this on Friday? " },
+              { "type": "mention", "attrs": { "id": "fake-account-2", "text": "@Test User 2", "accessLevel": "" } }
+            ]
+          }
+        ]
+      },
+      "updateAuthor": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "created": "2026-11-02T09:00:00.000+0200",
+      "updated": "2026-11-02T09:00:00.000+0200",
+      "jsdPublic": true
+    },
+    {
+      "self": "https://example.atlassian.net/rest/api/3/issue/10020/comment/10025",
+      "id": "10025",
+      "parentId": 10024,
+      "author": {
+        "accountId": "fake-account-2",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 2",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-2",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Yes, the checks are green. żółć 日本語 🚀" }
+            ]
+          }
+        ]
+      },
+      "updateAuthor": {
+        "accountId": "fake-account-2",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 2",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-2",
+        "timeZone": "UTC"
+      },
+      "created": "2026-11-02T09:30:00.000+0200",
+      "updated": "2026-11-02T09:30:00.000+0200",
+      "jsdPublic": true
+    },
+    {
+      "self": "https://example.atlassian.net/rest/api/3/issue/10020/comment/10026",
+      "id": "10026",
+      "author": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Separate question: who owns the release notes?" }
+            ]
+          }
+        ]
+      },
+      "updateAuthor": {
+        "accountId": "fake-account-1",
+        "accountType": "atlassian",
+        "active": true,
+        "avatarUrls": {},
+        "displayName": "Test User 1",
+        "self": "https://example.atlassian.net/rest/api/3/user?accountId=fake-account-1",
+        "timeZone": "UTC"
+      },
+      "created": "2026-11-02T10:15:00.000+0200",
+      "updated": "2026-11-02T10:15:00.000+0200",
+      "jsdPublic": true
+    }
+  ]
+}
