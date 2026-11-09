@@ -243,7 +243,7 @@ public class DetailYankTests
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
-        var sized = _reducer.Reduce(start, new ViewportChanged(30, 80)).State;
+        var sized = _reducer.Reduce(start, new ViewportChanged(9, 80)).State;
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));
         var tab = Active(opened.State);

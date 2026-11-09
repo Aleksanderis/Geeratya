@@ -3,22 +3,22 @@
 ╭─ GCM-12 · Task ──────────────────────────────────────────────────────────────╮
 │ Fix login redirect after token refresh                           In Progr... │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Description ──────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮
+╭─ Description ──────────────────── 1-6 of 40 · za expand · (edit in browser) ─╮
 │ Heading one                                                                 ▲│
 │                                                                             █│
 │ Heading three                                                               ░│
-│ … 37 more lines                                                             ▼│
+│                                                                             ░│
+│ Plain, bold, italic, struck, code, a link <https://example.com/page>, emoji ░│
+│ 😄 and unicode: żółć 日本語 🚀                                              ░│
+│ … 34 more lines                                                             ▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
-│ Jane Doe                                                             1 d ago │
-│ Found it: the redirect target is dropped after the refresh.                  │
-│                                                                              │
-│ 日本語の作者                                                         3 h ago │
-│ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
-│                                                                              │
-│ Ola Nordmann                                                       5 min ago │
-│ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
-│                                                                              │
+│ Jane Doe                                                             1 d ago▲│
+│ Found it: the redirect target is dropped after the refresh.                 █│
+│                                                                             █│
+│ 日本語の作者                                                         3 h ago█│
+│ 日本語のコメント。これは長い文章で、折り返しが必要になります。              ░│
+│                                                                             ░│
+│ Ola Nordmann                                                       5 min ago▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Details ────────────────────────────────────────────────────────────────────╮
  NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit

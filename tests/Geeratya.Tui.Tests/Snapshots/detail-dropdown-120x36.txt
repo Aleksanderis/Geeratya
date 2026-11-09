@@ -8,28 +8,28 @@
 │ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │ │
 │ │ │ Fix login redirect after token refresh                         In Progress │ │ Status  moves via transition  │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │ │
-│ │ ╭─ Description ────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮ │                               │ │ │
+│ │ ╭─ Description ────────────────── 1-7 of 40 · za expand · (edit in browser) ─╮ │                               │ │ │
 │ │ │ Heading one                                                               ▲│ │ Priority                      │ │ │
 │ │ │                                                                           █│ │ ▌▲ High ▾                     │ │ │
 │ │ │ Heading three                                                             ░│ │╭─ Priority ──────────────────╮│ │ │
-│ │ │ … 37 more lines                                                           ▼│ ││   (none)                    ││ │ │
-│ │ ╰────────────────────────────────────────────────────────────────────────────╯ ││   Highest                   ││ │ │
-│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ ││   High                      ││ │ │
-│ │ │ Jane Doe                                                           1 d ago │ ││   Medium                    ││ │ │
-│ │ │ Found it: the redirect target is dropped after the refresh.                │ ││   Low                       ││ │ │
-│ │ │                                                                            │ │╰─────────────────────────────╯│ │ │
-│ │ │ 日本語の作者                                                       3 h ago │ │ Labels                        │ │ │
-│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │   auth   bug-bash  ▾          │ │ │
-│ │ │                                                                            │ │                               │ │ │
-│ │ │ Ola Nordmann                                                     5 min ago │ │ Parent                        │ │ │
-│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │  GCM-17 Reporting overhaul    │ │ │
-│ │ │ wrap.                                                                      │ │                               │ │ │
+│ │ │                                                                           ░│ ││   (none)                    ││ │ │
+│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ ││   Highest                   ││ │ │
+│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ ││   High                      ││ │ │
+│ │ │ after break                                                               ░│ ││   Medium                    ││ │ │
+│ │ │ … 33 more lines                                                           ▼│ ││   Low                       ││ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │╰─────────────────────────────╯│ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │ Labels                        │ │ │
+│ │ │ Jane Doe                                                           1 d ago │ │   auth   bug-bash  ▾          │ │ │
+│ │ │ Found it: the redirect target is dropped after the refresh.                │ │                               │ │ │
+│ │ │                                                                            │ │ Parent                        │ │ │
+│ │ │ 日本語の作者                                                       3 h ago │ │  GCM-17 Reporting overhaul    │ │ │
+│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │                               │ │ │
 │ │ │                                                                            │ │ Due none · Updated 2 h ago    │ │ │
+│ │ │ Ola Nordmann                                                     5 min ago │ │                               │ │ │
+│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │                               │ │ │
+│ │ │ wrap.                                                                      │ │                               │ │ │
+│ │ │                                                                            │ │                               │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                │                               │ │ │
 │ │                                                                                ╰───────────────────────────────╯ │ │
 │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

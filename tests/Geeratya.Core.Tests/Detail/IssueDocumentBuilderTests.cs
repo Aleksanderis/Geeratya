@@ -393,6 +393,53 @@ public class IssueDocumentBuilderTests
         Assert.Contains("Description", lines);
     }
 
+    [Theory]
+    [InlineData(12, 4)]
+    [InlineData(24, 8)]
+    [InlineData(36, 12)]
+    [InlineData(90, 12)]
+    public void GivenNoDescription_WhenBuilding_ThenThePaneKeepsTheRoomOfTheViewport(int viewport, int bodyRows)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, viewport);
+
+        Assert.Equal(bodyRows + 2, PaneRows(document, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenAOneLineDescription_WhenBuilding_ThenThePaneIsPaddedToTheSameHeightAsAnEmptyOne()
+    {
+        var empty = IssueDocumentBuilder.Build(Loaded(null, []), 80, 36);
+        var oneLine = IssueDocumentBuilder.Build(Loaded(AdfMarkdownParser.Parse("one line"), []), 80, 36);
+
+        Assert.Equal(PaneRows(empty, PaneIds.Description), PaneRows(oneLine, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenAPaddedDescription_WhenMovingDown_ThenTheCursorSkipsTheBlankRows()
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, 36);
+        var start = document.Sections[document.SectionIds.ToList().IndexOf(PaneIds.Description)];
+
+        Assert.Contains("No description.", document.Lines[start].PlainText);
+        Assert.All(Enumerable.Range(start + 1, 3), line => Assert.DoesNotContain(line, document.Stops));
+    }
+
+    [Fact]
+    public void GivenNoViewport_WhenBuilding_ThenTheEmptyDescriptionStaysCompact()
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80);
+
+        Assert.Equal(4 + 2, PaneRows(document, PaneIds.Description));
+    }
+
+    private static int PaneRows(DetailDocument document, string id)
+    {
+        var index = document.SectionIds.ToList().IndexOf(id);
+        var next = index + 1 < document.PaneStarts.Count ? document.PaneStarts[index + 1] : document.Lines.Count;
+
+        return next - document.PaneStarts[index];
+    }
+
     private static string Title(DetailDocument document, int pane)
     {
         return string.Concat(document.PaneTitles[pane].Select(static span => span.Text));

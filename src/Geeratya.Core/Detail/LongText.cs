@@ -12,6 +12,19 @@ internal static class LongText
     /// <summary>Body rows of the Description pane when it is cut: three text lines and the note.</summary>
     public const int DescriptionRows = 4;
 
+    /// <summary>Most body rows a Description pane takes before it is cut.</summary>
+    private const int DescriptionMaxRows = 12;
+
+    /// <summary>
+    /// The body rows the Description pane takes (cut or padded to) in a document of <paramref name="viewportRows"/>
+    /// rows: a third of it, at least <see cref="DescriptionRows"/>, at most 12, so a small terminal keeps the
+    /// compact pane and a tall one gives the main text room (#868). Without a viewport the compact size.
+    /// </summary>
+    public static int DescriptionBodyRows(int? viewportRows)
+    {
+        return viewportRows is { } rows ? Math.Clamp(rows / 3, DescriptionRows, DescriptionMaxRows) : DescriptionRows;
+    }
+
     /// <summary>
     /// Appends <paramref name="lines"/> to <paramref name="content"/>, each opening <paramref name="target"/>;
     /// more than <paramref name="limit"/> lines are cut unless <paramref name="expanded"/>.

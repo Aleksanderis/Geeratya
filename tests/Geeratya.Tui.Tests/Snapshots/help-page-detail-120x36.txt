@@ -10,23 +10,23 @@
 │ │ ╰───────│                │   Ctrl-u     Page up  (PageUp)                                              │       │ │ │
 │ │ ╭─ Descr│                │   <space>a   Open the actions menu of the selected issue                    │       │ │ │
 │ │ │ Loadin│                │   Enter      Open the selected item                                         │       │ │ │
-│ │ ╰───────│                │   za         Expand or collapse sub-tasks of a card, a cut text or a        │       │ │ │
-│ │ ╭─ Remot│                │              backlog section                                                │       │ │ │
-│ │ │ Loadin│                │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)      │       │ │ │
-│ │ ╰───────│                │              (Ctrl-Backspace, Ctrl-w h)                                     │       │ │ │
-│ │ ╭─ Comme│                │   Ctrl-j     Focus the pane below  (Ctrl-w j)                               │       │ │ │
-│ │ │ Loadin│                │   Ctrl-k     Focus the pane above  (Ctrl-w k)                               │       │ │ │
-│ │ ╰───────│                │   Ctrl-l     Focus the pane to the right (zoomed: the next section)         │       │ │ │
-│ │         │                │              (Ctrl-w l)                                                     │       │ │ │
-│ │         │                │   <space>z   Zoom the focused pane, or leave the zoom                       │       │ │ │
-│ │         │                │   <space>o   Open the issue in the browser                                  │       │ │ │
-│ │         │                │   <space>p   Open the parent issue                                          │       │ │ │
-│ │         │                │   i          Edit the title or the Description in place                     │       │ │ │
-│ │         │                │   y          Copy the selection or the field under the cursor               │       │ │ │
-│ │         │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
-│ │         │                │              or board)                                                      │       │ │ │
-│ │         │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
-│ │         │                │   <space>im  Assign the issue to me                                         │       │ │ │
+│ │ │       │                │   za         Expand or collapse sub-tasks of a card, a cut text or a        │       │ │ │
+│ │ │       │                │              backlog section                                                │       │ │ │
+│ │ │       │                │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)      │       │ │ │
+│ │ │       │                │              (Ctrl-Backspace, Ctrl-w h)                                     │       │ │ │
+│ │ │       │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)                               │       │ │ │
+│ │ │       │                │   Ctrl-k     Focus the pane above  (Ctrl-w k)                               │       │ │ │
+│ │ │       │                │   Ctrl-l     Focus the pane to the right (zoomed: the next section)         │       │ │ │
+│ │ ╰───────│                │              (Ctrl-w l)                                                     │       │ │ │
+│ │ ╭─ Remot│                │   <space>z   Zoom the focused pane, or leave the zoom                       │       │ │ │
+│ │ │ Loadin│                │   <space>o   Open the issue in the browser                                  │       │ │ │
+│ │ ╰───────│                │   <space>p   Open the parent issue                                          │       │ │ │
+│ │ ╭─ Comme│                │   i          Edit the title or the Description in place                     │       │ │ │
+│ │ │ Loadin│                │   y          Copy the selection or the field under the cursor               │       │ │ │
+│ │ │       │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
+│ │ │       │                │              or board)                                                      │       │ │ │
+│ │ │       │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
+│ │ ╰───────│                │   <space>im  Assign the issue to me                                         │       │ │ │
 │ │         │                │   <space>is  Change the status of the issue                                 │       │ │ │
 │ │         │                │   v          Start or end Visual mode (a range of rows, or of lines in an   │       │ │ │
 │ │         │                │              issue)                                                         │       │ │ │

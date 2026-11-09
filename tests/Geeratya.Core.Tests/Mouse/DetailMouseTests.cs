@@ -162,6 +162,8 @@ public class DetailMouseTests
         var state = Opened();
         var line = FirstLine(state, target => target is { Kind: DetailTargetKind.Comment, Expands: true, Note: true });
 
+        state = ScrolledTo(state, line);
+
         var result = Click(state, RowOf(state, line), MainColumn);
 
         Assert.Contains("comment:1", Top(result.State).Expanded);
@@ -445,6 +447,19 @@ public class DetailMouseTests
         }
 
         throw new InvalidOperationException("No such line in the document.");
+    }
+
+    // The document scrolled so that the line is the first row of the overlay.
+    private static AppState ScrolledTo(AppState state, int line)
+    {
+        var tab = Active(state);
+        var stack = tab.Detail.ToArray();
+
+        stack[^1] = stack[^1] with { Scroll = line };
+
+        var tabs = state.Session.Tabs.Select(each => each.Id == tab.Id ? tab with { Detail = stack } : each);
+
+        return state with { Session = state.Session with { Tabs = [.. tabs] } };
     }
 
     private static int RowOf(AppState state, int line)

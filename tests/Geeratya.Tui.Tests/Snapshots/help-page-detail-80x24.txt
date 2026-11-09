@@ -5,20 +5,20 @@
 ╰─│   Issue detail │   j          Move down  (Down)                          │─╯
 ╭─│   Global       │   k          Move up  (Up)                              │─╮
 │ │   All actions  │   gg         Go to the top  (Home)                      │ │
-╰─│   Commands     │   G          Go to the bottom  (End)                    │─╯
-╭─│                │   Ctrl-d     Page down  (PageDown)                      │─╮
+│ │   Commands     │   G          Go to the bottom  (End)                    │ │
+│ │                │   Ctrl-d     Page down  (PageDown)                      │ │
 │ │                │   Ctrl-u     Page up  (PageUp)                          │ │
-╰─│                │   <space>a   Open the actions menu of the selected      │─╯
-╭─│                │              issue                                      │─╮
+│ │                │   <space>a   Open the actions menu of the selected      │ │
+│ │                │              issue                                      │ │
 │ │                │   Enter      Open the selected item                     │ │
 ╰─│                │   za         Expand or collapse sub-tasks of a card, a  │─╯
 ╭─│                │              cut text or a backlog section              │─╮
 │ │                │   Ctrl-h     Focus the pane to the left (zoomed: the    │ │
-│ │                │              previous section)  (Ctrl-Backspace,        │ │
-│ │                │              Ctrl-w h)                                  │ │
+╰─│                │              previous section)  (Ctrl-Backspace,        │─╯
+╭─│                │              Ctrl-w h)                                  │─╮
 │ │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)           │ │
 │ │                │   Ctrl-k     Focus the pane above  (Ctrl-w k)           │ │
 │ │                │   Ctrl-l     Focus the pane to the right (zoomed: the  ▼│ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
-│  [--] Unassigned                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close
