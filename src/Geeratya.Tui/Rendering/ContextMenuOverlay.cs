@@ -68,7 +68,7 @@ public static class ContextMenuOverlay
     }
 
     /// <summary>
-    /// The rows of the box: a header row (not selectable, item -1) wherever the action prefix changes, when the menu
+    /// The rows of the box: a blank row (not selectable, item -1) before each header but the first, then a header row (also -1) wherever the action prefix changes, when the menu
     /// has more than one prefix and enough items to need them, then the item rows.
     /// </summary>
     private static List<MenuRow> DisplayRows(ContextMenuState menu, KeymapTable keymap, int selected, int width)
@@ -83,6 +83,11 @@ public static class ContextMenuOverlay
 
             if (headed && (index == 0 || prefixes[index] != prefixes[index - 1]))
             {
+                if (index > 0)
+                {
+                    rows.Add(new MenuRow(-1, StyledLine.Of(string.Empty, TextRole.Body)));
+                }
+
                 var header = StyledLine.Of($"  {WhichKeyBuilder.GroupTitle(prefixes[index])}", TextRole.Heading);
 
                 rows.Add(new MenuRow(-1, header));
