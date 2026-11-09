@@ -85,6 +85,8 @@ public class ContextMenuOverlayTests
         var other = lines.FindIndex(line => line.Contains(" App ", StringComparison.Ordinal));
         var column = lines[rank].IndexOf("Rank", StringComparison.Ordinal);
 
+        // Eight columns from the header text stay inside the box, so only the menu's own row is checked.
+
         Assert.Contains("Actions", lines[issue - 1], StringComparison.Ordinal);
         Assert.True(string.IsNullOrWhiteSpace(lines[rank - 1].Substring(column, 8)));
         Assert.True(other > rank);
