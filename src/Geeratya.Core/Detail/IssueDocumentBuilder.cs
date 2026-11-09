@@ -21,6 +21,7 @@ public static class IssueDocumentBuilder
     private const string NewestFirstText = "newest first";
     private const int MinCommentRows = 6;
     private const int MinPaneRows = 4;
+    private const int PadFromRows = 16;
     private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
@@ -258,7 +259,7 @@ public static class IssueDocumentBuilder
 
         LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true, First: scroll.ClampedOffset, KeyInFrame: true));
 
-        if (detail.Zoomed is null)
+        if (detail.Zoomed is null && CanPad(viewportRows))
         {
             // A short or empty Description keeps the room a full one would take (#868).
             PadTo(panel, bodyRows);
@@ -290,6 +291,12 @@ public static class IssueDocumentBuilder
             width,
             Joined([chip, new StyledSpan(ChipSeparator, TextRole.Muted), .. toggleHint], browser),
             scroll);
+    }
+
+    // Small terminals (and layouts without a viewport) keep panes sized by their content; padding needs room.
+    private static bool CanPad(int? viewportRows)
+    {
+        return viewportRows >= PadFromRows;
     }
 
     // Blank rows the cursor skips, so a short pane keeps a minimum height.
@@ -377,7 +384,7 @@ public static class IssueDocumentBuilder
         {
             AddRows(content, rows, 0, rows.Count);
 
-            if (viewport is not null && detail.Zoomed is null)
+            if (detail.Zoomed is null && CanPad(viewport))
             {
                 PadTo(content, MinPaneRows);
             }

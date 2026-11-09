@@ -394,7 +394,6 @@ public class IssueDocumentBuilderTests
     }
 
     [Theory]
-    [InlineData(12, 4)]
     [InlineData(24, 8)]
     [InlineData(36, 12)]
     [InlineData(90, 12)]
@@ -424,12 +423,37 @@ public class IssueDocumentBuilderTests
         Assert.All(Enumerable.Range(start + 1, 3), line => Assert.DoesNotContain(line, document.Stops));
     }
 
-    [Fact]
-    public void GivenNoViewport_WhenBuilding_ThenTheEmptyDescriptionStaysCompact()
+    [Theory]
+    [InlineData(null)]
+    [InlineData(12)]
+    public void GivenNoViewportOrASmallOne_WhenBuilding_ThenTheEmptyDescriptionStaysOneRow(int? viewport)
     {
-        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80);
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, viewport);
 
-        Assert.Equal(4 + 2, PaneRows(document, PaneIds.Description));
+        Assert.Equal(1 + 2, PaneRows(document, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenALongDescriptionAndATallViewport_WhenBuilding_ThenItIsCutAfterTheTextRowsWithTheNote()
+    {
+        var text = string.Join("\n\n", Enumerable.Range(1, 40).Select(number => $"line {number}"));
+
+        var document = IssueDocumentBuilder.Build(Loaded(AdfMarkdownParser.Parse(text), []), 80, 36);
+
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
+        Assert.Equal(12 + 2, PaneRows(document, PaneIds.Description));
+        Assert.Equal(11, document.PaneScrolls[pane]!.Viewport);
+        Assert.Contains("more lines", document.Lines[document.Sections[pane] + 11].PlainText);
+    }
+
+    [Theory]
+    [InlineData(PaneIds.Description)]
+    [InlineData(PaneIds.Comments)]
+    public void GivenAZoomedShortPane_WhenBuilding_ThenItIsNotPadded(string zoomed)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []) with { Zoomed = zoomed }, 80, 36);
+
+        Assert.Equal(1 + 2, PaneRows(document, zoomed));
     }
 
     private static int PaneRows(DetailDocument document, string id)
