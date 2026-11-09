@@ -20,6 +20,8 @@ public static class IssueDocumentBuilder
     private const string CommentsTitle = "Comments";
     private const string NewestFirstText = "newest first";
     private const int MinCommentRows = 6;
+    private const int MinPaneRows = 4;
+    private const int PadFromRows = 16;
     private const string ErrorTitle = "Error";
     private const string LoadingText = "Loading…";
     private const string NoDescriptionText = "No description.";
@@ -248,13 +250,20 @@ public static class IssueDocumentBuilder
         var panel = new PanelContent();
         var target = detail.Issue is null ? null : new DetailTarget(DetailTargetKind.Field, DetailFieldIds.Description);
         var expanded = detail.Expanded.Contains(DetailFieldIds.Description);
-        var rows = detail.Zoomed == PaneIds.Description ? int.MaxValue : LongText.DescriptionRows;
+        var bodyRows = LongText.DescriptionBodyRows(viewportRows);
+        var rows = detail.Zoomed == PaneIds.Description ? int.MaxValue : bodyRows;
         var cut = target is not null && !expanded && content.Count > rows;
 
-        var textRows = LongText.DescriptionRows - 1;
+        var textRows = bodyRows - 1;
         var scroll = new PaneScroll(detail.DescriptionOffset, content.Count, textRows);
 
         LongText.Add(panel, content, target, expanded, new LongTextLimit(rows, inner, true, First: scroll.ClampedOffset, KeyInFrame: true));
+
+        if (detail.Zoomed is null && CanPad(viewportRows))
+        {
+            // A short or empty Description keeps the room a full one would take (#868).
+            PadTo(panel, bodyRows);
+        }
 
         var title = new StyledSpan(DescriptionTitle, TextRole.Heading);
 
@@ -264,7 +273,7 @@ public static class IssueDocumentBuilder
 
         if (!cut)
         {
-            var spans = target is not null && content.Count > LongText.DescriptionRows && detail.Zoomed is null
+            var spans = target is not null && content.Count > bodyRows && detail.Zoomed is null
                 ? toggleHint
                 : null;
 
@@ -282,6 +291,21 @@ public static class IssueDocumentBuilder
             width,
             Joined([chip, new StyledSpan(ChipSeparator, TextRole.Muted), .. toggleHint], browser),
             scroll);
+    }
+
+    // Small terminals (and layouts without a viewport) keep panes sized by their content; padding needs room.
+    private static bool CanPad(int? viewportRows)
+    {
+        return viewportRows >= PadFromRows;
+    }
+
+    // Blank rows the cursor skips, so a short pane keeps a minimum height.
+    private static void PadTo(PanelContent panel, int rows)
+    {
+        while (panel.Lines.Count < rows)
+        {
+            panel.AddGap(StyledLine.Of(string.Empty));
+        }
     }
 
     // The key that expands or cuts the long Description, shown in the frame instead of a row of the text.
@@ -359,6 +383,12 @@ public static class IssueDocumentBuilder
         if (rows.Count <= height)
         {
             AddRows(content, rows, 0, rows.Count);
+
+            if (detail.Zoomed is null && CanPad(viewport))
+            {
+                PadTo(content, MinPaneRows);
+            }
+
             sink.AddPanel(PaneIds.Comments, [heading], content, width, detail.Comments.Count > 0 ? [order] : null);
 
             return ids;

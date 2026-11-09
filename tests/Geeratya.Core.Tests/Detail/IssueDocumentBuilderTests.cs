@@ -393,6 +393,77 @@ public class IssueDocumentBuilderTests
         Assert.Contains("Description", lines);
     }
 
+    [Theory]
+    [InlineData(24, 8)]
+    [InlineData(36, 12)]
+    [InlineData(90, 12)]
+    public void GivenNoDescription_WhenBuilding_ThenThePaneKeepsTheRoomOfTheViewport(int viewport, int bodyRows)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, viewport);
+
+        Assert.Equal(bodyRows + 2, PaneRows(document, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenAOneLineDescription_WhenBuilding_ThenThePaneIsPaddedToTheSameHeightAsAnEmptyOne()
+    {
+        var empty = IssueDocumentBuilder.Build(Loaded(null, []), 80, 36);
+        var oneLine = IssueDocumentBuilder.Build(Loaded(AdfMarkdownParser.Parse("one line"), []), 80, 36);
+
+        Assert.Equal(PaneRows(empty, PaneIds.Description), PaneRows(oneLine, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenAPaddedDescription_WhenMovingDown_ThenTheCursorSkipsTheBlankRows()
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, 36);
+        var start = document.Sections[document.SectionIds.ToList().IndexOf(PaneIds.Description)];
+
+        Assert.Contains("No description.", document.Lines[start].PlainText);
+        Assert.All(Enumerable.Range(start + 1, 3), line => Assert.DoesNotContain(line, document.Stops));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(12)]
+    public void GivenNoViewportOrASmallOne_WhenBuilding_ThenTheEmptyDescriptionStaysOneRow(int? viewport)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []), 80, viewport);
+
+        Assert.Equal(1 + 2, PaneRows(document, PaneIds.Description));
+    }
+
+    [Fact]
+    public void GivenALongDescriptionAndATallViewport_WhenBuilding_ThenItIsCutAfterTheTextRowsWithTheNote()
+    {
+        var text = string.Join("\n\n", Enumerable.Range(1, 40).Select(number => $"line {number}"));
+
+        var document = IssueDocumentBuilder.Build(Loaded(AdfMarkdownParser.Parse(text), []), 80, 36);
+
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
+        Assert.Equal(12 + 2, PaneRows(document, PaneIds.Description));
+        Assert.Equal(11, document.PaneScrolls[pane]!.Viewport);
+        Assert.Contains("more lines", document.Lines[document.Sections[pane] + 11].PlainText);
+    }
+
+    [Theory]
+    [InlineData(PaneIds.Description)]
+    [InlineData(PaneIds.Comments)]
+    public void GivenAZoomedShortPane_WhenBuilding_ThenItIsNotPadded(string zoomed)
+    {
+        var document = IssueDocumentBuilder.Build(Loaded(null, []) with { Zoomed = zoomed }, 80, 36);
+
+        Assert.Equal(1 + 2, PaneRows(document, zoomed));
+    }
+
+    private static int PaneRows(DetailDocument document, string id)
+    {
+        var index = document.SectionIds.ToList().IndexOf(id);
+        var next = index + 1 < document.PaneStarts.Count ? document.PaneStarts[index + 1] : document.Lines.Count;
+
+        return next - document.PaneStarts[index];
+    }
+
     private static string Title(DetailDocument document, int pane)
     {
         return string.Concat(document.PaneTitles[pane].Select(static span => span.Text));

@@ -1,24 +1,24 @@
  1 JQL My open issues x   +                          : commands   <space>g jump 
                                                                                 
-╭─ Description ────────────────── 38-40 of 40 · za expand · (edit in browser) ─╮
-│   hidden                                                                    ▲│
+╭─ Description ────────────────── 35-40 of 40 · za expand · (edit in browser) ─╮
+│ | a  | b  |                                                                 ▲│
+│                                                                             ░│
+│ v Expand me                                                                 ░│
+│   hidden                                                                    ░│
 │                                                                             ░│
 │ https://example.com/card                                                    █│
-│ … 37 more lines                                                          ...▼│
+│ … 34 more lines                                                          ...▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
-│ Jane Doe                                                             1 d ago │
-│ Found it: the redirect target is dropped after the refresh.                  │
-│                                                                              │
-│ 日本語の作者                                                         3 h ago │
-│ 日本語のコメント。これは長い文章で、折り返しが必要になります。               │
-│                                                                              │
-│ Ola Nordmann                                                       5 min ago │
-│ See also café and 😀 in the second paragraph, which is long enough to wrap.  │
-│                                                                              │
+│ Jane Doe                                                             1 d ago▲│
+│ Found it: the redirect target is dropped after the refresh.                 █│
+│                                                                             █│
+│ 日本語の作者                                                         3 h ago█│
+│ 日本語のコメント。これは長い文章で、折り返しが必要になります。              ░│
+│                                                                             ░│
+│ Ola Nordmann                                                       5 min ago▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Details ────────────────────────────────────────────────────────────────────╮
 │ Status  moves via transition                                                 │
 │  ● In Progress ▾                                                             │
-│                                                                              │
  NORMAL  This description has formatting that cannot be edited here: open it in 

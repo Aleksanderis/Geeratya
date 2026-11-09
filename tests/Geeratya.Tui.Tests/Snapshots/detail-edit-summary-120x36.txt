@@ -9,28 +9,28 @@
 │ │ │ Fix login redirect                                                         │ │ Status  moves via transition  │ │ │
 │ │ │ Ctrl-s save   Esc cancel                                                   │ │  ● In Progress ▾              │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
-│ │ ╭─ Description ────────────────── 1-3 of 40 · za expand · (edit in browser) ─╮ │ Priority                      │ │ │
+│ │ ╭─ Description ────────────────── 1-7 of 40 · za expand · (edit in browser) ─╮ │ Priority                      │ │ │
 │ │ │ Heading one                                                               ▲│ │  ▲ High                       │ │ │
 │ │ │                                                                           █│ │                               │ │ │
 │ │ │ Heading three                                                             ░│ │ Assignee                      │ │ │
-│ │ │ … 37 more lines                                                           ▼│ │  [JD] Jane Doe                │ │ │
-│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
-│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │ Reporter                      │ │ │
-│ │ │ Jane Doe                                                           1 d ago │ │  [ON] Ola Nordmann            │ │ │
-│ │ │ Found it: the redirect target is dropped after the refresh.                │ │                               │ │ │
-│ │ │                                                                            │ │ Labels                        │ │ │
-│ │ │ 日本語の作者                                                       3 h ago │ │   auth   bug-bash             │ │ │
-│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │                               │ │ │
-│ │ │                                                                            │ │ Parent                        │ │ │
-│ │ │ Ola Nordmann                                                     5 min ago │ │  GCM-17 Reporting overhaul    │ │ │
-│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │                               │ │ │
-│ │ │ wrap.                                                                      │ │ Due none · Updated 2 h ago    │ │ │
+│ │ │                                                                           ░│ │  [JD] Jane Doe                │ │ │
+│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ │                               │ │ │
+│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ │ Reporter                      │ │ │
+│ │ │ after break                                                               ░│ │  [ON] Ola Nordmann            │ │ │
+│ │ │ … 33 more lines                                                           ▼│ │                               │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │ Labels                        │ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │   auth   bug-bash             │ │ │
+│ │ │ Jane Doe                                                           1 d ago │ │                               │ │ │
+│ │ │ Found it: the redirect target is dropped after the refresh.                │ │ Parent                        │ │ │
+│ │ │                                                                            │ │  GCM-17 Reporting overhaul    │ │ │
+│ │ │ 日本語の作者                                                       3 h ago │ │                               │ │ │
+│ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │ Due none · Updated 2 h ago    │ │ │
 │ │ │                                                                            │ │                               │ │ │
-│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                │                               │ │ │
-│ │                                                                                ╰───────────────────────────────╯ │ │
+│ │ │ Ola Nordmann                                                     5 min ago │ │                               │ │ │
+│ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │                               │ │ │
+│ │ │ wrap.                                                                      │ │                               │ │ │
+│ │ │                                                                            │ │                               │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ ╰───────────────────────────────╯ │ │
 │ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  INSERT  Edit GCM-12 · Summary                                                                   Ctrl-s save  Esc cancel

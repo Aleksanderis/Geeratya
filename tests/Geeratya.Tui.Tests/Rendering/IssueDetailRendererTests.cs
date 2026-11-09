@@ -77,7 +77,7 @@ public class IssueDetailRendererTests
         var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
 
         Assert.Contains("Ola Nordmann", line);
-        Assert.Contains("... 5 min ago │", line);
+        Assert.Contains("... 5 min ago", line);
         Assert.Equal(RowMenuMarker.Text, line.Substring(marker.Left, marker.Width));
     }
 
@@ -250,7 +250,7 @@ public class IssueDetailRendererTests
         Assert.StartsWith("| Fix login", body[1]);
         Assert.StartsWith("+--", body[2]);
         Assert.StartsWith("+- Description ", body[3]);
-        Assert.Contains("1-3 of", body[3]);
+        Assert.Contains("1-6 of", body[3]);
         Assert.EndsWith("-+", body[0]);
         Assert.EndsWith("-+", body[2].TrimEnd());
         Assert.Contains(body, line => line.Contains("^ |") || line.Contains("# |") || line.Contains(". |"));
@@ -345,7 +345,11 @@ public class IssueDetailRendererTests
         Assert.True(closing > 0);
         Assert.True(closing < 45, $"closing edge at row {closing}");
         Assert.EndsWith("╯", body[closing]);
-        Assert.Contains(sidebar ? "No comments" : "Updated", body[closing - 1]);
+
+        // The empty Comments pane keeps a few blank rows (#868), so its text is within the last four rows.
+        Assert.Contains(
+            sidebar ? "No comments" : "Updated",
+            string.Join('\n', body.Skip(closing - (sidebar ? 4 : 1)).Take(sidebar ? 4 : 1)));
         Assert.All(body.Take(closing + 1), line => Assert.Contains(line[0], "│╭╰"));
     }
 
