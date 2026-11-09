@@ -104,7 +104,7 @@ public static class FlashJumpReducer
 
         if (tab.Definition.Layout == ViewLayout.Columns && label.Key is { } key)
         {
-            return ViewReducer.SelectCard(closed, tab.Id, key);
+            return ViewReducer.SelectCard(closed, tab.Id, key, label.Lane);
         }
 
         return ViewReducer.Reduce(closed, new SelectionMoved(tab.Id, label.Row));

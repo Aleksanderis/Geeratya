@@ -62,19 +62,14 @@ public static class Swimlanes
 
         foreach (var row in rows)
         {
-            foreach (var key in KeysOf(kind, row))
+            if (kind == SwimlaneKind.Labels)
             {
-                if (counts.TryGetValue(key, out var count))
-                {
-                    counts[key] = count + 1;
+                CountLabels(row, order, names, counts);
 
-                    continue;
-                }
-
-                counts[key] = 1;
-                names[key] = NameOf(kind, row, key);
-                order.Add(key);
+                continue;
             }
+
+            Count(KeyOf(kind, row), NameOf(kind, row), order, names, counts);
         }
 
         if (order.Remove(LeftoverKey))
@@ -122,32 +117,95 @@ public static class Swimlanes
 
         var current = Current(Lanes(kind, rows), laneKey);
 
-        return current is null ? rows : [.. rows.Where(row => KeysOf(kind, row).Contains(current.Key))];
+        return current is null ? rows : [.. rows.Where(row => InLane(kind, row, current.Key))];
     }
 
-    /// <summary>
-    /// The lane keys of a row: one for an assignee or epic, one per distinct label for labels (a card with several
-    /// labels is in the lane of each), the leftover key for a row without any.
-    /// </summary>
-    private static string[] KeysOf(SwimlaneKind kind, IssueSummary row)
+    private static void CountLabels(
+        IssueSummary row,
+        List<string> order,
+        Dictionary<string, string> names,
+        Dictionary<string, int> counts)
     {
-        if (kind == SwimlaneKind.Labels)
-        {
-            var labels = row.Labels.Where(label => !string.IsNullOrWhiteSpace(label)).Distinct().ToArray();
+        var any = false;
 
-            return labels.Length == 0 ? [LeftoverKey] : labels;
+        for (var index = 0; index < row.Labels.Count; index++)
+        {
+            var label = row.Labels[index];
+
+            if (!IsLabel(label) || IndexBefore(row.Labels, index, label))
+            {
+                continue;
+            }
+
+            any = true;
+            Count(label, label, order, names, counts);
         }
 
-        return [kind == SwimlaneKind.Assignee ? row.Assignee?.AccountId ?? LeftoverKey : row.Epic?.Key ?? LeftoverKey];
+        if (!any)
+        {
+            Count(LeftoverKey, NoLabelName, order, names, counts);
+        }
     }
 
-    private static string NameOf(SwimlaneKind kind, IssueSummary row, string key)
+    private static bool IndexBefore(IReadOnlyList<string> labels, int index, string label)
     {
-        if (kind == SwimlaneKind.Labels)
+        for (var before = 0; before < index; before++)
         {
-            return key == LeftoverKey ? NoLabelName : key;
+            if (labels[before] == label)
+            {
+                return true;
+            }
         }
 
+        return false;
+    }
+
+    private static void Count(
+        string key,
+        string name,
+        List<string> order,
+        Dictionary<string, string> names,
+        Dictionary<string, int> counts)
+    {
+        if (counts.TryGetValue(key, out var count))
+        {
+            counts[key] = count + 1;
+
+            return;
+        }
+
+        counts[key] = 1;
+        names[key] = name;
+        order.Add(key);
+    }
+
+    private static bool InLane(SwimlaneKind kind, IssueSummary row, string laneKey)
+    {
+        if (kind != SwimlaneKind.Labels)
+        {
+            return KeyOf(kind, row) == laneKey;
+        }
+
+        if (laneKey == LeftoverKey)
+        {
+            return !row.Labels.Any(IsLabel);
+        }
+
+        return row.Labels.Contains(laneKey);
+    }
+
+    private static string KeyOf(SwimlaneKind kind, IssueSummary row)
+    {
+        return kind == SwimlaneKind.Assignee ? row.Assignee?.AccountId ?? LeftoverKey : row.Epic?.Key ?? LeftoverKey;
+    }
+
+    private static bool IsLabel(string label)
+    {
+        return !string.IsNullOrWhiteSpace(label);
+    }
+
+    private static string NameOf(SwimlaneKind kind, IssueSummary row)
+    {
         if (kind == SwimlaneKind.Assignee)
         {
             return row.Assignee?.DisplayName ?? UnassignedName;

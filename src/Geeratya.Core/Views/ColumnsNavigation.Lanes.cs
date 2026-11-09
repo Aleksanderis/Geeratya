@@ -48,7 +48,7 @@ public static partial class ColumnsNavigation
     /// <summary>
     /// Makes lane <paramref name="laneKey"/> the current one. With stacked lanes the lane keeps its own cursor (the
     /// one it had when it was left) and the column stays; otherwise the cursor goes to the first card of the lane.
-    /// The marks are dropped either way, as they would stay on cards of another lane.
+    /// The marks are dropped either way (a card in several lanes, grouping by labels, would show them in each).
     /// </summary>
     public static TabState SwitchLane(TabState tab, string laneKey)
     {

@@ -19,6 +19,12 @@ public readonly record struct FlashLabel(int Row, int MatchColumn, int MatchWidt
     /// <summary>The issue key of the card in the columns layout (the row there counts cards of the column); else null.</summary>
     public string? Key { get; init; }
 
+    /// <summary>
+    /// The key of the lane the label is drawn in (columns layout with a grouping); a card in several lanes has a label in
+    /// each, and a jump goes to the lane of the one picked. Null elsewhere.
+    /// </summary>
+    public string? Lane { get; init; }
+
     /// <summary>Whether a key selects this row.</summary>
     public bool HasLetter => Letter != NoLetter;
 }

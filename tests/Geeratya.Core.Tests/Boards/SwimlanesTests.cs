@@ -77,16 +77,17 @@ public class SwimlanesTests
             Row("A-1", null, labels: ["ui", "api"]),
             Row("A-2", null),
             Row("A-3", null, labels: ["api", "api"]),
+            Row("A-5", null, labels: [" "]),
         };
 
         var lanes = Swimlanes.Lanes(SwimlaneKind.Labels, rows);
 
         Assert.Equal(["ui", "api", ""], lanes.Select(lane => lane.Key));
-        Assert.Equal([1, 2, 1], lanes.Select(lane => lane.Count));
+        Assert.Equal([1, 2, 2], lanes.Select(lane => lane.Count));
         Assert.Equal("No label", lanes[2].Name);
         Assert.Equal(["A-1", "A-3"], Swimlanes.Filter(SwimlaneKind.Labels, "api", rows).Select(row => row.Key));
         Assert.Equal(["A-1"], Swimlanes.Filter(SwimlaneKind.Labels, "ui", rows).Select(row => row.Key));
-        Assert.Equal(["A-2"], Swimlanes.Filter(SwimlaneKind.Labels, "", rows).Select(row => row.Key));
+        Assert.Equal(["A-2", "A-5"], Swimlanes.Filter(SwimlaneKind.Labels, "", rows).Select(row => row.Key));
     }
 
     private static IssueSummary Row(
