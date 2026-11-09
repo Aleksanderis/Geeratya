@@ -145,7 +145,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-03 (quick filters and swimlanes, #192)
 
-**UI:** Swimlanes are back in the columns layout, as Geeratya's own grouping (assignee, epic) shown one lane at a time, and quick filters are the board's own, applied as extra JQL (overrides the 2026-11-02 "no swimlanes" entry and #143 feedback; the later #192 comment kept both). Why: the agile API gives no swimlane definition, and one lane at a time keeps the card-pitch viewport maths. Epics are neither hidden nor added: the board endpoint already follows each board's own rule. Details: `ux-screens.md`, "Columns layout".
+**UI:** Swimlanes are back in the columns layout, as Geeratya's own grouping (assignee, epic) shown one lane at a time (superseded by the 2026-11-09 entry below: all lanes are listed in a strip, #874), and quick filters are the board's own, applied as extra JQL (overrides the 2026-11-02 "no swimlanes" entry and #143 feedback; the later #192 comment kept both). Why: the agile API gives no swimlane definition, and one lane at a time keeps the card-pitch viewport maths. Epics are neither hidden nor added: the board endpoint already follows each board's own rule. Details: `ux-screens.md`, "Columns layout".
 
 ## 2026-11-03 (start on a board, #542)
 
@@ -292,3 +292,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (Arch package, #861)
 
 **Process:** The Arch/Omarchy `.pkg.tar.zst` is built by `scripts/package-linux.sh` itself (tar + zstd + `.PKGINFO`, no nfpm or makepkg, like the `.deb`) from the linux archive, so no extra tool is fetched in the release job. Install check: real `pacman -U` in `archlinux:latest` for x86_64; aarch64 has no official Arch image (Arch Linux ARM is third-party, not trusted in a release job), so the native arm64 runner unpacks the package, checks `.PKGINFO` and runs the packaged binary. The package is covered by `SHA256SUMS`; the AUR PKGBUILD already builds from the same archives for both arches and is unchanged. Gitunia (nfpm, no install check) was read for scope only.
+
+## 2026-11-09 (swimlane strip, #874)
+
+**UI:** Swimlanes show every lane together as a one-row strip above the frame (`▾ Name n` for the lane whose columns are drawn, `▸ Name n` for the others; click a chip to show it), instead of only a `Lane n/N` text in the status line (supersedes "one lane at a time" of #192; the owner's Jira screenshot shows lane headers over the columns). Why: all lanes visible with their counts, at a fixed cost of one row, so the card-pitch viewport maths stay valid (`LaneStrip.BoardRows`). Several lanes with columns open at once and folding lanes are follow-ups; they need a per-lane cursor and scroll. Details: `ux-screens.md`, "Columns layout".

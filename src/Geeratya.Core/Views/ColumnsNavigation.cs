@@ -29,7 +29,7 @@ public static class ColumnsNavigation
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        if (BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null) is not { } hit)
+        if (HitAt(tab, columns, cursor, width, column, row) is not { } hit)
         {
             return tab;
         }
@@ -43,7 +43,7 @@ public static class ColumnsNavigation
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        var hit = BoardHits.At(columns, cursor, tab.VisibleRows, width, column, row, tab.Next is not null);
+        var hit = HitAt(tab, columns, cursor, width, column, row);
 
         return hit is { Card: not null };
     }
@@ -59,8 +59,8 @@ public static class ColumnsNavigation
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        if (BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows)
-            || BoardHits.Locate(columns, cursor, tab.VisibleRows, width, column, row)
+        if (BoardCards.IsCompact(LaneStrip.BoardRows(tab), ListLayout.HeaderRows)
+            || BoardHits.Locate(columns, cursor, LaneStrip.BoardRows(tab), width, column, row - LaneStrip.Offset(tab))
                 is not { Row.Kind: CardRowKind.Key, Hit: { Card: { } card } hit }
             || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 } target)
         {
@@ -81,8 +81,7 @@ public static class ColumnsNavigation
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
         if (BoardWindows.For(columns.Count, cursor.Column, width).Count < 2
-            || BoardHits.At(columns, cursor, tab.VisibleRows, width, fromColumn, fromRow, tab.Next is not null)
-                is not { Card: not null } source
+            || HitAt(tab, columns, cursor, width, fromColumn, fromRow) is not { Card: not null } source
             || BoardHits.ColumnAtCell(columns, cursor, width, toColumn) is not { } target)
         {
             return null;
@@ -183,7 +182,34 @@ public static class ColumnsNavigation
     /// <summary>The room the tab's board has, for the scroll maths (the same the renderer draws in).</summary>
     public static BoardViewport ViewOf(TabState tab)
     {
-        return new BoardViewport(tab.VisibleRows, tab.ViewWidth);
+        return new BoardViewport(LaneStrip.BoardRows(tab), tab.ViewWidth);
+    }
+
+    /// <summary>
+    /// The lane the body cell is on in the lane strip (#874), null when the strip is not shown or the cell is not on a
+    /// chip.
+    /// </summary>
+    public static string? LaneAt(TabState tab, int width, int column, int row)
+    {
+        if (!LaneStrip.IsShown(tab) || row != 0)
+        {
+            return null;
+        }
+
+        return LaneStrip.Layout(tab.Swimlane, tab.Lane, tab.Rows, width).KeyAt(column);
+    }
+
+    private static BoardHit? HitAt(
+        TabState tab,
+        IReadOnlyList<BoardColumnGroup> columns,
+        BoardCursor cursor,
+        int width,
+        int column,
+        int row)
+    {
+        var board = row - LaneStrip.Offset(tab);
+
+        return BoardHits.At(columns, cursor, LaneStrip.BoardRows(tab), width, column, board, tab.Next is not null);
     }
 
     private static TabState Follow(TabState tab, IReadOnlyList<BoardColumnGroup> columns, BoardCursor cursor)

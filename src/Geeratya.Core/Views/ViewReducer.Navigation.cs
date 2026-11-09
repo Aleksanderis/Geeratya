@@ -101,6 +101,13 @@ public static partial class ViewReducer
 
         if (tab.Definition.Layout == ViewLayout.Columns)
         {
+            if (ColumnsNavigation.LaneAt(tab, placed.Width, placed.Column, placed.Row) is { } laneKey)
+            {
+                var shown = ColumnsNavigation.Resync(tab with { Lane = laneKey });
+
+                return new ReduceResult(Replace(state, shown), _noEffects);
+            }
+
             var moved = ColumnsNavigation.Place(tab, placed.Width, placed.Column, placed.Row);
 
             return ReferenceEquals(moved, tab) ? null : MovedInColumns(state, moved);
