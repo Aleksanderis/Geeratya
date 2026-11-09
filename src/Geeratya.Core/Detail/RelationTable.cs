@@ -89,8 +89,8 @@ internal static class RelationTable
 
         var unassigned = string.IsNullOrWhiteSpace(row.Assignee);
         var initials = unassigned ? UnassignedInitials : AssigneeInitials.Of(row.Assignee!);
-        var chip = $"[{Pad(initials, plan.ChipWidth - 2)}]";
-        var chipRole = unassigned ? TextRole.UnassignedChip : TextRole.InitialsChip;
+        var chip = unassigned ? $"[{Pad(initials, plan.ChipWidth - 2)}]" : PersonChips.Text(initials, plan.ChipWidth - 2);
+        var chipRole = unassigned ? TextRole.UnassignedChip : PersonChips.For(row.Assignee!);
 
         spans.Add(new StyledSpan(chip, chipRole));
 

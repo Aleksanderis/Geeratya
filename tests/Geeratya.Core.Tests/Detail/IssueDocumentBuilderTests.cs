@@ -76,8 +76,8 @@ public class IssueDocumentBuilderTests
         Assert.Contains("Status  moves via transition", texts);
         Assert.Contains(" ● In Progress ▾", texts);
         Assert.Contains(" ▲ High ▾", texts);
-        Assert.Contains(" [AA] Ann Assignee", texts);
-        Assert.Contains(" [RR] Rita Reporter", texts);
+        Assert.Contains("  AA  Ann Assignee", texts);
+        Assert.Contains("  RR  Rita Reporter", texts);
         Assert.DoesNotContain(texts, text => text.Contains("Rita Reporter ▾"));
         Assert.DoesNotContain(texts, text => text.Contains("Ann Assignee ▾"));
     }

@@ -13,10 +13,10 @@
 │ │ │                                                                           █│ │  ▲ High                       │ │ │
 │ │ │ Heading three                                                             ░│ │                               │ │ │
 │ │ │                                                                           ░│ │ Assignee                      │ │ │
-│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ │  [JD] Jane Doe                │ │ │
+│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ │   JD  Jane Doe                │ │ │
 │ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ │                               │ │ │
 │ │ │ after break                                                               ░│ │ Reporter                      │ │ │
-│ │ │ … 33 more lines                                                           ▼│ │  [ON] Ola Nordmann            │ │ │
+│ │ │ … 33 more lines                                                           ▼│ │   ON  Ola Nordmann            │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
 │ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │ Labels                        │ │ │
 │ │ │ Jane Doe                                                           1 d ago │ │   auth   bug-bash             │ │ │

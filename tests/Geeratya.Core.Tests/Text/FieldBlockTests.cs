@@ -134,11 +134,11 @@ public class FieldBlockTests
     [Fact]
     public void GivenChipsInTheValue_WhenFocusing_ThenTheyKeepTheirOwnRole()
     {
-        var spec = FieldBlockSpec.OfValue("Assignee", [new StyledSpan("[GW]", TextRole.InitialsChip)], false);
+        var spec = FieldBlockSpec.OfValue("Assignee", [new StyledSpan(" GW ", TextRole.LabelChip0)], false);
 
         var focused = FieldBlock.Focus(FieldBlock.Rows(spec, 20)[1], false);
 
-        Assert.Contains(focused.Spans, span => span.Role == TextRole.InitialsChip && span.Text == "[GW]");
+        Assert.Contains(focused.Spans, span => span.Role == TextRole.LabelChip0 && span.Text == " GW ");
     }
 
     [Fact]

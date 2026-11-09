@@ -73,9 +73,9 @@ public class CardRowsTests
 
         var row = CardRows.Bottom(issue, false, 32, TextRole.Body);
 
-        Assert.Equal("GEN-1  Task               ▲ [JD]", Text(row));
+        Assert.Equal("GEN-1  Task               ▲  JD ", Text(row));
         Assert.Equal(TextRole.PriorityHigh, row.Single(span => span.Text == "▲").Role);
-        Assert.Equal(TextRole.InitialsChip, row.Single(span => span.Text == "[JD]").Role);
+        Assert.Equal(PersonChips.For("Jane Doe"), row.Single(span => span.Text == " JD ").Role);
         Assert.Equal(TextRole.TypeTask, row.Single(span => span.Text == "Task").Role);
     }
 
@@ -100,13 +100,29 @@ public class CardRowsTests
     }
 
     [Fact]
+    public void GivenAnAssigneeChip_WhenApplyingCaps_ThenItIsRoundedInThePersonsColourAndKeepsItsWidth()
+    {
+        var issue = Issue() with { Assignee = new IssueAssignee("a", "Jane Doe") };
+        var row = new StyledLine(CardRows.Bottom(issue, false, 32, TextRole.Body));
+
+        var rounded = ChipCaps.Apply(row);
+
+        var chip = PersonChips.For("Jane Doe");
+        var cap = ChipCaps.CapRole(chip)!.Value;
+
+        Assert.Contains(rounded.Spans, span => span.Text == ChipCaps.Left && span.Role == cap);
+        Assert.Contains(rounded.Spans, span => span.Text == "JD" && span.Role == chip);
+        Assert.Equal(TextWidth.Of(row.PlainText), TextWidth.Of(rounded.PlainText));
+    }
+
+    [Fact]
     public void GivenOneInitial_WhenBuildingTheBottomRow_ThenTheChipKeepsItsWidth()
     {
         var single = Issue() with { Assignee = new IssueAssignee("a", "Madonna") };
 
         var row = CardRows.Bottom(single, false, 32, TextRole.Body);
 
-        Assert.EndsWith("[M ]", Text(row));
+        Assert.EndsWith(" M  ", Text(row));
     }
 
     [Theory]

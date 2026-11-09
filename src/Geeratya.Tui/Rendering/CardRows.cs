@@ -154,9 +154,11 @@ public static class CardRows
         }
 
         var unassigned = issue.Assignee is null || AssigneeInitials.Of(issue.Assignee.DisplayName).Length == 0;
-        var role = unassigned ? TextRole.UnassignedChip : TextRole.InitialsChip;
+        var padded = TextWidth.Pad(InitialsOf(issue), InitialsCells);
 
-        spans.Add(new StyledSpan($"[{TextWidth.Pad(InitialsOf(issue), InitialsCells)}]", role));
+        spans.Add(unassigned
+            ? new StyledSpan($"[{padded}]", TextRole.UnassignedChip)
+            : new StyledSpan($" {padded} ", PersonChips.For(issue.Assignee!.DisplayName)));
 
         if (estimate.Length > 0 && spare >= TextWidth.Of(estimate) + counterCells)
         {

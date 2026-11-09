@@ -29,13 +29,13 @@ public class RelationTableTests
         Assert.Equal(3, rows.Count);
         Assert.All(rows, row => Assert.StartsWith("GEN-100", row.Text));
         Assert.Single(rows.Select(row => row.Text.IndexOf("  ", 10, StringComparison.Ordinal)).Distinct());
-        Assert.Single(rows.Select(row => ColumnOf(row, "[G")).Where(column => column >= 0).Distinct());
-        Assert.Single(rows.Select(row => ColumnOf(row, "[")).Distinct());
-        Assert.Contains(rows, row => row.Text.Contains("[GW]"));
+        Assert.Single(rows.Select(row => ColumnOf(row, " GW")).Where(column => column >= 0).Distinct());
+        Assert.Single(rows.Select(row => Math.Max(ColumnOf(row, " GW"), ColumnOf(row, "[--]"))).Where(column => column >= 0).Distinct());
+        Assert.Contains(rows, row => row.Text.Contains(" GW"));
         Assert.Contains(rows, row => row.Text.Contains("[--]"));
 
         // At 64 columns the names give way to the chips; from 80 columns on they fit.
-        Assert.Equal(width >= 80, rows.Any(row => row.Text.Contains("[GW] Generated Writer")));
+        Assert.Equal(width >= 80, rows.Any(row => row.Text.Contains(" GW  Generated Writer")));
         Assert.Equal(width >= 80, rows.Any(row => row.Text.Contains("[--] Unassigned")));
     }
 
@@ -78,11 +78,11 @@ public class RelationTableTests
         var chipOnly = Assert.Single(SubtaskRows(Build(WithAssignees(1), 56)));
         var noChip = Assert.Single(SubtaskRows(Build(WithAssignees(1), 40)));
 
-        Assert.Contains("[GW] Generated Writer", wide.Text);
-        Assert.Contains("[GW]", chipOnly.Text);
+        Assert.Contains(" GW  Generated Writer", wide.Text);
+        Assert.Contains(" GW", chipOnly.Text);
         Assert.DoesNotContain("Generated", chipOnly.Text);
         Assert.Contains("In Progress", chipOnly.Text);
-        Assert.DoesNotContain("[GW]", noChip.Text);
+        Assert.DoesNotContain(" GW", noChip.Text);
         Assert.DoesNotContain("In Progress", noChip.Text);
         Assert.StartsWith("GEN-100051", noChip.Text);
     }
@@ -92,7 +92,7 @@ public class RelationTableTests
     {
         var spans = SubtaskRows(Build(WithAssignees(), 104)).SelectMany(row => row.Line.Spans).ToList();
 
-        Assert.Contains(spans, span => span.Role == TextRole.InitialsChip && span.Text == "[GW]");
+        Assert.Contains(spans, span => span.Role == PersonChips.For("Generated Writer") && span.Text == " GW ");
         Assert.Contains(spans, span => span.Role == TextRole.UnassignedChip && span.Text == "[--]");
         Assert.Contains(spans, span => span.Role == TextRole.Muted && span.Text.StartsWith("Unassigned"));
         Assert.Contains(spans, span => span.Role == TextRole.StatusInProgress && span.Text.StartsWith("In Progress"));

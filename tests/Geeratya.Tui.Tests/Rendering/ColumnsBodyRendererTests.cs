@@ -167,8 +167,8 @@ public class ColumnsBodyRendererTests
         var tight = Render(tab, 20, 30);
 
         Assert.Contains("ABCDEFGH-12345  Task", body[5].PlainText);
-        Assert.Contains("[JD]", body[5].PlainText);
-        Assert.DoesNotContain("[JD]", tight[5].PlainText);
+        Assert.Contains(" JD ", body[5].PlainText);
+        Assert.DoesNotContain(" JD ", tight[5].PlainText);
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class ColumnsBodyRendererTests
 
         if (width >= 40)
         {
-            Assert.Contains(frame, line => line.Contains("^ [JD]", StringComparison.Ordinal));
+            Assert.Contains(frame, line => line.Contains("^  JD ", StringComparison.Ordinal));
             Assert.Contains(frame, line => line.Contains(" alpha   a-very-long-label-name ", StringComparison.Ordinal));
         }
     }
@@ -249,7 +249,7 @@ public class ColumnsBodyRendererTests
 
         var body = Render(tab, 120, 30);
 
-        Assert.Matches(@"^┃ A-1  Task +\[JD\] ┃", body[5].PlainText[2..]);
+        Assert.Matches(@"^┃ A-1  Task + JD  ┃", body[5].PlainText[2..]);
         Assert.Matches(@"^│ A-2  Task +\[--\] │", body[10].PlainText[2..]);
         Assert.DoesNotContain("JD", body[10].PlainText);
     }

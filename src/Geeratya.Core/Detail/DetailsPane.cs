@@ -277,11 +277,11 @@ internal static class DetailsPane
         }
 
         var initials = AssigneeInitials.Of(name);
-        var chip = $"[{initials.PadRight(InitialsCells)}]";
+        var chip = PersonChips.Text(initials, InitialsCells);
 
         var text = new StyledSpan($" {TextClean.Of(name)}", TextRole.ValueBlock);
 
-        return [[new StyledSpan(chip, TextRole.InitialsChip), text]];
+        return [[new StyledSpan(chip, PersonChips.For(name)), text]];
     }
 
     private static List<IReadOnlyList<StyledSpan>> LabelItems(IReadOnlyList<string> labels)

@@ -319,14 +319,12 @@ public class PaletteTests
         var page = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body).Background;
         var selection = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Selected).Background;
         var block = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.ValueBlock).Background;
-        var initials = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.InitialsChip);
         var unassigned = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.UnassignedChip);
         var bar = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.SelectionBar);
         var labels = _labelRoles;
 
         Assert.NotEqual(page, block);
         Assert.NotEqual(selection, block);
-        Assert.Equal(theme.Colors[ThemeColor.Muted], initials.Background);
         Assert.Equal(page, unassigned.Background);
         Assert.Equal(theme.Colors[ThemeColor.Muted], unassigned.Foreground);
         Assert.Equal(theme.Colors[ThemeColor.Accent], bar.Foreground);
