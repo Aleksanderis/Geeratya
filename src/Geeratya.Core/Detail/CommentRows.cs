@@ -27,7 +27,7 @@ public static class CommentRows
     private const string TooManyNewestText = "Showing the newest comments only.";
     private const string TooManyOldestText = "Showing the oldest comments only (<space>mo shows the newest).";
     private const int BarGap = 2;
-    private const string Guide = "│ ";
+    private const string Guide = $"{Panel.Vertical} ";
     private const int IndentWidth = 2;
     private const int MinThreadedWidth = 10;
 
@@ -86,7 +86,8 @@ public static class CommentRows
         int bodyLines)
     {
         var comment = threaded.Comment;
-        var indent = Math.Min(threaded.Depth * IndentWidth, Math.Max(0, outer - MinThreadedWidth));
+        var room = Math.Max(0, outer - MinThreadedWidth) / IndentWidth * IndentWidth;
+        var indent = Math.Min(threaded.Depth * IndentWidth, room);
         var inner = outer - indent;
         var expanded = detail.Expanded.Contains($"comment:{comment.Id}");
         var body = BodyOf(comment, inner);

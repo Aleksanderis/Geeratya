@@ -80,7 +80,8 @@ public static class GeneratedIssues
 
     /// <summary>
     /// A page of the comments of generated issue <paramref name="number"/>: every fifth issue has 120 comments (to
-    /// page through), the others three, the second of them a reply to the first. With <paramref name="newestFirst"/> the list is reversed.
+    /// page through), the others three, the second of them a reply to the
+    /// first. With <paramref name="newestFirst"/> the list is reversed.
     /// </summary>
     public static byte[] Comments(int number, int startAt, int pageSize, bool newestFirst = false)
     {
