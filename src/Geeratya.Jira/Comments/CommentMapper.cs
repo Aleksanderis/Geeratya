@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
 using Geeratya.Jira.Paging;
@@ -36,5 +37,19 @@ internal static class CommentMapper
                 : null,
             comment.Body is { } body ? AdfParser.Parse(body) : AdfParser.Parse((string?)null),
             IssueSummaryMapper.ParseTimestamp(comment.Created),
-            IssueSummaryMapper.ParseTimestamp(comment.Updated));
+            IssueSummaryMapper.ParseTimestamp(comment.Updated),
+            ParentOf(comment.ParentId));
+
+    // Jira sends the parent id as a number; a string is accepted too, anything else (null, empty) is no parent.
+    private static string? ParentOf(JsonElement? parent)
+    {
+        var text = parent switch
+        {
+            { ValueKind: JsonValueKind.Number } number => number.GetRawText(),
+            { ValueKind: JsonValueKind.String } value => value.GetString(),
+            _ => null,
+        };
+
+        return string.IsNullOrWhiteSpace(text) ? null : text;
+    }
 }
