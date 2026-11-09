@@ -4,7 +4,7 @@ namespace Geeratya.Core.Boards;
 
 /// <summary>
 /// Swimlanes of the columns layout (#192). The agile API does not expose the lanes a board defines in Jira, so the
-/// lanes are Geeratya's own grouping of the loaded issues by assignee or epic; the layout shows one lane at a time
+/// lanes are Geeratya's own grouping of the loaded issues by assignee, epic or label; the layout shows one lane at a time
 /// (all its columns), and the lane can be changed with <c>]]</c> and <c>[[</c>. Pure.
 /// </summary>
 public static class Swimlanes
@@ -15,16 +15,20 @@ public static class Swimlanes
     /// <summary>The name of the lane of issues under no epic.</summary>
     public const string NoEpicName = "No epic";
 
-    /// <summary>The lane key of the leftover lane (Unassigned or No epic).</summary>
+    /// <summary>The name of the lane of issues without a label.</summary>
+    public const string NoLabelName = "No label";
+
+    /// <summary>The lane key of the leftover lane (Unassigned, No epic or No label).</summary>
     public const string LeftoverKey = "";
 
-    /// <summary>The next grouping in the cycle none, assignee, epic.</summary>
+    /// <summary>The next grouping in the cycle none, assignee, epic, labels.</summary>
     public static SwimlaneKind Next(SwimlaneKind kind)
     {
         return kind switch
         {
             SwimlaneKind.None => SwimlaneKind.Assignee,
             SwimlaneKind.Assignee => SwimlaneKind.Epic,
+            SwimlaneKind.Epic => SwimlaneKind.Labels,
             _ => SwimlaneKind.None,
         };
     }
@@ -36,6 +40,7 @@ public static class Swimlanes
         {
             SwimlaneKind.Assignee => "assignee",
             SwimlaneKind.Epic => "epic",
+            SwimlaneKind.Labels => "labels",
             _ => "none",
         };
     }
@@ -57,18 +62,19 @@ public static class Swimlanes
 
         foreach (var row in rows)
         {
-            var key = KeyOf(kind, row);
-
-            if (counts.TryGetValue(key, out var count))
+            foreach (var key in KeysOf(kind, row))
             {
-                counts[key] = count + 1;
+                if (counts.TryGetValue(key, out var count))
+                {
+                    counts[key] = count + 1;
 
-                continue;
+                    continue;
+                }
+
+                counts[key] = 1;
+                names[key] = NameOf(kind, row, key);
+                order.Add(key);
             }
-
-            counts[key] = 1;
-            names[key] = NameOf(kind, row);
-            order.Add(key);
         }
 
         if (order.Remove(LeftoverKey))
@@ -116,16 +122,32 @@ public static class Swimlanes
 
         var current = Current(Lanes(kind, rows), laneKey);
 
-        return current is null ? rows : [.. rows.Where(row => KeyOf(kind, row) == current.Key)];
+        return current is null ? rows : [.. rows.Where(row => KeysOf(kind, row).Contains(current.Key))];
     }
 
-    private static string KeyOf(SwimlaneKind kind, IssueSummary row)
+    /// <summary>
+    /// The lane keys of a row: one for an assignee or epic, one per distinct label for labels (a card with several
+    /// labels is in the lane of each), the leftover key for a row without any.
+    /// </summary>
+    private static string[] KeysOf(SwimlaneKind kind, IssueSummary row)
     {
-        return kind == SwimlaneKind.Assignee ? row.Assignee?.AccountId ?? LeftoverKey : row.Epic?.Key ?? LeftoverKey;
+        if (kind == SwimlaneKind.Labels)
+        {
+            var labels = row.Labels.Where(label => !string.IsNullOrWhiteSpace(label)).Distinct().ToArray();
+
+            return labels.Length == 0 ? [LeftoverKey] : labels;
+        }
+
+        return [kind == SwimlaneKind.Assignee ? row.Assignee?.AccountId ?? LeftoverKey : row.Epic?.Key ?? LeftoverKey];
     }
 
-    private static string NameOf(SwimlaneKind kind, IssueSummary row)
+    private static string NameOf(SwimlaneKind kind, IssueSummary row, string key)
     {
+        if (kind == SwimlaneKind.Labels)
+        {
+            return key == LeftoverKey ? NoLabelName : key;
+        }
+
         if (kind == SwimlaneKind.Assignee)
         {
             return row.Assignee?.DisplayName ?? UnassignedName;

@@ -69,7 +69,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
 | `<space>l` | Switch between list and columns | `view.layout-toggle` | everyday |
 | `<space>vf` | Cycle the quick filter of the board (off, then each filter in turn) | `view.quick-filter` | everyday |
-| `<space>vs` | Group the board columns into lanes (none, assignee, epic) | `view.swimlane` | everyday |
+| `<space>vs` | Group the board columns into lanes (none, assignee, epic, labels) | `view.swimlane` | everyday |
 | `<space>vl` | Show lanes together under their own headers, or one lane | `view.swimlane-stack` | everyday |
 | `<space>vd` | Pick how long this Kanban board keeps Done issues (1 to 4 weeks, all, or follow Jira) | `view.done-cutoff` | everyday |
 | `<space>o` | Open the issue in the browser | `issue.open-in-browser` | everyday |

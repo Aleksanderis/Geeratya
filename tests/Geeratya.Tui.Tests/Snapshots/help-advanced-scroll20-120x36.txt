@@ -23,14 +23,14 @@
 │           │               │   <space>l   Switch between list and columns                                 │           │
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │
-│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │           │
+│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic,       │           │
+│           │               │              labels)                                                         │           │
 │           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
 │           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
 │           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
 │           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
 │           │               │              weeks, all, or follow Jira)                                     │           │
-│           │               │   <space>vv  Open a saved view in a new tab                                  │           │
-│           │               │   <space>vw  Save this view under a name (opens :view save)                 ▼│           │
+│           │               │   <space>vv  Open a saved view in a new tab                                 ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
