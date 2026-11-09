@@ -124,6 +124,7 @@ all_scenarios=(
   "board-filter;120;36;dark;:board GCM| vf;Quick filter: Recently Updated"
   "board-lanes-stacked;120;36;dark;:board GCM| vs vs vl;Lanes stacked"
   "board-lanes-folded;120;36;dark;:board GCM| vs vs vlzc;Folded lane"
+  "board-lanes-labels;120;36;dark;:board GCM| vs vs vs vl;Lanes stacked"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"
   "board-lanes;120;36;dark;:board GCM| vs;Swimlanes by assignee"
