@@ -67,7 +67,20 @@ public sealed class CommentClient(JiraTransport transport)
         string key,
         AdfDocument body,
         CancellationToken cancellationToken) =>
-        SendBodyAsync(HttpMethod.Post, key, null, body, cancellationToken);
+        SendBodyAsync(HttpMethod.Post, key, null, body, null, cancellationToken);
+
+    /// <summary>
+    /// Adds a comment as a reply: the id of <paramref name="parentId"/> goes in the body as the JSON number
+    /// <c>parentId</c>, the shape the comment read has. The public REST docs do not list the field and no live check
+    /// has confirmed it yet (<c>docs/internal/jira-layer.md</c>, "Comments"): if Jira ignores it, the comment is stored
+    /// top-level.
+    /// </summary>
+    public Task<WriteResult<IssueComment>> ReplyToCommentAsync(
+        string key,
+        string parentId,
+        AdfDocument body,
+        CancellationToken cancellationToken) =>
+        SendBodyAsync(HttpMethod.Post, key, null, body, parentId, cancellationToken);
 
     /// <summary>Replaces the body of a comment and returns the stored comment (author, created, updated).</summary>
     public Task<WriteResult<IssueComment>> EditCommentAsync(
@@ -75,7 +88,7 @@ public sealed class CommentClient(JiraTransport transport)
         string commentId,
         AdfDocument body,
         CancellationToken cancellationToken) =>
-        SendBodyAsync(HttpMethod.Put, key, commentId, body, cancellationToken);
+        SendBodyAsync(HttpMethod.Put, key, commentId, body, null, cancellationToken);
 
     /// <summary>Deletes a comment. Jira has no undo; the reply carries no body (204).</summary>
     public Task<WriteResult<WriteAccepted>> DeleteCommentAsync(
@@ -98,8 +111,14 @@ public sealed class CommentClient(JiraTransport transport)
         string key,
         string? commentId,
         AdfDocument body,
+        string? parentId,
         CancellationToken cancellationToken)
     {
+        if (parentId is not null && Refusal<IssueComment>(key, parentId) is { } badParent)
+        {
+            return badParent;
+        }
+
         if ((commentId is null ? Refusal<IssueComment>(key) : Refusal<IssueComment>(key, commentId)) is { } refused)
         {
             return refused;
@@ -110,7 +129,8 @@ public sealed class CommentClient(JiraTransport transport)
             return Refused<IssueComment>(WriteErrorKind.Validation, "A comment cannot be empty.");
         }
 
-        var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}}""";
+        var parent = parentId is null ? string.Empty : $",\"parentId\":{parentId}";
+        var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}{{parent}}}""";
         var result = await transport.SendWriteAsync(
             JiraRequest.Write(method, CommentPath(key, commentId), json),
             CommentJsonContext.Default.Comment,

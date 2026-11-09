@@ -80,6 +80,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-r` | Reset the highlighted setting to its default (in the settings screen) | `settings.reset` | everyday |
 | `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
 | `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
+| `<space>mr` | Reply to the comment under the cursor | `comment.reply` | everyday |
 | `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
 | `<space>mo` | Reverse the order of the comments: oldest first or newest first | `comment.order` | everyday |
 | `<space>is` | Change the status of the issue | `issue.transition` | everyday |

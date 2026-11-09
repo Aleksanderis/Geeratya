@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>sg  Show the full goal of the sprint                               ▲│           │
-│           │   All actions │ Tabs                                                                         │           │
-│           │   Commands    │   Tab        Next tab  (gt)                                                  │           │
+│           │   Global      │   <space>sc  Complete the sprint (confirms where the open issues go)        ▲│           │
+│           │   All actions │   <space>sg  Show the full goal of the sprint                                │           │
+│           │   Commands    │ Tabs                                                                         │           │
+│           │               │   Tab        Next tab  (gt)                                                  │           │
 │           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
 │           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
 │           │               │   Alt-1      Go to tab 1                                                     │           │
@@ -29,8 +30,7 @@
 │           │               │   G          Go to the bottom  (End)                                         │           │
 │           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
 │           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
-│           │               │   Enter      Open the selected item                                          │           │
-│           │               │   0          Go to the first column                                         ▼│           │
+│           │               │   Enter      Open the selected item                                         ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

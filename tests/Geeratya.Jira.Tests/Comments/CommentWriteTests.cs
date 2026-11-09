@@ -43,6 +43,40 @@ public sealed class CommentWriteTests
     }
 
     [Fact]
+    public async Task GivenAParentId_WhenAdding_ThenTheBodyCarriesItAsANumberAndTheReplyKeepsIt()
+    {
+        using var fixture = new TransportFixture();
+        var reply = FakeResponse.WithStatus(
+            HttpStatusCode.Created,
+            FixtureFiles.Read("writes/comment-post-gtm-reply.json").Replace("\"id\"", "\"parentId\":10006,\"id\"", StringComparison.Ordinal));
+        fixture.Handler.Serve(HttpMethod.Post, ListPath, reply);
+
+        var result = await new CommentClient(fixture.Transport)
+            .ReplyToCommentAsync("GTM-5", "10006", AdfMarkdownParser.Parse("answer"), Cancel());
+
+        Assert.Equal("10006", result.Value.ParentId);
+        var sent = Assert.Single(fixture.Handler.Requests);
+        using var body = JsonDocument.Parse(sent.Body!);
+        Assert.Equal(["body", "parentId"], body.RootElement.EnumerateObject().Select(property => property.Name));
+        Assert.Equal(10006, body.RootElement.GetProperty("parentId").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("1/../2")]
+    [InlineData("abc")]
+    public async Task GivenABadParentId_WhenAdding_ThenItIsRefusedBeforeSending(string parent)
+    {
+        using var fixture = new TransportFixture();
+
+        var result = await new CommentClient(fixture.Transport)
+            .ReplyToCommentAsync("GTM-5", parent, AdfMarkdownParser.Parse("x"), Cancel());
+
+        Assert.Equal(WriteErrorKind.NotFound, result.Error.Kind);
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
     public async Task GivenText_WhenEditing_ThenPutToCommentUrlReturnsUpdatedComment()
     {
         using var fixture = new TransportFixture();

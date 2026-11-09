@@ -324,3 +324,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (#897, threaded comments)
 
 **Jira layer and UI:** A reply carries `"parentId": <parent comment id>` (a JSON number, while `id` is a string) in the REST v3 comment list; top-level comments have none (seen on the dev site, GCM-9). `IssueComment.ParentId` maps it (string, null when absent). The Comments pane lays comments out as threads (`CommentThreads`, Core): parents keep the loaded order (`comments.order`), replies follow their parent oldest first, a `│ ` guide (a `Border` span, so yank leaves it out) marks each level, and a reply whose parent is not loaded shows flat in place. Supersedes the #875 claim "no reply field" (the recorded fixtures just held no reply). Writing a reply (`parentId` on create) is not part of this and is registered as a follow-up.
+
+## 2026-11-09 (#905, reply to a comment)
+
+**Jira layer and UI:** `<space>mr` (`comment.reply`, also in the comment's right-click menu) opens the add-comment editor titled `Reply to <author> on <key>`; saving is an add with `parentId` (JSON number, the shape of the read), with no extra confirm, as for any add. One level only: a reply to a reply goes under the thread's top-level comment (the web UI showed one level in #897). The public REST docs do not list `parentId` for the create call, so it is unverified: a live check on the dev site is pending (if Jira ignores the field the comment simply shows top-level).

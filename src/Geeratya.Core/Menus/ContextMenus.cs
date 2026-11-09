@@ -111,6 +111,7 @@ public static class ContextMenus
 
         if (CommentEditing.IsOnComment(state))
         {
+            actions.Add(ActionIds.CommentReply);
             actions.Add(ActionIds.CommentDelete);
         }
     }

@@ -8,7 +8,7 @@ public class FrameSnapshotTests
     private static readonly string[] _sections =
         ["Global", "All actions", "Commands", "Issue", "Comment", "Rank", "View", "Tabs", "Navigate", "General", "Dialogs"];
 
-    private static readonly int[] _scrolls = [0, 20, 44, 72];
+    private static readonly int[] _scrolls = [0, 20, 44, 73];
 
     public static TheoryData<string, string> Snapshots
     {
@@ -45,7 +45,7 @@ public class FrameSnapshotTests
     [InlineData(0)]
     [InlineData(20)]
     [InlineData(44)]
-    [InlineData(72)]
+    [InlineData(73)]
     public void GivenHelpScrolled_WhenPrintingTheFrame_ThenItMatchesTheSnapshotThatShowsTheLaterGroups(int scroll)
     {
         using var writer = new StringWriter();

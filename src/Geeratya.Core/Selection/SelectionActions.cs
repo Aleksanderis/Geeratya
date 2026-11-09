@@ -42,6 +42,7 @@ public static class SelectionActions
         ActionIds.IssueAssignMe,
         ActionIds.CommentAdd,
         ActionIds.CommentEdit,
+        ActionIds.CommentReply,
         ActionIds.CommentDelete,
     ];
 

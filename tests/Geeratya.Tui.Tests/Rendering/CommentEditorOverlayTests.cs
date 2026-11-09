@@ -316,6 +316,16 @@ public class CommentEditorOverlayTests
         return Editor("hi @ol") with { Suggest = popup };
     }
 
+    [Fact]
+    public void GivenAReplyEditor_WhenRendering_ThenTheTitleNamesTheAuthorAndTheIssue()
+    {
+        var editor = Editor(string.Empty) with { ParentId = "7", ReplyTo = "Olga Other" };
+
+        var text = string.Join('\n', Frame(editor, 80, 24).PlainLines());
+
+        Assert.Contains("Reply to Olga Other on A-1", text);
+    }
+
     private static StyledFrame Frame(CommentEditor editor, int width, int height)
     {
         return FrameBuilder.BuildStyled(StateWith(editor), width, height, _keymap)!;

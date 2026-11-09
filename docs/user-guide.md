@@ -97,7 +97,7 @@ Movement is vim-style: `h j k l`, `gg`, `G`, `Ctrl-d`, `Ctrl-u`. Full table: [ke
 - **Tabs:** `<space>t` opens a new one, `gt` / `gT` or `Alt-1`..`Alt-9` switch, `<space>c` closes. The tabs are restored on the next start.
 - **Create:** `<space>ic` an issue (type, then the form with the project's required fields), `<space>iC` a sub-task.
 - **Edit:** `i` edits the title or description in place, `<space>ie` the title, `:edit` the fields, `:assign-me`, `:labels`, `:priority`.
-- **Comments:** `<space>ma` adds, `<space>me` edits, `<space>md` deletes, replies show indented under their parent, `<space>mo` reverses the order (oldest first by default; the choice is saved, setting `comments.order`).
+- **Comments:** `<space>ma` adds, `<space>me` edits, `<space>mr` replies to the comment under the cursor, `<space>md` deletes, replies show indented under their parent, `<space>mo` reverses the order (oldest first by default; the choice is saved, setting `comments.order`).
 - **Backlog and ranking:** `:backlog`, then `Alt-k` / `Alt-j` rank up and down.
 - **Scrum:** `<space>sm` moves the selected issues to a sprint, `<space>sb` to the backlog, `<space>sn` creates a sprint, `<space>ss` starts it, `<space>sc` completes it (the confirmation says where open issues go), `<space>sv` switches the sprint shown.
 - **Kanban Done cutoff:** the Done column follows Jira's "Hide done work items after"; `<space>vd` picks 1 to 4 weeks or all for the tab.

@@ -17,6 +17,7 @@ public static class CommentEditorOverlay
 {
     private const string NewTitle = "Comment on";
     private const string EditTitle = "Edit comment on";
+    private const string ReplyTitle = "Reply to";
     private const string SavingText = "Saving…";
     private const string PlaceholderText = " Type the comment here";
     private const string SearchingText = "searching…";
@@ -100,8 +101,10 @@ public static class CommentEditorOverlay
         int area)
     {
         var contentWidth = boxWidth - 2;
-        var title = editor.IsEdit ? EditTitle : NewTitle;
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, $"{title} {editor.Key}") };
+        var heading = editor.IsReply
+            ? $"{ReplyTitle} {editor.ReplyTo ?? "unknown"} on {editor.Key}"
+            : $"{(editor.IsEdit ? EditTitle : NewTitle)} {editor.Key}";
+        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, heading) };
 
         lines.AddRange(TextLines(editor, rows, area).Select(line => OverlayBox.Wall(line, contentWidth)));
         lines.AddRange(notes.Select(note => OverlayBox.Wall(note, contentWidth)));

@@ -119,6 +119,7 @@ public static class ActionIds
     public const string SprintGoal = "sprint.goal";
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
+    public const string CommentReply = "comment.reply";
     public const string CommentDelete = "comment.delete";
     public const string CommentOrder = "comment.order";
     public const string EditorLeft = "editor.left";
