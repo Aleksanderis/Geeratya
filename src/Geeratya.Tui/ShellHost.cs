@@ -11,6 +11,7 @@ using Geeratya.Platform.Processes;
 using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Input;
 using Geeratya.Tui.Rendering.Themes;
+using Geeratya.Tui.Shutdown;
 using Geeratya.Tui.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Input;
@@ -59,7 +60,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly DragAutoScroller _dragScroller = new(TimeProvider.System);
     private DateTimeOffset? _whichKeyTimedFor;
     private bool _chipShown;
-    private bool _quitting;
+    private volatile bool _quitting;
 
     public ShellHost(
         KeymapTable keymap,
@@ -69,6 +70,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         TerminalBackgroundDetector? background = null)
     {
         _background = background;
+        _watchdog = new QuitWatchdog(TimeProvider.System, new TerminalProcessExit(_uiThread, Console.Out));
         _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
         _keymapLoad = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
@@ -104,6 +106,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _whichKeyTimer?.Dispose();
         _dragScroller.Stepped -= OnDragScrollStep;
         _dragScroller.Dispose();
+        _watchdog.Dispose();
         _profiles.Caches.Dispose();
         _effects.Dispose();
         _network.Dispose();
@@ -142,10 +145,12 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             Dispatch(new StartupRequested());
             _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
 
+            StartShutdownGuards();
             RunLoop(screen);
         }
         finally
         {
+            StopShutdownGuards();
             _uiThread.Detach();
             _application?.Dispose();
         }
@@ -153,6 +158,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         _shutdown.Cancel();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();
+        _watchdog.Disarm();
 
         return 0;
     }
@@ -193,6 +199,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         }
 
         _quitting = true;
+        _watchdog.Arm(_effects.HasRunningWrites ? _quitWait + _quitGrace : _quitGrace);
         _network.CancelReads();
 
         if (_effects.HasRunningWrites)
@@ -262,6 +269,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     /// </summary>
     private void OnIteration(object? sender, EventArgs<IApplication?> eventArgs)
     {
+        _stalls?.Beat();
         _application?.Driver?.SetCursorNeedsUpdate(false);
     }
 
@@ -289,6 +297,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
 
     private void Dispatch(AppCommand command)
     {
+        _stalls?.Note(command.GetType().Name);
         var result = _reducer.Reduce(_state, command);
 
         // An idle tick changes nothing: no redraw, unless the banner counts time (a wait, the age of the data).

@@ -53,6 +53,7 @@ public sealed partial class ShellHost
     private void RunExternalEditor(EditExternallyEffect edit)
     {
         _pendingEdit = null;
+        _stalls?.Suspend();
         _uiThread.Detach();
         _application!.Dispose();
 
@@ -64,6 +65,7 @@ public sealed partial class ShellHost
 
         _application!.Invoke(() => Dispatch(finished));
         Resume();
+        _stalls?.Resume();
     }
 
     private ExternalEditResult Edit(string text)

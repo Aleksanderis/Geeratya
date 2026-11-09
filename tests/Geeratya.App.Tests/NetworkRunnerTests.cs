@@ -244,6 +244,103 @@ public sealed class NetworkRunnerTests
         Assert.Empty(fixture.Posted);
     }
 
+    [Theory]
+    [InlineData("scope")]
+    [InlineData("reads")]
+    [InlineData("all")]
+    public async Task GivenTokenCallbackThatBlocks_WhenCancelling_ThenTheCallerIsNotBlocked(string how)
+    {
+        using var fixture = await ConnectedAsync(_a);
+        var release = new ManualResetEventSlim();
+        var registered = new TaskCompletionSource();
+        var finish = new TaskCompletionSource();
+
+        var run = fixture.Runner.Start(1, async (_, token) =>
+        {
+            await using var registration = token.Register(release.Wait);
+
+            registered.SetResult();
+            await finish.Task;
+
+            return _reply;
+        });
+
+        await registered.Task;
+
+        var cancelling = Task.Factory.StartNew(
+            Cancel,
+            new CancelRequest(fixture.Runner, how),
+            CancellationToken.None,
+            TaskCreationOptions.None,
+            TaskScheduler.Default);
+
+        await cancelling.WaitAsync(TimeSpan.FromSeconds(10));
+        release.Set();
+        finish.SetResult();
+        await run;
+
+        Assert.Empty(fixture.Posted);
+    }
+
+    [Fact]
+    public async Task GivenDetachedWork_WhenCancellingAll_ThenItsTokenIsCancelledAtOnce()
+    {
+        using var fixture = await ConnectedAsync(_a);
+        var gate = new TaskCompletionSource();
+        var started = new TaskCompletionSource<CancellationToken>();
+
+        var run = fixture.Runner.StartDetached(async (_, token) =>
+        {
+            started.SetResult(token);
+            await gate.Task;
+
+            return _reply;
+        });
+
+        var seen = await started.Task;
+
+        fixture.Runner.CancelAll();
+
+        Assert.True(seen.IsCancellationRequested);
+
+        gate.SetResult();
+        await run;
+
+        Assert.Empty(fixture.Posted);
+    }
+
+    [Fact]
+    public async Task GivenCancelledScope_WhenCancellingAgain_ThenNothingThrows()
+    {
+        using var fixture = await ConnectedAsync(_a);
+
+        await fixture.Runner.Start(1, (_, _) => Task.FromResult<Command?>(_reply));
+        fixture.Runner.CancelScope(1);
+        fixture.Runner.CancelScope(1);
+        fixture.Runner.CancelReads();
+        fixture.Runner.CancelAll();
+    }
+
+    private static void Cancel(object? state)
+    {
+        var request = (CancelRequest)state!;
+
+        if (request.How == "scope")
+        {
+            request.Runner.CancelScope(1);
+        }
+        else if (request.How == "reads")
+        {
+            request.Runner.CancelReads();
+        }
+        else
+        {
+            request.Runner.CancelAll();
+        }
+    }
+
+    private sealed record CancelRequest(NetworkRunner Runner, string How);
+
     private static async Task<Fixture> ConnectedAsync(params Profile[] profiles)
     {
         var store = new FakeSecretStore();

@@ -28,7 +28,8 @@ public sealed record ProfileServices(
     SettingsStore? Settings = null,
     string? ThemesDirectory = null,
     SavedViewStore? SavedViews = null,
-    RememberedTabsStore? Tabs = null)
+    RememberedTabsStore? Tabs = null,
+    string? StateDirectory = null)
 {
     /// <summary>
     /// Wires the services for the running process; throws <see cref="InvalidOperationException"/> with a readable
@@ -62,6 +63,7 @@ public sealed record ProfileServices(
             new SettingsStore(directories.ConfigDirectory),
             Path.Combine(directories.ConfigDirectory, "themes"),
             new SavedViewStore(directories.StateDirectory, permissions),
-            new RememberedTabsStore(directories.StateDirectory, permissions));
+            new RememberedTabsStore(directories.StateDirectory, permissions),
+            directories.StateDirectory);
     }
 }
