@@ -61,14 +61,41 @@ public class SwimlanesTests
     }
 
     [Fact]
-    public void GivenTheGroupings_WhenCycling_ThenTheyGoNoneAssigneeEpicNone()
+    public void GivenTheGroupings_WhenCycling_ThenTheyGoNoneAssigneeEpicLabelsNone()
     {
         Assert.Equal(SwimlaneKind.Assignee, Swimlanes.Next(SwimlaneKind.None));
         Assert.Equal(SwimlaneKind.Epic, Swimlanes.Next(SwimlaneKind.Assignee));
-        Assert.Equal(SwimlaneKind.None, Swimlanes.Next(SwimlaneKind.Epic));
+        Assert.Equal(SwimlaneKind.Labels, Swimlanes.Next(SwimlaneKind.Epic));
+        Assert.Equal(SwimlaneKind.None, Swimlanes.Next(SwimlaneKind.Labels));
     }
 
-    private static IssueSummary Row(string key, string? accountId, string name = "", string? epic = null)
+    [Fact]
+    public void GivenCardsWithSeveralLabels_WhenGroupingByLabels_ThenACardIsInEachOfItsLanesAndUnlabelledLast()
+    {
+        var rows = new[]
+        {
+            Row("A-1", null, labels: ["ui", "api"]),
+            Row("A-2", null),
+            Row("A-3", null, labels: ["api", "api"]),
+            Row("A-5", null, labels: [" "]),
+        };
+
+        var lanes = Swimlanes.Lanes(SwimlaneKind.Labels, rows);
+
+        Assert.Equal(["ui", "api", ""], lanes.Select(lane => lane.Key));
+        Assert.Equal([1, 2, 2], lanes.Select(lane => lane.Count));
+        Assert.Equal("No label", lanes[2].Name);
+        Assert.Equal(["A-1", "A-3"], Swimlanes.Filter(SwimlaneKind.Labels, "api", rows).Select(row => row.Key));
+        Assert.Equal(["A-1"], Swimlanes.Filter(SwimlaneKind.Labels, "ui", rows).Select(row => row.Key));
+        Assert.Equal(["A-2", "A-5"], Swimlanes.Filter(SwimlaneKind.Labels, "", rows).Select(row => row.Key));
+    }
+
+    private static IssueSummary Row(
+        string key,
+        string? accountId,
+        string name = "",
+        string? epic = null,
+        string[]? labels = null)
     {
         return new IssueSummary(
             key,
@@ -78,7 +105,7 @@ public class SwimlanesTests
             new IssueTypeSummary("10", "Task", 0, false),
             null,
             accountId is null ? null : new IssueAssignee(accountId, name),
-            [],
+            labels ?? [],
             epic is null ? null : new IssueParent(epic, $"Epic {epic}", true),
             null,
             "A");

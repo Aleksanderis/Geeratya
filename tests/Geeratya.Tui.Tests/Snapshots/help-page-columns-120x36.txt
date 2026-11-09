@@ -21,7 +21,8 @@
 │           │               │   <space>l   Switch between list and columns                                 │           │
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │
-│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │           │
+│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic,       │           │
+│           │               │              labels)                                                         │           │
 │           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
 │           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
 │           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
@@ -29,8 +30,7 @@
 │           │               │              weeks, all, or follow Jira)                                     │           │
 │           │               │   <space>o   Open the issue in the browser                                   │           │
 │           │               │   y          Copy the selection or field under the cursor (in a list: the    │           │
-│           │               │              issue key)                                                      │           │
-│           │               │   <space>yy  Copy the key of the issue under the cursor                     ▼│           │
+│           │               │              issue key)                                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

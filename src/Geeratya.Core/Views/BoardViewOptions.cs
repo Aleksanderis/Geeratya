@@ -146,7 +146,7 @@ public static class BoardViewOptions
         return $"Lane {lanes.ToList().IndexOf(lane) + 1}/{lanes.Count}: {lane.Name}";
     }
 
-    /// <summary><c>view.swimlane</c>: the next grouping (none, assignee, epic); the first lane is shown.</summary>
+    /// <summary><c>view.swimlane</c>: the next grouping (none, assignee, epic, labels); the first lane is shown.</summary>
     public static ReduceResult CycleSwimlane(AppState state)
     {
         if (Check(state) is not { } tab)

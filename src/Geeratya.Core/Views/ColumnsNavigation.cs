@@ -143,11 +143,14 @@ public static partial class ColumnsNavigation
 
     /// <summary>
     /// Puts the cursor on the card with <paramref name="key"/> in whatever column it is, keeping the scroll of the
-    /// columns (a flash jump). A tab without that card is returned with its cursor settled.
+    /// columns (a flash jump; <paramref name="laneKey"/> names the lane of the label picked, for a card in several lanes). A tab without that card is returned with its cursor settled.
     /// </summary>
-    public static TabState Select(TabState tab, string key)
+    public static TabState Select(TabState tab, string key, string? laneKey = null)
     {
-        tab = SwitchLane(tab, LaneShowing(tab, key) ?? CurrentLaneKey(tab));
+        // A card listed in several lanes (grouping by labels): the lane the flash label was drawn in wins.
+        var lane = laneKey is not null && LaneRegions.IsStacked(tab) ? laneKey : LaneShowing(tab, key);
+
+        tab = SwitchLane(tab, lane ?? CurrentLaneKey(tab));
 
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));

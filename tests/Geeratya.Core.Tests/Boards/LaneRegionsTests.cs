@@ -302,7 +302,8 @@ public class LaneRegionsTests
         Assert.NotEmpty(other.LaneCursors);
 
         var epic = _reducer.Reduce(state, new ActionRequested(ActionIds.ViewSwimlane));
-        var none = _reducer.Reduce(epic.State, new ActionRequested(ActionIds.ViewSwimlane)).State.Session.Tabs.Single();
+        var labels = _reducer.Reduce(epic.State, new ActionRequested(ActionIds.ViewSwimlane));
+        var none = _reducer.Reduce(labels.State, new ActionRequested(ActionIds.ViewSwimlane)).State.Session.Tabs.Single();
 
         Assert.False(none.StackLanes);
         Assert.Empty(none.LaneCursors);

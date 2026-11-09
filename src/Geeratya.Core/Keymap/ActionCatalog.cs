@@ -134,7 +134,7 @@ public static class ActionCatalog
         new(ActionIds.ViewRefresh, "Refresh the view (also retries after an error)"),
         new(ActionIds.ViewLayoutToggle, "Switch between list and columns"),
         new(ActionIds.ViewQuickFilter, "Cycle the quick filter of the board (off, then each filter in turn)"),
-        new(ActionIds.ViewSwimlane, "Group the board columns into lanes (none, assignee, epic)"),
+        new(ActionIds.ViewSwimlane, "Group the board columns into lanes (none, assignee, epic, labels)"),
         new(ActionIds.ViewSwimlaneStack, "Show lanes together under their own headers, or one lane"),
         new(ActionIds.LaneFold, "Fold the lane to its header row (stacked lanes)"),
         new(ActionIds.LaneUnfold, "Open the next folded lane (stacked lanes)"),

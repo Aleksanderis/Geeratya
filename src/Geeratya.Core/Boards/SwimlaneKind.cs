@@ -11,4 +11,7 @@ public enum SwimlaneKind
 
     /// <summary>One lane per epic, then No epic.</summary>
     Epic,
+
+    /// <summary>One lane per label (a card with several labels is in each), then No label (#892).</summary>
+    Labels,
 }

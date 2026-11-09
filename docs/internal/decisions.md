@@ -312,3 +312,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (fold a lane, #893)
 
 **UI:** A stacked lane folds to its header row (`z c` `lane.fold`, `z o` `lane.unfold`, chevron click), the current lane is never folded (entering a folded lane opens it) and folding needs stacked lanes. Why: the card actions (`Enter`, marks, writes) act on the current lane's selected card, so a folded current lane would leave a hidden target; `z a` stays the sub-task toggle because a card is under the cursor in columns, so the fold keys are `z c` and `z o`, like vim's close and open. Folds are per tab for the session, not saved (they are a view state like the column scroll). Details: `ux-screens.md`, "Columns layout".
+
+## 2026-11-09 (swimlanes by labels, #892)
+
+**UI:** `<space>vs` gains a fourth grouping, labels: a card with several labels is in the lane of each of them (counted in each), a card without a label is in `No label` (last). Why: Jira's own "Labels" swimlane does the same and the issue asks for multi-membership; the first label only would hide a card from the lanes the owner filters by. The lane is a view over the same issue, so nothing is copied: the cursor and writes act on the card of the current lane, lane cursors are per lane (`ux-screens.md`, "Columns layout"). Labels are already part of the board fields, so no extra request.

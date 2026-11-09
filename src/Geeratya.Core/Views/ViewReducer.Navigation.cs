@@ -212,11 +212,11 @@ public static partial class ViewReducer
     }
 
     /// <summary>Puts the cursor of a columns tab on the card with that key (a flash jump), as a keyboard move would.</summary>
-    public static ReduceResult SelectCard(AppState state, TabId tab, string key)
+    public static ReduceResult SelectCard(AppState state, TabId tab, string key, string? laneKey = null)
     {
         var found = Find(state.Session.Tabs, tab);
 
-        return found is null ? new ReduceResult(state, _noEffects) : MovedInColumns(state, ColumnsNavigation.Select(found, key));
+        return found is null ? new ReduceResult(state, _noEffects) : MovedInColumns(state, ColumnsNavigation.Select(found, key, laneKey));
     }
 
     private static ReduceResult MovedInColumns(AppState state, TabState moved)

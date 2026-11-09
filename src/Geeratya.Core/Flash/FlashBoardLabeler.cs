@@ -91,7 +91,7 @@ public static class FlashBoardLabeler
 
                 if (fields.Any(field => field.Contains(text, StringComparison.OrdinalIgnoreCase)))
                 {
-                    found.Add(LabelOf(group, column, card, compact));
+                    found.Add(LabelOf(group, column, card, compact) with { Lane = region.Key });
                 }
             }
         }

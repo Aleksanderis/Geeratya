@@ -199,14 +199,16 @@ public class BoardViewOptionsTests
     }
 
     [Fact]
-    public void GivenSwimlanes_WhenCyclingPastEpicAndBack_ThenAllCardsShowAgain()
+    public void GivenSwimlanes_WhenCyclingPastEpicAndLabelsAndBack_ThenAllCardsShowAgain()
     {
         var state = Loaded(Rows());
 
         var assignee = PressKeys(state, "Space", "v", "s").State;
         var epic = PressKeys(assignee, "Space", "v", "s");
-        var none = PressKeys(epic.State, "Space", "v", "s");
+        var labels = PressKeys(epic.State, "Space", "v", "s");
+        var none = PressKeys(labels.State, "Space", "v", "s");
 
+        Assert.Equal(SwimlaneKind.Labels, Tab(labels.State).Swimlane);
         Assert.Equal(SwimlaneKind.Epic, Tab(epic.State).Swimlane);
         Assert.Equal("Swimlanes by epic: 1 lane (]] and [[ change the lane).", epic.State.Message);
         Assert.Equal(SwimlaneKind.None, Tab(none.State).Swimlane);
