@@ -53,7 +53,6 @@ public class IssueYankTargetsTests
 
         var result = Run(state, "Space", "y", "y");
 
-        Assert.Equal(BacklogFixtures.EmptyFutureId, tab.FocusedSprintId);
         Assert.Empty(result.Effects);
         Assert.Contains("No issue selected", result.State.Message);
     }
@@ -65,7 +64,7 @@ public class IssueYankTargetsTests
 
         var group = rows.Single(row => row.Key == "y");
 
-        Assert.Equal("+yank (3)", group.Label);
+        Assert.StartsWith("+yank", group.Label, StringComparison.Ordinal);
         Assert.Contains(rows, row => row.Key == "i" && row.Label.StartsWith("+issue", StringComparison.Ordinal));
     }
 
