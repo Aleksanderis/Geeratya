@@ -38,8 +38,6 @@ Format: dated heading, entries appended at the end, each starting with a bold to
 
 **Testing:** Live Jira work happens only on the owner's free dev site, guarded by `GEERATYA_LIVE_HOSTS`; the company site is never used by agents or tests. Default tests are offline against recorded, scrubbed fixtures.
 
-**Process:** CI never runs automatically; local build and tests are the gate, and CI is dispatched by hand (before closing a milestone). Why: CI minutes are scarce (carried over from Gitunia).
-
 **Architecture:** One active Jira site at a time, from saved profiles; switching is cheap and built in, several sites open at once is not included. Why: the owner uses one site, and side-by-side sites cost the most.
 
 **Scope:** Company-managed and team-managed projects are both supported; Jira Service Management is not included. Attachments and images show as links, never rendered. Why: the owner's company project kind is unknown and the owner does not use JSM.
@@ -328,3 +326,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (#905, reply to a comment)
 
 **Jira layer and UI:** `<space>mr` (`comment.reply`, also in the comment's right-click menu) opens the add-comment editor titled `Reply to <author> on <key>`; saving is an add with `parentId` (JSON number, the shape of the read), with no extra confirm, as for any add. One level only: a reply to a reply goes under the thread's top-level comment (the web UI showed one level in #897). The public REST docs do not list `parentId` for the create call, so it is unverified: a live check on the dev site is pending (if Jira ignores the field the comment simply shows top-level).
+
+## 2026-11-09 (#909, automatic CI)
+
+**Process:** CI is automatic again (supersedes the manual-CI entry, archived in `history/decisions.md`, "Superseded 2026-11-09"): ubuntu on every PR and push to `main`, windows on push to `main` and dispatch. Why: the repo is public, minutes are no longer scarce.

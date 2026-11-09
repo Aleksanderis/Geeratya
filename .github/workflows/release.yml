@@ -1,4 +1,4 @@
-# Dispatch only (CI minutes are scarce, docs/internal/decisions.md 2026-11-01); macOS
+# Dispatch only (releases are deliberate; ci.yml runs automatically, see docs/internal/decisions.md 2026-11-09); macOS
 # bills 10x minutes, so it is built only here, never in ci.yml.
 #   Dry run (no release; archives are workflow artifacts):
 #     gh workflow run release.yml --ref main -f tag=v0.0.1-dryrun
