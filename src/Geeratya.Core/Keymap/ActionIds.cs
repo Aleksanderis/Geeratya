@@ -114,6 +114,7 @@ public static class ActionIds
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";
+    public const string CommentOrder = "comment.order";
     public const string EditorLeft = "editor.left";
     public const string EditorRight = "editor.right";
     public const string EditorRowStart = "editor.row-start";

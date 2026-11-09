@@ -20,6 +20,16 @@ public static class SettingsRegistry
 
     public const string BoardCategory = "Board";
 
+    public const string DetailCategory = "Issue detail";
+
+    public const string CommentsOrderName = "comments.order";
+
+    private const string Oldest = "oldest";
+
+    private const string Newest = "newest";
+
+    private const string OrderExpected = "oldest or newest";
+
     /// <summary>The category of a setting that names none; listed after the others.</summary>
     public const string OtherCategory = "Other";
 
@@ -153,6 +163,17 @@ public static class SettingsRegistry
             ApplyDoneCutoff,
             DoneCutoffExpected,
             Category: BoardCategory),
+        new SettingDefinition(
+            CommentsOrderName,
+            "comments.order",
+            SettingKind.Choice,
+            Oldest,
+            "Which comments of an opened issue come first: the oldest or the newest. <space>mo flips it and saves the choice.",
+            settings => settings.CommentsNewestFirst ? Newest : Oldest,
+            ApplyCommentsOrder,
+            OrderExpected,
+            Choices: [Oldest, Newest],
+            Category: DetailCategory),
     ];
 
     public static SettingDefinition? Find(string name)
@@ -285,6 +306,16 @@ public static class SettingsRegistry
     private static string ReadDoneCutoff(AppSettings settings)
     {
         return settings.DoneCutoffDays == 0 ? AllWord : settings.DoneCutoffDays.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static AppSettings? ApplyCommentsOrder(AppSettings settings, string text)
+    {
+        return text switch
+        {
+            Oldest => settings with { CommentsNewestFirst = false },
+            Newest => settings with { CommentsNewestFirst = true },
+            _ => null,
+        };
     }
 
     private static AppSettings? ApplyTheme(AppSettings settings, string text)

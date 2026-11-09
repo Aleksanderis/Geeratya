@@ -12,7 +12,7 @@
 │ 😄 and unicode: żółć 日本語 🚀                                              ░│
 │ … 34 more lines                                                             ▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Comments 3 ────────────────────────────────────────────────── newest first ─╮
+╭─ Comments 3 ────────────────────────────────────────────────── oldest first ─╮
 │ Jane Doe                                                             1 d ago▲│
 │ Found it: the redirect target is dropped after the refresh.                 █│
 │                                                                             █│

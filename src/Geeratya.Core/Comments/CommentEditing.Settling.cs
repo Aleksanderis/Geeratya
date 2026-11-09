@@ -110,11 +110,24 @@ internal static partial class CommentEditing
             return detail with { Comments = replaced };
         }
 
-        // Newest first: the added comment is the newest, so it goes on top whatever pages are still unloaded.
+        if (detail.CommentsNewestFirst)
+        {
+            // The added comment is the newest, so it goes on top whatever pages are still unloaded.
+            return detail with
+            {
+                Comments = [stored, .. detail.Comments],
+                NextComments = Shifted(detail.NextComments, 1),
+                CommentTotal = Counted(detail.CommentTotal, 1),
+            };
+        }
+
+        // Oldest first: the newest goes last, and only when the list holds every comment. Otherwise it is beyond the
+        // loaded pages: it arrives with the last of them, and the offsets of the loaded ones do not move.
+        var complete = detail.NextComments is null && (detail.CommentTotal is not { } total || total <= detail.Comments.Count);
+
         return detail with
         {
-            Comments = [stored, .. detail.Comments],
-            NextComments = Shifted(detail.NextComments, 1),
+            Comments = complete ? [.. detail.Comments, stored] : detail.Comments,
             CommentTotal = Counted(detail.CommentTotal, 1),
         };
     }

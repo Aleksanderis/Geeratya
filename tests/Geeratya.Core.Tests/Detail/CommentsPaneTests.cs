@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -78,8 +79,64 @@ public class CommentsPaneTests
         var edge = document.Lines[document.PaneStarts[section]].PlainText;
 
         Assert.Contains("Comments 50 of 120", edge);
-        Assert.Contains("newest first", edge);
+        Assert.Contains("oldest first", edge);
         Assert.NotNull(document.PaneScrolls[section]);
+    }
+
+    [Fact]
+    public void GivenTheNewestFirstSetting_WhenOpeningAnIssue_ThenTheCommentsRunNewestFirst()
+    {
+        var newest = AppSettings.Default with { CommentsNewestFirst = true };
+        var state = Opened([Comment("2", 1), Comment("1", 1)], settings: newest);
+
+        var section = Document(state).SectionIds.ToList().IndexOf(PaneIds.Comments);
+
+        Assert.True(Top(state).CommentsNewestFirst);
+        Assert.Contains("newest first", Document(state).Lines[Document(state).PaneStarts[section]].PlainText);
+    }
+
+    [Fact]
+    public void GivenEveryCommentLoaded_WhenReversing_ThenTheListFlipsInPlaceAndTheChoiceIsSaved()
+    {
+        var state = Opened([Comment("1", 1), Comment("2", 1), Comment("3", 1)]);
+
+        var reversed = Press(state, "Space", "m", "o");
+
+        var top = Top(reversed.State);
+        Assert.Equal(["3", "2", "1"], top.Comments.Select(comment => comment.Id));
+        Assert.True(top.CommentsNewestFirst);
+        Assert.True(reversed.State.Settings.CommentsNewestFirst);
+        Assert.Empty(reversed.Effects.OfType<LoadIssueCommentsEffect>());
+        Assert.Single(reversed.Effects.OfType<SaveSettingsEffect>());
+        Assert.Contains("newest first", string.Join('\n', Document(reversed.State).Lines.Select(line => line.PlainText)));
+
+        var back = Press(reversed.State, "Space", "m", "o");
+
+        Assert.Equal(["1", "2", "3"], Top(back.State).Comments.Select(comment => comment.Id));
+        Assert.False(back.State.Settings.CommentsNewestFirst);
+    }
+
+    [Fact]
+    public void GivenMoreCommentsUnloaded_WhenReversing_ThenThePagesAreReadAgainNewestFirst()
+    {
+        var state = Opened([Comment("1", 1), Comment("2", 1)], next: 2, total: 5);
+
+        var reversed = Press(state, "Space", "m", "o");
+
+        var effect = Assert.Single(reversed.Effects.OfType<LoadIssueCommentsEffect>());
+        Assert.True(effect.NewestFirst);
+        Assert.Equal(0, effect.StartAt);
+        Assert.Empty(Top(reversed.State).Comments);
+        Assert.Equal(effect.RequestId, Top(reversed.State).CommentsRequest);
+    }
+
+    [Fact]
+    public void GivenNoIssueOpen_WhenReversing_ThenNothingChanges()
+    {
+        var reversed = Press(AppState.Initial, "Space", "m", "o");
+
+        Assert.False(reversed.State.Settings.CommentsNewestFirst);
+        Assert.Empty(reversed.Effects);
     }
 
     [Fact]
@@ -304,10 +361,19 @@ public class CommentsPaneTests
         return result;
     }
 
-    private AppState Opened(IssueComment[] comments, int? next = null, int? total = null)
+    private AppState Opened(
+        IssueComment[] comments,
+        int? next = null,
+        int? total = null,
+        AppSettings? settings = null)
     {
         var profiles = ProfileCatalog.Empty.With(_work);
-        var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
+        var start = AppState.Initial with
+        {
+            Profiles = profiles,
+            Session = SiteSession.Empty(profiles.Active),
+            Settings = settings ?? AppSettings.Default,
+        };
         var sized = _reducer.Reduce(start, new ViewportChanged(30, 80)).State;
         var definition = new ViewDefinition(ViewSourceKind.Jql, "project = A", ViewLayout.List, "project = A");
         var opened = _reducer.Reduce(sized, new ViewOpenRequested(definition));

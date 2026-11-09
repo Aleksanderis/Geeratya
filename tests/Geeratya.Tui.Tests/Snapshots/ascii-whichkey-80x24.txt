@@ -18,7 +18,7 @@
 |   | j         Jump to a visible row (type text, press the letter on the row) |
 |   | ,         Open or close the settings screen                              |
 |   | z         Zoom the focused pane, or leave the zoom                       |
-|   | m         +comment (2)                                                   |
+|   | m         +comment (3)                                                   |
 |   | . 3 more                                                                 |
 +---+--------------------------------------------------------------------------+
 [NORMAL] <space>                                      ? help  : commands  q quit

@@ -46,6 +46,7 @@ public static class SettingsRows
         SettingsRegistry.HintsCategory,
         SettingsRegistry.StartupCategory,
         SettingsRegistry.BoardCategory,
+        SettingsRegistry.DetailCategory,
     ];
 
     /// <summary>The rows in display order, grouped by category.</summary>

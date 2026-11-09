@@ -2,18 +2,18 @@
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
-│ ╭─ Commands ──────────────────────────────────────────────────────── 6/81 ─╮ │
+│ ╭─ Commands ──────────────────────────────────────────────────────── 7/82 ─╮ │
 │ │ : theme:_                                                                │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ General                                                                  │ │
 │ │   Theme: catppuccin-mocha                                                │ │
 │ │   Theme: dracula                                                         │ │
 │ │   Theme: nord                                                            │ │
-│ │                                                                          │ │
+│ │ Comment                                                                  │ │
+│ │   Reverse the order of the comments: oldest first or newest f  <space>mo │ │
 │ │ Navigate                                                                 │ │
 │ │   Focus the pane to the left (zoomed:   Ctrl-h, Ctrl-Backspace, Ctrl-w h │ │
 │ │   Focus the pane to the right (zoomed: the next sectio  Ctrl-l, Ctrl-w l │ │
-│ │                                                                          │ │
 │ │ View                                                                     │ │
 │ │   Save this view under a name (opens :view save)               <space>vw │ │
 │ │                                                                          │ │
