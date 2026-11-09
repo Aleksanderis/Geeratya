@@ -10,7 +10,7 @@
 │ │   Board            │       ○ light                                       │ │
 │ │   Profiles         │       ○ nord                                        │ │
 │ │   About            │   transparent                                   [ ] │ │
-│ │                    │                                                     │ │
+│ │                    │   labels.caps                                   [x] │ │
 │ ├────────────────────┴─────────────────────────────────────────────────────┤ │
 │ │ Default: auto. The colour theme: a built-in one or a file in the themes  │ │
 │ │ folder. Values: auto, dark, light, nord.                                 │ │

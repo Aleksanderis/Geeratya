@@ -145,6 +145,11 @@ public static class PaletteTable
         [PaletteRole.LabelChip2] = LabelChip(ThemeColor.Remote),
         [PaletteRole.LabelChip3] = LabelChip(ThemeColor.Warn),
         [PaletteRole.LabelChip4] = LabelChip(ThemeColor.Info),
+        [PaletteRole.LabelCap0] = Cap(ThemeColor.Accent),
+        [PaletteRole.LabelCap1] = Cap(ThemeColor.Good),
+        [PaletteRole.LabelCap2] = Cap(ThemeColor.Remote),
+        [PaletteRole.LabelCap3] = Cap(ThemeColor.Warn),
+        [PaletteRole.LabelCap4] = Cap(ThemeColor.Info),
         [PaletteRole.InitialsChip] = Chip(ThemeColor.Muted),
         [PaletteRole.UnassignedChip] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.ValueBlock] = new(ThemeColor.BaseForeground, ThemeColor.Selection, RoleStyle.None),
@@ -230,6 +235,11 @@ public static class PaletteTable
         [TextRole.LabelChip2] = PaletteRole.LabelChip2,
         [TextRole.LabelChip3] = PaletteRole.LabelChip3,
         [TextRole.LabelChip4] = PaletteRole.LabelChip4,
+        [TextRole.LabelCap0] = PaletteRole.LabelCap0,
+        [TextRole.LabelCap1] = PaletteRole.LabelCap1,
+        [TextRole.LabelCap2] = PaletteRole.LabelCap2,
+        [TextRole.LabelCap3] = PaletteRole.LabelCap3,
+        [TextRole.LabelCap4] = PaletteRole.LabelCap4,
         [TextRole.InitialsChip] = PaletteRole.InitialsChip,
         [TextRole.UnassignedChip] = PaletteRole.UnassignedChip,
         [TextRole.ValueBlock] = PaletteRole.ValueBlock,
@@ -341,6 +351,12 @@ public static class PaletteTable
     private static RoleSpec Chip(ThemeColor fill)
     {
         return new RoleSpec(ThemeColor.BaseBackground, fill, RoleStyle.Bold, RoleGround.Chip);
+    }
+
+    // The rounded end of a chip: a half circle in the chip's fill colour on the page, so it joins the chip's fill.
+    private static RoleSpec Cap(ThemeColor fill)
+    {
+        return new RoleSpec(fill, ThemeColor.BaseBackground, RoleStyle.None);
     }
 
     // A label chip has no brackets, so without colour the chip is reversed and underlined (the underline stays visible

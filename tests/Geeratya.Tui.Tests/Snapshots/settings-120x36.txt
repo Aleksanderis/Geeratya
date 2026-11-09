@@ -13,7 +13,7 @@
 │           ╭─ Settings ───────────────────────────────────────────────────────────────────────────────────╮           │
 │           │   Appearance       │   theme                                                        [auto ▾] │           │
 │           │   Hints and keys   │   transparent                                                       [ ] │           │
-│           │   Startup          │                                                                         │           │
+│           │   Startup          │   labels.caps                                                       [x] │           │
 │           │   Board            │                                                                         │           │
 │           │   Profiles         │                                                                         │           │
 │           │   About            │                                                                         │           │

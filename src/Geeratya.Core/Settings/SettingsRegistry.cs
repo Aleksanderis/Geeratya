@@ -112,6 +112,16 @@ public static class SettingsRegistry
             ToggleExpected,
             Category: AppearanceCategory),
         new SettingDefinition(
+            "labels.caps",
+            "labels.caps",
+            SettingKind.Toggle,
+            On,
+            "Round the ends of label chips with half circles (Powerline glyphs: needs a Nerd Font or Powerline-patched font; off gives plain padded chips).",
+            settings => Word(settings.LabelCaps),
+            (settings, text) => ParseToggle(text) is { } on ? settings with { LabelCaps = on } : null,
+            ToggleExpected,
+            Category: AppearanceCategory),
+        new SettingDefinition(
             "jump.target",
             "jump.target",
             SettingKind.Choice,

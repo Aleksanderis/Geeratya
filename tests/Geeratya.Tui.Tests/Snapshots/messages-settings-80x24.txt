@@ -6,12 +6,12 @@
 │ commandlevel everyday (default everyday) - Which actions help, the palette, …│
 │ theme auto (default auto) - The colour theme: a built-in one or a file in th…│
 │ transparent off (default off) - Keep the terminal's own background instead o…│
+│ labels.caps on (default on) - Round the ends of label chips with half circle…│
 │ jump.target current (default current) - Where the jump prompt (<space>g) ope…│
 │ startup.restore on (default on) - Reopen the tabs of the last run on start; …│
 │ board.done-cutoff 14 (default 14) - Days after which a Kanban board hides Do…│
 │ Messages                                                                     │
 │ Saved A-1                                                                    │
-│                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │

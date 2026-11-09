@@ -68,7 +68,8 @@ public sealed partial class ApplicationRunner
             state = loaded;
         }
 
-        var frame = FrameBuilder.BuildStyled(state, size.Width, size.Height, keymap, null, null, glyphs);
+        var caps = colors is { } shown && shown != ColorSupport.None && SettingsOf(services).LabelCaps;
+        var frame = FrameBuilder.BuildStyled(state, size.Width, size.Height, keymap, null, null, glyphs, caps);
 
         var light = arguments.Contains(LightFlag);
 
