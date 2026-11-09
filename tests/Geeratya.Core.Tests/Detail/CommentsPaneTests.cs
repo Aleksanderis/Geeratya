@@ -131,6 +131,20 @@ public class CommentsPaneTests
     }
 
     [Fact]
+    public void GivenAReplyOfTheOldOrder_WhenItArrivesAfterTheFlip_ThenItIsDropped()
+    {
+        var state = Opened([Comment("1", 1), Comment("2", 1)], next: 2, total: 5);
+        var oldRequest = Top(state).CommentsRequest;
+
+        var reversed = Press(state, "Space", "m", "o").State;
+        var stale = new OffsetPage<IssueComment>([Comment("3", 1)], 2, DetailPaging.CommentPageSize, 5, true);
+        var late = Deliver(reversed, new IssueCommentsLoaded(Active(reversed).Id, oldRequest, stale, _now));
+
+        Assert.Empty(Top(late).Comments);
+        Assert.True(Top(late).CommentsNewestFirst);
+    }
+
+    [Fact]
     public void GivenNoIssueOpen_WhenReversing_ThenNothingChanges()
     {
         var reversed = Press(AppState.Initial, "Space", "m", "o");

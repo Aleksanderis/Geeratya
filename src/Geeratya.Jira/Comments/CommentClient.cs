@@ -28,7 +28,8 @@ public sealed class CommentClient(JiraTransport transport)
 
     /// <summary>
     /// Loads the page starting at <paramref name="startAt"/>; continue with <see cref="OffsetPage{T}.NextStartAt"/>
-    /// until it is null. <paramref name="newestFirst"/> picks the order Jira lists them in (offsets count in it).
+    /// until it is null. <paramref name="newestFirst"/> picks the order Jira lists them in (offsets count in it);
+    /// it defaults to newest first (write verification); the detail passes its own order.
     /// </summary>
     public async Task<JiraResult<OffsetPage<IssueComment>>> GetCommentsAsync(
         string key,
