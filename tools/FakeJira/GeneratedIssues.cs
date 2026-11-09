@@ -70,6 +70,7 @@ public static class GeneratedIssues
               {"type":"bulletList","content":[
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"First generated step"}]}]},
                 {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Second generated step"}]}]}]},
+              {"type":"paragraph","content":[{"type":"text","text":"Struck","marks":[{"type":"strike"}]},{"type":"text","text":" text, "},{"type":"text","text":"red","marks":[{"type":"textColor","attrs":{"color":"#bf2600"}}]},{"type":"text","text":", "},{"type":"text","text":"orange","marks":[{"type":"textColor","attrs":{"color":"#ff991f"}}]},{"type":"text","text":", "},{"type":"text","text":"green","marks":[{"type":"textColor","attrs":{"color":"#36b37e"}}]},{"type":"text","text":", "},{"type":"text","text":"teal","marks":[{"type":"textColor","attrs":{"color":"#00b8d9"}}]},{"type":"text","text":", "},{"type":"text","text":"blue","marks":[{"type":"textColor","attrs":{"color":"#0052cc"}}]},{"type":"text","text":", "},{"type":"text","text":"purple","marks":[{"type":"textColor","attrs":{"color":"#6554c0"}}]},{"type":"text","text":", "},{"type":"text","text":"grey","marks":[{"type":"textColor","attrs":{"color":"#97a0af"}}]},{"type":"text","text":"."}]},
               {"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":"generated --issue {{{number}}}"}]}]},
             "subtasks":{{{SubtasksJson(number)}}},"issuelinks":[],"attachment":[]}}
             """;

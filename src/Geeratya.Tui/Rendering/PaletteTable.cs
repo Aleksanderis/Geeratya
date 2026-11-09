@@ -51,6 +51,13 @@ public static class PaletteTable
             RoleGround.Strong),
         [PaletteRole.Emphasis] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.Italic),
         [PaletteRole.Code] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Reverse),
+        [PaletteRole.Strike] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.Strike),
+        [PaletteRole.InkRed] = Ink(ThemeColor.Bad),
+        [PaletteRole.InkYellow] = Ink(ThemeColor.Warn),
+        [PaletteRole.InkGreen] = Ink(ThemeColor.Good),
+        [PaletteRole.InkTeal] = Ink(ThemeColor.Info),
+        [PaletteRole.InkBlue] = Ink(ThemeColor.Accent),
+        [PaletteRole.InkPurple] = Ink(ThemeColor.Remote),
         [PaletteRole.Link] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Underline),
         [PaletteRole.Quote] = new(
             ThemeColor.Muted,
@@ -178,6 +185,14 @@ public static class PaletteTable
         [TextRole.Strong] = PaletteRole.Strong,
         [TextRole.Emphasis] = PaletteRole.Emphasis,
         [TextRole.Code] = PaletteRole.Code,
+        [TextRole.Strike] = PaletteRole.Strike,
+        [TextRole.ColorRed] = PaletteRole.InkRed,
+        [TextRole.ColorYellow] = PaletteRole.InkYellow,
+        [TextRole.ColorGreen] = PaletteRole.InkGreen,
+        [TextRole.ColorTeal] = PaletteRole.InkTeal,
+        [TextRole.ColorBlue] = PaletteRole.InkBlue,
+        [TextRole.ColorPurple] = PaletteRole.InkPurple,
+        [TextRole.ColorGray] = PaletteRole.Muted,
         [TextRole.Link] = PaletteRole.Link,
         [TextRole.Quote] = PaletteRole.Quote,
         [TextRole.Selected] = PaletteRole.Selected,
@@ -342,6 +357,12 @@ public static class PaletteTable
         }
 
         return selection;
+    }
+
+    // Coloured ADF text: a theme colour as plain text on the page. Without colour it stays plain (no cue to give).
+    private static RoleSpec Ink(ThemeColor color)
+    {
+        return new RoleSpec(color, ThemeColor.BaseBackground, RoleStyle.None);
     }
 
     // A filled chip: the page colour in bold on the role's own colour. Bold only (no reverse): the bars are reversed

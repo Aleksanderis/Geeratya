@@ -62,6 +62,7 @@ all_scenarios=(
   "profile-list;120;36;dark;:profile|;Details"
   "settings;120;36;dark;:settings|;Settings"
   "detail;120;36;dark;:jql project = GEN|jjjj|;moves via"
+  "detail-formatting;120;36;dark;:jql project = GEN|jjjj|> z;Struck"
   "detail-narrow;64;24;dark;:jql project = GEN|jjjj|;Description"
   "detail-panes;120;36;dark;:jql project = GEN|jjjj|>;more lines"
   "detail-overlay;160;36;dark;:jql project = GEN|jjjj|;moves via"

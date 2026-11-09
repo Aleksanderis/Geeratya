@@ -76,6 +76,16 @@ public sealed class AnsiToSvgTests
         Assert.True(screen[0][0].Style.Underline);
     }
 
+    [Fact]
+    public void GivenStrikeAttribute_WhenParsedAndWritten_ThenTheSvgHasALineThrough()
+    {
+        var screen = AnsiScreen.Parse($"{_escape}[9ma{_escape}[29mb", 2, 1);
+
+        Assert.True(screen[0][0].Style.Strike);
+        Assert.False(screen[0][1].Style.Strike);
+        Assert.Contains("line-through", SvgWriter.Write(screen, SvgTheme.Dark));
+    }
+
     [Theory]
     [InlineData(16, 0x000000)]
     [InlineData(196, 0xff0000)]

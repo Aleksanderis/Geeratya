@@ -54,6 +54,11 @@ public static class AttributeFactory
             result |= TextStyle.Italic;
         }
 
+        if (style.HasFlag(RoleStyle.Strike))
+        {
+            result |= TextStyle.Strikethrough;
+        }
+
         if (style.HasFlag(RoleStyle.Faint))
         {
             result |= TextStyle.Faint;

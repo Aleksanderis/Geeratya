@@ -251,8 +251,74 @@ public sealed class AdfRendererTests
         var roles = Spans(json, 40).Select(static span => span.Role).ToList();
 
         Assert.Equal(
-            [TextRole.Strong, TextRole.Emphasis, TextRole.Muted, TextRole.Code, TextRole.Emphasis, TextRole.Body],
+            [TextRole.Strong, TextRole.Emphasis, TextRole.Strike, TextRole.Code, TextRole.Emphasis, TextRole.ColorRed],
             roles);
+    }
+
+    [Theory]
+    [InlineData("#ff5630", TextRole.ColorRed)]
+    [InlineData("#f00", TextRole.ColorRed)]
+    [InlineData("#ff991f", TextRole.ColorYellow)]
+    [InlineData("#36b37e", TextRole.ColorGreen)]
+    [InlineData("#00b8d9", TextRole.ColorTeal)]
+    [InlineData("#0052cc", TextRole.ColorBlue)]
+    [InlineData("#6554c0", TextRole.ColorPurple)]
+    [InlineData("#97a0af", TextRole.ColorGray)]
+    [InlineData("#5e6c84", TextRole.ColorGray)]
+    [InlineData("#7a869a", TextRole.ColorGray)]
+    [InlineData("#6b778c", TextRole.ColorGray)]
+    [InlineData("#b3d4ff", TextRole.ColorBlue)]
+    [InlineData("#4c9aff", TextRole.ColorBlue)]
+    [InlineData("#E91E63", TextRole.ColorRed)]
+    public void GivenTextColour_WhenRendering_ThenItMapsToTheNearestHueRole(string colour, TextRole expected)
+    {
+        var json = $$$"""
+            {"type":"paragraph","content":[
+              {"type":"text","text":"x","marks":[{"type":"textColor","attrs":{"color":"{{{colour}}}"}}]}]}
+            """;
+
+        Assert.Equal([expected], Spans(json, 40).Select(static span => span.Role));
+    }
+
+    [Theory]
+    [InlineData("#172b4d")]
+    [InlineData("#000000")]
+    [InlineData("#ffffff")]
+    [InlineData("rebeccapurple")]
+    [InlineData("#12")]
+    [InlineData("")]
+    public void GivenDarkWhiteOrUnreadableColour_WhenRendering_ThenTheTextKeepsItsNormalRole(string colour)
+    {
+        var json = $$$"""
+            {"type":"paragraph","content":[
+              {"type":"text","text":"x","marks":[{"type":"textColor","attrs":{"color":"{{{colour}}}"}}]}]}
+            """;
+
+        Assert.Equal([TextRole.Body], Spans(json, 40).Select(static span => span.Role));
+    }
+
+    [Fact]
+    public void GivenStrikeWithColourAndBold_WhenRendering_ThenStrikeWinsOverColourOverBold()
+    {
+        const string json = """
+            {"type":"paragraph","content":[
+              {"type":"text","text":"a","marks":[{"type":"strong"},{"type":"strike"},
+                {"type":"textColor","attrs":{"color":"#ff0000"}}]},
+              {"type":"text","text":"b","marks":[{"type":"strong"},{"type":"textColor","attrs":{"color":"#ff0000"}}]}]}
+            """;
+
+        Assert.Equal([TextRole.Strike, TextRole.ColorRed], Spans(json, 40).Select(static span => span.Role));
+    }
+
+    [Fact]
+    public void GivenColourInsideHeading_WhenRendering_ThenTheHeadingKeepsItsRole()
+    {
+        const string json = """
+            {"type":"heading","attrs":{"level":1},"content":[
+              {"type":"text","text":"x","marks":[{"type":"textColor","attrs":{"color":"#ff0000"}}]}]}
+            """;
+
+        Assert.All(Spans(json, 40), static span => Assert.Equal(TextRole.Heading, span.Role));
     }
 
     [Fact]

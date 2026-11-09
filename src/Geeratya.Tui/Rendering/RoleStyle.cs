@@ -12,4 +12,7 @@ public enum RoleStyle
 
     /// <summary>Dimmed text (SGR 2): the view behind an overlay at 16 colours.</summary>
     Faint = 16,
+
+    /// <summary>A line through the text (SGR 9): struck-through ADF text.</summary>
+    Strike = 32,
 }

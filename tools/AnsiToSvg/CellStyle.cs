@@ -8,7 +8,8 @@ public readonly record struct CellStyle(
     bool Dim,
     bool Italic,
     bool Underline,
-    bool Reverse)
+    bool Reverse,
+    bool Strike = false)
 {
     public const int DefaultColor = -1;
 
