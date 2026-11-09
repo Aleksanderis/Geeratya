@@ -40,6 +40,21 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
     public IReadOnlyList<StyledLine> Render(AppState state, BodyContext context, int width, int height)
     {
         var tab = ListBodyRenderer.ActiveTab(state)!;
+
+        if (!LaneStrip.IsShown(tab) || height <= LaneStrip.Rows)
+        {
+            return RenderBoard(state, tab, context, width, height);
+        }
+
+        var lines = new List<StyledLine>(height) { LaneStripLine(tab, width) };
+
+        lines.AddRange(RenderBoard(state, tab, context, width, height - LaneStrip.Rows));
+
+        return lines;
+    }
+
+    private static List<StyledLine> RenderBoard(AppState state, TabState tab, BodyContext context, int width, int height)
+    {
         var glyphs = Glyphs.For(context.Glyphs);
         var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
         var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOf(tab), BusyMarks.Keys(state), glyphs);
