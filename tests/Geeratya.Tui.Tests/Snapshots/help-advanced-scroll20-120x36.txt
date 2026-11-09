@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>md  Delete the comment under the cursor                            ▲│           │
-│           │   All actions │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
-│           │   Commands    │ Rank                                                                         │           │
+│           │   Global      │ Comment                                                                     ▲│           │
+│           │   All actions │   <space>ma  Add a comment to the issue                                      │           │
+│           │   Commands    │   <space>me  Edit the comment under the cursor                               │           │
+│           │               │   <space>md  Delete the comment under the cursor                             │           │
+│           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
+│           │               │ Rank                                                                         │           │
 │           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │   <space>kt  Rank the issue to the top of the list or column                 │           │
@@ -27,10 +30,7 @@
 │           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
 │           │               │   <space>*   Switch the command level for the session                        │           │
 │           │               │   <space>sv  Switch the sprint shown (active, future, closed)                │           │
-│           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
-│           │               │   <space>se  Edit the sprint (name, goal, dates)                             │           │
-│           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
-│           │               │   <space>sc  Complete the sprint (confirms where the open issues go)        ▼│           │
+│           │               │   <space>sn  Create a sprint (name, goal, dates)                            ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

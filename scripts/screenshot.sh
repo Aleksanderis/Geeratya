@@ -124,6 +124,7 @@ all_scenarios=(
   "board-filter;120;36;dark;:board GCM| vf;Quick filter: Recently Updated"
   "board-team;120;36;dark;:board GTM|l;In Progress"
   "board-narrow;40;10;dark;:board GCM|l;To Do"
+  "board-lanes;120;36;dark;:board GCM| vs;Swimlanes by assignee"
   "backlog;120;36;dark;:backlog GCM|;GCM"
   "filter;120;36;dark;:filter Filter for GCM|;GCM"
   "backlog-sprints;120;36;dark;:backlog GEN board|;Generated Sprint 3"

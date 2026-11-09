@@ -26,7 +26,9 @@ public static class FlashBoardLabeler
     /// <summary>The labels for <paramref name="text"/> in a body of <paramref name="width"/> by <paramref name="height"/>.</summary>
     public static IReadOnlyList<FlashLabel> Compute(TabState tab, string text, int width, int height)
     {
-        if (text.Length == 0 || tab.Rows.Count == 0 || !ListViewColumns.IsFramed(width, height))
+        var boardHeight = height - LaneStrip.Offset(tab);
+
+        if (text.Length == 0 || tab.Rows.Count == 0 || !ListViewColumns.IsFramed(width, boardHeight))
         {
             return [];
         }
@@ -38,10 +40,11 @@ public static class FlashBoardLabeler
             return [];
         }
 
-        var visible = BoardCards.Visible(tab.VisibleRows, ListLayout.HeaderRows);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(tab.VisibleRows, width));
+        var boardRows = LaneStrip.BoardRows(tab);
+        var visible = BoardCards.Visible(boardRows, ListLayout.HeaderRows);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(boardRows, width));
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
-        var compact = BoardCards.IsCompact(tab.VisibleRows, ListLayout.HeaderRows);
+        var compact = BoardCards.IsCompact(boardRows, ListLayout.HeaderRows);
         var found = new List<FlashLabel>();
         var blocked = new HashSet<char>();
 
@@ -86,7 +89,7 @@ public static class FlashBoardLabeler
             return Enumerable.Range(first, Math.Max(0, Math.Min(group.Rows.Count, first + visible) - first));
         }
 
-        var rows = BoardCards.CardRows(tab.VisibleRows, ListLayout.HeaderRows);
+        var rows = BoardCards.CardRows(LaneStrip.BoardRows(tab), ListLayout.HeaderRows);
 
         return BoardColumnLayout.Place(group, first, cell, rows).Select(static placed => placed.Card);
     }

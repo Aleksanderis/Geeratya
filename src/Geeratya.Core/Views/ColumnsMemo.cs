@@ -13,6 +13,7 @@ namespace Geeratya.Core.Views;
 public sealed class ColumnsMemo
 {
     private Entry? _last;
+    private LaneEntry? _lanes;
 
     /// <summary>The columns for these inputs, built by <paramref name="build"/> only when they differ from the last call.</summary>
     internal IReadOnlyList<BoardColumnGroup> Get(TabState tab, Func<TabState, IReadOnlyList<BoardColumnGroup>> build)
@@ -37,6 +38,26 @@ public sealed class ColumnsMemo
         return columns;
     }
 
+    /// <summary>
+    /// The lanes of the tab's rows for its grouping, built only when the row list or the grouping changed, so the lane
+    /// strip does not pass over every row on each frame (#874).
+    /// </summary>
+    internal IReadOnlyList<SwimlaneLane> GetLanes(TabState tab)
+    {
+        var last = _lanes;
+
+        if (last is not null && ReferenceEquals(last.Rows, tab.Rows) && last.Swimlane == tab.Swimlane)
+        {
+            return last.Lanes;
+        }
+
+        var lanes = Swimlanes.Lanes(tab.Swimlane, tab.Rows);
+
+        _lanes = new LaneEntry(tab.Rows, tab.Swimlane, lanes);
+
+        return lanes;
+    }
+
     /// <summary>The memo is a cache, not state: two tabs that differ only in it are equal.</summary>
     public override bool Equals(object? obj)
     {
@@ -57,4 +78,9 @@ public sealed class ColumnsMemo
         string? Lane,
         int DoneCutoffDays,
         IReadOnlyList<BoardColumnGroup> Columns);
+
+    private sealed record LaneEntry(
+        IReadOnlyList<IssueSummary> Rows,
+        SwimlaneKind Swimlane,
+        IReadOnlyList<SwimlaneLane> Lanes);
 }

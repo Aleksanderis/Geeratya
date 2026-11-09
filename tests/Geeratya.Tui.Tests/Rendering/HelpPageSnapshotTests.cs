@@ -67,7 +67,7 @@ public class HelpPageSnapshotTests
     [Fact]
     public void GivenALongRow_WhenShowingAPageAt80Columns_ThenItWrapsAndNothingIsCut()
     {
-        var lines = FrameBuilder.Build(StateFor("list"), 80, 24, _keymap);
+        var lines = FrameBuilder.Build(StateFor("list"), 80, 30, _keymap);
 
         Assert.Contains(lines, line => line.Contains("list or board)"));
         Assert.Contains(lines, line => line.Contains("unassign"));

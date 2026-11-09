@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Alt-2      Go to tab 2                                                    ▲│           │
-│           │   All actions │   Alt-3      Go to tab 3                                                     │           │
-│           │   Commands    │   Alt-4      Go to tab 4                                                     │           │
+│           │   Global      │   Shift-Tab  Previous tab  (gT)                                             ▲│           │
+│           │   All actions │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
+│           │   Commands    │   Alt-1      Go to tab 1                                                     │           │
+│           │               │   Alt-2      Go to tab 2                                                     │           │
+│           │               │   Alt-3      Go to tab 3                                                     │           │
+│           │               │   Alt-4      Go to tab 4                                                     │           │
 │           │               │   Alt-5      Go to tab 5                                                     │           │
 │           │               │   Alt-6      Go to tab 6                                                     │           │
 │           │               │   Alt-7      Go to tab 7                                                     │           │
@@ -27,10 +30,7 @@
 │           │               │   0          Go to the first column                                          │           │
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
-│           │               │              backlog section                                                 │           │
-│           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)      ▼│           │
+│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane    ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

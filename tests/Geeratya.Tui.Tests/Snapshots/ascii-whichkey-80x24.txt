@@ -19,6 +19,6 @@
 |   | ,         Open or close the settings screen                              |
 |   | z         Zoom the focused pane, or leave the zoom                       |
 |   | m         +comment (3)                                                   |
-|   | . 3 more                                                                 |
+|   | . 4 more                                                                 |
 +---+--------------------------------------------------------------------------+
 [NORMAL] <space>                                      ? help  : commands  q quit

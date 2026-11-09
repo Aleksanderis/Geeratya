@@ -2,21 +2,21 @@
                                                                                 
 ╭─ View ──────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                 Status        │
-│ ╭─ Commands ─────────────────────────────────────────────────────── 82/82 ─╮ │
+│ ╭─ Commands ─────────────────────────────────────────────────────── 85/85 ─╮ │
 │ │ : _                                                                      │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ Issue                                                                    │ │
 │ │   Jump to an issue by key                                       <space>g │ │
 │ │   Open the issue in the browser                                 <space>o │ │
 │ │   Open the parent issue                                         <space>p │ │
+│ │   Copy the key of the issue under the cursor                   <space>yy │ │
+│ │   Copy the issue link                                          <space>yu │ │
+│ │   Copy the issue key and summary                               <space>ys │ │
 │ │   Edit the issue title in place (opens the detail from a list  <space>ie │ │
 │ │   Assign the issue: search people, or unassign                 <space>ia │ │
 │ │   Assign the issue to me                                       <space>im │ │
 │ │   Change the status of the issue                               <space>is │ │
-│ │   Move the card to the next column                                 Alt-l │ │
-│ │   Move the card to the previous column                             Alt-h │ │
-│ │   Create an issue (type picker, then the form)                 <space>ic │ │
-│ │   Create a sub-task of the selected issue                      <space>iC▼│ │
+│ │   Move the card to the next column                                 Alt-l▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ Up/Down move  Enter run  Esc cancel                                      │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
