@@ -79,6 +79,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
 | `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
 | `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
+| `<space>mo` | Reverse the order of the comments: oldest first or newest first | `comment.order` | everyday |
 | `<space>is` | Change the status of the issue | `issue.transition` | everyday |
 | `Alt-l` | Move the card to the next column | `issue.transition-next` | everyday |
 | `Alt-h` | Move the card to the previous column | `issue.transition-previous` | everyday |
@@ -106,7 +107,10 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>iu` | Remove the link under the cursor (asks first; Jira cannot undo it) | `issue.unlink` | advanced |
 | `<space>ie` | Edit the issue title in place (opens the detail from a list or board) | `issue.edit` | everyday |
 | `i` | Edit the title or the Description in place | `detail.edit` | everyday |
-| `y` | Copy the selection or the field under the cursor | `detail.yank` | everyday |
+| `y` | Copy the selection or field under the cursor (in a list: the issue key) | `detail.yank` | everyday |
+| `<space>yy` | Copy the key of the issue under the cursor | `yank.key` | everyday |
+| `<space>yu` | Copy the issue link | `yank.link` | everyday |
+| `<space>ys` | Copy the issue key and summary | `yank.summary` | everyday |
 | `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
 | `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
 | `<space>g` | Jump to an issue by key | `issue.jump` | everyday |
@@ -254,7 +258,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:settings` | Open the settings screen: change the theme and the options |
 | `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
-| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|board.done-cutoff] [value]` | List the settings, show one, or change one (saved) |
+| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|board.done-cutoff|comments.order] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |

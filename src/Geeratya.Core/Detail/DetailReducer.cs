@@ -71,11 +71,12 @@ internal static partial class DetailReducer
         var opened = DetailState.Opened(key, row, issueRequest, commentsRequest, linksRequest) with
         {
             EstimateLabel = tab.Board?.EstimationFieldName,
+            CommentsNewestFirst = state.Settings.CommentsNewestFirst,
         };
         var detail = Layout(opened, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
         effects.Add(new LoadIssueDetailEffect(id, key, issueRequest));
-        effects.Add(new LoadIssueCommentsEffect(id, key, 0, commentsRequest));
+        effects.Add(new LoadIssueCommentsEffect(id, key, 0, commentsRequest, opened.CommentsNewestFirst));
         effects.Add(new LoadRemoteLinksEffect(id, key, linksRequest));
 
         var next = ViewReducer.Replace(state, tab with { Detail = [.. tab.Detail, detail] }) with { Sequence = sequence };
@@ -246,7 +247,7 @@ internal static partial class DetailReducer
             stack[index] with { CommentsLoad = new Loading(LoadReason.Refresh), CommentsRequest = requestId },
             DetailSize.Columns(state),
             DetailSize.ListRows(state, tab));
-        effects.Add(new LoadIssueCommentsEffect(id, key, 0, requestId));
+        effects.Add(new LoadIssueCommentsEffect(id, key, 0, requestId, stack[index].CommentsNewestFirst));
 
         return ViewReducer.Replace(state, tab with { Detail = stack }) with { Sequence = requestId };
     }

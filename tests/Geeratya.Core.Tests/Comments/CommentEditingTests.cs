@@ -198,7 +198,7 @@ public class CommentEditingTests
         Assert.Equal("Added a comment to A-1", done.State.Message);
         Assert.Empty(done.State.Session.Operations);
         var detail = Active(done.State).Detail[0];
-        Assert.Equal(["77", "1", "2"], detail.Comments.Select(comment => comment.Id));
+        Assert.Equal(["1", "2", "77"], detail.Comments.Select(comment => comment.Id));
         Assert.Equal(3, detail.CommentTotal);
         Assert.Contains("Comments 3", Text(detail));
         Assert.Empty(done.Effects.OfType<LoadIssueDetailEffect>());
@@ -208,13 +208,31 @@ public class CommentEditingTests
     }
 
     [Fact]
-    public void GivenMoreCommentPagesUnloaded_WhenACommentIsAdded_ThenItGoesOnTopAndTheCountGrows()
+    public void GivenMoreCommentPagesUnloaded_WhenACommentIsAdded_ThenItWaitsForItsPageAndTheCountGrows()
     {
         var saving = Press(Typed("Late"), "Ctrl-s");
         var withMore = WithNextPage(saving.State);
         var id = withMore.Session.Operations[0].Id;
 
         var done = _reducer.Reduce(withMore, new WriteSucceeded(id, _now, [], Comment(90, _me, "Late")));
+
+        var detail = Active(done.State).Detail[0];
+        Assert.Equal(["1", "2"], detail.Comments.Select(comment => comment.Id));
+        Assert.Equal(6, detail.CommentTotal);
+        Assert.Equal(2, detail.NextComments);
+    }
+
+    [Fact]
+    public void GivenNewestFirstAndMorePagesUnloaded_WhenACommentIsAdded_ThenItGoesOnTopAndTheOffsetShifts()
+    {
+        var saving = Press(Typed("Late"), "Ctrl-s");
+        var withMore = WithNextPage(saving.State);
+        var tab = Active(withMore);
+        var newest = tab with { Detail = [tab.Detail[0] with { CommentsNewestFirst = true }] };
+        var flipped = withMore with { Session = withMore.Session with { Tabs = [newest] } };
+        var id = flipped.Session.Operations[0].Id;
+
+        var done = _reducer.Reduce(flipped, new WriteSucceeded(id, _now, [], Comment(90, _me, "Late")));
 
         var detail = Active(done.State).Detail[0];
         Assert.Equal(["90", "1", "2"], detail.Comments.Select(comment => comment.Id));

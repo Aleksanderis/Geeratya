@@ -18,7 +18,7 @@ namespace Geeratya.Core.Detail;
 /// <param name="Issue">The loaded issue, null until it arrives.</param>
 /// <param name="IssueLoad">Whether the issue is loading or failed.</param>
 /// <param name="IssueRequest">The id of the issue request in flight, 0 when none.</param>
-/// <param name="Comments">The comments loaded so far, newest first.</param>
+/// <param name="Comments">The comments loaded so far, in the order of <see cref="CommentsNewestFirst"/>.</param>
 /// <param name="NextComments">The offset of the next comment page, null when the last page is loaded.</param>
 /// <param name="CommentTotal">The number of comments Jira reports, when it does.</param>
 /// <param name="CommentsLoad">Whether a comment page is loading or failed.</param>
@@ -86,6 +86,13 @@ public sealed record DetailState(
     /// null while the main column has it.
     /// </summary>
     public int? SideCursor { get; init; }
+
+    /// <summary>
+    /// Whether <see cref="Comments"/> run newest first (pages were asked for in that order); false is oldest first,
+    /// the default. Taken from the <c>comments.order</c> setting when the issue opens and flipped by
+    /// <c>comment.order</c> (#875).
+    /// </summary>
+    public bool CommentsNewestFirst { get; init; }
 
     /// <summary>The first content row of the Comments pane that is shown (its inner scroll).</summary>
     public int CommentsOffset { get; init; }

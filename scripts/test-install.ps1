@@ -1,6 +1,7 @@
 # Tests scripts/install.ps1 against a fake GitHub releases API on disk (local paths, no network, no real GitHub, user PATH
 # and install folder in a temp dir): install, skip when current, update, pinned version, checksum mismatch, missing
-# SHA256SUMS or entry, missing asset, unsupported architecture (#860). Needs Windows PowerShell or pwsh (paths are built with Join-Path, so pwsh on Linux works too). The fake
+# SHA256SUMS or entry, missing asset, unsupported architecture (#860), and the download retry through a stub Invoke-WebRequest (#880). Needs Windows
+# PowerShell or pwsh (paths are built with Join-Path, so pwsh on Linux works too). The fake
 # geeratya.exe is a text file and cannot answer --version, so an update is the same as a first install here.
 $ErrorActionPreference = 'Stop'
 foreach ($name in 'GEERATYA_VERSION', 'GEERATYA_FORCE', 'GEERATYA_NO_PATH', 'GEERATYA_ARCH', 'GEERATYA_INSTALL_DIR', 'GEERATYA_RELEASES_URL') { Remove-Item "Env:$name" -ErrorAction SilentlyContinue }
@@ -27,8 +28,8 @@ function New-Release([string]$Version, [string]$Api, [string]$Architecture) {
 }
 function Set-Latest([string]$Version, [string]$Api) { Copy-Item -LiteralPath (Join-Path (Join-Path $Api 'tags') "v$Version") -Destination (Join-Path $Api 'latest') -Force }
 
-function Invoke-Install([string]$Api, [string]$Architecture, [string]$Version = '') {
-    $env:GEERATYA_RELEASES_URL = $Api
+function Invoke-Install([string]$Api, [string]$Architecture, [string]$Version = '', [string]$ReleasesUrl = '') {
+    $env:GEERATYA_RELEASES_URL = if ($ReleasesUrl) { $ReleasesUrl } else { $Api }
     $env:GEERATYA_INSTALL_DIR = Join-Path $tmp 'bin'
     $env:GEERATYA_NO_PATH = '1'
     $env:GEERATYA_ARCH = $Architecture
@@ -39,6 +40,25 @@ function Expect-Failure([scriptblock]$Action, [string]$Pattern, [string]$What) {
     $failed = $false
     try { [void](& $Action) } catch { $failed = $_.Exception.Message -like $Pattern }
     if (-not $failed) { Fail $What }
+}
+
+# Download retry (#872, #880): install.ps1 downloads only http(s) sources, so a stub Invoke-WebRequest (found through the
+# caller's scope) answers the release request from the fake API on disk: the scripted statuses first, then the file.
+if (-not ('FakeHttpException' -as [type])) { Add-Type -TypeDefinition 'public class FakeHttpException : System.Exception { public object Response; public FakeHttpException(string m, object r) : base(m) { Response = r; } }' }
+$state = @{ Calls = 0; Statuses = @(); Api = $null }
+function Invoke-WebRequest {
+    param([switch]$UseBasicParsing, [string]$Uri, [string]$OutFile)
+    $state.Calls++
+    if ($state.Calls -le $state.Statuses.Count) {
+        $status = $state.Statuses[$state.Calls - 1]
+        throw (New-Object FakeHttpException ("HTTP $status", (New-Object psobject -Property @{ StatusCode = $status })))
+    }
+    Copy-Item -LiteralPath (Join-Path $state.Api 'latest') -Destination $OutFile
+}
+function Invoke-StubbedInstall([int[]]$Statuses) {
+    $state.Calls = 0
+    $state.Statuses = $Statuses
+    Invoke-Install $state.Api 'x64' '' 'https://fake.invalid/releases'
 }
 
 try {
@@ -87,8 +107,26 @@ try {
 
     Set-Latest '1.2.3' $api
     Expect-Failure { Invoke-Install $api 'riscv64' } '*unsupported architecture*' 'unsupported architecture accepted'
+
+    # Retry: 504 twice, then success; the waits are zero.
+    $state.Api = $api
+    $env:GEERATYA_RETRY_DELAY = '0'
+    Remove-Item -LiteralPath $exe -ErrorAction SilentlyContinue
+    $out = Invoke-StubbedInstall @(504, 504)
+    if ($state.Calls -ne 3) { Fail "expected 3 attempts for the release request, got $($state.Calls): $out" }
+    if ($out -notlike '*HTTP 504*retrying*') { Fail "no retry message: $out" }
+    if (-not (Test-Path -LiteralPath $exe)) { Fail "not installed after the retries: $out" }
+    # 404 is not transient: one attempt, fails at once.
+    Remove-Item -LiteralPath $exe
+    Expect-Failure { Invoke-StubbedInstall @(404) } '*download failed (HTTP 404)*' '404 accepted or failed with another message'
+    if ($state.Calls -ne 1) { Fail "404 was retried: $($state.Calls) attempts" }
+    # 503 every time: gives up after four attempts, with the hint.
+    Expect-Failure { Invoke-StubbedInstall @(503, 503, 503, 503, 503) } '*after 4 attempts (HTTP 503)*temporary problem*' 'endless 503 accepted'
+    if ($state.Calls -ne 4) { Fail "expected 4 attempts, got $($state.Calls)" }
+    if (Test-Path -LiteralPath $exe) { Fail 'binary installed after a failed download' }
+    Remove-Item Env:GEERATYA_RETRY_DELAY
     Write-Host 'ok'
 } finally {
-    Remove-Item Env:GEERATYA_RELEASES_URL, Env:GEERATYA_INSTALL_DIR, Env:GEERATYA_NO_PATH, Env:GEERATYA_ARCH, Env:GEERATYA_VERSION -ErrorAction SilentlyContinue
+    Remove-Item Env:GEERATYA_RELEASES_URL, Env:GEERATYA_INSTALL_DIR, Env:GEERATYA_NO_PATH, Env:GEERATYA_ARCH, Env:GEERATYA_VERSION, Env:GEERATYA_RETRY_DELAY -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
 }

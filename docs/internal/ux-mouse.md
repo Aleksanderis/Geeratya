@@ -110,6 +110,9 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `view.done-cutoff` | V | Item of the menu of the tab and the view, on a loaded Kanban board (right-click on a tab or the status line, `<space>A`): same as its key (opens the Done cutoff picker) |
 | ContextMenu | Click | `issue.open-in-browser` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.open-parent` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `yank.key` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `yank.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `yank.summary` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.edit` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.assign-me` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.transition-previous` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
@@ -138,6 +141,7 @@ A test parses this table and checks it against `DefaultMouseMap`; add a row here
 | ContextMenu | Click | `sprint.move-issues` | M | Item of the right-click menu on a row of a board, backlog or sprint view: picks the target sprint (active and future) for the issue, the marks or the Visual range, same as `<space>sm`. The drag onto a section is `Drag to sprint` |
 | ContextMenu | Click | `sprint.move-to-backlog` | M | Item of the right-click menu on a row of a board, backlog or sprint view: moves the issue, the marks or the Visual range to the backlog, same as `<space>sb` |
 | ContextMenu | Click | `comment.delete` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
+| ContextMenu | Click | `comment.order` | M | Item of the right-click menu on a line of an opened issue: flips the comments between oldest first and newest first, same as `<space>mo` |
 | ContextMenu | Click | `tab.close` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
 | ContextMenu | Click | `tab.rename` | V | Item of the same menu: opens the command line with `tab rename <current name>` typed, like `Ctrl-w r` |
 | ContextMenu | Click | `tab.previous` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |

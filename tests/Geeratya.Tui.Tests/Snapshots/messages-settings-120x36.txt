@@ -10,9 +10,9 @@
 │ jump.target current (default current) - Where the jump prompt (<space>g) opens an issue: on top of the current tab, …│
 │ startup.restore on (default on) - Reopen the tabs of the last run on start; off starts on the board picker every tim…│
 │ board.done-cutoff 14 (default 14) - Days after which a Kanban board hides Done issues that reached Done longer ago, …│
+│ comments.order oldest (default oldest) - Which comments of an opened issue come first: the oldest or the newest. <sp…│
 │ Messages                                                                                                             │
 │ Saved A-1                                                                                                            │
-│                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

@@ -38,7 +38,10 @@ public static class ActionCatalog
         [ActionIds.IssueOpenInBrowser] = ActionScope.Views,
         [ActionIds.IssueOpenParent] = ActionScope.Detail,
         [ActionIds.DetailEdit] = ActionScope.Detail,
-        [ActionIds.DetailYank] = ActionScope.Detail,
+        [ActionIds.DetailYank] = ActionScope.Views,
+        [ActionIds.YankKey] = ActionScope.Views,
+        [ActionIds.YankLink] = ActionScope.Views,
+        [ActionIds.YankSummary] = ActionScope.Views,
         [ActionIds.IssueEdit] = ActionScope.Views,
         [ActionIds.IssueAssign] = ActionScope.Views,
         [ActionIds.IssueAssignMe] = ActionScope.Views,
@@ -61,6 +64,7 @@ public static class ActionCatalog
         [ActionIds.CommentAdd] = ActionScope.Detail,
         [ActionIds.CommentEdit] = ActionScope.Detail,
         [ActionIds.CommentDelete] = ActionScope.Detail,
+        [ActionIds.CommentOrder] = ActionScope.Detail,
     };
 
     /// <summary>The ids the scope table names (for the test that checks them against the catalog).</summary>
@@ -139,7 +143,10 @@ public static class ActionCatalog
         new(ActionIds.IssueOpenInBrowser, "Open the issue in the browser"),
         new(ActionIds.IssueOpenParent, "Open the parent issue"),
         new(ActionIds.DetailEdit, "Edit the title or the Description in place"),
-        new(ActionIds.DetailYank, "Copy the selection or the field under the cursor"),
+        new(ActionIds.DetailYank, "Copy the selection or field under the cursor (in a list: the issue key)"),
+        new(ActionIds.YankKey, "Copy the key of the issue under the cursor"),
+        new(ActionIds.YankLink, "Copy the issue link"),
+        new(ActionIds.YankSummary, "Copy the issue key and summary"),
         new(ActionIds.IssueEdit, "Edit the issue title in place (opens the detail from a list or board)"),
         new(ActionIds.IssueAssign, "Assign the issue: search people, or unassign"),
         new(ActionIds.IssueAssignMe, "Assign the issue to me"),
@@ -185,6 +192,7 @@ public static class ActionCatalog
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
+        new(ActionIds.CommentOrder, "Reverse the order of the comments: oldest first or newest first"),
         new(ActionIds.EditorLeft, "Move the cursor left"),
         new(ActionIds.EditorRight, "Move the cursor right"),
         new(ActionIds.EditorRowStart, "Move the cursor to the start of the row"),
@@ -305,7 +313,7 @@ public static class ActionCatalog
 
         return (dot < 0 ? id : id[..dot]) switch
         {
-            "issue" => "Issue",
+            "issue" or "yank" => "Issue",
             "comment" => "Comment",
             "rank" => "Rank",
             "selection" => "Selection",

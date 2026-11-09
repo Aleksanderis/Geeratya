@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests scripts/install.sh against a fake GitHub releases API on disk (file:// URLs, no network, no real GitHub, install
 # folder in a temp dir): install, skip when current, update, pinned version, arm64 and macOS, checksum mismatch, missing
-# SHA256SUMS or entry, missing asset, unsupported architecture and system (#860).
+# SHA256SUMS or entry, missing asset, unsupported architecture and system (#860), and the download retry flags through a fake
+# curl and a fake wget (#880).
 # Run: scripts/test-install.sh   (not part of `dotnet test`)
 set -euo pipefail
 unset GEERATYA_VERSION GEERATYA_FORCE GEERATYA_INSTALL_DIR GEERATYA_RELEASES_URL GEERATYA_OS GEERATYA_ARCH
@@ -113,4 +114,51 @@ if out="$(run_install "$api" GEERATYA_OS=FreeBSD GEERATYA_ARCH=x86_64)"; then fa
 grep -q "unsupported system" <<<"$out" || fail "no system message: $out"
 if out="$(run_install "$api" GEERATYA_OS=Darwin GEERATYA_ARCH=x86_64)"; then fail "macOS x64 accepted"; fi
 grep -q "Apple silicon only" <<<"$out" || fail "no macOS x64 message: $out"
+# Download retry (#872, #880): a fake curl (and wget) on PATH logs its arguments and copies the file:// target, so the
+# flags install.sh passes can be checked without a network. Real curl does the retrying; the fake only fails when told to.
+fakes="$tmp/fakes"; mkdir -p "$fakes"
+fake_downloader() { # <name> <output flag>
+  cat > "$fakes/$1" <<EOF
+#!/bin/sh
+printf '%s\\n' "\$*" >> "$tmp/$1.log"
+out=""; url=""
+while [ \$# -gt 0 ]; do
+  case "\$1" in $2) out="\$2"; shift ;; -*) ;; *) url="\$1" ;; esac
+  shift
+done
+[ ! -e "$tmp/$1.fail" ] || exit 22
+cp "\${url#file://}" "\$out"
+EOF
+  chmod +x "$fakes/$1"
+}
+fake_downloader curl -o
+fake_downloader wget -O
+set_latest 1.2.3 "$api"
+run_fake() { # <PATH>; installs into a clean folder
+  rm -rf "$tmp/bin"
+  env GEERATYA_OS=Linux GEERATYA_ARCH=x86_64 GEERATYA_RELEASES_URL="file://$api" GEERATYA_INSTALL_DIR="$tmp/bin" PATH="$1" \
+    sh "$root/scripts/install.sh" 2>&1
+}
+rm -f "$tmp/curl.log" "$tmp/curl.fail"
+out="$(run_fake "$fakes:$PATH")" || fail "install with the fake curl failed: $out"
+[ "$(installed_version)" = "Geeratya 1.2.3" ] || fail "fake curl install did not install"
+[ "$(wc -l < "$tmp/curl.log" | tr -d " ")" = 3 ] || fail "expected 3 curl calls (release, archive, sums): $(cat "$tmp/curl.log")"
+[ "$(grep -c -e '-fsSL --retry 4 ' "$tmp/curl.log")" = 3 ] || fail "a curl call lacks -f or --retry 4: $(cat "$tmp/curl.log")"
+# A failing curl (after its own retries) fails the install once, with the hint; the script does not loop around curl.
+touch "$tmp/curl.fail"; rm -f "$tmp/curl.log"
+if out="$(run_fake "$fakes:$PATH")"; then fail "install succeeded although curl failed"; fi
+grep -q "download failed" <<<"$out" || fail "no message when curl fails: $out"
+[ "$(wc -l < "$tmp/curl.log" | tr -d " ")" = 1 ] || fail "install.sh called curl again after it failed: $(cat "$tmp/curl.log")"
+[ ! -e "$tmp/bin/geeratya" ] || fail "binary installed after a failed download"
+rm -f "$tmp/curl.fail"
+# wget fallback, with curl hidden: PATH holds only links to the tools install.sh needs, plus the fake wget.
+only="$tmp/only-wget"; mkdir -p "$only"
+for tool in sh env uname mktemp grep cut head awk tar find cp chmod mv rm mkdir sha256sum cat ldd dirname gzip; do
+  found="$(command -v "$tool" 2>/dev/null || true)"
+  case "$found" in /*) ln -sf "$found" "$only/$tool" ;; esac
+done
+cp "$fakes/wget" "$only/wget"
+out="$(run_fake "$only")" || fail "install with the fake wget failed: $out"
+[ "$(installed_version)" = "Geeratya 1.2.3" ] || fail "fake wget install did not install"
+[ "$(grep -c -e '-q --tries=4 --waitretry=8 ' "$tmp/wget.log")" = 3 ] || fail "wget lacks the retry flags: $(cat "$tmp/wget.log")"
 echo "ok"

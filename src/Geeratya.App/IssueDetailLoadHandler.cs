@@ -110,7 +110,8 @@ public sealed class IssueDetailLoadHandler
                 effect.Key,
                 effect.StartAt,
                 token,
-                DetailPaging.CommentPageSize);
+                DetailPaging.CommentPageSize,
+                newestFirst: effect.NewestFirst);
 
             return result.IsSuccess
                 ? new IssueCommentsLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow())

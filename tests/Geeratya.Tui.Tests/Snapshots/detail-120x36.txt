@@ -18,7 +18,7 @@
 │ │ │ after break                                                               ░│ │ Reporter                      │ │ │
 │ │ │ … 33 more lines                                                           ▼│ │   ON  Ola Nordmann            │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │                               │ │ │
-│ │ ╭─ Comments 3 ──────────────────────────────────────────────── newest first ─╮ │ Labels                        │ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── oldest first ─╮ │ Labels                        │ │ │
 │ │ │ Jane Doe                                                           1 d ago │ │   auth   bug-bash             │ │ │
 │ │ │ Found it: the redirect target is dropped after the refresh.                │ │                               │ │ │
 │ │ │                                                                            │ │ Parent                        │ │ │

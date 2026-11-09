@@ -72,6 +72,9 @@ public static class ActionIds
     public const string IssueOpenParent = "issue.open-parent";
     public const string DetailEdit = "detail.edit";
     public const string DetailYank = "detail.yank";
+    public const string YankKey = "yank.key";
+    public const string YankLink = "yank.link";
+    public const string YankSummary = "yank.summary";
     public const string IssueTransition = "issue.transition";
     public const string IssueTransitionNext = "issue.transition-next";
     public const string IssueTransitionPrevious = "issue.transition-previous";
@@ -115,6 +118,7 @@ public static class ActionIds
     public const string CommentAdd = "comment.add";
     public const string CommentEdit = "comment.edit";
     public const string CommentDelete = "comment.delete";
+    public const string CommentOrder = "comment.order";
     public const string EditorLeft = "editor.left";
     public const string EditorRight = "editor.right";
     public const string EditorRowStart = "editor.row-start";

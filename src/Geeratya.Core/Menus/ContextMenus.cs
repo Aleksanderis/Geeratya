@@ -20,6 +20,9 @@ public static class ContextMenus
     [
         ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
+        ActionIds.YankKey,
+        ActionIds.YankLink,
+        ActionIds.YankSummary,
         ActionIds.IssueEdit,
         ActionIds.IssueAssignMe,
         ActionIds.IssueTransitionPrevious,
@@ -103,6 +106,8 @@ public static class ContextMenus
         {
             actions.Remove(ActionIds.IssueUnlink);
         }
+
+        actions.Add(ActionIds.CommentOrder);
 
         if (CommentEditing.IsOnComment(state))
         {

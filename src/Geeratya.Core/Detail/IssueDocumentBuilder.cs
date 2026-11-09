@@ -19,6 +19,7 @@ public static class IssueDocumentBuilder
     private const int StatusGap = 2;
     private const string CommentsTitle = "Comments";
     private const string NewestFirstText = "newest first";
+    private const string OldestFirstText = "oldest first";
     private const int MinCommentRows = 6;
     private const int MinPaneRows = 4;
     private const int PadFromRows = 16;
@@ -376,7 +377,7 @@ public static class IssueDocumentBuilder
         var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);
-        var order = new StyledSpan(NewestFirstText, TextRole.Muted);
+        var order = new StyledSpan(detail.CommentsNewestFirst ? NewestFirstText : OldestFirstText, TextRole.Muted);
         var rowsLeft = viewport is { } shown ? shown - sink.Lines.Count - Panel.EdgeRows : rows.Count;
         var height = Math.Max(MinCommentRows, rowsLeft);
 

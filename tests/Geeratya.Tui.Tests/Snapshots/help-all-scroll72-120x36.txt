@@ -2,11 +2,9 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   0          Go to the first column                                         ▲│           │
-│           │   All actions │   $          Go to the last column                                           │           │
-│           │   Commands    │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
+│           │   Global      │   ]]         Next section of the Scrum backlog, or next swimlane            ▲│           │
+│           │   All actions │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
+│           │   Commands    │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
 │           │               │              backlog section                                                 │           │
 │           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
 │           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
@@ -16,7 +14,8 @@
 │           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   i          Edit the title or the Description in place                      │           │
-│           │               │   y          Copy the selection or the field under the cursor                │           │
+│           │               │   y          Copy the selection or field under the cursor (in a list: the    │           │
+│           │               │              issue key)                                                      │           │
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
@@ -30,7 +29,8 @@
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
 │           │               │ Dialogs                                                                      │           │
-│           │               │   Esc        Close help  (q)                                                ▼│           │
+│           │               │   Esc        Close help  (q)                                                 │           │
+│           │               │   /          Filter the help by key, title or action id                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

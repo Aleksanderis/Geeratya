@@ -26,11 +26,11 @@
 │           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
 │           │               │              weeks, all, or follow Jira)                                     │           │
 │           │               │   <space>o   Open the issue in the browser                                   │           │
-│           │               │   <space>ie  Edit the issue title in place (opens the detail from a list or  │           │
-│           │               │              board)                                                          │           │
-│           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
-│           │               │   <space>im  Assign the issue to me                                          │           │
-│           │               │   <space>is  Change the status of the issue                                 ▼│           │
+│           │               │   y          Copy the selection or field under the cursor (in a list: the    │           │
+│           │               │              issue key)                                                      │           │
+│           │               │   <space>yy  Copy the key of the issue under the cursor                      │           │
+│           │               │   <space>yu  Copy the issue link                                             │           │
+│           │               │   <space>ys  Copy the issue key and summary                                 ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
