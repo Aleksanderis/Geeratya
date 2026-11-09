@@ -329,4 +329,4 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-09 (#909, automatic CI)
 
-**Process:** CI is automatic again (supersedes the 2026-11 manual-CI entry): ubuntu on every PR and push to `main`, windows on push to `main` and dispatch. Why: the repo is public, minutes are no longer scarce.
+**Process:** CI is automatic again (supersedes the manual-CI entry, archived in `history/decisions.md`, "Superseded 2026-11-09"): ubuntu on every PR and push to `main`, windows on push to `main` and dispatch. Why: the repo is public, minutes are no longer scarce.
