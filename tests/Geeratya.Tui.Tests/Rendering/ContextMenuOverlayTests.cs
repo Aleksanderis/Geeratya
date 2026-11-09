@@ -71,6 +71,29 @@ public class ContextMenuOverlayTests
     }
 
     [Fact]
+    public void GivenAHeadedMenu_WhenBuildingTheFrame_ThenABlankRowSeparatesGroupsButNotTheFirstHeader()
+    {
+        var items = new[]
+        {
+            ActionIds.IssueEdit, ActionIds.IssueDelete, ActionIds.IssueLink, ActionIds.RankUp, ActionIds.RankDown,
+            ActionIds.RankTop, ActionIds.Quit,
+        }.Select(action => new ContextMenuItem(action, ActionCatalog.FindTitle(action)!)).ToList();
+        var state = Sample() with { ContextMenu = new ContextMenuState(items, 6) };
+        var lines = FrameBuilder.BuildStyled(state, 100, 30, _keymap)!.PlainLines().ToList();
+        var issue = lines.FindIndex(line => line.Contains(" Issue ", StringComparison.Ordinal));
+        var rank = lines.FindIndex(line => line.Contains(" Rank ", StringComparison.Ordinal));
+        var other = lines.FindIndex(line => line.Contains(" App ", StringComparison.Ordinal));
+        var column = lines[rank].IndexOf("Rank", StringComparison.Ordinal);
+
+        // Eight columns from the header text stay inside the box, so only the menu's own row is checked.
+
+        Assert.Contains("Actions", lines[issue - 1], StringComparison.Ordinal);
+        Assert.True(string.IsNullOrWhiteSpace(lines[rank - 1].Substring(column, 8)));
+        Assert.True(other > rank);
+        Assert.True(string.IsNullOrWhiteSpace(lines[other - 1].Substring(column, 8)));
+    }
+
+    [Fact]
     public void GivenAnyTerminalSize_WhenBuildingTheFrame_ThenItNeverThrows()
     {
         for (var width = 0; width <= 30; width++)

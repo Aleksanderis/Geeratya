@@ -30,6 +30,7 @@ all_scenarios=(
   "default;120;36;dark;;Connected as"
   "help;120;36;dark;?;Help"
   "help-list;120;36;dark;:jql project = GCM|?;Help"
+  "actions-menu;120;36;dark;:jql project = GCM| a;Actions"
   "whichkey;120;36;dark;:jql project = GCM| ;<space>"
   "narrow;64;30;dark;;Connected"
   "light;120;36;light;;Connected as"
