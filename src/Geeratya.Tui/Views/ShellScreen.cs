@@ -98,7 +98,15 @@ public sealed class ShellScreen : Window
             ApplySchemes();
         }
 
-        var frame = FrameBuilder.BuildStyled(state, _size.Width, _size.Height, _keymap, null, now, _glyphs);
+        var frame = FrameBuilder.BuildStyled(
+            state,
+            _size.Width,
+            _size.Height,
+            _keymap,
+            null,
+            now,
+            _glyphs,
+            state.Settings.LabelCaps && _colors != ColorSupport.None);
 
         if (frame is null)
         {

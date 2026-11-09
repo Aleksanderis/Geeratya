@@ -59,6 +59,7 @@ public static class FrameBuilder
     /// start screens, in order. The first line is always the tab bar (blank without tabs), so the body height does not
     /// change when the first tab opens or the last one closes. The second line is the network banner of the active tab
     /// (blank when none), computed at <paramref name="now"/> (the epoch when null, which only the print frame uses).
+    /// <paramref name="chipCaps"/> rounds the filled chips (<see cref="ChipCaps"/>); never with the ASCII glyph set.
     /// </summary>
     public static StyledFrame? BuildStyled(
         AppState state,
@@ -67,7 +68,8 @@ public static class FrameBuilder
         KeymapTable keymap,
         IReadOnlyList<IBodyRenderer>? screens = null,
         DateTimeOffset? now = null,
-        GlyphSet glyphs = GlyphSet.Unicode)
+        GlyphSet glyphs = GlyphSet.Unicode,
+        bool chipCaps = false)
     {
         if (width <= 0 || height <= 0)
         {
@@ -173,7 +175,12 @@ public static class FrameBuilder
             StatusSegment = StatusBar.MessageSegment(state, width, clock),
         };
 
-        return glyphs == GlyphSet.Ascii ? Asciified(frame) : frame;
+        if (glyphs == GlyphSet.Ascii)
+        {
+            return Asciified(frame);
+        }
+
+        return chipCaps ? ChipCaps.Apply(frame) : frame;
     }
 
     // The dropdown under a Details field, the create form's panes, or the small field form box.

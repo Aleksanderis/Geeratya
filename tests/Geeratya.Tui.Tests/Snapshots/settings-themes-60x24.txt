@@ -9,11 +9,11 @@
 │       ○ light                                            │
 │       ○ nord                                             │
 │   transparent                                        [ ] │
+│   labels.caps                                        [x] │
 │ Hints and keys                                           │
 │   hints.statusBar                               [full ▾] │
 │   hints.whichKey                                     [x] │
-│   commandlevel                              [everyday ▾] │
-│ Startup                                                 ▼│
+│   commandlevel                              [everyday ▾]▼│
 ├──────────────────────────────────────────────────────────┤
 │ Default: auto. The colour theme: a built-in one or a     │
 │ file in the themes folder. Values: auto, dark, light,    │

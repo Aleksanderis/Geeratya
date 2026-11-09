@@ -5,6 +5,7 @@
 │ Appearance                                               │
 │   theme                                         [auto ▾] │
 │   transparent                                        [ ] │
+│   labels.caps                                        [x] │
 │ Hints and keys                                           │
 │   hints.statusBar                               [full ▾] │
 │   hints.whichKey                                     [x] │
@@ -12,8 +13,7 @@
 │ Startup                                                  │
 │   jump.target                                [current ▾] │
 │   startup.restore                                    [x] │
-│ Board                                                    │
-│   board.done-cutoff                               [14 ▾]▼│
+│ Board                                                   ▼│
 ├──────────────────────────────────────────────────────────┤
 │ Default: auto. The colour theme: a built-in one or a     │
 │ file in the themes folder. Values: auto, dark, light,    │

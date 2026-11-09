@@ -108,7 +108,7 @@ internal static class CreateFieldBlocks
     private static List<IReadOnlyList<StyledSpan>> LabelItems(FormField field)
     {
         return [.. field.Value.Chosen.Select(label => (IReadOnlyList<StyledSpan>)
-            [new StyledSpan($"[{Clean(FormOverlay.LabelOf(field, label))}]", LabelChips.For(label))])];
+            [new StyledSpan($" {Clean(FormOverlay.LabelOf(field, label))} ", LabelChips.For(label))])];
     }
 
     private static List<IReadOnlyList<StyledSpan>> UserItems(FormField field)

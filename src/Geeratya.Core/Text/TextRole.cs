@@ -139,6 +139,21 @@ public enum TextRole
     /// <summary>A filled label chip, info colour.</summary>
     LabelChip4,
 
+    /// <summary>The rounded cap of a <see cref="LabelChip0"/> chip: the chip's fill colour as text on the page (drawn by the Tui chip caps pass).</summary>
+    LabelCap0,
+
+    /// <summary>The cap of a <see cref="LabelChip1"/> chip.</summary>
+    LabelCap1,
+
+    /// <summary>The cap of a <see cref="LabelChip2"/> chip.</summary>
+    LabelCap2,
+
+    /// <summary>The cap of a <see cref="LabelChip3"/> chip.</summary>
+    LabelCap3,
+
+    /// <summary>The cap of a <see cref="LabelChip4"/> chip.</summary>
+    LabelCap4,
+
     /// <summary>The initials chip of an assignee: muted fill.</summary>
     InitialsChip,
 
