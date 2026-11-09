@@ -46,7 +46,8 @@ function Get-GeeratyaFile([string]$Source, [string]$Destination) {
                 $reason = if ($status) { "HTTP $status" } else { $_.Exception.Message }
                 if (-not $transient -or $attempt -ge $attempts) {
                     $tries = if ($attempt -gt 1) { " after $attempt attempts" } else { '' }
-                    throw "download failed$tries ($reason): $Source. This is usually a temporary problem on GitHub's side: run the command again in a minute."
+                    $again = if ($transient) { ' This is usually a temporary problem on GitHub''s side: run the command again in a minute.' } else { '' }
+                    throw "download failed$tries ($reason): $Source.$again"
                 }
                 $wait = $delay * [math]::Pow(2, $attempt - 1)
                 Write-Host "Download failed ($reason), retrying in $wait s (attempt $($attempt + 1) of $attempts)..."
@@ -107,7 +108,7 @@ function Invoke-GeeratyaInstall {
     [void](New-Item -ItemType Directory -Path $work)
     try {
         $jsonPath = Join-Path $work 'release.json'
-        try { Get-GeeratyaFile $releaseUrl $jsonPath } catch { throw "$($_.Exception.Message) (a missing release or a GitHub rate limit also end up here)" }
+        try { Get-GeeratyaFile $releaseUrl $jsonPath } catch { throw "$($_.Exception.Message) (HTTP 404 means no such release; a GitHub rate limit also fails here)" }
         $release = Get-Content -LiteralPath $jsonPath -Raw | ConvertFrom-Json
         if (-not $release.tag_name) { throw "could not read the release from $releaseUrl" }
         $tag = [string]$release.tag_name

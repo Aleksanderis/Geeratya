@@ -8,7 +8,7 @@ Needs a Jira Cloud site, an Atlassian account on it and an API token (below). An
 
 One command installs the latest release; run it again to update.
 
-#### Linux and macOS
+### Linux and macOS
 
 In a shell (x64 or arm64 with glibc, so not Alpine; macOS on Apple silicon):
 
@@ -25,7 +25,7 @@ curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/
 
 For a native package use the `.deb`, `.rpm` or Arch package below.
 
-#### Windows
+### Windows
 
 In PowerShell (Windows PowerShell 5.1 or pwsh, x64 or arm64):
 
@@ -40,7 +40,7 @@ $env:GEERATYA_VERSION = '0.1.0'
 irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
 ```
 
-### Other ways
+#### Other ways
 
 All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/releases) page unless noted.
 
@@ -55,7 +55,7 @@ All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/release
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
 
-### macOS (Gatekeeper)
+#### macOS (Gatekeeper)
 
 The macOS binary is **not notarised** and not signed with an Apple developer identity (at most the linker's ad-hoc signature). Homebrew (the tap `Aleksanderis/homebrew-tap` serves the Apple silicon build) downloads without the quarantine flag, so Gatekeeper does not block it. If you download the release archive in a browser instead, macOS marks it as quarantined and Gatekeeper asks you to allow it or refuses to run it; clear the flag once after unpacking:
 
