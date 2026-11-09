@@ -60,8 +60,8 @@ public static class CardRows
 
     /// <summary>
     /// The bottom row: the key, two spaces, the issue type as a word in its type colour and the sub-task counter when
-    /// there is room; at the right the priority glyph and the assignee chip (<c>[GR]</c>, <c>[--]</c> unassigned, the
-    /// same width). A listed sub-task shows its status chip there instead. The type word wins over the right side,
+    /// there is room; at the right the priority glyph and the assignee chip (<c> GR </c> filled per
+    /// person, <c>[--]</c> unassigned, the same width). A listed sub-task shows its status chip there instead. The type word wins over the right side,
     /// which gives way piece by piece (the priority glyph first, so the counter keeps its place), then the word shrinks
     /// to the one-cell marker.
     /// </summary>
