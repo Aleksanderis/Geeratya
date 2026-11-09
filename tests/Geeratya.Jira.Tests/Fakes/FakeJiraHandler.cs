@@ -123,7 +123,10 @@ public sealed class FakeJiraHandler : HttpMessageHandler
             await response.Gate.WaitAsync(cancellationToken);
         }
 
-        var message = new HttpResponseMessage(response.Status) { Content = new StringContent(response.Body) };
+        var message = new HttpResponseMessage(response.Status)
+        {
+            Content = response.StalledBody ? new StalledContent() : new StringContent(response.Body),
+        };
 
         foreach (var (name, value) in response.Headers ?? new Dictionary<string, string>())
         {
@@ -159,5 +162,19 @@ public sealed class FakeJiraHandler : HttpMessageHandler
                 _flightWaiters.Remove(waiter);
             }
         }
+    }
+}
+
+/// <summary>A body that never arrives and whose read does not look at the cancellation token.</summary>
+internal sealed class StalledContent : HttpContent
+{
+    protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
+        new TaskCompletionSource().Task;
+
+    protected override bool TryComputeLength(out long length)
+    {
+        length = -1;
+
+        return false;
     }
 }

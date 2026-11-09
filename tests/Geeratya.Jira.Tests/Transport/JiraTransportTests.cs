@@ -266,6 +266,19 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
+    public async Task GivenBodyThatStallsIgnoringCancellation_WhenTimeoutElapses_ThenTimeoutErrorStillArrives()
+    {
+        using var fixture = new TransportFixture(options => options with { Timeout = TimeSpan.FromMilliseconds(50) });
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.StuckBody());
+
+        var pending = new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(10)));
+
+        Assert.Same(pending, finished);
+        Assert.Equal(JiraErrorKind.Timeout, (await pending).Error.Kind);
+    }
+
+    [Fact]
     public async Task GivenConnectionThatIgnoresCancellation_WhenCallerCancels_ThenOperationCanceledIsThrown()
     {
         using var fixture = new TransportFixture();

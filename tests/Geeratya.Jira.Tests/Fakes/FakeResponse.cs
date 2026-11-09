@@ -14,6 +14,7 @@ public sealed record FakeResponse(
     bool Hang = false,
     bool NetworkFailure = false,
     bool Unresponsive = false,
+    bool StalledBody = false,
     Task? Gate = null)
 {
     public static FakeResponse Ok(string body) => new(HttpStatusCode.OK, body);
@@ -26,6 +27,9 @@ public sealed record FakeResponse(
     public static FakeResponse Hanging() => new(HttpStatusCode.OK, Hang: true);
 
     public static FakeResponse Stuck() => new(HttpStatusCode.OK, Unresponsive: true);
+
+    /// <summary>Headers arrive, the body never does and the read ignores cancellation.</summary>
+    public static FakeResponse StuckBody() => new(HttpStatusCode.OK, StalledBody: true);
 
     public static FakeResponse Broken() => new(HttpStatusCode.OK, NetworkFailure: true);
 }

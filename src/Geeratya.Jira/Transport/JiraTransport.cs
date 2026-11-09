@@ -136,8 +136,8 @@ public sealed class JiraTransport : IDisposable
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.All,
 
-            // A pooled connection that died while the app sat idle must not be reused: connections are retired
-            // early, and (HTTP/2) pings detect a dead one instead of waiting for the request timeout.
+            // Reduces the chance of reusing a connection that died while the app sat idle: connections are retired
+            // early and HTTP/2 pings detect a dead one. The WaitAsync deadline is what guarantees the request ends.
             PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
             ConnectTimeout = TimeSpan.FromSeconds(10),
