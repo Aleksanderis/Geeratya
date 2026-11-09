@@ -292,3 +292,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (Arch package, #861)
 
 **Process:** The Arch/Omarchy `.pkg.tar.zst` is built by `scripts/package-linux.sh` itself (tar + zstd + `.PKGINFO`, no nfpm or makepkg, like the `.deb`) from the linux archive, so no extra tool is fetched in the release job. Install check: real `pacman -U` in `archlinux:latest` for x86_64; aarch64 has no official Arch image (Arch Linux ARM is third-party, not trusted in a release job), so the native arm64 runner unpacks the package, checks `.PKGINFO` and runs the packaged binary. The package is covered by `SHA256SUMS`; the AUR PKGBUILD already builds from the same archives for both arches and is unchanged. Gitunia (nfpm, no install check) was read for scope only.
+
+## 2026-11-09 (copy issues, #876)
+
+**UI:** Issues are copied with `<space>y y` (key), `<space>y u` (link) and `<space>y s` (`KEY Summary`), also from the right-click menu; a bare `y` outside an opened issue copies the key. The target is the focused issue (row or card, the shown issue, or the related issue or Parent/Epic field under the detail cursor). Extends #773: same `CopyToClipboardEffect` and `IClipboard`. Why: leader chords keep vim's `yy`/`Y` free (vim-clash rule); three forms cover what is pasted into chat, commits and notes.

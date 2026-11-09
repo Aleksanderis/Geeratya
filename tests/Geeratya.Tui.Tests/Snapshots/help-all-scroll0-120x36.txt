@@ -5,6 +5,9 @@
 │           │   Global      │ Issue                                                                        │           │
 │           │   All actions │   <space>o   Open the issue in the browser                                   │           │
 │           │   Commands    │   <space>p   Open the parent issue                                           │           │
+│           │               │   <space>yy  Copy the key of the issue under the cursor                      │           │
+│           │               │   <space>yu  Copy the issue link                                             │           │
+│           │               │   <space>ys  Copy the issue key and summary                                  │           │
 │           │               │   <space>ie  Edit the issue title in place (opens the detail from a list or  │           │
 │           │               │              board)                                                          │           │
 │           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
@@ -27,10 +30,7 @@
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
 │           │               │              issue)                                                          │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
-│           │               │ View                                                                         │           │
-│           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
-│           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
-│           │               │   <space>l   Switch between list and columns                                ▼│           │
+│           │               │ View                                                                        ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

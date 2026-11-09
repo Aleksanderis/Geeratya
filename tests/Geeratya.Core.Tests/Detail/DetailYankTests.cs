@@ -154,14 +154,75 @@ public class DetailYankTests
     }
 
     [Fact]
-    public void GivenAListWithNoIssueOpen_WhenPressingY_ThenNothingIsCopied()
+    public void GivenAListWithNoIssueOpen_WhenPressingY_ThenTheSelectedIssueKeyIsCopied()
     {
         var state = Opened(Paragraphs(2), []);
         var closed = Press(state, "Esc").State;
 
         var result = Press(closed, "y");
 
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("A-1", copy.Text);
+    }
+
+    [Fact]
+    public void GivenAListRow_WhenYankingTheLink_ThenTheBrowseAddressIsCopied()
+    {
+        var closed = Press(Opened(Paragraphs(2), []), "Esc").State;
+
+        var result = Press(closed, "Space", "y", "u");
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("https://work.atlassian.net/browse/A-1", copy.Text);
+    }
+
+    [Fact]
+    public void GivenAnOpenedIssue_WhenYankingKeyAndSummary_ThenBothAreCopied()
+    {
+        var result = Press(Opened(Paragraphs(2), []), "Space", "y", "s");
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("A-1 Issue 1", copy.Text);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnASubtask_WhenYankingTheKey_ThenTheSubtaskKeyIsCopied()
+    {
+        var subtask = new IssueStub("A-2", "Sub work", _todo, _story);
+        var state = OnLine(Opened(Paragraphs(2), [], subtask), "A-2");
+
+        var result = Press(state, "Space", "y", "y");
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("A-2", copy.Text);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnASubtask_WhenYankingKeyAndSummary_ThenTheSubtaskSummaryIsIncluded()
+    {
+        var subtask = new IssueStub("A-2", "Sub work", _todo, _story);
+        var state = OnLine(Opened(Paragraphs(2), [], subtask), "A-2");
+
+        var result = Press(state, "Space", "y", "s");
+
+        var copy = Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects));
+        Assert.Equal("A-2 Sub work", copy.Text);
+    }
+
+    [Fact]
+    public void GivenAnEmptyView_WhenYankingTheKey_ThenNothingIsCopiedAndTheStatusWarns()
+    {
+        var closed = Press(Opened(Paragraphs(2), []), "Esc").State;
+        var emptied = closed with { Session = closed.Session };
+        var tab = Active(emptied);
+        var cleared = tab with { Rows = [] };
+        var tabs = emptied.Session.Tabs.Select(candidate => candidate.Id == tab.Id ? cleared : candidate).ToList();
+        var state = emptied with { Session = emptied.Session with { Tabs = tabs } };
+
+        var result = Press(state, "Space", "y", "y");
+
         Assert.Empty(result.Effects);
+        Assert.Contains("No issue selected", result.State.Message);
     }
 
     [Fact]
@@ -239,7 +300,10 @@ public class DetailYankTests
         return new ReduceResult(result.State, effects);
     }
 
-    private AppState Opened(string? description, IReadOnlyList<IssueComment> comments)
+    private AppState Opened(
+        string? description,
+        IReadOnlyList<IssueComment> comments,
+        IssueStub? subtask = null)
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
@@ -252,7 +316,7 @@ public class DetailYankTests
         var listed = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
         var shown = Press(listed, "Enter").State;
         var detail = Active(shown).Detail[0];
-        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description), _now);
+        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description, subtask), _now);
         var loaded = _reducer.Reduce(shown, issue).State;
         var commentPage = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Count, true);
 
@@ -261,7 +325,7 @@ public class DetailYankTests
         return _reducer.Reduce(loaded, delivered).State;
     }
 
-    private static IssueDetail Issue(string? description)
+    private static IssueDetail Issue(string? description, IssueStub? subtask = null)
     {
         var document = description is null ? null : AdfMarkdownParser.Parse(description);
 
@@ -280,7 +344,7 @@ public class DetailYankTests
             "A",
             document,
             null,
-            [],
+            subtask is null ? [] : [subtask],
             [],
             []);
     }

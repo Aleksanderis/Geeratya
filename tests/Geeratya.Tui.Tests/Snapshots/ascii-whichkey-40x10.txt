@@ -5,6 +5,6 @@
 | t         Open the source picker for |
 | Tab       Previously active tab      |
 | T         Show a list of open tabs   |
-| . 17 more                            |
+| . 18 more                            |
 +--------------------------------------+
 [NORMAL] <space>                        

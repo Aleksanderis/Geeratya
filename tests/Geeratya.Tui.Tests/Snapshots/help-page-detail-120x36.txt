@@ -22,15 +22,15 @@
 │ │ │ Loadin│                │   <space>o   Open the issue in the browser                                  │       │ │ │
 │ │ ╰───────│                │   <space>p   Open the parent issue                                          │       │ │ │
 │ │ ╭─ Comme│                │   i          Edit the title or the Description in place                     │       │ │ │
-│ │ │ Loadin│                │   y          Copy the selection or the field under the cursor               │       │ │ │
-│ │ │       │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
-│ │ │       │                │              or board)                                                      │       │ │ │
-│ │ │       │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
-│ │ ╰───────│                │   <space>im  Assign the issue to me                                         │       │ │ │
-│ │         │                │   <space>is  Change the status of the issue                                 │       │ │ │
-│ │         │                │   v          Start or end Visual mode (a range of rows, or of lines in an   │       │ │ │
-│ │         │                │              issue)                                                         │       │ │ │
-│ │         │                │   <space>iC  Create a sub-task of the selected issue                       ▼│───────╯ │ │
+│ │ │ Loadin│                │   y          Copy the selection or field under the cursor (in a list: the   │       │ │ │
+│ │ │       │                │              issue key)                                                     │       │ │ │
+│ │ │       │                │   <space>yy  Copy the key of the issue under the cursor                     │       │ │ │
+│ │ │       │                │   <space>yu  Copy the issue link                                            │       │ │ │
+│ │ ╰───────│                │   <space>ys  Copy the issue key and summary                                 │       │ │ │
+│ │         │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
+│ │         │                │              or board)                                                      │       │ │ │
+│ │         │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
+│ │         │                │   <space>im  Assign the issue to me                                        ▼│───────╯ │ │
 │ ╰─────────╰──────────────────────────────────────────────────────────────────────────────────────────────╯─────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
