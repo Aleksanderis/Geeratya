@@ -9,6 +9,30 @@ public enum TextRole
     Strong,
     Emphasis,
     Code,
+
+    /// <summary>Struck-through text (an ADF <c>strike</c> mark): grey with a line through it.</summary>
+    Strike,
+
+    /// <summary>Text coloured red in a Jira description or comment (an ADF <c>textColor</c> mark); the Tui picks the theme's red.</summary>
+    ColorRed,
+
+    /// <summary>Coloured text, yellow or orange.</summary>
+    ColorYellow,
+
+    /// <summary>Coloured text, green.</summary>
+    ColorGreen,
+
+    /// <summary>Coloured text, teal or cyan.</summary>
+    ColorTeal,
+
+    /// <summary>Coloured text, blue.</summary>
+    ColorBlue,
+
+    /// <summary>Coloured text, purple or magenta.</summary>
+    ColorPurple,
+
+    /// <summary>Coloured text, grey.</summary>
+    ColorGray,
     Link,
     Quote,
     Selected,

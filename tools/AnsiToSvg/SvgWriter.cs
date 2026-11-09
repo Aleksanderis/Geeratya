@@ -101,9 +101,9 @@ public static class SvgWriter
             builder.Append(" font-style=\"italic\"");
         }
 
-        if (style.Underline)
+        if (style.Underline || style.Strike)
         {
-            builder.Append(" text-decoration=\"underline\"");
+            builder.Append(CultureInfo.InvariantCulture, $" text-decoration=\"{Decoration(style)}\"");
         }
 
         if (style.Dim)
@@ -125,5 +125,15 @@ public static class SvgWriter
     private static string Hex(int color)
     {
         return string.Create(CultureInfo.InvariantCulture, $"#{color:x6}");
+    }
+
+    private static string Decoration(CellStyle style)
+    {
+        if (style.Underline && style.Strike)
+        {
+            return "underline line-through";
+        }
+
+        return style.Underline ? "underline" : "line-through";
     }
 }

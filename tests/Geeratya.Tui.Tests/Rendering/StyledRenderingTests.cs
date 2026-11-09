@@ -89,6 +89,34 @@ public class StyledRenderingTests
         Assert.False(Resolve(tier, PaletteRole.Selected).Style.HasFlag(RoleStyle.Reverse));
     }
 
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    [InlineData(ColorSupport.None)]
+    public void GivenAnyTier_WhenResolvingStrike_ThenItHasALineThroughAndIsNotBody(ColorSupport tier)
+    {
+        var strike = Resolve(tier, PaletteRole.Strike);
+
+        Assert.True(strike.Style.HasFlag(RoleStyle.Strike));
+        Assert.NotEqual(Resolve(tier, PaletteRole.Body), strike);
+        Assert.True(AttributeFactory.Create(strike).Style.HasFlag(TextStyle.Strikethrough));
+    }
+
+    [Theory]
+    [InlineData(TextRole.ColorRed)]
+    [InlineData(TextRole.ColorYellow)]
+    [InlineData(TextRole.ColorGreen)]
+    [InlineData(TextRole.ColorTeal)]
+    [InlineData(TextRole.ColorBlue)]
+    [InlineData(TextRole.ColorPurple)]
+    public void GivenColourRoles_WhenResolving_ThenEachDiffersFromBodyAtColourTiers(TextRole role)
+    {
+        var palette = PaletteTable.For(role);
+
+        Assert.NotEqual(Resolve(ColorSupport.TrueColor, PaletteRole.Body), Resolve(ColorSupport.TrueColor, palette));
+        Assert.NotEqual(Resolve(ColorSupport.Basic16, PaletteRole.Body), Resolve(ColorSupport.Basic16, palette));
+    }
+
     [Fact]
     public void GivenSelectedAndDoneStyles_WhenCreatingAttributes_ThenTextStyleAndColoursCarryOver()
     {

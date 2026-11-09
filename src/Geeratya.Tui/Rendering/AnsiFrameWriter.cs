@@ -93,6 +93,7 @@ public static class AnsiFrameWriter
         AddIf(codes, style, RoleStyle.Italic, "3");
         AddIf(codes, style, RoleStyle.Underline, "4");
         AddIf(codes, style, RoleStyle.Reverse, "7");
+        AddIf(codes, style, RoleStyle.Strike, "9");
     }
 
     private static void AddIf(List<string> codes, RoleStyle style, RoleStyle flag, string code)

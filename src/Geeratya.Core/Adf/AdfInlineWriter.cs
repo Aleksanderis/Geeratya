@@ -228,13 +228,18 @@ internal sealed class AdfInlineWriter
         var inheritsMarks = _baseRole is TextRole.Body or TextRole.Quote or TextRole.Muted;
         var isLink = false;
         var isCode = false;
+        var isStrike = false;
+        TextRole? colour = null;
 
         for (var index = 0; index < text.Marks.Count; index++)
         {
             switch (text.Marks[index])
             {
                 case AdfStrikeMark when inheritsMarks:
-                    role = TextRole.Muted;
+                    isStrike = true;
+                    break;
+                case AdfTextColorMark mark when inheritsMarks:
+                    colour = AdfTextColors.RoleOf(mark.Color) ?? colour;
                     break;
                 case AdfUnderlineMark or AdfEmphasisMark when inheritsMarks:
                     role = TextRole.Emphasis;
@@ -256,7 +261,13 @@ internal sealed class AdfInlineWriter
             return TextRole.Code;
         }
 
-        return isLink ? TextRole.Link : role;
+        if (isLink)
+        {
+            return TextRole.Link;
+        }
+
+        // One role per span: strike beats colour, colour beats bold and italic (the cue that changes the meaning wins).
+        return isStrike ? TextRole.Strike : colour ?? role;
     }
 
     private static string EmojiText(AdfEmoji emoji)
