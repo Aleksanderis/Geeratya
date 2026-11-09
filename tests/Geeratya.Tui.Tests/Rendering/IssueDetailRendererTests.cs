@@ -280,9 +280,9 @@ public class IssueDetailRendererTests
         var bottom = _reducer.Reduce(state, new KeyPressed("G")).State;
         var middle = state;
 
-        for (var page = 0; page < 3; page++)
+        for (var step = 0; step < 12; step++)
         {
-            middle = _reducer.Reduce(middle, new KeyPressed("Ctrl-d")).State;
+            middle = _reducer.Reduce(middle, new KeyPressed("j")).State;
         }
 
         var top = FrameBuilder.Build(state, 160, 12, _keymap);

@@ -32,6 +32,11 @@ internal static partial class DetailReducer
             return inDescription;
         }
 
+        if (MoveInDescriptionPage(state, tab, move) is { } inDescriptionPage)
+        {
+            return inDescriptionPage;
+        }
+
         if (MoveInComments(state, tab, move) is { } inComments)
         {
             return inComments;
@@ -44,7 +49,30 @@ internal static partial class DetailReducer
 
         var target = Target(document, top.Cursor, move, viewport);
 
+        if (move is ListMove.PageDown or ListMove.PageUp && top.Zoomed is null)
+        {
+            target = InPane(document, top.Cursor, target, move);
+        }
+
         return ViewReducer.Replace(state, ReplaceTop(tab, WithCursor(top, target, viewport)));
+    }
+
+    /// <summary>
+    /// A half-page move never leaves the pane the cursor is in (#870): a target in another pane becomes the last
+    /// (down) or first (up) stop of the cursor's own pane.
+    /// </summary>
+    private static int InPane(DetailDocument document, int cursor, int target, ListMove move)
+    {
+        var section = document.SectionAt(cursor);
+
+        if (document.SectionAt(target) == section)
+        {
+            return target;
+        }
+
+        var own = document.Stops.Where(stop => document.SectionAt(stop) == section).ToArray();
+
+        return own.Length == 0 ? cursor : move == ListMove.PageDown ? own[^1] : own[0];
     }
 
     private static int Target(DetailDocument document, int cursor, ListMove move, int viewport)

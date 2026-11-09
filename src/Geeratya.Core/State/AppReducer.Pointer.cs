@@ -74,7 +74,7 @@ public sealed partial class AppReducer
             return Result(cleared);
         }
 
-        if (ViewReducer.IsDetailFrameClick(cleared, placed))
+        if (ViewReducer.IsDetailFrameClick(cleared, placed) || IsLaneClick(cleared, placed))
         {
             return placement;
         }
@@ -130,6 +130,15 @@ public sealed partial class AppReducer
 
         return tab is { Detail.Count: 0, Definition.Layout: ViewLayout.Columns }
             && ColumnsNavigation.IsSubtaskRowAt(tab, placed.Width, placed.Column, placed.Row);
+    }
+
+    // A click on a lane of the lane strip only shows that lane; no action (open, mark) runs on it.
+    private static bool IsLaneClick(AppState before, PointerPlaced placed)
+    {
+        var tab = before.Session.Active is { } id ? ViewReducer.Find(before.Session.Tabs, id) : null;
+
+        return tab is { Detail.Count: 0 }
+            && ColumnsNavigation.LaneAt(tab, placed.Width, placed.Column, placed.Row) is not null;
     }
 
     private static bool CardUnderPointer(AppState before, PointerPlaced placed)
