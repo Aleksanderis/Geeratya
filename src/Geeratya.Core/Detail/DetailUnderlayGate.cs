@@ -19,6 +19,7 @@ internal static class DetailUnderlayGate
         ActionIds.ViewLayoutToggle,
         ActionIds.ViewQuickFilter,
         ActionIds.ViewSwimlane,
+        ActionIds.ViewSwimlaneStack,
         ActionIds.ViewDoneCutoff,
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,

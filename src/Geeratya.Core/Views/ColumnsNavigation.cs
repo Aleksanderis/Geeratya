@@ -9,7 +9,7 @@ namespace Geeratya.Core.Views;
 /// is selected, and the tab's own selected row and key follow it so the list layout, a refresh and the issue detail
 /// all see the same issue.
 /// </summary>
-public static class ColumnsNavigation
+public static partial class ColumnsNavigation
 {
     /// <summary>Moves inside the selected column.</summary>
     public static TabState Move(TabState tab, ListMove move)
@@ -22,28 +22,45 @@ public static class ColumnsNavigation
 
     /// <summary>
     /// A click: places the cursor on the card or column header at a body cell drawn for <paramref name="width"/>.
-    /// A cell with neither is returned unchanged.
+    /// With stacked lanes (#891) a click in another lane, on a card or its header row, makes that lane the current one
+    /// first. A cell with neither is returned unchanged.
     /// </summary>
     public static TabState Place(TabState tab, int width, int column, int row)
     {
-        var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
-
-        if (HitAt(tab, columns, cursor, width, column, row) is not { } hit)
+        if (LaneRegions.RegionAtRow(tab, row) is not { } region)
         {
             return tab;
         }
 
-        return Follow(tab, columns, BoardMotion.Place(columns, tab.Cursor, tab.SelectedKey, hit, ViewOf(tab)));
+        var shown = SwitchLane(tab, region.Key);
+
+        if (region.HasHeader && row == region.Top)
+        {
+            return shown;
+        }
+
+        var columns = ColumnsOf(shown);
+        var cursor = BoardMotion.Resolve(columns, shown.Cursor, shown.SelectedKey, ViewOf(shown));
+
+        if (HitAt(shown, columns, cursor, width, column, row) is not { } hit)
+        {
+            return shown;
+        }
+
+        return Follow(shown, columns, BoardMotion.Place(columns, shown.Cursor, shown.SelectedKey, hit, ViewOf(shown)));
     }
 
-    /// <summary>True when the body cell is on a card (not a column header or an empty cell).</summary>
+    /// <summary>True when the body cell is on a card (not a column header or an empty cell), in any drawn lane.</summary>
     public static bool IsCardAt(TabState tab, int width, int column, int row)
     {
-        var columns = ColumnsOf(tab);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
+        if (LaneRegions.RegionAtRow(tab, row) is not { } region)
+        {
+            return false;
+        }
 
-        var hit = HitAt(tab, columns, cursor, width, column, row);
+        var columns = ColumnsOfLane(tab, region.Key);
+        var cursor = CursorOfLane(tab, region, columns, width);
+        var hit = BoardHits.At(columns, cursor, region.BoardRows, width, column, row - region.BoardTop, tab.Next is not null);
 
         return hit is { Card: not null };
     }
@@ -59,8 +76,11 @@ public static class ColumnsNavigation
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
-        if (BoardCards.IsCompact(LaneStrip.BoardRows(tab), ListLayout.HeaderRows)
-            || BoardHits.Locate(columns, cursor, LaneStrip.BoardRows(tab), width, column, row - LaneStrip.Offset(tab))
+        var region = LaneRegions.FocusRegion(tab);
+
+        if (!region.Contains(row)
+            || BoardCards.IsCompact(region.BoardRows, ListLayout.HeaderRows)
+            || BoardHits.Locate(columns, cursor, region.BoardRows, width, column, row - region.BoardTop)
                 is not { Row.Kind: CardRowKind.Key, Hit: { Card: { } card } hit }
             || columns[hit.Column].Rows[card] is not { IsListed: false, Subtasks.Count: > 0 } target)
         {
@@ -114,6 +134,8 @@ public static class ColumnsNavigation
     /// </summary>
     public static TabState Select(TabState tab, string key)
     {
+        tab = SwitchLane(tab, LaneShowing(tab, key) ?? CurrentLaneKey(tab));
+
         var columns = ColumnsOf(tab);
         var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
 
@@ -156,7 +178,12 @@ public static class ColumnsNavigation
 
     private static IReadOnlyList<BoardColumnGroup> BuildColumns(TabState tab)
     {
-        var lane = Swimlanes.Filter(tab.Swimlane, tab.Lane, tab.Rows);
+        return BuildLaneColumns(tab, tab.Lane);
+    }
+
+    private static IReadOnlyList<BoardColumnGroup> BuildLaneColumns(TabState tab, string? laneKey)
+    {
+        var lane = Swimlanes.Filter(tab.Swimlane, laneKey, tab.Rows);
 
         return BoardColumns.Visible(tab.Board, lane, tab.ExpandedSubtasks, tab.Rows, tab.DoneCutoffDays);
     }
@@ -191,7 +218,7 @@ public static class ColumnsNavigation
     /// </summary>
     public static string? LaneAt(TabState tab, int width, int column, int row)
     {
-        if (!LaneStrip.IsShown(tab) || row != 0)
+        if (!LaneStrip.IsDrawn(tab) || row != 0)
         {
             return null;
         }
@@ -213,9 +240,14 @@ public static class ColumnsNavigation
         int column,
         int row)
     {
-        var board = row - LaneStrip.Offset(tab);
+        var region = LaneRegions.FocusRegion(tab);
 
-        return BoardHits.At(columns, cursor, LaneStrip.BoardRows(tab), width, column, board, tab.Next is not null);
+        if (!region.Contains(row))
+        {
+            return null;
+        }
+
+        return BoardHits.At(columns, cursor, region.BoardRows, width, column, row - region.BoardTop, tab.Next is not null);
     }
 
     private static TabState Follow(TabState tab, IReadOnlyList<BoardColumnGroup> columns, BoardCursor cursor)

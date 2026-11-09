@@ -34,7 +34,8 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
                 tab.Swimlane == SwimlaneKind.None ? null : tab.Swimlane.ToString(),
                 tab.Swimlane == SwimlaneKind.None ? null : tab.Lane,
                 tab.Name,
-                tab.DoneCutoffChoice))
+                tab.DoneCutoffChoice,
+                tab is { Swimlane: not SwimlaneKind.None, StackLanes: true } ? true : null))
             .ToArray();
 
         var active = session.Tabs.ToList().FindIndex(tab => tab.Id == session.Active);
@@ -108,6 +109,7 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             && left.Lane == right.Lane
             && left.Name == right.Name
             && left.DoneCutoff == right.DoneCutoff
+            && left.Stacked == right.Stacked
             && (left.QuickFilters ?? []).SequenceEqual(right.QuickFilters ?? []);
     }
 
@@ -127,7 +129,8 @@ public sealed record RememberedTabs(IReadOnlyList<RememberedTab> Items, int Acti
             swimlane,
             swimlane == SwimlaneKind.None ? null : tab.Lane,
             TabNames.Clean(tab.Name),
-            ValidChoice(tab.DoneCutoff));
+            ValidChoice(tab.DoneCutoff),
+            swimlane != SwimlaneKind.None && tab.Stacked == true);
     }
 
     // A choice from a file is one the picker offers; anything else follows Jira.

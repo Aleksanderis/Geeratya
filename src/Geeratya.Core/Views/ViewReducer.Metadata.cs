@@ -201,6 +201,7 @@ public static partial class ViewReducer
                     Lane = entry.Lane,
                     Name = entry.Name,
                     DoneCutoffChoice = entry.DoneCutoff,
+                    StackLanes = entry.Stacked,
                 });
         }
 

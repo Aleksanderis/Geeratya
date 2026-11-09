@@ -24,13 +24,13 @@
 │           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
 │           │               │              turn)                                                           │           │
 │           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │           │
+│           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
 │           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
 │           │               │              weeks, all, or follow Jira)                                     │           │
 │           │               │   <space>vv  Open a saved view in a new tab                                  │           │
 │           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
 │           │               │   <space>*   Switch the command level for the session                        │           │
-│           │               │   <space>sv  Switch the sprint shown (active, future, closed)                │           │
-│           │               │   <space>sn  Create a sprint (name, goal, dates)                            ▼│           │
+│           │               │   <space>sv  Switch the sprint shown (active, future, closed)               ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

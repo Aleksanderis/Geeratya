@@ -62,6 +62,7 @@
     { "mode": "normal", "keys": "Space l", "action": "view.layout-toggle" },
     { "mode": "normal", "keys": "Space v f", "action": "view.quick-filter" },
     { "mode": "normal", "keys": "Space v s", "action": "view.swimlane" },
+    { "mode": "normal", "keys": "Space v l", "action": "view.swimlane-stack" },
     { "mode": "normal", "keys": "Space v d", "action": "view.done-cutoff" },
     { "mode": "normal", "keys": "Space o", "action": "issue.open-in-browser" },
     { "mode": "normal", "keys": "Space p", "action": "issue.open-parent" },

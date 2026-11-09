@@ -58,6 +58,12 @@ public sealed record TabState(
     DateTimeOffset? NextRefreshAt = null,
     BoardCursor? Cursor = null)
 {
+    /// <summary>No saved lane selections.</summary>
+    public static readonly IReadOnlyDictionary<string, string> EmptyLaneKeys = new Dictionary<string, string>();
+
+    /// <summary>No saved lane cursors.</summary>
+    public static readonly IReadOnlyDictionary<string, BoardCursor> EmptyLaneCursors = new Dictionary<string, BoardCursor>();
+
     /// <summary>
     /// The issue stack of the tab, last is the one shown; empty while the view itself is shown. Closing the tab or
     /// switching the profile drops it.
@@ -192,6 +198,25 @@ public sealed record TabState(
 
     /// <summary>The key of the lane shown (<see cref="SwimlaneLane.Key"/>); null or a vanished one shows the first.</summary>
     public string? Lane { get; init; }
+
+    /// <summary>
+    /// The lanes' columns are open at once, stacked under a header row each (<c>view.swimlane-stack</c>, #891); the
+    /// body is split between the lanes that fit (<see cref="LaneRegions"/>) and <see cref="Lane"/> keeps the cursor.
+    /// </summary>
+    public bool StackLanes { get; init; }
+
+    /// <summary>
+    /// The cursor each lane last had while it was not the current one (stacked lanes, #891), by lane key, so a lane
+    /// keeps its own column scroll and selected cards. The current lane's cursor is <see cref="Cursor"/>.
+    /// </summary>
+    public IReadOnlyDictionary<string, BoardCursor> LaneCursors { get; init; } = EmptyLaneCursors;
+
+    /// <summary>
+    /// The key of the card selected in each lane that is not the current one, kept with <see cref="LaneCursors"/>: the
+    /// cursor holds card indexes, so after a refresh moved the cards the key finds the card again when the lane is
+    /// entered.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> LaneKeys { get; init; } = EmptyLaneKeys;
 
     /// <summary>The columns last built for this tab (a cache, see <see cref="ColumnsMemo"/>).</summary>
     public ColumnsMemo Columns { get; init; } = new();

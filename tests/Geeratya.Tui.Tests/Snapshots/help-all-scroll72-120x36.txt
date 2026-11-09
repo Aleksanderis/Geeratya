@@ -2,11 +2,9 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   0          Go to the first column                                         ▲│           │
-│           │   All actions │   $          Go to the last column                                           │           │
-│           │   Commands    │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
+│           │   Global      │   ]]         Next section of the Scrum backlog, or next swimlane            ▲│           │
+│           │   All actions │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
+│           │   Commands    │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
 │           │               │              backlog section                                                 │           │
 │           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
 │           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
@@ -30,7 +28,9 @@
 │           │               │   <space>,   Open or close the settings screen                               │           │
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
-│           │               │ Dialogs                                                                     ▼│           │
+│           │               │ Dialogs                                                                      │           │
+│           │               │   Esc        Close help  (q)                                                 │           │
+│           │               │   /          Filter the help by key, title or action id                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

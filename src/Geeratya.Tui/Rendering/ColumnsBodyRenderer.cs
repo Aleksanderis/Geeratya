@@ -43,23 +43,52 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
 
         if (!LaneStrip.IsShown(tab) || height <= LaneStrip.Rows)
         {
-            return RenderBoard(state, tab, context, width, height);
+            return RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, FlashCardsOf(state, tab, width, height), width, height);
         }
 
+        if (LaneRegions.StripHidden(tab))
+        {
+            var stacked = new List<StyledLine>(height);
+
+            AddStackedLanes(stacked, state, tab, context, FlashCardsOf(state, tab, width, height), width, height);
+
+            return stacked;
+        }
+
+        var flash = FlashCardsOf(state, tab, width, height);
         var lines = new List<StyledLine>(height) { LaneStripLine(tab, width) };
 
-        lines.AddRange(RenderBoard(state, tab, context, width, height - LaneStrip.Rows));
+        if (!LaneRegions.IsStacked(tab))
+        {
+            lines.AddRange(
+                RenderBoard(state, tab, LaneRegions.FocusRegion(tab), context, flash, width, height - LaneStrip.Rows));
+
+            return lines;
+        }
+
+        AddStackedLanes(lines, state, tab, context, flash, width, height);
 
         return lines;
     }
 
-    private static List<StyledLine> RenderBoard(AppState state, TabState tab, BodyContext context, int width, int height)
+    private static List<StyledLine> RenderBoard(
+        AppState state,
+        TabState tab,
+        LaneRegion region,
+        BodyContext context,
+        FlashCards? flash,
+        int width,
+        int height)
     {
         var glyphs = Glyphs.For(context.Glyphs);
         var area = Math.Max(0, height - ListLayout.HeaderRows - ListLayout.FooterRows);
-        var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOf(tab), BusyMarks.Keys(state), glyphs);
+        var focused = region.Key == ColumnsNavigation.CurrentLaneKey(tab);
+        var columns = BusyMarks.Mark(ColumnsNavigation.ColumnsOfLane(tab, region.Key), BusyMarks.Keys(state), glyphs);
         var cards = BoardCards.Visible(area, ListLayout.HeaderRows);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(area, width));
+
+        var cursor = focused
+            ? BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(area, width))
+            : ColumnsNavigation.CursorOfLane(tab, region, columns, width);
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
 
         if (tab.Rows.Count == 0 || columns.Count == 0)
@@ -69,7 +98,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
 
         if (!FrameGrid.CanFrame(width, height))
         {
-            return Bare(tab, columns, cursor, width, height);
+            return Bare(tab, columns, Unselected(cursor, focused), width, height);
         }
 
         var compact = BoardCards.IsCompact(area, ListLayout.HeaderRows);
@@ -77,9 +106,9 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
         var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
         var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
-        var flash = FlashCardsOf(state, tab, width, height);
-        var grid = new FrameGrid(width, height, panes, cursor.Column - window.First);
-        var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes) };
+        var grid = new FrameGrid(width, height, panes, focused ? cursor.Column - window.First : -1);
+        var lines = new List<StyledLine>(height) { TopEdge(tab, columns, cursor, window, grid, panes, focused) };
+        var drawn = Unselected(cursor, focused);
 
         var placements = Placements(columns, cursor, window, cardRows, compact);
 
@@ -89,7 +118,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
             var spans = grid.Row(
                 row + BoardCards.TopRows,
                 (start, length) => Cell(
-                    columns, cursor, window, panes, placements, start, length, card, compact, marks, expanded, flash));
+                    columns, drawn, window, panes, placements, start, length, card, compact, marks, expanded, flash));
 
             lines.Add(new StyledLine(spans));
         }

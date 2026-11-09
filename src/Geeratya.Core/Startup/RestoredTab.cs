@@ -10,4 +10,5 @@ public sealed record RestoredTab(
     SwimlaneKind Swimlane,
     string? Lane,
     string? Name = null,
-    int? DoneCutoff = null);
+    int? DoneCutoff = null,
+    bool Stacked = false);
