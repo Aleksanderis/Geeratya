@@ -15,6 +15,7 @@ public sealed class NetworkRunner : IDisposable
     private readonly CancellationToken _shutdown;
     private readonly object _lock = new();
     private readonly Dictionary<long, CancellationTokenSource> _scopes = [];
+    private readonly HashSet<CancellationTokenSource> _detached = [];
     private CancellationTokenSource _all;
 
     /// <param name="connections">The site whose generation stamps every run.</param>
@@ -132,6 +133,7 @@ public sealed class NetworkRunner : IDisposable
         lock (_lock)
         {
             source = CancellationTokenSource.CreateLinkedTokenSource(_all.Token);
+            _detached.Add(source);
         }
 
         return Task.Run(() => RunDetachedAsync(services, work, source), CancellationToken.None);
@@ -141,12 +143,21 @@ public sealed class NetworkRunner : IDisposable
     public void CancelAll()
     {
         CancellationTokenSource old;
+        CancellationTokenSource[] leaves;
 
         lock (_lock)
         {
             old = _all;
             _all = CancellationTokenSource.CreateLinkedTokenSource(_shutdown);
+            leaves = [.. _scopes.Values, .. _detached];
             _scopes.Clear();
+        }
+
+        // The leaves first: a linked source learns of its parent's cancellation only when the parent's callbacks run,
+        // which is off the calling thread, but the leaves must report the cancellation as soon as this returns.
+        foreach (var leaf in leaves)
+        {
+            Cancel(leaf);
         }
 
         Cancel(old);
@@ -201,11 +212,17 @@ public sealed class NetworkRunner : IDisposable
         }
     }
 
+    /// <summary>
+    /// Marks the source cancelled before returning, but runs its callbacks and the continuations of the work waiting
+    /// on its token on the thread pool. These calls come from the UI thread (a tab close, a quit, a profile switch),
+    /// and a callback or continuation that runs inline there (a socket abort, a transport disposing, a handler that
+    /// waits) would freeze the keys (#883).
+    /// </summary>
     private static void Cancel(CancellationTokenSource? source)
     {
         try
         {
-            source?.Cancel();
+            _ = source?.CancelAsync();
         }
         catch (ObjectDisposedException)
         {
@@ -248,9 +265,18 @@ public sealed class NetworkRunner : IDisposable
         Func<JiraServices, CancellationToken, Task<Command?>> work,
         CancellationTokenSource source)
     {
-        using (source)
+        try
         {
             await RunAsync(services, (owner, _, token) => work(owner, token), source.Token);
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                _detached.Remove(source);
+            }
+
+            source.Dispose();
         }
     }
 

@@ -20,6 +20,15 @@ public sealed class ApplicationUiThread : IUiThread
         _application = null;
     }
 
+    /// <summary>
+    /// Detaches and disposes the application, which restores the terminal. For the hard exit: it runs on another
+    /// thread than the UI thread and does nothing when the application is already gone.
+    /// </summary>
+    public void Release()
+    {
+        Interlocked.Exchange(ref _application, null)?.Dispose();
+    }
+
     public Task InvokeAsync(Action action, CancellationToken cancellationToken)
     {
         var application = _application;
