@@ -28,7 +28,10 @@ internal static class CommentWriter
         switch (request)
         {
             case AddCommentRequest add:
-                return Reply(await services.Comments.AddCommentAsync(add.Key, add.Body, token, add.ParentId));
+                return Reply(
+                    add.ParentId is { } parent
+                        ? await services.Comments.ReplyToCommentAsync(add.Key, parent, add.Body, token)
+                        : await services.Comments.AddCommentAsync(add.Key, add.Body, token));
             case EditCommentRequest edit:
                 return Reply(await services.Comments.EditCommentAsync(edit.Key, edit.CommentId, edit.Body, token));
             case DeleteCommentRequest delete:
@@ -101,9 +104,9 @@ internal static class CommentWriter
             && id > add.AfterId;
         var mine = add.AuthorAccountId is null || comment.Author?.AccountId == add.AuthorAccountId;
 
-        var sameThread = add.ParentId is null || comment.ParentId == add.ParentId;
 
-        return newer && mine && sameThread && SameText(comment.Body, add.Body);
+        // The parent is not compared: Jira may ignore parentId, and a stored comment must not be reported missing.
+        return newer && mine && SameText(comment.Body, add.Body);
     }
 
     /// <summary>Compares the text form, which survives the changes Jira makes to a stored body.</summary>

@@ -52,7 +52,7 @@ public sealed class CommentWriteTests
         fixture.Handler.Serve(HttpMethod.Post, ListPath, reply);
 
         var result = await new CommentClient(fixture.Transport)
-            .AddCommentAsync("GTM-5", AdfMarkdownParser.Parse("answer"), Cancel(), "10006");
+            .ReplyToCommentAsync("GTM-5", "10006", AdfMarkdownParser.Parse("answer"), Cancel());
 
         Assert.Equal("10006", result.Value.ParentId);
         var sent = Assert.Single(fixture.Handler.Requests);
@@ -70,7 +70,7 @@ public sealed class CommentWriteTests
         using var fixture = new TransportFixture();
 
         var result = await new CommentClient(fixture.Transport)
-            .AddCommentAsync("GTM-5", AdfMarkdownParser.Parse("x"), Cancel(), parent);
+            .ReplyToCommentAsync("GTM-5", parent, AdfMarkdownParser.Parse("x"), Cancel());
 
         Assert.Equal(WriteErrorKind.NotFound, result.Error.Kind);
         Assert.Empty(fixture.Handler.Requests);

@@ -61,16 +61,26 @@ public sealed class CommentClient(JiraTransport transport)
     }
 
     /// <summary>
-    /// Adds a comment with an ADF body (visibility stays at Jira's default) and returns the stored comment. With
-    /// <paramref name="parentId"/> it is a reply: the id goes in the body as the JSON number <c>parentId</c> (the shape the read has; what Jira's own client
-    /// sends; the public REST docs do not list the field, see <c>docs/internal/jira-layer.md</c>, "Comments").
+    /// Adds a comment with an ADF body (visibility stays at Jira's default) and returns the stored comment.
     /// </summary>
     public Task<WriteResult<IssueComment>> AddCommentAsync(
         string key,
         AdfDocument body,
-        CancellationToken cancellationToken,
-        string? parentId = null) =>
-        SendBodyAsync(HttpMethod.Post, key, null, body, cancellationToken, parentId);
+        CancellationToken cancellationToken) =>
+        SendBodyAsync(HttpMethod.Post, key, null, body, null, cancellationToken);
+
+    /// <summary>
+    /// Adds a comment as a reply: the id of <paramref name="parentId"/> goes in the body as the JSON number
+    /// <c>parentId</c>, the shape the comment read has. The public REST docs do not list the field and no live check
+    /// has confirmed it yet (<c>docs/internal/jira-layer.md</c>, "Comments"): if Jira ignores it, the comment is stored
+    /// top-level.
+    /// </summary>
+    public Task<WriteResult<IssueComment>> ReplyToCommentAsync(
+        string key,
+        string parentId,
+        AdfDocument body,
+        CancellationToken cancellationToken) =>
+        SendBodyAsync(HttpMethod.Post, key, null, body, parentId, cancellationToken);
 
     /// <summary>Replaces the body of a comment and returns the stored comment (author, created, updated).</summary>
     public Task<WriteResult<IssueComment>> EditCommentAsync(
@@ -78,7 +88,7 @@ public sealed class CommentClient(JiraTransport transport)
         string commentId,
         AdfDocument body,
         CancellationToken cancellationToken) =>
-        SendBodyAsync(HttpMethod.Put, key, commentId, body, cancellationToken);
+        SendBodyAsync(HttpMethod.Put, key, commentId, body, null, cancellationToken);
 
     /// <summary>Deletes a comment. Jira has no undo; the reply carries no body (204).</summary>
     public Task<WriteResult<WriteAccepted>> DeleteCommentAsync(
@@ -101,8 +111,8 @@ public sealed class CommentClient(JiraTransport transport)
         string key,
         string? commentId,
         AdfDocument body,
-        CancellationToken cancellationToken,
-        string? parentId = null)
+        string? parentId,
+        CancellationToken cancellationToken)
     {
         if (parentId is not null && Refusal<IssueComment>(key, parentId) is { } badParent)
         {

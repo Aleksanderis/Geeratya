@@ -120,6 +120,29 @@ public sealed class CommentWriteHandlerTests
     }
 
     [Fact]
+    public async Task GivenAReply_WhenExecuting_ThenThePostCarriesTheParentId()
+    {
+        var reply = new AddCommentRequest("A-1", _body, "acc-me", 100, "42");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.Created, Stored));
+
+        await fixture.Handler.StartAsync(new ExecuteWriteEffect(41, reply));
+
+        Assert.IsType<WriteSucceeded>(Assert.Single(fixture.Posted));
+        Assert.Contains("\"parentId\":42", Assert.Single(fixture.Http.Bodies));
+    }
+
+    [Fact]
+    public async Task GivenAReplyWhoseReplyIsLost_WhenTheCommentIsStoredTopLevel_ThenItIsStillApplied()
+    {
+        var reply = new AddCommentRequest("A-1", _body, "acc-me", 100, "42");
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Page(Stored, 1, true)));
+
+        await fixture.Handler.StartAsync(new VerifyWriteEffect(41, reply));
+
+        Assert.Equal(VerifyOutcome.Applied, Assert.IsType<WriteVerified>(Assert.Single(fixture.Posted)).Outcome);
+    }
+
+    [Fact]
     public async Task GivenTheNewCommentIsThere_WhenVerifyingAnAdd_ThenItIsAppliedAndCarriedBack()
     {
         using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.OK, Page(Stored, 1, true)));
