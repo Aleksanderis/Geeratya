@@ -107,9 +107,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>ie` | Edit the issue title in place (opens the detail from a list or board) | `issue.edit` | everyday |
 | `i` | Edit the title or the Description in place | `detail.edit` | everyday |
 | `y` | Copy the selection or field under the cursor (in a list: the issue key) | `detail.yank` | everyday |
-| `<space>yy` | Copy the key of the issue under the cursor | `issue.yank-key` | everyday |
-| `<space>yu` | Copy the issue link | `issue.yank-link` | everyday |
-| `<space>ys` | Copy the issue key and summary | `issue.yank-summary` | everyday |
+| `<space>yy` | Copy the key of the issue under the cursor | `yank.key` | everyday |
+| `<space>yu` | Copy the issue link | `yank.link` | everyday |
+| `<space>ys` | Copy the issue key and summary | `yank.summary` | everyday |
 | `<space>ia` | Assign the issue: search people, or unassign | `issue.assign` | everyday |
 | `<space>im` | Assign the issue to me | `issue.assign-me` | everyday |
 | `<space>g` | Jump to an issue by key | `issue.jump` | everyday |

@@ -275,6 +275,42 @@ public class DetailYankTests
         Assert.Equal("line 39\n\nline 40", text);
     }
 
+    [Fact]
+    public void GivenTheCursorOnTheParentField_WhenYankingKeyAndSummary_ThenTheParentIsCopiedNotTheShownIssue()
+    {
+        var parent = new IssueStub("A-9", "Big story", _todo, _story);
+        var state = OnLine(Opened(Paragraphs(2), [], parent: parent), "Parent");
+
+        var result = Press(state, "Space", "y", "s");
+
+        Assert.Equal("A-9 Big story", Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects)).Text);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnTheEpicField_WhenYankingTheLink_ThenTheEpicAddressIsCopied()
+    {
+        var epic = new IssueStub("A-7", "Epic work", _todo, new IssueTypeSummary("11", "Epic", 1, false));
+        var state = OnLine(Opened(Paragraphs(2), [], parent: epic), "Epic");
+
+        var result = Press(state, "Space", "y", "u");
+
+        Assert.Equal(
+            "https://work.atlassian.net/browse/A-7",
+            Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects)).Text);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnALinkedIssue_WhenYankingKeyAndSummary_ThenTheLinkedIssueIsCopied()
+    {
+        var other = new IssueStub("B-3", "Blocking work", _todo, _story);
+        var link = new IssueLink("5", "Blocks", IssueLinkDirection.Outward, "blocks", other);
+        var state = OnLine(Opened(Paragraphs(2), [], link: link), "B-3");
+
+        var result = Press(state, "Space", "y", "s");
+
+        Assert.Equal("B-3 Blocking work", Assert.IsType<CopyToClipboardEffect>(Assert.Single(result.Effects)).Text);
+    }
+
     private static string Paragraphs(int count)
     {
         return string.Join("\n\n", Enumerable.Range(1, count).Select(number => $"line {number}"));
@@ -327,7 +363,9 @@ public class DetailYankTests
     private AppState Opened(
         string? description,
         IReadOnlyList<IssueComment> comments,
-        IssueStub? subtask = null)
+        IssueStub? subtask = null,
+        IssueStub? parent = null,
+        IssueLink? link = null)
     {
         var profiles = ProfileCatalog.Empty.With(_work);
         var start = AppState.Initial with { Profiles = profiles, Session = SiteSession.Empty(profiles.Active) };
@@ -340,7 +378,7 @@ public class DetailYankTests
         var listed = _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, page, _now)).State;
         var shown = Press(listed, "Enter").State;
         var detail = Active(shown).Detail[0];
-        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description, subtask), _now);
+        var issue = new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description, subtask, parent, link), _now);
         var loaded = _reducer.Reduce(shown, issue).State;
         var commentPage = new OffsetPage<IssueComment>(comments, 0, DetailPaging.CommentPageSize, comments.Count, true);
 
@@ -349,7 +387,11 @@ public class DetailYankTests
         return _reducer.Reduce(loaded, delivered).State;
     }
 
-    private static IssueDetail Issue(string? description, IssueStub? subtask = null)
+    private static IssueDetail Issue(
+        string? description,
+        IssueStub? subtask = null,
+        IssueStub? parent = null,
+        IssueLink? link = null)
     {
         var document = description is null ? null : AdfMarkdownParser.Parse(description);
 
@@ -367,9 +409,9 @@ public class DetailYankTests
             _now.AddHours(-1),
             "A",
             document,
-            null,
+            parent,
             subtask is null ? [] : [subtask],
-            [],
+            link is null ? [] : [link],
             []);
     }
 
