@@ -138,7 +138,8 @@ public sealed partial class AppReducer
         var tab = before.Session.Active is { } id ? ViewReducer.Find(before.Session.Tabs, id) : null;
 
         return tab is { Detail.Count: 0 }
-            && ColumnsNavigation.LaneAt(tab, placed.Width, placed.Column, placed.Row) is not null;
+            && (ColumnsNavigation.LaneAt(tab, placed.Width, placed.Column, placed.Row) is not null
+                || ColumnsNavigation.IsLaneHeaderAt(tab, placed.Row));
     }
 
     private static bool CardUnderPointer(AppState before, PointerPlaced placed)

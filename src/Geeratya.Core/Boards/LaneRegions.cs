@@ -9,12 +9,16 @@ namespace Geeratya.Core.Boards;
 /// lanes holding the current one (pages of the same size from the first lane, the last page ending at the last
 /// lane), so stepping inside a page never moves the others. Without stacking, or when fewer than two lanes fit, the
 /// one current lane takes the whole body, as before. The reducer's scroll maths, the hit tests, the flash labels and
-/// the renderer all read these regions. Pure, O(lanes), no allocation for the current lane's region.
+/// the renderer all read these regions. Pure; O(lanes) and no allocation for the current lane's region unless a lane is
+/// folded (#893), which adds a pass over the few lanes drawn.
 /// </summary>
 public static class LaneRegions
 {
     /// <summary>The rows of a lane header above its columns.</summary>
     public const int HeaderRows = 1;
+
+    /// <summary>The cells at the start of a lane header that hold its chevron: a click there folds or opens the lane.</summary>
+    public const int ChevronCells = 2;
 
     /// <summary>The fewest rows a stacked lane takes: its header and a board of seven rows (edges and five lines).</summary>
     public const int MinLaneRows = 8;
@@ -80,16 +84,60 @@ public static class LaneRegions
         return null;
     }
 
+    /// <summary>
+    /// Whether lane <paramref name="key"/> is folded to its header row: stacked lanes only, and never the current lane
+    /// (entering a lane opens it, and a lane that became current by other means is drawn open).
+    /// </summary>
+    public static bool IsFolded(TabState tab, string key)
+    {
+        return tab.FoldedLanes.Count > 0
+            && tab.FoldedLanes.Contains(key)
+            && key != Swimlanes.Current(ColumnsLanes(tab), tab.Lane)?.Key
+            && IsStacked(tab);
+    }
+
     private static LaneRegion RegionAt(TabState tab, int strip, int shown, int first, int laneIndex)
     {
-        var position = laneIndex - first;
-        var available = Body(tab) - strip;
-        var share = available / shown;
-        var extra = available % shown;
-        var rows = share + (position < extra ? 1 : 0);
-        var top = strip + (position * share) + Math.Min(position, extra);
+        var lanes = ColumnsLanes(tab);
+        var folded = 0;
 
-        return new LaneRegion(ColumnsLanes(tab)[laneIndex].Key, top, rows, true);
+        for (var position = 0; position < shown; position++)
+        {
+            if (IsFolded(tab, lanes[first + position].Key))
+            {
+                folded++;
+            }
+        }
+
+        // Folded lanes keep their header row; the rest of the body is shared between the open lanes.
+        var open = shown - folded;
+        var available = Body(tab) - strip - folded;
+        var share = available / open;
+        var extra = available % open;
+        var top = strip;
+        var openBefore = 0;
+
+        for (var position = 0; position < laneIndex - first; position++)
+        {
+            if (IsFolded(tab, lanes[first + position].Key))
+            {
+                top += HeaderRows;
+
+                continue;
+            }
+
+            top += share + (openBefore < extra ? 1 : 0);
+            openBefore++;
+        }
+
+        var key = lanes[laneIndex].Key;
+
+        if (IsFolded(tab, key))
+        {
+            return new LaneRegion(key, top, HeaderRows, true, true);
+        }
+
+        return new LaneRegion(key, top, share + (openBefore < extra ? 1 : 0), true);
     }
 
     /// <summary>

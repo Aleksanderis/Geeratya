@@ -25,12 +25,12 @@
 │           │               │              turn)                                                           │           │
 │           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic)       │           │
 │           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
+│           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
+│           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
 │           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
 │           │               │              weeks, all, or follow Jira)                                     │           │
 │           │               │   <space>vv  Open a saved view in a new tab                                  │           │
-│           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
-│           │               │   <space>*   Switch the command level for the session                        │           │
-│           │               │   <space>sv  Switch the sprint shown (active, future, closed)               ▼│           │
+│           │               │   <space>vw  Save this view under a name (opens :view save)                 ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

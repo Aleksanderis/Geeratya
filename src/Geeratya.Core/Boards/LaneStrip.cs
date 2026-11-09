@@ -60,6 +60,17 @@ public static class LaneStrip
     }
 
     /// <summary>
+    /// A stacked lane's header text (#893): the chevron shows the fold (<c>▾</c> open, <c>▸</c> folded), then name and
+    /// card count.
+    /// </summary>
+    public static string HeaderLabel(SwimlaneLane lane, bool folded)
+    {
+        var name = DisplayWidth.Fit(lane.Name, MaxNameWidth);
+
+        return $"{(folded ? OtherMark : CurrentMark)} {name} {lane.Count}";
+    }
+
+    /// <summary>
     /// The chips for <paramref name="lanes"/> in <paramref name="width"/> cells, scrolled so the current lane shows
     /// whole (cut with <c>…</c> only when it alone is wider than the row). Linear in the lanes.
     /// </summary>

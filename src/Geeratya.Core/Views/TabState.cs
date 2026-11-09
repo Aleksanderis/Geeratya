@@ -206,6 +206,12 @@ public sealed record TabState(
     public bool StackLanes { get; init; }
 
     /// <summary>
+    /// The keys of the lanes folded to their header row while the lanes are stacked (<c>lane.fold</c>, #893); kept per
+    /// tab, not remembered across runs. The current lane is never drawn folded (<see cref="LaneRegions.IsFolded"/>).
+    /// </summary>
+    public IReadOnlyList<string> FoldedLanes { get; init; } = [];
+
+    /// <summary>
     /// The cursor each lane last had while it was not the current one (stacked lanes, #891), by lane key, so a lane
     /// keeps its own column scroll and selected cards. The current lane's cursor is <see cref="Cursor"/>.
     /// </summary>

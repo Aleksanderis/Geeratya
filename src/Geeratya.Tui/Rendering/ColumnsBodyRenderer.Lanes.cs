@@ -45,8 +45,8 @@ public sealed partial class ColumnsBodyRenderer
     }
 
     /// <summary>
-    /// Stacked lanes (#891): under the strip, each drawn lane is a header row (<c>▾ Name n</c>, bold for the current
-    /// lane) and its own framed columns, in the rows <see cref="LaneRegions"/> gives. The body is padded or cut to
+    /// Stacked lanes (#891): under the strip, each drawn lane is a header row (<c>▾ Name n</c>, <c>▸</c> when folded
+    /// to the header alone, #893; bold for the current lane) and its own framed columns, in the rows <see cref="LaneRegions"/> gives. The body is padded or cut to
     /// <paramref name="height"/> so a host that reports another height than the tab's never gets a short frame.
     /// </summary>
     private static void AddStackedLanes(
@@ -65,14 +65,20 @@ public sealed partial class ColumnsBodyRenderer
         {
             var room = Math.Min(region.Rows, height - lines.Count);
 
-            if (room <= LaneRegions.HeaderRows)
+            if (room < LaneRegions.HeaderRows || (room == LaneRegions.HeaderRows && !region.Folded))
             {
                 break;
             }
 
             var lane = lanes.First(candidate => candidate.Key == region.Key);
 
-            lines.Add(LaneHeaderLine(lane, region.Key == current, width));
+            lines.Add(LaneHeaderLine(lane, region.Key == current, region.Folded, width));
+
+            if (region.Folded)
+            {
+                continue;
+            }
+
             lines.AddRange(RenderBoard(state, tab, region, context, flash, width, room - LaneRegions.HeaderRows));
         }
 
@@ -82,9 +88,9 @@ public sealed partial class ColumnsBodyRenderer
         }
     }
 
-    private static StyledLine LaneHeaderLine(SwimlaneLane lane, bool current, int width)
+    private static StyledLine LaneHeaderLine(SwimlaneLane lane, bool current, bool folded, int width)
     {
-        var text = DisplayWidth.Fit(LaneStrip.Label(lane, current), width);
+        var text = DisplayWidth.Fit(LaneStrip.HeaderLabel(lane, folded), width);
 
         return new StyledLine([new StyledSpan(text, current ? TextRole.Heading : TextRole.Muted)]);
     }

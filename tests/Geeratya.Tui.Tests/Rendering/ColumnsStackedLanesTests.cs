@@ -41,7 +41,7 @@ public class ColumnsStackedLanesTests
 
         foreach (var region in regions)
         {
-            Assert.StartsWith(region.Key == "u1" ? "▾ " : "▸ ", body[region.Top].PlainText, StringComparison.Ordinal);
+            Assert.StartsWith("▾ ", body[region.Top].PlainText, StringComparison.Ordinal);
             Assert.StartsWith("╭", body[region.BoardTop].PlainText, StringComparison.Ordinal);
             Assert.StartsWith("╰", body[region.Top + region.Rows - 1].PlainText, StringComparison.Ordinal);
         }
@@ -160,6 +160,23 @@ public class ColumnsStackedLanesTests
         var text = string.Concat(flashed.Select(line => line.PlainText));
 
         Assert.All(letters, letter => Assert.True(text.Contains(letter, StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void GivenAFoldedLane_WhenRendering_ThenItIsItsHeaderRowAloneWithAClosedChevronAndTheRestStillFills()
+    {
+        var tab = ColumnsNavigation.SwitchLane(Stacked() with { FoldedLanes = ["u1"] }, "u2");
+        var body = Render(tab);
+        var regions = LaneRegions.Regions(tab);
+
+        Assert.Equal(Height, body.Count);
+        Assert.Equal(1, regions[0].Rows);
+        Assert.StartsWith("▸ Al 3", body[0].PlainText, StringComparison.Ordinal);
+        Assert.StartsWith("▾ Bo", body[1].PlainText, StringComparison.Ordinal);
+        Assert.StartsWith("╭", body[2].PlainText, StringComparison.Ordinal);
+        Assert.DoesNotContain("A-1", string.Join('\n', body.Select(line => line.PlainText)), StringComparison.Ordinal);
+        Assert.Equal(TextRole.Heading, body[1].Spans[0].Role);
+        Assert.Equal(TextRole.Muted, body[0].Spans[0].Role);
     }
 
     [Theory]

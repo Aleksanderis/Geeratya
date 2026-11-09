@@ -65,6 +65,8 @@ public static class ActionIds
     public const string ViewQuickFilter = "view.quick-filter";
     public const string ViewSwimlane = "view.swimlane";
     public const string ViewSwimlaneStack = "view.swimlane-stack";
+    public const string LaneFold = "lane.fold";
+    public const string LaneUnfold = "lane.unfold";
     public const string ViewDoneCutoff = "view.done-cutoff";
     public const string ViewSavedOpen = "view.saved-open";
     public const string ViewSavedSave = "view.saved-save";

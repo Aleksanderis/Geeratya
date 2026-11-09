@@ -34,6 +34,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `]]` | Next section of the Scrum backlog, or next swimlane | `detail.section-next` | everyday |
 | `[[` | Previous section of the Scrum backlog, or previous swimlane | `detail.section-previous` | everyday |
 | `za` | Expand or collapse sub-tasks of a card, a cut text or a backlog section | `section.toggle` | everyday |
+| `zc` | Fold the lane to its header row (stacked lanes) | `lane.fold` | everyday |
+| `zo` | Open the next folded lane (stacked lanes) | `lane.unfold` | everyday |
 | `Ctrl-h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |
 | `Ctrl-Backspace` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |
 | `Ctrl-w h` | Focus the pane to the left (zoomed: the previous section) | `pane.focus-left` | everyday |

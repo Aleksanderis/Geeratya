@@ -23,7 +23,7 @@ public static partial class ColumnsNavigation
     /// <summary>
     /// A click: places the cursor on the card or column header at a body cell drawn for <paramref name="width"/>.
     /// With stacked lanes (#891) a click in another lane, on a card or its header row, makes that lane the current one
-    /// first. A cell with neither is returned unchanged.
+    /// first (a folded lane opens); a click on the chevron of a lane header folds or opens it (#893). A cell with neither is returned unchanged.
     /// </summary>
     public static TabState Place(TabState tab, int width, int column, int row)
     {
@@ -32,12 +32,19 @@ public static partial class ColumnsNavigation
             return tab;
         }
 
-        var shown = SwitchLane(tab, region.Key);
-
         if (region.HasHeader && row == region.Top)
         {
-            return shown;
+            return column < LaneRegions.ChevronCells
+                ? LaneFolds.ToggleAt(tab, region.Key)
+                : SwitchLane(tab, region.Key);
         }
+
+        if (region.Folded)
+        {
+            return tab;
+        }
+
+        var shown = SwitchLane(tab, region.Key);
 
         var columns = ColumnsOf(shown);
         var cursor = BoardMotion.Resolve(columns, shown.Cursor, shown.SelectedKey, ViewOf(shown));
@@ -50,10 +57,16 @@ public static partial class ColumnsNavigation
         return Follow(shown, columns, BoardMotion.Place(columns, shown.Cursor, shown.SelectedKey, hit, ViewOf(shown)));
     }
 
+    /// <summary>True when the body row is the header row of a stacked lane (#893).</summary>
+    public static bool IsLaneHeaderAt(TabState tab, int row)
+    {
+        return LaneRegions.RegionAtRow(tab, row) is { HasHeader: true } region && region.Top == row;
+    }
+
     /// <summary>True when the body cell is on a card (not a column header or an empty cell), in any drawn lane.</summary>
     public static bool IsCardAt(TabState tab, int width, int column, int row)
     {
-        if (LaneRegions.RegionAtRow(tab, row) is not { } region)
+        if (LaneRegions.RegionAtRow(tab, row) is not { Folded: false } region)
         {
             return false;
         }

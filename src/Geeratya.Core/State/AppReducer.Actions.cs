@@ -154,6 +154,8 @@ public sealed partial class AppReducer
             ActionIds.ViewQuickFilter => InNormal(state, () => BoardViewOptions.CycleFilter(state)),
             ActionIds.ViewSwimlane => InNormal(state, () => BoardViewOptions.CycleSwimlane(state)),
             ActionIds.ViewSwimlaneStack => InNormal(state, () => BoardViewOptions.ToggleStackedLanes(state)),
+            ActionIds.LaneFold => InNormal(state, () => LaneFolds.Fold(state)),
+            ActionIds.LaneUnfold => InNormal(state, () => LaneFolds.Unfold(state)),
             ActionIds.ViewDoneCutoff => InNormal(state, () => DoneCutoffPicker.Open(state)),
             ActionIds.ItemOpen => state.Mode == InputMode.Normal ? OpenItem(state) : Result(state),
             ActionIds.SectionNext => InNormal(
