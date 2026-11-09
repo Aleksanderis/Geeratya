@@ -129,9 +129,9 @@ internal static class CreateFieldBlocks
 
     private static IReadOnlyList<StyledSpan> Person(string name)
     {
-        var chip = $"[{AssigneeInitials.Of(name).PadRight(InitialsCells)}]";
+        var chip = PersonChips.Text(AssigneeInitials.Of(name), InitialsCells);
 
-        return [new StyledSpan(chip, TextRole.InitialsChip), new StyledSpan($" {name}", TextRole.ValueBlock)];
+        return [new StyledSpan(chip, PersonChips.For(name)), new StyledSpan($" {name}", TextRole.ValueBlock)];
     }
 
     private static List<IReadOnlyList<StyledSpan>> ChoiceItems(FormField field)

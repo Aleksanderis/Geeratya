@@ -60,8 +60,8 @@ public static class CardRows
 
     /// <summary>
     /// The bottom row: the key, two spaces, the issue type as a word in its type colour and the sub-task counter when
-    /// there is room; at the right the priority glyph and the assignee chip (<c>[GR]</c>, <c>[--]</c> unassigned, the
-    /// same width). A listed sub-task shows its status chip there instead. The type word wins over the right side,
+    /// there is room; at the right the priority glyph and the assignee chip (<c> GR </c> filled per
+    /// person, <c>[--]</c> unassigned, the same width). A listed sub-task shows its status chip there instead. The type word wins over the right side,
     /// which gives way piece by piece (the priority glyph first, so the counter keeps its place), then the word shrinks
     /// to the one-cell marker.
     /// </summary>
@@ -154,9 +154,11 @@ public static class CardRows
         }
 
         var unassigned = issue.Assignee is null || AssigneeInitials.Of(issue.Assignee.DisplayName).Length == 0;
-        var role = unassigned ? TextRole.UnassignedChip : TextRole.InitialsChip;
+        var padded = TextWidth.Pad(InitialsOf(issue), InitialsCells);
 
-        spans.Add(new StyledSpan($"[{TextWidth.Pad(InitialsOf(issue), InitialsCells)}]", role));
+        spans.Add(unassigned
+            ? new StyledSpan($"[{padded}]", TextRole.UnassignedChip)
+            : new StyledSpan($" {padded} ", PersonChips.For(issue.Assignee!.DisplayName)));
 
         if (estimate.Length > 0 && spare >= TextWidth.Of(estimate) + counterCells)
         {

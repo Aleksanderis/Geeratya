@@ -31,7 +31,7 @@ public sealed class ChipCapsTests
         var line = new StyledLine(
         [
             new StyledSpan(" 1 Board ", TextRole.TabActive),
-            new StyledSpan("[JD]", TextRole.InitialsChip),
+            new StyledSpan("[--]", TextRole.UnassignedChip),
             new StyledSpan("  ", TextRole.LabelChip0),
         ]);
 

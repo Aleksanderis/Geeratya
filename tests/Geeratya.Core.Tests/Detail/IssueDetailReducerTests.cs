@@ -235,7 +235,7 @@ public class IssueDetailReducerTests
         Assert.Contains("A-1 · Task", text);
         Assert.Contains("Status  moves via transition", text);
         Assert.Contains("● To Do", text);
-        Assert.Contains("[RR] Rita Reporter", text);
+        Assert.Contains(" RR  Rita Reporter", text);
         Assert.Contains("Description", text);
         Assert.Contains("The description of A-1", text);
         Assert.Contains("Comments 2", text);

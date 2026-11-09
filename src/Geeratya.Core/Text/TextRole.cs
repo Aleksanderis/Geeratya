@@ -154,9 +154,6 @@ public enum TextRole
     /// <summary>The cap of a <see cref="LabelChip4"/> chip.</summary>
     LabelCap4,
 
-    /// <summary>The initials chip of an assignee: muted fill.</summary>
-    InitialsChip,
-
     /// <summary>The <c>--</c> chip of an unassigned issue: muted outline, no fill.</summary>
     UnassignedChip,
 

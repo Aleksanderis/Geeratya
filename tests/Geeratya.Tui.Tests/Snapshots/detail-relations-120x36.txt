@@ -13,10 +13,10 @@
 │ │ │ GCM-21  Child story                           In Progress  [--] Unassigned │ │  ▲ High                       │ │ │
 │ │ │ GCM-22  Another child                         In Progress  [--] Unassigned │ │                               │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │ Assignee                      │ │ │
-│ │ ╭─ Linked issues 2 ──────────────────────────────────────────────────────────╮ │  [JD] Jane Doe                │ │ │
+│ │ ╭─ Linked issues 2 ──────────────────────────────────────────────────────────╮ │   JD  Jane Doe                │ │ │
 │ │ │ GCM-30  blocks Launch                                                To Do │ │                               │ │ │
 │ │ │ GCM-9   is blocked by Legal review                                   Done  │ │ Reporter                      │ │ │
-│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  [ON] Ola Nordmann            │ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │   ON  Ola Nordmann            │ │ │
 │ │ ╭─ Remote links 1 ───────────────────────────────────────────────────────────╮ │                               │ │ │
 │ │ │ Design spec · Confluence                                                   │ │ Labels                        │ │ │
 │ │ │ https://example.com/spec                                                   │ │   auth   bug-bash             │ │ │

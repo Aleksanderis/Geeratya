@@ -71,7 +71,6 @@ public enum PaletteRole
     LabelCap2,
     LabelCap3,
     LabelCap4,
-    InitialsChip,
     UnassignedChip,
     ValueBlock,
     SelectionBar,

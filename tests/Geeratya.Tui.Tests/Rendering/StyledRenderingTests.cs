@@ -42,7 +42,6 @@ public class StyledRenderingTests
     [InlineData(TextRole.Editable, PaletteRole.Editable)]
     [InlineData(TextRole.LabelChip0, PaletteRole.LabelChip0)]
     [InlineData(TextRole.LabelChip4, PaletteRole.LabelChip4)]
-    [InlineData(TextRole.InitialsChip, PaletteRole.InitialsChip)]
     [InlineData(TextRole.UnassignedChip, PaletteRole.UnassignedChip)]
     [InlineData(TextRole.ValueBlock, PaletteRole.ValueBlock)]
     [InlineData(TextRole.SelectionBar, PaletteRole.SelectionBar)]

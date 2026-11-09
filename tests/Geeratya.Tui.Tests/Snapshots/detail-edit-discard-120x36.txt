@@ -13,10 +13,10 @@
 │ │ ╭─ Description ────────────────── 1-7 of 40 · za expand · (edit in browser) ─╮ │  ▲ High                       │ │ │
 │ │ │ Heading one                                                               ▲│ │                               │ │ │
 │ │ │                                                                           █│ │ Assignee                      │ │ │
-│ │ │ Heading three                                                             ░│ │  [JD] Jane Doe                │ │ │
+│ │ │ Heading three                                                             ░│ │   JD  Jane Doe                │ │ │
 │ │ │                                                                           ░│ │                               │ │ │
 │ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ │ Reporter                      │ │ │
-│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ │  [ON] Ola Nordmann            │ │ │
+│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ │   ON  Ola Nordmann            │ │ │
 │ │ │ after break                                                               ░│ │                               │ │ │
 │ │ │ … 33 more lines                                                           ▼│ │ Labels                        │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │   auth   bug-bash             │ │ │
