@@ -70,11 +70,21 @@ public sealed partial class ShellHost
         }
 
         _quitting = true;
-        _application?.Invoke(StopApplication);
+        AskLoopToStop();
     }
 
-    private void StopApplication()
+    // The application may be gone (an outside editor owns the terminal) or being replaced; the deadline covers that.
+    private void AskLoopToStop()
     {
-        _application?.RequestStop();
+        try
+        {
+            var application = _application;
+
+            application?.Invoke(application.RequestStop);
+        }
+        catch (Exception exception) when (exception is ObjectDisposedException or InvalidOperationException)
+        {
+            // Nothing to stop; the watchdog ends the process if the loop is still around.
+        }
     }
 }
