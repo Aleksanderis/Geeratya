@@ -142,13 +142,13 @@ run_fake() { # <PATH>; installs into a clean folder
 rm -f "$tmp/curl.log" "$tmp/curl.fail"
 out="$(run_fake "$fakes:$PATH")" || fail "install with the fake curl failed: $out"
 [ "$(installed_version)" = "Geeratya 1.2.3" ] || fail "fake curl install did not install"
-[ "$(wc -l < "$tmp/curl.log")" = 3 ] || fail "expected 3 curl calls (release, archive, sums): $(cat "$tmp/curl.log")"
+[ "$(wc -l < "$tmp/curl.log" | tr -d " ")" = 3 ] || fail "expected 3 curl calls (release, archive, sums): $(cat "$tmp/curl.log")"
 [ "$(grep -c -e '-fsSL --retry 4 ' "$tmp/curl.log")" = 3 ] || fail "a curl call lacks -f or --retry 4: $(cat "$tmp/curl.log")"
 # A failing curl (after its own retries) fails the install once, with the hint; the script does not loop around curl.
 touch "$tmp/curl.fail"; rm -f "$tmp/curl.log"
 if out="$(run_fake "$fakes:$PATH")"; then fail "install succeeded although curl failed"; fi
 grep -q "download failed" <<<"$out" || fail "no message when curl fails: $out"
-[ "$(wc -l < "$tmp/curl.log")" = 1 ] || fail "install.sh called curl again after it failed: $(cat "$tmp/curl.log")"
+[ "$(wc -l < "$tmp/curl.log" | tr -d " ")" = 1 ] || fail "install.sh called curl again after it failed: $(cat "$tmp/curl.log")"
 [ ! -e "$tmp/bin/geeratya" ] || fail "binary installed after a failed download"
 rm -f "$tmp/curl.fail"
 # wget fallback, with curl hidden: PATH holds only links to the tools install.sh needs, plus the fake wget.
