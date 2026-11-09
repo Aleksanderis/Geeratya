@@ -13,6 +13,7 @@ internal static class AdfTextColors
     private const int NibbleScale = 17;
     private const int MinValue = 90;
     private const int GreyChroma = 32;
+    private const double GreySaturation = 0.29;
     private const int WhiteFloor = 200;
     private const double YellowStart = 20;
     private const double GreenStart = 70;
@@ -35,7 +36,8 @@ internal static class AdfTextColors
         var min = Math.Min(red, Math.Min(green, blue));
         var chroma = max - min;
 
-        if (chroma < GreyChroma)
+        // Grey by saturation too: Jira's slate greys (#5e6c84, #7a869a) are bluish but far from a real blue.
+        if (chroma < GreyChroma || chroma <= max * GreySaturation)
         {
             return max < MinValue || min >= WhiteFloor ? null : TextRole.ColorGray;
         }

@@ -264,6 +264,11 @@ public sealed class AdfRendererTests
     [InlineData("#0052cc", TextRole.ColorBlue)]
     [InlineData("#6554c0", TextRole.ColorPurple)]
     [InlineData("#97a0af", TextRole.ColorGray)]
+    [InlineData("#5e6c84", TextRole.ColorGray)]
+    [InlineData("#7a869a", TextRole.ColorGray)]
+    [InlineData("#6b778c", TextRole.ColorGray)]
+    [InlineData("#b3d4ff", TextRole.ColorBlue)]
+    [InlineData("#4c9aff", TextRole.ColorBlue)]
     [InlineData("#E91E63", TextRole.ColorRed)]
     public void GivenTextColour_WhenRendering_ThenItMapsToTheNearestHueRole(string colour, TextRole expected)
     {

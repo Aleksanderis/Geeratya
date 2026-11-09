@@ -33,6 +33,7 @@ public enum TextRole
 
     /// <summary>Coloured text, grey.</summary>
     ColorGray,
+
     Link,
     Quote,
     Selected,

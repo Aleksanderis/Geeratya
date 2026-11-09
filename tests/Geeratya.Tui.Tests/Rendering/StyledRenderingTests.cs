@@ -118,6 +118,13 @@ public class StyledRenderingTests
     }
 
     [Fact]
+    public void GivenGreyTextRole_WhenMapping_ThenItUsesTheMutedRole()
+    {
+        Assert.Equal(PaletteRole.Muted, PaletteTable.For(TextRole.ColorGray));
+        Assert.Equal(PaletteRole.Strike, PaletteTable.For(TextRole.Strike));
+    }
+
+    [Fact]
     public void GivenSelectedAndDoneStyles_WhenCreatingAttributes_ThenTextStyleAndColoursCarryOver()
     {
         var selected = AttributeFactory.Create(Resolve(ColorSupport.None, PaletteRole.Selected));
