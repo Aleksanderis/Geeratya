@@ -76,6 +76,34 @@ internal static partial class CommentEditing
         return new ReduceResult(WithOpenEditor(state, editor), effects);
     }
 
+    /// <summary>
+    /// <c>comment.reply</c>: opens an empty editor for a reply to the comment under the cursor. Jira nests replies one
+    /// level only, so a reply to a reply goes under the top-level comment of its thread.
+    /// </summary>
+    public static ReduceResult Reply(AppState state)
+    {
+        if (TopOf(state) is not { } top)
+        {
+            return Say(state, OpenIssueText);
+        }
+
+        if (CommentUnderCursor(top.Detail) is not { } comment)
+        {
+            return Say(state, NoCommentText);
+        }
+
+        var editor = new CommentEditor(
+            top.Tab.Id,
+            top.Detail.Key,
+            null,
+            TextBuffer.Empty,
+            string.Empty,
+            ParentId: comment.ParentId ?? comment.Id,
+            ReplyTo: Clean(comment.Author?.DisplayName ?? "unknown"));
+
+        return Result(WithOpenEditor(state, editor));
+    }
+
     /// <summary><c>comment.delete</c>: asks first, naming the comment and that Jira cannot undo the delete.</summary>
     public static ReduceResult Delete(AppState state, DateTimeOffset at)
     {

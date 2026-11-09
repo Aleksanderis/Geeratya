@@ -60,6 +60,7 @@ public class CommentEditingTests
     [InlineData("a")]
     [InlineData("e")]
     [InlineData("d")]
+    [InlineData("r")]
     public void GivenAListWithNoIssueOpen_WhenPressingACommentKey_ThenTheStatusLineSaysSoAndNothingOpens(string verb)
     {
         var result = Press(ListOnly(), "Space", "m", verb);
@@ -387,6 +388,15 @@ public class CommentEditingTests
         Assert.Equal(InputMode.Confirm, enter.Mode);
         Assert.Equal(InputMode.Insert, esc.Mode);
         Assert.Equal("Draft", esc.Editor!.Buffer.Text);
+    }
+
+    [Fact]
+    public void GivenNoCommentUnderTheCursor_WhenPressingTheReplyKeys_ThenTheStatusLineSaysSo()
+    {
+        var result = Press(OpenIssue(), "Space", "m", "r");
+
+        Assert.Null(result.State.Editor);
+        Assert.Equal("Put the cursor on a comment first.", result.State.Message);
     }
 
     [Fact]
@@ -806,6 +816,68 @@ public class CommentEditingTests
         Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "2"), document.Targets[second - 1]);
         Assert.Equal(new DetailTarget(DetailTargetKind.Comment, "2"), document.Targets[second]);
         Assert.Null(document.Targets[second - 2]);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnATopLevelComment_WhenPressingTheReplyKeys_ThenTheEditorOpensForAReplyToIt()
+    {
+        var state = OnComment(OpenIssue(), "2", Comment(2, _other, "question"));
+
+        var result = Press(state, "Space", "m", "r");
+
+        var editor = Assert.IsType<CommentEditor>(result.State.Editor);
+        Assert.Null(editor.CommentId);
+        Assert.Equal("2", editor.ParentId);
+        Assert.Equal("Olga Other", editor.ReplyTo);
+        Assert.True(editor.IsReply);
+        Assert.Equal(string.Empty, editor.Buffer.Text);
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+        Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnAReply_WhenPressingTheReplyKeys_ThenTheReplyGoesUnderTheThreadRoot()
+    {
+        var reply = Comment(2, _other, "answer") with { ParentId = "1" };
+        var state = OnComment(OpenIssue(), "2", reply);
+
+        var result = Press(state, "Space", "m", "r");
+
+        Assert.Equal("1", result.State.Editor!.ParentId);
+        Assert.Equal("Olga Other", result.State.Editor.ReplyTo);
+    }
+
+    [Fact]
+    public void GivenAReplyEditor_WhenSavingAndJiraAnswers_ThenTheWriteCarriesTheParentAndTheReplyIsStored()
+    {
+        var opened = Press(OnComment(OpenIssue(), "1", Comment(1, _me, "root")), "Space", "m", "r");
+        var typed = _reducer.Reduce(opened.State, new TextPasted("agreed")).State;
+
+        var saving = Press(typed, "Ctrl-s");
+
+        var effect = Assert.IsType<ExecuteWriteEffect>(Assert.Single(saving.Effects));
+        var request = Assert.IsType<AddCommentRequest>(effect.Request);
+        Assert.Equal("1", request.ParentId);
+        Assert.Equal("agreed", AdfMarkdownWriter.ToText(request.Body));
+        Assert.Equal(OperationKind.AddComment, Assert.Single(saving.State.Session.Operations).Kind);
+
+        var stored = Comment(77, _me, "agreed") with { ParentId = "1" };
+        var done = _reducer.Reduce(saving.State, new WriteSucceeded(effect.OperationId, _now, [], stored));
+
+        Assert.Null(done.State.Editor);
+        Assert.Equal("Added a comment to A-1", done.State.Message);
+        var detail = Active(done.State).Detail[0];
+        Assert.Equal("1", detail.Comments.Single(comment => comment.Id == "77").ParentId);
+        Assert.Equal(["1", "77", "2"], CommentThreads.Arrange(detail.Comments).Select(item => item.Comment.Id));
+    }
+
+    [Fact]
+    public void GivenAnAddWithoutParent_WhenSaving_ThenTheRequestHasNoParentId()
+    {
+        var result = Press(Typed("plain"), "Ctrl-s");
+
+        var request = Assert.IsType<AddCommentRequest>(Assert.IsType<ExecuteWriteEffect>(Assert.Single(result.Effects)).Request);
+        Assert.Null(request.ParentId);
     }
 
     private ReduceResult Press(AppState state, params string[] keys)

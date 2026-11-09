@@ -27,7 +27,7 @@
 │                                           │ ,         Open or close the settings screen                              │
 │                                           │ z         Zoom the focused pane, or leave the zoom                       │
 │                                           │ More                                                                     │
-│                                           │ m         +comment (3)                                                   │
+│                                           │ m         +comment (4)                                                   │
 │                                           │ i         +issue (6)                                                     │
 │                                           │ s         +sprint (7)                                                    │
 │                                           │ v         +view (6)                                                      │

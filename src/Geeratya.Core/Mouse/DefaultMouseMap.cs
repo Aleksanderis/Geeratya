@@ -126,6 +126,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.RankTo),
         ContextMenuRow(ActionIds.SprintMoveIssues),
         ContextMenuRow(ActionIds.SprintMoveToBacklog),
+        ContextMenuRow(ActionIds.CommentReply),
         ContextMenuRow(ActionIds.CommentDelete),
         ContextMenuRow(ActionIds.CommentOrder),
         ContextMenuRow(ActionIds.TabClose, 'V'),

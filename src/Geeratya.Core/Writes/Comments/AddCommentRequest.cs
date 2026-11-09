@@ -10,7 +10,13 @@ namespace Geeratya.Core.Writes.Comments;
 /// The highest comment id the issue showed when the write started (0 when none); a comment at or below it is not the
 /// new one. Used to find the new comment after a lost reply.
 /// </param>
-public sealed record AddCommentRequest(string Key, AdfDocument Body, string? AuthorAccountId, long AfterId)
+/// <param name="ParentId">The top-level comment this one replies to (sent as <c>parentId</c>); null for a new thread.</param>
+public sealed record AddCommentRequest(
+    string Key,
+    AdfDocument Body,
+    string? AuthorAccountId,
+    long AfterId,
+    string? ParentId = null)
     : CommentRequest(Key)
 {
     public override OperationKind Kind => OperationKind.AddComment;

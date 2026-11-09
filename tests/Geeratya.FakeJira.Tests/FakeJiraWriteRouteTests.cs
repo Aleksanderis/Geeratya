@@ -232,6 +232,25 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAParentId_WhenAddingAComment_ThenTheListShowsItAsAReplyAndNoParentMeansTopLevel()
+    {
+        Start(0);
+        var reply = await Send(
+            HttpMethod.Post,
+            "/rest/api/3/issue/GCM-2/comment",
+            CommentBody.Replace("{\"body\"", "{\"parentId\":10024,\"body\"", StringComparison.Ordinal));
+        var plain = await Send(HttpMethod.Post, "/rest/api/3/issue/GCM-2/comment", CommentBody);
+
+        var list = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-2/comment"));
+
+        Assert.Equal(10024, Parse(await reply.Content.ReadAsStringAsync()).GetProperty("parentId").GetInt32());
+        Assert.False(Parse(await plain.Content.ReadAsStringAsync()).TryGetProperty("parentId", out _));
+        var items = list.GetProperty("comments").EnumerateArray().ToArray();
+        Assert.Equal(10024, items[0].GetProperty("parentId").GetInt32());
+        Assert.False(items[1].TryGetProperty("parentId", out _));
+    }
+
+    [Fact]
     public async Task GivenRecordedComment_WhenEditedAndDeleted_ThenListFollowsAndOthersStay()
     {
         Start(0);

@@ -61,13 +61,16 @@ public sealed class CommentClient(JiraTransport transport)
     }
 
     /// <summary>
-    /// Adds a comment with an ADF body (visibility stays at Jira's default) and returns the stored comment.
+    /// Adds a comment with an ADF body (visibility stays at Jira's default) and returns the stored comment. With
+    /// <paramref name="parentId"/> it is a reply: the id goes in the body as the JSON number <c>parentId</c> (the shape the read has; what Jira's own client
+    /// sends; the public REST docs do not list the field, see <c>docs/internal/jira-layer.md</c>, "Comments").
     /// </summary>
     public Task<WriteResult<IssueComment>> AddCommentAsync(
         string key,
         AdfDocument body,
-        CancellationToken cancellationToken) =>
-        SendBodyAsync(HttpMethod.Post, key, null, body, cancellationToken);
+        CancellationToken cancellationToken,
+        string? parentId = null) =>
+        SendBodyAsync(HttpMethod.Post, key, null, body, cancellationToken, parentId);
 
     /// <summary>Replaces the body of a comment and returns the stored comment (author, created, updated).</summary>
     public Task<WriteResult<IssueComment>> EditCommentAsync(
@@ -98,8 +101,14 @@ public sealed class CommentClient(JiraTransport transport)
         string key,
         string? commentId,
         AdfDocument body,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? parentId = null)
     {
+        if (parentId is not null && Refusal<IssueComment>(key, parentId) is { } badParent)
+        {
+            return badParent;
+        }
+
         if ((commentId is null ? Refusal<IssueComment>(key) : Refusal<IssueComment>(key, commentId)) is { } refused)
         {
             return refused;
@@ -110,7 +119,8 @@ public sealed class CommentClient(JiraTransport transport)
             return Refused<IssueComment>(WriteErrorKind.Validation, "A comment cannot be empty.");
         }
 
-        var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}}""";
+        var parent = parentId is null ? string.Empty : $",\"parentId\":{parentId}";
+        var json = $$"""{"body":{{AdfJsonWriter.ToJson(body)}}{{parent}}}""";
         var result = await transport.SendWriteAsync(
             JiraRequest.Write(method, CommentPath(key, commentId), json),
             CommentJsonContext.Default.Comment,

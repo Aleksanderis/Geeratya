@@ -5,6 +5,7 @@
 │           │   Global      │ Comment                                                                     ▲│           │
 │           │   All actions │   <space>ma  Add a comment to the issue                                      │           │
 │           │   Commands    │   <space>me  Edit the comment under the cursor                               │           │
+│           │               │   <space>mr  Reply to the comment under the cursor                           │           │
 │           │               │   <space>md  Delete the comment under the cursor                             │           │
 │           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
 │           │               │ Rank                                                                         │           │
@@ -29,8 +30,7 @@
 │           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
 │           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
 │           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
-│           │               │              weeks, all, or follow Jira)                                     │           │
-│           │               │   <space>vv  Open a saved view in a new tab                                 ▼│           │
+│           │               │              weeks, all, or follow Jira)                                    ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -177,7 +177,7 @@ internal static partial class CommentEditing
 
         var author = state.Session.Connection is Connected { AccountId: { } account } ? account : null;
 
-        return new AddCommentRequest(editor.Key, body, author, HighestId(detail));
+        return new AddCommentRequest(editor.Key, body, author, HighestId(detail), editor.ParentId);
     }
 
     private static long HighestId(DetailState detail)

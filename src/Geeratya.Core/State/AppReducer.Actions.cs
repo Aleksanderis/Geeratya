@@ -138,6 +138,7 @@ public sealed partial class AppReducer
             ActionIds.EditorExternal when state.Form is null => CommentEditing.External(state),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
+            ActionIds.CommentReply => InNormal(state, () => CommentEditing.Reply(state)),
             ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state, at)),
             ActionIds.CommentOrder => InNormal(state, () => DetailReducer.ReverseComments(state)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),

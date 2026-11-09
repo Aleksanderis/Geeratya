@@ -19,6 +19,8 @@ namespace Geeratya.Core.Comments;
 /// <param name="OperationId">The id of the write in flight, 0 while nothing is being saved.</param>
 /// <param name="Suggest">The open suggestion popup of the trigger before the cursor (@ or #), or null.</param>
 /// <param name="Unseen">People of the opened comment who may not see the issue (from <see cref="MentionsChecked"/>); see <see cref="UnseenNow"/>.</param>
+/// <param name="ParentId">The top-level comment a new comment replies to (the write sends it as <c>parentId</c>), or null.</param>
+/// <param name="ReplyTo">The name of the author the reply answers (for the title), or null.</param>
 /// <param name="Dismissed">The text index of a trigger whose popup Esc closed (not reopened for it), or -1.</param>
 public sealed record CommentEditor(
     TabId Tab,
@@ -31,7 +33,9 @@ public sealed record CommentEditor(
     long OperationId = 0,
     SuggestionState? Suggest = null,
     int Dismissed = -1,
-    IReadOnlyList<MentionedPerson>? Unseen = null)
+    IReadOnlyList<MentionedPerson>? Unseen = null,
+    string? ParentId = null,
+    string? ReplyTo = null)
 {
     private const string MentionMarker = "mention:";
     private const int DefaultColumns = 80;
@@ -41,6 +45,8 @@ public sealed record CommentEditor(
     private const int WallsAndPadding = 4;
 
     public bool IsEdit => CommentId is not null;
+
+    public bool IsReply => ParentId is not null;
 
     /// <summary>Whether the text differs from the one the editor opened with.</summary>
     public bool IsChanged => !string.Equals(Buffer.Text, Original, StringComparison.Ordinal);

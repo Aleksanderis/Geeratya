@@ -65,6 +65,7 @@ public static class ActionCatalog
         [ActionIds.IssueUnlink] = ActionScope.Detail,
         [ActionIds.CommentAdd] = ActionScope.Detail,
         [ActionIds.CommentEdit] = ActionScope.Detail,
+        [ActionIds.CommentReply] = ActionScope.Detail,
         [ActionIds.CommentDelete] = ActionScope.Detail,
         [ActionIds.CommentOrder] = ActionScope.Detail,
     };
@@ -195,6 +196,7 @@ public static class ActionCatalog
         new(ActionIds.SprintGoal, "Show the full goal of the sprint"),
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
+        new(ActionIds.CommentReply, "Reply to the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
         new(ActionIds.CommentOrder, "Reverse the order of the comments: oldest first or newest first"),
         new(ActionIds.EditorLeft, "Move the cursor left"),

@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>mo  Reverse the order of the comments: oldest first or newest first▲│           │
-│           │   All actions │ Rank                                                                         │           │
-│           │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │   Global      │   <space>mr  Reply to the comment under the cursor                          ▲│           │
+│           │   All actions │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
+│           │   Commands    │ Rank                                                                         │           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │ Selection                                                                    │           │
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
@@ -29,8 +30,7 @@
 │           │               │   <space>sv  Switch the sprint shown (active, future, closed)                │           │
 │           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
 │           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
-│           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
-│           │               │   <space>sg  Show the full goal of the sprint                               ▼│           │
+│           │               │   <space>sc  Complete the sprint (confirms where the open issues go)        ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

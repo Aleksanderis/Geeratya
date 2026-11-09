@@ -74,6 +74,7 @@
     { "mode": "normal", "keys": "Alt-r", "action": "settings.reset" },
     { "mode": "normal", "keys": "Space m a", "action": "comment.add" },
     { "mode": "normal", "keys": "Space m e", "action": "comment.edit" },
+    { "mode": "normal", "keys": "Space m r", "action": "comment.reply" },
     { "mode": "normal", "keys": "Space m d", "action": "comment.delete" },
     { "mode": "normal", "keys": "Space m o", "action": "comment.order" },
     { "mode": "normal", "keys": "Space i s", "action": "issue.transition" },

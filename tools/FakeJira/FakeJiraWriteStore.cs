@@ -349,6 +349,16 @@ public sealed partial class FakeJiraWriteStore
             entry[IdName] = id;
             entry[BodyName] = comment;
             entry["self"] = $"{SelfPrefix}{stored.Id}/comment/{id}";
+
+            if (ReadParentId(body) is { } parentId)
+            {
+                entry["parentId"] = JsonNode.Parse(parentId);
+            }
+            else
+            {
+                entry.Remove("parentId");
+            }
+
             stored.Comments.Add(entry);
 
             return new FakeReply(Created, Encoding.UTF8.GetBytes(entry.ToJsonString()));
@@ -579,6 +589,18 @@ public sealed partial class FakeJiraWriteStore
             return (JsonNode.Parse(body) as JsonObject)?[TransitionName]?[IdName]?.GetValue<string>();
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private static string? ReadParentId(string body)
+    {
+        try
+        {
+            return (JsonNode.Parse(body) as JsonObject)?["parentId"]?.ToJsonString();
+        }
+        catch (JsonException)
         {
             return null;
         }
